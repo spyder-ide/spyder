@@ -1,0 +1,61 @@
+Spyder - Scientific PYthon Development EnviRonment
+==================================================
+
+Copyright © 2009 Pierre Raybaut
+Licensed under the terms of the MIT License
+(see spyderlib/__init__.py for details)
+
+
+    Overview
+
+        Spyder is a Python development environment with tons of features:
+            Editor
+                Multi-language editor with function/class browser, code analysis
+                (pyflakes and pylint are currently supported), horizontal/verti-
+                cal splitting, etc.
+            Documentation viewer
+                Automatically show documentation (if available, or source code
+                otherwise) for any class instantiation or function call made
+                in a Python shell (interactive/external console, see below)
+            Interactive console
+                Python shell with workspace support (variable explorer with GUI
+                based editors: dictionary editor, array editor, ...) and
+                matplotlib figures integration
+            External console (separate process)
+                Run Python scripts (interactive, debugging or normal mode) or
+                open a Python interpreter with variable explorer and documenta-
+                tion viewer support (a basic terminal window may also be opened
+                with the external console)
+            File/directories explorer
+            Find in files feature
+                Supporting regular expressions and mercurial repositories
+            History log
+
+        Spyder may also be used as a PyQt4 extension library (module 'spyderlib').
+        For example, the Python interactive shell widget used in Spyder may be
+        embedded in your own PyQt4 application.
+
+    Dependencies
+    
+        Requirements
+            Python 2.x (x>=5)
+            PyQt4 4.x (x>=3 ; recommended x>=4)
+            QScintilla2 2.x (x>=1) (PyQt4 extension)
+            
+        Optional modules
+            pylint (code analysis)
+            numpy (N-dimensional arrays)
+            scipy (signal/image processing)
+            matplotlib (2D plotting)
+
+    Installation
+    
+        From the source package:
+            python setup.py install
+            
+    More informations
+    
+        Downloads, bug reports and feature requests:
+            http://code.google.com/s/spyder/
+        Discussions:
+            http://groups.google.com/group/spyder
