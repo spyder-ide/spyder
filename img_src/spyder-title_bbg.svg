@@ -15,10 +15,10 @@
    id="svg2"
    sodipodi:version="0.32"
    inkscape:version="0.46"
-   sodipodi:docname="spyder-title.svg"
+   sodipodi:docname="spyder-title_bbg.svg"
    sodipodi:docbase="/home/sdeibel"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-   inkscape:export-filename="D:\Python\spyder\doc_src\_static\spyder.png"
+   inkscape:export-filename="D:\Python\spyder\doc_src\_static\spyder_bbg.png"
    inkscape:export-xdpi="94.739998"
    inkscape:export-ydpi="94.739998">
   <metadata
@@ -42,7 +42,7 @@
      pagecolor="#ffffff"
      id="base"
      inkscape:zoom="2.0279948"
-     inkscape:cx="-33.214771"
+     inkscape:cx="-122.46549"
      inkscape:cy="56.434504"
      inkscape:window-x="0"
      inkscape:window-y="22"
@@ -364,7 +364,7 @@
   </g>
   <text
      xml:space="preserve"
-     style="font-size:56px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#414141;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Candara;-inkscape-font-specification:Candara"
+     style="font-size:56px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#ebebeb;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;font-family:Candara;-inkscape-font-specification:Candara"
      x="6.2265625"
      y="140.5273"
      id="text2451"
@@ -373,5 +373,5 @@
        id="tspan2453"
        x="6.2265625"
        y="140.5273"
-       style="font-size:48px;fill:#414141;fill-opacity:1">spyder</tspan></text>
+       style="font-size:48px;fill:#ebebeb;fill-opacity:1">spyder</tspan></text>
 </svg>
