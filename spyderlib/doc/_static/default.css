@@ -17,7 +17,7 @@ body {
 }
 
 div.document {
-    background-color: #227A2B;
+    background-color: #1c4e63;
 }
 
 div.body {
@@ -89,11 +89,11 @@ div.sphinxsidebar ul {
 }
 
 div.sphinxsidebar a {
-    color: #98ff99;
+    color: #98dbcc;
 }
 
 div.sphinxsidebar input {
-    border: 1px solid #98ff99;
+    border: 1px solid #98dbcc;
     font-family: sans-serif;
     font-size: 1em;
 }
