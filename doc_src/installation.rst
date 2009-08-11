@@ -24,5 +24,6 @@ From the source package:
 Help and support
 ----------------
 
-Downloads, bug reports and feature requests: http://code.google.com/s/spyder/
-Discussions: http://groups.google.com/group/spyder
+Spyder websites:
+    * Downloads, bug reports and feature requests: http://code.google.com/s/spyder/
+    * Discussions: http://groups.google.com/group/spyderlib
