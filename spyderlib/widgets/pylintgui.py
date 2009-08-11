@@ -278,6 +278,11 @@ class PylintWidget(QWidget):
                 # New module
                 module = line[len(txt_module):]
                 continue
+            for prefix in results:
+                if line.startswith(prefix):
+                    break
+            else:
+                continue
             i1 = line.find(':')
             if i1 == -1:
                 continue
