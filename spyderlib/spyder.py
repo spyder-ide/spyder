@@ -45,8 +45,11 @@ from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.qthelpers import (create_action, add_actions, get_std_icon,
                                  keybinding, translate, get_filetype_icon,
-                                 add_module_dependent_bookmarks, add_bookmark)
+                                 add_module_dependent_bookmarks, add_bookmark,
+                                 create_program_action,
+                                 create_python_gui_script_action)
 from spyderlib.config import get_icon, get_image_path, CONF, get_conf_path
+from spyderlib.utils import run_python_gui_script
 
 
 def get_python_doc_path():
@@ -255,7 +258,6 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
-            maintoolbar_actions = []
             main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
                                                "main_toolbar")
             # Maximize current plugin
@@ -263,21 +265,7 @@ class MainWindow(QMainWindow):
                                              shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
-            maintoolbar_actions.append(self.maximize_action)
-            # Python(x,y) launcher
-            self.xy_action = create_action(self, self.tr("Run Python(x,y) "
-                                                         "launcher"),
-                                           icon=get_icon('pythonxy.png'),
-                                           triggered=self.run_xyhome)
-            maintoolbar_actions.append(self.xy_action)
-            try:
-                imp.find_module('xy')
-            except ImportError:
-                self.xy_action.setDisabled(True)
-                self.xy_action.setToolTip(self.xy_action.toolTip() + \
-                                          '\nPlease install Python(x,y) to '
-                                          'enable this feature')
-            add_actions(main_toolbar, maintoolbar_actions)
+            main_toolbar.addAction(self.maximize_action)
             
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
@@ -501,7 +489,42 @@ class MainWindow(QMainWindow):
             self.view_menu.setTitle(self.tr("&View"))
             add_actions(self.view_menu, (None, self.maximize_action))
             self.menuBar().addMenu(self.view_menu)
-        
+            
+            # Tools menu
+            tools_menu = self.menuBar().addMenu(self.tr("&Tools"))
+            tools_actions = []
+            # Python(x,y) launcher
+            self.xy_action = create_action(self,
+                                       self.tr("Python(x,y) launcher"),
+                                       icon=get_icon('pythonxy.png'),
+                                       triggered=lambda:
+                                       run_python_gui_script('xy', 'xyhome'))
+            tools_actions.append(self.xy_action)
+            try:
+                imp.find_module('xy')
+            except ImportError:
+                self.xy_action.setDisabled(True)
+                self.xy_action.setToolTip(self.xy_action.toolTip() + \
+                                          '\nPlease install Python(x,y) to '
+                                          'enable this feature')
+            # Qt-related tools
+            additact = [None]
+            qtdact = create_program_action(self, self.tr("Qt Designer"),
+                                           'qtdesigner.png', "designer")
+            qtlact = create_program_action(self, self.tr("Qt Linguist"),
+                                           'qtlinguist.png', "linguist")
+            qteact = create_python_gui_script_action(self,
+                                   self.tr("Qt examples"), 'qt.png', "PyQt4",
+                                   osp.join("examples", "demos",
+                                            "qtdemo", "qtdemo"))
+            for act in (qtdact, qtlact, qteact):
+                if act:
+                    additact.append(act)
+            if len(additact) > 1:
+                tools_actions += additact
+            add_actions(tools_menu, tools_actions)
+            add_actions(main_toolbar, tools_actions)
+                    
             # ? menu
             help_menu = self.menuBar().addMenu("?")
             help_menu.addAction( create_action(self,
@@ -517,15 +540,12 @@ class MainWindow(QMainWindow):
                                           icon=get_icon('python.png'),
                                           triggered=open_python_doc)
                 add_actions(help_menu, (None, pydoc_act))
-            if os.name == 'nt':
-                # Qt assistant link: Windows only
-                import PyQt4
-                qta = osp.join(osp.dirname(PyQt4.__file__), "assistant.exe")
-                if osp.isfile(qta):
-                    qta_act = create_action(self, self.tr("Qt Assistant"),
-                                            icon=get_icon('qtassistant.png'),
-                                            triggered=lambda: os.startfile(qta))
-                    help_menu.addAction(qta_act)
+                
+            # Qt assistant link
+            qtaact = create_program_action(self, self.tr("Qt Assistant"),
+                                           'qtassistant.png', "assistant")
+            if qtaact:
+                help_menu.addAction(qtaact)
             add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
                 
         # Window set-up
@@ -586,7 +606,6 @@ class MainWindow(QMainWindow):
         add_actions(self.file_menu, [self.spyder_path_action])
         if self.winenv_action is not None:
             self.file_menu.addAction(self.winenv_action)
-        self.file_menu.addAction(self.xy_action)
         recent_files = []
         for fname in self.editor.recent_files:
             if not self.editor.is_file_opened(fname) and osp.isfile(fname):
@@ -760,12 +779,6 @@ class MainWindow(QMainWindow):
             self.last_window_state = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
-    
-    def run_xyhome(self):
-        import subprocess
-        from xy import xyhome
-        command = [sys.executable, '"'+xyhome.__file__+'"']
-        subprocess.Popen(" ".join(command) )
     
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""

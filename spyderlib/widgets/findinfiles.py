@@ -35,7 +35,7 @@ from subprocess import Popen, PIPE
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.environ import is_program_installed
+from spyderlib.utils import is_program_installed
 from spyderlib.qthelpers import (get_std_icon, create_toolbutton, translate,
                                 get_filetype_icon)
 from spyderlib.config import get_icon

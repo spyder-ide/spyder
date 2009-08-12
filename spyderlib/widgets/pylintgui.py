@@ -33,7 +33,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.environ import is_program_installed
+from spyderlib.utils import is_program_installed
 from spyderlib.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets import OneColumnTree

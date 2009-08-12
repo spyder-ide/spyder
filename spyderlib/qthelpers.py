@@ -7,7 +7,7 @@
 """Qt utilities"""
 
 import os.path as osp
-import webbrowser, imp
+import os, webbrowser, imp
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
@@ -15,7 +15,10 @@ from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
 from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 
 # Local import
-from config import get_icon
+from spyderlib.config import get_icon
+from spyderlib.utils import (is_program_installed, run_program,
+                             is_python_gui_script_installed,
+                             run_python_gui_script)
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -154,6 +157,28 @@ def add_module_dependent_bookmarks(parent, menu, bookmarks):
             add_bookmark(parent, menu, url, title, get_icon(icon))
         except ImportError:
             pass
+        
+def create_program_action(parent, text, icon, name, nt_name=None):
+    """Create action to run a program"""
+    if os.name == 'nt':
+        if nt_name is None:
+            name += ".exe"
+        else:
+            name = nt_name
+    if isinstance(icon, basestring):
+        icon = get_icon(icon)
+    if is_program_installed(name):
+        return create_action(parent, text, icon=icon,
+                             triggered=lambda: run_program(name))
+        
+def create_python_gui_script_action(parent, text, icon, package, module):
+    """Create action to run a GUI based Python script"""
+    if isinstance(icon, basestring):
+        icon = get_icon(icon)
+    if is_python_gui_script_installed(package, module):
+        return create_action(parent, text, icon=icon,
+                             triggered=lambda:
+                             run_python_gui_script(package, module))
         
 def get_std_icon(name, size=None):
     """Get standard platform icon
