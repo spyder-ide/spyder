@@ -7,6 +7,10 @@ scientific computing thanks to `NumPy`, `SciPy` and `matplotlib` integration.
 
 Spyder may also be used as an extension library providing powerful 
 console-related PyQt4 widgets.
+
+Spyder websites:
+    * Downloads, bug reports and feature requests: http://code.google.com/p/pydee/
+    * Discussions: http://groups.google.com/group/spyderlib
             
 .. image:: images/spyder.png
 

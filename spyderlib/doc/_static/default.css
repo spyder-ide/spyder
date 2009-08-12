@@ -20,6 +20,15 @@ div.document {
     background-color: #1c4e63;
 }
 
+div.documentwrapper {
+    float: left;
+    width: 100%;
+}
+
+div.bodywrapper {
+    margin: 0 0 0 230px;
+}
+
 div.body {
     background-color: #ffffff;
     color: #000000;
