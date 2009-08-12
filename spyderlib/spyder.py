@@ -977,6 +977,10 @@ def get_options():
                       default=False,
                       help="Import pylab in interactive mode"
                            " and add option --numpy")
+    parser.add_option('--mlab', dest="mlab", action='store_true',
+                      default=False,
+                      help="Import mlab as M (MayaVi's interactive "
+                           "3D-plotting interface)")
     parser.add_option('-o', '--os', dest="os", action='store_true',
                       default=False,
                       help="Import os and os.path as osp")
@@ -1032,9 +1036,10 @@ def get_options():
             messagelist.append('os')
     
     # Options --pylab, --numpy, --scipy
-    def addoption(name, command):
+    def addoption(name, command, in_all=True):
+        """in_all: this option is part of the --all option"""
         commands.append(command)
-        if not options.all:
+        if not options.all or not in_all:
             messagelist.append('%s (%s)' % (name, command))
             intitlelist.append(name)
     if options.pylab:
@@ -1045,6 +1050,9 @@ def get_options():
         addoption('scipy', 'import scipy as S')
     if options.numpy:
         addoption('numpy', 'import numpy as N')
+    if options.mlab:
+        addoption('mlab', 'from enthought.mayavi import mlab as M',
+                  in_all=False)
         
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
@@ -1107,6 +1115,13 @@ def main():
     
     # Main window
     main = MainWindow(commands, intitle, message, options)
+
+    # Selecting Qt4 backend for Enthought Tool Suite (if installed)
+    try:
+        from enthought.etsconfig.api import ETSConfig
+        ETSConfig.toolkit = 'qt4'
+    except ImportError:
+        pass
     
     #----Patching matplotlib's FigureManager
     if options.pylab:

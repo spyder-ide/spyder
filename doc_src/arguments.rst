@@ -16,6 +16,8 @@ Options:
   -a, --all             Import all optional modules (options below)
   -p, --pylab           Import pylab in interactive mode and add option
                         --numpy
+  --mlab                Import mlab as M (MayaVi's interactive 3D-plotting
+                        interface)
   -o, --os              Import os and os.path as osp
   --numpy               Import numpy as N
   --scipy               Import numpy as N, scipy as S
