@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.9'
+__version__ = '1.0.10'
 __license__ = __doc__
 
 import os, re
@@ -224,7 +224,7 @@ class UserConfig(ConfigParser):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif not isinstance(default_value, (str, unicode)):
+        else:
             try:
                 # lists, tuples, ...
                 value = eval(value)
@@ -270,7 +270,7 @@ class UserConfig(ConfigParser):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        elif not isinstance(default_value, (str, unicode)):
+        else:
             value = repr(value)
         self.__set(section, option, value, verbose)
         if save:

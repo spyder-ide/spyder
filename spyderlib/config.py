@@ -277,7 +277,7 @@ DEFAULTS = [
             ]
 
 DEV = not __file__.startswith(sys.prefix)
-#DEV = False
+DEV = False
 CONF = UserConfig('spyder', DEFAULTS, version='1.0.0', load=(not DEV))
 
 def get_conf_path(filename):

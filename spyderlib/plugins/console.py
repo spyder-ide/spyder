@@ -199,7 +199,7 @@ class Console(PluginWidget):
                 self.emit(SIGNAL("refresh()"))
             else:
                 return
-        command = "execfile(r'%s')" % filename
+        command = "execfile(%s)" % repr(osp.abspath(filename))
         if set_focus:
             self.shell.setFocus()
         if self.dockwidget:
