@@ -1094,6 +1094,11 @@ def main():
     from PyQt4 import QtGui
     QtGui.QApplication = FakeQApplication
     
+    # Options:
+    # It's important to collect options before monkey patching sys.exit,
+    # otherwise, optparse won't be able to exit if --help option is passed
+    commands, intitle, message, options = get_options()
+    
     #----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
@@ -1109,9 +1114,6 @@ def main():
         app_translator = QTranslator()
         if app_translator.load("spyder_" + locale, APP_PATH):
             app.installTranslator(app_translator)
-    
-    # Options
-    commands, intitle, message, options = get_options()
     
     # Main window
     main = MainWindow(commands, intitle, message, options)
