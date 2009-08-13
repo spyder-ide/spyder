@@ -264,10 +264,13 @@ class EditorTabWidget(Tabs):
         finfo = self.data[index]
         if not finfo.editor.isModified() and not force:
             return True
-        if not osp.isfile(finfo.filename):
+        if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            self.save_as()
-            return
+            filename = self.select_savename(finfo.filename)
+            if filename:
+                finfo.filename = filename
+            else:
+                return False
         txt = unicode(finfo.editor.get_text())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
@@ -283,24 +286,28 @@ class EditorTabWidget(Tabs):
                                     "<br><br>Error message:<br>%2") \
                             .arg(osp.basename(finfo.filename)).arg(str(error)))
             return False
+        if force: # save as...
+            # Refresh the explorer widget if it exists:
+            self.plugin.emit(SIGNAL("refresh_explorer()"))
+    
+    def select_savename(self, original_filename):
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getSaveFileName(self,
+                                           self.tr("Save Python script"),
+                                           original_filename,
+                                           self.plugin.get_filetype_filters())
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if filename:
+            return osp.normpath(unicode(filename))
     
     def save_as(self):
         """Save file as..."""
         index = self.currentIndex()
-        finfo = self.data[index]        
-        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self,
-                                           self.tr("Save Python script"),
-                                           finfo.filename,
-                                           self.plugin.get_filetype_filters())
-        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), True)
+        finfo = self.data[index]
+        filename = self.select_savename(finfo.filename)
         if filename:
-            finfo.filename = osp.normpath(unicode(filename))
-        else:
-            return False
-        self.save(index=index, force=True)
-        # Refresh the explorer widget if it exists:
-        self.plugin.emit(SIGNAL("refresh_explorer()"))
+            finfo.filename = filename
+            self.save(index=index, force=True)
         
     def save_all(self):
         """Save all opened files"""
@@ -520,6 +527,8 @@ class EditorTabWidget(Tabs):
         self.setCurrentIndex(index)
         
         editor.setFocus()
+        
+        return editor
         
     def load(self, filename, goto=0):
         """Load filename"""
