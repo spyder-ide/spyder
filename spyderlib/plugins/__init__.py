@@ -18,7 +18,7 @@ These plugins inherit the following classes (PluginMixin & PluginWidget)
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut,
-                         QKeySequence)
+                         QKeySequence, QMainWindow)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -29,7 +29,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.qthelpers import (toggle_actions, create_action, add_actions,
                                 translate)
-from spyderlib.config import CONF, get_font, set_font
+from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.widgets.qscieditor import QsciEditor
 from spyderlib.widgets.findreplace import FindReplace
 
@@ -69,6 +69,22 @@ class PluginMixin(object):
             QShortcut(QKeySequence(short), self.main,
                       lambda: self.visibility_changed(True))
         return (dock, self.location)
+        
+    def create_mainwindow(self):
+        """
+        Create a QMainWindow instance containing this plugin
+        Note: this method is currently not used
+        """
+        mainwindow = QMainWindow()
+        mainwindow.setAttribute(Qt.WA_DeleteOnClose)
+        icon = self.get_widget_icon()
+        if isinstance(icon, basestring):
+            icon = get_icon(icon)
+        mainwindow.setWindowIcon(icon)
+        mainwindow.setWindowTitle(self.get_widget_title())
+        mainwindow.setCentralWidget(self)
+        self.refresh()
+        return mainwindow
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed
@@ -113,6 +129,13 @@ class PluginWidget(QWidget, PluginMixin):
         is more flexible here than using a class attribute
         """
         raise NotImplementedError
+    
+    def get_widget_icon(self):
+        """
+        Return widget icon name (e.g.: qt.png) or QIcon instance
+        Note: this method is used only by PluginMixin.create_mainwindow
+        """
+        return 'qt.png'
     
     def get_focus_widget(self):
         """

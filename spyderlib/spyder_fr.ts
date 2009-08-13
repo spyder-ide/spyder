@@ -105,12 +105,12 @@
         <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="140"/>
+        <location filename="plugins/console.py" line="151"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="141"/>
+        <location filename="plugins/console.py" line="152"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
@@ -125,22 +125,22 @@
         <translation type="obsolete">Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="144"/>
+        <location filename="plugins/console.py" line="155"/>
         <source>External editor path...</source>
         <translation>Éditeur externe...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="145"/>
+        <location filename="plugins/console.py" line="156"/>
         <source>Set external editor executable path</source>
         <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="148"/>
+        <location filename="plugins/console.py" line="159"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="151"/>
+        <location filename="plugins/console.py" line="162"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
@@ -155,17 +155,17 @@
         <translation type="obsolete">Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="179"/>
+        <location filename="plugins/console.py" line="191"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="180"/>
+        <location filename="plugins/console.py" line="192"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="222"/>
+        <location filename="plugins/console.py" line="234"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -180,12 +180,12 @@
         <translation type="obsolete">Nombre maximum d&apos;entrées</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="229"/>
+        <location filename="plugins/console.py" line="241"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="230"/>
+        <location filename="plugins/console.py" line="242"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
@@ -210,9 +210,24 @@
         <translation>Afficher le contenu de sys.path...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="154"/>
+        <location filename="plugins/console.py" line="165"/>
         <source>Code completion</source>
         <translation>Complétion de code</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="142"/>
+        <source>Dockable matplotlib figures</source>
+        <translation type="obsolete">Figures matplotlib embarquables</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="145"/>
+        <source>If enabled, matplotlib figures may be docked to Spyder&apos;s main window (will apply only for new figures)</source>
+        <translation>Si cette option est activée, les figures matplotlib pourront être embarquées dans la fenêtre de Spyder (cela ne s&apos;appliquera qu&apos;aux nouvelles figures)</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="142"/>
+        <source>Dockable figures</source>
+        <translation>Figures embarquables</translation>
     </message>
 </context>
 <context>
@@ -800,7 +815,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="159"/>
+        <location filename="plugins/__init__.py" line="182"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>

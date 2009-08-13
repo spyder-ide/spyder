@@ -1142,26 +1142,34 @@ def main():
         # ****************************************************************
         # *  FigureManagerQT
         # ****************************************************************
-        class FigureManagerQT( backend_qt4.FigureManagerQT ):
+        class FigureManagerQT(backend_qt4.FigureManagerQT):
             """
             Patching matplotlib...
             """
-            def __init__( self, canvas, num ):
-                if backend_qt4.DEBUG: print 'FigureManagerQT.%s' % backend_qt4.fn_name()
-                backend_qt4.FigureManagerBase.__init__( self, canvas, num )
+            def __init__(self, canvas, num):
+                if backend_qt4.DEBUG:
+                    print 'FigureManagerQT.%s' % backend_qt4.fn_name()
+                backend_qt4.FigureManagerBase.__init__(self, canvas, num)
                 self.canvas = canvas
-                self.window = MatplotlibFigure(main, canvas, num)
+                
+                dockable = CONF.get('figure', 'dockable', True)
+                if dockable:
+                    self.window = MatplotlibFigure(main, canvas, num)
+                else:
+                    self.window = QMainWindow()
+                    self.window.setWindowTitle("Figure %d" % num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
-                image = osp.join( matplotlib.rcParams['datapath'],'images','matplotlib.png' )
-                self.window.setWindowIcon(QIcon( image ))
+                image = osp.join(matplotlib.rcParams['datapath'],
+                                 'images', 'matplotlib.png' )
+                self.window.setWindowIcon(QIcon(image))
         
                 # Give the keyboard focus to the figure instead of the manager
-                self.canvas.setFocusPolicy( Qt.ClickFocus )
+                self.canvas.setFocusPolicy(Qt.ClickFocus)
                 self.canvas.setFocus()
         
-                QObject.connect( self.window, SIGNAL( 'destroyed()' ),
-                                    self._widgetclosed )
+                QObject.connect(self.window, SIGNAL('destroyed()'),
+                                self._widgetclosed)
                 self.window._destroying = False
         
                 self.toolbar = self._get_toolbar(self.canvas, self.window)
@@ -1169,11 +1177,15 @@ def main():
                 QObject.connect(self.toolbar, SIGNAL("message"),
                         self.window.statusBar().showMessage)
         
-        #        self.window.setCentralWidget(self.canvas)
+                if not dockable:
+                    self.window.setCentralWidget(self.canvas)
         
                 if matplotlib.is_interactive():
-                    main.add_dockwidget(self.window)
-                    main.console.shell.setFocus()
+                    if dockable:
+                        main.add_dockwidget(self.window)
+                        main.console.shell.setFocus()
+                    else:
+                        self.window.show()
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
@@ -1183,7 +1195,7 @@ def main():
                 def notify_axes_change( fig ):
                     # This will be called whenever the current axes is changed
                     if self.toolbar != None: self.toolbar.update()
-                self.canvas.figure.add_axobserver( notify_axes_change )
+                self.canvas.figure.add_axobserver(notify_axes_change)
         # ****************************************************************
         backend_qt4.FigureManagerQT = FigureManagerQT
         

@@ -235,6 +235,7 @@ DEFAULTS = [
               }),
             ('figure',
              {
+              'dockable': True,
               'size' : MPL_SIZE,
               'font/size' : MEDIUM,
               'statusbar/font/family' : SANS_SERIF,

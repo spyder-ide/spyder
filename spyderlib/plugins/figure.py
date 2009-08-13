@@ -93,7 +93,10 @@ class MatplotlibFigure(PluginWidget):
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""
-        self.main.widgetlist.pop(self.main.widgetlist.index(self))
+        if self in self.main.widgetlist:
+            # if self is not in self.main.widgetlist, it only means that a
+            # QMainWindow has been created instead of a QDockWidget
+            self.main.widgetlist.pop(self.main.widgetlist.index(self))
         self.dockwidget.close()
         event.accept()
 

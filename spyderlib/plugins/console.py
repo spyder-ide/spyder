@@ -15,7 +15,7 @@ from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
                          QFontDialog, QInputDialog, QLineEdit)
 from PyQt4.QtCore import Qt, SIGNAL
 
-import os, sys
+import os, sys, imp
 import os.path as osp
 
 # For debugging purpose:
@@ -129,14 +129,25 @@ class Console(PluginWidget):
         environ_action = create_action(self,
                             self.tr("Environment variables..."),
                             icon = 'environ.png',
-                            tip = self.tr("Show and edit environment variables"
-                                          " (for current session)"),
+                            tip=self.tr("Show and edit environment variables"
+                                        " (for current session)"),
                             triggered=self.show_env)
         syspath_action = create_action(self,
                             self.tr("Show sys.path contents..."),
                             icon = 'syspath.png',
-                            tip = self.tr("Show (read-only) sys.path"),
+                            tip=self.tr("Show (read-only) sys.path"),
                             triggered=show_syspath)
+        try:
+            imp.find_module('matplotlib')
+            dockablefigures_action = create_action(self,
+                            self.tr("Dockable figures"),
+                            tip=self.tr("If enabled, matplotlib figures may "
+                                        "be docked to Spyder's main window "
+                                        "(will apply only for new figures)"),
+                            toggled=self.toggle_dockablefigures_mode)
+            dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
+        except ImportError:
+            dockablefigures_action = None
         font_action = create_action(self,
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
@@ -157,6 +168,7 @@ class Console(PluginWidget):
         codecompletion_action.setChecked( CONF.get(self.ID,
                                                    'autocompletion/enabled') )
         menu_actions = [run_action, environ_action, syspath_action,
+                        dockablefigures_action,
                         None, font_action, wrap_action, calltips_action,
                         codecompletion_action, exteditor_action,
                         None, self.quit_action]
@@ -233,6 +245,10 @@ class Console(PluginWidget):
                           CONF.get(self.ID, 'external_editor/path'))
         if valid:
             CONF.set(self.ID, 'external_editor/path', unicode(path))
+            
+    def toggle_dockablefigures_mode(self, checked):
+        """Toggle dockable figures mode"""
+        CONF.set('figure', 'dockable', checked)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
