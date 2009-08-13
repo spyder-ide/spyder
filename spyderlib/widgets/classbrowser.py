@@ -44,7 +44,7 @@ class ClassBrowser(OneColumnTree):
         if data is None or self.classes is None or update:
             try:
                 self.classes = get_classes(self.fname)
-            except SyntaxError:
+            except (SyntaxError, IOError):
                 if self.classes is None:
                     self.clear()
                 return (self.fname, self.classes, self.lines)

@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
-import os, sys
+import os, sys, time
 import os.path as osp
 
 # For debugging purpose:
@@ -264,6 +264,10 @@ class EditorTabWidget(Tabs):
         finfo = self.data[index]
         if not finfo.editor.isModified() and not force:
             return True
+        if not osp.isfile(finfo.filename):
+            # File has not been saved yet
+            self.save_as()
+            return
         txt = unicode(finfo.editor.get_text())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
@@ -279,6 +283,24 @@ class EditorTabWidget(Tabs):
                                     "<br><br>Error message:<br>%2") \
                             .arg(osp.basename(finfo.filename)).arg(str(error)))
             return False
+    
+    def save_as(self):
+        """Save file as..."""
+        index = self.currentIndex()
+        finfo = self.data[index]        
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getSaveFileName(self,
+                                           self.tr("Save Python script"),
+                                           finfo.filename,
+                                           self.plugin.get_filetype_filters())
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if filename:
+            finfo.filename = osp.normpath(unicode(filename))
+        else:
+            return False
+        self.save(index=index, force=True)
+        # Refresh the explorer widget if it exists:
+        self.plugin.emit(SIGNAL("refresh_explorer()"))
         
     def save_all(self):
         """Save all opened files"""
@@ -462,14 +484,13 @@ class EditorTabWidget(Tabs):
         finfo.editor.setModified(False)
         finfo.editor.setCursorPosition(line, index)
         
-    def load(self, filename, goto=0):
-        txt, enc = encoding.read(filename)
-        ext = osp.splitext(filename)[1]
+    def create_new_editor(self, fname, enc, txt):
+        """Create a new editor instance"""
+        ext = osp.splitext(fname)[1]
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
-        
         editor = QsciEditor(self)
-        self.data.append( TabInfo(filename, enc, editor) )
+        self.data.append( TabInfo(fname, enc, editor) )
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=ext,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
@@ -486,25 +507,40 @@ class EditorTabWidget(Tabs):
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.plugin.emit(SIGNAL("focus_changed()")))
 
-        title = self.get_title(filename)
+        title = self.get_title(fname)
         index = self.addTab(editor, title)
-        self.setTabToolTip(index, filename)
-        self.setTabIcon(index, get_filetype_icon(filename))
+        self.setTabToolTip(index, fname)
+        self.setTabIcon(index, get_filetype_icon(fname))
         
         self.plugin.find_widget.set_editor(editor)
        
         self.emit(SIGNAL('refresh_file_dependent_actions()'))
         self.modification_changed()
-
-        self.analyze_script(index)
-        self.__refresh_classbrowser(index)
         
         self.setCurrentIndex(index)
         
         editor.setFocus()
         
+    def load(self, filename, goto=0):
+        """Load filename"""
+        text, enc = encoding.read(filename)
+        editor = self.create_new_editor(filename, enc, text)
+        index = self.currentIndex()
+        self.analyze_script(index)
+        self.__refresh_classbrowser(index)
         if goto > 0:
             editor.highlight_line(goto)
+                
+    def new(self, num):
+        """Create a new file - Untitled"""
+        fname = unicode(self.tr("untitled")) + ("%d.py" % num)
+        default = ['# -*- coding: utf-8 -*-',
+                   '"""',
+                   "Created on %s" % time.ctime(), "",
+                   "@author: %s" % os.environ.get('USERNAME', '-'),
+                   '"""', '', '']
+        text = os.linesep.join(default)
+        self.create_new_editor(fname, 'utf-8', text)
                 
 
     #------ Run
@@ -794,6 +830,8 @@ class Editor(PluginWidget):
         self.setLayout(layout)
         
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
+        
+        self.untitled_num = 0
         
         filenames = CONF.get(self.ID, 'filenames', [])
         if filenames:
@@ -1336,22 +1374,9 @@ class Editor(PluginWidget):
     
     def new(self):
         """Create a new Python script"""
-        gen_name = lambda nb: self.tr("untitled") + ("%d.py" % nb)
-        nb = 0
-        while osp.isfile(gen_name(nb)):
-            nb += 1
-        fname = gen_name(nb)
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        fname = QFileDialog.getSaveFileName(self, self.tr("New Python script"),
-                    fname, self.tr("Python scripts")+" (*.py ; *.pyw)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
-        if not fname.isEmpty():
-            fname = unicode(fname)
-            default = ['# -*- coding: utf-8 -*-',
-                       '"""', osp.basename(fname), '"""', '', '']
-            text = os.linesep.join(default)
-            encoding.write(unicode(text), fname, 'utf-8')
-            self.load(fname)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.new(self.untitled_num)
+        self.untitled_num += 1
         
     def load(self, filenames=None, goto=0):
         """Load a text file"""
@@ -1425,23 +1450,8 @@ class Editor(PluginWidget):
                 
     def save_as(self):
         """Save *as* the currently edited file"""
-        fname = self.get_current_filename()
-        if fname is not None:
-            self.emit(SIGNAL('redirect_stdio(bool)'), False)
-            filename = QFileDialog.getSaveFileName(self,
-                          self.tr("Save Python script"), fname,
-                          self.get_filetype_filters())
-            self.emit(SIGNAL('redirect_stdio(bool)'), True)
-            if filename:
-                filename = osp.normpath(unicode(filename))
-                editortabwidget = self.get_current_editortabwidget()
-                index = editortabwidget.currentIndex()
-                editortabwidget.filenames[index] = filename
-            else:
-                return False
-            self.save(force=True)
-            # Refresh the explorer widget if it exists:
-            self.emit(SIGNAL("refresh_explorer()"))
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.save_as()
         
     def save_all(self):
         """Save all opened files"""
