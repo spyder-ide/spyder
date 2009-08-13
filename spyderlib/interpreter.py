@@ -6,10 +6,11 @@
 
 """Shell Interpreter"""
 
-import atexit, code
+import atexit
+from code import InteractiveConsole
 
 
-class Interpreter(code.InteractiveConsole):
+class Interpreter(InteractiveConsole):
     """Interpreter"""
     def __init__(self, namespace=None, exitfunc=None,
                  rawinputfunc=None, helpfunc=None):
@@ -17,18 +18,29 @@ class Interpreter(code.InteractiveConsole):
         namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
         """
-        code.InteractiveConsole.__init__(self, namespace)
+        InteractiveConsole.__init__(self, namespace)
         
         if exitfunc is not None:
             atexit.register(exitfunc)
         
         self.namespace = self.locals
         self.namespace['__name__'] = '__main__'
+        self.namespace['execfile'] = self.execfile
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
             self.namespace['input'] = lambda text='': eval(rawinputfunc(text))
         if helpfunc is not None:
             self.namespace['help'] = helpfunc
+        
+    def execfile(self, filename):
+        """Exec filename"""
+        source = open(filename, 'r').read()
+        try:
+            code = compile(source, filename, "exec")
+        except (OverflowError, SyntaxError):
+            InteractiveConsole.showsyntaxerror(self, filename)
+        else:
+            self.runcode(code)
         
     def eval(self, text):
         """

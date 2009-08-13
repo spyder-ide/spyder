@@ -11,15 +11,6 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-def execfile(filename):
-    """
-    Spyder's execfile replacement:
-    Python's original execfile function does not handle well unicode filenames
-    (besides, the execfile function is deprecated:
-     it has been removed in Python 3.0)
-    """
-    fobj = open(filename).read()
-    exec fobj
 
 #----Builtins
 import __builtin__
@@ -30,7 +21,7 @@ except ImportError:
     pass
 from spyderlib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
-__builtin__.execfile = execfile
+
 
 import sys, os, re, pydoc
 from time import time
