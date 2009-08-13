@@ -631,13 +631,16 @@ class EditorTabWidget(Tabs):
 # -> the main issue is that it's not possible to remove a widget from a
 #    QSplitter except by destroying it -> it's not possible to change parenting
 class EditorSplitter(QSplitter):
-    def __init__(self, parent, actions):
+    def __init__(self, parent, actions, first=False):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
         self.plugin = parent
         self.tab_actions = actions
         self.editortabwidget = EditorTabWidget(self.plugin, actions)
+        if not first:
+            self.editortabwidget.new(self.plugin.untitled_num)
+            self.plugin.untitled_num += 1
         self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
                      self.editortabwidget_closed)
         self.connect(self.editortabwidget, SIGNAL("split_vertically()"),
@@ -814,7 +817,8 @@ class Editor(PluginWidget):
         self.editortabwidgets = []
         
         cb_splitter = QSplitter(self)
-        cb_splitter.addWidget(EditorSplitter(self, self.tab_actions))
+        cb_splitter.addWidget(EditorSplitter(self, self.tab_actions,
+                                             first=True))
         cb_splitter.addWidget(self.toolbox)
         cb_splitter.setStretchFactor(0, 3)
         cb_splitter.setStretchFactor(1, 1)
