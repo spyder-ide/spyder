@@ -45,6 +45,13 @@ class ExtPyQsciShell(QsciPythonShell):
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
         self.externalshell = externalshell
+
+        
+    def clear_terminal(self):
+        """Reimplement QsciShellBase method"""
+        self.clear()
+        self.emit(SIGNAL("execute(QString)"), "\n")
+
         
     #------ Code completion / Calltips
     def ask_monitor(self, command):

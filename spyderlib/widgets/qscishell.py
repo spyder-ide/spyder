@@ -14,7 +14,7 @@
 import sys, os, time
 import os.path as osp
 
-from PyQt4.QtGui import QMenu, QApplication, QCursor, QToolTip
+from PyQt4.QtGui import QMenu, QApplication, QCursor, QToolTip, QKeySequence
 from PyQt4.QtCore import (Qt, QString, QCoreApplication, SIGNAL, pyqtProperty,
                           QStringList)
 from PyQt4.Qsci import QsciScintilla
@@ -27,8 +27,8 @@ STDERR = sys.stderr
 from spyderlib import __version__, encoding
 from spyderlib.config import CONF, get_icon
 from spyderlib.dochelpers import getobj
-from spyderlib.qthelpers import (translate, keybinding, create_action,
-                                 add_actions, restore_keyevent)
+from spyderlib.qthelpers import (keybinding, create_action, add_actions,
+                                 restore_keyevent)
 from spyderlib.widgets.qscibase import QsciBase
 from spyderlib.widgets.shellhelpers import get_error_match
 
@@ -141,32 +141,25 @@ class QsciShellBase(QsciBase):
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
-        self.cut_action = create_action(self,
-                           translate("InteractiveShell", "Cut"),
-                           shortcut=keybinding('Cut'),
-                           icon=get_icon('editcut.png'), triggered=self.cut)
-        self.copy_action = create_action(self,
-                           translate("InteractiveShell", "Copy"),
-                           shortcut=keybinding('Copy'),
-                           icon=get_icon('editcopy.png'), triggered=self.copy)
-        self.copy_without_prompts_action = create_action(self,
-                           translate("InteractiveShell",
-                                     "Copy without prompts"),
-                           icon=get_icon('copywop.png'),
-                           triggered=self.copy_without_prompts)
-        paste_action = create_action(self,
-                           translate("InteractiveShell", "Paste"),
-                           shortcut=keybinding('Paste'),
-                           icon=get_icon('editpaste.png'), triggered=self.paste)
+        self.cut_action = create_action(self, self.tr("Cut"),
+                                        shortcut=keybinding('Cut'),
+                                        icon=get_icon('editcut.png'),
+                                        triggered=self.cut)
+        self.copy_action = create_action(self, self.tr("Copy"),
+                                         shortcut=keybinding('Copy'),
+                                         icon=get_icon('editcopy.png'),
+                                         triggered=self.copy)
+        paste_action = create_action(self, self.tr("Paste"),
+                                     shortcut=keybinding('Paste'),
+                                     icon=get_icon('editpaste.png'),
+                                     triggered=self.paste)
         add_actions(self.menu, (self.cut_action, self.copy_action,
-                                self.copy_without_prompts_action,
                                 paste_action) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         state = self.hasSelectedText()
         self.copy_action.setEnabled(state)
-        self.copy_without_prompts_action.setEnabled(state)
         self.cut_action.setEnabled(state)
         self.menu.popup(event.globalPos())
         event.accept()        
@@ -184,13 +177,23 @@ class QsciShellBase(QsciBase):
     def _select_input(self):
         """Select current line (without selecting console prompt)"""
         line, index = self.get_end_pos()
-        pline, pindex = self.current_prompt_pos
+        if self.current_prompt_pos is None:
+            pline, pindex = line, index
+        else:
+            pline, pindex = self.current_prompt_pos
         self.setSelection(pline, pindex, line, index)
             
     def clear_line(self):
         """Clear current line (without clearing console prompt)"""
         self._select_input()
         self.removeSelectedText()
+        
+    def clear_terminal(self):
+        """
+        Clear terminal window
+        Child classes reimplement this method to write prompt
+        """
+        self.clear()
 
     # The buffer being edited
     def _set_input_buffer(self, text):
@@ -243,11 +246,6 @@ class QsciShellBase(QsciBase):
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
             
-    def copy_without_prompts(self):
-        """Copy text to clipboard without prompts"""
-        text = unicode(self.selectedText()).replace('>>> ', '').strip()
-        QApplication.clipboard().setText(text)
-
     def cut(self):
         """Cut text"""
         self.check_selection()
@@ -795,8 +793,45 @@ class QsciPythonShell(QsciShellBase):
         # Allow raw_input support:
         self.input_loop = None
         self.input_mode = False
+
+
+    #------ Context menu
+    def setup_context_menu(self):
+        """Reimplements QsciShellBase method"""
+        QsciShellBase.setup_context_menu(self)
+        self.copy_without_prompts_action = create_action(self,
+                                     self.tr("Copy without prompts"),
+                                     icon=get_icon('copywop.png'),
+                                     triggered=self.copy_without_prompts)
+        clear_line_action = create_action(self, self.tr("Clear line"),
+                                     QKeySequence("Escape"),
+                                     icon=get_icon('eraser.png'),
+                                     tip=self.tr("Clear line"),
+                                     triggered=self.clear_line)
+        clear_action = create_action(self,
+                                     self.tr("Clear shell"),
+                                     icon=get_icon('clear.png'),
+                                     tip=self.tr("Clear shell contents "
+                                                 "('cls' command)"),
+                                     triggered=self.clear_terminal)
+        add_actions(self.menu, (None, self.copy_without_prompts_action,
+                    clear_line_action, clear_action))
+          
+    def contextMenuEvent(self, event):
+        """Reimplements QsciShellBase method"""
+        state = self.hasSelectedText()
+        self.copy_action.setEnabled(state)
+        self.copy_without_prompts_action.setEnabled(state)
+        self.cut_action.setEnabled(state)
+        self.menu.popup(event.globalPos())
+        event.accept()
         
         
+    def copy_without_prompts(self):
+        """Copy text to clipboard without prompts"""
+        text = unicode(self.selectedText()).replace('>>> ', '').strip()
+        QApplication.clipboard().setText(text)
+
     def set_codecompletion(self, state):
         """Set code completion state"""
         self.codecompletion = state        

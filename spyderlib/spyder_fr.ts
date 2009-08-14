@@ -1377,22 +1377,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="111"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="118"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="112"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="119"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="115"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="122"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="119"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="126"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -1401,22 +1401,22 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="120"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="127"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="121"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="128"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="230"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="237"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="231"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="238"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
@@ -2029,70 +2029,70 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/qscishell.py" line="144"/>
         <source>Cut</source>
-        <translation>Couper</translation>
+        <translation type="obsolete">Couper</translation>
     </message>
     <message>
         <location filename="widgets/qscishell.py" line="148"/>
         <source>Copy</source>
-        <translation>Copier</translation>
+        <translation type="obsolete">Copier</translation>
     </message>
     <message>
         <location filename="widgets/qscishell.py" line="157"/>
         <source>Paste</source>
-        <translation>Coller</translation>
+        <translation type="obsolete">Coller</translation>
     </message>
     <message>
         <location filename="widgets/interactiveshell.py" line="202"/>
         <source>Clear shell</source>
-        <translation>Effacer la console</translation>
+        <translation type="obsolete">Effacer la console</translation>
     </message>
     <message>
         <location filename="widgets/interactiveshell.py" line="205"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
-        <translation>Effacer le contenu de la console</translation>
+        <translation type="obsolete">Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="217"/>
+        <location filename="widgets/interactiveshell.py" line="204"/>
         <source>Help</source>
         <translation>Aide</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="227"/>
+        <location filename="widgets/interactiveshell.py" line="214"/>
         <source>Shell special commands:</source>
         <translation>Commandes spéciales de la console :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="229"/>
+        <location filename="widgets/interactiveshell.py" line="216"/>
         <source>External editor:</source>
         <translation>Éditeur externe :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="230"/>
+        <location filename="widgets/interactiveshell.py" line="217"/>
         <source>Run script:</source>
         <translation>Exécution d&apos;un script :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="232"/>
+        <location filename="widgets/interactiveshell.py" line="219"/>
         <source>System commands:</source>
         <translation>Commandes systèmes :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="233"/>
+        <location filename="widgets/interactiveshell.py" line="220"/>
         <source>Python help:</source>
         <translation>Aide Python :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="208"/>
+        <location filename="widgets/interactiveshell.py" line="196"/>
         <source>Help...</source>
         <translation>Aide...</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="228"/>
+        <location filename="widgets/interactiveshell.py" line="215"/>
         <source>Internal editor:</source>
         <translation>Éditeur interne :</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="231"/>
+        <location filename="widgets/interactiveshell.py" line="218"/>
         <source>Remove references:</source>
         <translation>Supprimer des références :</translation>
     </message>
@@ -2104,15 +2104,15 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/interactiveshell.py" line="199"/>
         <source>Clear line</source>
-        <translation>Effacer la ligne</translation>
+        <translation type="obsolete">Effacer la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="447"/>
+        <location filename="widgets/interactiveshell.py" line="434"/>
         <source>Busy...</source>
         <translation>Occupé...</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="227"/>
+        <location filename="widgets/interactiveshell.py" line="214"/>
         <source>&lt;b&gt;%1&lt;/b&gt;
             &lt;p&gt;&lt;i&gt;%2&lt;/i&gt;&lt;br&gt;    edit foobar.py
             &lt;p&gt;&lt;i&gt;%3&lt;/i&gt;&lt;br&gt;    xedit foobar.py
@@ -2133,7 +2133,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
             </translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="234"/>
+        <location filename="widgets/interactiveshell.py" line="221"/>
         <source>GUI-based editor:</source>
         <translation>Éditeur graphique :</translation>
     </message>
@@ -2160,7 +2160,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/qscishell.py" line="153"/>
         <source>Copy without prompts</source>
-        <translation>Copier sans les préfixes</translation>
+        <translation type="obsolete">Copier sans les préfixes</translation>
     </message>
 </context>
 <context>
@@ -2857,24 +2857,44 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciPythonShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="988"/>
+        <location filename="widgets/qscishell.py" line="1023"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="992"/>
+        <location filename="widgets/qscishell.py" line="1027"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="996"/>
+        <location filename="widgets/qscishell.py" line="1031"/>
         <source>Object `%1` is not callable (i.e. not a function, a method or a class constructor)</source>
         <translation>L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="1002"/>
+        <location filename="widgets/qscishell.py" line="1037"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="802"/>
+        <source>Copy without prompts</source>
+        <translation>Copier sans les préfixes</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="808"/>
+        <source>Clear line</source>
+        <translation>Effacer la ligne</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="811"/>
+        <source>Clear shell</source>
+        <translation>Effacer la console</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="814"/>
+        <source>Clear shell contents (&apos;cls&apos; command)</source>
+        <translation>Effacer le contenu de la console</translation>
     </message>
 </context>
 <context>
@@ -2898,6 +2918,24 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <location filename="widgets/qscishell.py" line="785"/>
         <source>Documentation</source>
         <translation type="obsolete">Documentation</translation>
+    </message>
+</context>
+<context>
+    <name>QsciShellBase</name>
+    <message>
+        <location filename="widgets/qscishell.py" line="143"/>
+        <source>Cut</source>
+        <translation>Couper</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="147"/>
+        <source>Copy</source>
+        <translation>Copier</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="151"/>
+        <source>Paste</source>
+        <translation>Coller</translation>
     </message>
 </context>
 <context>

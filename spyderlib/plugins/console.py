@@ -167,7 +167,7 @@ class Console(PluginWidget):
             dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
         except ImportError:
             dockablefigures_action = None
-        menu_actions = [run_action, environ_action, syspath_action,
+        menu_actions = [None, run_action, environ_action, syspath_action,
                         None, font_action, wrap_action, calltips_action,
                         codecompletion_action, exteditor_action,
                         dockablefigures_action, None, self.quit_action]

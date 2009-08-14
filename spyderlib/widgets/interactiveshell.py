@@ -30,16 +30,16 @@ import os.path as osp
 
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QMessageBox, QKeySequence, QApplication
+from PyQt4.QtGui import QMessageBox, QApplication
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop, Qt
 
 # Local import
 from spyderlib.qthelpers import (translate, create_action, get_std_icon,
-                                 add_actions, keyevent2tuple)
+                                 keyevent2tuple)
 from spyderlib.interpreter import Interpreter
 from spyderlib.dochelpers import getargtxt, getsource, getdoc
 from spyderlib.encoding import transcode
-from spyderlib.config import CONF, get_icon, get_conf_path
+from spyderlib.config import CONF, get_conf_path
 try:
     from PyQt4.Qsci import QsciScintilla
     from spyderlib.widgets.qscishell import QsciPythonShell
@@ -193,24 +193,11 @@ class InteractiveShell(QsciPythonShell):
     def setup_context_menu(self):
         """Reimplement QsciPythonShell method"""
         QsciPythonShell.setup_context_menu(self)
-        clear_line_action = create_action(self,
-                           self.tr("Clear line"),
-                           QKeySequence("Escape"),
-                           icon=get_icon('eraser.png'),
-                           tip=translate("InteractiveShell", "Clear line"),
-                           triggered=self.clear_line)
-        clear_action = create_action(self,
-                           translate("InteractiveShell", "Clear shell"),
-                           icon=get_icon('clear.png'),
-                           tip=translate("InteractiveShell",
-                                   "Clear shell contents ('cls' command)"),
-                           triggered=self.clear_terminal)
         self.help_action = create_action(self,
                            translate("InteractiveShell", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
-        add_actions(self.menu, (clear_line_action, None, clear_action, None,
-                                self.help_action))
+        self.menu.addAction(self.help_action)
 
     def help(self):
         """Help on Spyder console"""
@@ -329,7 +316,7 @@ has the same effect as typing a particular string at the help> prompt.
 
     #------ Clear terminal
     def clear_terminal(self):
-        """Clear terminal window and write prompt"""
+        """Reimplement QsciShellBase method"""
         self.clear()
         self.new_prompt(self.p2 if self.more else self.p1)
 
