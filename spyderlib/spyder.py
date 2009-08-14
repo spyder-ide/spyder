@@ -1213,7 +1213,7 @@ def main():
             def _init_toolbar(self):
                 super(NavigationToolbar2QT, self)._init_toolbar()
                 if figure_edit:
-                    a = self.addAction(get_icon("customize.png"),
+                    a = self.addAction(get_icon("options.svg"),
                                        'Customize', self.edit_parameters)
                     a.setToolTip('Edit curves line and axes parameters')
             def edit_parameters(self):

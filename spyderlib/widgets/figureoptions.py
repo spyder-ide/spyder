@@ -7,6 +7,7 @@
 """Module that provides a GUI-based editor for matplotlib's figure options"""
 
 from spyderlib.widgets.formlayout import fedit
+from spyderlib.config import get_icon
 
 LINESTYLES = {
               '-': 'Solid',
@@ -105,7 +106,8 @@ def figure_edit(canvas, parent=None):
     datalist = [(general, "Axes", "")]
     if has_curve:
         datalist.append((curves, "Curves", ""))
-    result = fedit(datalist, title="Figure options", parent=parent)
+    result = fedit(datalist, title="Figure options", parent=parent,
+                   icon=get_icon('options.svg'))
     if result is None:
         return
     
