@@ -53,6 +53,10 @@ class Console(PluginWidget):
                      self.go_to_error)
         self.connect(self.shell, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
+        # Redirecting some SIGNALs:
+        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
+                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
+                                             state))
         
         PluginWidget.__init__(self, parent)
         

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr">
+<!DOCTYPE TS><TS version="1.1" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -65,52 +64,52 @@
 <context>
     <name>Console</name>
     <message>
-        <location filename="plugins/console.py" line="121"/>
+        <location filename="plugins/console.py" line="125"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="121"/>
+        <location filename="plugins/console.py" line="125"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="122"/>
+        <location filename="plugins/console.py" line="126"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="125"/>
+        <location filename="plugins/console.py" line="129"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="125"/>
+        <location filename="plugins/console.py" line="129"/>
         <source>Ctrl+R</source>
         <translation>Ctrl+R</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="126"/>
+        <location filename="plugins/console.py" line="130"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="129"/>
+        <location filename="plugins/console.py" line="133"/>
         <source>Environment variables...</source>
         <translation>Variables d&apos;environnement...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="132"/>
+        <location filename="plugins/console.py" line="136"/>
         <source>Show and edit environment variables (for current session)</source>
         <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="140"/>
+        <location filename="plugins/console.py" line="144"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="141"/>
+        <location filename="plugins/console.py" line="145"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
@@ -125,22 +124,22 @@
         <translation type="obsolete">Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="144"/>
+        <location filename="plugins/console.py" line="148"/>
         <source>External editor path...</source>
         <translation>Éditeur externe...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="145"/>
+        <location filename="plugins/console.py" line="149"/>
         <source>Set external editor executable path</source>
         <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="148"/>
+        <location filename="plugins/console.py" line="152"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="151"/>
+        <location filename="plugins/console.py" line="155"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
@@ -155,17 +154,17 @@
         <translation type="obsolete">Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="190"/>
+        <location filename="plugins/console.py" line="194"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="191"/>
+        <location filename="plugins/console.py" line="195"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="233"/>
+        <location filename="plugins/console.py" line="237"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -180,17 +179,17 @@
         <translation type="obsolete">Nombre maximum d&apos;entrées</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="240"/>
+        <location filename="plugins/console.py" line="244"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="241"/>
+        <location filename="plugins/console.py" line="245"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="100"/>
+        <location filename="plugins/console.py" line="104"/>
         <source>Interactive console</source>
         <translation>Console interactive</translation>
     </message>
@@ -200,17 +199,17 @@
         <translation type="obsolete">Afficher sys.path...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="137"/>
+        <location filename="plugins/console.py" line="141"/>
         <source>Show (read-only) sys.path</source>
         <translation>Afficher le contenu de sys.path (lecture seule)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="135"/>
+        <location filename="plugins/console.py" line="139"/>
         <source>Show sys.path contents...</source>
         <translation>Afficher le contenu de sys.path...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="154"/>
+        <location filename="plugins/console.py" line="158"/>
         <source>Code completion</source>
         <translation>Complétion de code</translation>
     </message>
@@ -220,12 +219,12 @@
         <translation type="obsolete">Figures matplotlib embarquables</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="164"/>
+        <location filename="plugins/console.py" line="168"/>
         <source>If enabled, matplotlib figures may be docked to Spyder&apos;s main window (will apply only for new figures)</source>
         <translation>Si cette option est activée, les figures matplotlib pourront être embarquées dans la fenêtre de Spyder (cela ne s&apos;appliquera qu&apos;aux nouvelles figures)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="161"/>
+        <location filename="plugins/console.py" line="165"/>
         <source>Dockable figures</source>
         <translation>Figures embarquables</translation>
     </message>
@@ -1531,47 +1530,47 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ExternalShellBase</name>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="67"/>
+        <location filename="widgets/externalshell/__init__.py" line="71"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="82"/>
+        <location filename="widgets/externalshell/__init__.py" line="86"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="83"/>
+        <location filename="widgets/externalshell/__init__.py" line="87"/>
         <source>Run again this program</source>
         <translation>Exécuter de nouveau ce programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="86"/>
+        <location filename="widgets/externalshell/__init__.py" line="90"/>
         <source>Kill</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="88"/>
+        <location filename="widgets/externalshell/__init__.py" line="92"/>
         <source>Kills the current process, causing it to exit immediately</source>
         <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="122"/>
+        <location filename="widgets/externalshell/__init__.py" line="126"/>
         <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="127"/>
+        <location filename="widgets/externalshell/__init__.py" line="131"/>
         <source>Terminated.</source>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="142"/>
+        <location filename="widgets/externalshell/__init__.py" line="146"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="143"/>
+        <location filename="widgets/externalshell/__init__.py" line="147"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
@@ -2857,42 +2856,42 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciPythonShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="1023"/>
+        <location filename="widgets/qscishell.py" line="1068"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="1027"/>
+        <location filename="widgets/qscishell.py" line="1073"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="1031"/>
+        <location filename="widgets/qscishell.py" line="1078"/>
         <source>Object `%1` is not callable (i.e. not a function, a method or a class constructor)</source>
         <translation>L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="1037"/>
+        <location filename="widgets/qscishell.py" line="1084"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="802"/>
+        <location filename="widgets/qscishell.py" line="842"/>
         <source>Copy without prompts</source>
         <translation>Copier sans les préfixes</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="808"/>
+        <location filename="widgets/qscishell.py" line="850"/>
         <source>Clear line</source>
         <translation>Effacer la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="811"/>
+        <location filename="widgets/qscishell.py" line="854"/>
         <source>Clear shell</source>
         <translation>Effacer la console</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="814"/>
+        <location filename="widgets/qscishell.py" line="858"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
         <translation>Effacer le contenu de la console</translation>
     </message>
@@ -2923,19 +2922,54 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciShellBase</name>
     <message>
-        <location filename="widgets/qscishell.py" line="143"/>
+        <location filename="widgets/qscishell.py" line="149"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="147"/>
+        <location filename="widgets/qscishell.py" line="154"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="151"/>
+        <location filename="widgets/qscishell.py" line="159"/>
         <source>Paste</source>
         <translation>Coller</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="164"/>
+        <source>Save session...</source>
+        <translation>Enregistrer la session...</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="272"/>
+        <source>Save current session</source>
+        <translation type="obsolete">Enregistrer la session en cours</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="283"/>
+        <source>Save</source>
+        <translation type="obsolete">Enregistrer</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="286"/>
+        <source>&lt;b&gt;Unable to save log &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
+        <translation type="obsolete">&lt;b&gt;Impossible d&apos;enregistrer le fichier &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="169"/>
+        <source>Save current session (i.e. all inputs and outputs) in a text file</source>
+        <translation>Enregistrer la session en cours (c&apos;est-à-dire toutes les entrées et sorties) dans un fichier texte</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="293"/>
+        <source>Save session</source>
+        <translation>Enregistrer la session</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="297"/>
+        <source>&lt;b&gt;Unable to save file &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
+        <translation>&lt;b&gt;Impossible d&apos;enregistrer le fichier &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>

@@ -14,7 +14,8 @@
 import sys, os, time
 import os.path as osp
 
-from PyQt4.QtGui import QMenu, QApplication, QCursor, QToolTip, QKeySequence
+from PyQt4.QtGui import (QMenu, QApplication, QCursor, QToolTip, QKeySequence,
+                         QFileDialog, QMessageBox)
 from PyQt4.QtCore import (Qt, QString, QCoreApplication, SIGNAL, pyqtProperty,
                           QStringList)
 from PyQt4.Qsci import QsciScintilla
@@ -25,10 +26,10 @@ STDERR = sys.stderr
 
 # Local import
 from spyderlib import __version__, encoding
-from spyderlib.config import CONF, get_icon
+from spyderlib.config import CONF, get_icon, get_conf_path
 from spyderlib.dochelpers import getobj
 from spyderlib.qthelpers import (keybinding, create_action, add_actions,
-                                 restore_keyevent)
+                                 restore_keyevent, translate)
 from spyderlib.widgets.qscibase import QsciBase
 from spyderlib.widgets.shellhelpers import get_error_match
 
@@ -59,6 +60,10 @@ class QsciShellBase(QsciBase):
         assert isinstance(history_filename, (str, unicode))
         self.history_filename = history_filename
         self.history = self.load_history()
+        
+        # Session
+        self.session_filename = CONF.get('main', 'session_filename',
+                                         get_conf_path('session.log'))
         
         # Context menu
         self.menu = None
@@ -141,20 +146,31 @@ class QsciShellBase(QsciBase):
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
-        self.cut_action = create_action(self, self.tr("Cut"),
+        self.cut_action = create_action(self,
+                                        translate("QsciShellBase", "Cut"),
                                         shortcut=keybinding('Cut'),
                                         icon=get_icon('editcut.png'),
                                         triggered=self.cut)
-        self.copy_action = create_action(self, self.tr("Copy"),
+        self.copy_action = create_action(self,
+                                         translate("QsciShellBase", "Copy"),
                                          shortcut=keybinding('Copy'),
                                          icon=get_icon('editcopy.png'),
                                          triggered=self.copy)
-        paste_action = create_action(self, self.tr("Paste"),
+        paste_action = create_action(self,
+                                     translate("QsciShellBase", "Paste"),
                                      shortcut=keybinding('Paste'),
                                      icon=get_icon('editpaste.png'),
                                      triggered=self.paste)
+        save_action = create_action(self,
+                                    translate("QsciShellBase", "Save session..."),
+                                    icon=get_icon('filesave.png'),
+                                    tip=translate("QsciShellBase",
+                                                  "Save current session (i.e. "
+                                                  "all inputs and outputs) in "
+                                                  "a text file"),
+                                    triggered=self.save_session)
         add_actions(self.menu, (self.cut_action, self.copy_action,
-                                paste_action) )
+                                paste_action, None, save_action) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
@@ -257,6 +273,29 @@ class QsciShellBase(QsciBase):
         self.check_selection()
         if self.hasSelectedText():
             QsciScintilla.removeSelectedText(self)
+        
+    def save_session(self):
+        """Save current session (all text in console)"""
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getSaveFileName(self,
+                                               translate("QsciShellBase",
+                                                         "Save session"),
+                                               self.session_filename,
+                                               "Session (*.log)")
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if filename:
+            filename = osp.normpath(unicode(filename))
+            try:
+                encoding.write(unicode(self.text()), filename)
+                self.session_filename = filename
+                CONF.set('main', 'session_filename', filename)
+            except EnvironmentError, error:
+                QMessageBox.critical(self, translate("QsciShellBase",
+                                                     "Save session"),
+                                translate("QsciShellBase",
+                                          "<b>Unable to save file '%1'</b>"
+                                          "<br><br>Error message:<br>%2") \
+                                .arg(osp.basename(filename)).arg(str(error)))
         
         
     #------ Basic keypress event handler
@@ -800,21 +839,26 @@ class QsciPythonShell(QsciShellBase):
         """Reimplements QsciShellBase method"""
         QsciShellBase.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(self,
-                                     self.tr("Copy without prompts"),
+                                     translate("QsciPythonShell",
+                                               "Copy without prompts"),
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
-        clear_line_action = create_action(self, self.tr("Clear line"),
+        clear_line_action = create_action(self, translate("QsciPythonShell",
+                                                          "Clear line"),
                                      QKeySequence("Escape"),
                                      icon=get_icon('eraser.png'),
-                                     tip=self.tr("Clear line"),
+                                     tip=translate("QsciPythonShell",
+                                                   "Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self,
-                                     self.tr("Clear shell"),
+                                     translate("QsciPythonShell",
+                                               "Clear shell"),
                                      icon=get_icon('clear.png'),
-                                     tip=self.tr("Clear shell contents "
+                                     tip=translate("QsciPythonShell",
+                                                   "Clear shell contents "
                                                  "('cls' command)"),
                                      triggered=self.clear_terminal)
-        add_actions(self.menu, (None, self.copy_without_prompts_action,
+        add_actions(self.menu, (self.copy_without_prompts_action,
                     clear_line_action, clear_action))
           
     def contextMenuEvent(self, event):
@@ -1021,21 +1065,25 @@ class QsciPythonShell(QsciShellBase):
                         arglist = self.get_arglist(text)
                         if arglist:
                             done = True
-                            self.show_calltip(self.tr("Arguments"),
+                            self.show_calltip(translate("QsciPythonShell",
+                                                        "Arguments"),
                                               arglist, '#129625')
                     else:
                         done = True
-                        self.show_calltip(self.tr("Warning"),
-                                          self.tr("Object `%1` is not callable"
-                                                  " (i.e. not a function, "
-                                                  "a method or a class "
-                                                  "constructor)").arg(text),
+                        self.show_calltip(translate("QsciPythonShell",
+                                                    "Warning"),
+                                          translate("QsciPythonShell",
+                                                "Object `%1` is not callable"
+                                                " (i.e. not a function, "
+                                                "a method or a class "
+                                                "constructor)").arg(text),
                                           color='#FF0000')
         if not done:
             doc = self.get__doc__(text)
             if doc is None: # Useful only for ExternalShellBase
                 return
-            self.show_calltip(self.tr("Documentation"), doc)
+            self.show_calltip(translate("QsciPythonShell", "Documentation"),
+                              doc)
         
         
     #------ Miscellanous

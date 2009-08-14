@@ -46,6 +46,10 @@ class ExternalShellBase(QWidget):
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
                      self.keyboard_interrupt)
+        # Redirecting some SIGNALs:
+        self.connect(self.shell, SIGNAL('redirect_stdio(bool)'),
+                     lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
+                                             state))
         
         self.state_label = QLabel()
         self.time_label = QLabel()
