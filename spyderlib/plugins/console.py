@@ -137,17 +137,6 @@ class Console(PluginWidget):
                             icon = 'syspath.png',
                             tip=self.tr("Show (read-only) sys.path"),
                             triggered=show_syspath)
-        try:
-            imp.find_module('matplotlib')
-            dockablefigures_action = create_action(self,
-                            self.tr("Dockable figures"),
-                            tip=self.tr("If enabled, matplotlib figures may "
-                                        "be docked to Spyder's main window "
-                                        "(will apply only for new figures)"),
-                            toggled=self.toggle_dockablefigures_mode)
-            dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
-        except ImportError:
-            dockablefigures_action = None
         font_action = create_action(self,
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
@@ -167,11 +156,21 @@ class Console(PluginWidget):
             toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
                                                    'autocompletion/enabled') )
+        try:
+            imp.find_module('matplotlib')
+            dockablefigures_action = create_action(self,
+                            self.tr("Dockable figures"),
+                            tip=self.tr("If enabled, matplotlib figures may "
+                                        "be docked to Spyder's main window "
+                                        "(will apply only for new figures)"),
+                            toggled=self.toggle_dockablefigures_mode)
+            dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
+        except ImportError:
+            dockablefigures_action = None
         menu_actions = [run_action, environ_action, syspath_action,
-                        dockablefigures_action,
                         None, font_action, wrap_action, calltips_action,
                         codecompletion_action, exteditor_action,
-                        None, self.quit_action]
+                        dockablefigures_action, None, self.quit_action]
         toolbar_actions = []
         
         # Add actions to context menu
