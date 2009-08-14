@@ -48,7 +48,7 @@ info = osp.join(version, "%s.egg-info" % name)
 #for name in ["%s.win32-py2.5.msi" % version,
 #             "%s.win32.exe" % version,
 for name in ["%s.win32.exe" % version,
-             "%s-py2.5.egg" % version]:
+             "%s-py2.6.egg" % version]:
     shutil.copy(osp.join(dist, name), osp.join(parentdir, name))
 name = "PKG-INFO"
 shutil.copy(osp.join(info, name), osp.join(parentdir, "%s-info" % version))

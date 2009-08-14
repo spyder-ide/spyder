@@ -2037,7 +2037,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="152"/>
+        <location filename="widgets/qscishell.py" line="157"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -2156,6 +2156,11 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <location filename="widgets/interactiveshell.py" line="565"/>
         <source>Documentation</source>
         <translation type="obsolete">Documentation</translation>
+    </message>
+    <message>
+        <location filename="widgets/qscishell.py" line="153"/>
+        <source>Copy without prompts</source>
+        <translation>Copier sans les préfixes</translation>
     </message>
 </context>
 <context>
@@ -2852,22 +2857,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciPythonShell</name>
     <message>
-        <location filename="widgets/qscishell.py" line="978"/>
+        <location filename="widgets/qscishell.py" line="988"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="982"/>
+        <location filename="widgets/qscishell.py" line="992"/>
         <source>Warning</source>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="986"/>
+        <location filename="widgets/qscishell.py" line="996"/>
         <source>Object `%1` is not callable (i.e. not a function, a method or a class constructor)</source>
         <translation>L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/qscishell.py" line="992"/>
+        <location filename="widgets/qscishell.py" line="1002"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>

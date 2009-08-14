@@ -149,17 +149,24 @@ class QsciShellBase(QsciBase):
                            translate("InteractiveShell", "Copy"),
                            shortcut=keybinding('Copy'),
                            icon=get_icon('editcopy.png'), triggered=self.copy)
+        self.copy_without_prompts_action = create_action(self,
+                           translate("InteractiveShell",
+                                     "Copy without prompts"),
+                           icon=get_icon('copywop.png'),
+                           triggered=self.copy_without_prompts)
         paste_action = create_action(self,
                            translate("InteractiveShell", "Paste"),
                            shortcut=keybinding('Paste'),
                            icon=get_icon('editpaste.png'), triggered=self.paste)
         add_actions(self.menu, (self.cut_action, self.copy_action,
+                                self.copy_without_prompts_action,
                                 paste_action) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         state = self.hasSelectedText()
         self.copy_action.setEnabled(state)
+        self.copy_without_prompts_action.setEnabled(state)
         self.cut_action.setEnabled(state)
         self.menu.popup(event.globalPos())
         event.accept()        
@@ -232,11 +239,14 @@ class QsciShellBase(QsciBase):
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.hasSelectedText():
-            text = unicode(self.selectedText())
-            text = text.replace('>>> ', '').strip() # removing prompts
-            QApplication.clipboard().setText(text)
+            QApplication.clipboard().setText( unicode(self.selectedText()) )
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
+            
+    def copy_without_prompts(self):
+        """Copy text to clipboard without prompts"""
+        text = unicode(self.selectedText()).replace('>>> ', '').strip()
+        QApplication.clipboard().setText(text)
 
     def cut(self):
         """Cut text"""
