@@ -14,8 +14,8 @@ Interactive Python shell and related widgets based on PyQt4
 name = 'spyder'
 libname = 'spyderlib'
 from spyderlib import __version__ as version
-google_url = 'http://%s.googlecode.com' % name
-download_url = '%s/files/%s-%s-py2.5.egg' % (google_url, name, version)
+google_url = 'http://%s.googlecode.com' % libname
+download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
                                 '.plugins', '.pyflakes']]
 package_data={libname: ['*.qm', 'python.api', 'images/*.png', 'images/*.svg',
@@ -60,7 +60,7 @@ setup(
       download_url = download_url,
       author = "Pierre Raybaut",
       author_email = 'contact@pythonxy.com',
-      url = 'http://code.google.com/p/%s/' % name,
+      url = google_url,
       license = 'MIT',
       keywords = keywords,
       platforms = ['any'],
