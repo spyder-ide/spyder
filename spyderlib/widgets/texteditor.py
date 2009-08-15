@@ -23,7 +23,8 @@ from spyderlib.config import get_icon, get_font
 
 class TextEditor(QDialog):
     """Array Editor Dialog"""
-    def __init__(self, text, title='', font=None, parent=None):
+    def __init__(self, text, title='', font=None, parent=None,
+                 readonly=False, size=(400, 300)):
         super(TextEditor, self).__init__(parent)
         
         self.layout = QVBoxLayout()
@@ -31,6 +32,7 @@ class TextEditor(QDialog):
 
         # Text edit
         self.edit = QTextEdit(parent)
+        self.edit.setReadOnly(readonly)
         self.edit.setPlainText(text)
         if font is None:
             font = get_font('texteditor')
@@ -38,7 +40,10 @@ class TextEditor(QDialog):
         self.layout.addWidget(self.edit)
 
         # Buttons configuration
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
+        buttons = QDialogButtonBox.Ok
+        if not readonly:
+            buttons = buttons | QDialogButtonBox.Cancel
+        bbox = QDialogButtonBox(buttons)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
         self.layout.addWidget(bbox)
@@ -49,7 +54,7 @@ class TextEditor(QDialog):
         self.setWindowIcon(get_icon('edit.png'))
         self.setWindowTitle(self.tr("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
-        self.resize(400, 300)
+        self.resize(size[0], size[1])
         
     def get_copy(self):
         """Return modified text"""

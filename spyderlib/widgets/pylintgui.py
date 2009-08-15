@@ -37,8 +37,9 @@ from spyderlib.utils import is_program_installed
 from spyderlib.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
-                                         is_module_or_package)
+                                          is_module_or_package)
 
 
 PYLINT_PATH = 'pylint.bat' if os.name == 'nt' else 'pylint'
@@ -125,6 +126,9 @@ class PylintWidget(QWidget):
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
         
+        self.output = None
+        self.error_output = None
+        
         self.max_entries = max_entries
         self.data = []
         if osp.isfile(self.DATAPATH):
@@ -152,6 +156,11 @@ class PylintWidget(QWidget):
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
+        self.log_button = create_toolbutton(self, get_icon('log.png'),
+                                    translate('Pylint', "Output"),
+                                    tip=translate('Pylint',
+                                                  "Complete Pylint output"),
+                                    triggered=self.show_log)
         self.treewidget = ResultsTree(self)
         
         hlayout1 = QHBoxLayout()
@@ -163,6 +172,8 @@ class PylintWidget(QWidget):
         hlayout2.addWidget(self.ratelabel)
         hlayout2.addStretch()
         hlayout2.addWidget(self.datelabel)
+        hlayout2.addStretch()
+        hlayout2.addWidget(self.log_button)
         
         layout = QVBoxLayout()
         layout.addLayout(hlayout1)
@@ -231,20 +242,28 @@ class PylintWidget(QWidget):
             self.data.pop(0)
         cPickle.dump(self.data, file(self.DATAPATH, 'w'))
         
+    def show_log(self):
+        if self.output:
+            TextEditor(self.output, title=translate('Pylint', "Pylint output"),
+                       readonly=True, size=(700, 500)).exec_()
+        
     def start(self):
         filename = unicode(self.filecombo.currentText())
         
         self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.MergedChannels)
+        self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.process.setWorkingDirectory(osp.dirname(filename))
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.read_output)
+        self.connect(self.process, SIGNAL("readyReadStandardError()"),
+                     lambda: self.read_output(error=True))
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
         self.connect(self.stop_button, SIGNAL("clicked()"),
                      self.process.kill)
         
         self.output = ''
+        self.error_output = ''
         p_args = [osp.basename(filename)]
         self.process.start(PYLINT_PATH, p_args)
         
@@ -258,12 +277,22 @@ class PylintWidget(QWidget):
         self.start_button.setEnabled(not state)
         self.stop_button.setEnabled(state)
         
-    def read_output(self):
-        self.process.setReadChannel(QProcess.StandardOutput)
+    def read_output(self, error=False):
+        if error:
+            self.process.setReadChannel(QProcess.StandardError)
+        else:
+            self.process.setReadChannel(QProcess.StandardOutput)
         bytes = QByteArray()
         while self.process.bytesAvailable():
-            bytes += self.process.readAllStandardOutput()
-        self.output += unicode( QString.fromLocal8Bit(bytes.data()) )
+            if error:
+                bytes += self.process.readAllStandardError()
+            else:
+                bytes += self.process.readAllStandardOutput()
+        text = unicode( QString.fromLocal8Bit(bytes.data()) )
+        if error:
+            self.error_output += text
+        else:
+            self.output += text
         
     def finished(self):
         self.set_running_state(False)
@@ -273,6 +302,7 @@ class PylintWidget(QWidget):
         # Convention, Refactor, Warning, Error
         results = {'C:': [], 'R:': [], 'W:': [], 'E:': []}
         txt_module = '************* Module '
+        
         for line in self.output.splitlines():
             if line.startswith(txt_module):
                 # New module
@@ -298,23 +328,28 @@ class PylintWidget(QWidget):
             results[line[:i1+1]].append(item)                
             
         # Rate
+        rate = None
         txt_rate = 'Your code has been rated at '
         i_rate = self.output.find(txt_rate)
-        i_rate_end = self.output.find('/10', i_rate)
-        rate = self.output[i_rate+len(txt_rate):i_rate_end]
+        if i_rate > 0:
+            i_rate_end = self.output.find('/10', i_rate)
+            if i_rate_end > 0:
+                rate = self.output[i_rate+len(txt_rate):i_rate_end]
         
         # Previous run
-        txt_prun = 'previous run: '
-        i_prun = self.output.find(txt_prun, i_rate_end)
-        if i_prun > 0:
-            i_prun_end = self.output.find('/10', i_prun)
-            previous = self.output[i_prun+len(txt_prun):i_prun_end]
-        else:
-            previous = ''
+        previous = ''
+        if rate is not None:
+            txt_prun = 'previous run: '
+            i_prun = self.output.find(txt_prun, i_rate_end)
+            if i_prun > 0:
+                i_prun_end = self.output.find('/10', i_prun)
+                previous = self.output[i_prun+len(txt_prun):i_prun_end]
+            
         
         filename = unicode(self.filecombo.currentText())
         self.set_data(filename, (time.localtime(), rate, previous, results))
-        self.show_data()
+        self.output = self.error_output + self.output
+        self.show_data(justanalyzed=True)
         
     def kill_if_running(self):
         if self.process is not None:
@@ -322,7 +357,11 @@ class PylintWidget(QWidget):
                 self.process.kill()
                 self.process.waitForFinished()
         
-    def show_data(self):
+    def show_data(self, justanalyzed=False):
+        if not justanalyzed:
+            self.output = None
+        self.log_button.setEnabled(self.output is not None \
+                                   and len(self.output) > 0)
         self.kill_if_running()
         filename = unicode(self.filecombo.currentText())
         if not filename:
@@ -335,22 +374,30 @@ class PylintWidget(QWidget):
             date_text = ''
         else:
             datetime, rate, previous_rate, results = data
-            text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
-            rate_style = "<span style=\'color: %s\'><b>%s</b></span>"
-            prevrate_style = "<span style=\'color: #666666\'>%s</span>"
-            color = "#FF0000"
-            if float(rate) > 5.:
-                color = "#22AA22"
-            elif float(rate) > 3.:
-                color = "#EE5500"
-            text = translate('Pylint', 'Global evaluation:')
-            text = (text_style % text)+(rate_style % (color, ('%s/10' % rate)))
-            if previous_rate:
-                text_prun = translate('Pylint', 'previous run:')
-                text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
-                text += prevrate_style % text_prun
-            self.treewidget.set_results(filename, results)
-            date_text = text_style % time.strftime("%d %b %Y %H:%M", datetime)
+            if rate is None:
+                text = translate('Pylint', 'Analysis did not succeed '
+                                           '(see output for more details).')
+                self.treewidget.clear()
+                date_text = ''
+            else:
+                text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
+                rate_style = "<span style=\'color: %s\'><b>%s</b></span>"
+                prevrate_style = "<span style=\'color: #666666\'>%s</span>"
+                color = "#FF0000"
+                if float(rate) > 5.:
+                    color = "#22AA22"
+                elif float(rate) > 3.:
+                    color = "#EE5500"
+                text = translate('Pylint', 'Global evaluation:')
+                text = (text_style % text)+(rate_style % (color,
+                                                          ('%s/10' % rate)))
+                if previous_rate:
+                    text_prun = translate('Pylint', 'previous run:')
+                    text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
+                    text += prevrate_style % text_prun
+                self.treewidget.set_results(filename, results)
+                date_text = text_style % time.strftime("%d %b %Y %H:%M",
+                                                       datetime)
             
         self.ratelabel.setText(text)
         self.datelabel.setText(date_text)

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -814,7 +815,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="182"/>
+        <location filename="plugins/__init__.py" line="181"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
@@ -2225,12 +2226,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="805"/>
+        <location filename="spyder.py" line="812"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="900"/>
+        <location filename="spyder.py" line="908"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
@@ -2240,7 +2241,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="901"/>
+        <location filename="spyder.py" line="909"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -2249,12 +2250,12 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="907"/>
+        <location filename="spyder.py" line="915"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="908"/>
+        <location filename="spyder.py" line="916"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
@@ -2543,7 +2544,7 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;PYthon Development EnvironmEnt            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://code.google.com/p/spyder/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyder&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="831"/>
+        <location filename="spyder.py" line="838"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -2720,27 +2721,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Pylint</name>
     <message>
-        <location filename="widgets/pylintgui.py" line="68"/>
+        <location filename="widgets/pylintgui.py" line="69"/>
         <source>Results for </source>
         <translation>Résultats pour </translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="73"/>
+        <location filename="widgets/pylintgui.py" line="74"/>
         <source>Convention</source>
         <translation>Convention</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="75"/>
+        <location filename="widgets/pylintgui.py" line="76"/>
         <source>Refactor</source>
         <translation>Factorisation</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="77"/>
+        <location filename="widgets/pylintgui.py" line="78"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="253"/>
+        <location filename="widgets/pylintgui.py" line="272"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
@@ -2750,12 +2751,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="145"/>
+        <location filename="widgets/pylintgui.py" line="149"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="147"/>
+        <location filename="widgets/pylintgui.py" line="151"/>
         <source>Stop current analysis</source>
         <translation>Arrêter l&apos;analyse en cours</translation>
     </message>
@@ -2765,12 +2766,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Merci d&apos;installer au préalable &lt;b&gt;Pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="254"/>
+        <location filename="widgets/pylintgui.py" line="273"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="333"/>
+        <location filename="widgets/pylintgui.py" line="372"/>
         <source>Source code has not been rated yet.</source>
         <translation>Le code source n&apos;a pas encore été analysé.</translation>
     </message>
@@ -2780,17 +2781,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Le code source a été noté </translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="349"/>
+        <location filename="widgets/pylintgui.py" line="395"/>
         <source>previous run:</source>
         <translation>analyse précédente :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="180"/>
+        <location filename="widgets/pylintgui.py" line="191"/>
         <source>Please install &lt;b&gt;pylint&lt;/b&gt;:</source>
         <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="346"/>
+        <location filename="widgets/pylintgui.py" line="391"/>
         <source>Global evaluation:</source>
         <translation>Évaluation globale :</translation>
     </message>
@@ -2835,14 +2836,34 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="141"/>
+        <location filename="widgets/pylintgui.py" line="145"/>
         <source>Analyze</source>
         <translation>Analyser</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="142"/>
+        <location filename="widgets/pylintgui.py" line="146"/>
         <source>Run analysis</source>
         <translation>Analyser le code source</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="159"/>
+        <source>Output</source>
+        <translation>Sortie</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="161"/>
+        <source>Complete Pylint output</source>
+        <translation>Sortie complète de l&apos;analyse Pylint</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="246"/>
+        <source>Pylint output</source>
+        <translation>Analyse Pylint</translation>
+    </message>
+    <message>
+        <location filename="widgets/pylintgui.py" line="379"/>
+        <source>Analysis did not succeed (see output for more details).</source>
+        <translation>L&apos;analyse n&apos;a pas réussi (voir la sortie pour plus de détails).</translation>
     </message>
 </context>
 <context>
@@ -3094,7 +3115,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>TextEditor</name>
     <message>
-        <location filename="widgets/texteditor.py" line="50"/>
+        <location filename="widgets/texteditor.py" line="55"/>
         <source>Text editor</source>
         <translation>Éditeur de texte</translation>
     </message>
