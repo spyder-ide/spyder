@@ -205,7 +205,7 @@ class Console(PluginWidget):
         command = "execfile(%s)" % repr(osp.abspath(filename))
         if set_focus:
             self.shell.setFocus()
-        if self.dockwidget:
+        if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         if silent:

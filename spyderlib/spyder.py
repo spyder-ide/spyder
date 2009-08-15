@@ -769,12 +769,19 @@ class MainWindow(QMainWindow):
             self.last_window_state = self.saveState()
             focus_widget = QApplication.focusWidget()
             for plugin in self.widgetlist:
+                plugin.dockwidget.hide()
                 if plugin.isAncestorOf(focus_widget):
                     self.last_plugin = plugin
-                else:
-                    plugin.dockwidget.hide()
+            self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
+            self.setCentralWidget(self.last_plugin)
+            self.last_plugin.ismaximized = True
+            self.last_plugin.visibility_changed(True)
         else:
             # Restore original layout (before maximizing current dockwidget)
+            self.last_plugin.dockwidget.setWidget(self.last_plugin)
+            self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
+            self.setCentralWidget(None)
+            self.last_plugin.ismaximized = False
             self.restoreState(self.last_window_state)
             self.last_window_state = None
             self.last_plugin.get_focus_widget().setFocus()
@@ -876,8 +883,9 @@ class MainWindow(QMainWindow):
     def findinfiles_callback(self):
         """Find in files callback"""
         widget = QApplication.focusWidget()
-        self.findinfiles.dockwidget.setVisible(True)
-        self.findinfiles.dockwidget.raise_()
+        if not self.findinfiles.ismaximized:
+            self.findinfiles.dockwidget.setVisible(True)
+            self.findinfiles.dockwidget.raise_()
         from spyderlib.widgets.qscibase import QsciBase
         text = ''
         if isinstance(widget, QsciBase) and widget.hasSelectedText():
@@ -912,7 +920,8 @@ class MainWindow(QMainWindow):
                 namespace = None
         interpreter = self.console.shell.start_interpreter(namespace)
         self.workspace.set_interpreter(interpreter)
-        self.console.dockwidget.raise_()
+        if not self.console.ismaximized:
+            self.console.dockwidget.raise_()
         
     def redirect_interactiveshell_stdio(self, state):
         if state:

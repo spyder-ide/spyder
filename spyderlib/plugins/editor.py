@@ -1417,7 +1417,7 @@ class Editor(PluginWidget):
             else:
                 return
             
-        if self.dockwidget:
+        if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()

@@ -174,7 +174,7 @@ class ExternalConsole(PluginWidget):
         self.find_widget.set_editor(shell.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget:
+        if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         

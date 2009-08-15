@@ -92,7 +92,7 @@ class Pylint(PylintWidget, PluginMixin):
         
     def analyze(self, filename):
         """Reimplement analyze method"""
-        if self.dockwidget:
+        if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()

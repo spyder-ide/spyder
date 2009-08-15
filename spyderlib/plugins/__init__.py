@@ -51,6 +51,7 @@ class PluginMixin(object):
         self.main = main
         self.menu_actions, self.toolbar_actions = self.set_actions()
         self.dockwidget = None
+        self.ismaximized = False
         QObject.connect(self, SIGNAL('option_changed'), self.option_changed)
         
     def create_dockwidget(self):
@@ -87,15 +88,13 @@ class PluginMixin(object):
         return mainwindow
 
     def visibility_changed(self, enable):
-        """DockWidget visibility has changed
-        enable: this parameter is not used because we want to detect if
-        DockWiget is visible or not, with 'not toplevel = visible'"""
+        """DockWidget visibility has changed"""
         if enable:
             self.dockwidget.raise_()
             widget = self.get_focus_widget()
             if widget is not None:
                 widget.setFocus()
-        visible = self.dockwidget.isVisible()
+        visible = self.dockwidget.isVisible() or self.ismaximized
         toggle_actions(self.menu_actions, visible)
         toggle_actions(self.toolbar_actions, visible)
         if visible:

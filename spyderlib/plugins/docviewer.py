@@ -166,8 +166,8 @@ class DocViewer(ReadOnlyEditor):
             
         self.set_help(text)
         self.save_dvhistory()
-        if self.dockwidget and self.dockwidget.isVisible():
-            if text != self._last_text:
+        if self.dockwidget and self.dockwidget.isVisible() \
+           and not self.ismaximized and text != self._last_text:
                 self.dockwidget.raise_()
         self._last_text = text
         
