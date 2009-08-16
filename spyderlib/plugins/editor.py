@@ -274,6 +274,7 @@ class EditorTabWidget(Tabs):
         txt = unicode(finfo.editor.get_text())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
+            self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.editor.setModified(False)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.modification_changed(index=index)
