@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
-import os, sys, time
+import os, sys, time, re
 import os.path as osp
 
 # For debugging purpose:
@@ -230,7 +230,7 @@ class EditorTabWidget(Tabs):
         for index in indexes:
             self.setCurrentIndex(index)
             finfo = self.data[index]
-            if finfo.filename == self.plugin.file_path or yes_all:
+            if finfo.filename == self.plugin.TEMPFILE_PATH or yes_all:
                 if not self.save():
                     return False
             elif finfo.editor.isModified():
@@ -434,7 +434,7 @@ class EditorTabWidget(Tabs):
                 
     def get_title(self, filename):
         """Return tab title"""
-        if filename != self.plugin.file_path:
+        if filename != self.plugin.TEMPFILE_PATH:
             return osp.basename(filename)
         else:
             return unicode(self.tr("Temporary file"))
@@ -540,18 +540,7 @@ class EditorTabWidget(Tabs):
         self.__refresh_classbrowser(index)
         if goto > 0:
             editor.highlight_line(goto)
-                
-    def new(self, num):
-        """Create a new file - Untitled"""
-        fname = unicode(self.tr("untitled")) + ("%d.py" % num)
-        default = ['# -*- coding: utf-8 -*-',
-                   '"""',
-                   "Created on %s" % time.ctime(), "",
-                   "@author: %s" % os.environ.get('USERNAME', '-'),
-                   '"""', '', '']
-        text = os.linesep.join(default)
-        self.create_new_editor(fname, 'utf-8', text)
-                
+
 
     #------ Run
     def exec_script_extconsole(self, ask_for_arguments=False,
@@ -769,8 +758,15 @@ class Editor(PluginWidget):
     Multi-file Editor widget
     """
     ID = 'editor'
-    file_path = get_conf_path('.temp.py')
+    TEMPFILE_PATH = get_conf_path('.temp.py')
+    TEMPLATE_PATH = get_conf_path('template.py')
     def __init__(self, parent):
+        # Creating template if it doesn't already exist
+        if not osp.isfile(self.TEMPLATE_PATH):
+            header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
+                      '', '@author: %(username)s', '"""', '', '']
+            encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
+        
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
@@ -1029,6 +1025,10 @@ class Editor(PluginWidget):
         pylint_action = create_action(self, self.tr("Run pylint code analysis"),
                                       "F7", triggered=self.run_pylint)
         pylint_action.setEnabled(is_pylint_installed())
+
+        template_action = create_action(self, self.tr("Edit template for "
+                                                      "new modules"),
+                                        triggered=self.edit_template)
         
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set text and margin font style"),
@@ -1077,8 +1077,8 @@ class Editor(PluginWidget):
                 self.exec_selected_action, None, self.exec_process_action,
                 self.exec_process_interact_action,self.exec_process_args_action,
                 self.exec_process_debug_action, None, pylint_action,
-                None, font_action, wrap_action, tab_action, fold_action,
-                analyze_action, self.toolbox_action)
+                None, template_action, font_action, wrap_action, tab_action,
+                fold_action, analyze_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1354,21 +1354,21 @@ class Editor(PluginWidget):
     #------ File I/O
     def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
-        if not osp.isfile(self.file_path):
+        if not osp.isfile(self.TEMPFILE_PATH):
             # Creating temporary file
             default = ['# -*- coding: utf-8 -*-',
                        '"""',
                        self.tr("Spyder Editor"),
                        '',
                        self.tr("This temporary script file is located here:"),
-                       self.file_path,
+                       self.TEMPFILE_PATH,
                        '"""',
                        '',
                        '',
                        ]
             text = "\r\n".join([unicode(qstr) for qstr in default])
-            encoding.write(unicode(text), self.file_path, 'utf-8')
-        self.load(self.file_path)
+            encoding.write(unicode(text), self.TEMPFILE_PATH, 'utf-8')
+        self.load(self.TEMPFILE_PATH)
 
     def __set_workdir(self):
         """Set current script directory as working directory"""
@@ -1387,10 +1387,26 @@ class Editor(PluginWidget):
                 self.recent_files.pop(-1)
     
     def new(self):
-        """Create a new Python script"""
-        editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.new(self.untitled_num)
+        """Create a new file - Untitled"""
+        # Creating template
+        text, enc = encoding.read(self.TEMPLATE_PATH)
+        encoding_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
+        if encoding_match:
+            enc = encoding_match.group(1)
+        try:
+            text = text % {'date': time.ctime(),
+                           'username': os.environ.get('USERNAME', '-')}
+        except:
+            pass
+        fname = unicode(self.tr("untitled")) + ("%d.py" % self.untitled_num)
         self.untitled_num += 1
+        # Creating editor widget
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.create_new_editor(fname, enc, text)
+        
+    def edit_template(self):
+        """Edit new file template"""
+        self.load(self.TEMPLATE_PATH)
         
     def load(self, filenames=None, goto=0):
         """Load a text file"""
@@ -1402,7 +1418,7 @@ class Editor(PluginWidget):
         if not filenames:
             basedir = os.getcwdu()
             fname = self.get_current_filename()
-            if fname is not None and fname != self.file_path:
+            if fname is not None and fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(fname)
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             filenames = QFileDialog.getOpenFileNames(self,

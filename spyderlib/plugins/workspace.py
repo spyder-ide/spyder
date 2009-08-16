@@ -60,7 +60,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     Workspace widget (namespace explorer)
     """
     ID = 'workspace'
-    file_path = get_conf_path('.temp.ws')
+    TEMPFILE_PATH = get_conf_path('.temp.ws')
     def __init__(self, parent):
         self.interpreter = None
         self.namespace = None
@@ -260,14 +260,14 @@ class Workspace(DictEditorTableView, PluginMixin):
                     self.save()
                 elif answer == QMessageBox.Cancel:
                     return False
-                elif osp.isfile(self.file_path):
+                elif osp.isfile(self.TEMPFILE_PATH):
                     # Removing last saved workspace
-                    os.remove(self.file_path)
+                    os.remove(self.TEMPFILE_PATH)
         return True
     
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""
-        self.filename = unicode(self.file_path)
+        self.filename = unicode(self.TEMPFILE_PATH)
         if osp.isfile(self.filename):
             self.load(self.filename)
         else:
