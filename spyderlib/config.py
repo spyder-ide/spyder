@@ -120,8 +120,8 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'font/italic' : False,
               'font/bold' : False,
-              'wrap' : False,
-              'wrapflag' : True,
+              'wrap' : True,
+              'wrapflag' : False,
               'calltips' : True,
               'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
@@ -138,7 +138,7 @@ DEFAULTS = [
               'font/size' : MEDIUM,
               'font/italic' : False,
               'font/bold' : False,
-              'wrap' : False,
+              'wrap' : True,
               'single_tab' : True,
               'calltips' : True,
               'autocompletion/enabled' : True,
@@ -278,7 +278,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', DEFAULTS, version='1.0.0', load=(not DEV))
+CONF = UserConfig('spyder', DEFAULTS, version='1.0.2', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
