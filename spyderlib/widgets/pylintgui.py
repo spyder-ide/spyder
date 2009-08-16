@@ -122,6 +122,7 @@ class PylintWidget(QWidget):
     Pylint widget
     """
     DATAPATH = get_conf_path('.pylint.results')
+    VERSION = '1.0.2'
     
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
@@ -130,10 +131,12 @@ class PylintWidget(QWidget):
         self.error_output = None
         
         self.max_entries = max_entries
-        self.data = []
+        self.data = [self.VERSION]
         if osp.isfile(self.DATAPATH):
             try:
-                self.data = cPickle.load(file(self.DATAPATH))
+                data = cPickle.load(file(self.DATAPATH))
+                if data[0] == self.VERSION:
+                    self.data = data
             except EOFError:
                 pass
 
@@ -211,15 +214,16 @@ class PylintWidget(QWidget):
             
     def remove_obsolete_items(self):
         """Removing obsolete items"""
-        self.data = [(filename, data) for filename, data in self.data
+        self.data = [self.VERSION] + \
+                    [(filename, data) for filename, data in self.data[1:]
                      if is_module_or_package(filename)]
         
     def get_filenames(self):
-        return [filename for filename, _data in self.data]
+        return [filename for filename, _data in self.data[1:]]
     
     def get_data(self, filename):
         filename = osp.abspath(filename)
-        for index, (fname, data) in enumerate(self.data):
+        for index, (fname, data) in enumerate(self.data[1:]):
             if fname == filename:
                 return index, data
         else:
@@ -238,8 +242,8 @@ class PylintWidget(QWidget):
         self.save()
         
     def save(self):
-        while len(self.data) > self.max_entries:
-            self.data.pop(0)
+        while len(self.data) > self.max_entries+1:
+            self.data.pop(1)
         cPickle.dump(self.data, file(self.DATAPATH, 'w'))
         
     def show_log(self):
