@@ -1,9 +1,6 @@
 \.pyc$
 \.settings$
 \.orig$
-^spyderlib/doc/.doctrees/
-^spyderlib/doc/_sources/
-.buildinfo
 ^build/
 ^dist/
 ^spyder.egg-info/

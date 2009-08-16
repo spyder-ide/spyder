@@ -22,9 +22,11 @@ package_data={libname: ['*.qm', 'python.api', 'images/*.png', 'images/*.svg',
                         'images/actions/*.png', 'images/console/*.png',
                         'images/editor/*.png', 'images/file/*.png',
                         'images/filetypes/*.png', 'images/workspace/*.png',
-                        'doc/*.html', 'doc/searchindex.js', 'doc/_images/*.png',
+                        'doc/*.html', 'doc/searchindex.js', 'doc/.buildinfo',
+                        'doc/objects.inv',
+                        'doc/_images/*.png', 'doc/_sources/*.txt',
                         'doc/_static/*.css', 'doc/_static/*.js',
-                        'doc/_static/*.png', 
+                        'doc/_static/*.png', 'doc/.doctrees/*.doctree',
                         ]}
 import os
 if os.name == 'nt':
