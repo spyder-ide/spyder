@@ -36,7 +36,11 @@ class Interpreter(InteractiveConsole):
         """Exec filename"""
         source = open(filename, 'r').read()
         try:
-            code = compile(source, filename, "exec")
+            try:
+                name = filename.encode('ascii')
+            except UnicodeEncodeError:
+                name = '<executed_script>'
+            code = compile(source, name, "exec")
         except (OverflowError, SyntaxError):
             InteractiveConsole.showsyntaxerror(self, filename)
         else:
