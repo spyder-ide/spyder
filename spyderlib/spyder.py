@@ -371,7 +371,7 @@ class MainWindow(QMainWindow):
                              self.redirect_interactiveshell_stdio)
                 self.connect(self, SIGNAL('find_files(QString)'),
                              self.findinfiles.set_search_text)
-                self.connect(self.workdir, SIGNAL("chdir()"),
+                self.connect(self.workdir, SIGNAL("refresh_findinfiles()"),
                              self.findinfiles.refreshdir)
                 add_actions(self.search_menu, (None, self.findinfiles_action))
                 toolbar_search_actions.append(self.findinfiles_action)
@@ -427,7 +427,7 @@ class MainWindow(QMainWindow):
                 # working directory has changed
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              lambda: self.explorer.refresh(force=False))
-                self.connect(self.workdir, SIGNAL("chdir()"),
+                self.connect(self.workdir, SIGNAL("refresh_explorer()"),
                              self.explorer.refresh)
                 self.connect(self.editor, SIGNAL("refresh_explorer()"),
                              self.explorer.refresh)

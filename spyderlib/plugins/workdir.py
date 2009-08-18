@@ -28,6 +28,7 @@ from spyderlib.qthelpers import get_std_icon, create_action
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
 from spyderlib.plugins import PluginMixin
+from spyderlib.plugins.explorer import Explorer
 
 
 class WorkingDirectory(QToolBar, PluginMixin):
@@ -169,7 +170,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
         self.chdir(os.path.join(os.getcwdu(), os.path.pardir))
         
     def chdir(self, directory=None, browsing_history=False):
-        """Set directory as working directory"""        
+        """Set directory as working directory"""
         # Working directory history management
         if browsing_history:
             directory = self.history[self.histindex]
@@ -184,7 +185,10 @@ class WorkingDirectory(QToolBar, PluginMixin):
         # Changing working directory
         os.chdir( unicode(directory) )
         self.refresh()
-        self.emit(SIGNAL("chdir()"))
+        if not isinstance(self.sender(), Explorer):
+            # Explorer is not the sender: let's refresh it
+            self.emit(SIGNAL("refresh_explorer()"))
+        self.emit(SIGNAL("refresh_findinfiles()"))
         
     def pathedit_activated(self, directory):
         """Path combo box activated"""
