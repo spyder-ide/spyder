@@ -104,13 +104,15 @@ class DirView(QTreeView):
         folder = osp.abspath(unicode(folder))
         return self.model().index(folder)
     
-    def is_current_index(self, folder):
-        return self.get_index(folder) is self.currentIndex()
+    def is_in_current_folder(self, folder):
+        folder = osp.abspath(unicode(folder))
+        current_name = unicode(self.model().filePath(self.currentIndex()))
+        current_path = osp.normpath(current_name)
+        return osp.dirname(current_path) == folder
         
-    def set_folder(self, folder, force_refresh=True):
-        if force_refresh:
-            self.model().refresh()
-        elif self.is_current_index(folder):
+    def set_folder(self, folder, force_current=False):
+        self.model().refresh()
+        if not force_current or self.is_in_current_folder(folder):
             return
         index = self.get_index(folder)
         self.expand(index)
@@ -252,14 +254,14 @@ class ExplorerTreeWidget(DirView):
         
         
     #---- Refreshing widget
-    def refresh(self, new_path=None, force=True):
+    def refresh(self, new_path=None, force_current=False):
         """
         Refresh widget
         force=False: won't refresh widget if path has not changed
         """
         if new_path is None:
             new_path = os.getcwdu()
-        self.set_folder(new_path, force_refresh=force)
+        self.set_folder(new_path, force_current=force_current)
         
         
     #---- Events

@@ -253,7 +253,7 @@ class EditorTabWidget(Tabs):
                     return False
         return True
     
-    def save(self, index=None, force=False):
+    def save(self, index=None, force=False, refresh_explorer=True):
         """Save file"""
         if index is None:
             # Save the currently edited file
@@ -280,8 +280,9 @@ class EditorTabWidget(Tabs):
             self.modification_changed(index=index)
             self.analyze_script(index)
             self.__refresh_classbrowser(index)
-            # Refresh the explorer widget if it exists:
-            self.plugin.emit(SIGNAL("refresh_explorer()"))
+            if refresh_explorer:
+                # Refresh the explorer widget if it exists:
+                self.plugin.emit(SIGNAL("refresh_explorer()"))
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -312,7 +313,8 @@ class EditorTabWidget(Tabs):
     def save_all(self):
         """Save all opened files"""
         for index in range(self.count()):
-            self.save(index)
+            self.save(index, refresh_explorer=False)
+        self.plugin.emit(SIGNAL("refresh_explorer()"))
     
 
     #------ Update UI

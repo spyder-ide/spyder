@@ -47,9 +47,9 @@ class Explorer(ExplorerWidget, PluginMixin):
         self.editor_valid_types = valid_types
         self.treewidget.valid_types += valid_types
         
-    def refresh(self, new_path=None, force=True):
+    def refresh(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
-        self.treewidget.refresh(new_path, force=force)
+        self.treewidget.refresh(new_path, force_current=force_current)
 
     def get_widget_title(self):
         """Return widget title"""

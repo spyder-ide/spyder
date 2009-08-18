@@ -425,10 +425,10 @@ class MainWindow(QMainWindow):
                 # Not forcing the explorer to refresh: takes too much time,
                 # so with force=False, it will be refreshed only if current
                 # working directory has changed
-                self.connect(self.console.shell, SIGNAL("refresh()"),
-                             lambda: self.explorer.refresh(force=False))
+                self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
+                             lambda: self.explorer.refresh(force_current=True))
                 self.connect(self.workdir, SIGNAL("refresh_explorer()"),
-                             self.explorer.refresh)
+                             lambda: self.explorer.refresh(force_current=True))
                 self.connect(self.editor, SIGNAL("refresh_explorer()"),
                              self.explorer.refresh)
 
