@@ -100,10 +100,19 @@ class DirView(QTreeView):
         self.setAnimated(False)
         self.setSortingEnabled(True)
         
-    def set_folder(self, folder):
-        self.model().refresh()
+    def get_index(self, folder):
         folder = osp.abspath(unicode(folder))
-        index = self.model().index(folder)
+        return self.model().index(folder)
+    
+    def is_current_index(self, folder):
+        return self.get_index(folder) is self.currentIndex()
+        
+    def set_folder(self, folder, force_refresh=True):
+        if force_refresh:
+            self.model().refresh()
+        elif self.is_current_index(folder):
+            return
+        index = self.get_index(folder)
         self.expand(index)
         self.setCurrentIndex(index)
 
@@ -243,11 +252,14 @@ class ExplorerTreeWidget(DirView):
         
         
     #---- Refreshing widget
-    def refresh(self, new_path=None):
-        """Refresh widget"""
+    def refresh(self, new_path=None, force=True):
+        """
+        Refresh widget
+        force=False: won't refresh widget if path has not changed
+        """
         if new_path is None:
             new_path = os.getcwdu()
-        self.set_folder(new_path)
+        self.set_folder(new_path, force_refresh=force)
         
         
     #---- Events

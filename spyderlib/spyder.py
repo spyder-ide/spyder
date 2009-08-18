@@ -422,8 +422,11 @@ class MainWindow(QMainWindow):
                              self.open_external_console(unicode(fname),
                                                 osp.dirname(unicode(fname)),
                                                 False, False, False))
+                # Not forcing the explorer to refresh: takes too much time,
+                # so with force=False, it will be refreshed only if current
+                # working directory has changed
                 self.connect(self.console.shell, SIGNAL("refresh()"),
-                             self.explorer.refresh)
+                             lambda: self.explorer.refresh(force=False))
                 self.connect(self.workdir, SIGNAL("chdir()"),
                              self.explorer.refresh)
                 self.connect(self.editor, SIGNAL("refresh_explorer()"),
