@@ -22,11 +22,10 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QLabel, QHBoxLayout, QDrag, QMessageBox, QInputDialog,
-                         QLineEdit, QMenu, QWidget, QToolButton, QFileDialog,
-                         QToolBar, QSplitter, QTreeWidgetItem)
-from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize
+from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QDirModel,
+                         QMessageBox, QInputDialog, QLineEdit, QMenu, QWidget,
+                         QToolButton, QFileDialog, QToolBar, QTreeView, QDrag)
+from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QStringList
 
 import os, sys, re
 import os.path as osp
@@ -35,10 +34,9 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.qthelpers import (get_std_icon, create_action, add_actions,
-                                translate, get_filetype_icon)
+                                translate)
 from spyderlib import encoding
 from spyderlib.config import get_icon
 
@@ -82,177 +80,55 @@ def is_drive_path(path):
     return osp.normpath(osp.join(path, osp.pardir)) == path
 
 
-class ExplorerTreeWidget(OneColumnTree):
-    def __init__(self, parent):
-        OneColumnTree.__init__(self, parent)
+class DirView(QTreeView):
+    def __init__(self, parent=None):
+        QTreeView.__init__(self, parent)
+
         self.parent_widget = parent
-        self.folders = set()
-        self.root_item = None
-        self.root_path = None
-        self.last_folder = None
-        self.last_item = None
-        self.data = None
-        self.set_title(translate('Explorer', 'Folders'))
-        self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
-                     self.activated)
-        self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
-                     self.item_expanded)
-        self.connect(self, SIGNAL('itemCollapsed(QTreeWidgetItem*)'),
-                     self.item_collapsed)
-        self.connect(self, SIGNAL('currentItemChanged(QTreeWidgetItem*,QTreeWidgetItem*)'),
-                     self.current_item_changed)
-        self.connect(self, SIGNAL('itemSelectionChanged()'),
-                     self.item_selection_changed)
+        self.name_filters = None
         
-    def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False):
-        self.include = include
-        self.exclude = exclude
-        self.show_all = show_all
+        filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
+        sort_flags = QDir.Name | QDir.DirsFirst | \
+                     QDir.IgnoreCase | QDir.LocaleAware
+        self.setModel(QDirModel(QStringList(), filters, sort_flags, self))
         
-    def activated(self):
-        itemdata = self.data.get(self.currentItem())
-        if itemdata is not None:
-            self.parent_widget.emit(SIGNAL("open_dir(QString)"), itemdata)
-            
-    def item_selection_changed(self):
-        items = self.selectedItems()
-        if len(items):
-            items[0].setIcon(0, get_std_icon('DirOpenIcon'))
-            
-    def current_item_changed(self, current_item, previous_item):
-        if current_item is not None:
-            current_item.setIcon(0, get_std_icon('DirOpenIcon'))
-        if previous_item is not None:
-            previous_item.setIcon(0, get_std_icon('DirClosedIcon'))
+        self.connect(self, SIGNAL('expanded(QModelIndex)'),
+                     lambda: self.resizeColumnToContents(0))
+        self.connect(self, SIGNAL('collapsed(QModelIndex)'),
+                     lambda: self.resizeColumnToContents(0))
         
-    def item_expanded(self, item):
-        item.setIcon(0, get_std_icon('DirOpenIcon'))
-        if not item.childCount():
-            # A non-populated item was just expanded
-            folder = self.data[item]
-            for path in listdir(folder, self.include, self.exclude,
-                                self.show_all, folders_only=True):
-                if path == osp.pardir:
-                    continue
-                self.create_dir_item(osp.join(folder, path), item)
-            self.after_refresh()
-            self.scrollToItem(item)
-            
-    def item_collapsed(self, item):
-        item.setIcon(0, get_std_icon('DirClosedIcon'))
-        
-    def __add_subfolders(self, folder):
-        for path in listdir(folder, self.include, self.exclude,
-                            self.show_all, folders_only=True):
-            self.folders.add(osp.abspath(osp.join(folder, path)))
+        self.setAnimated(False)
+        self.setSortingEnabled(True)
         
     def set_folder(self, folder):
+        self.model().refresh()
         folder = osp.abspath(unicode(folder))
-        self.last_folder = folder
-        self.folders.add(folder)
-        if not osp.commonprefix(list(self.folders)):
-            self.folders = set([folder])
-        self.__add_subfolders(folder)
-        if not is_drive_path(folder):
-            self.__add_subfolders(osp.join(folder, os.pardir))
-        self.refresh(clear=True)
-        self.after_refresh()
-        self.last_item.setSelected(True)
-        self.scrollToItem(self.last_item)
-        
-    def after_refresh(self):
-        self.expandAll()
-        for item, path in self.data.iteritems():
-            if not item.childCount()and has_subdirectories(path, self.include,
-                                                           self.exclude,
-                                                           self.show_all):
-                item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-                self.collapseItem(item)
-            if path == self.last_folder:
-                self.last_item = item
-        self.resizeColumnToContents(0)
-                
-    def create_dir_item(self, dirname, parent):
-        if dirname != self.root_path:
-            displayed_name = osp.basename(dirname)
-        else:
-            displayed_name = dirname
-        item = QTreeWidgetItem(parent, [displayed_name])
-        if is_drive_path(dirname):
-            icon = 'DriveHDIcon'
-        else:
-            icon = 'DirClosedIcon'
-        item.setIcon(0, get_std_icon(icon))
-        self.data[item] = dirname
-        return item
-        
-    def refresh(self, clear=True):
-        if clear:
-            self.clear()
-            self.data = {}
-        self.root_path = osp.commonprefix(list(self.folders))
-        self.folders.add(self.root_path)
-        # Populating tree: directories
-        dirs = {}
-        for dirname in sorted(list(self.folders)):
-            if dirname == self.root_path:
-                parent = self
-            else:
-                parent_dirname = abspardir(dirname)
-                parent = dirs.get(parent_dirname)
-                if parent is None:
-                    # This is related to directories which contain single
-                    # nested subdirectories
-                    items_to_create = []
-                    while dirs.get(parent_dirname) is None:
-                        items_to_create.append(parent_dirname)
-                        parent_dirname = abspardir(parent_dirname)
-                    items_to_create.reverse()
-                    for item_dir in items_to_create:
-                        item_parent = dirs[abspardir(item_dir)]
-                        dirs[item_dir] = self.create_dir_item(item_dir, item_parent)
-                    parent_dirname = abspardir(dirname)
-                    parent = dirs[parent_dirname]
-            dirs[dirname] = self.create_dir_item(dirname, parent)
-        self.root_item = dirs[self.root_path]
-#        # Populating tree: files
-#        for filename in sorted(self.results.keys()):
-#            parent_item = dirs[osp.dirname(filename)]
-#            file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)])
-#            file_item.setIcon(0, get_filetype_icon(filename))
-#            for lineno, colno, line in self.results[filename]:
-#                item = QTreeWidgetItem(file_item,
-#                           ["%d (%d): %s" % (lineno, colno, line.rstrip())])
-#                item.setIcon(0, get_icon('arrow.png'))
-#                self.data[item] = (filename, lineno)
-        
+        index = self.model().index(folder)
+        self.expand(index)
+        self.setCurrentIndex(index)
 
-class ExplorerListWidget(QListWidget):
-    """File and Directories Explorer Widget
-    get_filetype_icon(fname): fn which returns a QIcon for file extension"""
-    def __init__(self, parent):
-        QListWidget.__init__(self, parent)
-        self.setResizeMode(QListWidget.Adjust)
-        self.parent_widget = parent
+    def set_name_filters(self, name_filters):
+        self.name_filters = name_filters
+        self.model().setNameFilters(QStringList(name_filters))
         
-    def setup(self, treewidget=None, path=None,
-              include='.', exclude=r'\.pyc$|^\.',
-              valid_types= ('.py', '.pyw'), show_all=False, wrap=True):
-        self.treewidget = treewidget
-        self.include = include
-        self.exclude = exclude
+    def set_show_all(self, state):
+        if state:
+            self.model().setNameFilters(QStringList())
+        else:
+            self.model().setNameFilters(QStringList(self.name_filters))
+
+
+class ExplorerTreeWidget(DirView):
+    def __init__(self, parent=None):
+        DirView.__init__(self, parent)
+        
+    def setup(self, path=None, name_filters=['*.py', '*.pyw'],
+              valid_types= ('.py', '.pyw'), show_all=False):
+        self.name_filters = name_filters
         self.valid_types = valid_types
         self.show_all = show_all
-        self.wrap = wrap
         
-        self.path = None
-        self.itemdict = None
-        self.nameset = None
         self.refresh(path)
-        
-#        self.setFlow(QListWidget.LeftToRight)
-#        self.setUniformItemSizes(True)
-#        self.setViewMode(QListWidget.IconMode)
         
         # Enable drag events
         self.setDragEnabled(True)
@@ -261,13 +137,14 @@ class ExplorerListWidget(QListWidget):
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
         
+        
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
         # Filters
         filters_action = create_action(self,
                                        translate('Explorer',
-                                                 "Edit filename filter..."),
+                                                 "Edit filename filters..."),
                                        None, get_icon('filter.png'),
                                        triggered=self.edit_filter)
         # Show all files
@@ -275,74 +152,47 @@ class ExplorerListWidget(QListWidget):
                                    translate('Explorer', "Show all files"),
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
-        self.toggle_all(self.show_all, refresh=False)
-        # Wrap
-        wrap_action = create_action(self,
-                                    translate('Explorer', "Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked(self.wrap)
-        self.toggle_wrap_mode(self.wrap, refresh=False)
+        self.toggle_all(self.show_all)
         
-        return [filters_action, all_action, None, wrap_action]
+        return [filters_action, all_action]
         
     def edit_filter(self):
-        """Edit include/exclude filter"""
-        filter = [(translate('Explorer', 'Type'),
-                   [True, (True, translate('Explorer', 'regular expressions')),
-                    (False, translate('Explorer', 'global patterns'))]),
-                  (translate('Explorer', 'Include'), self.include),
-                  (translate('Explorer', 'Exclude'), self.exclude),]
-        result = fedit(filter, title=translate('Explorer', 'Edit filter'),
-                       parent=self)
-        if result:
-            regexp, self.include, self.exclude = result
-            if not regexp:
-                import fnmatch
-                self.include = fnmatch.translate(self.include)
-                self.exclude = fnmatch.translate(self.exclude)
+        """Edit name filters"""
+        filters, valid = QInputDialog.getText(self,
+                              translate('Explorer', 'Edit filename filters'),
+                              translate('Explorer', 'Name filters:'),
+                              QLineEdit.Normal,
+                              ", ".join(self.name_filters))
+        if valid:
+            filters = [f.strip() for f in unicode(filters).split(',')]
             self.parent_widget.emit(SIGNAL('option_changed'),
-                                     'include', self.include)
-            self.parent_widget.emit(SIGNAL('option_changed'),
-                                     'exclude', self.exclude)
-            self.treewidget.include = self.include
-            self.treewidget.exclude = self.exclude
-            self.refresh()
-        
-    def toggle_wrap_mode(self, checked, refresh=True):
-        """Toggle wrap mode"""
-        self.parent_widget.emit(SIGNAL('option_changed'), 'wrap', checked)
-        self.wrap = checked
-        if refresh:
-            self.refresh(clear=True)
-        
-    def toggle_all(self, checked, refresh=True):
+                                    'name_filters', filters)
+            self.set_name_filters(filters)
+            
+    def toggle_all(self, checked):
         """Toggle all files mode"""
         self.parent_widget.emit(SIGNAL('option_changed'), 'show_all', checked)
         self.show_all = checked
-        self.treewidget.show_all = checked
-        if refresh:
-            self.refresh(clear=True)
+        self.set_show_all(checked)
         
     def update_menu(self):
         """Update option menu"""
         self.menu.clear()
         actions = []
-        if self.currentItem() is None:
-            # No selection
-            newdir_action = create_action(self,
-                                          translate('Explorer',
-                                                    "New folder..."),
-                                          icon="folder_new.png",
-                                          triggered=self.new_folder)
-            actions.append(newdir_action)
-            newfile_action = create_action(self,
-                                           translate('Explorer',
-                                                     "New file..."),
-                                           icon="filenew.png",
-                                           triggered=self.new_file)
-            actions.append(newfile_action)
-        else:
-            fname = self.get_filename()
+        newdir_action = create_action(self,
+                                      translate('Explorer',
+                                                "New folder..."),
+                                      icon="folder_new.png",
+                                      triggered=self.new_folder)
+        actions.append(newdir_action)
+        newfile_action = create_action(self,
+                                       translate('Explorer',
+                                                 "New file..."),
+                                       icon="filenew.png",
+                                       triggered=self.new_file)
+        actions.append(newfile_action)
+        fname = self.get_filename()
+        if fname is not None:
             is_dir = osp.isdir(fname)
             ext = osp.splitext(fname)[1]
             run_action = create_action(self,
@@ -391,44 +241,14 @@ class ExplorerListWidget(QListWidget):
         actions += self.common_actions
         add_actions(self.menu, actions)
         
+        
     #---- Refreshing widget
-    def refresh(self, new_path=None, clear=False):
+    def refresh(self, new_path=None):
         """Refresh widget"""
         if new_path is None:
             new_path = os.getcwdu()
-
-        names = listdir(new_path, self.include, self.exclude, self.show_all)
-        new_nameset = set(names)
+        self.set_folder(new_path)
         
-        if (new_path != self.path) or clear:
-            self.path = new_path
-            self.nameset = set([])
-            self.itemdict = {}
-            self.clear()
-            self.setWrapping(self.wrap)
-
-        for name in self.nameset - new_nameset:
-            try:
-                self.takeItem(self.row(self.itemdict[name]))
-                self.itemdict.pop(name)
-            except KeyError:
-                pass
-
-        if new_nameset - self.nameset:
-            for row, name in enumerate(names):
-                if not self.itemdict.has_key(name):
-                    # Adding new item
-                    item = QListWidgetItem(name)
-                    #item.setFlags(item.flags() | Qt.ItemIsEditable)
-                    if osp.isdir(osp.join(self.path, name)):
-                        item.setIcon(get_std_icon('DirClosedIcon'))
-                    else:
-                        item.setIcon( get_filetype_icon(name) )
-                    self.itemdict[name] = item
-                    self.insertItem(row, item)
-            self.nameset = new_nameset
-        
-        self.treewidget.set_folder(new_path)
         
     #---- Events
     def contextMenuEvent(self, event):
@@ -445,22 +265,14 @@ class ExplorerListWidget(QListWidget):
             self.rename()
             event.accept()
         else:
-            QListWidget.keyPressEvent(self, event)
-
-    def mousePressEvent(self, event):
-        """Reimplement Qt method"""
-        if self.itemAt(event.pos()) is None:
-            self.setCurrentItem(None)
-            event.accept()
-        else:
-            QListWidget.mousePressEvent(self, event)
+            DirView.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         self.clicked()
         event.accept()
-
-
+        
+        
     #---- Drag
     def dragEnterEvent(self, event):
         """Drag and Drop - Enter event"""
@@ -476,9 +288,8 @@ class ExplorerListWidget(QListWidget):
             
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
-        item = self.currentItem()
         mimeData = QMimeData()
-        mimeData.setText(unicode(item.text()))
+        mimeData.setText(self.get_filename())
         drag = QDrag(self)
         drag.setMimeData(mimeData)
         drag.exec_()
@@ -487,14 +298,15 @@ class ExplorerListWidget(QListWidget):
     #---- Files/Directories Actions
     def get_filename(self):
         """Return selected filename"""
-        if self.currentItem() is not None:
-            return unicode(self.currentItem().text())
-            
+        index = self.currentIndex()
+        if index:
+            return osp.normpath(unicode(self.model().filePath(index)))
+        
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
         fname = self.get_filename()
         if fname:
-            if osp.isdir(osp.join(self.path, fname)):
+            if osp.isdir(fname):
                 self.parent_widget.emit(SIGNAL("open_dir(QString)"), fname)
                 self.refresh()
             else:
@@ -626,31 +438,27 @@ class ExplorerListWidget(QListWidget):
                 self.open(fname)
 
 
+
 class ExplorerWidget(QWidget):
     """Explorer widget"""
-    def __init__(self, parent=None, path=None, include='.',
-                 exclude=r'\.pyc$|^\.', valid_types=('.py', '.pyw'),
-                 show_all=False, wrap=True,
+    def __init__(self, parent=None, path=None, name_filters=['*.py', '*.pyw'],
+                 valid_types=('.py', '.pyw'), show_all=False,
                  show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self)
-        self.treewidget.setup(include=include, exclude=exclude,
-                              show_all=show_all)
-        self.listwidget = ExplorerListWidget(self)
-        self.listwidget.setup(treewidget=self.treewidget, path=path,
-                              include=include, exclude=exclude,
-                              valid_types=valid_types, show_all=show_all,
-                              wrap=wrap)
+        self.treewidget.setup(path=path, name_filters=name_filters,
+                              valid_types=valid_types, show_all=show_all)
         
         toolbar_action = create_action(self,
                                        translate('Explorer', "Show toolbar"),
                                        toggled=self.toggle_toolbar)
         icontext_action = create_action(self,
-                                       translate('Explorer',
-                                                 "Show icons and text"),
-                                       toggled=self.toggle_icontext)
-        self.listwidget.common_actions += [toolbar_action, icontext_action]
+                                        translate('Explorer',
+                                                  "Show icons and text"),
+                                        toggled=self.toggle_icontext)
+        self.treewidget.common_actions += [None,
+                                           toolbar_action, icontext_action]
         
         # Setup toolbar
         self.toolbar = QToolBar(self)
@@ -677,19 +485,19 @@ class ExplorerWidget(QWidget):
         self.toolbar.addAction(parent_action)
                 
         refresh_action = create_action(self,
-                    text=translate('Explorer', "Refresh"),
-                    icon=get_icon('reload.png'),
-                    triggered=lambda: self.listwidget.refresh(clear=True))
+                                       text=translate('Explorer', "Refresh"),
+                                       icon=get_icon('reload.png'),
+                                       triggered=self.treewidget.refresh)
         self.toolbar.addAction(refresh_action)
 
         options_action = create_action(self,
-                    text=translate('Explorer', "Options"),
-                    icon=get_icon('tooloptions.png'))
+                                       text=translate('Explorer', "Options"),
+                                       icon=get_icon('tooloptions.png'))
         self.toolbar.addAction(options_action)
         widget = self.toolbar.widgetForAction(options_action)
         widget.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
-        add_actions(menu, self.listwidget.common_actions)
+        add_actions(menu, self.treewidget.common_actions)
         options_action.setMenu(menu)
             
         toolbar_action.setChecked(show_toolbar)
@@ -699,12 +507,7 @@ class ExplorerWidget(QWidget):
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.toolbar)
-        splitter = QSplitter(self)
-        splitter.addWidget(self.treewidget)
-        splitter.addWidget(self.listwidget)
-        splitter.setStretchFactor(0, 1)
-        splitter.setStretchFactor(1, 2)
-        vlayout.addWidget(splitter)
+        vlayout.addWidget(self.treewidget)
         self.setLayout(vlayout)
         
     def toggle_toolbar(self, state):
@@ -729,7 +532,7 @@ class Test(QDialog):
         QDialog.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        self.explorer = ExplorerWidget()
+        self.explorer = ExplorerWidget(self)
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()
@@ -769,6 +572,7 @@ class Test(QDialog):
 
 if __name__ == "__main__":
     from PyQt4.QtGui import QApplication
-    QApplication([])
+    app = QApplication([])
     test = Test()
-    test.exec_()
+    test.show()
+    sys.exit(app.exec_())

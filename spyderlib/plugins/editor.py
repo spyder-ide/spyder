@@ -280,6 +280,8 @@ class EditorTabWidget(Tabs):
             self.modification_changed(index=index)
             self.analyze_script(index)
             self.__refresh_classbrowser(index)
+            # Refresh the explorer widget if it exists:
+            self.plugin.emit(SIGNAL("refresh_explorer()"))
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -287,9 +289,6 @@ class EditorTabWidget(Tabs):
                                     "<br><br>Error message:<br>%2") \
                             .arg(osp.basename(finfo.filename)).arg(str(error)))
             return False
-        if force: # save as...
-            # Refresh the explorer widget if it exists:
-            self.plugin.emit(SIGNAL("refresh_explorer()"))
     
     def select_savename(self, original_filename):
         self.plugin.emit(SIGNAL('redirect_stdio(bool)'), False)

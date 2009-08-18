@@ -32,11 +32,9 @@ class Explorer(ExplorerWidget, PluginMixin):
     ID = 'explorer'
     def __init__(self, parent=None, path=None):
         ExplorerWidget.__init__(self, parent=parent, path=path,
-                            include=CONF.get(self.ID, 'include'),
-                            exclude=CONF.get(self.ID, 'exclude'),
+                            name_filters=CONF.get(self.ID, 'name_filters'),
                             valid_types=CONF.get(self.ID, 'valid_filetypes'),
                             show_all=CONF.get(self.ID, 'show_all'),
-                            wrap=CONF.get(self.ID, 'wrap'),
                             show_toolbar=CONF.get(self.ID, 'show_toolbar'),
                             show_icontext=CONF.get(self.ID, 'show_icontext'))
         PluginMixin.__init__(self, parent)
@@ -47,11 +45,11 @@ class Explorer(ExplorerWidget, PluginMixin):
         
     def set_editor_valid_types(self, valid_types):
         self.editor_valid_types = valid_types
-        self.listwidget.valid_types += valid_types
+        self.treewidget.valid_types += valid_types
         
     def refresh(self, new_path=None):
         """Refresh explorer widget"""
-        self.listwidget.refresh(new_path)
+        self.treewidget.refresh(new_path)
         
     def get_widget_title(self):
         """Return widget title"""
@@ -62,7 +60,7 @@ class Explorer(ExplorerWidget, PluginMixin):
         Return the widget to give focus to when
         this plugin's dockwidget is raised on top-level
         """
-        return self.listwidget
+        return self.treewidget
     
     def set_actions(self):
         """Setup actions"""
@@ -71,7 +69,7 @@ class Explorer(ExplorerWidget, PluginMixin):
                                     None, 'font.png',
                                     translate("Explorer", "Set font style"),
                                     triggered=self.change_font)
-        self.listwidget.common_actions.append(font_action)
+        self.treewidget.common_actions.append(font_action)
         return (None, None)
         
     def closing(self, cancelable=False):
@@ -88,7 +86,7 @@ class Explorer(ExplorerWidget, PluginMixin):
         elif ext == '.ws':
             self.emit(SIGNAL("open_workspace(QString)"), fname)
         else:
-            self.listwidget.startfile(fname)
+            self.treewidget.startfile(fname)
         
     def change_font(self):
         """Change font"""
@@ -101,5 +99,5 @@ class Explorer(ExplorerWidget, PluginMixin):
     def set_font(self, font):
         """Set explorer widget font"""
         self.setFont(font)
-        self.listwidget.setFont(font)
+        self.treewidget.setFont(font)
 

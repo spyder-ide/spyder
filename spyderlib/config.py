@@ -121,7 +121,6 @@ DEFAULTS = [
               'font/italic' : False,
               'font/bold' : False,
               'wrap' : True,
-              'wrapflag' : False,
               'calltips' : True,
               'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
@@ -248,8 +247,7 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+F",
               'enable': True,
               'wrap': True,
-              'include': '.',
-              'exclude': r'\.pyc$|^\.',
+              'name_filters': ['*.py', '*.pyw'],
               'valid_filetypes': ['', '.py', '.pyw', '.ws',
                                   '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
@@ -278,7 +276,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', DEFAULTS, version='1.0.2', load=(not DEV))
+CONF = UserConfig('spyder', DEFAULTS, version='1.0.4', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
