@@ -99,6 +99,7 @@ class DirView(QTreeView):
         
         self.setAnimated(False)
         self.setSortingEnabled(True)
+        self.sortByColumn(0, Qt.AscendingOrder)
         
     def get_index(self, folder):
         folder = osp.abspath(unicode(folder))
