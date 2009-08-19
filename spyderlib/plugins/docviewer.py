@@ -166,9 +166,15 @@ class DocViewer(ReadOnlyEditor):
             
         self.set_help(text)
         self.save_dvhistory()
-        if self.dockwidget and self.dockwidget.isVisible() \
-           and not self.ismaximized and text != self._last_text:
-                self.dockwidget.raise_()
+        if hasattr(self.main, 'tabifiedDockWidgets'):
+            # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
+            if self.dockwidget and self.dockwidget.isVisible() \
+               and not self.ismaximized and text != self._last_text:
+                dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
+                if self.main.console.dockwidget not in dockwidgets and \
+                   (hasattr(self.main, 'extconsole') and \
+                    self.main.extconsole.dockwidget not in dockwidgets):
+                    self.dockwidget.raise_()
         self._last_text = text
         
     def set_help(self, obj_text):
