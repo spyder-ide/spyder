@@ -106,6 +106,25 @@ class ExternalConsole(PluginWidget):
         """Bind docviewer instance to this console"""
         self.docviewer = docviewer
         
+    def execute_python_code(self, lines):
+        """Execute Python code in an already opened Python interpreter"""
+        from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
+        def execute(index):
+            shell = self.tabwidget.widget(index).shell
+            if isinstance(shell, ExtPyQsciShell):
+                self.tabwidget.setCurrentIndex(index)
+                shell.execute_lines(unicode(lines))
+                shell.setFocus()
+                return True
+        # Find the Python shell, starting with current widget:
+        current_index = self.tabwidget.currentIndex()
+        if current_index == -1:
+            # No shell!
+            return
+        if not execute(current_index):
+            for index in self.tabwidget.count():
+                execute(index)
+        
     def start(self, fname, wdir=None, ask_for_arguments=False,
               interact=False, debug=False, python=True):
         """Start new console"""

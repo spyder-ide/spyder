@@ -52,6 +52,44 @@ class ExtPyQsciShell(QsciPythonShell):
         self.clear()
         self.emit(SIGNAL("execute(QString)"), "\n")
 
+    def execute_lines(self, lines):
+        """
+        Execute a set of lines as multiple command
+        lines: multiple lines of text to be executed as single commands
+        """
+        for line in lines.splitlines(True):
+            if line.endswith("\r\n"):
+                fullline = True
+                cmd = line[:-2]
+            elif line.endswith("\r") or line.endswith("\n"):
+                fullline = True
+                cmd = line[:-1]
+            else:
+                fullline = False
+            self.write(line, flush=True)
+            if fullline:
+                self.execute_command(cmd+"\n")
+                self.emit(SIGNAL("wait_for_ready_read()"))
+                self.flush()
+
+    def paste(self):
+        """Reimplemented slot to handle multiline paste action"""
+        lines = unicode(QApplication.clipboard().text())
+        if len(lines.splitlines())>1:
+            # Multiline paste
+            self.removeSelectedText() # Remove selection, eventually
+            cline, cindex = self.getCursorPosition()
+            linetext = unicode(self.text(cline))
+            lines = self.get_current_line_to_cursor()+lines+linetext[cindex:]
+            self.clear_line()
+            self.execute_lines(lines)
+            cline2, _ = self.getCursorPosition()
+            self.setCursorPosition(cline2,
+               self.lineLength(cline2)-len(linetext[cindex:]) )
+        else:
+            # Standard paste
+            PythonShellWidget.paste(self)
+
         
     #------ Code completion / Calltips
     def ask_monitor(self, command):
@@ -165,6 +203,8 @@ class ExternalPythonShell(ExternalShellBase):
             
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.MergedChannels)
+        self.connect(self.shell, SIGNAL("wait_for_ready_read()"),
+                     lambda: self.process.waitForReadyRead(250))
         
         # Working directory
         if self.wdir is not None:

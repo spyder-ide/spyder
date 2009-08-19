@@ -341,6 +341,9 @@ class MainWindow(QMainWindow):
             self.connect(self.editor,
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool)"),
                          self.open_external_console)
+            self.connect(self.editor,
+                         SIGNAL('external_console_execute_lines(QString)'),
+                         self.execute_python_code_in_external_console)
             self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_interactiveshell_stdio)
             self.add_dockwidget(self.editor)
@@ -939,6 +942,12 @@ class MainWindow(QMainWindow):
         self.extconsole.raise_()
         self.extconsole.start(unicode(fname), wdir,
                               ask_for_arguments, interact, debug)
+        
+    def execute_python_code_in_external_console(self, lines):
+        """Execute lines in external console"""
+        self.extconsole.setVisible(True)
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code(lines)
         
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
