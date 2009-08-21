@@ -671,8 +671,7 @@ class EditorSplitter(QSplitter):
         self.tab_actions = actions
         self.editortabwidget = EditorTabWidget(self.plugin, actions)
         if not first:
-            self.editortabwidget.new(self.plugin.untitled_num)
-            self.plugin.untitled_num += 1
+            self.plugin.new(self.editortabwidget)
         self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
                      self.editortabwidget_closed)
         self.connect(self.editortabwidget, SIGNAL("split_vertically()"),
@@ -1426,7 +1425,7 @@ class Editor(PluginWidget):
             if len(self.recent_files) > 9:
                 self.recent_files.pop(-1)
     
-    def new(self):
+    def new(self, editortabwidget=None):
         """Create a new file - Untitled"""
         # Creating template
         text, enc = encoding.read(self.TEMPLATE_PATH)
@@ -1441,7 +1440,8 @@ class Editor(PluginWidget):
         fname = unicode(self.tr("untitled")) + ("%d.py" % self.untitled_num)
         self.untitled_num += 1
         # Creating editor widget
-        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is None:
+            editortabwidget = self.get_current_editortabwidget()
         editortabwidget.create_new_editor(fname, enc, text)
         
     def edit_template(self):
