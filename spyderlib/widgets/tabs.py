@@ -139,6 +139,8 @@ class Tabs(QTabWidget):
         self.setTabToolTip(index_to, tip)
         
         self.setCurrentWidget(current_widget)
+        
+        self.emit(SIGNAL('move_tab_finished()'))
 
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):

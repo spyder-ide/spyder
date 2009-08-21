@@ -65,6 +65,8 @@ class EditorTabWidget(Tabs):
         self.interactive_console = self.plugin.main.console
         
         self.connect(self, SIGNAL('move_data(int,int)'), self.move_data)
+        self.connect(self, SIGNAL('move_tab_finished()'),
+                     self.move_tab_finished)
         self.connect(self, SIGNAL("close_tab(int)"), self.close_file)
         self.close_button = create_toolbutton(self,
                                           icon=get_icon("fileclose.png"),
@@ -72,6 +74,11 @@ class EditorTabWidget(Tabs):
                                           tip=self.tr("Close current script"))
         self.setCornerWidget(self.close_button)
         self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
+
+        self.cursor_position_changed_callback = lambda line, index: \
+                self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
+        self.focus_changed_callback = lambda: \
+                self.plugin.emit(SIGNAL("focus_changed()"))
         
         self.data = []
         
@@ -147,6 +154,9 @@ class EditorTabWidget(Tabs):
         In fact tabs have already been moved by the tabwidget
         but we have to move the self.data elements too
         """
+        self.disconnect(self, SIGNAL('currentChanged(int)'),
+                        self.current_changed)
+        
         finfo = self.data.pop(index_from)
         if editortabwidget_to is None:
             editortabwidget_to = self        
@@ -157,10 +167,24 @@ class EditorTabWidget(Tabs):
                             self.modification_changed)
             self.disconnect(finfo.editor, SIGNAL("focus_in()"),
                             self.focus_changed)
+            self.disconnect(finfo.editor,
+                            SIGNAL('cursorPositionChanged(int,int)'),
+                            self.cursor_position_changed_callback)
+            self.disconnect(finfo.editor, SIGNAL("focus_changed()"),
+                            self.focus_changed_callback)
             self.connect(finfo.editor, SIGNAL('modificationChanged(bool)'),
                          editortabwidget_to.modification_changed)
             self.connect(finfo.editor, SIGNAL("focus_in()"),
-                         editortabwidget_to.focus_changed)            
+                         editortabwidget_to.focus_changed)
+            self.connect(finfo.editor,
+                         SIGNAL('cursorPositionChanged(int,int)'),
+                         editortabwidget_to.cursor_position_changed_callback)
+            self.connect(finfo.editor, SIGNAL("focus_changed()"),
+                         editortabwidget_to.focus_changed_callback)
+        
+    def move_tab_finished(self):
+        """Reconnecting current changed signal"""
+        self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
     
     
     #------ Close file, tabwidget...
@@ -507,14 +531,12 @@ class EditorTabWidget(Tabs):
                             font=get_font('editor'),
                             wrap=CONF.get(self.ID, 'wrap'))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
-                     lambda line, index:
-                     self.emit(SIGNAL('cursorPositionChanged(int,int)'),
-                               line, index))
+                     self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
-                     lambda: self.plugin.emit(SIGNAL("focus_changed()")))
+                     self.focus_changed_callback)
 
         title = self.get_title(fname)
         index = self.addTab(editor, title)
