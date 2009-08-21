@@ -717,7 +717,6 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed:
             return True
-        encoding.writelines(self.path, self.spyder_path) # Saving path
         size = self.window_size
         prefix = ('lightwindow' if self.light else 'window') + '/'
         CONF.set('main', prefix+'size', (size.width(), size.height()))
@@ -969,6 +968,7 @@ class MainWindow(QMainWindow):
                      self.redirect_interactiveshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
+        encoding.writelines(self.path, self.spyder_path) # Saving path
     
     def win_env(self):
         """Show Windows current user environment variables"""
