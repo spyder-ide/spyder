@@ -19,12 +19,12 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString
 from spyderlib import encoding
 from spyderlib.config import get_icon
 from spyderlib.widgets.externalshell import ExternalShellBase
-from spyderlib.widgets.qscishell import QsciTerminal
+from spyderlib.widgets.shell import TerminalWidget
 
 
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
-    SHELL_CLASS = QsciTerminal
+    SHELL_CLASS = TerminalWidget
     def __init__(self, parent=None, wdir=None):
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec')

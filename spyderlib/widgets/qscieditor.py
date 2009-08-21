@@ -31,10 +31,10 @@ except ImportError:
 STDOUT = sys.stdout
 
 # Local import
-from spyderlib.config import CONF, get_font, get_icon, get_image_path
+from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
-from spyderlib.widgets.qscibase import QsciBase
+from spyderlib.widgets.qscibase import TextEditBaseWidget
 
 
 #===============================================================================
@@ -73,7 +73,7 @@ if __name__ == '__main__':
 #===============================================================================
 # QsciEditor widget
 #===============================================================================
-class QsciEditor(QsciBase):
+class QsciEditor(TextEditBaseWidget):
     """
     QScintilla Base Editor Widget
     """
@@ -94,7 +94,7 @@ class QsciEditor(QsciBase):
     
     def __init__(self, parent=None, linenumbers=True, language=None,
                  code_analysis=False, code_folding=False):
-        QsciBase.__init__(self, parent)
+        TextEditBaseWidget.__init__(self, parent)
                     
         # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
@@ -151,7 +151,7 @@ class QsciEditor(QsciBase):
 
         if font is not None:
             self.set_font(font)
-        self.set_wrap_mode(wrap)
+        self.toggle_wrap_mode(wrap)
         self.setup_api()
         self.setModified(False)
         
@@ -182,9 +182,9 @@ class QsciEditor(QsciBase):
 #===============================================================================
 #    QScintilla
 #===============================================================================
-    def setup_scintilla(self):
-        """Reimplement QsciBase method"""
-        QsciBase.setup_scintilla(self)
+    def setup(self):
+        """Reimplement TextEditBaseWidget method"""
+        TextEditBaseWidget.setup(self)
         
         # Wrapping
         if CONF.get('editor', 'wrapflag'):
@@ -199,7 +199,6 @@ class QsciEditor(QsciBase):
         self.setEdgeMode(QsciScintilla.EdgeLine)
         
         # Auto-completion
-        self.setAutoCompletionThreshold(-1)
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
 
     def setup_margins(self, linenumbers=True,
@@ -389,12 +388,6 @@ class QsciEditor(QsciBase):
     def get_text(self):
         """Return editor text"""
         return self.text()
-    
-    def insert_text(self, text):
-        """Insert text at cursor position"""
-        line, col = self.getCursorPosition()
-        self.insertAt(text, line, col)
-        self.setCursorPosition(line, col + len(unicode(text)))
         
     def fold_header(self, line):
         """Is it a fold header line?"""
@@ -485,7 +478,7 @@ class QsciEditor(QsciBase):
             self.__show_code_analysis_results(line)
 
     def mouseMoveEvent(self, event):
-        line = self.lineAt(event.pos())
+        line = self.get_line_number_at(event.pos())
         self.__show_code_analysis_results(line)
         QsciScintilla.mouseMoveEvent(self, event)
         
@@ -758,7 +751,7 @@ class QsciEditor(QsciBase):
             self.unindent()
             event.accept()
         elif (key == Qt.Key_Tab):
-            if self.isListActive():
+            if self.is_completion_widget_visible():
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             else:
                 self.indent()

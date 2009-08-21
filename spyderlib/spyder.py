@@ -590,9 +590,9 @@ class MainWindow(QMainWindow):
     def __focus_shell(self):
         """Return Python shell widget which has focus, if any"""
         widget = QApplication.focusWidget()
-        from spyderlib.widgets.qscishell import QsciPythonShell
+        from spyderlib.widgets.shell import PythonShellWidget
         from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-        if isinstance(widget, QsciPythonShell):
+        if isinstance(widget, PythonShellWidget):
             return widget
         elif isinstance(widget, ExternalPythonShell):
             return widget.shell
@@ -629,15 +629,15 @@ class MainWindow(QMainWindow):
         
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()
-        from spyderlib.widgets.qscishell import QsciShellBase
-        from spyderlib.widgets.qscibase import QsciBase
-        scintilla_properties = None
-        if isinstance(widget, QsciBase):
-            console = isinstance(widget, QsciShellBase)
+        from spyderlib.widgets.shell import ShellBaseWidget
+        from spyderlib.widgets.qscibase import TextEditBaseWidget
+        textedit_properties = None
+        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+            console = isinstance(widget, ShellBaseWidget)
             not_readonly = not widget.isReadOnly()
             readwrite_editor = not_readonly and not console
-            scintilla_properties = (console, not_readonly, readwrite_editor)
-        return widget, scintilla_properties
+            textedit_properties = (console, not_readonly, readwrite_editor)
+        return widget, textedit_properties
         
     def update_edit_menu(self):
         """Update edit menu"""
@@ -647,14 +647,15 @@ class MainWindow(QMainWindow):
         for child in self.edit_menu.actions():
             child.setEnabled(False)        
         
-        widget, scintilla_properties = self.__focus_widget_properties()
+        widget, textedit_properties = self.__focus_widget_properties()
         if isinstance(widget, Workspace):
             self.paste_action.setEnabled(True)
             return
-        elif scintilla_properties is None: # widget is not an editor/console
+        elif textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QsciScintilla instance
-        console, not_readonly, readwrite_editor = scintilla_properties
+        #!!! Below this line, widget is expected to be a QsciScintilla
+        #    or QTextEdit instance
+        console, not_readonly, readwrite_editor = textedit_properties
         
         # Editor has focus and there is no file opened in it
         if not console and not_readonly and not self.editor.is_file_opened():
@@ -683,11 +684,11 @@ class MainWindow(QMainWindow):
         for child in [self.find_action, self.replace_action]:
             child.setEnabled(False)
         
-        _, scintilla_properties = self.__focus_widget_properties()
-        if scintilla_properties is None: # widget is not an editor/console
+        _, textedit_properties = self.__focus_widget_properties()
+        if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QsciScintilla instance
-        _, _, readwrite_editor = scintilla_properties
+        _, _, readwrite_editor = textedit_properties
         self.find_action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
@@ -855,10 +856,10 @@ class MainWindow(QMainWindow):
         """Return editor plugin which has focus:
         console, extconsole, editor, docviewer or historylog"""
         widget = QApplication.focusWidget()
+        from spyderlib.widgets.qscibase import TextEditBaseWidget
         from spyderlib.widgets.qscieditor import QsciEditor
-        from spyderlib.widgets.qscishell import QsciShellBase
-        from spyderlib.widgets.qscibase import QsciBase
-        if not isinstance(widget, QsciBase):
+        from spyderlib.widgets.shell import ShellBaseWidget
+        if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
             return
         if widget is self.console.shell:
             plugin = self.console
@@ -866,7 +867,7 @@ class MainWindow(QMainWindow):
             plugin = self.docviewer
         elif isinstance(widget, QsciEditor) and widget.isReadOnly():
             plugin = self.historylog
-        elif isinstance(widget, QsciShellBase):
+        elif isinstance(widget, ShellBaseWidget):
             plugin = self.extconsole
         else:
             plugin = self.editor
@@ -892,9 +893,9 @@ class MainWindow(QMainWindow):
         if not self.findinfiles.ismaximized:
             self.findinfiles.dockwidget.setVisible(True)
             self.findinfiles.dockwidget.raise_()
-        from spyderlib.widgets.qscibase import QsciBase
+        from spyderlib.widgets.qscibase import TextEditBaseWidget
         text = ''
-        if isinstance(widget, QsciBase) and widget.hasSelectedText():
+        if isinstance(widget, TextEditBaseWidget) and widget.hasSelectedText():
             text = widget.selectedText()
         self.emit(SIGNAL('find_files(QString)'), text)
     
@@ -903,8 +904,8 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         action = self.sender()
         callback = unicode(action.data().toString())
-        from spyderlib.widgets.qscibase import QsciBase
-        if isinstance(widget, QsciBase):
+        from spyderlib.widgets.qscibase import TextEditBaseWidget
+        if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
         elif isinstance(widget, Workspace):
             if hasattr(self.workspace, callback):

@@ -47,8 +47,9 @@ class Console(PluginWidget):
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
         # Shell
-        self.shell = InteractiveShell(parent, namespace, commands,
-                                     message, debug, exitfunc, profile)
+        self.shell = InteractiveShell(parent, namespace, commands, message,
+                                      get_font(self.ID),
+                                      debug, exitfunc, profile)
         self.connect(self.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
         self.connect(self.shell, SIGNAL("focus_changed()"),
@@ -72,8 +73,7 @@ class Console(PluginWidget):
         self.setLayout(layout)
         
         # Parameters
-        self.shell.set_font( get_font(self.ID) )
-        self.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        self.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         
         self.connect(self, SIGNAL("executing_command(bool)"),
                      self.change_cursor)
@@ -255,7 +255,7 @@ class Console(PluginWidget):
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        self.shell.set_wrap_mode(checked)
+        self.shell.toggle_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
             
     def toggle_calltips(self, checked):
@@ -292,6 +292,6 @@ class Console(PluginWidget):
                 self.shell.insert_text(text)
         elif source.hasText():
             lines = unicode(source.text())
-            self.shell.move_cursor_to_end()
+            self.shell.set_cursor_position('eof')
             self.shell.execute_lines(lines)
         event.acceptProposedAction()

@@ -85,17 +85,20 @@ DEFAULTS = [
               'margins/foregroundcolor' : 'darkGray',
               'foldmarginpattern/backgroundcolor' : 0xEEEEEE,
               'foldmarginpattern/foregroundcolor' : 0xEEEEEE,
+              }),
+            ('shell_appearance',
+             {
               'default_style/foregroundcolor' : 0x000000,
               'default_style/backgroundcolor' : 0xFFFFFF,
               'default_style/bold' : False,
               'default_style/italic' : False,
               'default_style/underline' : False,
-              'error_style/foregroundcolor' : 0x0000FF,
+              'error_style/foregroundcolor' : 0xFF0000,
               'error_style/backgroundcolor' : 0xFFFFFF,
               'error_style/bold' : False,
               'error_style/italic' : False,
               'error_style/underline' : False,
-              'traceback_link_style/foregroundcolor' : 0xFF0000,
+              'traceback_link_style/foregroundcolor' : 0x0000FF,
               'traceback_link_style/backgroundcolor' : 0xFFFFFF,
               'traceback_link_style/bold' : True,
               'traceback_link_style/italic' : False,
@@ -110,6 +113,12 @@ DEFAULTS = [
               'calltips/font/italic' : False,
               'calltips/font/bold' : False,
               'calltips/size' : 600,
+              # This only applys to QTextEdit-based widgets:
+              'completion/font/family' : MONOSPACE,
+              'completion/font/size' : SMALL,
+              'completion/font/italic' : False,
+              'completion/font/bold' : False,
+              'completion/size' : (300, 180),
               }),
             ('shell',
              {
@@ -124,7 +133,6 @@ DEFAULTS = [
               'calltips' : True,
               'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
-              'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
               'autocompletion/from-document' : False,
               'external_editor/path' : 'SciTE',
@@ -142,7 +150,6 @@ DEFAULTS = [
               'calltips' : True,
               'autocompletion/enabled' : True,
               'autocompletion/case-sensitivity' : True,
-              'autocompletion/threshold' : -1,
               'autocompletion/select-single' : True,
               'autocompletion/from-document' : False,
               'filters' : type2str(FILTERS),
@@ -276,7 +283,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', DEFAULTS, version='1.0.4', load=(not DEV))
+CONF = UserConfig('spyder', DEFAULTS, version='1.0.5', load=(not DEV))
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""

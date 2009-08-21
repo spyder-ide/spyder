@@ -205,4 +205,4 @@ class DocViewer(ReadOnlyEditor):
                 if hlp_text is None:
                     hlp_text = self.tr("No source code available.")
         self.editor.set_text(hlp_text)
-        self.editor.move_cursor_to_start()
+        self.editor.set_cursor_position('sof')

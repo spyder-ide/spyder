@@ -158,7 +158,7 @@ class ExternalConsole(PluginWidget):
         else:
             shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )
-        shell.shell.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shell.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         if python:
             shell.shell.set_docviewer(self.docviewer)
         self.historylog.add_history(shell.shell.history_filename)
@@ -298,7 +298,7 @@ class ExternalConsole(PluginWidget):
         if self.tabwidget is None:
             return
         for shell in self.shells:
-            shell.shell.set_wrap_mode(checked)
+            shell.shell.toggle_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
             
     def toggle_calltips(self, checked):

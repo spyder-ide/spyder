@@ -70,7 +70,7 @@ class PluginMixin(object):
             QShortcut(QKeySequence(short), self.main,
                       lambda: self.visibility_changed(True))
         return (dock, self.location)
-        
+    
     def create_mainwindow(self):
         """
         Create a QMainWindow instance containing this plugin
@@ -174,7 +174,7 @@ class ReadOnlyEditor(PluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
         self.editor.set_font( get_font(self.ID) )
-        self.editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        self.editor.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         
         # Add entries to read-only editor context-menu
         font_action = create_action(self, translate("Editor", "&Font..."), None,
@@ -219,5 +219,5 @@ class ReadOnlyEditor(PluginWidget):
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        self.editor.set_wrap_mode(checked)
+        self.editor.toggle_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)

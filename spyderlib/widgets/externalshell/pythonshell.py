@@ -15,32 +15,27 @@ STDERR = sys.stderr
 
 from PyQt4.QtGui import QApplication, QMessageBox, QCheckBox, QSplitter
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
-from PyQt4.Qsci import QsciScintilla
 
 # Local imports
 from spyderlib.qthelpers import create_toolbutton
 from spyderlib.config import CONF, get_icon
-from spyderlib.widgets.qscishell import QsciPythonShell
+from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.globalsexplorer import GlobalsExplorer
 from spyderlib.widgets.externalshell.monitor import communicate
 from spyderlib.widgets.externalshell import ExternalShellBase
 
 
-class ExtPyQsciShell(QsciPythonShell):
+class ExtPyQsciShell(PythonShellWidget):
     def __init__(self, parent, history_filename, debug=False, profile=False):
-        QsciPythonShell.__init__(self, parent, history_filename, debug, profile)
+        PythonShellWidget.__init__(self, parent, history_filename,
+                                   debug, profile)
         # Code completion / calltips
-        self.setAutoCompletionThreshold( \
-            CONF.get('external_shell', 'autocompletion/threshold') )
-        self.setAutoCompletionCaseSensitivity( \
-            CONF.get('external_shell', 'autocompletion/case-sensitivity') )
-        self.setAutoCompletionShowSingle( \
-            CONF.get('external_shell', 'autocompletion/select-single') )
-        if CONF.get('external_shell', 'autocompletion/from-document'):
-            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        else:
-            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+        getcfg = lambda option: CONF.get('external_shell', option)
+        case_sensitive = getcfg('autocompletion/case-sensitivity')
+        show_single = getcfg('autocompletion/select-single')
+        from_document = getcfg('autocompletion/from-document')
+        self.setup_code_completion(case_sensitive, show_single, from_document)
     
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
@@ -48,7 +43,7 @@ class ExtPyQsciShell(QsciPythonShell):
 
         
     def clear_terminal(self):
-        """Reimplement QsciShellBase method"""
+        """Reimplement ShellBaseWidget method"""
         self.clear()
         self.emit(SIGNAL("execute(QString)"), "\n")
 
@@ -72,25 +67,6 @@ class ExtPyQsciShell(QsciPythonShell):
                 self.emit(SIGNAL("wait_for_ready_read()"))
                 self.flush()
 
-    def paste(self):
-        """Reimplemented slot to handle multiline paste action"""
-        lines = unicode(QApplication.clipboard().text())
-        if len(lines.splitlines())>1:
-            # Multiline paste
-            self.removeSelectedText() # Remove selection, eventually
-            cline, cindex = self.getCursorPosition()
-            linetext = unicode(self.text(cline))
-            lines = self.get_current_line_to_cursor()+lines+linetext[cindex:]
-            self.clear_line()
-            self.execute_lines(lines)
-            cline2, _ = self.getCursorPosition()
-            self.setCursorPosition(cline2,
-               self.lineLength(cline2)-len(linetext[cindex:]) )
-        else:
-            # Standard paste
-            PythonShellWidget.paste(self)
-
-        
     #------ Code completion / Calltips
     def ask_monitor(self, command):
         sock = self.externalshell.monitor_socket
@@ -262,7 +238,7 @@ class ExternalPythonShell(ExternalShellBase):
                      self.write_output)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
-        
+
         self.connect(self.terminate_button, SIGNAL("clicked()"),
                      self.process.terminate)
         self.connect(self.kill_button, SIGNAL("clicked()"),

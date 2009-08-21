@@ -1650,7 +1650,7 @@ class Editor(PluginWidget):
         if hasattr(self, 'editortabwidgets'):
             for editortabwidget in self.editortabwidgets:
                 for finfo in editortabwidget.data:
-                    finfo.editor.set_wrap_mode(checked)
+                    finfo.editor.toggle_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
             
     def toggle_tab_mode(self, checked):

@@ -102,11 +102,11 @@ class HistoryLog(PluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
         editor.set_font( get_font(self.ID) )
-        editor.set_wrap_mode( CONF.get(self.ID, 'wrap') )
+        editor.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
 
         text, _ = encoding.read(filename)
         editor.set_text(text)
-        editor.move_cursor_to_end()
+        editor.set_cursor_position('eof')
         
         self.editors.append(editor)
         self.filenames.append(filename)
@@ -126,7 +126,7 @@ class HistoryLog(PluginWidget):
         filename, command = unicode(filename), unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
-        self.editors[index].move_cursor_to_end()
+        self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
             
     def get_widget_title(self):
@@ -178,7 +178,7 @@ class HistoryLog(PluginWidget):
         if self.tabwidget is None:
             return
         for editor in self.editors:
-            editor.set_wrap_mode(checked)
+            editor.toggle_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
         
     def closing(self, cancelable=False):

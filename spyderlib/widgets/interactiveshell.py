@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Interactive shell widget : QsciPythonShell + Interpreter"""
+"""Interactive shell widget : PythonShellWidget + Interpreter"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -40,13 +40,7 @@ from spyderlib.interpreter import Interpreter
 from spyderlib.dochelpers import getargtxt, getsource, getdoc
 from spyderlib.encoding import transcode
 from spyderlib.config import CONF, get_conf_path
-try:
-    from PyQt4.Qsci import QsciScintilla
-    from spyderlib.widgets.qscishell import QsciPythonShell
-except ImportError, e:
-    raise ImportError, str(e) + \
-        "\nspyderlib's code editor features are based on QScintilla2\n" + \
-        "(http://www.riverbankcomputing.co.uk/software/qscintilla)"
+from spyderlib.widgets.shell import PythonShellWidget
 
 
 def guess_filename(filename):
@@ -75,7 +69,7 @@ def create_banner(moreinfo, message=''):
             moreinfo+'\n' + message + '\n'
 
 
-#TODO: Outside QsciPythonShell: replace most of 'insert_text' occurences by 'write'
+#TODO: Outside PythonShellWidget: replace most of 'insert_text' occurences by 'write'
 
 #TODO: Prepare code for IPython integration:
 #    - implement the 'pop_completion' method like in qt_console_widget.py
@@ -93,14 +87,18 @@ class IOHandler(object):
         pass
 
 
-class InteractiveShell(QsciPythonShell):
-    """Shell base widget: link between QsciPythonShell and Interpreter"""
+class InteractiveShell(PythonShellWidget):
+    """Shell base widget: link between PythonShellWidget and Interpreter"""
     p1 = ">>> "
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
-                 debug=False, exitfunc=None, profile=False):
-        QsciPythonShell.__init__(self, parent, get_conf_path('.history_ic.py'),
-                                 debug, profile)
+                 font=None, debug=False, exitfunc=None, profile=False):
+        PythonShellWidget.__init__(self, parent,
+                                   get_conf_path('.history_ic.py'),
+                                   debug, profile)
+        
+        if font is not None:
+            self.set_font(font)
         
         # Capture all interactive input/output 
         self.initial_stdout = sys.stdout
@@ -117,16 +115,11 @@ class InteractiveShell(QsciPythonShell):
                      self.keyboard_interrupt)
         
         # Code completion / calltips
-        self.setAutoCompletionThreshold( \
-            CONF.get('shell', 'autocompletion/threshold') )
-        self.setAutoCompletionCaseSensitivity( \
-            CONF.get('shell', 'autocompletion/case-sensitivity') )
-        self.setAutoCompletionShowSingle( \
-            CONF.get('shell', 'autocompletion/select-single') )
-        if CONF.get('shell', 'autocompletion/from-document'):
-            self.setAutoCompletionSource(QsciScintilla.AcsDocument)
-        else:
-            self.setAutoCompletionSource(QsciScintilla.AcsNone)
+        getcfg = lambda option: CONF.get('shell', option)
+        case_sensitive = getcfg('autocompletion/case-sensitivity')
+        show_single = getcfg('autocompletion/select-single')
+        from_document = getcfg('autocompletion/from-document')
+        self.setup_code_completion(case_sensitive, show_single, from_document)
         
         # keyboard events management
         self.busy = False
@@ -191,8 +184,8 @@ class InteractiveShell(QsciPythonShell):
 
     #----- Menus, actions, ...
     def setup_context_menu(self):
-        """Reimplement QsciPythonShell method"""
-        QsciPythonShell.setup_context_menu(self)
+        """Reimplement PythonShellWidget method"""
+        PythonShellWidget.setup_context_menu(self)
         self.help_action = create_action(self,
                            translate("InteractiveShell", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
@@ -307,8 +300,8 @@ has the same effect as typing a particular string at the help> prompt.
         self.input_loop.exit()
 
     def flush(self, error=False, prompt=False):
-        """Reimplement QsciPythonShell method"""
-        QsciPythonShell.flush(self, error=error, prompt=prompt)
+        """Reimplement PythonShellWidget method"""
+        PythonShellWidget.flush(self, error=error, prompt=prompt)
         if self.interrupted:
             self.interrupted = False
             raise KeyboardInterrupt
@@ -316,29 +309,9 @@ has the same effect as typing a particular string at the help> prompt.
 
     #------ Clear terminal
     def clear_terminal(self):
-        """Reimplement QsciShellBase method"""
+        """Reimplement ShellBaseWidget method"""
         self.clear()
         self.new_prompt(self.p2 if self.more else self.p1)
-
-
-    #------ Paste
-    def paste(self):
-        """Reimplemented slot to handle multiline paste action"""
-        lines = unicode(QApplication.clipboard().text())
-        if len(lines.splitlines())>1:
-            # Multiline paste
-            self.removeSelectedText() # Remove selection, eventually
-            cline, cindex = self.getCursorPosition()
-            linetext = unicode(self.text(cline))
-            lines = self.get_current_line_to_cursor()+lines+linetext[cindex:]
-            self.clear_line()
-            self.execute_lines(lines)
-            cline2, _ = self.getCursorPosition()
-            self.setCursorPosition(cline2,
-               self.lineLength(cline2)-len(linetext[cindex:]) )
-        else:
-            # Standard paste
-            QsciScintilla.paste(self)
 
 
     #------ Keyboard events
@@ -374,7 +347,6 @@ has the same effect as typing a particular string at the help> prompt.
             self.eventqueue.append(keyevent2tuple(event))
             event.accept()
         else:
-            self.__flush_eventqueue() # Shouldn't be necessary
             self.process_keyevent(event)
         
     def __flush_eventqueue(self):
@@ -416,17 +388,18 @@ has the same effect as typing a particular string at the help> prompt.
     def execute_command(self, cmd):
         """
         Execute a command
-        cmd: one-line command only, with '\n' at the end!
+        cmd: one-line command only, with '\n' at the end
         """
         if self.input_mode:
             self.end_input(cmd)
             return
+        if cmd.endswith('\n'):
+            cmd = cmd[:-1]
         # cls command
         if cmd == 'cls':
             self.clear_terminal()
             return
-        assert cmd.endswith('\n')
-        self.run_command(cmd[:-1])
+        self.run_command(cmd)
        
     def run_command(self, cmd, history=True, new_prompt=True):
         """Run command in interpreter"""
@@ -440,7 +413,9 @@ has the same effect as typing a particular string at the help> prompt.
         else:
             if history:
                 self.add_to_history(cmd)
-
+                
+        wd_before = os.getcwdu()
+                
         # -- Special commands type I
         #    (transformed into commands executed in the interpreter)
         # ? command
@@ -497,6 +472,8 @@ has the same effect as typing a particular string at the help> prompt.
             self.more = self.interpreter.push(cmd)
         
         self.emit(SIGNAL("refresh()"))
+        if os.getcwdu() != wd_before:
+            self.emit(SIGNAL("refresh_explorer()"))
         if new_prompt:
             self.new_prompt(self.p2 if self.more else self.p1)
         if not self.more:
@@ -514,30 +491,36 @@ has the same effect as typing a particular string at the help> prompt.
                 
     def get_dir(self, objtxt):
         """Return dir(object)"""
-        obj, _valid = self._eval(objtxt)
-        return dir(obj)
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return dir(obj)
                 
     def iscallable(self, objtxt):
         """Is object callable?"""
-        obj, _valid = self._eval(objtxt)
-        return callable(obj)
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return callable(obj)
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
-        obj, _valid = self._eval(objtxt)
-        return getargtxt(obj)
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return getargtxt(obj)
     
     def get__doc__(self, objtxt):
         """Get object __doc__"""
-        obj, _valid = self._eval(objtxt)
-        return obj.__doc__
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return obj.__doc__
     
     def get_doc(self, objtxt):
         """Get object documentation"""
-        obj, _valid = self._eval(objtxt)
-        return getdoc(obj)
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return getdoc(obj)
     
     def get_source(self, objtxt):
         """Get object source"""
-        obj, _valid = self._eval(objtxt)
-        return getsource(obj)
+        obj, valid = self._eval(objtxt)
+        if valid:
+            return getsource(obj)

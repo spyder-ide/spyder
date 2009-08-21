@@ -80,6 +80,7 @@ class FindReplace(QWidget):
         self.replace_edit = QLineEdit()
         
         self.replace_button = create_toolbutton(self,
+                                     text=self.tr("Replace/find"),
                                      triggered=self.replace_find,
                                      icon=get_std_icon("DialogApplyButton"))
         
@@ -213,24 +214,24 @@ class FindReplace(QWidget):
                         self.find(changed=False, forward=True)
                     first = False
                     wrapped = False
-                    line, index = self.editor.getCursorPosition()
-                    line0, index0 = line, index
+                    position = self.editor.get_position('cursor')
+                    position0 = position
                 else:
-                    line1, index1 = self.editor.getCursorPosition()
-                    if line1 == line0 and index1 == index0:
+                    position1 = self.editor.get_position('cursor')
+                    if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if line1-line0 < 0 or (line1 == line0 and index1-index0 < 0):
+                    if self.editor.compare_position_inf(position1, position0):
                         wrapped = True
                     if wrapped:
-                        if line0 > line or (line0 == line and index0 > index):
+                        if self.editor.compare_position_sup(position0, position):
                             # Avoid infinite loop: replace string includes
                             # part of the search string
                             break
-                    line0, index0 = line1, index1
+                    position0 = position1
                 
                 self.editor.replace(replace_text)
-                self.refresh()
+                self.find_next()
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)

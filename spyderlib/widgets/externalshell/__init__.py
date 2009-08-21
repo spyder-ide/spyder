@@ -206,10 +206,10 @@ def test():
     from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     app = QApplication(sys.argv)
     import spyderlib
-#    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-#                                interact=True)
-    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
-    shell.shell.set_wrap_mode(True)
+    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
+                                interact=True)
+#    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
+    shell.shell.toggle_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont
     font = QFont("Lucida console")
