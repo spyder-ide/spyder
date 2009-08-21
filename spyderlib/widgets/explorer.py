@@ -284,8 +284,8 @@ class ExplorerTreeWidget(DirView):
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
+        QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
-        event.accept()
         
         
     #---- Drag
