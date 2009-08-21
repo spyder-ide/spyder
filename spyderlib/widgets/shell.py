@@ -29,7 +29,10 @@ from spyderlib.dochelpers import getobj
 from spyderlib.qthelpers import (keybinding, create_action, add_actions,
                                  restore_keyevent, translate)
 from spyderlib.widgets.shellhelpers import get_error_match
-from spyderlib.widgets.qscibase import ConsoleBaseWidget
+# Shell widgets are based on QTextEdit (defined in 'qtebase' module) instead of
+# QsciScintilla (defined in 'qscibase' module - used in the editor widgets)
+# because QTextEdit is much faster:
+from spyderlib.widgets.qtebase import ConsoleBaseWidget
 
 
 HISTORY_FILENAMES = []
