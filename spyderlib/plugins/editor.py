@@ -1233,6 +1233,9 @@ class Editor(PluginWidget):
         
         tw_to.setCurrentIndex(index_to)
         
+        if tw_from.count() == 0:
+            tw_from.close_editortabwidget
+        
         
     #------ Accessors
     def get_filetype_filters(self):
