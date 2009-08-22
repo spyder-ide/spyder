@@ -21,6 +21,21 @@ import os.path as osp
 STDOUT = sys.stdout
 
 
+class PatternComboBox(QComboBox):
+    """Search pattern combo box"""
+    def __init__(self, parent, items=None, tip=None,
+                 adjust_to_minimum=True):
+        QComboBox.__init__(self, parent)
+        if adjust_to_minimum:
+            self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.setEditable(True)
+        if items is not None:
+            self.addItems(items)
+        if tip is not None:
+            self.setToolTip(tip)
+
+
 class EditableComboBox(QComboBox):
     """
     Editable QComboBox

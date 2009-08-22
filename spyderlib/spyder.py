@@ -888,7 +888,7 @@ class MainWindow(QMainWindow):
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.show()
-            plugin.find_widget.edit.setFocus()
+            plugin.find_widget.search_text.setFocus()
             return plugin
         
     def replace(self):
