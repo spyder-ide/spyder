@@ -255,7 +255,7 @@ class EditorTabWidget(Tabs):
             self.setCurrentIndex(index)
             finfo = self.data[index]
             if finfo.filename == self.plugin.TEMPFILE_PATH or yes_all:
-                if not self.save():
+                if not self.save(refresh_explorer=False):
                     return False
             elif finfo.editor.isModified():
                 answer = QMessageBox.question(self,
@@ -265,10 +265,10 @@ class EditorTabWidget(Tabs):
                                     .arg(osp.basename(finfo.filename)),
                             buttons)
                 if answer == QMessageBox.Yes:
-                    if not self.save():
+                    if not self.save(refresh_explorer=False):
                         return False
                 elif answer == QMessageBox.YesAll:
-                    if not self.save():
+                    if not self.save(refresh_explorer=False):
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoAll:
@@ -306,7 +306,8 @@ class EditorTabWidget(Tabs):
             self.__refresh_classbrowser(index)
             if refresh_explorer:
                 # Refresh the explorer widget if it exists:
-                self.plugin.emit(SIGNAL("refresh_explorer()"))
+                self.plugin.emit(SIGNAL("refresh_explorer(QString)"),
+                                 osp.dirname(finfo.filename))
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, self.tr("Save"),
@@ -336,9 +337,12 @@ class EditorTabWidget(Tabs):
         
     def save_all(self):
         """Save all opened files"""
+        folders = set()
         for index in range(self.count()):
+            folders.add(osp.dirname(self.data[index].filename))
             self.save(index, refresh_explorer=False)
-        self.plugin.emit(SIGNAL("refresh_explorer()"))
+        for folder in folders:
+            self.plugin.emit(SIGNAL("refresh_explorer(QString)"), folder)
     
 
     #------ Update UI

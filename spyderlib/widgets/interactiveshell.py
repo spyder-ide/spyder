@@ -473,7 +473,10 @@ has the same effect as typing a particular string at the help> prompt.
         
         self.emit(SIGNAL("refresh()"))
         if os.getcwdu() != wd_before:
+            # Force the explorer widget to change its current directory:
             self.emit(SIGNAL("refresh_explorer()"))
+        # Refresh current directory contents in explorer widget:
+        self.emit(SIGNAL("refresh_explorer(QString)"), os.getcwdu())
         if new_prompt:
             self.new_prompt(self.p2 if self.more else self.p1)
         if not self.more:

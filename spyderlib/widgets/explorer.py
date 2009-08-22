@@ -101,8 +101,6 @@ class DirView(QTreeView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
         
-        self.last_index = None
-        
     def get_index(self, folder):
         folder = osp.abspath(unicode(folder))
         return self.model().index(folder)
@@ -113,19 +111,20 @@ class DirView(QTreeView):
         current_path = osp.normpath(current_name)
         return osp.dirname(current_path) == folder
         
-    def set_folder(self, folder, force_current=False):
-        if not force_current or self.is_in_current_folder(folder):
-            if self.last_index is not None:
-                self.model().refresh(self.last_index)
-            return
-        index = self.get_index(folder)
-        self.expand(index)
-        self.setCurrentIndex(index)
-        self.last_index = index
-        self.model().refresh(index)
-        
     def refresh_whole_model(self):
         self.model().refresh()
+        
+    def refresh_folder(self, folder):
+        index = self.get_index(folder)
+        self.model().refresh(index)
+        return index
+        
+    def set_folder(self, folder, force_current=False):
+        if not force_current or self.is_in_current_folder(folder):
+            return
+        index = self.refresh_folder(folder)
+        self.expand(index)
+        self.setCurrentIndex(index)
         
     def set_name_filters(self, name_filters):
         self.name_filters = name_filters

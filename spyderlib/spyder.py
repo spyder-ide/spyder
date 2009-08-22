@@ -425,15 +425,19 @@ class MainWindow(QMainWindow):
                              self.open_external_console(unicode(fname),
                                                 osp.dirname(unicode(fname)),
                                                 False, False, False))
-                # Not forcing the explorer to refresh: takes too much time,
-                # so with force=False, it will be refreshed only if current
-                # working directory has changed
+                # Signal "refresh_explorer()" will eventually force the
+                # explorer to change the opened directory:
                 self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
                              lambda: self.explorer.refresh(force_current=True))
+                # Signal "refresh_explorer(QString)" will refresh only the
+                # contents of path passed by the signal in explorer:
+                self.connect(self.console.shell,
+                             SIGNAL("refresh_explorer(QString)"),
+                             self.explorer.refresh_folder)
                 self.connect(self.workdir, SIGNAL("refresh_explorer()"),
                              lambda: self.explorer.refresh(force_current=True))
-                self.connect(self.editor, SIGNAL("refresh_explorer()"),
-                             self.explorer.refresh)
+                self.connect(self.editor, SIGNAL("refresh_explorer(QString)"),
+                             self.explorer.refresh_folder)
 
             # History log widget
             if CONF.get('historylog', 'enable'):

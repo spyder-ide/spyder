@@ -50,6 +50,10 @@ class Explorer(ExplorerWidget, PluginMixin):
     def refresh(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
         self.treewidget.refresh(new_path, force_current=force_current)
+        
+    def refresh_folder(self, folder):
+        """Refresh only *folder*"""
+        self.treewidget.refresh_folder(folder)
 
     def get_widget_title(self):
         """Return widget title"""
