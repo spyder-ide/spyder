@@ -179,7 +179,7 @@ class TextEditBaseWidget(QTextEdit):
                     i_open = text.find(brace, i_start_open, i_close)
                 else:
                     i_start_close = i_close-1
-                    i_open = text.rfind(brace, i_close, i_start_open)
+                    i_open = text.rfind(brace, i_close, i_start_open+1)
                 if i_open > -1:
                     if forward:
                         i_start_open = i_open+1
@@ -219,11 +219,10 @@ class TextEditBaseWidget(QTextEdit):
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
         text = unicode(cursor.selectedText())
+        pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos1 = cursor.position()
             pos2 = self.__find_brace_match(pos1, text, forward=False)
         elif text in ('(', '[', '{'):
-            pos1 = cursor.position()
             pos2 = self.__find_brace_match(pos1, text, forward=True)
         else:
             return

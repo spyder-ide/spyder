@@ -5,7 +5,14 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Spyder
+Spyder, the Scientific PYthon Development EnviRonment
+=====================================================
+
+Developped and maintained by Pierre Raybaut
+
+Copyright © 2009 Pierre Raybaut
+Licensed under the terms of the MIT License
+(see spyderlib/__init__.py for details)
 """
 
 import sys, os, platform, re, webbrowser, imp
