@@ -23,8 +23,7 @@ except ImportError:
     pass
 
 from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QSizePolicy,
-                         QComboBox, QRadioButton, QVBoxLayout, QLabel,
-                         QFileDialog)
+                         QRadioButton, QVBoxLayout, QLabel, QFileDialog)
 from PyQt4.QtCore import SIGNAL, Qt, QThread, QMutexLocker, QMutex
 
 import sys, os, re, fnmatch
@@ -39,7 +38,7 @@ from spyderlib.utils import is_program_installed
 from spyderlib.qthelpers import (get_std_icon, create_toolbutton, translate,
                                 get_filetype_icon)
 from spyderlib.config import get_icon
-from spyderlib.widgets.comboboxes import PathComboBox
+from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets import OneColumnTree
 
 
@@ -260,15 +259,6 @@ class SearchThread(QThread):
         return self.results, self.nb, self.error_flag
 
 
-class PatternComboBox(QComboBox):
-    def __init__(self, parent, items, tip):
-        QComboBox.__init__(self, parent)
-        self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setEditable(True)
-        self.addItems(items)
-        self.setToolTip(tip)
-
 class FindOptions(QWidget):
     """
     Find widget with options
@@ -307,6 +297,7 @@ class FindOptions(QWidget):
                                 triggered=lambda: self.emit(SIGNAL('find()')),
                                 icon=get_std_icon("DialogApplyButton"),
                                 tip=translate('FindInFiles', "Start search"))
+        self.connect(self.ok_button, SIGNAL('clicked()'), self.update_combos)
         self.stop_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Stop"),
                                 triggered=lambda: self.emit(SIGNAL('stop()')),
@@ -385,6 +376,11 @@ class FindOptions(QWidget):
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+    def update_combos(self):
+        self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
+        self.include_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
+        self.exclude_pattern.lineEdit().emit(SIGNAL('returnPressed()'))
         
     def detect_hg_repository(self, path=None):
         if path is None:
