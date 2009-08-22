@@ -29,7 +29,7 @@ SOURCES	     += widgets/interactiveshell.py
 SOURCES	     += widgets/pathmanager.py
 SOURCES	     += widgets/pylintgui.py
 SOURCES	     += widgets/qscieditor.py
-SOURCES	     += widgets/qscishell.py
+SOURCES	     += widgets/shell.py
 SOURCES	     += widgets/texteditor.py
 
 TRANSLATIONS += spyder_fr.ts
