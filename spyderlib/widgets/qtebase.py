@@ -172,7 +172,7 @@ class TextEditBaseWidget(QTextEdit):
             if forward:
                 i_close = text.find(bracemap[brace], i_start_close)
             else:
-                i_close = text.rfind(bracemap[brace], 0, i_start_close)
+                i_close = text.rfind(bracemap[brace], 0, i_start_close+1)
             if i_close > -1:
                 if forward:
                     i_start_close = i_close+1
