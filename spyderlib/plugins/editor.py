@@ -664,8 +664,6 @@ class EditorTabWidget(Tabs):
 #TODO: Transform EditorSplitter into a real generic splittable editor
 # -> i.e. all QSplitter widgets must be of the same kind
 #    (currently there are editortabwidgets and editorsplitters at the same level)
-# -> the main issue is that it's not possible to remove a widget from a
-#    QSplitter except by destroying it -> it's not possible to change parenting
 class EditorSplitter(QSplitter):
     def __init__(self, parent, actions, first=False):
         QSplitter.__init__(self, parent)
@@ -684,20 +682,29 @@ class EditorSplitter(QSplitter):
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editortabwidget)
         
+    def __give_focus_to_remaining_editor(self):
+        focus_widget = self.plugin.get_focus_widget()
+        if focus_widget is not None:
+            focus_widget.setFocus()
+        
     def editortabwidget_closed(self):
         self.editortabwidget = None
         if self.count() == 1:
             # editortabwidget just closed was the last widget in this QSplitter
             self.close()
+            return
+        self.__give_focus_to_remaining_editor()
         
     def editorsplitter_closed(self, obj):
         if self.count() == 1 and self.editortabwidget is None:
             # editorsplitter just closed was the last widget in this QSplitter
             self.close()
+            return
         elif self.count() == 2 and self.editortabwidget:
             # back to the initial state: a single editortabwidget instance,
             # as a single widget in this QSplitter: orientation may be changed
             self.editortabwidget.reset_orientation()
+        self.__give_focus_to_remaining_editor()
         
     def split(self, orientation=Qt.Vertical):
         self.setOrientation(orientation)
@@ -711,7 +718,7 @@ class EditorSplitter(QSplitter):
 #===============================================================================
 # Status bar widgets
 #===============================================================================
-class ReadWriteStatus(QWidget):
+class _ReadWriteStatus(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
         
@@ -736,7 +743,7 @@ class ReadWriteStatus(QWidget):
         self.readwrite.setText(readwrite.ljust(3))
         self.show()
 
-class EncodingStatus(QWidget):
+class _EncodingStatus(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
         
@@ -760,7 +767,7 @@ class EncodingStatus(QWidget):
         self.encoding.setText(str(encoding).upper().ljust(15))
         self.show()
 
-class CursorPositionStatus(QWidget):
+class _CursorPositionStatus(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
         
@@ -813,9 +820,9 @@ class Editor(PluginWidget):
         PluginWidget.__init__(self, parent)
         
         statusbar = self.main.statusBar()
-        self.readwrite_status = ReadWriteStatus(self, statusbar)
-        self.encoding_status = EncodingStatus(self, statusbar)
-        self.cursorpos_status = CursorPositionStatus(self, statusbar)
+        self.readwrite_status = _ReadWriteStatus(self, statusbar)
+        self.encoding_status = _EncodingStatus(self, statusbar)
+        self.cursorpos_status = _CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
         self.dock_toolbar = QToolBar(self)
@@ -852,7 +859,6 @@ class Editor(PluginWidget):
                              get_icon('analysis_results.png'),
                              self.tr('Code analysis'))
         #TODO: New toolbox item: template list
-        #TODO: New toolbox item: file metrics (including current line, index)
         self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
                      self.toolbox_current_changed)
         
@@ -1202,9 +1208,6 @@ class Editor(PluginWidget):
             index = self.editortabwidgets.index(editortabwidget)
             self.editortabwidgets.pop(index)
             editortabwidget.close() # remove widget from splitter
-            focus_widget = self.get_focus_widget()
-            if focus_widget is not None:
-                focus_widget.setFocus()
             return True
         else:
             # Tabbededitor was not removed!
@@ -1359,7 +1362,7 @@ class Editor(PluginWidget):
     
     
     #------ Slots
-    def toolbox_current_changed(self, index):
+    def toolbox_current_changed(self, index=None):
         """Toolbox current index has changed"""
         if self.openedfileslistwidget.isVisible():
             self.refresh_openedfileslistwidget()
@@ -1703,3 +1706,4 @@ class Editor(PluginWidget):
         """Toggle toolbox"""
         self.toolbox.setVisible(checked)
         CONF.set(self.ID, 'toolbox_panel', checked)
+        self.toolbox_current_changed() # refreshing class browser (workaround)
