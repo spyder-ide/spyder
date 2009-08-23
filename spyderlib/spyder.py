@@ -149,6 +149,15 @@ class MainWindow(QMainWindow):
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
         
+        self.commands = commands
+        self.message = message
+        self.init_workdir = options.working_directory
+        self.debug = options.debug
+        self.profile = options.profile
+        self.light = options.light
+        
+        self.debug_print("Start of MainWindow constructor")
+        
 #        self.setStyleSheet(STYLESHEET)
         
         # Area occupied by a dock widget can be split in either direction
@@ -167,13 +176,6 @@ class MainWindow(QMainWindow):
                                         None, 'folder_new.png',
                                         triggered=self.path_manager_callback,
                                         tip=self.tr("Open Spyder path manager"))
-        
-        self.commands = commands
-        self.message = message
-        self.init_workdir = options.working_directory
-        self.debug = options.debug
-        self.profile = options.profile
-        self.light = options.light
         
         # Widgets
         self.console = None
@@ -213,6 +215,13 @@ class MainWindow(QMainWindow):
         self.last_window_state = None
         self.last_plugin = None
         
+        self.debug_print("End of MainWindow constructor")
+        
+    def debug_print(self, message):
+        """Debug prints"""
+        if self.debug:
+            print >>STDOUT, message
+        
     def create_toolbar(self, title, object_name, iconsize=24):
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
@@ -221,6 +230,7 @@ class MainWindow(QMainWindow):
         
     def setup(self):
         """Setup main window"""
+        self.debug_print("*** Start of MainWindow setup ***")
         if not self.light:
             _text = translate("FindReplace", "Find text")
             self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
@@ -477,6 +487,7 @@ class MainWindow(QMainWindow):
                 self.add_dockwidget(self.pylint)
         
         if not self.light:
+            self.set_splash(self.tr("Setting up main window..."))
             # Console menu
             self.console.menu_actions = self.console.menu_actions[:-2]
             restart_action = create_action(self,
@@ -566,6 +577,7 @@ class MainWindow(QMainWindow):
             add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
                 
         # Window set-up
+        self.debug_print("Setting up window...")
         prefix = ('lightwindow' if self.light else 'window') + '/'
         width, height = CONF.get('main', prefix+'size')
         self.resize( QSize(width, height) )
@@ -593,6 +605,8 @@ class MainWindow(QMainWindow):
             if isinstance(child, QMenu):
                 self.connect(child, SIGNAL("aboutToShow()"),
                              self.update_edit_menu)
+        
+        self.debug_print("*** End of MainWindow setup ***")
 
     def give_focus_to_interactive_console(self):
         """Give focus to interactive shell widget"""
@@ -706,6 +720,7 @@ class MainWindow(QMainWindow):
         
     def set_splash(self, message):
         """Set splash message"""
+        self.debug_print(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.white))

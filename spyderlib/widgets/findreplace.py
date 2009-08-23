@@ -45,7 +45,7 @@ class FindReplace(QWidget):
         glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
-        self.search_text = PatternComboBox(self, tip=self.tr("Search pattern"),
+        self.search_text = PatternComboBox(self, tip=self.tr("Search string"),
                                            adjust_to_minimum=False)
         self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
                      self.text_has_changed)
@@ -83,7 +83,7 @@ class FindReplace(QWidget):
         replace_with2.setFont(font)
         replace_with3 = QLabel(self.tr("with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                            tip=self.tr("Replace pattern"))
+                                            tip=self.tr("Replace string"))
         
         self.replace_button = create_toolbutton(self,
                                      text=self.tr("Replace/find"),

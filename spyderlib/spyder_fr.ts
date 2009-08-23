@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -416,12 +417,12 @@
 <context>
     <name>EditableComboBox</name>
     <message>
-        <location filename="widgets/comboboxes.py" line="35"/>
+        <location filename="widgets/comboboxes.py" line="50"/>
         <source>Press enter to validate this entry</source>
         <translation>Appuyer sur Entrée pour valider cette saisie</translation>
     </message>
     <message>
-        <location filename="widgets/comboboxes.py" line="38"/>
+        <location filename="widgets/comboboxes.py" line="53"/>
         <source>This entry is incorrect</source>
         <translation>Cette saisie n&apos;est pas correcte</translation>
     </message>
@@ -1341,142 +1342,142 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Recherche dans des fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="297"/>
+        <location filename="widgets/findinfiles.py" line="287"/>
         <source>Search pattern</source>
         <translation>Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="298"/>
+        <location filename="widgets/findinfiles.py" line="288"/>
         <source>Search text:</source>
         <translation>Texte recherché :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="334"/>
+        <location filename="widgets/findinfiles.py" line="325"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="305"/>
+        <location filename="widgets/findinfiles.py" line="295"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="308"/>
+        <location filename="widgets/findinfiles.py" line="298"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="313"/>
+        <location filename="widgets/findinfiles.py" line="304"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="322"/>
+        <location filename="widgets/findinfiles.py" line="313"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="328"/>
+        <location filename="widgets/findinfiles.py" line="319"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="331"/>
+        <location filename="widgets/findinfiles.py" line="322"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="337"/>
+        <location filename="widgets/findinfiles.py" line="328"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="347"/>
+        <location filename="widgets/findinfiles.py" line="338"/>
         <source>Search in:</source>
         <translation>Rechercher dans :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="360"/>
+        <location filename="widgets/findinfiles.py" line="351"/>
         <source>Directory:</source>
         <translation>Répertoire :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="365"/>
+        <location filename="widgets/findinfiles.py" line="356"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="374"/>
+        <location filename="widgets/findinfiles.py" line="365"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="450"/>
+        <location filename="widgets/findinfiles.py" line="446"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="621"/>
+        <location filename="widgets/findinfiles.py" line="617"/>
         <source>Collapse all</source>
         <translation>Replier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="624"/>
+        <location filename="widgets/findinfiles.py" line="620"/>
         <source>Expand all</source>
         <translation>Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="354"/>
+        <location filename="widgets/findinfiles.py" line="345"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="357"/>
+        <location filename="widgets/findinfiles.py" line="348"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="628"/>
+        <location filename="widgets/findinfiles.py" line="624"/>
         <source>Restore original tree layout</source>
         <translation>Restaurer l&apos;organisation initiale de l&apos;arbre des résultats</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="524"/>
+        <location filename="widgets/findinfiles.py" line="520"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="525"/>
+        <location filename="widgets/findinfiles.py" line="521"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="522"/>
+        <location filename="widgets/findinfiles.py" line="518"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="349"/>
+        <location filename="widgets/findinfiles.py" line="340"/>
         <source>PYTHONPATH</source>
         <translation>PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="352"/>
+        <location filename="widgets/findinfiles.py" line="343"/>
         <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
         <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="256"/>
+        <location filename="widgets/findinfiles.py" line="255"/>
         <source>permission denied errors were encountered</source>
         <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="310"/>
+        <location filename="widgets/findinfiles.py" line="301"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="518"/>
+        <location filename="widgets/findinfiles.py" line="514"/>
         <source>Search canceled</source>
         <translation>Recherche annulée</translation>
     </message>
@@ -1484,54 +1485,69 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/findreplace.py" line="59"/>
+        <location filename="widgets/findreplace.py" line="65"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="61"/>
+        <location filename="widgets/findreplace.py" line="67"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="86"/>
+        <location filename="widgets/findreplace.py" line="96"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="225"/>
+        <location filename="spyder.py" line="235"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="228"/>
+        <location filename="spyder.py" line="238"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="51"/>
+        <location filename="widgets/findreplace.py" line="53"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="55"/>
+        <location filename="widgets/findreplace.py" line="57"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="73"/>
+        <location filename="widgets/findreplace.py" line="78"/>
         <source>Replace</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="78"/>
+        <location filename="widgets/findreplace.py" line="83"/>
         <source>with:</source>
         <translation>par :</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="82"/>
+        <location filename="widgets/findreplace.py" line="88"/>
         <source>Replace/find</source>
         <translation>Remplacer/rechercher</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="47"/>
+        <source>Search pattern</source>
+        <translation type="obsolete">Expression recherchée</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="47"/>
+        <source>Search string</source>
+        <translation>Chaîne de caractères à rechercher</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="85"/>
+        <source>Replace string</source>
+        <translation>Chaîne de caractères de remplacement</translation>
     </message>
 </context>
 <context>
@@ -1835,57 +1851,57 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="spyder.py" line="277"/>
+        <location filename="spyder.py" line="287"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="292"/>
+        <location filename="spyder.py" line="302"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="505"/>
+        <location filename="spyder.py" line="516"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="302"/>
+        <location filename="spyder.py" line="312"/>
         <source>Welcome to Spyder!</source>
         <translation>Bienvenue dans Spyder !</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="306"/>
+        <location filename="spyder.py" line="316"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="356"/>
+        <location filename="spyder.py" line="366"/>
         <source>&amp;Source</source>
         <translation>&amp;Source</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="547"/>
+        <location filename="spyder.py" line="558"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="829"/>
+        <location filename="spyder.py" line="844"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="925"/>
+        <location filename="spyder.py" line="940"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="483"/>
+        <location filename="spyder.py" line="494"/>
         <source>Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another</source>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="926"/>
+        <location filename="spyder.py" line="941"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -1894,52 +1910,52 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="932"/>
+        <location filename="spyder.py" line="947"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="933"/>
+        <location filename="spyder.py" line="948"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="203"/>
+        <location filename="spyder.py" line="205"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="232"/>
+        <location filename="spyder.py" line="242"/>
         <source>&amp;Find in files</source>
         <translation>Rechercher dans des &amp;fichiers</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="235"/>
+        <location filename="spyder.py" line="245"/>
         <source>Search text in multiple files</source>
         <translation>Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="296"/>
+        <location filename="spyder.py" line="306"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="165"/>
+        <location filename="spyder.py" line="174"/>
         <source>Path manager...</source>
         <translation>Gestionnaire de chemins d&apos;accès...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="168"/>
+        <location filename="spyder.py" line="177"/>
         <source>Open Spyder path manager</source>
         <translation>Ouvre le gestionnaire de chemin d&apos;accès de Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="555"/>
+        <location filename="spyder.py" line="566"/>
         <source>Python documentation</source>
         <translation>Documentation Python</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="561"/>
+        <location filename="spyder.py" line="572"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant (documentation Qt)</translation>
     </message>
@@ -1969,102 +1985,102 @@ Souhaitez-vous continuer ?</translation>
         <translation>Documentation Matplotlib</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="280"/>
+        <location filename="spyder.py" line="290"/>
         <source>Current user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="284"/>
+        <location filename="spyder.py" line="294"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire directement dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="552"/>
+        <location filename="spyder.py" line="563"/>
         <source>Spyder documentation</source>
         <translation>Documentation Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="763"/>
+        <location filename="spyder.py" line="778"/>
         <source>Maximize current plugin</source>
         <translation>Agrandir la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="765"/>
+        <location filename="spyder.py" line="780"/>
         <source>Maximize current plugin to fit the whole application window</source>
         <translation>Agrandir la fenêtre courante sur toute la surface de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="768"/>
+        <location filename="spyder.py" line="783"/>
         <source>Restore current plugin</source>
         <translation>Réduire la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="770"/>
+        <location filename="spyder.py" line="785"/>
         <source>Restore current plugin to its original size and position within the application window</source>
         <translation>Réduire la fenêtre courante à sa taille et position d&apos;origine au sein de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="267"/>
+        <location filename="spyder.py" line="277"/>
         <source>Main toolbar</source>
         <translation>Barre d&apos;outil principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="357"/>
+        <location filename="spyder.py" line="367"/>
         <source>File toolbar</source>
         <translation>Barre d&apos;outil fichiers</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="360"/>
+        <location filename="spyder.py" line="370"/>
         <source>Analysis toolbar</source>
         <translation>Barre d&apos;outil analyse</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="363"/>
+        <location filename="spyder.py" line="373"/>
         <source>Run toolbar</source>
         <translation>Barre d&apos;outil exécution</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="366"/>
+        <location filename="spyder.py" line="376"/>
         <source>Edit toolbar</source>
         <translation>Barre d&apos;outil édition</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="388"/>
+        <location filename="spyder.py" line="398"/>
         <source>Find toolbar</source>
         <translation>Barre d&apos;outil recherche</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="396"/>
+        <location filename="spyder.py" line="406"/>
         <source>Workspace toolbar</source>
         <translation>Barre d&apos;outil espace de travail</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="339"/>
+        <location filename="spyder.py" line="349"/>
         <source>Loading editor plugin...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="394"/>
+        <location filename="spyder.py" line="404"/>
         <source>Loading workspace plugin...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="450"/>
+        <location filename="spyder.py" line="460"/>
         <source>Loading history plugin...</source>
         <translation>Chargement du journal d&apos;historique...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="461"/>
+        <location filename="spyder.py" line="471"/>
         <source>Loading docviewer plugin...</source>
         <translation>Chargement du visualiseur d&apos;aide...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="470"/>
+        <location filename="spyder.py" line="480"/>
         <source>Loading pylint plugin...</source>
         <translation>Chargement de l&apos;extension pylint...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="855"/>
+        <location filename="spyder.py" line="870"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -2093,29 +2109,34 @@ Souhaitez-vous continuer ?</translation>
         <translation>&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;Scientific PYthon Development EnviRonment            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://code.google.com/p/spyder/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyder&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="510"/>
+        <location filename="spyder.py" line="521"/>
         <source>&amp;Tools</source>
         <translation>Ou&amp;tils</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="514"/>
+        <location filename="spyder.py" line="525"/>
         <source>Python(x,y) launcher</source>
         <translation>Accueil de Python(x,y)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="528"/>
+        <location filename="spyder.py" line="539"/>
         <source>Qt Designer</source>
         <translation>Qt Designer</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="530"/>
+        <location filename="spyder.py" line="541"/>
         <source>Qt Linguist</source>
         <translation>Qt Linguist</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="533"/>
+        <location filename="spyder.py" line="544"/>
         <source>Qt examples</source>
         <translation>Exemples Qt</translation>
+    </message>
+    <message>
+        <location filename="spyder.py" line="489"/>
+        <source>Setting up main window...</source>
+        <translation>Configuration de la fenêtre principale...</translation>
     </message>
 </context>
 <context>
@@ -2134,12 +2155,12 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>PathComboBox</name>
     <message>
-        <location filename="widgets/comboboxes.py" line="96"/>
+        <location filename="widgets/comboboxes.py" line="111"/>
         <source>Press enter to validate this path</source>
         <translation>Appuyez sur Entrée pour valider ce chemin d&apos;accès</translation>
     </message>
     <message>
-        <location filename="widgets/comboboxes.py" line="101"/>
+        <location filename="widgets/comboboxes.py" line="116"/>
         <source>This path is incorrect.
 Enter a correct directory path.
 Then press enter to validate</source>
@@ -2509,22 +2530,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WorkingDirectory</name>
     <message>
-        <location filename="plugins/workdir.py" line="92"/>
+        <location filename="plugins/workdir.py" line="93"/>
         <source>Browse a working directory</source>
         <translation>Sélectionner un répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workdir.py" line="99"/>
+        <location filename="plugins/workdir.py" line="100"/>
         <source>Change to parent directory</source>
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="plugins/workdir.py" line="152"/>
+        <location filename="plugins/workdir.py" line="153"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="plugins/workdir.py" line="107"/>
+        <location filename="plugins/workdir.py" line="108"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
