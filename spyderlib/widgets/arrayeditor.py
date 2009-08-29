@@ -290,9 +290,7 @@ class ArrayEditor(QDialog):
                }
     
     def __init__(self, data, title='', xy=False, readonly=False):
-        super(ArrayEditor, self).__init__()
-        format = self.get_format(data)
-        
+        super(ArrayEditor, self).__init__()        
         self.data = data
         self.changes = {}
         self.old_data_shape = None
@@ -300,9 +298,14 @@ class ArrayEditor(QDialog):
             self.old_data_shape = self.data.shape
             self.data.shape = (self.data.shape[0], 1)
 
+        if data.dtype.names is not None:
+            #TODO: Add support for record arrays
+            self.error(self.tr("Record arrays are currently not supported"))
+            return
         if len(self.data.shape)!=2:
-            raise RuntimeError( "ArrayEditor doesn't support arrays"
-                                " with more than 2 dimensions" )
+            self.error(self.tr("Arrays with more than 2 dimensions "
+                               "are not supported"))
+            return
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -316,6 +319,7 @@ class ArrayEditor(QDialog):
 
         # Table configuration
         self.view = ArrayView()
+        format = self.get_format(data)
         self.model = ArrayModel(self.data, self.changes, format=format,
                                 xy_mode=xy, readonly=readonly, parent=self)
         self.view.setModel(self.model)
@@ -362,6 +366,12 @@ class ArrayEditor(QDialog):
             self.data.shape = self.old_data_shape
         QDialog.accept(self)
 
+    def error(self, message):
+        """An error occured, closing the dialog box"""
+        QMessageBox.critical(self, self.tr("Array editor"), message)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.reject()
+
     def reject(self):
         """Reimplement Qt method"""
         if self.old_data_shape:
@@ -374,9 +384,9 @@ class ArrayEditor(QDialog):
         try:
             return self.FORMATS[name]
         except KeyError:
+            arrays = self.tr("%1 arrays").arg(name)
             QMessageBox.warning(self, self.tr("Array editor"),
-                self.tr("Warning: %1 arrays are currently not supported") \
-                .arg(name))
+                self.tr("Warning: %1 are currently not supported").arg(arrays))
             return '%.3f'
 
     def resize_to_contents(self):
@@ -414,6 +424,9 @@ def aedit(data, title=""):
         return data
 
 if __name__ == "__main__":
+    arr = N.zeros((2,2), {'names': ('r','g','b'),
+                          'formats': (N.float32, N.float32, N.float32)})
+    print "out:", aedit(arr, "record array") # not yet supported
     arr = N.random.rand(5, 5)
     print "out:", aedit(arr, "float array")
     arr_in = N.array([True, False, True])
