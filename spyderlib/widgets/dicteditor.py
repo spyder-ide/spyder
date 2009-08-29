@@ -386,10 +386,12 @@ class DictDelegate(QItemDelegate):
         self.inplace = inplace
         
     def get_value(self, index):
-        return index.model().get_value(index)
+        if index.isValid():
+            return index.model().get_value(index)
     
     def set_value(self, index, value):
-        index.model().set_value(index, value)
+        if index.isValid():
+            index.model().set_value(index, value)
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
@@ -640,6 +642,9 @@ class BaseTableView(QTableView):
             self.refresh_menu()
             self.menu.popup(event.globalPos())
             event.accept()
+        else:
+            self.empty_ws_menu.popup(event.globalPos())
+            event.accept()
 
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
@@ -804,6 +809,9 @@ class DictEditorTableView(BaseTableView):
                                       triggered=self.paste)
         self.menu.insertAction(self.remove_action, self.copy_action)
         self.menu.insertAction(self.remove_action, self.paste_action)
+        
+        self.empty_ws_menu = QMenu(self)
+        self.empty_ws_menu.addAction(self.paste_action)
     
     def remove_values(self, keys):
         """
@@ -811,9 +819,9 @@ class DictEditorTableView(BaseTableView):
         (implemented differently for remote table view)
         """
         data = self.model.get_data()
-        for key in keys:
+        for key in sorted(keys,reverse=True):
             data.pop(key)
-        self.set_data(data)
+            self.set_data(data)
 
     def copy_value(self, orig_key, new_key):
         """
