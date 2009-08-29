@@ -444,14 +444,14 @@ class FindOptions(QWidget):
         """Select directory"""
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self,
-                    translate('FindInFiles', "Select directory"),
-                    self.dir_combo.currentText())
+                                translate('FindInFiles', "Select directory"),
+                                self.dir_combo.currentText())
         if not directory.isEmpty():
             self.set_directory(directory)
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
         
     def set_directory(self, directory):
-        path = unicode(osp.abspath(directory))
+        path = unicode(osp.abspath(unicode(directory)))
         self.dir_combo.setEditText(path)
         self.detect_hg_repository(path)
         

@@ -199,7 +199,7 @@ class PathManager(QDialog):
                                  self.tr("Select directory"), self.last_path)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if not directory.isEmpty():
-            directory = osp.abspath(directory)
+            directory = osp.abspath(unicode(directory))
             self.last_path = directory
             if directory in self.pathlist:
                 answer = QMessageBox.question(self, self.tr("Add path"),
