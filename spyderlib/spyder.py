@@ -21,9 +21,6 @@ import os.path as osp
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
 
-# spyderlib install path:
-APP_PATH = osp.abspath(osp.dirname(__file__))
-
 # For debugging purpose only
 STDOUT = sys.stdout
 
@@ -55,7 +52,8 @@ from spyderlib.qthelpers import (create_action, add_actions, get_std_icon,
                                  add_module_dependent_bookmarks, add_bookmark,
                                  create_program_action,
                                  create_python_gui_script_action)
-from spyderlib.config import get_icon, get_image_path, CONF, get_conf_path
+from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
+                              DATA_PATH, DOC_PATH)
 from spyderlib.utils import run_python_gui_script
 
 
@@ -560,7 +558,7 @@ class MainWindow(QMainWindow):
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about) )
             add_bookmark(self, help_menu,
-                         osp.join(APP_PATH, "doc", "index.html"),
+                         osp.join(DOC_PATH, "index.html"),
                          self.tr("Spyder documentation"), shortcut="F1",
                          icon=get_std_icon('DialogHelpButton'))
             if get_python_doc_path() is not None:
@@ -1160,7 +1158,7 @@ def main():
                               QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
             app.installTranslator(qt_translator)
         app_translator = QTranslator()
-        if app_translator.load("spyder_" + locale, APP_PATH):
+        if app_translator.load("spyder_" + locale, DATA_PATH):
             app.installTranslator(app_translator)
     
     # Main window

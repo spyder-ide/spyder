@@ -16,7 +16,12 @@ from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 # Local import
 from userconfig import UserConfig, get_home_dir
 
-APP_PATH = osp.dirname(__file__)
+DATA_DEV_PATH = osp.dirname(__file__)
+DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
+
+# The two following lines are patched when making the debian package:
+DATA_PATH = DATA_DEV_PATH # @@@DATA_PATH@@@
+DOC_PATH = DOC_DEV_PATH # @@@DOC_PATH@@@
 
 FILTERS = [int, long, float, list, dict, tuple, str, unicode, date]
 try:
@@ -31,12 +36,6 @@ ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
 
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
             'typecodes', '__builtins__', '__main__', '__doc__']
-# The following exhaustive list is no longer necessary since v0.3.27 and the
-# improvements on Worskpace filter function:
-# (to be removed)
-#EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'e', 'pi',
-#            'sctypes', 'typecodes', 'rcParams', 'rcParamsDefault',
-#            'typeNA', 'nbytes', 'sctypeDict', 'sctypeNA', 'cast', 'typeDict']
 
 def type2str(types):
     """Convert types to strings"""
@@ -177,7 +176,7 @@ DEFAULTS = [
               'toolbox_panel' : True,
               'code_folding' : True,
               'tab_always_indent' : True,
-              'api' : osp.join(APP_PATH, 'python.api'),
+              'api' : osp.join(DATA_PATH, 'python.api'),
               }),
             ('historylog',
              {
@@ -292,7 +291,7 @@ def get_conf_path(filename):
         os.mkdir(conf_dir)
     return osp.join(conf_dir, filename)
 
-IMG_PATH_ROOT = osp.join(APP_PATH, 'images')
+IMG_PATH_ROOT = osp.join(DATA_PATH, 'images')
 IMG_PATH = [IMG_PATH_ROOT]
 for root, dirs, files in os.walk(IMG_PATH_ROOT):
     for dir in dirs:

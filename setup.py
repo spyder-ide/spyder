@@ -26,7 +26,8 @@ package_data={libname: ['*.qm', 'python.api', 'images/*.png', 'images/*.svg',
                         'doc/objects.inv',
                         'doc/_images/*.png', 'doc/_sources/*.txt',
                         'doc/_static/*.css', 'doc/_static/*.js',
-                        'doc/_static/*.png', 'doc/.doctrees/*.doctree',
+                        'doc/_static/*.png', 'doc/_static/*.ico',
+                        'doc/.doctrees/*.doctree',
                         ]}
 import os
 if os.name == 'nt':
