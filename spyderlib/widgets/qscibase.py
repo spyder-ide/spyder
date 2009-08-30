@@ -271,10 +271,10 @@ class TextEditBaseWidget(QsciScintilla):
             word = QString('')
         return word
 
-    def get_current_line(self):
-        """Return current line"""
-        cline, _cindex = self.getCursorPosition()
-        return unicode(self.text(cline))
+#    def get_current_line(self):
+#        """Return current line"""
+#        cline, _cindex = self.getCursorPosition()
+#        return unicode(self.text(cline))
 
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""

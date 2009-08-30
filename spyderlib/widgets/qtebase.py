@@ -349,9 +349,9 @@ class TextEditBaseWidget(QTextEdit):
         if position == 'cursor':
             pass
         elif position == 'sol':
-            cursor.movePosition(QTextCursor.StartOfLine)
+            cursor.movePosition(QTextCursor.StartOfBlock)
         elif position == 'eol':
-            cursor.movePosition(QTextCursor.EndOfLine)
+            cursor.movePosition(QTextCursor.EndOfBlock)
         elif position == 'eof':
             cursor.movePosition(QTextCursor.End)
         elif position == 'sof':
@@ -384,7 +384,7 @@ class TextEditBaseWidget(QTextEdit):
     def is_cursor_on_last_line(self):
         """Return True if cursor is on the last line"""
         cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.EndOfLine)
+        cursor.movePosition(QTextCursor.EndOfBlock)
         return cursor.atEnd()
 
     def is_cursor_at_end(self):
@@ -514,11 +514,11 @@ class TextEditBaseWidget(QTextEdit):
         cursor.select(QTextCursor.WordUnderCursor)
         return unicode(cursor.selectedText())
     
-    def get_current_line(self):
-        """Return current line"""
-        cursor = self.textCursor()
-        cursor.select(QTextCursor.LineUnderCursor)
-        return unicode(cursor.selectedText())
+#    def get_current_line(self):
+#        """***NOT TESTED*** Return current line"""
+#        cursor = self.textCursor()
+#        cursor.select(QTextCursor.BlockUnderCursor)
+#        return unicode(cursor.selectedText())
 
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
@@ -634,12 +634,12 @@ class TextEditBaseWidget(QTextEdit):
     def stdkey_home(self, shift):
         move_mode = self.__get_move_mode(shift)
         cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfLine, move_mode)
+        cursor.movePosition(QTextCursor.StartOfBlock, move_mode)
         cursor.movePosition(QTextCursor.Right, move_mode, len(self.prompt))
         self.setTextCursor(cursor)
 
     def stdkey_end(self, shift):
-        self.moveCursor(QTextCursor.EndOfLine, self.__get_move_mode(shift))
+        self.moveCursor(QTextCursor.EndOfBlock, self.__get_move_mode(shift))
 
     def stdkey_pageup(self):
         pass
