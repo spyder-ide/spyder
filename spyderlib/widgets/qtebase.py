@@ -196,7 +196,7 @@ class TextEditBaseWidget(QTextEdit):
                 return
     
     def __highlight(self, positions, color=None, cancel=False):
-        cursor = self.textCursor()
+        cursor = QTextCursor(self.document())
         for position in positions:
             if position > self.get_position('eof'):
                 return
@@ -719,6 +719,12 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
         self.textCursor().insertText(text, self.default_format)
+        
+    def paste(self):
+        """Reimplement Qt method"""
+        if self.hasSelectedText():
+            self.removeSelectedText()
+        self.insert_text(QApplication.clipboard().text())
         
     def append_text_to_pythonshell(self, text, error, prompt):
         cursor = self.textCursor()
