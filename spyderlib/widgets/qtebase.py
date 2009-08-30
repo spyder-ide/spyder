@@ -76,9 +76,10 @@ class CompletionWidget(QListWidget):
         if key == Qt.Key_Tab:
             self.item_selected()
             event.accept()
-        elif key in (Qt.Key_Return, Qt.Key_Enter):
+        elif key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Period,
+                     Qt.Key_Left, Qt.Key_Right):
             self.hide()
-            event.ignore()
+            self.textedit.keyPressEvent(event)
         elif event.modifiers() & Qt.ShiftModifier:
             self.textedit.keyPressEvent(event)
             if len(text):
@@ -87,9 +88,6 @@ class CompletionWidget(QListWidget):
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
                      Qt.Key_Home, Qt.Key_End):
             QListWidget.keyPressEvent(self, event)
-        elif key in (Qt.Key_Left, Qt.Key_Right):
-            self.hide()
-            event.ignore()
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current()
