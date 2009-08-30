@@ -385,10 +385,7 @@ class ArrayEditor(QDialog):
     def __init__(self, data, title='', xy=False, readonly=False):
         super(ArrayEditor, self).__init__()
         self.arraywidget = None
-        if data.dtype.names is not None:
-            #TODO: Add support for record arrays
-            self.error(self.tr("Record arrays are currently not supported"))
-            return
+        self.is_record_array = data.dtype.names is not None
         if len(data.shape) > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
@@ -404,28 +401,44 @@ class ArrayEditor(QDialog):
         self.setWindowTitle(title)
         self.resize(600, 500)
         
-#        if data.dtype.names is not None:
-#            # Record arrays index
-#            ra_layout = QHBoxLayout()
-#            ra_layout.addWidget(QLabel(self.tr("Record array fields:")))
-#            ra_combo = QComboBox(self)
-#            ra_combo.addItems(data.dtype.names)
-#            ra_layout.addWidget(ra_combo)
-#            self.layout.addLayout(ra_layout, 0, 0)
-
         # Stack widget
         self.stack = QStackedWidget(self)
-        self.stack.addWidget(ArrayEditorWidget(self, data, xy, readonly))
+        if self.is_record_array:
+            for name in data.dtype.names:
+                self.stack.addWidget(ArrayEditorWidget(self, data[name],
+                                                       xy, readonly))
+        else:
+            self.stack.addWidget(ArrayEditorWidget(self, data, xy, readonly))
         self.arraywidget = self.stack.currentWidget()
         self.connect(self.stack, SIGNAL('currentChanged(int)'),
                      self.current_widget_changed)
         self.layout.addWidget(self.stack, 1, 0)
 
         # Buttons configuration
+        btn_layout = QHBoxLayout()
+        if self.is_record_array:
+            btn_layout.addWidget(QLabel(self.tr("Record array fields:")))
+            ra_combo = QComboBox(self)
+            self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
+                         self.stack.setCurrentIndex)
+            names = []
+            for name in data.dtype.names:
+                field = data.dtype.fields[name]
+                text = name
+                if len(field) >= 3:
+                    title = field[2]
+                    if not isinstance(title, basestring):
+                        title = repr(title)
+                    text += ' - '+title
+                names.append(text)
+            ra_combo.addItems(names)
+            btn_layout.addWidget(ra_combo)
+            btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        self.layout.addWidget(bbox, 2, 0)
+        btn_layout.addWidget(bbox)
+        self.layout.addLayout(btn_layout, 2, 0)
         
         self.setMinimumSize(400, 300)
         
@@ -437,7 +450,8 @@ class ArrayEditor(QDialog):
         
     def accept(self):
         """Reimplement Qt method"""
-        self.arraywidget.accept_changes()
+        for index in range(self.stack.count()):
+            self.stack.widget(index).accept_changes()
         QDialog.accept(self)
 
     def error(self, message):
@@ -449,7 +463,8 @@ class ArrayEditor(QDialog):
     def reject(self):
         """Reimplement Qt method"""
         if self.arraywidget is not None:
-            self.arraywidget.reject_changes()
+            for index in range(self.stack.count()):
+                self.stack.widget(index).reject_changes()
         QDialog.reject(self)
     
     
@@ -468,9 +483,12 @@ def aedit(data, title=""):
 
 
 if __name__ == "__main__":
-    arr = N.zeros((2,2), {'names': ('r','g','b'),
+    arr = N.zeros((2,2), {'names': ('red','green','blue'),
                           'formats': (N.float32, N.float32, N.float32)})
-    print "out:", aedit(arr, "record array") # not yet supported
+    print "out:", aedit(arr, "record array")
+    arr = N.array([(0, 0.0), (0, 0.0), (0, 0.0)],
+                  dtype=[(('title 1', 'x'), '|i1'), (('title 2', 'y'), '>f4')])
+    print "out:", aedit(arr, "record array with titles")
     arr = N.random.rand(5, 5)
     print "out:", aedit(arr, "float array")
     arr_in = N.array([True, False, True])
