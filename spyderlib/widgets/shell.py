@@ -284,6 +284,14 @@ class ShellBaseWidget(ConsoleBaseWidget):
         Basic keypress event handler
         (reimplemented in InteractiveShell to add more sophisticated features)
         """
+        if self.preprocess_keyevent(event):
+            # Event was accepted in self.preprocess_keyevent
+            return
+        self.postprocess_keyevent(event)
+        
+    def preprocess_keyevent(self, event):
+        """Pre-process keypress event:
+        return True if event is accepted, false otherwise"""
         # Copy must be done first to be able to copy read-only text parts
         # (otherwise, right below, we would remove selection
         #  if not on current line)
@@ -291,16 +299,17 @@ class ShellBaseWidget(ConsoleBaseWidget):
         if event.key() == Qt.Key_C and ctrl:
             self.copy()
             event.accept()
-            return
+            return True
         
         if self.new_input_line and ( len(event.text()) or event.key() in \
            (Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right) ):
             self.on_new_line()
-            
-        self.process_keyevent(event)
         
-    def process_keyevent(self, event):
-        """Process keypress event"""
+        return False
+        
+    def postprocess_keyevent(self, event):
+        """Post-process keypress event:
+        in InteractiveShell, this is method is called when shell is ready"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
         # Is cursor on the last line? and after prompt?
@@ -753,9 +762,9 @@ class PythonShellWidget(ShellBaseWidget):
 
                 
     #------ Key handlers
-    def process_keyevent(self, event):
+    def postprocess_keyevent(self, event):
         """Process keypress event"""
-        ShellBaseWidget.process_keyevent(self, event)
+        ShellBaseWidget.postprocess_keyevent(self, event)
         if QToolTip.isVisible():
             _event, _text, key, _ctrl, _shift = restore_keyevent(event)
             self.hide_tooltip_if_necessary(key)

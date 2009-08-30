@@ -332,28 +332,25 @@ has the same effect as typing a particular string at the help> prompt.
 
     def keyPressEvent(self, event):
         """
-        Re-implemented to handle the user input a key at a time.
-        event: key event (QKeyEvent)
+        Reimplement Qt Method
+        Enhanced keypress event handler
         """
-        # To enable keyboard interrupt when busy:
-        if event.key() == Qt.Key_C and event.modifiers() & Qt.ControlModifier:
-            self.copy()
-            event.accept()
+        if self.preprocess_keyevent(event):
+            # Event was accepted in self.preprocess_keyevent
             return
-        
         if self.busy and (not self.input_mode):
-            # Ignoring all events except KeyboardInterrupt (see above)
+            # Ignoring all events except KeyboardInterrupt
             # Keep however these events in self.eventqueue
             self.eventqueue.append(keyevent2tuple(event))
             event.accept()
         else:
-            self.process_keyevent(event)
+            self.postprocess_keyevent(event)
         
     def __flush_eventqueue(self):
         """Flush keyboard event queue"""
         while self.eventqueue:
             past_event = self.eventqueue.pop(0)
-            self.process_keyevent(past_event)
+            self.postprocess_keyevent(past_event)
         
     #------ Command execution
     def keyboard_interrupt(self):
