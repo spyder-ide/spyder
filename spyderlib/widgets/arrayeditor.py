@@ -18,13 +18,15 @@ from PyQt4.QtCore import SIGNAL, SLOT
 from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
-                         QInputDialog, QMenu, QApplication, QKeySequence)
+                         QInputDialog, QMenu, QApplication, QKeySequence,
+                         QLabel, QComboBox)
 import numpy as N
 import StringIO
 
 # Local import
 from spyderlib.config import get_icon, get_font
-from spyderlib.qthelpers import translate, add_actions, create_action, keybinding
+from spyderlib.qthelpers import (translate, add_actions, create_action,
+                                 keybinding)
 
 
 def is_float(dtype):
@@ -220,13 +222,97 @@ class ArrayDelegate(QItemDelegate):
 #TODO: Implement "Paste" (from clipboard) feature
 class ArrayView(QTableView):
     """Array view class"""
-    def __init__(self,parent=None):
-        super(ArrayView,self).__init__()
+    FORMATS = {'single': '%.3f',
+               'double': '%.3f',
+               'float_': '%.3f',
+               'float32': '%.3f',
+               'float64': '%.3f',
+               'float96': '%.3f',
+               'int_': '%d',
+               'int8': '%d',
+               'int16': '%d',
+               'int32': '%d',
+               'int64': '%d',
+               'uint': '%d',
+               'uint8': '%d',
+               'uint16': '%d',
+               'uint32': '%d',
+               'uint64': '%d',
+               'bool': '%r',
+               }
+    def __init__(self, parent, data, xy, readonly):
+        QTableView.__init__(self, parent)
+
+        self.data = data
+        self.old_data_shape = None
+        if len(self.data.shape)==1:
+            self.old_data_shape = self.data.shape
+            self.data.shape = (self.data.shape[0], 1)
+
+        self.changes = {}
+        
         self.menu = self.setup_menu()
+        
+        format = self.get_format(data)
+        self.setModel(ArrayModel(self.data, self.changes, format=format,
+                                 xy_mode=xy, readonly=readonly, parent=self))
+        self.setItemDelegate(ArrayDelegate(self.data.dtype, self))
+        total_width = 0
+        for k in xrange(self.data.shape[1]):
+            total_width += self.columnWidth(k)
+        total_width = min(total_width, 1024)
+        view_size = self.size()
+        self.viewport().resize(total_width, view_size.height())
+        
+    def accept_changes(self):
+        """Accept changes"""
+        for (i, j), value in self.changes.iteritems():
+            self.data[i, j] = value
+        if self.old_data_shape:
+            self.data.shape = self.old_data_shape
+            
+    def reject_changes(self):
+        """Reject changes"""
+        if self.old_data_shape:
+            self.data.shape = self.old_data_shape
+        
+    def get_format(self, data):
+        """Return (type, format) depending on array dtype"""
+        name = data.dtype.name
+        try:
+            return self.FORMATS[name]
+        except KeyError:
+            arr = self.tr("%1 arrays").arg(name)
+            QMessageBox.warning(self, translate("ArrayEditor", "Array editor"),
+                                translate("ArrayEditor", "Warning: %1 are "
+                                          "currently not supported").arg(arr))
+            return '%.3f'
+        
+    def change_format(self):
+        """Change display format"""
+        format, valid = QInputDialog.getText(self,
+                                 translate("ArrayEditor", 'Format'),
+                                 translate("ArrayEditor", "Float formatting"),
+                                 QLineEdit.Normal, self.model().get_format())
+        if valid:
+            format = str(format)
+            try:
+                format % 1.1
+            except:
+                QMessageBox.critical(self, translate("ArrayEditor", "Error"),
+                          translate("ArrayEditor",
+                                    "Format (%1) is incorrect").arg(format))
+                return
+            self.model().set_format(format)
+            
+    def bgcolor(self, state):
+        """Toggle backgroundcolor"""
+        self.model().bgcolor(state)
     
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self, translate("ArrayEditor", "Copy"),
+        self.copy_action = create_action(self,
+                                         translate("ArrayEditor", "Copy"),
                                          shortcut=keybinding("Copy"),
                                          icon=get_icon('editcopy.png'),
                                          triggered=self.copy,
@@ -268,41 +354,15 @@ class ArrayView(QTableView):
 
 
 class ArrayEditor(QDialog):
-    """Array Editor Dialog"""
-    FORMATS = {
-               'single': '%.3f',
-               'double': '%.3f',
-               'float_': '%.3f',
-               'float32': '%.3f',
-               'float64': '%.3f',
-               'float96': '%.3f',
-               'int_': '%d',
-               'int8': '%d',
-               'int16': '%d',
-               'int32': '%d',
-               'int64': '%d',
-               'uint': '%d',
-               'uint8': '%d',
-               'uint16': '%d',
-               'uint32': '%d',
-               'uint64': '%d',
-               'bool': '%r'
-               }
-    
+    """Array Editor Dialog"""    
     def __init__(self, data, title='', xy=False, readonly=False):
-        super(ArrayEditor, self).__init__()        
-        self.data = data
-        self.changes = {}
-        self.old_data_shape = None
-        if len(self.data.shape)==1:
-            self.old_data_shape = self.data.shape
-            self.data.shape = (self.data.shape[0], 1)
-
+        super(ArrayEditor, self).__init__()
+        self.view = None
         if data.dtype.names is not None:
             #TODO: Add support for record arrays
             self.error(self.tr("Record arrays are currently not supported"))
             return
-        if len(self.data.shape)!=2:
+        if len(data.shape) > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
             return
@@ -316,42 +376,40 @@ class ArrayEditor(QDialog):
             title += ' (' + self.tr('read only') + ')'
         self.setWindowTitle(title)
         self.resize(600, 500)
+        
+#        if data.dtype.names is not None:
+#            # Record arrays index
+#            ra_layout = QHBoxLayout()
+#            ra_layout.addWidget(QLabel(self.tr("Record array fields:")))
+#            ra_combo = QComboBox(self)
+#            ra_combo.addItems()
+#            ra_layout.addWidget(ra_combo)
+#            self.layout.addWidget(ra_layout, 0, 0)
 
         # Table configuration
-        self.view = ArrayView()
-        format = self.get_format(data)
-        self.model = ArrayModel(self.data, self.changes, format=format,
-                                xy_mode=xy, readonly=readonly, parent=self)
-        self.view.setModel(self.model)
-        self.view.setItemDelegate(ArrayDelegate(data.dtype, self))
-        total_width = 0
-        for k in xrange(self.data.shape[1]):
-            total_width += self.view.columnWidth(k)
-        total_width = min(total_width, 1024)
-        view_size = self.view.size()
-        self.view.viewport().resize( total_width, view_size.height() )
-        self.layout.addWidget(self.view, 0, 0)
+        self.view = ArrayView(self, data, xy, readonly)
+        self.layout.addWidget(self.view, 1, 0)
 
-        layout = QHBoxLayout()
+        btn_layout = QHBoxLayout()
         btn = QPushButton(self.tr("Format"))
         # disable format button for int type
-        btn.setEnabled( is_float(data.dtype) )
-        layout.addWidget( btn )
-        self.connect(btn, SIGNAL("clicked()"), self.change_format )
+        btn.setEnabled(is_float(data.dtype))
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"), self.view.change_format)
         btn = QPushButton(self.tr("Resize"))
-        layout.addWidget( btn )
-        self.connect(btn, SIGNAL("clicked()"), self.resize_to_contents )
+        btn_layout.addWidget(btn)
+        self.connect(btn, SIGNAL("clicked()"), self.resize_to_contents)
         bgcolor = QCheckBox(self.tr('Background color'))
         bgcolor.setChecked(True)
-        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
-        layout.addWidget( bgcolor )
+        self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.view.bgcolor)
+        btn_layout.addWidget(bgcolor)
         
         # Buttons configuration
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel )
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        layout.addWidget(bbox)
-        self.layout.addLayout(layout, 2, 0)
+        btn_layout.addWidget(bbox)
+        self.layout.addLayout(btn_layout, 2, 0)
         
         self.setMinimumSize(400, 300)
         
@@ -360,10 +418,7 @@ class ArrayEditor(QDialog):
         
     def accept(self):
         """Reimplement Qt method"""
-        for (i, j), value in self.changes.iteritems():
-            self.data[i, j] = value
-        if self.old_data_shape:
-            self.data.shape = self.old_data_shape
+        self.view.accept_changes()
         QDialog.accept(self)
 
     def error(self, message):
@@ -374,40 +429,14 @@ class ArrayEditor(QDialog):
 
     def reject(self):
         """Reimplement Qt method"""
-        if self.old_data_shape:
-            self.data.shape = self.old_data_shape
+        if self.view is not None:
+            self.view.reject_changes()
         QDialog.reject(self)
-        
-    def get_format(self, data):
-        """Return (type, format) depending on array dtype"""
-        name = data.dtype.name
-        try:
-            return self.FORMATS[name]
-        except KeyError:
-            arrays = self.tr("%1 arrays").arg(name)
-            QMessageBox.warning(self, self.tr("Array editor"),
-                self.tr("Warning: %1 are currently not supported").arg(arrays))
-            return '%.3f'
 
     def resize_to_contents(self):
         """Resize cells to contents"""
         self.view.resizeColumnsToContents()
         self.view.resizeRowsToContents()
-        
-    def change_format(self):
-        """Change display format"""
-        format, valid = QInputDialog.getText(self, self.tr('Format'),
-                          self.tr("Float formatting"), QLineEdit.Normal,
-                          self.model.get_format())
-        if valid:
-            format = str(format)
-            try:
-                format % 1.1
-            except:
-                QMessageBox.critical(self, self.tr("Error"),
-                      self.tr("Format (%1) is incorrect").arg(format))
-                return
-            self.model.set_format(format)
     
     
 def aedit(data, title=""):
@@ -422,6 +451,7 @@ def aedit(data, title=""):
     dialog = ArrayEditor(data, title)
     if dialog.exec_():
         return data
+
 
 if __name__ == "__main__":
     arr = N.zeros((2,2), {'names': ('r','g','b'),
