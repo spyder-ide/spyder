@@ -407,6 +407,9 @@ class EditorTabWidget(Tabs):
     def __refresh_readonly(self, index):
         finfo = self.data[index]
         read_only = not QFileInfo(finfo.filename).isWritable()
+        if not osp.isfile(finfo.filename):
+            # This is an 'untitledX.py' file (newly created)
+            read_only = False
         finfo.editor.setReadOnly(read_only)
         self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
@@ -807,7 +810,7 @@ class Editor(PluginWidget):
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
             header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
-                      '', '@author: %(username)s', '"""', '', '']
+                      '', '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
         
         self.file_dependent_actions = []
@@ -1442,12 +1445,18 @@ class Editor(PluginWidget):
                            'username': os.environ.get('USERNAME', '-')}
         except:
             pass
-        fname = unicode(self.tr("untitled")) + ("%d.py" % self.untitled_num)
-        self.untitled_num += 1
+        create_fname = lambda n: unicode(self.tr("untitled")) + ("%d.py" % n)
+        while True:
+            fname = create_fname(self.untitled_num)
+            self.untitled_num += 1
+            if not osp.isfile(fname):
+                break
         # Creating editor widget
         if editortabwidget is None:
             editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.create_new_editor(fname, enc, text)
+        editor = editortabwidget.create_new_editor(fname, enc, text)
+        editor.set_cursor_position('eof')
+        editor.insert_text(os.linesep)
         
     def edit_template(self):
         """Edit new file template"""
