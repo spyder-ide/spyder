@@ -1406,16 +1406,11 @@ class Editor(PluginWidget):
         if not osp.isfile(self.TEMPFILE_PATH):
             # Creating temporary file
             default = ['# -*- coding: utf-8 -*-',
-                       '"""',
-                       self.tr("Spyder Editor"),
-                       '',
+                       '"""', self.tr("Spyder Editor"), '',
                        self.tr("This temporary script file is located here:"),
                        self.TEMPFILE_PATH,
-                       '"""',
-                       '',
-                       '',
-                       ]
-            text = "\r\n".join([unicode(qstr) for qstr in default])
+                       '"""', '', '']
+            text = os.linesep.join([unicode(qstr) for qstr in default])
             encoding.write(unicode(text), self.TEMPFILE_PATH, 'utf-8')
         self.load(self.TEMPFILE_PATH)
 
