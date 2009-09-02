@@ -216,7 +216,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.hasSelectedText():
-            QApplication.clipboard().setText( unicode(self.selectedText()) )
+            text = unicode(self.selectedText()).replace(u"\u2029", os.linesep)
+            QApplication.clipboard().setText(text)
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
             
@@ -727,7 +728,8 @@ class PythonShellWidget(ShellBaseWidget):
         
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
-        text = unicode(self.selectedText()).replace('>>> ', '').strip()
+        text = unicode(self.selectedText()).replace(u"\u2029", os.linesep)
+        text = text.replace('>>> ', '').strip()
         QApplication.clipboard().setText(text)
     
     
