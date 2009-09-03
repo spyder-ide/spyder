@@ -82,7 +82,7 @@ class EditorTabWidget(Tabs):
         
         self.data = []
         
-        self.__last_modified_flag = False
+        self.__file_status_flag = False
         
         self.already_closed = False
         
@@ -413,30 +413,47 @@ class EditorTabWidget(Tabs):
         finfo.editor.setReadOnly(read_only)
         self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
-    def __check_last_modified(self, index):
-        if self.__last_modified_flag:
+    def __check_file_status(self, index):
+        if self.__file_status_flag:
             # Avoid infinite loop: when the QMessageBox.question pops, it
             # gets focus and then give it back to the QsciEditor instance,
             # triggering a refresh cycle which calls this method
             return
         finfo = self.data[index]
-        self.__last_modified_flag = True
-        lastm = QFileInfo(finfo.filename).lastModified()
-        if lastm.toString().compare(finfo.lastmodified.toString()):
-            if finfo.editor.isModified():
-                answer = QMessageBox.question(self,
-                    self.plugin.get_widget_title(),
-                    self.tr("<b>%1</b> has been modified outside Spyder."
-                            "<br>Do you want to reload it and loose all your "
-                            "changes?").arg(osp.basename(finfo.filename)),
-                    QMessageBox.Yes | QMessageBox.No)
-                if answer == QMessageBox.Yes:
-                    self.reload(index)
+        self.__file_status_flag = True
+
+        name = osp.basename(finfo.filename)
+        
+        # First, testing if file still exists (removed, moved or offline):
+        if not osp.isfile(finfo.filename):
+            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> is unavailable "
+                                    "(this file may have been removed, moved "
+                                    "or renamed outside Spyder)."
+                                    "<br>Do you want to close it?").arg(name),
+                            QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                self.close_file(index)
+        else:
+            # Else, testing if it has been modified elsewhere:
+            lastm = QFileInfo(finfo.filename).lastModified()
+            if lastm.toString().compare(finfo.lastmodified.toString()):
+                if finfo.editor.isModified():
+                    answer = QMessageBox.question(self,
+                        self.plugin.get_widget_title(),
+                        self.tr("<b>%1</b> has been modified outside Spyder."
+                                "<br>Do you want to reload it and loose all "
+                                "your changes?").arg(name),
+                        QMessageBox.Yes | QMessageBox.No)
+                    if answer == QMessageBox.Yes:
+                        self.reload(index)
+                    else:
+                        finfo.lastmodified = lastm
                 else:
-                    finfo.lastmodified = lastm
-            else:
-                self.reload(index)
-        self.__last_modified_flag = False
+                    self.reload(index)
+                    
+        # Finally, resetting temporary flag:
+        self.__file_status_flag = False
         
     def refresh(self, index=None):
         """Refresh tabwidget"""
@@ -454,7 +471,7 @@ class EditorTabWidget(Tabs):
             self.emit(SIGNAL('refresh_analysis_results()'))
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
-            self.__check_last_modified(index)
+            self.__check_file_status(index)
         else:
             editor = None
         if self.plugin.dockwidget:

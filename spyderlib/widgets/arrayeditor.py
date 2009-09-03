@@ -320,15 +320,15 @@ class ArrayEditorWidget(QWidget):
         
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignLeft)
-        btn = QPushButton(self.tr("Format"))
+        btn = QPushButton(translate("ArrayEditor", "Format"))
         # disable format button for int type
         btn.setEnabled(is_float(data.dtype))
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.change_format)
-        btn = QPushButton(self.tr("Resize"))
+        btn = QPushButton(translate("ArrayEditor", "Resize"))
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
-        bgcolor = QCheckBox(self.tr('Background color'))
+        bgcolor = QCheckBox(translate("ArrayEditor", 'Background color'))
         bgcolor.setChecked(True)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
         btn_layout.addWidget(bgcolor)
@@ -356,7 +356,7 @@ class ArrayEditorWidget(QWidget):
         try:
             return self.FORMATS[name]
         except KeyError:
-            arr = self.tr("%1 arrays").arg(name)
+            arr = translate("ArrayEditor", "%1 arrays").arg(name)
             QMessageBox.warning(self, translate("ArrayEditor", "Array editor"),
                                 translate("ArrayEditor", "Warning: %1 are "
                                           "currently not supported").arg(arr))
