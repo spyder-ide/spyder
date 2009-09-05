@@ -93,10 +93,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """Reimplement ConsoleBaseWidget method: 'word' -> 'character'"""
         self.set_wrap_mode('character' if enable else None)
 
-    def setUndoRedoEnabled(self, state):
-        """Fake Qt method (QTextEdit)"""
-        pass
-
     def set_font(self, font):
         """Set shell styles font"""
         self.set_pythonshell_font(font)

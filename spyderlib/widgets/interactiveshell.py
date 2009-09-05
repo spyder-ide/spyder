@@ -167,7 +167,6 @@ class InteractiveShell(PythonShellWidget):
 
         # interpreter banner
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
-        self.setUndoRedoEnabled(False) #-disable undo/redo for a time being
         self.write(banner, prompt=True)
 
         # Initial commands
@@ -176,7 +175,6 @@ class InteractiveShell(PythonShellWidget):
                 
         # First prompt
         self.new_prompt(self.p1)
-        self.setUndoRedoEnabled(True) #-enable undo/redo
         self.emit(SIGNAL("refresh()"))
 
         return self.interpreter

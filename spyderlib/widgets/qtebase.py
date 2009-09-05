@@ -667,6 +667,10 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        # Disable undo/redo (nonsense for a console widget...):
+        self.setUndoRedoEnabled(False)
+        
         self.connect(self, SIGNAL('userListActivated(int, const QString)'),
                      lambda user_id, text:
                      self.emit(SIGNAL('completion_widget_activated(QString)'),
