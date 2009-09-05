@@ -28,6 +28,7 @@ package_data={libname: ['*.qm', 'python.api', 'images/*.png', 'images/*.svg',
                         'doc/_static/*.css', 'doc/_static/*.js',
                         'doc/_static/*.png', 'doc/_static/*.ico',
                         'doc/.doctrees/*.doctree',
+                        'doc/Spyderdoc.chm', #XXX: include this only on Windows
                         ]}
 import os
 if os.name == 'nt':

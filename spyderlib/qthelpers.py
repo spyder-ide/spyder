@@ -142,8 +142,12 @@ def add_bookmark(parent, menu, url, title, icon=None, shortcut=None):
     """Add bookmark to a menu"""
     if icon is None:
         icon = get_icon('browser.png')
+    if os.name == 'nt':
+        callback = os.startfile
+    else:
+        callback = webbrowser.open
     act = create_action( parent, title, shortcut=shortcut, icon=icon,
-                         triggered=lambda u=url: webbrowser.open(u) )
+                         triggered=lambda u=url: callback(u) )
     menu.addAction(act)
 
 def add_module_dependent_bookmarks(parent, menu, bookmarks):
