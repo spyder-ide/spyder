@@ -13,14 +13,14 @@ Options:
                         Startup script (overrides PYTHONSTARTUP)
   -m MODULE_LIST, --modules=MODULE_LIST
                         Modules to import (comma separated)
-  -a, --all             Import all optional modules (options below)
+  -b, --basics          Import numpy, scipy and matplotlib following official
+                        coding guidelines
+  -a, --all             Option 'basics', 'pylab' and import os, sys, re, time,
+                        os.path as osp
   -p, --pylab           Import pylab in interactive mode and add option
                         --numpy
-  --mlab                Import mlab as M (MayaVi's interactive 3D-plotting
+  --mlab                Import mlab (MayaVi's interactive 3D-plotting
                         interface)
-  -o, --os              Import os and os.path as osp
-  --numpy               Import numpy as N
-  --scipy               Import numpy as N, scipy as S
   -d, --debug           Debug mode (stds are not redirected)
   --profile             Profile mode (internal test, not related with Python
                         profiling)

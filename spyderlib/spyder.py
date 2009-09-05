@@ -1019,26 +1019,22 @@ def get_options():
                       help="Startup script (overrides PYTHONSTARTUP)")
     parser.add_option('-m', '--modules', dest="module_list", default='',
                       help="Modules to import (comma separated)")
+    parser.add_option('-b', '--basics', dest="basics",
+                      action='store_true', default=False,
+                      help="Import numpy, scipy and matplotlib following "
+                           "official coding guidelines")
     parser.add_option('-a', '--all', dest="all", action='store_true',
                       default=False,
-                      help="Import all optional modules (options below)")
+                      help="Option 'basics', 'pylab' and import os, sys, re, "
+                           "time, os.path as osp")
     parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
                       default=False,
                       help="Import pylab in interactive mode"
                            " and add option --numpy")
     parser.add_option('--mlab', dest="mlab", action='store_true',
                       default=False,
-                      help="Import mlab as M (MayaVi's interactive "
+                      help="Import mlab (MayaVi's interactive "
                            "3D-plotting interface)")
-    parser.add_option('-o', '--os', dest="os", action='store_true',
-                      default=False,
-                      help="Import os and os.path as osp")
-    parser.add_option('--numpy', dest="numpy", action='store_true',
-                      default=False,
-                      help="Import numpy as N")
-    parser.add_option('--scipy', dest="scipy", action='store_true',
-                      default=False,
-                      help="Import numpy as N, scipy as S")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
@@ -1055,15 +1051,34 @@ def get_options():
     # Option --all
     if options.all:
         intitlelist.append('all')
-        messagelist += ['import (sys, time, re, os)', 'import os.path as osp',
-                        'import numpy as N', 'import scipy as S',
-                        'from pylab import *']
-        commands.extend(['import sys',
-                         'import time',
-                         'import re'])
-        options.os = True
+        messagelist += ['import (sys, time, re, os, os.path as osp)']
+        commands.append('import sys, time, re, os, os.path as osp')
+        if not options.all:
+            messagelist.append('os')
+        options.basics = True
         options.pylab = True
-        options.scipy = True
+    
+    # Option --basics
+    if options.basics:
+        if not options.all:
+            intitlelist.append('basics')
+        messagelist += ['import numpy as np',
+                        'import scipy as sp',
+                        'import matplotlib as mpl',
+                        'import matplotlib.pyplot as plt']
+        commands.extend(['import numpy as np, scipy as sp',
+                         'import matplotlib as mpl, matplotlib.pyplot as plt'])
+
+    # Option --pylab
+    if options.pylab:
+        if not options.all:
+            intitlelist.append('pylab')
+            messagelist += ['import numpy as np',
+                            'import matplotlib as mpl',
+                            'import matplotlib.pyplot as plt']
+        messagelist += ['from pylab import *']
+        commands.extend(['import matplotlib as mpl, matplotlib.pyplot as plt',
+                         'import numpy as np', 'from pylab import *'])
     
     # Option --modules (import modules)
     if options.module_list:
@@ -1076,32 +1091,15 @@ def get_options():
             except ImportError:
                 print "Warning: module '%s' was not found" % mod
                 continue
-
-    # Option --os
-    if options.os:
-        commands.extend(['import os',
-                         'import os.path as osp'])
-        if not options.all:
-            messagelist.append('os')
     
-    # Options --pylab, --numpy, --scipy
-    def addoption(name, command, in_all=True):
-        """in_all: this option is part of the --all option"""
+    def addoption(name, command):
         commands.append(command)
-        if not options.all or not in_all:
-            messagelist.append('%s (%s)' % (name, command))
-            intitlelist.append(name)
-    if options.pylab:
-        options.numpy = True
-        addoption('pylab', 'from pylab import *')
-    if options.scipy:
-        options.numpy = True
-        addoption('scipy', 'import scipy as S')
-    if options.numpy:
-        addoption('numpy', 'import numpy as N')
+        messagelist.append('%s (%s)' % (name, command))
+        intitlelist.append(name)
+
+    # Option --mlab
     if options.mlab:
-        addoption('mlab', 'from enthought.mayavi import mlab as M',
-                  in_all=False)
+        addoption('mlab', 'from enthought.mayavi import mlab')
         
     # Adding PYTHONSTARTUP file to initial commands
     if options.startup is not None:
@@ -1175,7 +1173,7 @@ def main():
         pass
     
     #----Patching matplotlib's FigureManager
-    if options.pylab:
+    if options.pylab or options.basics:
         # Customizing matplotlib's parameters
         from matplotlib import rcParams
         rcParams['font.size'] = CONF.get('figure', 'font/size')
