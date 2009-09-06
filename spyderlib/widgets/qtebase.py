@@ -526,8 +526,8 @@ class TextEditBaseWidget(QTextEdit):
     def get_line_at(self, coordinates):
         """Return line at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
-        cursor.select(QTextCursor.LineUnderCursor)
-        return unicode(cursor.selectedText())
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return unicode(cursor.selectedText()).replace(u'\u2029', '')
         
 
     #------Code completion / Calltips
