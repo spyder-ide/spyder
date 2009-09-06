@@ -65,8 +65,10 @@ class UserConfig(ConfigParser):
     """
     UserConfig class, based on ConfigParser
     name: name of the config
-    options: dictionnary containing options
-             *or* list of tuples (section_name, options)
+    defaults: dictionnary containing options
+              *or* list of tuples (section_name, options)
+    version: version of the configuration file (X.Y.Z format)
+    subfolder: configuration file will be saved in %home%/subfolder/.%name%.ini
     
     Note that 'get' and 'set' arguments number and type
     differ from the overriden methods
@@ -74,8 +76,10 @@ class UserConfig(ConfigParser):
     
     default_section_name = 'main'
     
-    def __init__(self, name, defaults=None, load=True, version=None):
+    def __init__(self, name, defaults=None, load=True, version=None,
+                 subfolder=None):
         ConfigParser.__init__(self)
+        self.subfolder = subfolder
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
             raise RuntimeError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         self.name = name
@@ -139,7 +143,15 @@ class UserConfig(ConfigParser):
         """
         Create a .ini filename located in user home directory
         """
-        return osp.join(get_home_dir(), '.%s.ini' % self.name)
+        folder = get_home_dir()
+        if self.subfolder is not None:
+            folder = osp.join(folder, self.subfolder)
+            try:
+                os.makedirs(folder)
+            except os.error:
+                # Folder (or one of its parents) already exists
+                pass
+        return osp.join(folder, '.%s.ini' % self.name)
         
     def cleanup(self):
         """
