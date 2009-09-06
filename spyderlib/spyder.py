@@ -212,6 +212,7 @@ class MainWindow(QMainWindow):
         self.window_size = None
         self.last_window_state = None
         self.last_plugin = None
+        self.fullscreen_flag = None # isFullscreen does not work as expected
         
         self.debug_print("End of MainWindow constructor")
         
@@ -281,6 +282,14 @@ class MainWindow(QMainWindow):
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
             main_toolbar.addAction(self.maximize_action)
+            
+            # Fullscreen mode
+            self.fullscreen_action = create_action(self,
+                                           self.tr("Fullscreen mode"),
+                                           shortcut="F11",
+                                           triggered=self.toggle_fullscreen)
+            main_toolbar.addAction(self.fullscreen_action)
+            main_toolbar.addSeparator()
             
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
@@ -513,7 +522,8 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
-            add_actions(self.view_menu, (None, self.maximize_action))
+            add_actions(self.view_menu, (None, self.maximize_action,
+                                         self.fullscreen_action))
             self.menuBar().addMenu(self.view_menu)
             
             # Tools menu
@@ -593,6 +603,10 @@ class MainWindow(QMainWindow):
             # Is maximized?
             if CONF.get('main', prefix+'is_maximized'):
                 self.setWindowState(Qt.WindowMaximized)
+            # Is fullscreen?
+            if CONF.get('main', prefix+'is_fullscreen'):
+                self.setWindowState(Qt.WindowFullScreen)
+            self.__update_fullscreen_action()
             
         self.splash.hide()
         
@@ -736,7 +750,7 @@ class MainWindow(QMainWindow):
             
     def resizeEvent(self, event):
         """Reimplement Qt method"""
-        if not self.isMaximized():
+        if not self.isMaximized() and not self.fullscreen_flag:
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
         
@@ -748,6 +762,7 @@ class MainWindow(QMainWindow):
         prefix = ('lightwindow' if self.light else 'window') + '/'
         CONF.set('main', prefix+'size', (size.width(), size.height()))
         CONF.set('main', prefix+'is_maximized', self.isMaximized())
+        CONF.set('main', prefix+'is_fullscreen', self.isFullScreen())
         pos = self.pos()
         CONF.set('main', prefix+'position', (pos.x(), pos.y()))
         if not self.light:
@@ -755,7 +770,7 @@ class MainWindow(QMainWindow):
             qba = self.saveState()
             CONF.set('main', prefix+'state', str(qba.toHex()))
             CONF.set('main', prefix+'statusbar',
-                      not self.statusBar().isHidden())
+                     not self.statusBar().isHidden())
         for widget in self.widgetlist:
             if not widget.closing(cancelable):
                 return False
@@ -819,6 +834,22 @@ class MainWindow(QMainWindow):
             self.last_window_state = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
+        
+    def __update_fullscreen_action(self):
+        if self.isFullScreen():
+            icon = "window_nofullscreen.png"
+        else:
+            icon = "window_fullscreen.png"
+        self.fullscreen_action.setIcon(get_icon(icon))
+        
+    def toggle_fullscreen(self):
+        if self.isFullScreen():
+            self.fullscreen_flag = False
+            self.showNormal()
+        else:
+            self.fullscreen_flag = True
+            self.showFullScreen()
+        self.__update_fullscreen_action()
     
     def add_to_menubar(self, widget, title=None):
         """Add menu and actions to menubar"""

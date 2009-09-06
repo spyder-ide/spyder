@@ -73,6 +73,7 @@ DEFAULTS = [
               'translation': True,
               'window/size' : (1260, 700),
               'window/is_maximized' : False,
+              'window/is_fullscreen' : False,
               'window/position' : (10, 10),
               'window/state' : STATE1,
               'lightwindow/size' : (650, 400),
@@ -282,7 +283,12 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', DEFAULTS, version='1.0.5', load=(not DEV))
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
+                  version='1.0.5', subfolder='.spyder')
+# Removing old .spyder.ini location:
+old_location = osp.join(get_home_dir(), '.spyder.ini')
+if osp.isfile(old_location):
+    os.remove(old_location)
 
 def get_conf_path(filename):
     """Return absolute path for configuration file with specified filename"""
