@@ -567,9 +567,8 @@ class MainWindow(QMainWindow):
                                     self.tr("About %1...").arg("Spyder"),
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about) )
-            if os.name == 'nt':
-                spyder_doc = osp.join(DOC_PATH, "Spyderdoc.chm")
-            else:
+            spyder_doc = osp.join(DOC_PATH, "Spyderdoc.chm")
+            if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(DOC_PATH, "index.html")
             add_bookmark(self, help_menu, spyder_doc,
                          self.tr("Spyder documentation"), shortcut="F1",

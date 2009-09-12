@@ -52,20 +52,11 @@ class ExtPyQsciShell(PythonShellWidget):
         Execute a set of lines as multiple command
         lines: multiple lines of text to be executed as single commands
         """
-        for line in lines.splitlines(True):
-            if line.endswith("\r\n"):
-                fullline = True
-                cmd = line[:-2]
-            elif line.endswith("\r") or line.endswith("\n"):
-                fullline = True
-                cmd = line[:-1]
-            else:
-                fullline = False
-            self.write(line, flush=True)
-            if fullline:
-                self.execute_command(cmd+"\n")
-                self.emit(SIGNAL("wait_for_ready_read()"))
-                self.flush()
+        for line in lines.splitlines():
+            self.write(line+os.linesep, flush=True)
+            self.execute_command(line)
+            self.emit(SIGNAL("wait_for_ready_read()"))
+            self.flush()
 
     #------ Code completion / Calltips
     def ask_monitor(self, command):
