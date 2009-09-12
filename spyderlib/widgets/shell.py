@@ -927,7 +927,7 @@ class PythonShellWidget(ShellBaseWidget):
             return
         
         text = unicode(text) # Useful only for ExternalShellBase
-        done = False
+        
         if (self.docviewer is not None) and \
            (self.docviewer.dockwidget.isVisible()):
             # DocViewer widget exists and is visible
@@ -943,26 +943,14 @@ class PythonShellWidget(ShellBaseWidget):
                     if iscallable:
                         arglist = self.get_arglist(text)
                         if arglist:
-                            done = True
                             self.show_calltip(translate("PythonShellWidget",
                                                         "Arguments"),
                                               arglist, '#129625')
-                    else:
-                        done = True
-                        self.show_calltip(translate("PythonShellWidget",
-                                                    "Warning"),
-                                          translate("PythonShellWidget",
-                                                "Object `%1` is not callable"
-                                                " (i.e. not a function, "
-                                                "a method or a class "
-                                                "constructor)").arg(text),
-                                          color='#FF0000')
-        if not done:
+        else: # docviewer is not visible
             doc = self.get__doc__(text)
-            if doc is None:
-                return
-            self.show_calltip(translate("PythonShellWidget", "Documentation"),
-                              doc)
+            if doc is not None:
+                self.show_calltip(translate("PythonShellWidget",
+                                            "Documentation"), doc)
         
         
     #------ Miscellanous

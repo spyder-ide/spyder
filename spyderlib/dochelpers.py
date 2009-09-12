@@ -45,6 +45,9 @@ def getsource(obj):
     except TypeError:
         if hasattr(obj, '__class__'):
             src = inspect.getsource(obj.__class__)
+        else:
+            # Bindings like VTK or ITK require this case
+            src = inspect.getdoc(obj)
     return src
 
 def getargfromdoc(obj):
