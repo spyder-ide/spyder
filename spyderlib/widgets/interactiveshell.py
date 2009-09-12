@@ -367,18 +367,10 @@ has the same effect as typing a particular string at the help> prompt.
         Execute a set of lines as multiple command
         lines: multiple lines of text to be executed as single commands
         """
-        for line in lines.splitlines(True):
-            if line.endswith("\r\n"):
-                fullline = True
-                cmd = line[:-2]
-            elif line.endswith("\r") or line.endswith("\n"):
-                fullline = True
-                cmd = line[:-1]
-            else:
-                fullline = False
-            self.write(line, flush=True)
-            if fullline:
-                self.execute_command(cmd+"\n")
+        for line in lines.splitlines():
+            self.write(line+os.linesep, flush=True)
+            self.execute_command(line+"\n")
+            self.flush()
         
     def execute_command(self, cmd):
         """
