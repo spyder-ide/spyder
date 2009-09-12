@@ -33,6 +33,14 @@ def getobj(txt, last=False):
     except IndexError:
         return None
 
+def getobjdir(obj):
+    """
+    For standard objects, will simply return dir(obj)
+    In special cases (e.g. WrapITK package), will return only string elements
+    of result returned by dir(obj)
+    """
+    return [item for item in dir(obj) if isinstance(item, basestring)]
+
 def getdoc(obj):
     """Wrapper around inspect.getdoc"""
     #TODO: Add exception handling: is it really necessary?

@@ -6,9 +6,9 @@ import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
-from spyderlib.dochelpers import getargtxt, getdoc, getsource
+from spyderlib.dochelpers import getargtxt, getdoc, getsource, getobjdir
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
-                                         value_to_display, globalsfilter)
+                                          value_to_display, globalsfilter)
 
 
 def make_remote_view(data, settings):
@@ -101,6 +101,7 @@ class Monitor(threading.Thread):
         self.request.connect( (host, port) )
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
+                       "getobjdir": getobjdir,
                        "getargtxt": getargtxt,
                        "getdoc": getdoc,
                        "getsource": getsource,
