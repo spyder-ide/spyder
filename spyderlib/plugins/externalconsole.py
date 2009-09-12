@@ -174,7 +174,7 @@ class ExternalConsole(PluginWidget):
                 icon = get_icon('python.png')
             else:
                 name = osp.basename(fname)
-                icon = get_icon('execute.png')
+                icon = get_icon('run.png')
         else:
             name = "Command Window"
             icon = get_icon('cmdprompt.png')
@@ -238,7 +238,7 @@ class ExternalConsole(PluginWidget):
                             triggered=self.open_console)
         run_action = create_action(self,
                             self.tr("&Run..."), None,
-                            'run.png', self.tr("Run a Python script"),
+                            'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
         font_action = create_action(self,
                             self.tr("&Font..."), None,

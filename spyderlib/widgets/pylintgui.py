@@ -145,7 +145,7 @@ class PylintWidget(QWidget):
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
-        self.start_button = create_toolbutton(self, get_icon('execute.png'),
+        self.start_button = create_toolbutton(self, get_icon('run.png'),
                                     translate('Pylint', "Analyze"),
                                     tip=translate('Pylint', "Run analysis"),
                                     triggered=self.start)

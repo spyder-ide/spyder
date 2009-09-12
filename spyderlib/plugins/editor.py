@@ -595,7 +595,7 @@ class EditorTabWidget(Tabs):
 
 
     #------ Run
-    def exec_script_extconsole(self, ask_for_arguments=False,
+    def run_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
         if self.save():
@@ -611,7 +611,7 @@ class EditorTabWidget(Tabs):
                 # (see PluginWidget.visibility_changed method)
                 finfo.editor.setFocus()
     
-    def exec_script(self, set_focus=False):
+    def run_script(self, set_focus=False):
         """Run current script"""
         if self.save():
             finfo = self.data[self.currentIndex()]
@@ -650,25 +650,33 @@ class EditorTabWidget(Tabs):
         
         return lines
     
-    def exec_selected_text(self):
-        """Run selected text in current script and set focus to shell"""
-        lines = self.__process_lines()
+    def __run_in_interactive_console(self, lines):
         self.interactive_console.shell.execute_lines(lines)
         self.interactive_console.shell.setFocus()
-        
-    def exec_current_line(self):
-        """Run current line in interactive console and go to next line"""
-        editor = self.currentWidget()
-        line = editor.get_current_line().strip()
-        self.interactive_console.shell.execute_lines(line)
-        editor.stdkey_down(False)
-    
-    def exec_selected_text_extconsole(self):
-        """Run selected text in current script and set focus to shell"""
-        lines = self.__process_lines()
+
+    def __run_in_external_console(self, lines):
         self.plugin.emit(SIGNAL('external_console_execute_lines(QString)'),
                          lines)
-        
+    
+    def run_selection_or_line(self, external=False):
+        """
+        Run selected text in console and set focus to console
+        *or*, if there is no selection,
+        Run current line in console and go to next line
+        """
+        if external:
+            run_callback = self.__run_in_external_console
+        else:
+            run_callback = self.__run_in_interactive_console
+        editor = self.currentWidget()
+        if editor.hasSelectedText():
+            # Run selected text in interactive console and set focus to console
+            run_callback( self.__process_lines() )
+        else:
+            # Run current line in interactive console and go to next line
+            run_callback( editor.get_current_line().strip() )
+            editor.setFocus()
+            editor.stdkey_down(False)
 
     #------ Drag and drop
     def dragEnterEvent(self, event):
@@ -1015,56 +1023,54 @@ class Editor(PluginWidget):
             "Ctrl+Alt+W", 'filecloseall.png',
             self.tr("Close all opened files"),
             triggered = self.close_all_files)
-        exec_action = create_action(self,
-            self.tr("&Run in interactive console"), "F9", 'execute.png',
+        run_action = create_action(self,
+            self.tr("&Run in interactive console"), "F9", 'run.png',
             self.tr("Run current script in interactive console"),
-            triggered=self.exec_script)
-        exec_interact_action = create_action(self,
-            self.tr("Run and &interact"), "Shift+F9", 'execute_interact.png',
+            triggered=self.run_script)
+        run_interact_action = create_action(self,
+            self.tr("Run and &interact"), "Shift+F9", 'run_interact.png',
             self.tr("Run current script in interactive console "
                     "and set focus to shell"),
-            triggered=self.exec_script_and_interact)
-        exec_selected_action = create_action(self,
-            self.tr("Run &selection"), "Ctrl+F9", 'execute_selection.png',
-            self.tr("Run selected text in interactive console"
-                    " and set focus to shell"),
-            triggered=self.exec_selected_text)
-        exec_current_line_action = create_action(self,
-            self.tr("Run current line"), "Ctrl+Shift+F9",
-            tip=self.tr("Run current line in interactive console"
-                        " and go to next line"),
-            triggered=self.exec_current_line)
-        exec_process_action = create_action(self,
-            self.tr("Run in e&xternal console"), "F5", 'execute_external.png',
+            triggered=self.run_script_and_interact)
+        run_selected_action = create_action(self,
+            self.tr("Run selection or current line"), "Ctrl+F9",
+            'run_selection.png',
+            self.tr("Run selected text in interactive console\n"
+                    "(or run current line and go to next line "
+                    "if there is no selection)"),
+            triggered=lambda: self.run_selection_or_line(external=False))
+        run_process_action = create_action(self,
+            self.tr("Run in e&xternal console"), "F5", 'run_external.png',
             self.tr("Run current script in external console"
                     "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.exec_script_extconsole())
-        exec_process_interact_action = create_action(self,
+            triggered=lambda: self.run_script_extconsole())
+        run_process_interact_action = create_action(self,
             self.tr("Run and interact"), "Shift+F5",
             tip=self.tr("Run current script in external console and interact "
                         "\nwith Python interpreter when program has finished"
                         "\n(external console is executed in a "
                         "separate process)"),
-            triggered=lambda: self.exec_script_extconsole(interact=True))
-        exec_selected_extconsole_action = create_action(self,
-            self.tr("Run &selection"), "Ctrl+F5",
-            tip=self.tr("Run selected text in external console"
-                        " and set focus to shell"),
-            triggered=self.exec_selected_text_extconsole)
-        exec_process_args_actionn = create_action(self,
+            triggered=lambda: self.run_script_extconsole(interact=True))
+        run_selected_extconsole_action = create_action(self,
+            self.tr("Run &selection or current line"), "Ctrl+F5",
+            tip=self.tr("Run selected text in external console\n"
+                    "(or run current line and go to next line "
+                    "if there is no selection)"),
+            triggered=lambda: self.run_selection_or_line(external=True))
+        run_process_args_actionn = create_action(self,
             self.tr("Run with arguments"), "Alt+F5",
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
                         "\n(external console is executed in a "
                         "separate process)"),
-            triggered=lambda: self.exec_script_extconsole( \
+            triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True))
-        exec_process_debug_action = create_action(self,
+        run_process_debug_action = create_action(self,
             self.tr("Debug"), "Ctrl+Shift+F5",
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a "
                         "separate process)"),
-            triggered=lambda: self.exec_script_extconsole( \
+            triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
         
         self.previous_warning_action = create_action(self,
@@ -1157,32 +1163,30 @@ class Editor(PluginWidget):
         source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
-                None, exec_action, exec_interact_action,
-                exec_selected_action, exec_current_line_action,
-                None, exec_process_action,
-                exec_process_interact_action,
-                exec_selected_extconsole_action,
-                exec_process_args_actionn,
-                exec_process_debug_action, None, pylint_action,
+                None, run_action, run_interact_action,
+                run_selected_action, None, run_process_action,
+                run_process_interact_action,
+                run_selected_extconsole_action,
+                run_process_args_actionn,
+                run_process_debug_action, None, pylint_action,
                 None, template_action, font_action, wrap_action, tab_action,
                 fold_action, analyze_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
                 self.next_warning_action, self.toolbox_action]
-        self.run_toolbar_actions = [exec_action, exec_interact_action,
-                exec_selected_action, None, exec_process_action]
+        self.run_toolbar_actions = [run_action, run_interact_action,
+                run_selected_action, None, run_process_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action]
         self.dock_toolbar_actions = self.file_toolbar_actions + [None] + \
                                     self.analysis_toolbar_actions + [None] + \
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
-        self.pythonfile_dependent_actions = (exec_action, pylint_action,
-                exec_interact_action, exec_selected_action,
-                exec_current_line_action,
-                exec_process_action, exec_process_interact_action,
-                exec_process_args_actionn, exec_process_debug_action,
+        self.pythonfile_dependent_actions = (run_action, pylint_action,
+                run_interact_action, run_selected_action,
+                run_process_action, run_process_interact_action,
+                run_process_args_actionn, run_process_debug_action,
                 self.previous_warning_action, self.next_warning_action,
                 blockcomment_action, unblockcomment_action,
                 )
@@ -1193,7 +1197,7 @@ class Editor(PluginWidget):
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action)
         self.tab_actions = (self.save_action, save_as_action,
-                exec_action, exec_process_action,
+                run_action, run_process_action,
                 workdir_action, self.close_action)
         return (source_menu_actions, self.dock_toolbar_actions)        
         
@@ -1653,36 +1657,26 @@ class Editor(PluginWidget):
         
         
     #------ Run Python script
-    def exec_script_extconsole(self, ask_for_arguments=False,
+    def run_script_extconsole(self, ask_for_arguments=False,
                                interact=False, debug=False):
         """Run current script in another process"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.exec_script_extconsole( \
+        editortabwidget.run_script_extconsole( \
             ask_for_arguments=ask_for_arguments, interact=interact, debug=debug)
     
-    def exec_script(self, set_focus=False):
+    def run_script(self, set_focus=False):
         """Run current script"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.exec_script(set_focus=set_focus)
+        editortabwidget.run_script(set_focus=set_focus)
     
-    def exec_script_and_interact(self):
+    def run_script_and_interact(self):
         """Run current script and set focus to shell"""
-        self.exec_script(set_focus=True)
+        self.run_script(set_focus=True)
         
-    def exec_selected_text(self):
-        """Run selected text in current script and set focus to shell"""
+    def run_selection_or_line(self, external=False):
+        """Run selection or current line in interactive or external console"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.exec_selected_text()
-        
-    def exec_current_line(self):
-        """Run current line in interactive console and go to next line"""
-        editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.exec_current_line()
-        
-    def exec_selected_text_extconsole(self):
-        """Run selected text in current script and set focus to shell"""
-        editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.exec_selected_text_extconsole()
+        editortabwidget.run_selection_or_line(external=external)
         
         
     #------ Options

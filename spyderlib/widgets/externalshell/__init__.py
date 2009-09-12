@@ -83,7 +83,7 @@ class ExternalShellBase(QWidget):
             return self.process.state() == QProcess.Running
         
     def get_toolbar_buttons(self):
-        self.run_button = create_toolbutton(self, get_icon('execute.png'),
+        self.run_button = create_toolbutton(self, get_icon('run.png'),
                               self.tr("Run"),
                               tip=self.tr("Run again this program"),
                               triggered=self.start)

@@ -216,7 +216,7 @@ class ExplorerTreeWidget(DirView):
             ext = osp.splitext(fname)[1]
             run_action = create_action(self,
                                        translate('Explorer', "Run"),
-                                       icon="run.png",
+                                       icon="run_small.png",
                                        triggered=self.run)
             edit_action = create_action(self,
                                         translate('Explorer', "Edit"),

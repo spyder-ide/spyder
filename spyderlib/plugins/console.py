@@ -128,7 +128,7 @@ class Console(PluginWidget):
                             triggered=self.quit)
         run_action = create_action(self,
                             self.tr("&Run..."), self.tr("Ctrl+R"),
-                            'run.png', self.tr("Run a Python script"),
+                            'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
                             self.tr("Environment variables..."),
