@@ -43,8 +43,9 @@ def is_python_script(fname):
 
 class TabInfo(object):
     """File properties"""
-    def __init__(self, filename, encoding, editor):
+    def __init__(self, filename, encoding, editor, new):
         self.filename = filename
+        self.newly_created = new
         self.encoding = encoding
         self.editor = editor
         self.classes = (filename, None, None)
@@ -298,6 +299,7 @@ class EditorTabWidget(Tabs):
         txt = unicode(finfo.editor.get_text())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
+            finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.editor.setModified(False)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -419,9 +421,12 @@ class EditorTabWidget(Tabs):
             # gets focus and then give it back to the QsciEditor instance,
             # triggering a refresh cycle which calls this method
             return
+        
         finfo = self.data[index]
+        if finfo.newly_created:
+            return
+        
         self.__file_status_flag = True
-
         name = osp.basename(finfo.filename)
         
         # First, testing if file still exists (removed, moved or offline):
@@ -541,13 +546,13 @@ class EditorTabWidget(Tabs):
         finfo.editor.setModified(False)
         finfo.editor.setCursorPosition(line, index)
         
-    def create_new_editor(self, fname, enc, txt):
+    def create_new_editor(self, fname, enc, txt, new=False):
         """Create a new editor instance"""
         ext = osp.splitext(fname)[1]
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
         editor = QsciEditor(self)
-        self.data.append( TabInfo(fname, enc, editor) )
+        self.data.append( TabInfo(fname, enc, editor, new) )
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=ext,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
@@ -1471,7 +1476,7 @@ class Editor(PluginWidget):
         # Creating editor widget
         if editortabwidget is None:
             editortabwidget = self.get_current_editortabwidget()
-        editor = editortabwidget.create_new_editor(fname, enc, text)
+        editor = editortabwidget.create_new_editor(fname, enc, text, new=True)
         editor.set_cursor_position('eof')
         editor.insert_text(os.linesep)
         
