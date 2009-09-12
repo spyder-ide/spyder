@@ -512,12 +512,12 @@ class TextEditBaseWidget(QTextEdit):
         cursor.select(QTextCursor.WordUnderCursor)
         return unicode(cursor.selectedText())
     
-#    def get_current_line(self):
-#        """***NOT TESTED*** Return current line"""
-#        cursor = self.textCursor()
-#        cursor.select(QTextCursor.BlockUnderCursor)
-#        return unicode(cursor.selectedText())
-
+    def get_current_line(self):
+        """***NOT TESTED*** Return current line"""
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        return unicode(cursor.selectedText())
+    
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)

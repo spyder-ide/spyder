@@ -655,6 +655,13 @@ class EditorTabWidget(Tabs):
         lines = self.__process_lines()
         self.interactive_console.shell.execute_lines(lines)
         self.interactive_console.shell.setFocus()
+        
+    def exec_current_line(self):
+        """Run current line in interactive console and go to next line"""
+        editor = self.currentWidget()
+        line = editor.get_current_line().strip()
+        self.interactive_console.shell.execute_lines(line)
+        editor.stdkey_down(False)
     
     def exec_selected_text_extconsole(self):
         """Run selected text in current script and set focus to shell"""
@@ -1022,6 +1029,11 @@ class Editor(PluginWidget):
             self.tr("Run selected text in interactive console"
                     " and set focus to shell"),
             triggered=self.exec_selected_text)
+        exec_current_line_action = create_action(self,
+            self.tr("Run current line"), "Ctrl+Shift+F9",
+            tip=self.tr("Run current line in interactive console"
+                        " and go to next line"),
+            triggered=self.exec_current_line)
         exec_process_action = create_action(self,
             self.tr("Run in e&xternal console"), "F5", 'execute_external.png',
             self.tr("Run current script in external console"
@@ -1146,7 +1158,8 @@ class Editor(PluginWidget):
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
                 None, exec_action, exec_interact_action,
-                exec_selected_action, None, exec_process_action,
+                exec_selected_action, exec_current_line_action,
+                None, exec_process_action,
                 exec_process_interact_action,
                 exec_selected_extconsole_action,
                 exec_process_args_actionn,
@@ -1157,9 +1170,8 @@ class Editor(PluginWidget):
                 self.save_action, self.save_all_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
                 self.next_warning_action, self.toolbox_action]
-        self.run_toolbar_actions = [exec_action,
-                exec_selected_action, exec_process_action,
-                exec_interact_action]
+        self.run_toolbar_actions = [exec_action, exec_interact_action,
+                exec_selected_action, None, exec_process_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action]
         self.dock_toolbar_actions = self.file_toolbar_actions + [None] + \
@@ -1168,6 +1180,7 @@ class Editor(PluginWidget):
                                     self.edit_toolbar_actions
         self.pythonfile_dependent_actions = (exec_action, pylint_action,
                 exec_interact_action, exec_selected_action,
+                exec_current_line_action,
                 exec_process_action, exec_process_interact_action,
                 exec_process_args_actionn, exec_process_debug_action,
                 self.previous_warning_action, self.next_warning_action,
@@ -1660,6 +1673,11 @@ class Editor(PluginWidget):
         """Run selected text in current script and set focus to shell"""
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.exec_selected_text()
+        
+    def exec_current_line(self):
+        """Run current line in interactive console and go to next line"""
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.exec_current_line()
         
     def exec_selected_text_extconsole(self):
         """Run selected text in current script and set focus to shell"""
