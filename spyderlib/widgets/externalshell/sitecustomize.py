@@ -23,7 +23,8 @@ sys.setdefaultencoding(encoding)
 
 import spyderlib.widgets.externalshell as extsh
 scpath = osp.dirname(osp.abspath(extsh.__file__))
-sys.path.remove(scpath)
+if scpath in sys.path:
+    sys.path.remove(scpath)
 
 try:
     import sitecustomize #@UnusedImport
