@@ -299,8 +299,9 @@ class Workspace(DictEditorTableView, PluginMixin):
                 if saved_arrays:
                     for nametuple, fname in saved_arrays.iteritems():
                         name, index = nametuple
-                        if osp.isfile(fname):
-                            data = np.load(fname)
+                        abs_fname = osp.join(osp.dirname(self.filename), fname)
+                        if osp.isfile(abs_fname):
+                            data = np.load(abs_fname)
                             if index is None:
                                 namespace[name] = data
                             elif isinstance(namespace[name], dict):
@@ -374,13 +375,13 @@ class Workspace(DictEditorTableView, PluginMixin):
             if np is not None:
                 # Saving numpy arrays with np.save
                 saved_arrays = {}
-                basename = self.filename[:-3]
+                arr_fname = osp.splitext(self.filename)[0]
                 for name in namespace.keys():
                     if isinstance(namespace[name], np.ndarray):
                         # Saving arrays at namespace root
-                        fname = save_array(namespace[name], basename,
+                        fname = save_array(namespace[name], arr_fname,
                                            len(saved_arrays))
-                        saved_arrays[(name, None)] = fname
+                        saved_arrays[(name, None)] = osp.basename(fname)
                         namespace.pop(name)
                     elif isinstance(namespace[name], (list, dict)):
                         # Saving arrays nested in lists or dictionaries
@@ -391,9 +392,10 @@ class Workspace(DictEditorTableView, PluginMixin):
                         to_remove = []
                         for index, value in iterator:
                             if isinstance(value, np.ndarray):
-                                fname = save_array(value, basename,
+                                fname = save_array(value, arr_fname,
                                                    len(saved_arrays))
-                                saved_arrays[(name, index)] = fname
+                                saved_arrays[(name,
+                                              index)] = osp.basename(fname)
                                 to_remove.append(index)
                         for index in sorted(to_remove, reverse=True):
                             namespace[name].pop(index)
