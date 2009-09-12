@@ -368,6 +368,8 @@ has the same effect as typing a particular string at the help> prompt.
         lines: multiple lines of text to be executed as single commands
         """
         for line in lines.splitlines():
+            if line.strip().startswith('#'):
+                continue
             self.write(line+os.linesep, flush=True)
             self.execute_command(line+"\n")
             self.flush()
@@ -408,8 +410,9 @@ has the same effect as typing a particular string at the help> prompt.
         # ? command
         special_pattern = r"^%s (?:r\')?(?:u\')?\"?\'?([a-zA-Z0-9_\.]+)"
         run_match = re.match(special_pattern % 'run', cmd)
-        if cmd.endswith('?'):
-            cmd = 'help(%s)' % cmd[:-1]
+        help_match = re.match(r'^([a-zA-Z0-9_\.]+)\?$', cmd)
+        if help_match:
+            cmd = 'help(%s)' % help_match.group(1)
         # run command
         elif run_match:
             filename = guess_filename(run_match.groups()[0])
