@@ -1064,8 +1064,8 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
 
 
 if __name__ == "__main__":
-    import numpy as N
-    testdict = {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]}
+    import numpy as np
+    testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
                'unicode': u'éù',
@@ -1073,8 +1073,8 @@ if __name__ == "__main__":
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
                'float': 1.2233,
-               'array': N.random.rand(10, 10),
-               'empty_array': N.array([]),
+               'array': np.random.rand(10, 10),
+               'empty_array': np.array([]),
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
                }

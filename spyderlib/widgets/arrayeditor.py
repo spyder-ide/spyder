@@ -21,7 +21,7 @@ from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QInputDialog, QMenu, QApplication, QKeySequence,
                          QLabel, QComboBox, QStackedWidget, QWidget,
                          QVBoxLayout)
-import numpy as N
+import numpy as np
 import StringIO
 
 # Local import
@@ -54,7 +54,7 @@ class ArrayModel(QAbstractTableModel):
         self.dialog = parent
         self.changes = changes
         self.readonly = readonly
-        self.test_array = N.array([0], dtype=data.dtype)
+        self.test_array = np.array([0], dtype=data.dtype)
 
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
@@ -270,7 +270,7 @@ class ArrayView(QTableView):
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
         output = StringIO.StringIO()
-        N.savetxt(output,
+        np.savetxt(output,
                   _data[row_min:row_max+1, col_min:col_max+1],
                   delimiter='\t')
         contents = output.getvalue()
@@ -483,18 +483,18 @@ def aedit(data, title=""):
 
 
 if __name__ == "__main__":
-    arr = N.zeros((2,2), {'names': ('red','green','blue'),
-                          'formats': (N.float32, N.float32, N.float32)})
+    arr = np.zeros((2,2), {'names': ('red','green','blue'),
+                           'formats': (np.float32, np.float32, np.float32)})
     print "out:", aedit(arr, "record array")
-    arr = N.array([(0, 0.0), (0, 0.0), (0, 0.0)],
-                  dtype=[(('title 1', 'x'), '|i1'), (('title 2', 'y'), '>f4')])
+    arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
+                   dtype=[(('title 1', 'x'), '|i1'), (('title 2', 'y'), '>f4')])
     print "out:", aedit(arr, "record array with titles")
-    arr = N.random.rand(5, 5)
+    arr = np.random.rand(5, 5)
     print "out:", aedit(arr, "float array")
-    arr_in = N.array([True, False, True])
+    arr_in = np.array([True, False, True])
     print "in:", arr_in
     arr_out = aedit(arr_in, "bool array")
     print "out:", arr_out
     print arr_in is arr_out
-    arr = N.array([1, 2, 3], dtype="int8")
+    arr = np.array([1, 2, 3], dtype="int8")
     print "out:", aedit(arr, "int array")

@@ -18,14 +18,14 @@ import os, sys, cPickle
 import os.path as osp
 
 try:
-    import numpy as N
+    import numpy as np
     def save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
-        N.save(fname, data)
+        np.save(fname, data)
         return fname
 except ImportError:
-    N = None
+    np = None
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -293,14 +293,14 @@ class Workspace(DictEditorTableView, PluginMixin):
             if self.main:
                 self.main.set_splash(self.tr("Loading workspace..."))
             namespace = cPickle.load(file(self.filename))
-            if N is not None:
-                # Loading numpy arrays saved with N.save
+            if np is not None:
+                # Loading numpy arrays saved with np.save
                 saved_arrays = namespace.get('__saved_arrays__')
                 if saved_arrays:
                     for nametuple, fname in saved_arrays.iteritems():
                         name, index = nametuple
                         if osp.isfile(fname):
-                            data = N.load(fname)
+                            data = np.load(fname)
                             if index is None:
                                 namespace[name] = data
                             elif isinstance(namespace[name], dict):
@@ -371,12 +371,12 @@ class Workspace(DictEditorTableView, PluginMixin):
             self.main.set_splash(self.tr("Saving workspace..."))
         try:
             namespace = self.get_namespace(itermax=-1).copy()
-            if N is not None:
-                # Saving numpy arrays with N.save
+            if np is not None:
+                # Saving numpy arrays with np.save
                 saved_arrays = {}
                 basename = self.filename[:-3]
                 for name in namespace.keys():
-                    if isinstance(namespace[name], N.ndarray):
+                    if isinstance(namespace[name], np.ndarray):
                         # Saving arrays at namespace root
                         fname = save_array(namespace[name], basename,
                                            len(saved_arrays))
@@ -390,7 +390,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                             iterator = namespace[name].iteritems()
                         to_remove = []
                         for index, value in iterator:
-                            if isinstance(value, N.ndarray):
+                            if isinstance(value, np.ndarray):
                                 fname = save_array(value, basename,
                                                    len(saved_arrays))
                                 saved_arrays[(name, index)] = fname

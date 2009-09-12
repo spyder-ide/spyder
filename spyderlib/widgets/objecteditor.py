@@ -48,15 +48,15 @@ def oedit(obj):
 
 if __name__ == "__main__":
     import datetime
-    import numpy as N
+    import numpy as np
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
-               'dict': {'d': 1, 'a': N.random.rand(10, 10), 'b': [1, 2]},
+               'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},
                'float': 1.2233,
-               'array': N.random.rand(10, 10),
+               'array': np.random.rand(10, 10),
                'date': datetime.date(1945, 5, 8),
                'datetime': datetime.datetime(1945, 5, 8),
                }
     print "result:", oedit(example)
-    print "result:", oedit(N.random.rand(10, 10))
+    print "result:", oedit(np.random.rand(10, 10))
     print "result:", oedit(oedit.__doc__)
