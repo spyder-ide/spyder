@@ -231,7 +231,7 @@ class InteractiveShell(PythonShellWidget):
 
 
     #------ I/O
-    def raw_input(self, prompt):
+    def raw_input(self, prompt=''):
         """Reimplementation of raw_input builtin"""
         self.new_prompt(prompt)
         self.setFocus()
