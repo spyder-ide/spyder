@@ -53,7 +53,8 @@ class ExtPyQsciShell(PythonShellWidget):
         lines: multiple lines of text to be executed as single commands
         """
         for line in lines.splitlines():
-            if line.strip().startswith('#'):
+            stripped_line = line.strip()
+            if len(stripped_line) == 0 or stripped_line.startswith('#'):
                 continue
             self.write(line+os.linesep, flush=True)
             self.execute_command(line)
