@@ -337,9 +337,10 @@ has the same effect as typing a particular string at the help> prompt.
             # Event was accepted in self.preprocess_keyevent
             return
         if self.busy and (not self.input_mode):
-            # Ignoring all events except KeyboardInterrupt
-            # Keep however these events in self.eventqueue
-            self.eventqueue.append(keyevent2tuple(event))
+            #XXX: Until Issue 37 is fixed, disabling busy buffer
+#            # Ignoring all events except KeyboardInterrupt
+#            # Keep however these events in self.eventqueue
+#            self.eventqueue.append(keyevent2tuple(event))
             event.accept()
         else:
             self.postprocess_keyevent(event)
