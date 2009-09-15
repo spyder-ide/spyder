@@ -201,6 +201,7 @@ class PylintWidget(QWidget):
     def analyze(self, filename):
         if not is_pylint_installed():
             return
+        filename = unicode(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
         if index is None:
