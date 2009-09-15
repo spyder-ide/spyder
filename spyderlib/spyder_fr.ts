@@ -4,37 +4,37 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="458"/>
+        <location filename="widgets/arrayeditor.py" line="471"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="367"/>
+        <location filename="widgets/arrayeditor.py" line="380"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="327"/>
+        <location filename="widgets/arrayeditor.py" line="340"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="330"/>
+        <location filename="widgets/arrayeditor.py" line="343"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="368"/>
+        <location filename="widgets/arrayeditor.py" line="381"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="375"/>
+        <location filename="widgets/arrayeditor.py" line="388"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="377"/>
+        <location filename="widgets/arrayeditor.py" line="390"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
@@ -44,34 +44,41 @@
         <translation type="obsolete">Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="399"/>
+        <location filename="widgets/arrayeditor.py" line="412"/>
         <source>read only</source>
         <translation>lecture seule</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="245"/>
+        <location filename="widgets/arrayeditor.py" line="258"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="361"/>
+        <location filename="widgets/arrayeditor.py" line="374"/>
         <source>Warning: %1 are currently not supported</source>
         <translation>Attention : %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="390"/>
+        <location filename="widgets/arrayeditor.py" line="403"/>
         <source>Arrays with more than 2 dimensions are not supported</source>
         <translation>Les tableaux de plus de deux dimensions ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="419"/>
+        <location filename="widgets/arrayeditor.py" line="432"/>
         <source>Record array fields:</source>
         <translation>Champs du tableau : </translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="358"/>
+        <location filename="widgets/arrayeditor.py" line="371"/>
         <source>%1 arrays</source>
         <translation>les tableaux %1</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="248"/>
+        <source>Resizing cells of a table of such size could take a long time.
+Do you want to continue anyway?</source>
+        <translation>Redimensionner les cellules d&apos;un tableau d&apos;une telle taille peut prendre du temps.
+Souhaitez-vous néanmoins continuer ?</translation>
     </message>
 </context>
 <context>
@@ -1299,22 +1306,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="125"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="126"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="126"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="127"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="129"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="130"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="133"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="134"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -1323,22 +1330,22 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="134"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="135"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="135"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="136"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="246"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="247"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="247"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="248"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
@@ -1887,7 +1894,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Type &quot;copyright&quot;, &quot;credits&quot; or &quot;license&quot; for more information.</translation>
     </message>
     <message>
-        <location filename="widgets/interactiveshell.py" line="396"/>
+        <location filename="widgets/interactiveshell.py" line="398"/>
         <source>Busy...</source>
         <translation>Occupé...</translation>
     </message>
@@ -2339,7 +2346,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="276"/>
+        <location filename="widgets/pylintgui.py" line="277"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
@@ -2354,17 +2361,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Arrêter l&apos;analyse en cours</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="277"/>
+        <location filename="widgets/pylintgui.py" line="278"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="376"/>
+        <location filename="widgets/pylintgui.py" line="377"/>
         <source>Source code has not been rated yet.</source>
         <translation>Le code source n&apos;a pas encore été analysé.</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="399"/>
+        <location filename="widgets/pylintgui.py" line="400"/>
         <source>previous run:</source>
         <translation>analyse précédente :</translation>
     </message>
@@ -2374,7 +2381,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="395"/>
+        <location filename="widgets/pylintgui.py" line="396"/>
         <source>Global evaluation:</source>
         <translation>Évaluation globale :</translation>
     </message>
@@ -2439,12 +2446,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Sortie complète de l&apos;analyse Pylint</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="250"/>
+        <location filename="widgets/pylintgui.py" line="251"/>
         <source>Pylint output</source>
         <translation>Analyse Pylint</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="383"/>
+        <location filename="widgets/pylintgui.py" line="384"/>
         <source>Analysis did not succeed (see output for more details).</source>
         <translation>L&apos;analyse n&apos;a pas réussi (voir la sortie pour plus de détails).</translation>
     </message>

@@ -232,11 +232,24 @@ class ArrayView(QTableView):
         for k in xrange(shape[1]):
             total_width += self.columnWidth(k)
         self.viewport().resize(min(total_width, 1024), self.height())
-        
+        self.shape = shape
         self.menu = self.setup_menu()
   
     def resize_to_contents(self):
         """Resize cells to contents"""
+        size = 1
+        for dim in self.shape:
+            size *= dim
+        if size > 1e5:
+            answer = QMessageBox.warning(self, translate("ArrayEditor",
+                                                         "Array editor"),
+                                translate("ArrayEditor",
+                                          "Resizing cells of a table of such "
+                                          "size could take a long time.\n"
+                                          "Do you want to continue anyway?"),
+                                QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
         self.resizeColumnsToContents()
         self.resizeRowsToContents()
 
