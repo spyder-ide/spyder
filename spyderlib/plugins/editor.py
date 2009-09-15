@@ -137,7 +137,7 @@ class EditorTabWidget(Tabs):
         
     def has_filename(self, filename):
         for index, finfo in enumerate(self.data):
-            if filename == finfo.filename:
+            if osp.realpath(filename) == osp.realpath(finfo.filename):
                 return index
         
     def set_current_filename(self, filename):
