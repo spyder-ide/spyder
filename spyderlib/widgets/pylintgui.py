@@ -23,7 +23,7 @@ except ImportError:
     pass
 
 from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QMessageBox,
-                         QVBoxLayout, QLabel)
+                         QVBoxLayout, QLabel, QFileDialog)
 from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString
 
 import sys, os, time, cPickle
@@ -157,6 +157,10 @@ class PylintWidget(QWidget):
                      self.start_button.setEnabled)
         self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
 
+        browse_button = create_toolbutton(self, get_icon('fileopen.png'),
+                               tip=translate('Pylint', 'Select Python script'),
+                               triggered=self.select_file)
+
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
         self.log_button = create_toolbutton(self, get_icon('log.png'),
@@ -168,6 +172,7 @@ class PylintWidget(QWidget):
         
         hlayout1 = QHBoxLayout()
         hlayout1.addWidget(self.filecombo)
+        hlayout1.addWidget(browse_button)
         hlayout1.addWidget(self.start_button)
         hlayout1.addWidget(self.stop_button)
 
@@ -212,6 +217,15 @@ class PylintWidget(QWidget):
         self.filecombo.selected()
         if self.filecombo.is_valid():
             self.start()
+            
+    def select_file(self):
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getOpenFileName(self,
+                      translate('Pylint', "Select Python script"), os.getcwdu(),
+                      translate('Pylint', "Python scripts")+" (*.py ; *.pyw)")
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        if filename:
+            self.analyze(filename)
             
     def remove_obsolete_items(self):
         """Removing obsolete items"""

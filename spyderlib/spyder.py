@@ -491,6 +491,8 @@ class MainWindow(QMainWindow):
                              self.pylint.analyze)
                 self.connect(self.pylint, SIGNAL("edit_goto(QString,int)"),
                              self.editor.load)
+                self.connect(self.pylint, SIGNAL('redirect_stdio(bool)'),
+                             self.redirect_interactiveshell_stdio)
                 self.add_dockwidget(self.pylint)
         
         if not self.light:
