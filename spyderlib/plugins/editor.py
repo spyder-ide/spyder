@@ -1105,11 +1105,11 @@ class Editor(PluginWidget):
         # (window_context=False -> disable shortcut for other widgets)
         self.indent_action = create_action(self, self.tr("Indent"), "Tab",
             'indent.png', self.tr("Indent current line or selection"),
-            window_context=False)
+            triggered=self.indent, window_context=False)
         self.unindent_action = create_action(self, self.tr("Unindent"),
             "Shift+Tab",
             'unindent.png', self.tr("Unindent current line or selection"),
-            window_context=False)
+            triggered=self.unindent, window_context=False)
         # ----------------------------------------------------------------------
         
         pylint_action = create_action(self, self.tr("Run pylint code analysis"),
