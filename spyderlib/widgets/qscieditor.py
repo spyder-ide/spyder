@@ -415,7 +415,7 @@ class QsciEditor(TextEditBaseWidget):
     def highlight_line(self, line):
         """Highlight line number *line*"""
         text = unicode(self.text(line-1)).rstrip()
-        self.setSelection(line-1, 0, line-1, len(text))
+        self.setSelection(line-1, len(text), line-1, 0)
         self.ensureLineVisible(line-1)
 
     def cleanup_code_analysis(self):
