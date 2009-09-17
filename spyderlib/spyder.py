@@ -505,10 +505,10 @@ class MainWindow(QMainWindow):
                icon=get_icon('restart.png'),
                triggered=self.restart_interpreter)
             self.console.menu_actions += [None, restart_action]
-            self.add_to_menubar(self.console)
+            console_menu = self.add_to_menubar(self.console)
             
             # Workspace menu
-            self.add_to_menubar(self.workspace)
+            self.add_to_menubar(self.workspace, existing_menu=console_menu)
             
             # External console menu
             self.extconsole = ExternalConsole(self, self.commands)
@@ -852,14 +852,20 @@ class MainWindow(QMainWindow):
             self.showFullScreen()
         self.__update_fullscreen_action()
     
-    def add_to_menubar(self, widget, title=None):
+    def add_to_menubar(self, widget, title=None, existing_menu=None):
         """Add menu and actions to menubar"""
         actions = widget.menu_actions
         if actions is not None:
             if not title:
                 title = widget.get_widget_title()
-            menu = self.menuBar().addMenu(title)
-            add_actions(menu, actions)
+            if existing_menu is None:
+                menu = self.menuBar().addMenu(title)
+                add_actions(menu, actions)
+                return menu
+            else:
+                first_action = existing_menu.actions()[0]
+                add_actions(existing_menu, actions+(None,),
+                            insert_before=first_action)
 
     def add_to_toolbar(self, toolbar, widget):
         """Add widget actions to toolbar"""

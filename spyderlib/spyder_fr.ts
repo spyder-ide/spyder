@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -179,27 +180,27 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="194"/>
+        <location filename="plugins/console.py" line="198"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="195"/>
+        <location filename="plugins/console.py" line="199"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="237"/>
+        <location filename="plugins/console.py" line="241"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="244"/>
+        <location filename="plugins/console.py" line="248"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="245"/>
+        <location filename="plugins/console.py" line="249"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
@@ -232,6 +233,11 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <location filename="plugins/console.py" line="165"/>
         <source>Dockable figures</source>
         <translation>Figures embarquables</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="174"/>
+        <source>Interactive console settings</source>
+        <translation>Options de la console interactive</translation>
     </message>
 </context>
 <context>
@@ -1962,12 +1968,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="877"/>
+        <location filename="spyder.py" line="883"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="973"/>
+        <location filename="spyder.py" line="979"/>
         <source>Restart Python interpreter</source>
         <translation>Redémarrer l&apos;interpréteur Python</translation>
     </message>
@@ -1977,7 +1983,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Démarrer un nouvel interpréteur Python : les objets de la session en cours seront supprimés, à l&apos;exception des données de l&apos;espace du travail qui pourront être conservées</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="974"/>
+        <location filename="spyder.py" line="980"/>
         <source>Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).
 
 Do you want to continue?</source>
@@ -1986,12 +1992,12 @@ Do you want to continue?</source>
 Souhaitez-vous continuer ?</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="980"/>
+        <location filename="spyder.py" line="986"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="981"/>
+        <location filename="spyder.py" line="987"/>
         <source>Do you want to keep workspace data available?</source>
         <translation>Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
@@ -2156,7 +2162,7 @@ Souhaitez-vous continuer ?</translation>
         <translation>Chargement de l&apos;extension pylint...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="903"/>
+        <location filename="spyder.py" line="909"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -2669,22 +2675,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="230"/>
+        <location filename="plugins/workspace.py" line="231"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="232"/>
+        <location filename="plugins/workspace.py" line="233"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="234"/>
+        <location filename="plugins/workspace.py" line="235"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="241"/>
+        <location filename="plugins/workspace.py" line="242"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -2733,34 +2739,34 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="316"/>
+        <location filename="plugins/workspace.py" line="317"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="281"/>
+        <location filename="plugins/workspace.py" line="282"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="305"/>
+        <location filename="plugins/workspace.py" line="306"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="370"/>
+        <location filename="plugins/workspace.py" line="371"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="327"/>
+        <location filename="plugins/workspace.py" line="328"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="156"/>
         <source>Refresh</source>
-        <translation>Rafraîchir</translation>
+        <translation type="obsolete">Rafraîchir</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="157"/>
@@ -2848,7 +2854,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="373"/>
+        <location filename="plugins/workspace.py" line="374"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -2858,7 +2864,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="203"/>
+        <location filename="plugins/workspace.py" line="204"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -2888,9 +2894,14 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Enregistrer l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="267"/>
+        <location filename="plugins/workspace.py" line="268"/>
         <source>Import data</source>
         <translation>Importer des données</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="183"/>
+        <source>Workspace settings</source>
+        <translation>Options de l&apos;espace de travail</translation>
     </message>
 </context>
 </TS>

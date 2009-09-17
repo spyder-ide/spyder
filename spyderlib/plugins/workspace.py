@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog
+from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog, QMenu
 from PyQt4.QtCore import SIGNAL
 
 import os, sys, cPickle
@@ -33,7 +33,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
                              get_font, set_font)
-from spyderlib.qthelpers import create_action
+from spyderlib.qthelpers import create_action, add_actions
 
 # Package local imports
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
@@ -154,8 +154,8 @@ class Workspace(DictEditorTableView, PluginMixin):
         exclude_unsupported_action.setChecked(CONF.get(self.ID,
                                               'exclude_unsupported'))
 
-        refresh_action = create_action(self, self.tr("Refresh"), None,
-            'ws_refresh.png', self.tr("Refresh workspace"),
+        refresh_action = create_action(self, self.tr("Refresh workspace"),
+            None, 'ws_refresh.png', self.tr("Refresh workspace"),
             triggered = self.refresh_editor)
         
         autorefresh_action = create_action(self, self.tr("Auto refresh"),
@@ -181,14 +181,18 @@ class Workspace(DictEditorTableView, PluginMixin):
                                      self.tr("Set font style"),
                                      triggered=self.change_font2)
         
-        menu_actions = (refresh_action, autorefresh_action, None,
-                        self.truncate_action, self.inplace_action, None,
-                        exclude_private_action, exclude_upper_action,
-                        exclude_unsupported_action,
-                        font_action1, font_action2, None,
-                        import_action, save_as_action, autosave_action, None,
-                        clear_action)
-        toolbar_actions = (refresh_action, import_action, save_as_action)
+        option_menu = QMenu(self.tr("Workspace settings"), self)
+        option_menu.setIcon(get_icon('tooloptions.png'))
+        add_actions(option_menu, (autosave_action, None,
+                           self.truncate_action, self.inplace_action, None,
+                           exclude_private_action, exclude_upper_action,
+                           exclude_unsupported_action,
+                           font_action1, font_action2))
+        menu_actions = (import_action, save_as_action,
+                        refresh_action, autorefresh_action, clear_action,
+                        option_menu)
+        toolbar_actions = (refresh_action, autorefresh_action,
+                           import_action, save_as_action)
         return (menu_actions, toolbar_actions)
         
     def change_font1(self):

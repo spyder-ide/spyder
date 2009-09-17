@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
-                         QFontDialog, QInputDialog, QLineEdit)
+                         QFontDialog, QInputDialog, QLineEdit, QMenu)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, imp
@@ -22,8 +22,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_font, set_font
-from spyderlib.qthelpers import create_action,add_actions, mimedata2url
+from spyderlib.config import CONF, get_font, set_font, get_icon
+from spyderlib.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.environ import EnvDialog
 from spyderlib.widgets.interactiveshell import InteractiveShell
 from spyderlib.widgets.shellhelpers import get_error_match
@@ -126,8 +126,7 @@ class Console(PluginWidget):
                             self.tr("&Quit"), self.tr("Ctrl+Q"),
                             'exit.png', self.tr("Quit"),
                             triggered=self.quit)
-        run_action = create_action(self,
-                            self.tr("&Run..."), self.tr("Ctrl+R"),
+        run_action = create_action(self, self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
@@ -171,10 +170,15 @@ class Console(PluginWidget):
             dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
         except ImportError:
             dockablefigures_action = None
+            
+        option_menu = QMenu(self.tr("Interactive console settings"), self)
+        option_menu.setIcon(get_icon('tooloptions.png'))
+        add_actions(option_menu, (font_action, wrap_action, calltips_action,
+                                  codecompletion_action, exteditor_action,
+                                  dockablefigures_action))
+        
         menu_actions = [None, run_action, environ_action, syspath_action,
-                        None, font_action, wrap_action, calltips_action,
-                        codecompletion_action, exteditor_action,
-                        dockablefigures_action, None, self.quit_action]
+                        option_menu, None, self.quit_action]
         toolbar_actions = []
         
         # Add actions to context menu

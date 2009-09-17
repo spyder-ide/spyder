@@ -11,7 +11,7 @@ import os, webbrowser, imp
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-                         QKeySequence, QToolButton, QKeyEvent)
+                         QKeySequence, QToolButton, QKeyEvent, QMenu)
 from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 
 # Local import
@@ -123,7 +123,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setShortcutContext(Qt.WidgetShortcut)
     return action
 
-def add_actions(target, actions):
+def add_actions(target, actions, insert_before=None):
     """Add actions to a menu"""
     previous_action = None
     target_actions = list(target.actions())
@@ -133,9 +133,20 @@ def add_actions(target, actions):
             previous_action = None
     for action in actions:
         if (action is None) and (previous_action is not None):
-            target.addSeparator()
-        elif action is not None:
-            target.addAction(action)
+            if insert_before is None:
+                target.addSeparator()
+            else:
+                target.insertSeparator(insert_before)
+        elif isinstance(action, QMenu):
+            if insert_before is None:
+                target.addMenu(action)
+            else:
+                target.insertMenu(insert_before, action)
+        elif isinstance(action, QAction):
+            if insert_before is None:
+                target.addAction(action)
+            else:
+                target.insertAction(insert_before, action)
         previous_action = action
 
 def add_bookmark(parent, menu, url, title, icon=None, shortcut=None):
