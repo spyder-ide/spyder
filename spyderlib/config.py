@@ -165,6 +165,10 @@ DEFAULTS = [
               }),
             ('editor',
              {
+              'printer_header/font/family': SANS_SERIF,
+              'printer_header/font/size': MEDIUM,
+              'printer_header/font/italic': False,
+              'printer_header/font/bold': False,
               'shortcut': "Ctrl+Shift+E",
               'font/family' : MONOSPACE,
               'font/size' : MEDIUM,

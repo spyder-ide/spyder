@@ -11,14 +11,14 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, re
+import sys, os, re, time
 from math import log
 
-from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap
+from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap, QPrinter
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
-                        QsciLexerProperties, QsciLexerBatch)
+                        QsciLexerProperties, QsciLexerBatch, QsciPrinter)
 try:
     # In some official binary PyQt4 distributions,
     # the Fortran lexers are not included
@@ -797,3 +797,34 @@ class QsciEditor(TextEditBaseWidget):
             menu = self.readonly_menu
         menu.popup(event.globalPos())
         event.accept()
+
+
+#===============================================================================
+# QsciEditor's Printer
+#===============================================================================
+
+class Printer(QsciPrinter):
+    def __init__(self, mode=QPrinter.ScreenResolution, header_font=None):
+        QsciPrinter.__init__(self, mode)
+        if True:
+            self.setColorMode(QPrinter.Color)
+        else:
+            self.setColorMode(QPrinter.GrayScale)
+        if True:
+            self.setPageOrder(QPrinter.FirstPageFirst)
+        else:
+            self.setPageOrder(QPrinter.LastPageFirst)
+        self.date = time.ctime()
+        if header_font is not None:
+            self.header_font = header_font
+        
+    def formatPage(self, painter, drawing, area, pagenr):
+        header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
+        painter.save()
+        painter.setFont(self.header_font)
+        painter.setPen(QColor(Qt.black))
+        if drawing:
+            painter.drawText(area.right()-painter.fontMetrics().width(header),
+                             area.top()+painter.fontMetrics().ascent(), header)
+        area.setTop(area.top()+painter.fontMetrics().height()+5)
+        painter.restore()

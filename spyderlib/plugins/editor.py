@@ -14,7 +14,8 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
-                         QHBoxLayout)
+                         QHBoxLayout, QPrinter, QPrintDialog, QDialog,
+                         QAbstractPrintDialog)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
 import os, sys, time, re
@@ -29,7 +30,7 @@ from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.qthelpers import (create_action, add_actions, mimedata2url,
                                 get_filetype_icon, create_toolbutton,
                                 translate)
-from spyderlib.widgets.qscieditor import QsciEditor, check
+from spyderlib.widgets.qscieditor import QsciEditor, check, Printer
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.classbrowser import ClassBrowser
@@ -1016,6 +1017,11 @@ class Editor(PluginWidget):
         save_as_action = create_action(self, self.tr("Save as..."), None,
             'filesaveas.png', self.tr("Save current file as..."),
             triggered = self.save_as)
+        print_preview_action = create_action(self, self.tr("Print preview..."),
+            tip=self.tr("Print preview..."), triggered=self.print_preview)
+        print_action = create_action(self, self.tr("Print..."), None,
+            'print.png', self.tr("Print current file..."),
+            triggered = self.print_file)
         self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
             'fileclose.png', self.tr("Close current file"),
             triggered = self.close_file)
@@ -1157,6 +1163,7 @@ class Editor(PluginWidget):
                                   self.save_action,
                                   self.save_all_action,
                                   save_as_action, None,
+                                  print_preview_action, print_action, None,
                                   self.close_action,
                                   self.close_all_action, None,
                                   ]
@@ -1172,7 +1179,7 @@ class Editor(PluginWidget):
                 None, template_action, font_action, wrap_action, tab_action,
                 fold_action, analyze_action, self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
-                self.save_action, self.save_all_action]
+                self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
                 self.next_warning_action, self.toolbox_action]
         self.run_toolbar_actions = [run_action, run_interact_action,
@@ -1192,11 +1199,12 @@ class Editor(PluginWidget):
                 )
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 (self.save_action, save_as_action,
+                 print_preview_action, print_action,
                  self.save_all_action, workdir_action, self.close_action,
                  self.close_all_action,
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action)
-        self.tab_actions = (self.save_action, save_as_action,
+        self.tab_actions = (self.save_action, save_as_action, print_action,
                 run_action, run_process_action,
                 workdir_action, self.close_action)
         return (source_menu_actions, self.dock_toolbar_actions)        
@@ -1555,6 +1563,47 @@ class Editor(PluginWidget):
         if goto > 0:
             editor = self.get_current_editor()
             editor.highlight_line(goto)
+
+    def print_file(self):
+        """Print current file"""
+        editor = self.get_current_editor()
+        filename = self.get_current_filename()
+        printer = Printer(mode=QPrinter.HighResolution,
+                          header_font=get_font('editor', 'printer_header'))
+        printDialog = QPrintDialog(printer, self)
+        if editor.hasSelectedText():
+            printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        answer = printDialog.exec_()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if answer == QDialog.Accepted:
+            self.starting_long_process(self.tr("Printing..."))
+            printer.setDocName(filename)
+            if printDialog.printRange() == QAbstractPrintDialog.Selection:
+                from_line, _index, to_line, to_index = editor.getSelection()
+                if to_index == 0:
+                    to_line -= 1
+                ok = printer.printRange(editor, from_line, to_line-1)
+            else:
+                ok = printer.printRange(editor)
+            self.ending_long_process()
+            if not ok:
+                QMessageBox.critical(self, self.tr("Print"),
+                            self.tr("<b>Unable to print document '%1'</b>") \
+                            .arg(osp.basename(filename)))
+
+    def print_preview(self):
+        """Print preview for current file"""
+        from PyQt4.QtGui import QPrintPreviewDialog
+        editor = self.get_current_editor()
+        printer = Printer(mode=QPrinter.HighResolution,
+                          header_font=get_font('editor', 'printer_header'))
+        preview = QPrintPreviewDialog(printer, self)
+        self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
+                     lambda printer: printer.printRange(editor))
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        preview.exec_()
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
 
     def close_file(self):
         """Close current file"""

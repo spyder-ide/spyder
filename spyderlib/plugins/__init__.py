@@ -123,13 +123,13 @@ class PluginMixin(object):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         
-    def ending_long_process(self):
+    def ending_long_process(self, message=""):
         """
         Clearing main window's status bar
         and restoring mouse cursor
         """
         QApplication.restoreOverrideCursor()
-        self.show_message("")
+        self.show_message(message, timeout=2000)
         QApplication.processEvents()
 
 
