@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr">
+<!DOCTYPE TS><TS version="1.1" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -1178,7 +1177,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/explorer.py" line="97"/>
+        <location filename="plugins/explorer.py" line="99"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -2660,32 +2659,32 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="plugins/workspace.py" line="178"/>
+        <location filename="plugins/workspace.py" line="164"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="151"/>
+        <location filename="plugins/workspace.py" line="137"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="245"/>
+        <location filename="plugins/workspace.py" line="230"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="247"/>
+        <location filename="plugins/workspace.py" line="232"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="249"/>
+        <location filename="plugins/workspace.py" line="234"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="256"/>
+        <location filename="plugins/workspace.py" line="241"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -2696,182 +2695,202 @@ Souhaitez-vous %3 sauvegarder ?</translation>
     <message>
         <location filename="plugins/workspace.py" line="143"/>
         <source>Open...</source>
-        <translation>Ouvrir...</translation>
+        <translation type="obsolete">Ouvrir...</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="144"/>
         <source>Open a workspace</source>
-        <translation>Ouvrir un espace de travail</translation>
+        <translation type="obsolete">Ouvrir un espace de travail</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="145"/>
         <source>Save</source>
-        <translation>Enregistrer</translation>
+        <translation type="obsolete">Enregistrer</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="146"/>
         <source>Save current workspace</source>
-        <translation>Enregistrer l&apos;espace de travail actuel</translation>
+        <translation type="obsolete">Enregistrer l&apos;espace de travail actuel</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="147"/>
+        <location filename="plugins/workspace.py" line="133"/>
         <source>Save as...</source>
-        <translation>Enregistrer sous...</translation>
+        <translation type="obsolete">Enregistrer sous...</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="148"/>
         <source>Save current workspace as...</source>
-        <translation>Enregistrer l&apos;espace de travail sous un autre nom...</translation>
+        <translation type="obsolete">Enregistrer l&apos;espace de travail sous un autre nom...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="181"/>
+        <location filename="plugins/workspace.py" line="167"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="279"/>
         <source>Open workspace</source>
-        <translation>Ouvrir un espace de travail</translation>
+        <translation type="obsolete">Ouvrir un espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="358"/>
+        <location filename="plugins/workspace.py" line="316"/>
         <source>Workspaces</source>
         <translation>Espaces de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="293"/>
+        <location filename="plugins/workspace.py" line="281"/>
         <source>Loading workspace...</source>
         <translation>Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="319"/>
+        <location filename="plugins/workspace.py" line="305"/>
         <source>Unable to load the following workspace:</source>
         <translation>Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="414"/>
+        <location filename="plugins/workspace.py" line="370"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="371"/>
+        <location filename="plugins/workspace.py" line="327"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="170"/>
+        <location filename="plugins/workspace.py" line="156"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="171"/>
+        <location filename="plugins/workspace.py" line="157"/>
         <source>Refresh workspace</source>
         <translation>Rafraîchir l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="174"/>
+        <location filename="plugins/workspace.py" line="160"/>
         <source>Auto refresh</source>
         <translation>Rafraîchissement automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="184"/>
+        <location filename="plugins/workspace.py" line="170"/>
         <source>Clear workspace</source>
-        <translation>Effacer tout</translation>
+        <translation>Effacer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="116"/>
+        <location filename="plugins/workspace.py" line="110"/>
         <source>Do you want to clear all data from workspace?</source>
         <translation>Souhaitez-vous effacer tous les objets référencés dans l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="186"/>
+        <location filename="plugins/workspace.py" line="172"/>
         <source>Clear all data from workspace</source>
         <translation>Effacer tous les objets référencés dans l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="83"/>
+        <location filename="plugins/workspace.py" line="84"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="137"/>
         <source>New...</source>
-        <translation>Nouveau...</translation>
+        <translation type="obsolete">Nouveau...</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="138"/>
         <source>Create a new workspace</source>
-        <translation>Créer un nouvel espace de travail</translation>
+        <translation type="obsolete">Créer un nouvel espace de travail</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="346"/>
         <source>New workspace</source>
-        <translation>Nouvel espace de travail</translation>
+        <translation type="obsolete">Nouvel espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="157"/>
+        <location filename="plugins/workspace.py" line="143"/>
         <source>Exclude capitalized references</source>
         <translation>Exclure les références en capitales</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="153"/>
+        <location filename="plugins/workspace.py" line="139"/>
         <source>Exclude references which name starts with an underscore</source>
         <translation>Exclure les références dont le nom commence par un tiret bas</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="159"/>
+        <location filename="plugins/workspace.py" line="145"/>
         <source>Exclude references which name starts with an upper-case character</source>
         <translation>Exclure les références dont le nom commence par une capitale</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="140"/>
         <source>Close...</source>
-        <translation>Fermer...</translation>
+        <translation type="obsolete">Fermer...</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="141"/>
         <source>Close the workspace</source>
-        <translation>Fermer l&apos;espace de travail</translation>
+        <translation type="obsolete">Fermer l&apos;espace de travail</translation>
     </message>
     <message>
         <location filename="plugins/workspace.py" line="329"/>
         <source>Do you want to save current workspace before closing it?</source>
-        <translation>Souhaitez-vous enregistrer l&apos;espace de travail avant de le fermer ?</translation>
+        <translation type="obsolete">Souhaitez-vous enregistrer l&apos;espace de travail avant de le fermer ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="163"/>
+        <location filename="plugins/workspace.py" line="149"/>
         <source>Exclude unsupported data types</source>
         <translation>Exclure les types non supportés</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="165"/>
+        <location filename="plugins/workspace.py" line="151"/>
         <source>Exclude references to unsupported data types (i.e. which won&apos;t be handled/saved correctly)</source>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="417"/>
+        <location filename="plugins/workspace.py" line="373"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="194"/>
+        <location filename="plugins/workspace.py" line="180"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="218"/>
+        <location filename="plugins/workspace.py" line="203"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="188"/>
+        <location filename="plugins/workspace.py" line="174"/>
         <source>Header Font...</source>
         <translation>Police des en-têtes...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="192"/>
+        <location filename="plugins/workspace.py" line="178"/>
         <source>Value Font...</source>
         <translation>Police des valeurs...</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="130"/>
+        <source>Import data...</source>
+        <translation>Importer des données...</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="131"/>
+        <source>Import data to workspace</source>
+        <translation>Importer des données dans l&apos;espace de travail</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="134"/>
+        <source>Save workspace as...</source>
+        <translation>Enregistrer l&apos;espace de travail...</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="267"/>
+        <source>Import data</source>
+        <translation>Importer des données</translation>
     </message>
 </context>
 </TS>

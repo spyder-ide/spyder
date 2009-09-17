@@ -39,11 +39,12 @@ from spyderlib.qthelpers import create_action
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 
+
 FILTERS = tuple(str2type(CONF.get('workspace', 'filters')))
 ITERMAX = CONF.get('workspace', 'itermax')
 
 def wsfilter(input_dict, itermax=ITERMAX, filters=FILTERS):
-    """Keep only objects that can be saved"""
+    """Keep only objects that can be pickled"""
     exclude_private = CONF.get('workspace', 'exclude_private')
     exclude_upper = CONF.get('workspace', 'exclude_upper')
     exclude_unsupported = CONF.get('workspace', 'exclude_unsupported')
@@ -97,19 +98,12 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Return filtered namespace"""
         return wsfilter(self.namespace, itermax=itermax)
     
-    def _clear_namespace(self):
+    def __clear_namespace(self):
         """Clear namespace"""
         keys = self.get_namespace().keys()
         for key in keys:
             self.namespace.pop(key)
         self.refresh()
-    
-    def _update_dock_title(self):
-        """Set the dockwidget title"""
-        if hasattr(self, "dockwidget") and self.dockwidget:
-            title = self.get_widget_title() + \
-                                 ' - ' + osp.basename(self.filename)
-            self.dockwidget.setWindowTitle(title)
     
     def clear(self):
         """Ask to clear workspace"""
@@ -117,13 +111,12 @@ class Workspace(DictEditorTableView, PluginMixin):
                     self.tr("Do you want to clear all data from workspace?"),
                     QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            self._clear_namespace()
+            self.__clear_namespace()
 
     def refresh(self):
         """Refresh widget"""
         if CONF.get(self.ID, 'autorefresh'):
             self.refresh_editor()
-        self._update_dock_title()
         
     def refresh_editor(self):
         """Refresh DictEditor"""
@@ -135,18 +128,11 @@ class Workspace(DictEditorTableView, PluginMixin):
         
     def set_actions(self):
         """Setup actions"""
-        new_action = create_action(self, self.tr("New..."), None,
-            'ws_new.png', self.tr("Create a new workspace"),
-            triggered = self.new)
-        close_action = create_action(self, self.tr("Close..."), None,
-            'fileclose.png', self.tr("Close the workspace"),
-            triggered=self.close)
-        open_action = create_action(self, self.tr("Open..."), None,
-            'ws_open.png', self.tr("Open a workspace"), triggered = self.load)
-        save_action = create_action(self, self.tr("Save"), None, 'ws_save.png',
-            self.tr("Save current workspace"), triggered = self.save)
-        save_as_action = create_action(self, self.tr("Save as..."), None,
-            'ws_save_as.png',  self.tr("Save current workspace as..."),
+        import_action = create_action(self, self.tr("Import data..."), None,
+            'ws_open.png', self.tr("Import data to workspace"),
+            triggered=self.import_data)
+        save_as_action = create_action(self, self.tr("Save workspace as..."),
+            None, 'ws_save_as.png',  self.tr("Save workspace as..."),
             triggered = self.save_as)
         exclude_private_action = create_action(self,
             self.tr("Exclude private references"),
@@ -200,10 +186,9 @@ class Workspace(DictEditorTableView, PluginMixin):
                         exclude_private_action, exclude_upper_action,
                         exclude_unsupported_action,
                         font_action1, font_action2, None,
-                        new_action, open_action,
-                        save_action, save_as_action, close_action,
-                        autosave_action, None, clear_action)
-        toolbar_actions = (refresh_action, open_action, save_action)
+                        import_action, save_as_action, autosave_action, None,
+                        clear_action)
+        toolbar_actions = (refresh_action, import_action, save_as_action)
         return (menu_actions, toolbar_actions)
         
     def change_font1(self):
@@ -233,7 +218,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Perform actions before parent main window is closed"""
         if CONF.get(self.ID, 'autosave'):
             # Saving workspace
-            self.save()
+            self.__save(self.TEMPFILE_PATH)
         else:
             workspace = self.get_namespace(itermax=-1)
             if workspace is None:
@@ -257,7 +242,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                    .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)
                 if answer == QMessageBox.Yes:
                     # Saving workspace
-                    self.save()
+                    self.__save(self.TEMPFILE_PATH)
                 elif answer == QMessageBox.Cancel:
                     return False
                 elif osp.isfile(self.TEMPFILE_PATH):
@@ -269,14 +254,17 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Attempt to load last session namespace"""
         self.filename = unicode(self.TEMPFILE_PATH)
         if osp.isfile(self.filename):
-            self.load(self.filename)
+            self.import_data(self.filename)
         else:
             self.namespace = None
             self.refresh()
 
-    def load(self, filename=None):
-        """Attempt to load namespace"""
-        title = self.tr("Open workspace")
+    def import_data(self, filename=None):
+        """
+        Import data from workspace
+        or other data type (not implemented yet)
+        """
+        title = self.tr("Import data")
         if filename is None:
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             basedir = osp.dirname(self.filename)
@@ -311,9 +299,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             if self.namespace is None:
                 self.namespace = namespace
             else:
-                self._clear_namespace()
-                for key in namespace:
-                    self.interpreter.namespace[key] = namespace[key]
+                self.interpreter.namespace.update(namespace)
         except (EOFError, ValueError):
             os.remove(self.filename)
             QMessageBox.critical(self, title,
@@ -323,34 +309,6 @@ class Workspace(DictEditorTableView, PluginMixin):
         if self.main:
             self.main.splash.hide()
 
-    def close(self):
-        """Close workspace"""
-        answer = QMessageBox.question(self, self.tr("Save workspace"),
-            self.tr("Do you want to save current workspace "
-                    "before closing it?"),
-            QMessageBox.Yes | QMessageBox.No | QMessageBox.Cancel)
-        if answer == QMessageBox.Cancel:
-            return False
-        elif answer == QMessageBox.Yes:
-            self.save()
-        self._clear_namespace()
-        self.main.console.shell.restore_stds()
-        self.load_temp_namespace()
-        return True
-    
-    def new(self):
-        """Attempt to close the current workspace and create a new one"""
-        if not self.close():
-            return
-        self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self,
-                        self.tr("New workspace"), self.filename,
-                        self.tr("Workspaces")+" (*.ws)")
-        self.emit(SIGNAL('redirect_stdio(bool)'), True)
-        if filename:
-            self.filename = unicode(filename)
-        self.save()
-    
     def save_as(self):
         """Save current workspace as"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
@@ -362,12 +320,10 @@ class Workspace(DictEditorTableView, PluginMixin):
             self.filename = unicode(filename)
         else:
             return False
-        self.save()
+        self.__save(self.filename)
     
-    def save(self):
-        """Save current workspace"""
-        if self.filename is None:
-            return self.save_as()
+    def __save(self, filename):
+        """Save workspace"""
         if self.main:
             self.main.set_splash(self.tr("Saving workspace..."))
         try:
@@ -375,7 +331,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             if np is not None:
                 # Saving numpy arrays with np.save
                 saved_arrays = {}
-                arr_fname = osp.splitext(self.filename)[0]
+                arr_fname = osp.splitext(filename)[0]
                 for name in namespace.keys():
                     if isinstance(namespace[name], np.ndarray):
                         # Saving arrays at namespace root
@@ -401,7 +357,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                             namespace[name].pop(index)
                 if saved_arrays:
                     namespace['__saved_arrays__'] = saved_arrays
-            cPickle.dump(namespace, file(self.filename, 'w'))
+            cPickle.dump(namespace, file(filename, 'w'))
         except RuntimeError, error:
             if self.main:
                 self.main.splash.hide()
