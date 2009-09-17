@@ -17,8 +17,8 @@ These plugins inherit the following classes (PluginMixin & PluginWidget)
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut,
-                         QKeySequence, QMainWindow)
+from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
+                         QKeySequence, QMainWindow, QApplication)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -53,6 +53,8 @@ class PluginMixin(object):
         self.dockwidget = None
         self.ismaximized = False
         QObject.connect(self, SIGNAL('option_changed'), self.option_changed)
+        QObject.connect(self, SIGNAL('show_message(QString,int)'),
+                        self.show_message)
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
@@ -107,6 +109,28 @@ class PluginMixin(object):
         self.emit(SIGNAL('option_changed'), 'show_all', checked)
         """
         CONF.set(self.ID, option, value)
+        
+    def show_message(self, message, timeout=0):
+        """Show message in main window's status bar"""
+        self.main.statusBar().showMessage(message, timeout)
+
+    def starting_long_process(self, message):
+        """
+        Showing message in main window's status bar
+        and changing mouse cursor to Qt.WaitCursor
+        """
+        self.show_message(message)
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+        
+    def ending_long_process(self):
+        """
+        Clearing main window's status bar
+        and restoring mouse cursor
+        """
+        QApplication.restoreOverrideCursor()
+        self.show_message("")
+        QApplication.processEvents()
 
 
 class PluginWidget(QWidget, PluginMixin):

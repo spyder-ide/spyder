@@ -397,7 +397,7 @@ has the same effect as typing a particular string at the help> prompt.
         
         # Before running command
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
-        self.emit( SIGNAL("executing_command(bool)"), True )
+        self.emit(SIGNAL("executing_command(bool)"), True)
         
         if not cmd:
             cmd = ''

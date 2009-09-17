@@ -281,9 +281,10 @@ class Workspace(DictEditorTableView, PluginMixin):
             else:
                 return
         self.filename = unicode(filename)
+        
+        self.starting_long_process(self.tr("Loading workspace..."))
+        
         try:
-            if self.main:
-                self.main.set_splash(self.tr("Loading workspace..."))
             namespace = cPickle.load(file(self.filename))
             if np is not None:
                 # Loading numpy arrays saved with np.save
@@ -309,9 +310,9 @@ class Workspace(DictEditorTableView, PluginMixin):
             QMessageBox.critical(self, title,
                 self.tr("Unable to load the following workspace:") + '\n' + \
                 self.filename)
+
         self.refresh()
-        if self.main:
-            self.main.splash.hide()
+        self.ending_long_process()
 
     def save_as(self):
         """Save current workspace as"""
@@ -328,8 +329,8 @@ class Workspace(DictEditorTableView, PluginMixin):
     
     def __save(self, filename):
         """Save workspace"""
-        if self.main:
-            self.main.set_splash(self.tr("Saving workspace..."))
+        self.starting_long_process(self.tr("Saving workspace..."))
+        
         try:
             namespace = self.get_namespace(itermax=-1).copy()
             if np is not None:
@@ -376,8 +377,8 @@ class Workspace(DictEditorTableView, PluginMixin):
                 self.tr("<b>Unable to save current workspace</b>"
                         "<br><br>Error message:<br>%1") \
                 .arg(error.message))
-        if self.main:
-            self.main.splash.hide()
+            
+        self.ending_long_process()
         self.refresh()
         return True
 

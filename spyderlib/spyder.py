@@ -349,10 +349,6 @@ class MainWindow(QMainWindow):
                      self.workdir.refresh)
         
         if not self.light:
-            # Console widget (...)
-            self.connect(self.console.shell, SIGNAL("status(QString)"), 
-                         self.send_to_statusbar)
-
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
             self.editor = Editor( self )
@@ -911,10 +907,6 @@ class MainWindow(QMainWindow):
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
             .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()) \
             .arg("<span style=\'color: #444444\'><b>").arg("</b></span>"))
-            
-    def send_to_statusbar(self, message):
-        """Show a message in the status bar"""
-        self.statusBar().showMessage(message)
     
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
