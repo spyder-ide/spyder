@@ -65,13 +65,14 @@ except ImportError:
 
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
+    filename = osp.abspath(filename)
     old_cwd = os.getcwdu()
     os.chdir(osp.dirname(filename))
     error_message = None
     try:
+        saved_arrays = {}
         if np is not None:
             # Saving numpy arrays with np.save
-            saved_arrays = {}
             arr_fname = osp.splitext(filename)[0]
             for name in data.keys():
                 if isinstance(data[name], np.ndarray) and data[name].size > 0:
@@ -103,7 +104,8 @@ def save_dictionary(data, filename):
             tar.add(osp.basename(fname))
             os.remove(fname)
         tar.close()
-        data.pop('__saved_arrays__')
+        if saved_arrays:
+            data.pop('__saved_arrays__')
     except (RuntimeError, cPickle.PicklingError, TypeError), error:
         error_message = str(error)
     os.chdir(old_cwd)
@@ -111,6 +113,7 @@ def save_dictionary(data, filename):
 
 def load_dictionary(filename):
     """Load dictionary from .spydata file"""
+    filename = osp.abspath(filename)
     old_cwd = os.getcwdu()
     os.chdir(osp.dirname(filename))
     error_message = None
@@ -119,6 +122,7 @@ def load_dictionary(filename):
         tar.extractall()
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
         data = cPickle.load(file(pickle_filename))
+        saved_arrays = {}
         if np is not None:
             # Loading numpy arrays saved with np.save
             try:
@@ -151,12 +155,17 @@ if __name__ == "__main__":
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
                'float': 1.2233,
-               'array': np.random.rand(10, 10),
+               'array': np.random.rand(4000, 400),
                'empty_array': np.array([]),
                'date': testdate,
                'datetime': datetime.datetime(1945, 5, 8),
                }
+    import time
+    t0 = time.time()
     save_dictionary(example, "test.spydata")
+    print " Data saved in %.3f seconds" % (time.time()-t0)
+    t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    for key in example:
-        print key, ":", example[key] == example2[key]
+    print "Data loaded in %.3f seconds" % (time.time()-t0)
+#    for key in example:
+#        print key, ":", example[key] == example2[key]
