@@ -14,18 +14,8 @@
 from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog, QMenu
 from PyQt4.QtCore import SIGNAL
 
-import os, sys, cPickle
+import os, sys
 import os.path as osp
-
-try:
-    import numpy as np
-    def save_array(data, basename, index):
-        """Save numpy array"""
-        fname = basename + '_%04d.npy' % index
-        np.save(fname, data)
-        return fname
-except ImportError:
-    np = None
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -34,8 +24,7 @@ STDOUT = sys.stdout
 from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
                              get_font, set_font)
 from spyderlib.qthelpers import create_action, add_actions
-
-# Package local imports
+from spyderlib.utils import save_dictionary, load_dictionary
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 
@@ -283,36 +272,20 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.filename = unicode(filename)
         
         self.starting_long_process(self.tr("Loading workspace..."))
+        namespace, error_message = load_dictionary(self.filename)
+        self.ending_long_process()
         
-        try:
-            namespace = cPickle.load(file(self.filename))
-            if np is not None:
-                # Loading numpy arrays saved with np.save
-                saved_arrays = namespace.get('__saved_arrays__')
-                if saved_arrays:
-                    for nametuple, fname in saved_arrays.iteritems():
-                        name, index = nametuple
-                        abs_fname = osp.join(osp.dirname(self.filename), fname)
-                        if osp.isfile(abs_fname):
-                            data = np.load(abs_fname)
-                            if index is None:
-                                namespace[name] = data
-                            elif isinstance(namespace[name], dict):
-                                namespace[name][index] = data
-                            else:
-                                namespace[name].insert(index, data)
+        if error_message is not None:
+            QMessageBox.critical(self, title,
+                self.tr("Unable to load the following workspace:") + '\n' + \
+                self.filename)
+        else:
             if self.namespace is None:
                 self.namespace = namespace
             else:
                 self.interpreter.namespace.update(namespace)
-        except (EOFError, ValueError):
-            os.remove(self.filename)
-            QMessageBox.critical(self, title,
-                self.tr("Unable to load the following workspace:") + '\n' + \
-                self.filename)
-
+                
         self.refresh()
-        self.ending_long_process()
 
     def save_as(self):
         """Save current workspace as"""
@@ -330,55 +303,16 @@ class Workspace(DictEditorTableView, PluginMixin):
     def __save(self, filename):
         """Save workspace"""
         self.starting_long_process(self.tr("Saving workspace..."))
-        
-        try:
-            namespace = self.get_namespace(itermax=-1).copy()
-            if np is not None:
-                # Saving numpy arrays with np.save
-                saved_arrays = {}
-                arr_fname = osp.splitext(filename)[0]
-                for name in namespace.keys():
-                    if isinstance(namespace[name], np.ndarray):
-                        # Saving arrays at namespace root
-                        fname = save_array(namespace[name], arr_fname,
-                                           len(saved_arrays))
-                        saved_arrays[(name, None)] = osp.basename(fname)
-                        namespace.pop(name)
-                    elif isinstance(namespace[name], (list, dict)):
-                        # Saving arrays nested in lists or dictionaries
-                        if isinstance(namespace[name], list):
-                            iterator = enumerate(namespace[name])
-                        else:
-                            iterator = namespace[name].iteritems()
-                        to_remove = []
-                        for index, value in iterator:
-                            if isinstance(value, np.ndarray):
-                                fname = save_array(value, arr_fname,
-                                                   len(saved_arrays))
-                                saved_arrays[(name,
-                                              index)] = osp.basename(fname)
-                                to_remove.append(index)
-                        for index in sorted(to_remove, reverse=True):
-                            namespace[name].pop(index)
-                if saved_arrays:
-                    namespace['__saved_arrays__'] = saved_arrays
-            cPickle.dump(namespace, file(filename, 'w'))
-        except RuntimeError, error:
-            if self.main:
-                self.main.splash.hide()
-            QMessageBox.critical(self, self.tr("Save workspace"),
-                self.tr("<b>Unable to save current workspace</b>"
-                        "<br><br>Error message:<br>%1") \
-                .arg(str(error)))
-        except (cPickle.PicklingError, TypeError), error:
-            if self.main:
-                self.main.splash.hide()
-            QMessageBox.critical(self, self.tr("Save workspace"),
-                self.tr("<b>Unable to save current workspace</b>"
-                        "<br><br>Error message:<br>%1") \
-                .arg(error.message))
-            
+        namespace = self.get_namespace(itermax=-1).copy()
+        error_message = save_dictionary(namespace, filename)
         self.ending_long_process()
+        
+        if error_message is not None:
+            QMessageBox.critical(self, self.tr("Save workspace"),
+                            self.tr("<b>Unable to save current workspace</b>"
+                                    "<br><br>Error message:<br>%1") \
+                            .arg(error_message))
+            
         self.refresh()
         return True
 
