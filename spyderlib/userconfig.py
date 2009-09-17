@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
 __license__ = __doc__
 
 import os, re
@@ -237,6 +237,11 @@ class UserConfig(ConfigParser):
         elif isinstance(default_value, int):
             value = int(value)
         else:
+            if isinstance(default_value, basestring):
+                try:
+                    value = value.decode('utf-8')
+                except (UnicodeEncodeError, UnicodeDecodeError):
+                    pass
             try:
                 # lists, tuples, ...
                 value = eval(value)
