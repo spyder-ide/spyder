@@ -255,7 +255,7 @@ DEFAULTS = [
               'enable': True,
               'wrap': True,
               'name_filters': ['*.py', '*.pyw'],
-              'valid_filetypes': ['', '.py', '.pyw', '.ws',
+              'valid_filetypes': ['', '.py', '.pyw', '.spydata',
                                   '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': False,

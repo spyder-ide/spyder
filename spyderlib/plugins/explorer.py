@@ -81,14 +81,16 @@ class Explorer(ExplorerWidget, PluginMixin):
         return True
         
     def open_file(self, fname):
-        """Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, ws -> workspace, ...)"""
+        """
+        Open filename with the appropriate application
+        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
+        """
         fname = unicode(fname)
         ext = osp.splitext(fname)[1]
         if ext in self.editor_valid_types:
             self.emit(SIGNAL("edit(QString)"), fname)
-        elif ext == '.ws':
-            self.emit(SIGNAL("open_workspace(QString)"), fname)
+        elif ext == '.spydata':
+            self.emit(SIGNAL("import_data(QString)"), fname)
         else:
             self.treewidget.startfile(fname)
         

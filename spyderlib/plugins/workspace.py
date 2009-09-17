@@ -61,7 +61,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     Workspace widget (namespace explorer)
     """
     ID = 'workspace'
-    TEMPFILE_PATH = get_conf_path('.temp.ws')
+    TEMPFILE_PATH = get_conf_path('.temp.spydata')
     def __init__(self, parent):
         self.interpreter = None
         self.namespace = None
@@ -270,7 +270,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             basedir = osp.dirname(self.filename)
             filename = QFileDialog.getOpenFileName(self,
                           title, basedir,
-                          self.tr("Workspaces")+" (*.ws)")
+                          self.tr("Workspaces")+" (*.spydata)")
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = unicode(filename)
@@ -314,7 +314,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getSaveFileName(self,
                       self.tr("Save workspace"), self.filename,
-                      self.tr("Workspaces")+" (*.ws)")
+                      self.tr("Workspaces")+" (*.spydata)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.filename = unicode(filename)

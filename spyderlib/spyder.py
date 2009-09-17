@@ -442,8 +442,8 @@ class MainWindow(QMainWindow):
                              self.editor.removed)
                 self.connect(self.explorer, SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
-                self.connect(self.explorer, SIGNAL("open_workspace(QString)"),
-                             self.workspace.load)
+                self.connect(self.explorer, SIGNAL("import_data(QString)"),
+                             self.workspace.import_data)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
                              lambda fname: \
                              self.open_external_console(unicode(fname),
