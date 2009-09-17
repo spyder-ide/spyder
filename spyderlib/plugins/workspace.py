@@ -24,7 +24,7 @@ STDOUT = sys.stdout
 from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
                              get_font, set_font)
 from spyderlib.qthelpers import create_action, add_actions
-from spyderlib.utils import save_dictionary, load_dictionary
+from spyderlib.io import save_dictionary, load_dictionary
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 
@@ -277,8 +277,9 @@ class Workspace(DictEditorTableView, PluginMixin):
         
         if error_message is not None:
             QMessageBox.critical(self, title,
-                self.tr("Unable to load the following workspace:") + '\n' + \
-                self.filename)
+                                 self.tr("<b>Unable to load '%1'</b>"
+                                         "<br><br>Error message:<br>%2") \
+                                         .arg(self.filename).arg(error_message))
         else:
             if self.namespace is None:
                 self.namespace = namespace
