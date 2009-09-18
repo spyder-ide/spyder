@@ -6,19 +6,46 @@
 
 """
 Input/Output Utilities
+
+Note: 'load' functions has to return a dictionary from which a globals()
+      namespace may be updated
 """
 
 import os, cPickle, tarfile, os.path as osp
 
+
+try:
+    import scipy.io as spio
+    def load_matlab(filename):
+        try:
+            return spio.loadmat(filename, struct_as_record=True), None
+        except Exception, error:
+            return str(error)
+    def save_matlab(data, filename):
+        try:
+            spio.savemat(filename, data, oned_as='row')
+        except Exception, error:
+            return str(error)
+except ImportError:
+    load_matlab = None
+    save_matlab = None
+
+
 try:
     import numpy as np
-    def save_array(data, basename, index):
+    def load_array(filename):
+        try:
+            name = osp.splitext(osp.basename(filename))[0]
+            return {name: np.load(filename)}, None
+        except Exception, error:
+            return str(error)    
+    def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
         np.save(fname, data)
         return fname
 except ImportError:
-    np = None
+    load_array = None
 
 
 def save_dictionary(data, filename):
@@ -29,13 +56,14 @@ def save_dictionary(data, filename):
     error_message = None
     try:
         saved_arrays = {}
-        if np is not None:
+        if load_array is not None:
             # Saving numpy arrays with np.save
             arr_fname = osp.splitext(filename)[0]
             for name in data.keys():
                 if isinstance(data[name], np.ndarray) and data[name].size > 0:
                     # Saving arrays at data root
-                    fname = save_array(data[name], arr_fname, len(saved_arrays))
+                    fname = __save_array(data[name], arr_fname,
+                                       len(saved_arrays))
                     saved_arrays[(name, None)] = osp.basename(fname)
                     data.pop(name)
                 elif isinstance(data[name], (list, dict)):
@@ -47,7 +75,7 @@ def save_dictionary(data, filename):
                     to_remove = []
                     for index, value in iterator:
                         if isinstance(value, np.ndarray) and value.size > 0:
-                            fname = save_array(value, arr_fname,
+                            fname = __save_array(value, arr_fname,
                                                len(saved_arrays))
                             saved_arrays[(name, index)] = osp.basename(fname)
                             to_remove.append(index)
@@ -81,7 +109,7 @@ def load_dictionary(filename):
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
         data = cPickle.load(file(pickle_filename))
         saved_arrays = {}
-        if np is not None:
+        if load_array is not None:
             # Loading numpy arrays saved with np.save
             try:
                 saved_arrays = data.pop('__saved_arrays__')

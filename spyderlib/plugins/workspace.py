@@ -22,9 +22,10 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
-                             get_font, set_font)
-from spyderlib.qthelpers import create_action, add_actions
-from spyderlib.io import save_dictionary, load_dictionary
+                              get_font, set_font)
+from spyderlib.qthelpers import create_action, add_actions, translate
+from spyderlib.io import (save_dictionary, load_dictionary, load_array,
+                          load_matlab, save_matlab)
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 
@@ -51,6 +52,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     """
     ID = 'workspace'
     TEMPFILE_PATH = get_conf_path('.temp.spydata')
+        
     def __init__(self, parent):
         self.interpreter = None
         self.namespace = None
@@ -66,6 +68,39 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.load_temp_namespace()
         
         self.setFont(get_font(self.ID))
+        
+        self.setup_io()
+
+    def setup_io(self):
+        """Setup I/O functions and filters"""
+        iofuncs = {
+                   '.spydata': (translate('Workspace', "Spyder data files"),
+                                load_dictionary, save_dictionary),
+                   '.npy':     (translate('Workspace', "NumPy arrays"),
+                                load_array, None),
+                   '.mat':     (translate('Workspace', "Matlab files"),
+                                load_matlab, save_matlab),
+                   }
+        load_funcs = {}
+        save_funcs = {}
+        load_filters = []
+        save_filters = []
+        load_ext = []
+        for ext, (name, loadfunc, savefunc) in iofuncs.iteritems():
+            filter_str = unicode(name + " (*%s)" % ext)
+            if loadfunc is not None:
+                load_filters.append(filter_str)
+                load_funcs[ext] = loadfunc
+                load_ext.append(ext)
+            if savefunc is not None:
+                save_filters.append(filter_str)
+                save_funcs[ext] = savefunc
+        load_filters.insert(0, unicode(self.tr("Supported files")+" (*"+\
+                                       " *".join(load_ext)+")"))
+        self.load_filters = "\n".join(load_filters)
+        self.save_filters = "\n".join(save_filters)
+        self.load_funcs = load_funcs
+        self.save_funcs = save_funcs
         
     def get_widget_title(self):
         """Return widget title"""
@@ -262,17 +297,23 @@ class Workspace(DictEditorTableView, PluginMixin):
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             basedir = osp.dirname(self.filename)
             filename = QFileDialog.getOpenFileName(self,
-                          title, basedir,
-                          self.tr("Workspaces")+" (*.spydata)")
+                          title, basedir, self.load_filters)
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filename:
                 filename = unicode(filename)
             else:
                 return
         self.filename = unicode(filename)
+        ext = osp.splitext(self.filename)[1]
         
-        self.starting_long_process(self.tr("Loading workspace..."))
-        namespace, error_message = load_dictionary(self.filename)
+        if ext not in self.load_funcs:
+            QMessageBox.critical(self, title,
+                                 self.tr("<b>Unsupported file type '%1'</b>") \
+                                         .arg(ext))
+            return
+        
+        self.starting_long_process(self.tr("Loading data..."))
+        namespace, error_message = self.load_funcs[ext](self.filename)
         self.ending_long_process()
         
         if error_message is not None:
@@ -293,23 +334,32 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getSaveFileName(self,
                       self.tr("Save workspace"), self.filename,
-                      self.tr("Workspaces")+" (*.spydata)")
+                      self.save_filters)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.filename = unicode(filename)
+            return self.__save(self.filename)
         else:
             return False
-        self.__save(self.filename)
     
     def __save(self, filename):
         """Save workspace"""
+        title = self.tr("Save workspace")
+        
+        ext = osp.splitext(self.filename)[1]
+        if ext not in self.save_funcs:
+            QMessageBox.critical(self, title,
+                                 self.tr("<b>Unsupported file type '%1'</b>") \
+                                         .arg(ext))
+            return
+        
         self.starting_long_process(self.tr("Saving workspace..."))
         namespace = self.get_namespace(itermax=-1).copy()
-        error_message = save_dictionary(namespace, filename)
+        error_message = self.save_funcs[ext](namespace, filename)
         self.ending_long_process()
         
         if error_message is not None:
-            QMessageBox.critical(self, self.tr("Save workspace"),
+            QMessageBox.critical(self, title,
                             self.tr("<b>Unable to save current workspace</b>"
                                     "<br><br>Error message:<br>%1") \
                             .arg(error_message))
