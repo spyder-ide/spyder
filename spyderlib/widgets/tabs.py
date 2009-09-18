@@ -11,7 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QTabWidget, QMenu, QDrag, QApplication, QTabBar
+from PyQt4.QtGui import (QTabWidget, QMenu, QDrag, QApplication, QTabBar,
+                         QShortcut, QKeySequence)
 from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
@@ -92,6 +93,29 @@ class Tabs(QTabWidget):
         self.menu = QMenu(self)
         if actions:
             add_actions(self.menu, actions)
+        self.index_history = []
+        self.connect(self, SIGNAL('currentChanged(int)'),
+                     self.__current_changed)
+        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
+        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+    def __current_changed(self, index):
+        for i, ind in [(i, ind) for i, ind in enumerate(self.index_history)]:
+            if ind > self.count()-1:
+                self.index_history.pop(i)
+        while index in self.index_history:
+            self.index_history.pop(self.index_history.index(index))
+        self.index_history.append(index)
+        
+    def tab_navigate(self):
+        """Ctrl+Tab"""
+        if len(self.index_history) > 1:
+            last = len(self.index_history)-1
+            index = self.index_history.pop(last)
+            self.index_history.insert(0, index)
+            self.setCurrentIndex(self.index_history[last])
+        elif len(self.index_history) == 0 and self.count():
+            self.index_history = [self.currentIndex()]            
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
