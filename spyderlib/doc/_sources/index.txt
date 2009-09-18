@@ -25,7 +25,7 @@ Contents:
     overview
     installation
     shortcuts
-    arguments
+    options
     console
     docviewer
     historylog

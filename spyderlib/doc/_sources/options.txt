@@ -7,6 +7,9 @@ Spyder's command line options are the following:
 Options:
   -h, --help            show this help message and exit
   -l, --light           Light version (all add-ons are disabled)
+  --session=STARTUP_SESSION
+                        Startup session
+  --reset               Reset to default session
   -w WORKING_DIRECTORY, --workdir=WORKING_DIRECTORY
                         Default working directory
   -s STARTUP, --startup=STARTUP

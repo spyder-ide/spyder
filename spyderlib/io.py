@@ -11,7 +11,7 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
-import os, cPickle, tarfile, os.path as osp
+import os, cPickle, tarfile, os.path as osp, shutil
 
 
 try:
@@ -93,7 +93,7 @@ def save_dictionary(data, filename):
         if saved_arrays:
             data.pop('__saved_arrays__')
     except (RuntimeError, cPickle.PicklingError, TypeError), error:
-        error_message = str(error)
+        error_message = unicode(error)
     os.chdir(old_cwd)
     return error_message
 
@@ -126,9 +126,90 @@ def load_dictionary(filename):
         for fname in [pickle_filename]+[fn for fn in saved_arrays.itervalues()]:
             os.remove(fname)
     except (EOFError, ValueError), error:
-        error_message = str(error)
+        error_message = unicode(error)
     os.chdir(old_cwd)
     return data, error_message
+
+
+from spyderlib.config import get_conf_path
+
+SAVED_CONFIG_FILES = ('.docviewer', '.history_ec.py', '.history_ic.py',
+                      '.path', '.pylint.results', '.spyder.ini', '.temp.py',
+                      '.workingdir', '.temp.spydata', 'template.py')
+
+def reset_session():
+    """Remove all config files"""
+    for fname in SAVED_CONFIG_FILES:
+        cfg_fname = get_conf_path(fname)
+        if osp.isfile(cfg_fname):
+            os.remove(cfg_fname)
+
+def save_session(filename):
+    """Save Spyder session"""
+    local_fname = get_conf_path(osp.basename(filename))
+    filename = osp.abspath(filename)
+    old_cwd = os.getcwdu()
+    os.chdir(get_conf_path())
+    error_message = None
+    try:
+        tar = tarfile.open(local_fname, "w")
+        for fname in SAVED_CONFIG_FILES:
+            if osp.isfile(fname):
+                tar.add(fname)
+        tar.close()
+        shutil.move(local_fname, filename)
+    except Exception, error:
+        error_message = unicode(error)
+    os.chdir(old_cwd)
+    return error_message
+
+def load_session(filename):
+    """Load Spyder session"""
+    filename = osp.abspath(filename)
+    old_cwd = os.getcwdu()
+    os.chdir(osp.dirname(filename))
+    error_message = None
+    renamed = False
+    try:
+        tar = tarfile.open(filename, "r")
+        extracted_files = tar.getnames()
+        
+        # Rename original config files
+        for fname in extracted_files:
+            orig_name = get_conf_path(fname)
+            bak_name = get_conf_path(fname+'.bak')
+            if osp.isfile(bak_name):
+                os.remove(bak_name)
+            if osp.isfile(orig_name):
+                os.rename(orig_name, bak_name)
+        renamed = True
+        
+        tar.extractall()
+        
+        for fname in extracted_files:
+            shutil.move(fname, get_conf_path(fname))
+            
+    except Exception, error:
+        error_message = unicode(error)
+        if renamed:
+            # Restore original config files
+            for fname in extracted_files:
+                orig_name = get_conf_path(fname)
+                bak_name = get_conf_path(fname+'.bak')
+                if osp.isfile(orig_name):
+                    os.remove(orig_name)
+                if osp.isfile(bak_name):
+                    os.rename(bak_name, orig_name)
+                    
+    finally:
+        # Removing backup config files
+        for fname in extracted_files:
+            bak_name = get_conf_path(fname+'.bak')
+            if osp.isfile(bak_name):
+                os.remove(bak_name)
+        
+    os.chdir(old_cwd)
+    return error_message
 
 
 if __name__ == "__main__":

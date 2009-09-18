@@ -294,12 +294,15 @@ old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
     os.remove(old_location)
 
-def get_conf_path(filename):
+def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     conf_dir = osp.join(get_home_dir(), '.spyder')
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
-    return osp.join(conf_dir, filename)
+    if filename is None:
+        return conf_dir
+    else:
+        return osp.join(conf_dir, filename)
 
 IMG_PATH_ROOT = osp.join(DATA_PATH, 'images')
 IMG_PATH = [IMG_PATH_ROOT]

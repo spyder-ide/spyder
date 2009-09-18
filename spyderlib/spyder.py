@@ -25,7 +25,8 @@ sys.path.insert(0, '')
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor)
+                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
+                         QFileDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject, QVariant)
@@ -55,6 +56,10 @@ from spyderlib.qthelpers import (create_action, add_actions, get_std_icon,
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               DATA_PATH, DOC_PATH)
 from spyderlib.utils import run_python_gui_script
+from spyderlib.io import load_session, save_session, reset_session
+
+
+TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
 
 def get_python_doc_path():
@@ -142,7 +147,7 @@ class MainWindow(QMainWindow):
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
           translate("MainWindow", "Matplotlib documentation"),
           "matplotlib.png"),
-                ) 
+                )
     
     def __init__(self, commands=None, intitle="", message="", options=None):
         super(MainWindow, self).__init__()
@@ -169,6 +174,21 @@ class MainWindow(QMainWindow):
             self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
+        self.load_temp_session_action = create_action(self,
+                                        self.tr("Reload last session"),
+                                        triggered=lambda:
+                                        self.load_session(TEMP_SESSION_PATH))
+        self.load_session_action = create_action(self,
+                                        self.tr("Load session..."),
+                                        None, 'fileopen.png',
+                                        triggered=self.load_session,
+                                        tip=self.tr("Load Spyder session"))
+        self.save_session_action = create_action(self,
+                                        self.tr("Save session and quit..."),
+                                        None, 'filesaveas.png',
+                                        triggered=self.save_session,
+                                        tip=self.tr("Save current session "
+                                                    "and quit application"))
         self.spyder_path_action = create_action(self,
                                         self.tr("Path manager..."),
                                         None, 'folder_new.png',
@@ -213,6 +233,10 @@ class MainWindow(QMainWindow):
         self.last_window_state = None
         self.last_plugin = None
         self.fullscreen_flag = None # isFullscreen does not work as expected
+        
+        # Session manager
+        self.next_session_name = None
+        self.save_session_name = None
         
         self.debug_print("End of MainWindow constructor")
         
@@ -646,7 +670,11 @@ class MainWindow(QMainWindow):
         """Update file menu to show recent files"""
         self.file_menu.clear()
         add_actions(self.file_menu, self.editor.file_menu_actions)
-        add_actions(self.file_menu, [self.spyder_path_action])
+        self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
+        add_actions(self.file_menu, [self.load_temp_session_action,
+                                     self.load_session_action,
+                                     self.save_session_action,
+                                     None, self.spyder_path_action])
         if self.winenv_action is not None:
             self.file_menu.addAction(self.winenv_action)
         recent_files = []
@@ -1031,6 +1059,32 @@ class MainWindow(QMainWindow):
         """Show Windows current user environment variables"""
         dlg = WinUserEnvDialog(self)
         dlg.exec_()
+        
+    def load_session(self, filename=None):
+        """Load session"""
+        if filename is None:
+            self.redirect_interactiveshell_stdio(False)
+            filename = QFileDialog.getOpenFileName(self,
+                                  self.tr("Open session"), os.getcwdu(),
+                                  self.tr("Spyder sessions")+" (*.session.tar)")
+            self.redirect_interactiveshell_stdio(True)
+            if filename:
+                filename = unicode(filename)
+            else:
+                return
+        if self.close():
+            self.next_session_name = filename
+    
+    def save_session(self):
+        """Save session and quit application"""
+        self.redirect_interactiveshell_stdio(False)
+        filename = QFileDialog.getSaveFileName(self,
+                                  self.tr("Save session"), os.getcwdu(),
+                                  self.tr("Spyder sessions")+" (*.session.tar)")
+        self.redirect_interactiveshell_stdio(True)
+        if filename:
+            if self.close():
+                self.save_session_name = unicode(filename)
 
         
 def get_options():
@@ -1043,6 +1097,11 @@ def get_options():
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
+    parser.add_option('--session', dest="startup_session", default='',
+                      help="Startup session")
+    parser.add_option('--reset', dest="reset_session",
+                      action='store_true', default=False,
+                      help="Reset to default session")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
     parser.add_option('-s', '--startup', dest="startup", default=None,
@@ -1156,8 +1215,8 @@ def get_options():
     return commands, intitle, message, options
 
 
-def main():
-    """Spyder application"""
+def initialize():
+    """Initialize Qt and collect command line options"""
     app = QApplication(sys.argv)
     
     #----Monkey patching PyQt4.QtGui.QApplication
@@ -1186,14 +1245,11 @@ def main():
         locale = QLocale.system().name()
         qt_translator = QTranslator()
         if qt_translator.load("qt_" + locale,
-                              QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+                      QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
             app.installTranslator(qt_translator)
         app_translator = QTranslator()
         if app_translator.load("spyder_" + locale, DATA_PATH):
             app.installTranslator(app_translator)
-    
-    # Main window
-    main = MainWindow(commands, intitle, message, options)
 
     # Selecting Qt4 backend for Enthought Tool Suite (if installed)
     try:
@@ -1201,6 +1257,21 @@ def main():
         ETSConfig.toolkit = 'qt4'
     except ImportError:
         pass
+    
+    # qt_translator, app_translator are returned only to keep references alive
+    return (app, qt_translator, app_translator,
+            commands, intitle, message, options)
+
+
+def run_spyder(app, qt_translator, app_translator,
+               commands, intitle, message, options):
+    """
+    Create and show Spyder's main window
+    Patch matplotlib for figure integration
+    Start QApplication event loop
+    """
+    # Main window
+    main = MainWindow(commands, intitle, message, options)
     
     #----Patching matplotlib's FigureManager
     if options.pylab or options.basics:
@@ -1310,7 +1381,50 @@ def main():
     main.show()
     main.give_focus_to_interactive_console()
     app.exec_()
+    return main
+
+
+def session_manager():
+    """Session manager"""
+    args = initialize()
+    options = args[-1]
+    if options.reset_session:
+        reset_session()
+        CONF.reset_to_defaults(save=True)
+    next_session_name = options.startup_session
+    while isinstance(next_session_name, basestring):
+        if next_session_name:
+            error_message = load_session(next_session_name)
+            if next_session_name == TEMP_SESSION_PATH:
+                os.remove(TEMP_SESSION_PATH)
+            if error_message is None:
+                CONF.load_from_ini()
+            else:
+                print error_message
+                QMessageBox.critical(None, "Load session",
+                                     u"<b>Unable to load '%s'</b>"
+                                     u"<br><br>Error message:<br>%s"
+                                      % (osp.basename(next_session_name),
+                                         error_message))
+        mainwindow = run_spyder(*args)
+        next_session_name = mainwindow.next_session_name
+        save_session_name = mainwindow.save_session_name
+        if next_session_name is not None:
+            #-- Loading session
+            # Saving current session in a temporary file
+            # but only if we are not currently trying to reopen it!
+            if next_session_name != TEMP_SESSION_PATH:
+                save_session_name = TEMP_SESSION_PATH
+        if save_session_name:
+            #-- Saving session
+            error_message = save_session(save_session_name)
+            if error_message is not None:
+                QMessageBox.critical(None, "Save session",
+                                     u"<b>Unable to save '%s'</b>"
+                                     u"<br><br>Error message:<br>%s"
+                                       % (osp.basename(save_session_name),
+                                          error_message))
 
 
 if __name__ == "__main__":
-    main()
+    session_manager()

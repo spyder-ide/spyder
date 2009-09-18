@@ -3,6 +3,7 @@
 \.orig$
 ^build/
 ^dist/
+^doctmp/
 ^spyder.egg-info/
 \pypi.txt
 \Thumbs.db

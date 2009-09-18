@@ -90,7 +90,7 @@ class UserConfig(ConfigParser):
             self.reset_to_defaults(save=False)
         if load:
             # If config file already exists, it overrides Default options:
-            self.__load()
+            self.load_from_ini()
             if version != self.get_version(version):
                 # Version has changed -> overwriting .ini file
                 self.reset_to_defaults(save=False)
@@ -111,7 +111,7 @@ class UserConfig(ConfigParser):
         """Set configuration (not application!) version"""
         self.set(self.default_section_name, 'version', version, save=save)
 
-    def __load(self):
+    def load_from_ini(self):
         """
         Load config from the associated .ini file
         """
