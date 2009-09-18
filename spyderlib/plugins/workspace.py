@@ -65,11 +65,11 @@ class Workspace(DictEditorTableView, PluginMixin):
                                      truncate=truncate, inplace=inplace,
                                      minmax=minmax, collvalue=collvalue)
         PluginMixin.__init__(self, parent)
+        
+        self.setup_io()
         self.load_temp_namespace()
         
         self.setFont(get_font(self.ID))
-        
-        self.setup_io()
 
     def setup_io(self):
         """Setup I/O functions and filters"""
@@ -215,8 +215,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         menu_actions = (import_action, save_as_action,
                         refresh_action, autorefresh_action, clear_action,
                         option_menu)
-        toolbar_actions = (refresh_action, autorefresh_action,
-                           import_action, save_as_action)
+        toolbar_actions = (refresh_action, import_action, save_as_action)
         return (menu_actions, toolbar_actions)
         
     def change_font1(self):
