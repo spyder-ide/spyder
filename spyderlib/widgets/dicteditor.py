@@ -16,13 +16,13 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import re
-from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime)
+import re, os
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
-                         QApplication, QKeySequence)
+                         QApplication, QKeySequence, QFileDialog)
+from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
+                          SIGNAL, SLOT, QDateTime)
 
 # Local import
 from spyderlib.config import get_icon, get_font
@@ -499,6 +499,7 @@ class DictDelegate(QItemDelegate):
 class BaseTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
+        self.filename = None
         
     def setup_table(self):
         """Setup table"""
@@ -524,6 +525,11 @@ class BaseTableView(QTableView):
                                       icon=get_icon('imshow.png'),
                                       triggered=self.imshow_item)
         self.imshow_action.setVisible(False)
+        self.save_array_action = create_action(self, 
+                                      translate("DictEditor", "Save array"),
+                                      icon=get_icon('filesave.png'),
+                                      triggered=self.save_array)
+        self.save_array_action.setVisible(False)
         self.insert_action = create_action(self, 
                                       translate("DictEditor", "Insert"),
                                       icon=get_icon('insert.png'),
@@ -566,8 +572,8 @@ class BaseTableView(QTableView):
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.imshow_action,
-                        self.insert_action,
-                        self.remove_action, None,
+                        self.save_array_action,
+                        self.insert_action, self.remove_action, None,
                         self.rename_action,self.duplicate_action, None,
                         self.truncate_action, self.inplace_action,
                         self.collvalue_action]
@@ -587,13 +593,14 @@ class BaseTableView(QTableView):
     def refresh_plot_entries(self, index):
         if index.isValid():
             value = self.delegate.get_value(index)
-            condition_plot = isinstance(value, ndarray) and len(value) != 0 \
-                             and len(value.shape) <= 2
+            is_array = isinstance(value, ndarray) and len(value) != 0
+            condition_plot = is_array and len(value.shape) <= 2
             condition_imshow = condition_plot and min(value.shape) > 2
         else:
-            condition_plot = condition_imshow = False
+            is_array = condition_plot = condition_imshow = False
         self.plot_action.setVisible(condition_plot)
         self.imshow_action.setVisible(condition_imshow)
+        self.save_array_action.setVisible(is_array)
         
     def adjust_columns(self):
         """Resize two first columns to contents"""
@@ -759,7 +766,6 @@ class BaseTableView(QTableView):
                     translate("DictEditor",
                               "Please install <b>matplotlib</b>."))
 
-            
     def plot_item(self):
         """Plot item"""
         index = self.currentIndex()
@@ -777,6 +783,25 @@ class BaseTableView(QTableView):
             data = self.delegate.get_value(index)
             imshow(data)
             show()
+            
+    def save_array(self):
+        """Save array"""
+        title = translate("DictEditor", "Save array")
+        if self.filename is None:
+            self.filename = os.getcwdu()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getSaveFileName(self, title, self.filename,
+                          translate('DictEditor', "NumPy arrays")+" (*.npy)")
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if filename:
+            self.filename = unicode(filename)
+            data = self.delegate.get_value( self.currentIndex() )
+            try:
+                np.save(self.filename, data)
+            except Exception, error:
+                QMessageBox.critical(self, title,
+                     translate('DictEditor', "<b>Unable to save array</b>"
+                               "<br><br>Error message:<br>%1").arg(str(error)))
         
 
 class DictEditorTableView(BaseTableView):
