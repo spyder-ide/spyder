@@ -345,7 +345,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         """Save workspace"""
         title = self.tr("Save workspace")
         
-        ext = osp.splitext(self.filename)[1]
+        ext = osp.splitext(filename)[1]
         if ext not in self.save_funcs:
             QMessageBox.critical(self, title,
                                  self.tr("<b>Unsupported file type '%1'</b>") \

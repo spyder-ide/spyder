@@ -499,7 +499,7 @@ class DictDelegate(QItemDelegate):
 class BaseTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
-        self.filename = None
+        self.array_filename = None
         
     def setup_table(self):
         """Setup table"""
@@ -787,17 +787,18 @@ class BaseTableView(QTableView):
     def save_array(self):
         """Save array"""
         title = translate("DictEditor", "Save array")
-        if self.filename is None:
-            self.filename = os.getcwdu()
+        if self.array_filename is None:
+            self.array_filename = os.getcwdu()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self, title, self.filename,
+        filename = QFileDialog.getSaveFileName(self, title, self.array_filename,
                           translate('DictEditor', "NumPy arrays")+" (*.npy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.filename = unicode(filename)
+            self.array_filename = unicode(filename)
             data = self.delegate.get_value( self.currentIndex() )
             try:
-                np.save(self.filename, data)
+                import numpy as np
+                np.save(self.array_filename, data)
             except Exception, error:
                 QMessageBox.critical(self, title,
                      translate('DictEditor', "<b>Unable to save array</b>"
