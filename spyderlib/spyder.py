@@ -88,7 +88,7 @@ def open_python_doc():
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
-#      (in Qt, these handles are by default not visible!)
+#      (in Qt, these handles are by default not visible on Windows!)
 STYLESHEET="""
 QSplitter::handle {
     margin-left: 4px;

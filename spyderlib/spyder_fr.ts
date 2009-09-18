@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -2518,27 +2519,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>PythonShellWidget</name>
     <message>
-        <location filename="widgets/shell.py" line="693"/>
+        <location filename="widgets/shell.py" line="689"/>
         <source>Copy without prompts</source>
         <translation>Copier sans les préfixes</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="701"/>
+        <location filename="widgets/shell.py" line="697"/>
         <source>Clear line</source>
         <translation>Effacer la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="705"/>
+        <location filename="widgets/shell.py" line="701"/>
         <source>Clear shell</source>
         <translation>Effacer la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="709"/>
+        <location filename="widgets/shell.py" line="705"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
         <translation>Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="946"/>
+        <location filename="widgets/shell.py" line="942"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
@@ -2553,7 +2554,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="952"/>
+        <location filename="widgets/shell.py" line="948"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
@@ -2586,22 +2587,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets/shell.py" line="121"/>
         <source>Save session...</source>
-        <translation>Enregistrer la session...</translation>
+        <translation type="obsolete">Enregistrer la session...</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="126"/>
         <source>Save current session (i.e. all inputs and outputs) in a text file</source>
-        <translation>Enregistrer la session en cours (c&apos;est-à-dire toutes les entrées et sorties) dans un fichier texte</translation>
+        <translation type="obsolete">Enregistrer la session en cours (c&apos;est-à-dire toutes les entrées et sorties) dans un fichier texte</translation>
     </message>
     <message>
         <location filename="widgets/shell.py" line="248"/>
         <source>Save session</source>
-        <translation>Enregistrer la session</translation>
+        <translation type="obsolete">Enregistrer la session</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="252"/>
+        <location filename="widgets/shell.py" line="248"/>
         <source>&lt;b&gt;Unable to save file &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le fichier &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="widgets/shell.py" line="121"/>
+        <source>Save history log...</source>
+        <translation>Enregistrer l&apos;historique...</translation>
+    </message>
+    <message>
+        <location filename="widgets/shell.py" line="125"/>
+        <source>Save current history log (i.e. all inputs and outputs) in a text file</source>
+        <translation>Enregistrer l&apos;historique complet (toutes les entrées et sorties) dans un fichier texte</translation>
+    </message>
+    <message>
+        <location filename="widgets/shell.py" line="233"/>
+        <source>Save history log</source>
+        <translation>Enregistrer l&apos;historique</translation>
     </message>
 </context>
 <context>

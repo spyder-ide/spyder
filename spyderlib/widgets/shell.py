@@ -63,8 +63,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
         self.history = self.load_history()
         
         # Session
-        self.session_filename = CONF.get('main', 'session_filename',
-                                         get_conf_path('session.log'))
+        self.historylog_filename = CONF.get('main', 'historylog_filename',
+                                            get_conf_path('history.log'))
         
         # Context menu
         self.menu = None
@@ -119,13 +119,12 @@ class ShellBaseWidget(ConsoleBaseWidget):
                                      triggered=self.paste)
         save_action = create_action(self,
                                     translate("ShellBaseWidget",
-                                              "Save session..."),
+                                              "Save history log..."),
                                     icon=get_icon('filesave.png'),
                                     tip=translate("ShellBaseWidget",
-                                                  "Save current session (i.e. "
-                                                  "all inputs and outputs) in "
-                                                  "a text file"),
-                                    triggered=self.save_session)
+                                          "Save current history log (i.e. all "
+                                          "inputs and outputs) in a text file"),
+                                    triggered=self.save_historylog)
         add_actions(self.menu, (self.cut_action, self.copy_action,
                                 paste_action, None, save_action) )
           
@@ -229,24 +228,21 @@ class ShellBaseWidget(ConsoleBaseWidget):
         if self.hasSelectedText():
             ConsoleBaseWidget.removeSelectedText(self)
         
-    def save_session(self):
-        """Save current session (all text in console)"""
+    def save_historylog(self):
+        """Save current history log (all text in console)"""
+        title = translate("ShellBaseWidget", "Save history log")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self,
-                                               translate("ShellBaseWidget",
-                                                         "Save session"),
-                                               self.session_filename,
-                                               "Session (*.log)")
+        filename = QFileDialog.getSaveFileName(self, title,
+                            self.historylog_filename, "History logs (*.log)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             filename = osp.normpath(unicode(filename))
             try:
                 encoding.write(unicode(self.text()), filename)
-                self.session_filename = filename
-                CONF.set('main', 'session_filename', filename)
+                self.historylog_filename = filename
+                CONF.set('main', 'historylog_filename', filename)
             except EnvironmentError, error:
-                QMessageBox.critical(self, translate("ShellBaseWidget",
-                                                     "Save session"),
+                QMessageBox.critical(self, title,
                                 translate("ShellBaseWidget",
                                           "<b>Unable to save file '%1'</b>"
                                           "<br><br>Error message:<br>%2") \
