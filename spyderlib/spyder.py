@@ -1384,8 +1384,13 @@ def run_spyder(app, qt_translator, app_translator,
     return main
 
 
+def __remove_temp_session():
+    if osp.isfile(TEMP_SESSION_PATH):
+        os.remove(TEMP_SESSION_PATH)
+
 def session_manager():
     """Session manager"""
+    __remove_temp_session()
     args = initialize()
     options = args[-1]
     if options.reset_session:
@@ -1396,7 +1401,7 @@ def session_manager():
         if next_session_name:
             error_message = load_session(next_session_name)
             if next_session_name == TEMP_SESSION_PATH:
-                os.remove(TEMP_SESSION_PATH)
+                __remove_temp_session()
             if error_message is None:
                 CONF.load_from_ini()
             else:
