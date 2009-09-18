@@ -258,8 +258,8 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+F",
               'enable': True,
               'wrap': True,
-              'name_filters': ['*.py', '*.pyw'],
-              'valid_filetypes': ['', '.py', '.pyw', '.spydata',
+              'name_filters': ['*.py', '*.pyw', '*.npy', '*.mat', '*.spydata'],
+              'valid_filetypes': ['', '.py', '.pyw', '.spydata', '.npy',
                                   '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': False,
@@ -288,7 +288,7 @@ DEFAULTS = [
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
-                  version='1.0.5', subfolder='.spyder')
+                  version='1.0.6', subfolder='.spyder')
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):

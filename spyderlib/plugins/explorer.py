@@ -89,7 +89,7 @@ class Explorer(ExplorerWidget, PluginMixin):
         ext = osp.splitext(fname)[1]
         if ext in self.editor_valid_types:
             self.emit(SIGNAL("edit(QString)"), fname)
-        elif ext == '.spydata':
+        elif ext in ('.spydata', '.npy', '.mat'):
             self.emit(SIGNAL("import_data(QString)"), fname)
         else:
             self.treewidget.startfile(fname)
