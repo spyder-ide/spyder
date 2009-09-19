@@ -15,6 +15,7 @@ Spyder websites:
     * Discussions: http://groups.google.com/group/spyderlib
             
 .. image:: images/spyder.png
+   :align: center
 
 Contents:
 
