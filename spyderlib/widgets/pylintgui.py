@@ -322,6 +322,7 @@ class PylintWidget(QWidget):
         results = {'C:': [], 'R:': [], 'W:': [], 'E:': []}
         txt_module = '************* Module '
         
+        module = '' # Should not be needed - just in case something goes wrong
         for line in self.output.splitlines():
             if line.startswith(txt_module):
                 # New module
