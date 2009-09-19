@@ -1388,7 +1388,7 @@ def __remove_temp_session():
     if osp.isfile(TEMP_SESSION_PATH):
         os.remove(TEMP_SESSION_PATH)
 
-def session_manager():
+def main():
     """Session manager"""
     __remove_temp_session()
     args = initialize()
@@ -1432,4 +1432,4 @@ def session_manager():
 
 
 if __name__ == "__main__":
-    session_manager()
+    main()
