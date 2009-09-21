@@ -8,6 +8,9 @@
 
 import inspect, re
 
+# Local imports:
+from spyderlib.encoding import to_unicode
+
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 
 def getobj(txt, last=False):
@@ -22,7 +25,7 @@ def getobj(txt, last=False):
     tokens = re.split(SYMBOLS, txt)
     token = ""
     try:
-        while len(token)==0 or re.match(SYMBOLS, token):
+        while len(token) == 0 or re.match(SYMBOLS, token):
             token = tokens.pop()
         if token.endswith('.'):
             token = token[:-1]
@@ -43,19 +46,18 @@ def getobjdir(obj):
 
 def getdoc(obj):
     """Wrapper around inspect.getdoc"""
-    #TODO: Add exception handling: is it really necessary?
-    return inspect.getdoc(obj)
+    return to_unicode( inspect.getdoc(obj) )
 
 def getsource(obj):
     """Wrapper around inspect.getsource"""
     try:
-        src = inspect.getsource(obj)
+        src = to_unicode( inspect.getsource(obj) )
     except TypeError:
         if hasattr(obj, '__class__'):
-            src = inspect.getsource(obj.__class__)
+            src = to_unicode( inspect.getsource(obj.__class__) )
         else:
             # Bindings like VTK or ITK require this case
-            src = inspect.getdoc(obj)
+            src = getdoc(obj)
     return src
 
 def getargfromdoc(obj):
@@ -64,7 +66,11 @@ def getargfromdoc(obj):
     name = obj.__name__
     if (doc is None) or (not doc.find(name+'(')):
         return None
-    return doc[doc.find(name+'(')+len(name)+1:doc.find(')')].split()
+    argtxt = doc[doc.find(name+'(')+len(name)+1:doc.find(')')]
+    if argtxt == u'...':
+        return None
+    else:
+        return argtxt.split()
 
 def getargtxt(obj, one_arg_per_line=True):
     """Get the names and default values of a function's arguments"""
@@ -94,13 +100,17 @@ def getargtxt(obj, one_arg_per_line=True):
         textlist[-1] += arg
         if i_arg < len(args)-1:
             textlist[-1] += sep
-            if len(textlist[-1])>=32 or one_arg_per_line:
+            if len(textlist[-1]) >= 32 or one_arg_per_line:
                 textlist.append('')
-    if inspect.isclass(obj):
-        if len(textlist)==1:
+    if inspect.isclass(obj) or inspect.ismethod(obj):
+        if len(textlist) == 1:
             return None
         textlist.remove('self'+sep)
     return textlist
 
 if __name__ == "__main__":
-    print getargtxt('os.getcwd')
+    class Test(object):
+        def method(self, x, y):
+            pass
+    print getargtxt(Test.__init__)
+    print getargtxt(Test.method)
