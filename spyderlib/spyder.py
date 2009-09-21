@@ -619,7 +619,7 @@ class MainWindow(QMainWindow):
         
         if not self.light:
             # Window layout
-            hexstate = CONF.get('main', prefix+'state')
+            hexstate = str(CONF.get('main', prefix+'state'))
             self.restoreState( QByteArray().fromHex(hexstate) )
             # Is maximized?
             if CONF.get('main', prefix+'is_maximized'):
