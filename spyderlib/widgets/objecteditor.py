@@ -32,9 +32,10 @@ def oedit(obj):
         QApplication([])
 
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
-        dialog = ArrayEditor(obj)
-        if dialog.exec_():
-            return obj
+        dialog = ArrayEditor()
+        if dialog.setup_and_check(obj):
+            if dialog.exec_():
+                return obj
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj)
         if dialog.exec_():

@@ -412,11 +412,12 @@ class DictDelegate(QItemDelegate):
                                         and not self.inplace:
             if value.size == 0:
                 return None
-            editor = ArrayEditor(value, title=key, readonly=readonly)
-            if editor.exec_():
-                # Only necessary for child class RemoteDictDelegate:
-                # (ArrayEditor does not make a copy of value)
-                self.set_value(index, value)
+            editor = ArrayEditor(parent)
+            if editor.setup_and_check(value, title=key, readonly=readonly):
+                if editor.exec_():
+                    # Only necessary for child class RemoteDictDelegate:
+                    # (ArrayEditor does not make a copy of value)
+                    self.set_value(index, value)
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:

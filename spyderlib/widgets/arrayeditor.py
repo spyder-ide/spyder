@@ -29,6 +29,28 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.qthelpers import (translate, add_actions, create_action,
                                  keybinding)
 
+SUPPORTED_FORMATS = {
+                     'single': '%.3f',
+                     'double': '%.3f',
+                     'float_': '%.3f',
+                     'float32': '%.3f',
+                     'float64': '%.3f',
+                     'float96': '%.3f',
+                     'int_': '%d',
+                     'int8': '%d',
+                     'int16': '%d',
+                     'int32': '%d',
+                     'int64': '%d',
+                     'uint': '%d',
+                     'uint8': '%d',
+                     'uint16': '%d',
+                     'uint32': '%d',
+                     'uint64': '%d',
+                     'bool': '%r',
+                     'string88': '%s',
+                     'unicode352': '%s',
+                     'unicode928': '%s',
+                     }
 
 def is_float(dtype):
     """Return True if datatype dtype is a float kind"""
@@ -309,26 +331,6 @@ class ArrayView(QTableView):
 
 
 class ArrayEditorWidget(QWidget):
-    FORMATS = {'single': '%.3f',
-               'double': '%.3f',
-               'float_': '%.3f',
-               'float32': '%.3f',
-               'float64': '%.3f',
-               'float96': '%.3f',
-               'int_': '%d',
-               'int8': '%d',
-               'int16': '%d',
-               'int32': '%d',
-               'int64': '%d',
-               'uint': '%d',
-               'uint8': '%d',
-               'uint16': '%d',
-               'uint32': '%d',
-               'uint64': '%d',
-               'bool': '%r',
-               'string88': '%s',
-               'unicode352': '%s',
-               }
     def __init__(self, parent, data, xy, readonly):
         QWidget.__init__(self, parent)
         self.data = data
@@ -342,7 +344,7 @@ class ArrayEditorWidget(QWidget):
 
         self.changes = {}
        
-        format = self.get_format(data)
+        format = SUPPORTED_FORMATS[data.dtype.name]
         self.model = ArrayModel(self.data, self.changes, format=format,
                                 xy_mode=xy, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
@@ -380,18 +382,6 @@ class ArrayEditorWidget(QWidget):
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
         
-    def get_format(self, data):
-        """Return (type, format) depending on array dtype"""
-        name = data.dtype.name
-        try:
-            return self.FORMATS[name]
-        except KeyError:
-            arr = translate("ArrayEditor", "%1 arrays").arg(name)
-            QMessageBox.warning(self, translate("ArrayEditor", "Array editor"),
-                                translate("ArrayEditor", "Warning: %1 are "
-                                          "currently not supported").arg(arr))
-            return '%.3f'
-        
     def change_format(self):
         """Change display format"""
         format, valid = QInputDialog.getText(self,
@@ -412,14 +402,24 @@ class ArrayEditorWidget(QWidget):
 
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""    
-    def __init__(self, data, title='', xy=False, readonly=False):
-        super(ArrayEditor, self).__init__()
+    def __init__(self, parent=None):
+        super(ArrayEditor, self).__init__(parent)
+    
+    def setup_and_check(self, data, title='', xy=False, readonly=False):
+        """
+        Setup ArrayEditor:
+        return False if data is not supported, True otherwise
+        """
         self.arraywidget = None
         self.is_record_array = data.dtype.names is not None
         if len(data.shape) > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
-            return
+            return False
+        if data.dtype.name not in SUPPORTED_FORMATS:
+            arr = self.tr("%1 arrays").arg(data.dtype.name)
+            self.error(self.tr("%1 are currently not supported").arg(arr))
+            return False
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -475,6 +475,8 @@ class ArrayEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
+        return True
+        
     def current_widget_changed(self, index):
         self.arraywidget = self.stack.widget(index)
         
@@ -498,7 +500,7 @@ class ArrayEditor(QDialog):
         QDialog.reject(self)
     
     
-def aedit(data, title=""):
+def aedit(data, title="", xy=False, readonly=False, parent=None):
     """
     Edit the array 'data' with the ArrayEditor and return the edited copy
     (if Cancel is pressed, return None)
@@ -507,9 +509,10 @@ def aedit(data, title=""):
     """
     if QApplication.startingUp():
         QApplication([])
-    dialog = ArrayEditor(data, title)
-    if dialog.exec_():
-        return data
+    dialog = ArrayEditor(parent)
+    if dialog.setup_and_check(data, title, xy=xy, readonly=readonly):
+        if dialog.exec_():
+            return data
 
 
 if __name__ == "__main__":

@@ -4,37 +4,37 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="471"/>
+        <location filename="widgets/arrayeditor.py" line="490"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="380"/>
+        <location filename="widgets/arrayeditor.py" line="387"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="340"/>
+        <location filename="widgets/arrayeditor.py" line="358"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="343"/>
+        <location filename="widgets/arrayeditor.py" line="361"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="381"/>
+        <location filename="widgets/arrayeditor.py" line="388"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="388"/>
+        <location filename="widgets/arrayeditor.py" line="395"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="390"/>
+        <location filename="widgets/arrayeditor.py" line="397"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
@@ -44,41 +44,46 @@
         <translation type="obsolete">Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="412"/>
+        <location filename="widgets/arrayeditor.py" line="429"/>
         <source>read only</source>
         <translation>lecture seule</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="258"/>
+        <location filename="widgets/arrayeditor.py" line="291"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
         <location filename="widgets/arrayeditor.py" line="374"/>
         <source>Warning: %1 are currently not supported</source>
-        <translation>Attention : %1 ne sont pas pris en charge</translation>
+        <translation type="obsolete">Attention : %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="403"/>
+        <location filename="widgets/arrayeditor.py" line="416"/>
         <source>Arrays with more than 2 dimensions are not supported</source>
         <translation>Les tableaux de plus de deux dimensions ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="432"/>
+        <location filename="widgets/arrayeditor.py" line="449"/>
         <source>Record array fields:</source>
         <translation>Champs du tableau : </translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="371"/>
+        <location filename="widgets/arrayeditor.py" line="419"/>
         <source>%1 arrays</source>
-        <translation>les tableaux %1</translation>
+        <translation>Les tableaux %1</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="248"/>
+        <location filename="widgets/arrayeditor.py" line="281"/>
         <source>Resizing cells of a table of such size could take a long time.
 Do you want to continue anyway?</source>
         <translation>Redimensionner les cellules d&apos;un tableau d&apos;une telle taille peut prendre du temps.
 Souhaitez-vous néanmoins continuer ?</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="420"/>
+        <source>%1 are currently not supported</source>
+        <translation>%1 ne sont actuellement pas pris en charge</translation>
     </message>
 </context>
 <context>
@@ -278,52 +283,52 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="557"/>
+        <location filename="widgets/dicteditor.py" line="558"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="514"/>
+        <location filename="widgets/dicteditor.py" line="515"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="752"/>
+        <location filename="widgets/dicteditor.py" line="753"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="691"/>
+        <location filename="widgets/dicteditor.py" line="692"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="693"/>
+        <location filename="widgets/dicteditor.py" line="694"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="743"/>
+        <location filename="widgets/dicteditor.py" line="744"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="753"/>
+        <location filename="widgets/dicteditor.py" line="754"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="710"/>
+        <location filename="widgets/dicteditor.py" line="711"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="569"/>
+        <location filename="widgets/dicteditor.py" line="570"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="831"/>
+        <location filename="widgets/dicteditor.py" line="833"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -348,82 +353,82 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="541"/>
+        <location filename="widgets/dicteditor.py" line="542"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="546"/>
+        <location filename="widgets/dicteditor.py" line="547"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="924"/>
+        <location filename="widgets/dicteditor.py" line="926"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="926"/>
+        <location filename="widgets/dicteditor.py" line="928"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="908"/>
+        <location filename="widgets/dicteditor.py" line="910"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="914"/>
+        <location filename="widgets/dicteditor.py" line="916"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="916"/>
+        <location filename="widgets/dicteditor.py" line="918"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="827"/>
+        <location filename="widgets/dicteditor.py" line="829"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="551"/>
+        <location filename="widgets/dicteditor.py" line="552"/>
         <source>Show collection contents</source>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="518"/>
+        <location filename="widgets/dicteditor.py" line="519"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="523"/>
+        <location filename="widgets/dicteditor.py" line="524"/>
         <source>Show image</source>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="764"/>
+        <location filename="widgets/dicteditor.py" line="765"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="766"/>
+        <location filename="widgets/dicteditor.py" line="767"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.</source>
         <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="789"/>
+        <location filename="widgets/dicteditor.py" line="790"/>
         <source>Save array</source>
         <translation>Enregistrer le tableau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="793"/>
+        <location filename="widgets/dicteditor.py" line="794"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="803"/>
+        <location filename="widgets/dicteditor.py" line="805"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -2456,12 +2461,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="391"/>
+        <location filename="widgets/pylintgui.py" line="392"/>
         <source>Source code has not been rated yet.</source>
         <translation>Le code source n&apos;a pas encore été analysé.</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="414"/>
+        <location filename="widgets/pylintgui.py" line="415"/>
         <source>previous run:</source>
         <translation>analyse précédente :</translation>
     </message>
@@ -2471,7 +2476,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="410"/>
+        <location filename="widgets/pylintgui.py" line="411"/>
         <source>Global evaluation:</source>
         <translation>Évaluation globale :</translation>
     </message>
@@ -2541,7 +2546,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Analyse Pylint</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="398"/>
+        <location filename="widgets/pylintgui.py" line="399"/>
         <source>Analysis did not succeed (see output for more details).</source>
         <translation>L&apos;analyse n&apos;a pas réussi (voir la sortie pour plus de détails).</translation>
     </message>
@@ -2775,22 +2780,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="258"/>
+        <location filename="plugins/workspace.py" line="257"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="260"/>
+        <location filename="plugins/workspace.py" line="259"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="262"/>
+        <location filename="plugins/workspace.py" line="261"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="269"/>
+        <location filename="plugins/workspace.py" line="268"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -2854,12 +2859,12 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="348"/>
+        <location filename="plugins/workspace.py" line="347"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="355"/>
+        <location filename="plugins/workspace.py" line="354"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
@@ -2954,7 +2959,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="364"/>
+        <location filename="plugins/workspace.py" line="363"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -2964,7 +2969,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="231"/>
+        <location filename="plugins/workspace.py" line="230"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -2994,7 +2999,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Enregistrer l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="295"/>
+        <location filename="plugins/workspace.py" line="294"/>
         <source>Import data</source>
         <translation>Importer des données</translation>
     </message>
@@ -3024,17 +3029,17 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Fichiers compatibles</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="352"/>
+        <location filename="plugins/workspace.py" line="351"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="314"/>
+        <location filename="plugins/workspace.py" line="313"/>
         <source>Loading data...</source>
         <translation>Chargement des données en cours...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="322"/>
+        <location filename="plugins/workspace.py" line="321"/>
         <source>&lt;b&gt;Unable to load &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;ouvrir &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
