@@ -15,12 +15,24 @@ import os, cPickle, tarfile, os.path as osp, shutil
 
 
 try:
+    import numpy as np
     import scipy.io as spio
     def load_matlab(filename):
         try:
-            return spio.loadmat(filename, struct_as_record=True), None
+            out = spio.loadmat(filename, struct_as_record=True,
+                               squeeze_me=True)
+            for key, value in out.iteritems():
+                if isinstance(value, np.ndarray):
+                    if value.shape == ():
+                        out[key] = value.tolist()
+                    # The following would be needed if squeeze_me=False:
+#                    elif value.shape == (1,):
+#                        out[key] = value[0]
+#                    elif value.shape == (1, 1):
+#                        out[key] = value[0][0]
+            return out, None
         except Exception, error:
-            return str(error)
+            return None, str(error)
     def save_matlab(data, filename):
         try:
             spio.savemat(filename, data, oned_as='row')
@@ -38,7 +50,7 @@ try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: np.load(filename)}, None
         except Exception, error:
-            return str(error)    
+            return None, str(error)    
     def __save_array(data, basename, index):
         """Save numpy array"""
         fname = basename + '_%04d.npy' % index
