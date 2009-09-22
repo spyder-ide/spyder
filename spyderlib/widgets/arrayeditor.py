@@ -333,9 +333,12 @@ class ArrayEditorWidget(QWidget):
         QWidget.__init__(self, parent)
         self.data = data
         self.old_data_shape = None
-        if len(self.data.shape)==1:
+        if len(self.data.shape) == 1:
             self.old_data_shape = self.data.shape
             self.data.shape = (self.data.shape[0], 1)
+        elif len(self.data.shape) == 0:
+            self.old_data_shape = self.data.shape
+            self.data.shape = (1, 1)
 
         self.changes = {}
        
@@ -369,12 +372,12 @@ class ArrayEditorWidget(QWidget):
         """Accept changes"""
         for (i, j), value in self.changes.iteritems():
             self.data[i, j] = value
-        if self.old_data_shape:
+        if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
             
     def reject_changes(self):
         """Reject changes"""
-        if self.old_data_shape:
+        if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
         
     def get_format(self, data):
