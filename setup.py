@@ -11,6 +11,17 @@ Spyder
 Interactive Python shell and related widgets based on PyQt4
 """
 
+import os, os.path as osp
+
+def get_package_data(name, extlist):
+    """Return data files for package *name* with extensions in *extlist*"""
+    flist = []
+    for root, _dirs, files in os.walk(name):
+        for fname in files:
+            if osp.splitext(fname)[1] in extlist:
+                flist.append(osp.relpath(osp.join(root, fname), name))
+    return flist
+
 name = 'spyder'
 libname = 'spyderlib'
 from spyderlib import __version__ as version
@@ -18,18 +29,9 @@ google_url = 'http://%s.googlecode.com' % libname
 download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
                                 '.plugins', '.pyflakes']]
-package_data={libname: ['*.qm', 'python.api', 'images/*.png', 'images/*.svg',
-                        'images/actions/*.png', 'images/console/*.png',
-                        'images/editor/*.png', 'images/file/*.png',
-                        'images/filetypes/*.png', 'images/workspace/*.png',
-                        'doc/*.html', 'doc/searchindex.js', 'doc/.buildinfo',
-                        'doc/objects.inv',
-                        'doc/_images/*.png', 'doc/_sources/*.txt',
-                        'doc/_static/*.css', 'doc/_static/*.js',
-                        'doc/_static/*.png', 'doc/_static/*.ico',
-                        'doc/.doctrees/*.doctree',
-                        ]}
-import os
+extensions = ('.qm', '.api', '.svg', '.png',
+              '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
+package_data={libname: get_package_data(libname, extensions)}
 if os.name == 'nt':
     scripts = ['spyder.pyw']
 else:
