@@ -66,14 +66,21 @@ class ArrayModel(QAbstractTableModel):
         self._format = format
         self._xy = xy_mode
         
-        self.vmin = data.min()
-        self.vmax = data.max()
-        if self.vmax == self.vmin:
-            self.vmin -= 1
-        self.hue0 = huerange[0]
-        self.dhue = huerange[1] - huerange[0]
+        try:
+            self.vmin = data.min()
+            self.vmax = data.max()
+            if self.vmax == self.vmin:
+                self.vmin -= 1
+            self.hue0 = huerange[0]
+            self.dhue = huerange[1] - huerange[0]
+            self.bgcolor_enabled = True
+        except TypeError:
+            self.vmin = None
+            self.vmax = None
+            self.hue0 = None
+            self.dhue = None
+            self.bgcolor_enabled = False
         
-        self.bgcolor_enabled = True
         
     def get_format(self):
         """Return current format"""
@@ -136,6 +143,10 @@ class ArrayModel(QAbstractTableModel):
                 val = bool(float(value))
             except ValueError:
                 val = value.lower() == "true"
+        elif self._data.dtype.name.startswith("string"):
+            val = str(value)
+        elif self._data.dtype.name.startswith("unicode"):
+            val = unicode(value)
         else:
             try:
                 val = float(value)
@@ -315,6 +326,8 @@ class ArrayEditorWidget(QWidget):
                'uint32': '%d',
                'uint64': '%d',
                'bool': '%r',
+               'string88': '%s',
+               'unicode352': '%s',
                }
     def __init__(self, parent, data, xy, readonly):
         QWidget.__init__(self, parent)
@@ -342,7 +355,8 @@ class ArrayEditorWidget(QWidget):
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
         bgcolor = QCheckBox(translate("ArrayEditor", 'Background color'))
-        bgcolor.setChecked(True)
+        bgcolor.setChecked(self.model.bgcolor_enabled)
+        bgcolor.setEnabled(self.model.bgcolor_enabled)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
         btn_layout.addWidget(bgcolor)
         
@@ -496,6 +510,10 @@ def aedit(data, title=""):
 
 
 if __name__ == "__main__":
+    arr = np.array(["kjrekrjkejr"])
+    print "out:", aedit(arr, "string array")
+    arr = np.array([u"kjrekrjkejr"])
+    print "out:", aedit(arr, "unicode array")
     arr = np.zeros((2,2), {'names': ('red','green','blue'),
                            'formats': (np.float32, np.float32, np.float32)})
     print "out:", aedit(arr, "record array")
