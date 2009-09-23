@@ -442,7 +442,7 @@ has the same effect as typing a particular string at the help> prompt.
             varnames = clear_match.groups()[0].replace(' ', '').split(',')
             for varname in varnames:
                 try:
-                    self.interpreter.locals.pop(varname)
+                    self.interpreter.namespace.pop(varname)
                 except KeyError:
                     pass
         # Execute command

@@ -58,3 +58,25 @@ class Interpreter(InteractiveConsole):
         except:
             return None, False
         
+    #===========================================================================
+    # InteractiveConsole API
+    #===========================================================================
+    def push(self, line):
+        """
+        Push a line of source text to the interpreter
+        
+        The line should not have a trailing newline; it may have internal 
+        newlines. The line is appended to a buffer and the interpreter’s 
+        runsource() method is called with the concatenated contents of the 
+        buffer as source. If this indicates that the command was executed 
+        or invalid, the buffer is reset; otherwise, the command is incomplete, 
+        and the buffer is left as it was after the line was appended. 
+        The return value is True if more input is required, False if the line 
+        was dealt with in some way (this is the same as runsource()).
+        """
+        return InteractiveConsole.push(self, line)
+        
+    def resetbuffer(self):
+        """Remove any unhandled source text from the input buffer"""
+        InteractiveConsole.resetbuffer(self)
+        
