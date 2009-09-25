@@ -25,7 +25,7 @@ from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
                               get_font, set_font)
 from spyderlib.qthelpers import create_action, add_actions, translate
 from spyderlib.io import (save_dictionary, load_dictionary, load_array,
-                          load_matlab, save_matlab)
+                          load_image, load_dicom, load_matlab, save_matlab)
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 
@@ -73,20 +73,30 @@ class Workspace(DictEditorTableView, PluginMixin):
 
     def setup_io(self):
         """Setup I/O functions and filters"""
-        iofuncs = {
-                   '.spydata': (translate('Workspace', "Spyder data files"),
+        iofuncs = (
+                   ('.spydata', translate('Workspace', "Spyder data files"),
                                 load_dictionary, save_dictionary),
-                   '.npy':     (translate('Workspace', "NumPy arrays"),
+                   ('.npy',     translate('Workspace', "NumPy arrays"),
                                 load_array, None),
-                   '.mat':     (translate('Workspace', "Matlab files"),
+                   ('.mat',     translate('Workspace', "Matlab files"),
                                 load_matlab, save_matlab),
-                   }
+                   ('.jpg',     translate('Workspace', "JPEG images"),
+                                load_image, None),
+                   ('.png',     translate('Workspace', "PNG images"),
+                                load_image, None),
+                   ('.gif',     translate('Workspace', "GIF images"),
+                                load_image, None),
+                   ('.tif',     translate('Workspace', "TIFF images"),
+                                load_image, None),
+                   ('.dcm',     translate('Workspace', "DICOM images"),
+                                load_dicom, None),
+                   )
         load_funcs = {}
         save_funcs = {}
         load_filters = []
         save_filters = []
         load_ext = []
-        for ext, (name, loadfunc, savefunc) in iofuncs.iteritems():
+        for ext, name, loadfunc, savefunc in iofuncs:
             filter_str = unicode(name + " (*%s)" % ext)
             if loadfunc is not None:
                 load_filters.append(filter_str)

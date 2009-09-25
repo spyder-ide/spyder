@@ -11,7 +11,7 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
-import os, cPickle, tarfile, os.path as osp, shutil
+import sys, os, cPickle, tarfile, os.path as osp, shutil
 
 
 try:
@@ -58,6 +58,58 @@ try:
         return fname
 except ImportError:
     load_array = None
+
+
+try:
+    import PIL.Image
+    if sys.byteorder == 'little':
+        _ENDIAN = '<'
+    else:
+        _ENDIAN = '>'
+    DTYPES = {
+              "1": ('|b1', None),
+              "L": ('|u1', None),
+              "I": ('%si4' % _ENDIAN, None),
+              "F": ('%sf4' % _ENDIAN, None),
+              "I;16": ('|u2', None),
+              "I;16S": ('%si2' % _ENDIAN, None),
+              "P": ('|u1', None),
+              "RGB": ('|u1', 3),
+              "RGBX": ('|u1', 4),
+              "RGBA": ('|u1', 4),
+              "CMYK": ('|u1', 4),
+              "YCbCr": ('|u1', 4),
+              }
+    def __image_to_array(filename):
+        img = PIL.Image.open(filename)
+        try:
+            dtype, extra = DTYPES[img.mode]
+        except KeyError:
+            raise RuntimeError("%s mode is not supported" % img.mode)
+        shape = (img.size[1], img.size[0])
+        if extra is not None:
+            shape += (extra,)
+        return np.array(img.getdata(), dtype=np.dtype(dtype)).reshape(shape)
+    def load_image(filename):
+        try:
+            name = osp.splitext(osp.basename(filename))[0]
+            return {name: __image_to_array(filename)}, None
+        except Exception, error:
+            return None, str(error)
+except ImportError:
+    load_image = None
+
+
+try:
+    import dicom
+    def load_dicom(filename):
+        try:
+            name = osp.splitext(osp.basename(filename))[0]
+            return {name: dicom.ReadFile(filename).PixelArray}, None
+        except Exception, error:
+            return None, str(error)
+except ImportError:
+    load_dicom = None
 
 
 def save_dictionary(data, filename):
