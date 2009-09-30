@@ -151,6 +151,14 @@ class QsciEditor(TextEditBaseWidget):
 
         if font is not None:
             self.set_font(font)
+             
+        # Re-enable brace matching (already enabled in TextEditBaseWidget.setup
+        # but for an unknown reason, changing the 'set_font' call above reset
+        # this setting to default, which is no brace matching):
+        # XXX: find out why
+        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
+        self.setMatchedBraceBackgroundColor(Qt.yellow)
+        
         self.toggle_wrap_mode(wrap)
         self.setup_api()
         self.setModified(False)
