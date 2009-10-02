@@ -80,6 +80,10 @@ class Workspace(DictEditorTableView, PluginMixin):
                                 load_array, None),
                    ('.mat',     translate('Workspace', "Matlab files"),
                                 load_matlab, save_matlab),
+                   ('.csv',     translate('Workspace', "CSV text files"),
+                                'import_wizard', None),
+                   ('.txt',     translate('Workspace', "Text files"),
+                                'import_wizard', None),
                    ('.jpg',     translate('Workspace', "JPEG images"),
                                 load_image, None),
                    ('.png',     translate('Workspace', "PNG images"),
@@ -321,21 +325,31 @@ class Workspace(DictEditorTableView, PluginMixin):
                                          .arg(ext))
             return
         
-        self.starting_long_process(self.tr("Loading data..."))
-        namespace, error_message = self.load_funcs[ext](self.filename)
-        self.ending_long_process()
-        
+        load_func = self.load_funcs[ext]
+        if isinstance(load_func, basestring): # 'import_wizard' (self.setup_io)
+            # Import data with import wizard
+            error_message = None
+            try:
+                from spyderlib import encoding
+                text, _encoding = encoding.read(self.filename)
+                self.import_from_string(text)
+            except Exception, error:
+                error_message = str(error)
+        else:
+            self.starting_long_process(self.tr("Loading data..."))
+            namespace, error_message = load_func(self.filename)
+            self.ending_long_process()           
+            if error_message is None:
+                if self.namespace is None:
+                    self.namespace = namespace
+                else:
+                    self.interpreter.namespace.update(namespace)
+
         if error_message is not None:
             QMessageBox.critical(self, title,
                                  self.tr("<b>Unable to load '%1'</b>"
                                          "<br><br>Error message:<br>%2") \
                                          .arg(self.filename).arg(error_message))
-        else:
-            if self.namespace is None:
-                self.namespace = namespace
-            else:
-                self.interpreter.namespace.update(namespace)
-                
         self.refresh()
 
     def save_as(self):

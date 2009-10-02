@@ -899,6 +899,31 @@ class DictEditorTableView(BaseTableView):
             clipl.append(_txt)
         clipboard.setText(u'\n'.join(clipl))
     
+    def import_from_string(self, text):
+        """Import data from string"""
+#        if isinstance(text, basestring):
+#            text = QString(text)
+        data = self.model.get_data()
+        varname_base = translate("DictEditor", "new")
+        try:
+            varname_base = str(varname_base)
+        except UnicodeEncodeError:
+            varname_base = unicode(varname_base)
+        get_varname = lambda index: varname_base + ("%03d" % index)
+        index = 0
+        while get_varname(index) in data:
+            index += 1
+        editor = ImportWizard(self, text,
+                              title=translate("DictEditor",
+                                              "Import from clipboard"),
+                              contents_title=translate("DictEditor",
+                                                       "Clipboard contents"),
+                              varname=get_varname(index))
+        if editor.exec_():
+            var_name, clip_data = editor.get_data()
+            data[var_name] = clip_data
+            self.set_data(data)
+    
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
@@ -906,22 +931,7 @@ class DictEditorTableView(BaseTableView):
         if clipboard.mimeData().hasText():
             cliptext = unicode(clipboard.text())
         if cliptext.strip():
-            data = self.model.get_data()
-            varname_base = translate("DictEditor", "new")
-            get_varname = lambda index: varname_base + ("%03d" % index)
-            index = 0
-            while data.has_key(get_varname(index)):
-                index += 1
-            editor = ImportWizard(self, cliptext,
-                                  title=translate("DictEditor",
-                                                  "Import from clipboard"),
-                                  contents_title=translate("DictEditor",
-                                                           "Clipboard contents"),
-                                  varname=get_varname(index))
-            if editor.exec_():
-                var_name, clip_data = editor.get_data()
-                data[var_name] = clip_data
-                self.set_data(data)
+            self.import_from_string(cliptext)
         else:
             QMessageBox.warning(self,
                                 translate("DictEditor", "Empty clipboard"),

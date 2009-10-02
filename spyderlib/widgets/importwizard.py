@@ -87,11 +87,11 @@ def get_color(value, alpha):
 
 class ContentsWidget(QWidget):
     """Import wizard contents widget"""
-    def __init__(self, parent, cliptext):
+    def __init__(self, parent, text):
         QWidget.__init__(self, parent)
         
         self.text_editor = QTextEdit(self)
-        self.text_editor.setText(cliptext)
+        self.text_editor.setText(text)
         self.text_editor.setReadOnly(True)
         
         # Type frame
@@ -126,6 +126,7 @@ class ContentsWidget(QWidget):
         
         grid_layout = QGridLayout()
         grid_layout.setSpacing(0)
+        
         col_label = QLabel(translate("ImportWizard", "Column separator:"))
         grid_layout.addWidget(col_label,0,0)
         col_w = QWidget()
@@ -341,10 +342,10 @@ class PreviewTable(QTableView):
             return None
         return self._model.get_data()
 
-    def process_data(self, cliptext, colsep=u"\t", rowsep=u"\n",
+    def process_data(self, text, colsep=u"\t", rowsep=u"\n",
                      transpose = False):
         """Put data into table model"""
-        data = self._shape_text(cliptext, colsep, rowsep, transpose)
+        data = self._shape_text(text, colsep, rowsep, transpose)
         self._model = PreviewTableModel(data)
         self.setModel(self._model)
 
@@ -369,9 +370,9 @@ class PreviewWidget(QWidget):
         vert_layout = QVBoxLayout()
         
         hor_layout = QHBoxLayout()
-        self.array_box = QCheckBox(translate("ImportWizard", "Array"))
-        if issubclass(ndarray,FakeObject):
-            self.array_box.setEnabled(False)
+        self.array_box = QCheckBox(translate("ImportWizard", "Import as array"))
+        self.array_box.setEnabled(ndarray is not FakeObject)
+        self.array_box.setChecked(ndarray is not FakeObject)
         hor_layout.addWidget(self.array_box)
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)        
@@ -382,10 +383,10 @@ class PreviewWidget(QWidget):
         vert_layout.addWidget(self._table_view)
         self.setLayout(vert_layout)
 
-    def open_data(self, cliptext, colsep=u"\t", rowsep=u"\n",
+    def open_data(self, text, colsep=u"\t", rowsep=u"\n",
                      transpose = False):
         """Open clipboard text as table"""
-        self._table_view.process_data(cliptext,colsep,rowsep,transpose)
+        self._table_view.process_data(text,colsep,rowsep,transpose)
     
     def get_data(self):
         """Return table data"""
@@ -393,7 +394,7 @@ class PreviewWidget(QWidget):
 
 class ImportWizard(QDialog):
     """Text data import wizard"""
-    def __init__(self, parent, cliptext,
+    def __init__(self, parent, text,
                  title=None, icon=None, contents_title=None, varname=None):
         QDialog.__init__(self, parent)
         
@@ -412,7 +413,7 @@ class ImportWizard(QDialog):
         
         # Setting GUI
         self.tab_widget = QTabWidget(self)
-        self.text_widget = ContentsWidget(self, cliptext)
+        self.text_widget = ContentsWidget(self, text)
         self.table_widget = PreviewWidget(self)
         
         self.tab_widget.addTab(self.text_widget, translate("ImportWizard",
@@ -522,7 +523,11 @@ class ImportWizard(QDialog):
     @pyqtSignature("")
     def process(self):
         """Process the data from clipboard"""
-        self.var_name = unicode(self.name_edt.text())
+        var_name = self.name_edt.text()
+        try:
+            self.var_name = str(var_name)
+        except UnicodeEncodeError:
+            self.var_name = unicode(var_name)
         if self.text_widget.get_as_data():
             self.clip_data = self._get_table_data()
         elif self.text_widget.get_as_code():
@@ -531,6 +536,7 @@ class ImportWizard(QDialog):
         else:
             self.clip_data = unicode(self._get_plain_text())
         self.accept()
+
 
 def test(text):
     """Test"""
