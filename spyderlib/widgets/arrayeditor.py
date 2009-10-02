@@ -29,6 +29,7 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.qthelpers import (translate, add_actions, create_action,
                                  keybinding)
 
+# string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
                      'single': '%.3f',
                      'double': '%.3f',
@@ -47,9 +48,6 @@ SUPPORTED_FORMATS = {
                      'uint32': '%d',
                      'uint64': '%d',
                      'bool': '%r',
-                     'string88': '%s',
-                     'unicode352': '%s',
-                     'unicode928': '%s',
                      }
 
 def is_float(dtype):
@@ -344,7 +342,7 @@ class ArrayEditorWidget(QWidget):
 
         self.changes = {}
        
-        format = SUPPORTED_FORMATS[data.dtype.name]
+        format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
         self.model = ArrayModel(self.data, self.changes, format=format,
                                 xy_mode=xy, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
@@ -416,10 +414,13 @@ class ArrayEditor(QDialog):
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
             return False
-        if data.dtype.name not in SUPPORTED_FORMATS:
-            arr = self.tr("%1 arrays").arg(data.dtype.name)
-            self.error(self.tr("%1 are currently not supported").arg(arr))
-            return False
+        if not self.is_record_array:
+            dtn = data.dtype.name
+            if dtn not in SUPPORTED_FORMATS and not dtn.startswith('string') \
+               and not dtn.startswith('unicode'):
+                arr = self.tr("%1 arrays").arg(data.dtype.name)
+                self.error(self.tr("%1 are currently not supported").arg(arr))
+                return False
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
