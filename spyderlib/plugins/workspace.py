@@ -320,12 +320,18 @@ class Workspace(DictEditorTableView, PluginMixin):
         ext = osp.splitext(self.filename)[1]
         
         if ext not in self.load_funcs:
-            QMessageBox.critical(self, title,
-                                 self.tr("<b>Unsupported file type '%1'</b>") \
-                                         .arg(ext))
-            return
-        
-        load_func = self.load_funcs[ext]
+            buttons = QMessageBox.Yes | QMessageBox.Cancel
+            answer = QMessageBox.question(self, title,
+                       self.tr("<b>Unsupported file type '%1'</b><br><br>"
+                               "Would you like to import it as a text file?") \
+                       .arg(ext), buttons)
+            if answer == QMessageBox.Cancel:
+                return
+            else:
+                load_func = 'import_wizard'
+        else:
+            load_func = self.load_funcs[ext]
+            
         if isinstance(load_func, basestring): # 'import_wizard' (self.setup_io)
             # Import data with import wizard
             error_message = None

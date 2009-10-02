@@ -4,37 +4,37 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="490"/>
+        <location filename="widgets/arrayeditor.py" line="491"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="387"/>
+        <location filename="widgets/arrayeditor.py" line="385"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="358"/>
+        <location filename="widgets/arrayeditor.py" line="356"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="361"/>
+        <location filename="widgets/arrayeditor.py" line="359"/>
         <source>Background color</source>
         <translation>Couleur d&apos;arrière-plan</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="388"/>
+        <location filename="widgets/arrayeditor.py" line="386"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="395"/>
+        <location filename="widgets/arrayeditor.py" line="393"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="397"/>
+        <location filename="widgets/arrayeditor.py" line="395"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
@@ -44,12 +44,12 @@
         <translation type="obsolete">Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="429"/>
+        <location filename="widgets/arrayeditor.py" line="430"/>
         <source>read only</source>
         <translation>lecture seule</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="291"/>
+        <location filename="widgets/arrayeditor.py" line="289"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -59,29 +59,29 @@
         <translation type="obsolete">Attention : %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="416"/>
+        <location filename="widgets/arrayeditor.py" line="414"/>
         <source>Arrays with more than 2 dimensions are not supported</source>
         <translation>Les tableaux de plus de deux dimensions ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="449"/>
+        <location filename="widgets/arrayeditor.py" line="450"/>
         <source>Record array fields:</source>
         <translation>Champs du tableau : </translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="419"/>
+        <location filename="widgets/arrayeditor.py" line="420"/>
         <source>%1 arrays</source>
         <translation>Les tableaux %1</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="281"/>
+        <location filename="widgets/arrayeditor.py" line="279"/>
         <source>Resizing cells of a table of such size could take a long time.
 Do you want to continue anyway?</source>
         <translation>Redimensionner les cellules d&apos;un tableau d&apos;une telle taille peut prendre du temps.
 Souhaitez-vous néanmoins continuer ?</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="420"/>
+        <location filename="widgets/arrayeditor.py" line="421"/>
         <source>%1 are currently not supported</source>
         <translation>%1 ne sont actuellement pas pris en charge</translation>
     </message>
@@ -363,27 +363,27 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="926"/>
+        <location filename="widgets/dicteditor.py" line="936"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="928"/>
+        <location filename="widgets/dicteditor.py" line="938"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="910"/>
+        <location filename="widgets/dicteditor.py" line="907"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="916"/>
+        <location filename="widgets/dicteditor.py" line="917"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="918"/>
+        <location filename="widgets/dicteditor.py" line="919"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
@@ -1801,7 +1801,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>données</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="418"/>
+        <location filename="widgets/importwizard.py" line="419"/>
         <source>text</source>
         <translation>texte</translation>
     </message>
@@ -1811,67 +1811,67 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Transposer</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="128"/>
+        <location filename="widgets/importwizard.py" line="129"/>
         <source>Column separator:</source>
         <translation>Séparateur de colonne :</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="132"/>
+        <location filename="widgets/importwizard.py" line="133"/>
         <source>Tab</source>
         <translation>Tab</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="153"/>
+        <location filename="widgets/importwizard.py" line="154"/>
         <source>other</source>
         <translation>autre</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="401"/>
+        <location filename="widgets/importwizard.py" line="402"/>
         <source>Import wizard</source>
         <translation>Assistant d&apos;importation</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="407"/>
+        <location filename="widgets/importwizard.py" line="408"/>
         <source>Raw text</source>
         <translation>Text brut</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="410"/>
+        <location filename="widgets/importwizard.py" line="411"/>
         <source>variable_name</source>
         <translation>nom_de_variable</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="421"/>
+        <location filename="widgets/importwizard.py" line="422"/>
         <source>table</source>
         <translation>tableau</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="422"/>
+        <location filename="widgets/importwizard.py" line="423"/>
         <source>Preview</source>
         <translation>Aperçu</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="430"/>
+        <location filename="widgets/importwizard.py" line="431"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="438"/>
+        <location filename="widgets/importwizard.py" line="439"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="444"/>
+        <location filename="widgets/importwizard.py" line="445"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="449"/>
+        <location filename="widgets/importwizard.py" line="450"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="453"/>
+        <location filename="widgets/importwizard.py" line="454"/>
         <source>Done</source>
         <translation>Terminer</translation>
     </message>
@@ -1881,19 +1881,24 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>code</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="146"/>
+        <location filename="widgets/importwizard.py" line="147"/>
         <source>Row separator:</source>
         <translation>Séparateur de ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="150"/>
+        <location filename="widgets/importwizard.py" line="151"/>
         <source>EOL</source>
         <translation>EOL</translation>
     </message>
     <message>
         <location filename="widgets/importwizard.py" line="371"/>
         <source>Array</source>
-        <translation>Tableau</translation>
+        <translation type="obsolete">Tableau</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="372"/>
+        <source>Import as array</source>
+        <translation>Importer en tant que tableau</translation>
     </message>
 </context>
 <context>
@@ -2607,7 +2612,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="471"/>
+        <location filename="widgets/qscieditor.py" line="479"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
@@ -2668,37 +2673,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="696"/>
+        <location filename="widgets/qscieditor.py" line="704"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="700"/>
+        <location filename="widgets/qscieditor.py" line="708"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="704"/>
+        <location filename="widgets/qscieditor.py" line="712"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="708"/>
+        <location filename="widgets/qscieditor.py" line="716"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="712"/>
+        <location filename="widgets/qscieditor.py" line="720"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="716"/>
+        <location filename="widgets/qscieditor.py" line="724"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="721"/>
+        <location filename="widgets/qscieditor.py" line="729"/>
         <source>Select all</source>
         <translation>Sélectionner tout</translation>
     </message>
@@ -2770,32 +2775,32 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Workspace</name>
     <message>
-        <location filename="plugins/workspace.py" line="188"/>
+        <location filename="plugins/workspace.py" line="202"/>
         <source>Auto save</source>
         <translation>Sauvegarde automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="161"/>
+        <location filename="plugins/workspace.py" line="175"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="257"/>
+        <location filename="plugins/workspace.py" line="271"/>
         <source>them</source>
         <translation>les</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="259"/>
+        <location filename="plugins/workspace.py" line="273"/>
         <source>one</source>
         <translation>un</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="261"/>
+        <location filename="plugins/workspace.py" line="275"/>
         <source>it</source>
         <translation>le</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="268"/>
+        <location filename="plugins/workspace.py" line="282"/>
         <source>Workspace is currently keeping reference to %1 object%2.
 
 Do you want to save %3?</source>
@@ -2834,7 +2839,7 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Enregistrer l&apos;espace de travail sous un autre nom...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="191"/>
+        <location filename="plugins/workspace.py" line="205"/>
         <source>Automatically save workspace in a temporary file when quitting</source>
         <translation>Enregistrer automatiquement l&apos;espace de travail dans un fichier temporaire en quittant</translation>
     </message>
@@ -2859,12 +2864,12 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Impossible d&apos;ouvrir l&apos;espace de travail suivant :</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="347"/>
+        <location filename="plugins/workspace.py" line="377"/>
         <source>Save workspace</source>
         <translation>Enregistrer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="354"/>
+        <location filename="plugins/workspace.py" line="384"/>
         <source>Saving workspace...</source>
         <translation>Enregistrement de l&apos;espace de travail...</translation>
     </message>
@@ -2874,32 +2879,32 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Rafraîchir</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="181"/>
+        <location filename="plugins/workspace.py" line="195"/>
         <source>Refresh workspace</source>
         <translation>Rafraîchir l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="184"/>
+        <location filename="plugins/workspace.py" line="198"/>
         <source>Auto refresh</source>
         <translation>Rafraîchissement automatique</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="194"/>
+        <location filename="plugins/workspace.py" line="208"/>
         <source>Clear workspace</source>
         <translation>Effacer l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="134"/>
+        <location filename="plugins/workspace.py" line="148"/>
         <source>Do you want to clear all data from workspace?</source>
         <translation>Souhaitez-vous effacer tous les objets référencés dans l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="196"/>
+        <location filename="plugins/workspace.py" line="210"/>
         <source>Clear all data from workspace</source>
         <translation>Effacer tous les objets référencés dans l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="108"/>
+        <location filename="plugins/workspace.py" line="122"/>
         <source>Workspace</source>
         <translation>Espace de travail</translation>
     </message>
@@ -2919,17 +2924,17 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Nouvel espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="167"/>
+        <location filename="plugins/workspace.py" line="181"/>
         <source>Exclude capitalized references</source>
         <translation>Exclure les références en capitales</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="163"/>
+        <location filename="plugins/workspace.py" line="177"/>
         <source>Exclude references which name starts with an underscore</source>
         <translation>Exclure les références dont le nom commence par un tiret bas</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="169"/>
+        <location filename="plugins/workspace.py" line="183"/>
         <source>Exclude references which name starts with an upper-case character</source>
         <translation>Exclure les références dont le nom commence par une capitale</translation>
     </message>
@@ -2949,62 +2954,62 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation type="obsolete">Souhaitez-vous enregistrer l&apos;espace de travail avant de le fermer ?</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="173"/>
+        <location filename="plugins/workspace.py" line="187"/>
         <source>Exclude unsupported data types</source>
         <translation>Exclure les types non supportés</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="175"/>
+        <location filename="plugins/workspace.py" line="189"/>
         <source>Exclude references to unsupported data types (i.e. which won&apos;t be handled/saved correctly)</source>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="363"/>
+        <location filename="plugins/workspace.py" line="393"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="204"/>
+        <location filename="plugins/workspace.py" line="218"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="230"/>
+        <location filename="plugins/workspace.py" line="244"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="198"/>
+        <location filename="plugins/workspace.py" line="212"/>
         <source>Header Font...</source>
         <translation>Police des en-têtes...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="202"/>
+        <location filename="plugins/workspace.py" line="216"/>
         <source>Value Font...</source>
         <translation>Police des valeurs...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="154"/>
+        <location filename="plugins/workspace.py" line="168"/>
         <source>Import data...</source>
         <translation>Importer des données...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="155"/>
+        <location filename="plugins/workspace.py" line="169"/>
         <source>Import data to workspace</source>
         <translation>Importer des données dans l&apos;espace de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="158"/>
+        <location filename="plugins/workspace.py" line="172"/>
         <source>Save workspace as...</source>
         <translation>Enregistrer l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="294"/>
+        <location filename="plugins/workspace.py" line="308"/>
         <source>Import data</source>
         <translation>Importer des données</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="207"/>
+        <location filename="plugins/workspace.py" line="221"/>
         <source>Workspace settings</source>
         <translation>Options de l&apos;espace de travail</translation>
     </message>
@@ -3024,24 +3029,64 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <translation>Fichiers Matlab</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="97"/>
+        <location filename="plugins/workspace.py" line="111"/>
         <source>Supported files</source>
         <translation>Fichiers compatibles</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="351"/>
+        <location filename="plugins/workspace.py" line="381"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="313"/>
+        <location filename="plugins/workspace.py" line="344"/>
         <source>Loading data...</source>
         <translation>Chargement des données en cours...</translation>
     </message>
     <message>
-        <location filename="plugins/workspace.py" line="321"/>
+        <location filename="plugins/workspace.py" line="357"/>
         <source>&lt;b&gt;Unable to load &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;ouvrir &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="82"/>
+        <source>CSV text files</source>
+        <translation>Fichiers texte CSV</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="84"/>
+        <source>Text files</source>
+        <translation>Fichiers texte</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="86"/>
+        <source>JPEG images</source>
+        <translation>Images JPEG</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="88"/>
+        <source>PNG images</source>
+        <translation>Images PNG</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="90"/>
+        <source>GIF images</source>
+        <translation>Images GIF</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="92"/>
+        <source>TIFF images</source>
+        <translation>Images TIFF</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="94"/>
+        <source>DICOM images</source>
+        <translation>Images DICOM</translation>
+    </message>
+    <message>
+        <location filename="plugins/workspace.py" line="326"/>
+        <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Would you like to import it as a text file?</source>
+        <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Souhaitez-vous ouvrir ce fichier en tant que fichier texte ?</translation>
     </message>
 </context>
 </TS>
