@@ -388,13 +388,11 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.browse_history(backward=False)
             event.accept()
             
-        elif key == Qt.Key_PageUp:
-            self._key_pageup()
-            event.accept()
-            
-        elif key == Qt.Key_PageDown:
-            self._key_pagedown()
-            event.accept()
+        elif key in (Qt.Key_PageUp, Qt.Key_PageDown):
+            #XXX: Find a way to do this programmatically instead of calling
+            # widget keyhandler (this won't work if the *event* is coming from
+            # the event queue - i.e. when the busy buffer will be implemented)
+            ConsoleBaseWidget.keyPressEvent(self, event)
 
         elif key == Qt.Key_Escape:
             self._key_escape()
