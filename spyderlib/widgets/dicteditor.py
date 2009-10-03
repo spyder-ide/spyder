@@ -899,7 +899,7 @@ class DictEditorTableView(BaseTableView):
             clipl.append(_txt)
         clipboard.setText(u'\n'.join(clipl))
     
-    def import_from_string(self, text):
+    def import_from_string(self, text, title=None):
         """Import data from string"""
 #        if isinstance(text, basestring):
 #            text = QString(text)
@@ -913,9 +913,7 @@ class DictEditorTableView(BaseTableView):
         index = 0
         while get_varname(index) in data:
             index += 1
-        editor = ImportWizard(self, text,
-                              title=translate("DictEditor",
-                                              "Import from clipboard"),
+        editor = ImportWizard(self, text, title=title,
                               contents_title=translate("DictEditor",
                                                        "Clipboard contents"),
                               varname=get_varname(index))
@@ -931,7 +929,9 @@ class DictEditorTableView(BaseTableView):
         if clipboard.mimeData().hasText():
             cliptext = unicode(clipboard.text())
         if cliptext.strip():
-            self.import_from_string(cliptext)
+            self.import_from_string(cliptext,
+                                    title=translate("DictEditor",
+                                                    "Import from clipboard"))
         else:
             QMessageBox.warning(self,
                                 translate("DictEditor", "Empty clipboard"),
