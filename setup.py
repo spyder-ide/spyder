@@ -16,10 +16,12 @@ import os, os.path as osp
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
     flist = []
-    for root, _dirs, files in os.walk(name):
-        for fname in files:
+    # Workaround to replace os.path.relpath (not available until Python 2.6):
+    offset = len(name)+len(os.pathsep)
+    for dirpath, _dirnames, filenames in os.walk(name):
+        for fname in filenames:
             if osp.splitext(fname)[1] in extlist:
-                flist.append(osp.relpath(osp.join(root, fname), name))
+                flist.append(osp.join(dirpath, fname)[offset:])
     return flist
 
 name = 'spyder'
