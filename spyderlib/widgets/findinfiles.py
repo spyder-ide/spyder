@@ -459,11 +459,7 @@ class FindOptions(QWidget):
         """Reimplemented to handle key events"""
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
-        if event.key() == Qt.Key_Escape:
-            self.parent().emit(SIGNAL('toggle_visibility(bool)'), False)
-            event.accept()
-            return
-        elif event.key() in (Qt.Key_Enter, Qt.Key_Return):
+        if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.emit(SIGNAL('find()'))
         elif event.key() == Qt.Key_F and ctrl and shift:
             # Toggle find widgets
