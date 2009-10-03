@@ -140,7 +140,7 @@ class FindReplace(QWidget):
             # Toggle replace widgets
             if self.replace_widgets[0].isVisible():
                 self.hide_replace()
-                self.search_text.setFocus()
+                self.hide()
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
