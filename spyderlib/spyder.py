@@ -257,11 +257,14 @@ class MainWindow(QMainWindow):
         if not self.light:
             _text = translate("FindReplace", "Find text")
             self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
-                                             _text, triggered = self.find)
+                                             _text, triggered=self.find)
+            self.find_next_action = create_action(self, translate("FindReplace",
+                                                  "Find next"), "F3",
+                                                  triggered=self.find_next)
             _text = translate("FindReplace", "Replace text")
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
-                                                triggered = self.replace)
+                                                triggered=self.replace)
             self.findinfiles_action = create_action(self,
                                 self.tr("&Find in files"),
                                 "Ctrl+Alt+F", 'findf.png',
@@ -294,7 +297,8 @@ class MainWindow(QMainWindow):
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
                                       None, self.selectall_action]
-            self.search_menu_actions = [self.find_action, self.replace_action]
+            self.search_menu_actions = [self.find_action, self.find_next_action,
+                                        self.replace_action]
 
         namespace = None
         if not self.light:
@@ -406,7 +410,8 @@ class MainWindow(QMainWindow):
             add_actions(edit_toolbar, self.editor.edit_toolbar_actions)
         
             # Seach actions in toolbar
-            toolbar_search_actions = [self.find_action, self.replace_action]
+            toolbar_search_actions = [self.find_action, self.find_next_action,
+                                      self.replace_action]
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
@@ -746,7 +751,8 @@ class MainWindow(QMainWindow):
         if self.menuBar().hasFocus():
             return        
         # Disabling all actions to begin with
-        for child in [self.find_action, self.replace_action]:
+        for child in [self.find_action, self.find_next_action,
+                      self.replace_action]:
             child.setEnabled(False)
         
         _, textedit_properties = self.__focus_widget_properties()
@@ -755,6 +761,7 @@ class MainWindow(QMainWindow):
         #!!! Below this line, widget is expected to be a QsciScintilla instance
         _, _, readwrite_editor = textedit_properties
         self.find_action.setEnabled(True)
+        self.find_next_action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
         
@@ -964,6 +971,12 @@ class MainWindow(QMainWindow):
             plugin.find_widget.show()
             plugin.find_widget.search_text.setFocus()
             return plugin
+    
+    def find_next(self):
+        """Global find next callback"""
+        plugin = self.get_current_editor_plugin()
+        if plugin is not None:
+            plugin.find_widget.find_next()
         
     def replace(self):
         """Global replace callback"""

@@ -125,12 +125,17 @@ class FindReplace(QWidget):
             self.hide()
             event.accept()
             return
+        elif event.key() == Qt.Key_F3:
+            # Find next
+            self.find_next()
+            event.accept()
         elif event.key() == Qt.Key_F and ctrl:
             # Toggle find widgets
             if self.isVisible():
                 self.hide()
             else:
                 self.show()
+            event.accept()
         elif event.key() == Qt.Key_H and ctrl and self.enable_replace:
             # Toggle replace widgets
             if self.replace_widgets[0].isVisible():
@@ -139,6 +144,7 @@ class FindReplace(QWidget):
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
+            event.accept()
         else:
             event.ignore()
         
