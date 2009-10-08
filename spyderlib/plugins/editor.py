@@ -14,7 +14,7 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
-                         QHBoxLayout, QPrinter, QPrintDialog, QDialog,
+                         QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
                          QAbstractPrintDialog)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
@@ -1172,6 +1172,13 @@ class Editor(PluginWidget):
                                   self.close_action,
                                   self.close_all_action, None,
                                   ]
+        
+        option_menu = QMenu(self.tr("Code source editor settings"), self)
+        option_menu.setIcon(get_icon('tooloptions.png'))
+        add_actions(option_menu, (template_action, font_action, wrap_action,
+                                  tab_action, fold_action, showeol_action,
+                                  analyze_action, self.toolbox_action))
+        
         source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
@@ -1181,9 +1188,7 @@ class Editor(PluginWidget):
                 run_selected_extconsole_action,
                 run_process_args_actionn,
                 run_process_debug_action, None, pylint_action,
-                None, template_action, font_action, wrap_action, tab_action,
-                fold_action, showeol_action, analyze_action,
-                self.toolbox_action)
+                None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,

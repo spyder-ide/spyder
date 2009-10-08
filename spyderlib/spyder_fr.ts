@@ -515,12 +515,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1531"/>
+        <location filename="plugins/editor.py" line="1536"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1740"/>
+        <location filename="plugins/editor.py" line="1745"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -530,12 +530,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1465"/>
+        <location filename="plugins/editor.py" line="1470"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1464"/>
+        <location filename="plugins/editor.py" line="1469"/>
         <source>Spyder Editor</source>
         <translation>Éditeur de Spyder</translation>
     </message>
@@ -565,7 +565,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Fermer tout</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1500"/>
+        <location filename="plugins/editor.py" line="1505"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
@@ -967,17 +967,17 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Imprimer le fichier en cours d&apos;édition...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1585"/>
+        <location filename="plugins/editor.py" line="1590"/>
         <source>Printing...</source>
         <translation>Impression en cours...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1596"/>
+        <location filename="plugins/editor.py" line="1601"/>
         <source>Print</source>
         <translation>Impression</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1598"/>
+        <location filename="plugins/editor.py" line="1603"/>
         <source>&lt;b&gt;Unable to print document &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Impossible d&apos;imprimer le document &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
@@ -985,6 +985,16 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <location filename="plugins/editor.py" line="1143"/>
         <source>Show end-of-line characters</source>
         <translation>Afficher les caractères de fin de ligne</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="1175"/>
+        <source>Editor settings</source>
+        <translation type="obsolete">Options de l&apos;éditeur</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="1175"/>
+        <source>Code source editor settings</source>
+        <translation>Options de l&apos;éditeur de code source</translation>
     </message>
 </context>
 <context>
