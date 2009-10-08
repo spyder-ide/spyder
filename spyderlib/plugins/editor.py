@@ -15,7 +15,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
                          QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
-                         QAbstractPrintDialog)
+                         QAbstractPrintDialog, QActionGroup)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
 import os, sys, time, re
@@ -31,6 +31,8 @@ from spyderlib.qthelpers import (create_action, add_actions, mimedata2url,
                                 get_filetype_icon, create_toolbutton,
                                 translate)
 from spyderlib.widgets.qscieditor import QsciEditor, check, Printer
+from spyderlib.utils import (has_mixed_eol_chars, get_os_name_from_eol_chars,
+                             get_eol_chars_from_os_name)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.classbrowser import ClassBrowser
@@ -535,6 +537,10 @@ class EditorTabWidget(Tabs):
         # Toggle save/save all actions state
         self.plugin.save_action.setEnabled(state)
         self.plugin.refresh_save_all_action()
+        # Refreshing eol mode
+        editor = self.data[index].editor
+        eol_chars = editor.get_line_separator()
+        self.plugin.refresh_eol_mode(eol_chars)
         
 
     #------ Load, reload
@@ -1122,6 +1128,27 @@ class Editor(PluginWidget):
         pylint_action = create_action(self, self.tr("Run pylint code analysis"),
                                       "F7", triggered=self.run_pylint)
         pylint_action.setEnabled(is_pylint_installed())
+        
+        convert_eol_action = create_action(self,
+                           self.tr("Convert end-of-line characters"),
+                           triggered=self.convert_eol_chars)
+        self.win_eol_action = create_action(self,
+                           self.tr("Carriage return and line feed (Windows)"),
+                           toggled=lambda: self.toggle_eol_chars('nt'))
+        self.linux_eol_action = create_action(self,
+                           self.tr("Line feed (UNIX)"),
+                           toggled=lambda: self.toggle_eol_chars('posix'))
+        self.mac_eol_action = create_action(self,
+                           self.tr("Carriage return (Mac)"),
+                           toggled=lambda: self.toggle_eol_chars('mac'))
+        eol_action_group = QActionGroup(self)
+        eol_actions = (self.win_eol_action, self.linux_eol_action,
+                       self.mac_eol_action)
+        add_actions(eol_action_group, eol_actions)
+        eol_menu = QMenu(self.tr("End-of-line characters"), self)
+        add_actions(eol_menu, eol_actions)
+        
+        pylint_action.setEnabled(is_pylint_installed())
 
         template_action = create_action(self, self.tr("Edit template for "
                                                       "new modules"),
@@ -1187,7 +1214,8 @@ class Editor(PluginWidget):
                 run_process_interact_action,
                 run_selected_extconsole_action,
                 run_process_args_actionn,
-                run_process_debug_action, None, pylint_action,
+                run_process_debug_action, None,
+                pylint_action, convert_eol_action, eol_menu,
                 None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
@@ -1420,6 +1448,15 @@ class Editor(PluginWidget):
                 font.setBold(True)
                 item.setFont(font)
             self.openedfileslistwidget.addItem(item)
+            
+    def refresh_eol_mode(self, eol_chars):
+        os_name = get_os_name_from_eol_chars(eol_chars)
+        if os_name == 'nt':
+            self.win_eol_action.setChecked(True)
+        elif os_name == 'posix':
+            self.linux_eol_action.setChecked(True)
+        else:
+            self.mac_eol_action.setChecked(True)
     
     
     #------ Slots
@@ -1714,6 +1751,14 @@ class Editor(PluginWidget):
         """Run pylint code analysis"""
         fname = self.get_current_filename()
         self.emit(SIGNAL('run_pylint(QString)'), fname)
+        
+    def convert_eol_chars(self):
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.convert_eol_chars()
+    
+    def toggle_eol_chars(self, os_name):
+        editor = self.get_current_editor()
+        editor.set_eol_mode(get_eol_chars_from_os_name(os_name))
         
         
     #------ Run Python script

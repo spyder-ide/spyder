@@ -14,7 +14,8 @@
 import sys, os, re, time
 from math import log
 
-from PyQt4.QtGui import QMouseEvent, QColor, QMenu, QPixmap, QPrinter
+from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
+                         QApplication)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
@@ -35,6 +36,7 @@ from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
 from spyderlib.widgets.qscibase import TextEditBaseWidget
+from spyderlib.utils import get_eol_chars
 
 
 #===============================================================================
@@ -91,6 +93,9 @@ class QsciEditor(TextEditBaseWidget):
               }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
+    EOL_MODES = {"\r\n": QsciScintilla.EolWindows,
+                 "\n":   QsciScintilla.EolUnix,
+                 "\r":   QsciScintilla.EolMac}
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -278,30 +283,26 @@ class QsciEditor(TextEditBaseWidget):
         """Show EOL characters"""
         self.setEolVisibility(state)
     
+    def convert_eol_chars(self):
+        """Convert EOL characters to current mode"""
+        self.convertEols(self.eolMode())
+    
     def set_eol_mode(self, text):
         """
         Set QScintilla widget EOL mode based on *text* EOL characters
         """
         if isinstance(text, QString):
             text = unicode(text)
-        if text.find("\r\n") > -1:
-            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolWindows) )
-        elif text.find("\n") > -1:
-            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolUnix) )
-        elif text.find("\r") > -1:
-            self.setEolMode( QsciScintilla.EolMode(QsciScintilla.EolMac) )
-        else:
-            return None
+        eol_chars = get_eol_chars(text)
+        if eol_chars is not None:
+            self.setEolMode(self.EOL_MODES[eol_chars])
         
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""
-        mode = self.eolMode()
-        if mode == QsciScintilla.EolWindows:
-            return '\r\n'
-        elif mode == QsciScintilla.EolUnix:
-            return '\n'
-        elif mode == QsciScintilla.EolMac:
-            return '\r'
+        current_mode = self.eolMode()
+        for eol_chars, mode in self.EOL_MODES.iteritems():
+            if current_mode == mode:
+                return eol_chars
         else:
             return ''
     
