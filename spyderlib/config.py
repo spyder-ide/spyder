@@ -180,6 +180,7 @@ DEFAULTS = [
               'class_browser' : True,
               'toolbox_panel' : True,
               'code_folding' : True,
+              'show_eol_chars' : False,
               'tab_always_indent' : True,
               'api' : osp.join(DATA_PATH, 'python.api'),
               }),

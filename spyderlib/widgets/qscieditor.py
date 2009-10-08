@@ -92,8 +92,7 @@ class QsciEditor(TextEditBaseWidget):
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
     
-    def __init__(self, parent=None, linenumbers=True, language=None,
-                 code_analysis=False, code_folding=False):
+    def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
                     
         # Indicate occurences of the selected word
@@ -139,7 +138,7 @@ class QsciEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     font=None, wrap=True):
+                     show_eol_chars=False, font=None, wrap=True):
         # Lexer
         self.set_language(language)
                 
@@ -158,6 +157,8 @@ class QsciEditor(TextEditBaseWidget):
         # XXX: find out why
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
         self.setMatchedBraceBackgroundColor(Qt.yellow)
+        
+        self.set_eol_chars_visible(show_eol_chars)
         
         self.toggle_wrap_mode(wrap)
         self.setup_api()
@@ -272,6 +273,10 @@ class QsciEditor(TextEditBaseWidget):
                 self.connect(self.api, SIGNAL("apiPreparationFinished()"),
                              self.api.savePrepared)
         return is_api_ready
+    
+    def set_eol_chars_visible(self, state):
+        """Show EOL characters"""
+        self.setEolVisibility(state)
     
     def set_eol_mode(self, text):
         """

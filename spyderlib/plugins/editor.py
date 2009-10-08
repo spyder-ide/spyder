@@ -558,6 +558,7 @@ class EditorTabWidget(Tabs):
         editor.setup_editor(linenumbers=True, language=ext,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
                             code_folding=CONF.get(self.ID, 'code_folding'),
+                            show_eol_chars=CONF.get(self.ID, 'show_eol_chars'),
                             font=get_font('editor'),
                             wrap=CONF.get(self.ID, 'wrap'))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
@@ -1137,8 +1138,12 @@ class Editor(PluginWidget):
                         "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
         fold_action = create_action(self, self.tr("Code folding"),
-            toggled=self.toggle_code_folding)
+                                    toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
+        showeol_action = create_action(self,
+                                       self.tr("Show end-of-line characters"),
+                                       toggled=self.toggle_show_eol_chars)
+        showeol_action.setChecked( CONF.get(self.ID, 'show_eol_chars') )
         wrap_action = create_action(self, self.tr("Wrap lines"),
             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
@@ -1177,7 +1182,8 @@ class Editor(PluginWidget):
                 run_process_args_actionn,
                 run_process_debug_action, None, pylint_action,
                 None, template_action, font_action, wrap_action, tab_action,
-                fold_action, analyze_action, self.toolbox_action)
+                fold_action, showeol_action, analyze_action,
+                self.toolbox_action)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1770,6 +1776,14 @@ class Editor(PluginWidget):
                     if not checked:
                         finfo.editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
+            
+    def toggle_show_eol_chars(self, checked):
+        """Toggle show EOL characters"""
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
+                    finfo.editor.set_eol_chars_visible(checked)
+            CONF.set(self.ID, 'show_eol_chars', checked)
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
