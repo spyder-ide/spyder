@@ -856,18 +856,13 @@ class PythonShellWidget(ShellBaseWidget):
         """Reimplemented slot to handle multiline paste action"""
         text = unicode(QApplication.clipboard().text())
         if len(text.splitlines()) > 1:
-            lines = unicode(QApplication.clipboard().text())
-            if len(lines.splitlines())>1:
-                # Multiline paste
-                self.removeSelectedText() # Remove selection, eventually
-                end = self.get_current_line_from_cursor()
-                lines = self.get_current_line_to_cursor() + lines + end
-                self.clear_line()
-                self.execute_lines(lines)
-                self.move_cursor(-len(end))
-            else:
-                # Standard paste
-                ShellBaseWidget.paste(self)
+            # Multiline paste
+            self.removeSelectedText() # Remove selection, eventually
+            end = self.get_current_line_from_cursor()
+            lines = self.get_current_line_to_cursor() + text + end
+            self.clear_line()
+            self.execute_lines(lines)
+            self.move_cursor(-len(end))
         else:
             # Standard paste
             ShellBaseWidget.paste(self)

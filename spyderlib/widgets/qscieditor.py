@@ -402,6 +402,20 @@ class QsciEditor(TextEditBaseWidget):
     def get_text(self):
         """Return editor text"""
         return self.text()
+    
+    def paste(self):
+        """
+        Reimplement QsciScintilla's method to fix the following issue:
+        on Windows, pasted text has only 'LF' EOL chars even if the original
+        text has 'CRLF' EOL chars
+        """
+        clipboard = QApplication.clipboard()
+        text = unicode(clipboard.text())
+        if len(text.splitlines()) > 1:
+            eol_chars = self.get_line_separator()
+            clipboard.setText( eol_chars.join((text+eol_chars).splitlines()) )
+        # Standard paste
+        TextEditBaseWidget.paste(self)
         
     def fold_header(self, line):
         """Is it a fold header line?"""
@@ -769,6 +783,9 @@ class QsciEditor(TextEditBaseWidget):
                 self.SendScintilla(QsciScintilla.SCI_TAB)
             else:
                 self.indent()
+            event.accept()
+        elif (key == Qt.Key_V) and ctrl:
+            self.paste()
             event.accept()
 #TODO: find other shortcuts...
 #        elif (key == Qt.Key_3) and ctrl:
