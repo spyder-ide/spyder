@@ -472,7 +472,7 @@ class EditorTabWidget(Tabs):
             finfo = self.data[index]
             editor = finfo.editor
             editor.setFocus()
-            plugin_title += " - " + osp.basename(finfo.filename)
+            plugin_title += " - " + osp.abspath(finfo.filename)
             self.__refresh_classbrowser(index, update=False)
             self.emit(SIGNAL('refresh_analysis_results()'))
             self.__refresh_statusbar(index)
