@@ -259,8 +259,7 @@ class MainWindow(QMainWindow):
             self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
                                              _text, triggered=self.find)
             self.find_next_action = create_action(self, translate("FindReplace",
-                                                  "Find next"), "F3",
-                                                  triggered=self.find_next)
+                  "Find next"), "F3", 'findnext.png', triggered=self.find_next)
             _text = translate("FindReplace", "Replace text")
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
