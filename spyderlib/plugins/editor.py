@@ -600,7 +600,24 @@ class EditorTabWidget(Tabs):
         self.__refresh_classbrowser(index)
         if goto > 0:
             editor.highlight_line(goto)
-
+        if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
+           and has_mixed_eol_chars(text):
+            name = osp.basename(filename)
+            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> contains mixed end-of-line "
+                                    "characters.<br>Do you want to fix this "
+                                    "automatically?"
+                                    ).arg(name),
+                            QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                self.convert_eol_chars(index)
+                
+    def convert_eol_chars(self, index=None):
+        """Convert end-of-line characters"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.convert_eol_chars()
 
     #------ Run
     def run_script_extconsole(self, ask_for_arguments=False,
@@ -1167,6 +1184,11 @@ class Editor(PluginWidget):
         fold_action = create_action(self, self.tr("Code folding"),
                                     toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
+        checkeol_action = create_action(self,
+            self.tr("Always check end-of-line characters"),
+            toggled=lambda checked: self.emit(SIGNAL('option_changed'),
+                                              'check_eol_chars', checked))
+        checkeol_action.setChecked( CONF.get(self.ID, 'check_eol_chars') )
         showeol_action = create_action(self,
                                        self.tr("Show end-of-line characters"),
                                        toggled=self.toggle_show_eol_chars)
@@ -1203,7 +1225,8 @@ class Editor(PluginWidget):
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (template_action, font_action, wrap_action,
-                                  tab_action, fold_action, showeol_action,
+                                  tab_action, fold_action,
+                                  checkeol_action, showeol_action,
                                   analyze_action, self.toolbox_action))
         
         source_menu_actions = (self.comment_action, self.uncomment_action,
