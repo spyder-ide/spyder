@@ -12,7 +12,8 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
-                         QFontDialog, QInputDialog, QLineEdit, QMenu)
+                         QFontDialog, QInputDialog, QLineEdit, QMenu,
+                         QMessageBox)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import os, sys, imp
@@ -162,6 +163,13 @@ class Console(PluginWidget):
             toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
                                                    'autocompletion/enabled') )
+        rollbackimporter_action = create_action(self,
+                self.tr("Force modules to be completely reloaded"),
+                tip=self.tr("Force Python to reload modules imported when "
+                            "executing a script in the interactive console"),
+                toggled=self.toggle_rollbackimporter)
+        rollbackimporter_action.setChecked( CONF.get(self.ID,
+                                                     'rollback_importer') )
         try:
             imp.find_module('matplotlib')
             dockablefigures_action = create_action(self,
@@ -177,7 +185,8 @@ class Console(PluginWidget):
         option_menu = QMenu(self.tr("Interactive console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (font_action, wrap_action, calltips_action,
-                                  codecompletion_action, exteditor_action,
+                                  codecompletion_action,
+                                  rollbackimporter_action, exteditor_action,
                                   dockablefigures_action))
         
         menu_actions = [None, run_action, environ_action, syspath_action,
@@ -274,7 +283,17 @@ class Console(PluginWidget):
         """Toggle code completion"""
         self.shell.set_codecompletion(checked)
         CONF.set(self.ID, 'autocompletion/enabled', checked)
-
+        
+    def toggle_rollbackimporter(self, checked):
+        """Toggle rollback importer"""
+        CONF.set(self.ID, 'rollback_importer', checked)
+        if checked and self.isVisible():
+            QMessageBox.warning(self, self.get_widget_title(),
+                        self.tr("The rollback importer requires a restart "
+                                "of Spyder to be fully functionnal "
+                                "(otherwise only newly imported modules "
+                                "will be reloaded when executing scripts)."),
+                        QMessageBox.Ok)
                 
     #----Drag and drop                    
     def dragEnterEvent(self, event):

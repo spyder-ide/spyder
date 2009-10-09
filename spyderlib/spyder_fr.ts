@@ -115,22 +115,22 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>Console</name>
     <message>
-        <location filename="plugins/console.py" line="128"/>
+        <location filename="plugins/console.py" line="129"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="128"/>
+        <location filename="plugins/console.py" line="129"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="129"/>
+        <location filename="plugins/console.py" line="130"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="131"/>
+        <location filename="plugins/console.py" line="132"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
@@ -140,109 +140,134 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Ctrl+R</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="132"/>
+        <location filename="plugins/console.py" line="133"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="135"/>
+        <location filename="plugins/console.py" line="136"/>
         <source>Environment variables...</source>
         <translation>Variables d&apos;environnement...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="138"/>
+        <location filename="plugins/console.py" line="139"/>
         <source>Show and edit environment variables (for current session)</source>
         <translation>Afficher et modifier les variables d&apos;environnement (pour la session en cours)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="146"/>
+        <location filename="plugins/console.py" line="147"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="147"/>
+        <location filename="plugins/console.py" line="148"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="150"/>
+        <location filename="plugins/console.py" line="151"/>
         <source>External editor path...</source>
         <translation>Éditeur externe...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="151"/>
+        <location filename="plugins/console.py" line="152"/>
         <source>Set external editor executable path</source>
         <translation>Modifier le chemin d&apos;accès de l&apos;éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="154"/>
+        <location filename="plugins/console.py" line="155"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="157"/>
+        <location filename="plugins/console.py" line="158"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="201"/>
+        <location filename="plugins/console.py" line="210"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="202"/>
+        <location filename="plugins/console.py" line="211"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="244"/>
+        <location filename="plugins/console.py" line="253"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="251"/>
+        <location filename="plugins/console.py" line="260"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="252"/>
+        <location filename="plugins/console.py" line="261"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="107"/>
+        <location filename="plugins/console.py" line="108"/>
         <source>Interactive console</source>
         <translation>Console interactive</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="143"/>
+        <location filename="plugins/console.py" line="144"/>
         <source>Show (read-only) sys.path</source>
         <translation>Afficher le contenu de sys.path (lecture seule)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="141"/>
+        <location filename="plugins/console.py" line="142"/>
         <source>Show sys.path contents...</source>
         <translation>Afficher le contenu de sys.path...</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="160"/>
+        <location filename="plugins/console.py" line="161"/>
         <source>Code completion</source>
         <translation>Complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="170"/>
+        <location filename="plugins/console.py" line="178"/>
         <source>If enabled, matplotlib figures may be docked to Spyder&apos;s main window (will apply only for new figures)</source>
         <translation>Si cette option est activée, les figures matplotlib pourront être embarquées dans la fenêtre de Spyder (cela ne s&apos;appliquera qu&apos;aux nouvelles figures)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="167"/>
+        <location filename="plugins/console.py" line="175"/>
         <source>Dockable figures</source>
         <translation>Figures embarquables</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="176"/>
+        <location filename="plugins/console.py" line="184"/>
         <source>Interactive console settings</source>
         <translation>Options de la console interactive</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="166"/>
+        <source>Rollback importer</source>
+        <translation type="obsolete">Forcer la réimportation des modules</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="168"/>
+        <source>Force Python to reload modules imported when executing a script in the interactive console</source>
+        <translation>Forcer Python à recharger les modules importés lors de l&apos;exécution d&apos;un script dans la console interactive</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="294"/>
+        <source>The rollback importer requires a restart of Spyder to be fully functionnal (otherwise only newly imported modules will be reloaded when executing scripts).</source>
+        <translation>Le rechargement complet des modules requiert un redémarrage de Spyder pour être pleinement fonctionnelle (sinon seuls les modules nouvellement importés seront concernés par cette fonctionnalité).</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="166"/>
+        <source>Force modules to be reloaded</source>
+        <translation type="obsolete">Forcer le rechargement complet des modules</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="166"/>
+        <source>Force modules to be completely reloaded</source>
+        <translation>Forcer le rechargement complet des modules</translation>
     </message>
 </context>
 <context>

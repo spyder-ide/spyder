@@ -137,6 +137,7 @@ DEFAULTS = [
               'autocompletion/from-document' : False,
               'external_editor/path' : 'SciTE',
               'external_editor/gotoline' : '-goto:',
+              'rollback_importer' : False,
               }),
             ('external_shell',
              {

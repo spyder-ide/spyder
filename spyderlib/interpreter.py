@@ -6,9 +6,38 @@
 
 """Shell Interpreter"""
 
-import atexit
+import __builtin__, sys, atexit
 from code import InteractiveConsole
 
+# Local imports:
+from spyderlib.config import CONF
+
+
+class RollbackImporter:
+    """
+    Rollback importer:
+        PyUnit (Steve Purcell)
+        http://pyunit.sourceforge.net
+    """
+    def __init__(self):
+        "Creates an instance and installs as the global importer"
+        self.previous_modules = sys.modules.copy()
+        self.real_import = __builtin__.__import__
+        __builtin__.__import__ = self._import
+        self.new_modules = {}
+        
+    def _import(self, name, globals=None, locals=None, fromlist=[]):
+        result = self.real_import(name, globals, locals, fromlist)
+        self.new_modules[name] = 1
+        return result
+        
+    def uninstall(self):
+        for modname in self.new_modules.keys():
+            if not self.previous_modules.has_key(modname):
+                # Force reload when modname next imported
+                del sys.modules[modname]
+        __builtin__.__import__ = self.real_import
+    
 
 class Interpreter(InteractiveConsole):
     """Interpreter"""
@@ -23,6 +52,8 @@ class Interpreter(InteractiveConsole):
         if exitfunc is not None:
             atexit.register(exitfunc)
         
+        self.rollback_importer = None
+        
         self.namespace = self.locals
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
@@ -32,6 +63,14 @@ class Interpreter(InteractiveConsole):
         if helpfunc is not None:
             self.namespace['help'] = helpfunc
         
+    def _install_rollback_importer(self):
+        if self.rollback_importer is not None:
+            self.rollback_importer.uninstall()
+        if CONF.get('shell', 'rollback_importer'):
+            self.rollback_importer = RollbackImporter()
+        else:
+            self.rollback_importer = None
+        
     def execfile(self, filename):
         """Exec filename"""
         source = open(filename, 'r').read()
@@ -40,6 +79,7 @@ class Interpreter(InteractiveConsole):
                 name = filename.encode('ascii')
             except UnicodeEncodeError:
                 name = '<executed_script>'
+            self._install_rollback_importer()
             code = compile(source, name, "exec")
         except (OverflowError, SyntaxError):
             InteractiveConsole.showsyntaxerror(self, filename)
