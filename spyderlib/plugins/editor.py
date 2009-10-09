@@ -618,6 +618,13 @@ class EditorTabWidget(Tabs):
             index = self.currentIndex()
         finfo = self.data[index]
         finfo.editor.convert_eol_chars()
+        
+    def remove_trailing_spaces(self, index=None):
+        """Remove trailing spaces"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.remove_trailing_spaces()
 
     #------ Run
     def run_script_extconsole(self, ask_for_arguments=False,
@@ -1165,6 +1172,10 @@ class Editor(PluginWidget):
         eol_menu = QMenu(self.tr("End-of-line characters"), self)
         add_actions(eol_menu, eol_actions)
         
+        trailingspaces_action = create_action(self,
+                                      self.tr("Remove trailing spaces"),
+                                      triggered=self.remove_trailing_spaces)
+        
         pylint_action.setEnabled(is_pylint_installed())
 
         template_action = create_action(self, self.tr("Edit template for "
@@ -1239,7 +1250,7 @@ class Editor(PluginWidget):
                 run_process_args_actionn,
                 run_process_debug_action, None,
                 pylint_action, convert_eol_action, eol_menu,
-                None, option_menu)
+                trailingspaces_action, None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1783,6 +1794,9 @@ class Editor(PluginWidget):
         editor = self.get_current_editor()
         editor.set_eol_mode(get_eol_chars_from_os_name(os_name))
         
+    def remove_trailing_spaces(self):
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.remove_trailing_spaces()
         
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,

@@ -36,7 +36,7 @@ from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.qthelpers import (add_actions, create_action, keybinding,
                                  translate)
 from spyderlib.widgets.qscibase import TextEditBaseWidget
-from spyderlib.utils import get_eol_chars
+from spyderlib.utils import get_eol_chars, remove_trailing_spaces
 
 
 #===============================================================================
@@ -286,6 +286,13 @@ class QsciEditor(TextEditBaseWidget):
     def convert_eol_chars(self):
         """Convert EOL characters to current mode"""
         self.convertEols(self.eolMode())
+        
+    def remove_trailing_spaces(self):
+        """Remove trailing spaces"""
+        text_before = unicode(self.text())
+        text_after = remove_trailing_spaces(text_before)
+        if text_before != text_after:
+            self.setText(text_after)
     
     def set_eol_mode(self, text):
         """
