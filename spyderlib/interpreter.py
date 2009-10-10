@@ -12,31 +12,41 @@ from code import InteractiveConsole
 # Local imports:
 from spyderlib.config import CONF
 
+# For debugging purpose
+STDOUT, STDERR = sys.stdout, sys.stderr
+
 
 class RollbackImporter:
     """
-    Rollback importer:
+    Rollback importer is derived from:
         PyUnit (Steve Purcell)
         http://pyunit.sourceforge.net
     """
+    # Blacklisted modules won't be unloaded:
+    BLACKLIST = ('PyQt4', 'spyderlib', 'numpy', 'scipy', 'matplotlib', 'pytz',
+                 'vtk', 'itk', 'wx', 'visual', 'sympy', 'h5py', 'tables')
     def __init__(self):
         "Creates an instance and installs as the global importer"
         self.previous_modules = sys.modules.copy()
-        self.real_import = __builtin__.__import__
+        self.builtin_import = __builtin__.__import__
         __builtin__.__import__ = self._import
-        self.new_modules = {}
+        self.new_modules = set()
         
-    def _import(self, name, globals=None, locals=None, fromlist=[]):
-        result = self.real_import(name, globals, locals, fromlist)
-        self.new_modules[name] = 1
+    def _import(self, name, globals=None, locals=None, fromlist=[], level=-1):
+        result = self.builtin_import(name, globals, locals, fromlist, level)
+        self.new_modules.add(name)
         return result
         
     def uninstall(self):
-        for modname in self.new_modules.keys():
-            if not self.previous_modules.has_key(modname):
-                # Force reload when modname next imported
-                del sys.modules[modname]
-        __builtin__.__import__ = self.real_import
+        for name in self.new_modules:
+            if name not in self.previous_modules \
+               and name.split('.')[0] not in self.BLACKLIST:
+                try:
+                    # Force reload when modname next imported
+                    del sys.modules[name]
+                except KeyError:
+                    pass
+        __builtin__.__import__ = self.builtin_import
     
 
 class Interpreter(InteractiveConsole):

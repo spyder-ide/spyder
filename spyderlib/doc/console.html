@@ -84,6 +84,16 @@ loops if you want to be able to interrupt them (when debugging for example).</p>
 But there is a price to pay: more safety, less interactivity
 (no <tt class="docutils literal"><span class="pre">matplotlib</span></tt> integration).</p>
 </div>
+<div class="section" id="reloading-modules">
+<h2>Reloading modules<a class="headerlink" href="#reloading-modules" title="Permalink to this headline">¶</a></h2>
+<p>The interactive console can force the Python interpreter to reload modules
+completely when executing import statements. This feature is however disabled
+by default because some modules may be not work properly with it (see
+Interactive console option submenu in the menu bar &#8220;Source&#8221; entry).</p>
+<p>When enabled, this option will systematically reload imported modules since its
+activation. In other words, if you would like some modules to be loaded only
+once, you may import them before enabling the option.</p>
+</div>
 <div class="section" id="special-commands">
 <h2>Special commands<a class="headerlink" href="#special-commands" title="Permalink to this headline">¶</a></h2>
 <p>The following special commands are supported by the interactive console.</p>
@@ -150,6 +160,7 @@ effect on interactive console&#8217;s performance:</p>
             <ul>
 <li><a class="reference external" href="">Interactive Console</a><ul>
 <li><a class="reference external" href="#the-thread-safe-issue">The thread safe issue</a></li>
+<li><a class="reference external" href="#reloading-modules">Reloading modules</a></li>
 <li><a class="reference external" href="#special-commands">Special commands</a></li>
 <li><a class="reference external" href="#the-workspace">The Workspace</a></li>
 </ul>

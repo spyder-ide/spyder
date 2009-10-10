@@ -13,6 +13,7 @@ Related plugins:
     * :doc:`editor`
     * :doc:`explorer`
 
+
 The thread safe issue
 ---------------------
 
@@ -38,6 +39,19 @@ Of course, Spyder has a solution to this thread-safe issue: the
 :doc:`extconsole`, a Python interpreter executed in a separate process. 
 But there is a price to pay: more safety, less interactivity 
 (no ``matplotlib`` integration).
+
+
+Reloading modules
+-----------------
+
+The interactive console can force the Python interpreter to reload modules 
+completely when executing import statements. This feature is however disabled 
+by default because some modules may be not work properly with it (see 
+Interactive console option submenu in the menu bar "Source" entry).
+
+When enabled, this option will systematically reload imported modules since its 
+activation. In other words, if you would like some modules to be loaded only 
+once, you may import them before enabling the option.
 
 
 Special commands

@@ -11,7 +11,7 @@ Spyder may also be used as an extension library providing powerful
 console-related PyQt4 widgets.
 
 Spyder websites:
-    * Downloads, bug reports and feature requests: http://code.google.com/p/pydee/
+    * Downloads, bug reports and feature requests: http://spyderlib.googlecode.com
     * Discussions: http://groups.google.com/group/spyderlib
             
 .. image:: images/spyder.png
