@@ -931,9 +931,9 @@ class MainWindow(QMainWindow):
             <br>Copyright &copy; 2006-2007 Everaldo Coelho
             <p>Spyder is based on spyderlib module v%2
             <br>Bug reports and feature requests: 
-            <a href="http://code.google.com/s/spyder/">Google Code</a><br>
+            <a href="http://spyderlib.googlecode.com">Google Code</a><br>
             Discussions around the project: 
-            <a href="http://groups.google.com/group/spyder">Google Group</a>
+            <a href="http://groups.google.com/group/spyderlib">Google Group</a>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
