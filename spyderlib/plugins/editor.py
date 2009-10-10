@@ -610,8 +610,15 @@ class EditorTabWidget(Tabs):
                                     ).arg(name),
                             QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.Yes:
+                self.set_os_eol_chars(index)
                 self.convert_eol_chars(index)
-                
+    
+    def set_os_eol_chars(self, index=None):
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.set_eol_mode(get_eol_chars_from_os_name(os.name))
+    
     def convert_eol_chars(self, index=None):
         """Convert end-of-line characters"""
         if index is None:
