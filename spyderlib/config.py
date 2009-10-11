@@ -185,6 +185,7 @@ DEFAULTS = [
               'show_eol_chars' : False,
               'tab_always_indent' : True,
               'api' : osp.join(DATA_PATH, 'python.api'),
+              'max_recent_files' : 20,
               }),
             ('historylog',
              {

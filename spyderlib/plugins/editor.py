@@ -15,7 +15,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
                          QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
-                         QAbstractPrintDialog, QActionGroup)
+                         QAbstractPrintDialog, QActionGroup, QInputDialog)
 from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
 
 import os, sys, time, re
@@ -1230,15 +1230,23 @@ class Editor(PluginWidget):
                         "opened file list, ...)"),
             toggled=self.toggle_toolbox)
                 
-        self.file_menu_actions = [self.new_action,
-                                  self.open_action,
-                                  self.save_action,
-                                  self.save_all_action,
+        self.max_recent_action = create_action(self,
+            self.tr("Maximum number of recent files..."),
+            triggered=self.change_max_recent_files)
+        self.clear_recent_action = create_action(self,
+            self.tr("Clear this list"), tip=self.tr("Clear recent files list"),
+            triggered=self.clear_recent_files)
+        self.recent_file_menu = QMenu(self.tr("Open &recent"), self)
+        self.connect(self.recent_file_menu, SIGNAL("aboutToShow()"),
+                     self.update_recent_file_menu)
+
+        self.file_menu_actions = [self.new_action, self.open_action,
+                                  self.recent_file_menu,
+                                  self.save_action, self.save_all_action,
                                   save_as_action, None,
                                   print_preview_action, print_action, None,
                                   self.close_action,
-                                  self.close_all_action, None,
-                                  ]
+                                  self.close_all_action, None]
         
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
@@ -1566,7 +1574,7 @@ class Editor(PluginWidget):
             return
         if not fname in self.recent_files:
             self.recent_files.insert(0, fname)
-            if len(self.recent_files) > 9:
+            if len(self.recent_files) > CONF.get(self.ID, 'max_recent_files'):
                 self.recent_files.pop(-1)
     
     def new(self, editortabwidget=None):
@@ -1597,6 +1605,40 @@ class Editor(PluginWidget):
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)
+        
+    def update_recent_file_menu(self):
+        """Update recent file menu"""
+        recent_files = []
+        for fname in self.recent_files:
+            if not self.is_file_opened(fname) and osp.isfile(fname):
+                recent_files.append(fname)
+        self.recent_file_menu.clear()
+        if recent_files:
+            for i, fname in enumerate(recent_files):
+                if i < 10:
+                    accel = "%d" % ((i+1) % 10)
+                else:
+                    accel = chr(i-10+ord('a'))
+                action = create_action(self, "&%s %s" % (accel, fname),
+                                       icon=get_filetype_icon(fname),
+                                       triggered=self.load)
+                action.setData(QVariant(fname))
+                self.recent_file_menu.addAction(action)
+        self.clear_recent_action.setEnabled(len(recent_files) > 0)
+        add_actions(self.recent_file_menu, (None, self.max_recent_action,
+                                            self.clear_recent_action))
+        
+    def clear_recent_files(self):
+        """Clear recent files list"""
+        self.recent_files = []
+        
+    def change_max_recent_files(self):
+        "Change max recent files entries"""
+        mrf, valid = QInputDialog.getInteger(self, self.tr('Editor'),
+                               self.tr('Maximum number of recent files'),
+                               CONF.get(self.ID, 'max_recent_files'), 1, 100)
+        if valid:
+            CONF.set(self.ID, 'max_recent_files', mrf)
         
     def load(self, filenames=None, goto=0):
         """Load a text file"""

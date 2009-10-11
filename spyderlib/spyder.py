@@ -320,16 +320,6 @@ class MainWindow(QMainWindow):
             
             # File menu
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
-            if WinUserEnvDialog is not None:
-                self.winenv_action = create_action(self,
-                    self.tr("Current user environment variables..."),
-                    icon = 'win_env.png',
-                    tip = self.tr("Show and edit current user environment "
-                                  "variables in Windows registry "
-                                  "(i.e. for all sessions)"),
-                    triggered=self.win_env)
-            else:
-                self.winenv_action = None
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
                          self.update_file_menu)
             
@@ -410,6 +400,23 @@ class MainWindow(QMainWindow):
             edit_toolbar = self.create_toolbar(self.tr("Edit toolbar"),
                                                "edit_toolbar")
             add_actions(edit_toolbar, self.editor.edit_toolbar_actions)
+            
+            # Populating file menu entries
+            file_actions = self.editor.file_menu_actions
+            file_actions += [self.load_temp_session_action,
+                             self.load_session_action, self.save_session_action,
+                             None, self.spyder_path_action]
+            if WinUserEnvDialog is not None:
+                winenv_action = create_action(self,
+                    self.tr("Current user environment variables..."),
+                    icon = 'win_env.png',
+                    tip = self.tr("Show and edit current user environment "
+                                  "variables in Windows registry "
+                                  "(i.e. for all sessions)"),
+                    triggered=self.win_env)
+                file_actions.append(winenv_action)
+            file_actions += (None, self.quit_action)
+            add_actions(self.file_menu, file_actions)
         
             # Seach actions in toolbar
             toolbar_search_actions = [self.find_action, self.find_next_action,
@@ -674,30 +681,8 @@ class MainWindow(QMainWindow):
             self.docviewer.set_shell(shell)
         
     def update_file_menu(self):
-        """Update file menu to show recent files"""
-        self.file_menu.clear()
-        add_actions(self.file_menu, self.editor.file_menu_actions)
+        """Update file menu"""
         self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
-        add_actions(self.file_menu, [self.load_temp_session_action,
-                                     self.load_session_action,
-                                     self.save_session_action,
-                                     None, self.spyder_path_action])
-        if self.winenv_action is not None:
-            self.file_menu.addAction(self.winenv_action)
-        recent_files = []
-        for fname in self.editor.recent_files:
-            if not self.editor.is_file_opened(fname) and osp.isfile(fname):
-                recent_files.append(fname)
-        if recent_files:
-            self.file_menu.addSeparator()
-            for i, fname in enumerate(recent_files):
-                action = create_action(self,
-                                       "&%d %s" % (i+1, osp.basename(fname)),
-                                       icon=get_filetype_icon(fname),
-                                       triggered=self.editor.load)
-                action.setData(QVariant(fname))
-                self.file_menu.addAction(action)
-        add_actions(self.file_menu, (None, self.quit_action))
         
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()
