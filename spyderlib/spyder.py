@@ -366,7 +366,10 @@ class MainWindow(QMainWindow):
             self.connect(self.console, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.add_dockwidget(self.console)
-        
+            self.quit_action = create_action(self, self.tr("&Quit"),
+                             self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
+                             triggered=self.console.quit)
+                                
         # Working directory changer widget
         self.workdir = WorkingDirectory(self, self.init_workdir)
         self.addToolBar(self.workdir)
@@ -694,7 +697,7 @@ class MainWindow(QMainWindow):
                                        triggered=self.editor.load)
                 action.setData(QVariant(fname))
                 self.file_menu.addAction(action)
-        add_actions(self.file_menu, (None, self.console.quit_action))
+        add_actions(self.file_menu, (None, self.quit_action))
         
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()

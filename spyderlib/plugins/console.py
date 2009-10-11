@@ -126,8 +126,7 @@ class Console(PluginWidget):
     
     def set_actions(self):
         """Setup actions"""
-        self.quit_action = create_action(self,
-                            self.tr("&Quit"), self.tr("Ctrl+Q"),
+        quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
                             'exit.png', self.tr("Quit"),
                             triggered=self.quit)
         run_action = create_action(self, self.tr("&Run..."), None,
@@ -190,7 +189,7 @@ class Console(PluginWidget):
                                   dockablefigures_action))
         
         menu_actions = [None, run_action, environ_action, syspath_action,
-                        option_menu, None, self.quit_action]
+                        option_menu, None, quit_action]
         toolbar_actions = []
         
         # Add actions to context menu
