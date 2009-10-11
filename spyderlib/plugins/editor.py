@@ -593,11 +593,13 @@ class EditorTabWidget(Tabs):
         
     def load(self, filename, goto=0):
         """Load filename"""
+        self.plugin.starting_long_process(self.tr("Loading %1...").arg(filename))
         text, enc = encoding.read(filename)
         editor = self.create_new_editor(filename, enc, text)
         index = self.currentIndex()
         self.analyze_script(index)
         self.__refresh_classbrowser(index)
+        self.plugin.ending_long_process()
         if goto > 0:
             editor.highlight_line(goto)
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
@@ -1690,6 +1692,7 @@ class Editor(PluginWidget):
                 editortabwidget = self.get_current_editortabwidget()
                 editortabwidget.load(filename, goto)
                 self.__add_recent_file(filename)
+                QApplication.processEvents()
                 
         if goto > 0:
             editor = self.get_current_editor()
