@@ -842,6 +842,10 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.toggleViewAction().setDisabled(True)
             self.setCentralWidget(self.last_plugin)
             self.last_plugin.ismaximized = True
+            # Workaround to solve an issue with editor's class browser:
+            # (otherwise the whole plugin is hidden and so is the class browser
+            #  and the latter won't be refreshed if not visible)
+            self.last_plugin.show()
             self.last_plugin.visibility_changed(True)
         else:
             # Restore original layout (before maximizing current dockwidget)

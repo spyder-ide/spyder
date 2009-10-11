@@ -391,7 +391,8 @@ class EditorTabWidget(Tabs):
         if self.data:
             finfo = self.data[index]
             if CONF.get(self.ID, 'class_browser') \
-               and is_python_script(finfo.filename) and classbrowser.isVisible():
+               and is_python_script(finfo.filename) \
+               and classbrowser.isVisible():
                 enable = True
                 classbrowser.setEnabled(True)
                 classes = classbrowser.refresh(finfo.classes, update=update)
