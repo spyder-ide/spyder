@@ -1246,6 +1246,8 @@ def initialize():
     sys.exit = fake_sys_exit
     
     # Translation
+    qt_translator = None
+    app_translator = None
     if CONF.get('main', 'translation'):
         locale = QLocale.system().name()
         qt_translator = QTranslator()
