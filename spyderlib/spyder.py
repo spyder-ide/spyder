@@ -73,7 +73,7 @@ def get_python_doc_path():
     if osp.isdir(doc_path):
         if os.name == 'nt':
             python_chm = [ path for path in  os.listdir(doc_path) \
-                           if re.match(r"Python[0-9]{2}.chm", path) ]
+                           if re.match(r"(?i)Python[0-9]{3}.chm", path) ]
             if python_chm:
                 python_doc = osp.join(doc_path, python_chm[0])
         if not python_doc:
