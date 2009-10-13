@@ -180,6 +180,8 @@ class InteractiveShell(PythonShellWidget):
         self.clear()
         
         self.restore_stds()
+        if self.interpreter is not None:
+            self.interpreter.closing()
         self.interpreter = Interpreter(namespace, self.exitfunc,
                                        self.raw_input, self.help_replacement)
         self.redirect_stds()

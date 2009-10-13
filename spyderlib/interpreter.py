@@ -73,6 +73,11 @@ class Interpreter(InteractiveConsole):
         if helpfunc is not None:
             self.namespace['help'] = helpfunc
         
+    def closing(self):
+        """Actions to be done before restarting this interpreter"""
+        if self.rollback_importer is not None:
+            self.rollback_importer.uninstall()
+        
     def _install_rollback_importer(self):
         if self.rollback_importer is not None:
             self.rollback_importer.uninstall()
