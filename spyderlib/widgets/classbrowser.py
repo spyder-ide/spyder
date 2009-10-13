@@ -18,7 +18,7 @@ from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.qthelpers import translate
+from spyderlib.utils.qthelpers import translate
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.classparser import get_classes
 

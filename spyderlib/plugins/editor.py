@@ -27,9 +27,9 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
-from spyderlib.qthelpers import (create_action, add_actions, mimedata2url,
-                                get_filetype_icon, create_toolbutton,
-                                translate)
+from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
+                                       get_filetype_icon, create_toolbutton,
+                                       translate)
 from spyderlib.widgets.qscieditor import QsciEditor, check, Printer
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace

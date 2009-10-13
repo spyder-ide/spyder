@@ -26,8 +26,8 @@ import StringIO
 
 # Local import
 from spyderlib.config import get_icon, get_font
-from spyderlib.qthelpers import (translate, add_actions, create_action,
-                                 keybinding)
+from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
+                                       keybinding)
 
 # string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {

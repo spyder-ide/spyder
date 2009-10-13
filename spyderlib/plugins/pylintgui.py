@@ -20,7 +20,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, set_font
-from spyderlib.qthelpers import create_action, translate
+from spyderlib.utils.qthelpers import create_action, translate
 from spyderlib.widgets.pylintgui import PylintWidget
 from spyderlib.plugins import PluginMixin
 

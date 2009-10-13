@@ -23,7 +23,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.config import CONF, get_conf_path, get_icon
-from spyderlib.qthelpers import get_std_icon, create_action
+from spyderlib.utils.qthelpers import get_std_icon, create_action
 
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox

@@ -16,7 +16,7 @@ from PyQt4.QtGui import (QTabWidget, QMenu, QDrag, QApplication, QTabBar,
 from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
-from spyderlib.qthelpers import add_actions
+from spyderlib.utils.qthelpers import add_actions
 
 # For debugging purpose:
 import sys

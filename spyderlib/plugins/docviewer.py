@@ -18,7 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_conf_path, get_icon
-from spyderlib.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor
 from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell

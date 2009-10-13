@@ -23,9 +23,10 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.config import (CONF, get_conf_path, str2type, get_icon,
                               get_font, set_font)
-from spyderlib.qthelpers import create_action, add_actions, translate
-from spyderlib.io import (save_dictionary, load_dictionary, load_array,
-                          load_image, load_dicom, load_matlab, save_matlab)
+from spyderlib.utils.qthelpers import create_action, add_actions, translate
+from spyderlib.utils.iofuncs import (save_dictionary, load_dictionary,
+                                     load_array, load_image, load_dicom,
+                                     load_matlab, save_matlab)
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
 from spyderlib.plugins import PluginMixin
 

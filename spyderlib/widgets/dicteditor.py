@@ -26,7 +26,7 @@ from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 
 # Local import
 from spyderlib.config import get_icon, get_font
-from spyderlib.qthelpers import translate, add_actions, create_action
+from spyderlib.utils.qthelpers import translate, add_actions, create_action
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
 

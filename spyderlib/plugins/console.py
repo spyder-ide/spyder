@@ -24,8 +24,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, set_font, get_icon
-from spyderlib.qthelpers import create_action, add_actions, mimedata2url
-from spyderlib.environ import EnvDialog
+from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
+from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.interactiveshell import InteractiveShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace

@@ -27,8 +27,8 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.qthelpers import (toggle_actions, create_action, add_actions,
-                                translate)
+from spyderlib.utils.qthelpers import (toggle_actions, create_action,
+                                       add_actions, translate)
 from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.widgets.qscieditor import QsciEditor
 from spyderlib.widgets.findreplace import FindReplace

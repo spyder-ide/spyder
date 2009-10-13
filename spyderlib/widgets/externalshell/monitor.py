@@ -6,7 +6,7 @@ import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
-from spyderlib.dochelpers import getargtxt, getdoc, getsource, getobjdir
+from spyderlib.utils.dochelpers import getargtxt, getdoc, getsource, getobjdir
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
                                           value_to_display, globalsfilter)
 

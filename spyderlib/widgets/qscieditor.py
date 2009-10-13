@@ -33,8 +33,8 @@ STDOUT = sys.stdout
 
 # Local import
 from spyderlib.config import CONF, get_icon, get_image_path
-from spyderlib.qthelpers import (add_actions, create_action, keybinding,
-                                 translate)
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       translate)
 from spyderlib.widgets.qscibase import TextEditBaseWidget
 from spyderlib.utils import sourcecode
 

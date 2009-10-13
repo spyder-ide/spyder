@@ -19,7 +19,7 @@ from functools import partial as ft_partial
 
 # Local import
 from spyderlib.config import get_icon
-from spyderlib.qthelpers import translate, add_actions, create_action
+from spyderlib.utils.qthelpers import translate, add_actions, create_action
 
 def try_to_parse(value):
     _types = ('int','float')

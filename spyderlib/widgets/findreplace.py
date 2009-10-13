@@ -21,7 +21,7 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.qthelpers import get_std_icon, create_toolbutton
+from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
 
 

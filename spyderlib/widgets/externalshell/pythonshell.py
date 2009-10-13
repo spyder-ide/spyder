@@ -17,7 +17,7 @@ from PyQt4.QtGui import QApplication, QMessageBox, QCheckBox, QSplitter
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
-from spyderlib.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config import CONF, get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup

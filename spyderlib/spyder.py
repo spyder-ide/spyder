@@ -35,7 +35,7 @@ from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
 from spyderlib import __version__
 from spyderlib.utils import encoding
 try:
-    from spyderlib.environ import WinUserEnvDialog
+    from spyderlib.utils.environ import WinUserEnvDialog
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
@@ -49,14 +49,15 @@ from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.pylintgui import Pylint
-from spyderlib.qthelpers import (create_action, add_actions, get_std_icon,
-                                 add_module_dependent_bookmarks, add_bookmark,
-                                 create_program_action, keybinding, translate,
-                                 create_python_gui_script_action)
+from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
+                                       add_module_dependent_bookmarks,
+                                       add_bookmark, create_program_action,
+                                       keybinding, translate,
+                                       create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               DATA_PATH, DOC_PATH)
 from spyderlib.utils.programs import run_python_gui_script
-from spyderlib.io import load_session, save_session, reset_session
+from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')

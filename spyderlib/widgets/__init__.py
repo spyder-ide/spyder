@@ -19,7 +19,7 @@ from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.qthelpers import create_action, add_actions
+from spyderlib.utils.qthelpers import create_action, add_actions
 
 class OneColumnTree(QTreeWidget):
     def __init__(self, parent):

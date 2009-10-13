@@ -19,7 +19,7 @@ from PyQt4.QtCore import Qt
 # Local imports
 from spyderlib.plugins import PluginWidget
 from spyderlib.config import get_font, get_icon
-from spyderlib.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton
 
 class MatplotlibFigure(PluginWidget):
     """

@@ -34,10 +34,10 @@ from PyQt4.QtGui import QMessageBox
 from PyQt4.QtCore import SIGNAL, QString, QEventLoop
 
 # Local import
-from spyderlib.qthelpers import (translate, create_action, get_std_icon,
-                                 keyevent2tuple)
+from spyderlib.utils.qthelpers import (translate, create_action, get_std_icon,
+                                       keyevent2tuple)
 from spyderlib.interpreter import Interpreter
-from spyderlib.dochelpers import getargtxt, getsource, getdoc, getobjdir
+from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
 from spyderlib.utils import encoding
 from spyderlib.config import CONF, get_conf_path
 from spyderlib.widgets.shell import PythonShellWidget

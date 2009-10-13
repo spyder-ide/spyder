@@ -20,7 +20,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.qthelpers import get_std_icon, create_toolbutton
+from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.config import get_icon
 
 
@@ -135,8 +135,8 @@ class PathManager(QDialog):
             remove = True
         else:
             remove = False
-        from spyderlib.environ import (get_user_env, set_user_env,
-                                      listdict2envdict)
+        from spyderlib.utils.environ import (get_user_env, set_user_env,
+                                             listdict2envdict)
         env = get_user_env()
         if remove:
             ppath = self.pathlist

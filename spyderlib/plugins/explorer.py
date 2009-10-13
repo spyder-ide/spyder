@@ -22,7 +22,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, set_font
-from spyderlib.qthelpers import create_action, translate
+from spyderlib.utils.qthelpers import create_action, translate
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import PluginMixin
 

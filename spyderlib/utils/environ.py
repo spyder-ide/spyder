@@ -14,7 +14,7 @@ import os
 
 # Local imports
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.qthelpers import translate
+from spyderlib.utils.qthelpers import translate
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""

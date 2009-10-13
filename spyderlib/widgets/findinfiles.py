@@ -35,8 +35,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.programs import is_program_installed
-from spyderlib.qthelpers import (get_std_icon, create_toolbutton, translate,
-                                get_filetype_icon)
+from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
+                                       translate, get_filetype_icon)
 from spyderlib.config import get_icon
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets import OneColumnTree

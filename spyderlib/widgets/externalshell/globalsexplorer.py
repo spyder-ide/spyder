@@ -21,7 +21,8 @@ from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                                     monitor_set_global, monitor_get_global,
                                     monitor_del_global, monitor_copy_global)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
-from spyderlib.qthelpers import create_toolbutton, add_actions, create_action
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.config import get_icon, CONF
 
 
