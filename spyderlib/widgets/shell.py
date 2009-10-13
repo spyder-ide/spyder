@@ -600,6 +600,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
         Insert text at the current cursor position
         or at the end of the command line
         """
+        if self.isReadOnly():
+            return
         if error and text.startswith('  File "<'):
             # Avoid printing 'File <console> [...]' which is related to the
             # code.InteractiveConsole Python interpreter emulation
