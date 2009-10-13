@@ -29,10 +29,11 @@ from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QFileDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
-                          QObject, QVariant)
+                          QObject)
 
 # Local imports
-from spyderlib import __version__, encoding
+from spyderlib import __version__
+from spyderlib.utils import encoding
 try:
     from spyderlib.environ import WinUserEnvDialog
 except ImportError:
@@ -49,13 +50,12 @@ from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.qthelpers import (create_action, add_actions, get_std_icon,
-                                 keybinding, translate, get_filetype_icon,
                                  add_module_dependent_bookmarks, add_bookmark,
-                                 create_program_action,
+                                 create_program_action, keybinding, translate,
                                  create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               DATA_PATH, DOC_PATH)
-from spyderlib.utils import run_python_gui_script
+from spyderlib.utils.programs import run_python_gui_script
 from spyderlib.io import load_session, save_session, reset_session
 
 

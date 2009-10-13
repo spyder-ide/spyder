@@ -336,7 +336,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             # Import data with import wizard
             error_message = None
             try:
-                from spyderlib import encoding
+                from spyderlib.utils import encoding
                 text, _encoding = encoding.read(self.filename)
                 self.import_from_string(text)
             except Exception, error:

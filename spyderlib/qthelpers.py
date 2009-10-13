@@ -16,9 +16,7 @@ from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
 
 # Local import
 from spyderlib.config import get_icon
-from spyderlib.utils import (is_program_installed, run_program,
-                             is_python_gui_script_installed,
-                             run_python_gui_script)
+from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -182,18 +180,18 @@ def create_program_action(parent, text, icon, name, nt_name=None):
             name = nt_name
     if isinstance(icon, basestring):
         icon = get_icon(icon)
-    if is_program_installed(name):
+    if programs.is_program_installed(name):
         return create_action(parent, text, icon=icon,
-                             triggered=lambda: run_program(name))
+                             triggered=lambda: programs.run_program(name))
         
 def create_python_gui_script_action(parent, text, icon, package, module):
     """Create action to run a GUI based Python script"""
     if isinstance(icon, basestring):
         icon = get_icon(icon)
-    if is_python_gui_script_installed(package, module):
+    if programs.is_python_gui_script_installed(package, module):
         return create_action(parent, text, icon=icon,
                              triggered=lambda:
-                             run_python_gui_script(package, module))
+                             programs.run_python_gui_script(package, module))
         
 def get_std_icon(name, size=None):
     """Get standard platform icon

@@ -38,7 +38,7 @@ from spyderlib.qthelpers import (translate, create_action, get_std_icon,
                                  keyevent2tuple)
 from spyderlib.interpreter import Interpreter
 from spyderlib.dochelpers import getargtxt, getsource, getdoc, getobjdir
-from spyderlib.encoding import transcode
+from spyderlib.utils import encoding
 from spyderlib.config import CONF, get_conf_path
 from spyderlib.widgets.shell import PythonShellWidget
 
@@ -450,8 +450,8 @@ has the same effect as typing a particular string at the help> prompt.
             # System ! command
             pipe = Popen(cmd[1:], shell=True,
                          stdin=PIPE, stderr=PIPE, stdout=PIPE)
-            txt_out = transcode( pipe.stdout.read() )
-            txt_err = transcode( pipe.stderr.read().rstrip() )
+            txt_out = encoding.transcode( pipe.stdout.read() )
+            txt_err = encoding.transcode( pipe.stderr.read().rstrip() )
             if txt_err:
                 self.write_error(txt_err)
             if txt_out:

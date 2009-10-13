@@ -25,14 +25,12 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib import encoding
+from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.qthelpers import (create_action, add_actions, mimedata2url,
                                 get_filetype_icon, create_toolbutton,
                                 translate)
 from spyderlib.widgets.qscieditor import QsciEditor, check, Printer
-from spyderlib.utils import (has_mixed_eol_chars, get_os_name_from_eol_chars,
-                             get_eol_chars_from_os_name)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.classbrowser import ClassBrowser
@@ -604,7 +602,7 @@ class EditorTabWidget(Tabs):
         if goto > 0:
             editor.highlight_line(goto)
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
-           and has_mixed_eol_chars(text):
+           and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
             answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
                             self.tr("<b>%1</b> contains mixed end-of-line "
@@ -620,7 +618,7 @@ class EditorTabWidget(Tabs):
         if index is None:
             index = self.currentIndex()
         finfo = self.data[index]
-        finfo.editor.set_eol_mode(get_eol_chars_from_os_name(os.name))
+        finfo.editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os.name))
     
     def convert_eol_chars(self, index=None):
         """Convert end-of-line characters"""
@@ -1502,7 +1500,7 @@ class Editor(PluginWidget):
             self.openedfileslistwidget.addItem(item)
             
     def refresh_eol_mode(self, eol_chars):
-        os_name = get_os_name_from_eol_chars(eol_chars)
+        os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
         elif os_name == 'posix':
@@ -1845,7 +1843,7 @@ class Editor(PluginWidget):
     
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
-        editor.set_eol_mode(get_eol_chars_from_os_name(os_name))
+        editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os_name))
         
     def remove_trailing_spaces(self):
         editortabwidget = self.get_current_editortabwidget()

@@ -16,7 +16,7 @@ from PyQt4.QtGui import QMessageBox
 from PyQt4.QtCore import QProcess, SIGNAL, QString
 
 # Local imports
-from spyderlib import encoding
+from spyderlib.utils import encoding
 from spyderlib.config import get_icon
 from spyderlib.widgets.externalshell import ExternalShellBase
 from spyderlib.widgets.shell import TerminalWidget

@@ -21,7 +21,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib import encoding
+from spyderlib.utils import encoding
 from spyderlib.config import CONF, get_conf_path, get_icon
 from spyderlib.qthelpers import get_std_icon, create_action
 

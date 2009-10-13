@@ -24,7 +24,6 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 
 # Local imports
-from spyderlib.encoding import transcode
 from spyderlib.qthelpers import create_toolbutton
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.externalshell.monitor import communicate

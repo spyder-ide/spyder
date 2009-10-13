@@ -37,7 +37,7 @@ STDOUT = sys.stdout
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.qthelpers import (get_std_icon, create_action, add_actions,
                                 translate)
-from spyderlib import encoding
+from spyderlib.utils import encoding
 from spyderlib.config import get_icon
 
 

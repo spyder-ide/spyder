@@ -9,7 +9,7 @@
 import inspect, re
 
 # Local imports:
-from spyderlib.encoding import to_unicode
+from spyderlib.utils import encoding
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 
@@ -46,15 +46,15 @@ def getobjdir(obj):
 
 def getdoc(obj):
     """Wrapper around inspect.getdoc"""
-    return to_unicode( inspect.getdoc(obj) )
+    return encoding.to_unicode( inspect.getdoc(obj) )
 
 def getsource(obj):
     """Wrapper around inspect.getsource"""
     try:
-        src = to_unicode( inspect.getsource(obj) )
+        src = encoding.to_unicode( inspect.getsource(obj) )
     except TypeError:
         if hasattr(obj, '__class__'):
-            src = to_unicode( inspect.getsource(obj.__class__) )
+            src = encoding.to_unicode( inspect.getsource(obj.__class__) )
         else:
             # Bindings like VTK or ITK require this case
             src = getdoc(obj)

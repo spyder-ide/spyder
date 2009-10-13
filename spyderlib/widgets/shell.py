@@ -23,7 +23,8 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 # Local import
-from spyderlib import __version__, encoding
+from spyderlib import __version__
+from spyderlib.utils import encoding
 from spyderlib.config import CONF, get_icon, get_conf_path
 from spyderlib.dochelpers import getobj
 from spyderlib.qthelpers import (keybinding, create_action, add_actions,
