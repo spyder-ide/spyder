@@ -324,6 +324,17 @@ class ExplorerTreeWidget(DirView):
         if index:
             return osp.normpath(unicode(self.model().filePath(index)))
         
+    def get_dirname(self):
+        """
+        Return selected directory path
+        or selected filename's directory path
+        """
+        fname = self.get_filename()
+        if osp.isdir(fname):
+            return fname
+        else:
+            return osp.dirname(fname)
+        
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
         fname = self.get_filename()
@@ -386,7 +397,7 @@ class ExplorerTreeWidget(DirView):
                               "<br><br>Error message:<br>%1") \
                     .arg(str(error)))
             finally:
-                self.refresh()
+                self.refresh_folder(osp.dirname(fname))
             
     def rename(self):
         """Rename selected item"""
@@ -421,29 +432,30 @@ class ExplorerTreeWidget(DirView):
         answer = fedit( datalist, title=translate('Explorer', "New folder"),
                         parent=self, icon=get_icon('spyder.svg') )
         if answer is not None:
-            name, pack = answer
+            dirname, pack = answer
+            dirname = osp.join(self.get_dirname(), dirname)
             try:
-                os.mkdir(name)
+                os.mkdir(dirname)
             except EnvironmentError, error:
                 QMessageBox.critical(self,
                     translate('Explorer', "New folder"),
                     translate('Explorer',
                               "<b>Unable to create folder <i>%1</i></b>"
                               "<br><br>Error message:<br>%2") \
-                    .arg(name).arg(str(error)))
+                    .arg(dirname).arg(str(error)))
             finally:
                 if pack:
-                    create_script( osp.join(name, '__init__.py') )
-                self.refresh()
+                    create_script( osp.join(dirname, '__init__.py') )
+                self.refresh_folder(osp.dirname(dirname))
 
     def new_file(self):
         """Create a new file"""
         _temp = sys.stdout
         sys.stdout = None
         fname = QFileDialog.getSaveFileName(self,
-                    translate('Explorer', "New Python script"), os.getcwdu(),
-                    translate('Explorer', "Python scripts")+" (*.py ; *.pyw)"+"\n"+\
-                    translate('Explorer', "All files")+" (*.*)")
+                translate('Explorer', "New Python script"), self.get_dirname(),
+                translate('Explorer', "Python scripts")+" (*.py ; *.pyw)"+"\n"+\
+                translate('Explorer', "All files")+" (*.*)")
         sys.stdout = _temp
         if not fname.isEmpty():
             fname = unicode(fname)
@@ -460,7 +472,7 @@ class ExplorerTreeWidget(DirView):
                               "<br><br>Error message:<br>%2") \
                     .arg(fname).arg(str(error)))
             finally:
-                self.refresh()
+                self.refresh_folder(osp.dirname(fname))
                 self.open(fname)
 
 
