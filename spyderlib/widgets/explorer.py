@@ -395,8 +395,11 @@ class ExplorerTreeWidget(DirView):
             path, valid = QInputDialog.getText(self,
                                           translate('Explorer', 'Rename'),
                                           translate('Explorer', 'New name:'),
-                                          QLineEdit.Normal, fname)
-            if valid and path != fname:
+                                          QLineEdit.Normal, osp.basename(fname))
+            if valid:
+                path = osp.join(osp.dirname(fname), unicode(path))
+                if path == fname:
+                    return
                 try:
                     os.rename(fname, path)
                     self.parent_widget.emit(SIGNAL("renamed(QString,QString)"),
@@ -409,9 +412,7 @@ class ExplorerTreeWidget(DirView):
                                   "<br><br>Error message:<br>%1") \
                         .arg(str(error)))
                 finally:
-                    selected_row = self.currentRow()
-                    self.refresh()
-                    self.setCurrentRow(selected_row)
+                    self.refresh_folder(osp.dirname(fname))
         
     def new_folder(self):
         """Create a new folder"""
