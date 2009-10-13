@@ -76,15 +76,20 @@ def create_banner(moreinfo, message=''):
 #      (easy... just rename a few methods here and there)
 #    - implement '_configure_scintilla', '_apply_style', ...
 
-
 class IOHandler(object):
     """Handle stream output"""
     def __init__(self, write):
         self._write = write
     def write(self, cmd):
         self._write(cmd)
+    def writelines(self, textlist):
+        map(self.write, textlist)
     def flush(self):
         pass
+    def fileno(self):
+        return 0
+    def isatty(self):
+        return False
 
 
 class InteractiveShell(PythonShellWidget):
@@ -104,9 +109,9 @@ class InteractiveShell(PythonShellWidget):
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
-        self.stdout = self
+        self.stdout = IOHandler(self.write)
         self.stderr = IOHandler(self.write_error)
-        self.stdin = self
+        self.stdin = IOHandler(self.write)
         self.redirect_stds()
         
         # KeyboardInterrupt support
