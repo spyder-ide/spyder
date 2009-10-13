@@ -373,7 +373,10 @@ class ExplorerTreeWidget(DirView):
             if answer == QMessageBox.No:
                 return
             try:
-                os.remove(fname)
+                if osp.isfile(fname):
+                    os.remove(fname)
+                else:
+                    os.rmdir(fname)
                 self.parent_widget.emit(SIGNAL("removed(QString)"), fname)
             except EnvironmentError, error:
                 QMessageBox.critical(self,
