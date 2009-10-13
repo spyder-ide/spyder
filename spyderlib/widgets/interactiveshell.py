@@ -78,18 +78,27 @@ def create_banner(moreinfo, message=''):
 
 class IOHandler(object):
     """Handle stream output"""
-    def __init__(self, write):
-        self._write = write
+    def __init__(self, name, mode,
+                 write_func=None, read_func=None, flush_func=None):
+        self.name = name
+        self.mode = mode
+        self.closed = False
+        self.encoding = 'utf-8'
+        self._write = write_func
+        self._read = read_func
+        self._flush = flush_func
     def write(self, cmd):
         self._write(cmd)
     def writelines(self, textlist):
         map(self.write, textlist)
     def flush(self):
-        pass
+        self._flush()
     def fileno(self):
         return 0
     def isatty(self):
         return False
+    def readline(self, sizehint=-1):
+        return self._read()
 
 
 class InteractiveShell(PythonShellWidget):
@@ -109,9 +118,14 @@ class InteractiveShell(PythonShellWidget):
         self.initial_stdout = sys.stdout
         self.initial_stderr = sys.stderr
         self.initial_stdin = sys.stdin
-        self.stdout = IOHandler(self.write)
-        self.stderr = IOHandler(self.write_error)
-        self.stdin = IOHandler(self.write)
+        self.stdout = IOHandler('<spyder_stdout>', 'w',
+                                write_func=self.write,
+                                flush_func=lambda: self.flush(error=False))
+        self.stderr = IOHandler('<spyder_stderr>', 'w',
+                                write_func=self.write_error,
+                                flush_func=lambda: self.flush(error=True))
+        self.stdin = IOHandler('<spyder_stdin>', 'r',
+                               read_func=self.wait_input)
         self.redirect_stds()
         
         # KeyboardInterrupt support
@@ -268,10 +282,10 @@ such as "spam", type "modules spam".
             text = text.strip()
             try:
                 eval("pydoc.help(%s)" % text)
-            except NameError, SyntaxError:
+            except (NameError, SyntaxError):
                 print "no Python documentation found for '%r'" % text
         self.write(os.linesep)
-        self.new_prompt("help>")
+        self.new_prompt("help> ")
         inp = self.wait_input()
         if inp.strip():
             self.help_replacement(inp, interactive=True)
@@ -283,10 +297,6 @@ interpreter, you can type "help(object)".  Executing "help('string')"
 has the same effect as typing a particular string at the help> prompt.
 """)
     
-    def readline(self):
-        inp = self.wait_input()
-        return inp
-        
     def wait_input(self):
         """Wait for input (raw_input)"""
         self.input_data = None # If shell is closed, None will be returned
