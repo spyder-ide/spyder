@@ -634,6 +634,13 @@ class EditorTabWidget(Tabs):
             index = self.currentIndex()
         finfo = self.data[index]
         finfo.editor.remove_trailing_spaces()
+        
+    def fix_indentation(self, index=None):
+        """Replace tabs by spaces"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.fix_indentation()
 
     #------ Run
     def run_script_extconsole(self, ask_for_arguments=False,
@@ -1184,6 +1191,9 @@ class Editor(PluginWidget):
         trailingspaces_action = create_action(self,
                                       self.tr("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
+        fixindentation_action = create_action(self, self.tr("Fix indentation"),
+                      tip=self.tr("Replace tab characters by space characters"),
+                      triggered=self.fix_indentation)
         
         pylint_action.setEnabled(is_pylint_installed())
 
@@ -1270,7 +1280,7 @@ class Editor(PluginWidget):
                 run_process_args_actionn,
                 run_process_debug_action, None,
                 pylint_action, convert_eol_action, eol_menu,
-                trailingspaces_action, None, option_menu)
+                trailingspaces_action, fixindentation_action, None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.previous_warning_action,
@@ -1852,6 +1862,10 @@ class Editor(PluginWidget):
     def remove_trailing_spaces(self):
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.remove_trailing_spaces()
+        
+    def fix_indentation(self):
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.fix_indentation()
         
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,

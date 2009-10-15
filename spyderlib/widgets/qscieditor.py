@@ -299,6 +299,13 @@ class QsciEditor(TextEditBaseWidget):
         text_after = sourcecode.remove_trailing_spaces(text_before)
         if text_before != text_after:
             self.setText(text_after)
+            
+    def fix_indentation(self):
+        """Replace tabs by spaces"""
+        text_before = unicode(self.text())
+        text_after = sourcecode.fix_indentation(text_before)
+        if text_before != text_after:
+            self.setText(text_after)
     
     def set_eol_mode(self, text):
         """

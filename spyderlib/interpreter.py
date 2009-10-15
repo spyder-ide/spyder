@@ -24,7 +24,8 @@ class RollbackImporter:
     """
     # Blacklisted modules won't be unloaded:
     BLACKLIST = ('PyQt4', 'spyderlib', 'numpy', 'scipy', 'matplotlib', 'pytz',
-                 'vtk', 'itk', 'wx', 'visual', 'sympy', 'h5py', 'tables')
+                 'vtk', 'itk', 'wx', 'visual', 'sympy', 'h5py', 'tables',
+                 'guidata', 'guiqwt')
     def __init__(self):
         "Creates an instance and installs as the global importer"
         self.previous_modules = sys.modules.copy()
