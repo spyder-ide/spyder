@@ -185,27 +185,27 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="209"/>
+        <location filename="plugins/console.py" line="214"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="210"/>
+        <location filename="plugins/console.py" line="215"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="252"/>
+        <location filename="plugins/console.py" line="257"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="259"/>
+        <location filename="plugins/console.py" line="264"/>
         <source>External editor</source>
         <translation>Éditeur externe</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="260"/>
+        <location filename="plugins/console.py" line="265"/>
         <source>External editor executable path:</source>
         <translation>Chemin d&apos;accès de l&apos;exécutable :</translation>
     </message>
@@ -230,17 +230,17 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="177"/>
+        <location filename="plugins/console.py" line="182"/>
         <source>If enabled, matplotlib figures may be docked to Spyder&apos;s main window (will apply only for new figures)</source>
         <translation>Si cette option est activée, les figures matplotlib pourront être embarquées dans la fenêtre de Spyder (cela ne s&apos;appliquera qu&apos;aux nouvelles figures)</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="174"/>
+        <location filename="plugins/console.py" line="179"/>
         <source>Dockable figures</source>
         <translation>Figures embarquables</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="183"/>
+        <location filename="plugins/console.py" line="188"/>
         <source>Interactive console settings</source>
         <translation>Options de la console interactive</translation>
     </message>
@@ -250,12 +250,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Forcer la réimportation des modules</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="167"/>
+        <location filename="plugins/console.py" line="172"/>
         <source>Force Python to reload modules imported when executing a script in the interactive console</source>
         <translation>Forcer Python à recharger les modules importés lors de l&apos;exécution d&apos;un script dans la console interactive</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="293"/>
+        <location filename="plugins/console.py" line="303"/>
         <source>The rollback importer requires a restart of Spyder to be fully functionnal (otherwise only newly imported modules will be reloaded when executing scripts).</source>
         <translation>Le rechargement complet des modules requiert un redémarrage de Spyder pour être pleinement fonctionnelle (sinon seuls les modules nouvellement importés seront concernés par cette fonctionnalité).</translation>
     </message>
@@ -265,9 +265,14 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Forcer le rechargement complet des modules</translation>
     </message>
     <message>
-        <location filename="plugins/console.py" line="165"/>
+        <location filename="plugins/console.py" line="170"/>
         <source>Force modules to be completely reloaded</source>
         <translation>Forcer le rechargement complet des modules</translation>
+    </message>
+    <message>
+        <location filename="plugins/console.py" line="165"/>
+        <source>Enter key selects completion</source>
+        <translation>Entrée valide la complétion de code</translation>
     </message>
 </context>
 <context>
@@ -1426,22 +1431,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="281"/>
+        <location filename="plugins/externalconsole.py" line="287"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="282"/>
+        <location filename="plugins/externalconsole.py" line="288"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="290"/>
+        <location filename="plugins/externalconsole.py" line="296"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="259"/>
+        <location filename="plugins/externalconsole.py" line="264"/>
         <source>One tab per script</source>
         <translation>Un onglet par script</translation>
     </message>
@@ -1481,6 +1486,11 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <location filename="plugins/externalconsole.py" line="254"/>
         <source>Code completion</source>
         <translation>Complétion de code</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="259"/>
+        <source>Enter key selects completion</source>
+        <translation>Entrée valide la complétion de code</translation>
     </message>
 </context>
 <context>
@@ -2743,27 +2753,27 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>PythonShellWidget</name>
     <message>
-        <location filename="widgets/shell.py" line="690"/>
+        <location filename="widgets/shell.py" line="692"/>
         <source>Copy without prompts</source>
         <translation>Copier sans les préfixes</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="698"/>
+        <location filename="widgets/shell.py" line="700"/>
         <source>Clear line</source>
         <translation>Effacer la ligne</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="702"/>
+        <location filename="widgets/shell.py" line="704"/>
         <source>Clear shell</source>
         <translation>Effacer la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="706"/>
+        <location filename="widgets/shell.py" line="708"/>
         <source>Clear shell contents (&apos;cls&apos; command)</source>
         <translation>Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="938"/>
+        <location filename="widgets/shell.py" line="946"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
@@ -2778,7 +2788,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="944"/>
+        <location filename="widgets/shell.py" line="952"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>

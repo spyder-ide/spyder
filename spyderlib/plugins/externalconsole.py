@@ -256,13 +256,19 @@ class ExternalConsole(PluginWidget):
                             toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
                                                    'autocompletion/enabled') )
+        codecompenter_action = create_action(self,
+                                    self.tr("Enter key selects completion"),
+                                    toggled=self.toggle_codecompletion_enter)
+        codecompenter_action.setChecked( CONF.get(self.ID,
+                                                   'autocompletion/enter-key') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
         singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
         self.menu_actions = [interpreter_action, run_action, None,
                              font_action, wrap_action, calltips_action,
-                             codecompletion_action, singletab_action]
+                             codecompletion_action, codecompenter_action,
+                             singletab_action]
         if console_action:
             self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
@@ -317,6 +323,14 @@ class ExternalConsole(PluginWidget):
         for shell in self.shells:
             shell.shell.set_codecompletion(checked)
         CONF.set(self.ID, 'autocompletion/enabled', checked)
+            
+    def toggle_codecompletion_enter(self, checked):
+        """Toggle Enter key for code completion"""
+        if self.tabwidget is None:
+            return
+        for shell in self.shells:
+            shell.shell.set_codecompletion_enter(checked)
+        CONF.set(self.ID, 'autocompletion/enter-key', checked)
         
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""

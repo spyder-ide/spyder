@@ -34,6 +34,7 @@ class CompletionWidget(QListWidget):
         self.completion_list = None
         self.case_sensitive = None
         self.show_single = None
+        self.enter_select = None
         srect = QApplication.desktop().availableGeometry(self)
         self.screen_size = (srect.width(), srect.height())
         self.hide()
@@ -46,6 +47,9 @@ class CompletionWidget(QListWidget):
         # require to know if the completion has been triggered manually or not
         self.resize(*size)
         self.setFont(font)
+        
+    def set_enter_select(self, state):
+        self.enter_select = state        
         
     def show_list(self, completion_list):
         self.completion_list = completion_list
@@ -73,11 +77,12 @@ class CompletionWidget(QListWidget):
         
     def keyPressEvent(self, event):
         text, key = event.text(), event.key()
-        if key == Qt.Key_Tab:
+        if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
+           or key == Qt.Key_Tab:
             self.item_selected()
             event.accept()
-        elif key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Period,
-                     Qt.Key_Left, Qt.Key_Right):
+        elif key in (Qt.Key_Return, Qt.Key_Enter,
+                     Qt.Key_Period, Qt.Key_Left, Qt.Key_Right):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif event.modifiers() & Qt.ShiftModifier:
@@ -140,6 +145,7 @@ class TextEditBaseWidget(QTextEdit):
         # Code completion / calltips
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion = True
+        self.codecompletion_enter = False
         self.calltips = True
         self.completion_text = ""
         self.calltip_position = None
@@ -303,7 +309,12 @@ class TextEditBaseWidget(QTextEdit):
 
     def set_codecompletion(self, state):
         """Set code completion state"""
-        self.codecompletion = state        
+        self.codecompletion = state
+        
+    def set_codecompletion_enter(self, state):
+        """Enable Enter key to select completion"""
+        self.codecompletion_enter = state
+        self.completion_widget.set_enter_select(state)
         
     def set_calltips(self, state):
         """Set calltips state"""

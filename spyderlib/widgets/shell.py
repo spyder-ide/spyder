@@ -316,10 +316,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
 
         if key in (Qt.Key_Return, Qt.Key_Enter):
             if self.is_cursor_on_last_line():
-                self.insert_text('\n', at_end=True)
-                command = self.input_buffer
-                self.on_enter(command)
-                self.flush()
+                self._key_enter()
             # add and run selection
             else:
                 text = self.selectedText()
@@ -448,6 +445,11 @@ class ShellBaseWidget(ConsoleBaseWidget):
             
                 
     #------ Key handlers
+    def _key_enter(self):
+        self.insert_text('\n', at_end=True)
+        command = self.input_buffer
+        self.on_enter(command)
+        self.flush()
     def _key_other(self, text):
         raise NotImplementedError
     def _key_backspace(self, cursor_position):
@@ -763,6 +765,12 @@ class PythonShellWidget(ShellBaseWidget):
         if QToolTip.isVisible():
             _event, _text, key, _ctrl, _shift = restore_keyevent(event)
             self.hide_tooltip_if_necessary(key)
+            
+    def _key_enter(self):
+        if self.is_completion_widget_visible() and self.codecompletion_enter:
+            self.stdkey_tab()
+        else:
+            ShellBaseWidget._key_enter(self)
                 
     def _key_other(self, text):
         """1 character key"""
