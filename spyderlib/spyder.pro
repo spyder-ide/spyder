@@ -1,4 +1,7 @@
-SOURCES	     += spyder.py environ.py qthelpers.py
+SOURCES	     += spyder.py
+
+SOURCES	     += utils/environ.py
+SOURCES	     += utils/qthelpers.py
 
 SOURCES	     += plugins/__init__.py
 SOURCES	     += plugins/console.py

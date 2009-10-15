@@ -183,6 +183,7 @@ DEFAULTS = [
               'code_folding' : True,
               'check_eol_chars': True,
               'show_eol_chars' : False,
+              'show_whitespace' : False,
               'tab_always_indent' : True,
               'api' : osp.join(DATA_PATH, 'python.api'),
               'max_recent_files' : 20,

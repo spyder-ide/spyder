@@ -143,7 +143,8 @@ class QsciEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     show_eol_chars=False, font=None, wrap=True):
+                     show_eol_chars=False, show_whitespace=False,
+                     font=None, wrap=True):
         # Lexer
         self.set_language(language)
                 
@@ -164,6 +165,7 @@ class QsciEditor(TextEditBaseWidget):
         self.setMatchedBraceBackgroundColor(Qt.yellow)
         
         self.set_eol_chars_visible(show_eol_chars)
+        self.set_whitespace_visible(show_whitespace)
         
         self.toggle_wrap_mode(wrap)
         self.setup_api()
@@ -279,8 +281,12 @@ class QsciEditor(TextEditBaseWidget):
                              self.api.savePrepared)
         return is_api_ready
     
+    def set_whitespace_visible(self, state):
+        """Show/hide whitespace"""
+        self.setWhitespaceVisibility(state)
+    
     def set_eol_chars_visible(self, state):
-        """Show EOL characters"""
+        """Show/hide EOL characters"""
         self.setEolVisibility(state)
     
     def convert_eol_chars(self):
