@@ -160,6 +160,11 @@ class ExternalConsole(PluginWidget):
             shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shell.shell.set_calltips( CONF.get(self.ID, 'calltips') )
+        shell.shell.set_codecompletion( CONF.get(self.ID,
+                                                 'autocompletion/enabled') )
+        shell.shell.set_codecompletion_enter(CONF.get(self.ID,
+                                                 'autocompletion/enter-key'))
         if python:
             shell.shell.set_docviewer(self.docviewer)
         self.historylog.add_history(shell.shell.history_filename)
@@ -260,7 +265,7 @@ class ExternalConsole(PluginWidget):
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked( CONF.get(self.ID,
-                                                   'autocompletion/enter-key') )
+                                                  'autocompletion/enter-key') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
