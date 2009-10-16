@@ -973,6 +973,10 @@ class Editor(PluginWidget):
                            ('.properties', '.session', '.ini', '.inf',
                             '.reg', '.cfg')),
                           (self.tr("All files"), ('.*',)))
+        
+        # Parameters of last file execution:
+        self.__last_ic_exec = None # interactive console
+        self.__last_ec_exec = None # external console
             
             
     #------ Plugin API
@@ -1051,6 +1055,10 @@ class Editor(PluginWidget):
             self.tr("&Run in interactive console"), "F9", 'run.png',
             self.tr("Run current script in interactive console"),
             triggered=self.run_script)
+        re_run_action = create_action(self,
+            self.tr("Re-run last script"), "Ctrl+Alt+F9", 'run.png',
+            self.tr("Run last script in interactive console"),
+            triggered=self.re_run_intconsole)
         run_interact_action = create_action(self,
             self.tr("Run and &interact"), "Shift+F9", 'run_interact.png',
             self.tr("Run current script in interactive console "
@@ -1068,8 +1076,12 @@ class Editor(PluginWidget):
             self.tr("Run current script in external console"
                     "\n(external console is executed in a separate process)"),
             triggered=lambda: self.run_script_extconsole())
+        re_run_process_action = create_action(self,
+            self.tr("Re-run last script"), "Ctrl+Alt+F5", 'run_external.png',
+            self.tr("Run last script in external console"),
+            triggered=self.re_run_extconsole)
         run_process_interact_action = create_action(self,
-            self.tr("Run and interact"), "Shift+F5",
+            self.tr("Run and interact"), "Shift+F5", 'run_external.png',
             tip=self.tr("Run current script in external console and interact "
                         "\nwith Python interpreter when program has finished"
                         "\n(external console is executed in a "
@@ -1077,12 +1089,13 @@ class Editor(PluginWidget):
             triggered=lambda: self.run_script_extconsole(interact=True))
         run_selected_extconsole_action = create_action(self,
             self.tr("Run &selection or current line"), "Ctrl+F5",
+            'run_external.png',
             tip=self.tr("Run selected text in external console\n"
                     "(or run current line and go to next line "
                     "if there is no selection)"),
             triggered=lambda: self.run_selection_or_line(external=True))
         run_process_args_actionn = create_action(self,
-            self.tr("Run with arguments"), "Alt+F5",
+            self.tr("Run with arguments"), "Alt+F5", 'run_external.png',
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
                         "\n(external console is executed in a "
@@ -1090,7 +1103,7 @@ class Editor(PluginWidget):
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True))
         run_process_debug_action = create_action(self,
-            self.tr("Debug"), "Ctrl+Shift+F5",
+            self.tr("Debug"), "Ctrl+Shift+F5", 'run_external.png',
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a "
                         "separate process)"),
@@ -1244,9 +1257,9 @@ class Editor(PluginWidget):
         source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
-                None, run_action, run_interact_action,
+                None, run_action, re_run_action, run_interact_action,
                 run_selected_action, None, run_process_action,
-                run_process_interact_action,
+                re_run_process_action, run_process_interact_action,
                 run_selected_extconsole_action,
                 run_process_args_actionn,
                 run_process_debug_action, None,
@@ -1264,12 +1277,12 @@ class Editor(PluginWidget):
                                     self.analysis_toolbar_actions + [None] + \
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
-        self.pythonfile_dependent_actions = (run_action, pylint_action,
-                run_interact_action, run_selected_action,
-                run_process_action, run_process_interact_action,
+        self.pythonfile_dependent_actions = (run_action, re_run_action,
+                run_interact_action, run_selected_action, run_process_action,
+                re_run_process_action, run_process_interact_action,
                 run_process_args_actionn, run_process_debug_action,
                 self.previous_warning_action, self.next_warning_action,
-                blockcomment_action, unblockcomment_action,
+                blockcomment_action, unblockcomment_action, pylint_action,
                 )
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 (self.save_action, save_as_action,
@@ -1840,21 +1853,30 @@ class Editor(PluginWidget):
         
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,
-                               interact=False, debug=False):
+                              interact=False, debug=False):
         """Run current script in another process"""
         editortabwidget = self.get_current_editortabwidget()
         if editortabwidget.save():
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
             wdir = osp.dirname(fname)
-            self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
-                      fname, wdir, ask_for_arguments, interact, debug)
+            self.__last_ec_exec = (fname, wdir, ask_for_arguments,
+                                   interact, debug)
+            self.re_run_extconsole()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # current external shell automatically
                 # (see PluginWidget.visibility_changed method)
                 editor.setFocus()
+                
+    def re_run_extconsole(self):
+        """Re-run script in external console"""
+        if self.__last_ec_exec is None:
+            return
+        fname, wdir, ask_for_arguments, interact, debug = self.__last_ec_exec
+        self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
+                  fname, wdir, ask_for_arguments, interact, debug)
     
     def run_script(self, set_focus=False):
         """Run current script"""
@@ -1862,14 +1884,21 @@ class Editor(PluginWidget):
         if editortabwidget.save():
             filename = self.get_current_filename()
             editor = self.get_current_editor()
-            self.main.console.run_script(filename, silent=True,
-                                         set_focus=set_focus)
+            self.__last_ic_exec = (filename, set_focus)
+            self.re_run_intconsole()
             if not set_focus:
                 # If interactive console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # interactive shell automatically
                 # (see PluginWidget.visibility_changed method)
                 editor.setFocus()
+                
+    def re_run_intconsole(self):
+        """Re-run script in interactive console"""
+        if self.__last_ic_exec is None:
+            return
+        filename, set_focus = self.__last_ic_exec
+        self.main.console.run_script(filename, silent=True, set_focus=set_focus)
         
     def run_script_and_interact(self):
         """Run current script and set focus to shell"""
