@@ -283,7 +283,10 @@ class QsciEditor(TextEditBaseWidget):
     
     def set_whitespace_visible(self, state):
         """Show/hide whitespace"""
-        self.setWhitespaceVisibility(state)
+        if state:
+            self.setWhitespaceVisibility(QsciScintilla.WsVisible)
+        else:
+            self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
     
     def set_eol_chars_visible(self, state):
         """Show/hide EOL characters"""
