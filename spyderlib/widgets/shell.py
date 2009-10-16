@@ -857,7 +857,7 @@ class PythonShellWidget(ShellBaseWidget):
         """Action for '.'"""
         # Enable auto-completion only if last token isn't a float
         last_obj = self.get_last_obj()
-        if last_obj and not last_obj[-1].isdigit():
+        if last_obj and not last_obj.isdigit():
             self.show_code_completion(last_obj)
         self.insert_text(text)
 
