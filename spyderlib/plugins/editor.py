@@ -643,35 +643,6 @@ class EditorTabWidget(Tabs):
         finfo.editor.fix_indentation()
 
     #------ Run
-    def run_script_extconsole(self, ask_for_arguments=False,
-                               interact=False, debug=False):
-        """Run current script in another process"""
-        if self.save():
-            finfo = self.data[self.currentIndex()]
-            fname = osp.abspath(finfo.filename)
-            wdir = osp.dirname(fname)
-            self.plugin.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
-                             fname, wdir, ask_for_arguments, interact, debug)
-            if not interact and not debug:
-                # If external console dockwidget is hidden, it will be
-                # raised in top-level and so focus will be given to the
-                # current external shell automatically
-                # (see PluginWidget.visibility_changed method)
-                finfo.editor.setFocus()
-    
-    def run_script(self, set_focus=False):
-        """Run current script"""
-        if self.save():
-            finfo = self.data[self.currentIndex()]
-            self.interactive_console.run_script(finfo.filename, silent=True,
-                                                set_focus=set_focus)
-            if not set_focus:
-                # If interactive console dockwidget is hidden, it will be
-                # raised in top-level and so focus will be given to the
-                # interactive shell automatically
-                # (see PluginWidget.visibility_changed method)
-                finfo.editor.setFocus()
-        
     def __process_lines(self):
         editor = self.currentWidget()
         ls = editor.get_line_separator()
@@ -1872,14 +1843,34 @@ class Editor(PluginWidget):
                                interact=False, debug=False):
         """Run current script in another process"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.run_script_extconsole( \
-            ask_for_arguments=ask_for_arguments, interact=interact, debug=debug)
+        if editortabwidget.save():
+            editor = self.get_current_editor()
+            fname = osp.abspath(self.get_current_filename())
+            wdir = osp.dirname(fname)
+            self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
+                      fname, wdir, ask_for_arguments, interact, debug)
+            if not interact and not debug:
+                # If external console dockwidget is hidden, it will be
+                # raised in top-level and so focus will be given to the
+                # current external shell automatically
+                # (see PluginWidget.visibility_changed method)
+                editor.setFocus()
     
     def run_script(self, set_focus=False):
         """Run current script"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.run_script(set_focus=set_focus)
-    
+        if editortabwidget.save():
+            filename = self.get_current_filename()
+            editor = self.get_current_editor()
+            self.main.console.run_script(filename, silent=True,
+                                         set_focus=set_focus)
+            if not set_focus:
+                # If interactive console dockwidget is hidden, it will be
+                # raised in top-level and so focus will be given to the
+                # interactive shell automatically
+                # (see PluginWidget.visibility_changed method)
+                editor.setFocus()
+        
     def run_script_and_interact(self):
         """Run current script and set focus to shell"""
         self.run_script(set_focus=True)
