@@ -41,7 +41,7 @@ else:
 description = 'Spyder development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, workspace (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
 long_description = 'spyderlib is intended to be an extension to PyQt4 providing a simple development environment named "Spyder" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
 keywords = 'PyQt4 shell console widgets IDE'
-classifiers = ['Development Status :: 4 - Beta',
+classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: Widget Sets',
                ]
