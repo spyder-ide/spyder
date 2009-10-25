@@ -294,7 +294,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""
-        self.filename = unicode(self.TEMPFILE_PATH)
+        self.filename = self.TEMPFILE_PATH
         if osp.isfile(self.filename):
             self.import_data(self.filename)
         else:
