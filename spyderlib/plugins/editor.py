@@ -38,10 +38,6 @@ from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.plugins import PluginWidget
 
 
-def is_python_script(fname):
-    return osp.splitext(fname)[1][1:] in ('py', 'pyw')
-
-
 class TabInfo(object):
     """File properties"""
     def __init__(self, filename, encoding, editor, new):
@@ -355,8 +351,8 @@ class EditorTabWidget(Tabs):
             index = self.currentIndex()
         if self.data:
             finfo = self.data[index]
-            fname = finfo.filename
-            if CONF.get(self.ID, 'code_analysis') and is_python_script(fname):
+            fname, editor = finfo.filename, finfo.editor
+            if CONF.get(self.ID, 'code_analysis') and editor.is_python():
                 finfo.analysis_results = check(fname)
                 finfo.editor.process_code_analysis(finfo.analysis_results)
             self.emit(SIGNAL('refresh_analysis_results()'))
@@ -389,8 +385,7 @@ class EditorTabWidget(Tabs):
         if self.data:
             finfo = self.data[index]
             if CONF.get(self.ID, 'class_browser') \
-               and is_python_script(finfo.filename) \
-               and classbrowser.isVisible():
+               and finfo.editor.is_python() and classbrowser.isVisible():
                 enable = True
                 classbrowser.setEnabled(True)
                 classes = classbrowser.refresh(finfo.classes, update=update)
@@ -557,10 +552,20 @@ class EditorTabWidget(Tabs):
         ext = osp.splitext(fname)[1]
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
+        language = ext
+        if not ext:
+            for line in txt.splitlines():
+                if not line.strip():
+                    continue
+                if line.startswith('#!') and \
+                   line[2:].split() == ['/usr/bin/env', 'python']:
+                        language = 'python'
+                else:
+                    break
         editor = QsciEditor(self)
         self.data.append( TabInfo(fname, enc, editor, new) )
         editor.set_text(txt)
-        editor.setup_editor(linenumbers=True, language=ext,
+        editor.setup_editor(linenumbers=True, language=language,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
                             code_folding=CONF.get(self.ID, 'code_folding'),
                             show_eol_chars=CONF.get(self.ID, 'show_eol_chars'),

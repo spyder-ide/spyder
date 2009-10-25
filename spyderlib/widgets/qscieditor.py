@@ -195,6 +195,9 @@ class QsciEditor(TextEditBaseWidget):
                         # (see the import lines at the beginning of the script)
                         self.setLexer( lexer_class(self) )
                     break
+                
+    def is_python(self):
+        return isinstance(self.lexer(), QsciLexerPython)
         
         
 #===============================================================================
@@ -601,7 +604,7 @@ class QsciEditor(TextEditBaseWidget):
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
         """
-        if not isinstance(self.lexer(), QsciLexerPython):
+        if not self.is_python():
             return        
         line, index = self.getCursorPosition()
         prevtext = unicode(self.text(line-1)).rstrip()
@@ -660,7 +663,7 @@ class QsciEditor(TextEditBaseWidget):
             self.add_prefix( " "*4 )
         elif self.__no_char_before_cursor() or \
              (self.tab_indents and self.tab_mode):
-            if isinstance(self.lexer(), QsciLexerPython):
+            if self.is_python():
                 self.fix_indent(forward=True)
             else:
                 self.add_prefix( " "*4 )
@@ -673,7 +676,7 @@ class QsciEditor(TextEditBaseWidget):
             self.remove_prefix( " "*4 )
         elif self.__no_char_before_cursor() or \
              (self.tab_indents and self.tab_mode):
-            if isinstance(self.lexer(), QsciLexerPython):
+            if self.is_python():
                 self.fix_indent(forward=False)
             else:
                 self.remove_prefix( " "*4 )
