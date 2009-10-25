@@ -144,12 +144,14 @@ class QsciEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
-                     font=None, wrap=True):
+                     font=None, wrap=True, tab_mode=True):
         # Lexer
         self.set_language(language)
                 
-        # Tab always indents (event when cursor is not at the begin of line)
+        # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
+        self.tab_mode = tab_mode
+        
         if linenumbers:
             self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
         self.setup_margins(linenumbers, code_analysis, code_folding)

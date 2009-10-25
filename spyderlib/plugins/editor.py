@@ -566,7 +566,8 @@ class EditorTabWidget(Tabs):
                             show_eol_chars=CONF.get(self.ID, 'show_eol_chars'),
                             show_whitespace=CONF.get(self.ID, 'show_whitespace'),
                             font=get_font('editor'),
-                            wrap=CONF.get(self.ID, 'wrap'))
+                            wrap=CONF.get(self.ID, 'wrap'),
+                            tab_mode=CONF.get(self.ID, 'tab_always_indent'))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
@@ -1211,7 +1212,7 @@ class Editor(PluginWidget):
                                       toggled=self.toggle_show_whitespace)
         showws_action.setChecked( CONF.get(self.ID, 'show_whitespace') )
         wrap_action = create_action(self, self.tr("Wrap lines"),
-            toggled=self.toggle_wrap_mode)
+                                    toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
         tab_action = create_action(self, self.tr("Tab always indent"),
             toggled=self.toggle_tab_mode,
