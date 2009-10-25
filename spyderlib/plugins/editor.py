@@ -485,7 +485,7 @@ class EditorTabWidget(Tabs):
                 
     def get_title(self, filename):
         """Return tab title"""
-        if filename != self.plugin.TEMPFILE_PATH:
+        if filename != encoding.to_unicode(self.plugin.TEMPFILE_PATH):
             return osp.basename(filename)
         else:
             return unicode(self.tr("Temporary file"))
@@ -1562,7 +1562,8 @@ class Editor(PluginWidget):
                        self.tr("This temporary script file is located here:"),
                        self.TEMPFILE_PATH,
                        '"""', '', '']
-            text = os.linesep.join([unicode(qstr) for qstr in default])
+            text = os.linesep.join([encoding.to_unicode(qstr)
+                                    for qstr in default])
             encoding.write(unicode(text), self.TEMPFILE_PATH, 'utf-8')
         self.load(self.TEMPFILE_PATH)
 
@@ -1677,9 +1678,9 @@ class Editor(PluginWidget):
             self.dockwidget.raise_()
         
         if not isinstance(filenames, (list, QStringList)):
-            filenames = [osp.abspath(unicode(filenames))]
+            filenames = [osp.abspath(encoding.to_unicode(filenames))]
         else:
-            filenames = [osp.abspath(unicode(fname)) \
+            filenames = [osp.abspath(encoding.to_unicode(fname)) \
                          for fname in list(filenames)]
             
         for filename in filenames:

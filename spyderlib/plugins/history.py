@@ -87,7 +87,7 @@ class HistoryLog(PluginWidget):
         Add new history tab
         Slot for SIGNAL('add_history(QString)') emitted by shell instance
         """
-        filename = unicode(filename)
+        filename = encoding.to_unicode(filename)
         if filename in self.filenames:
             return
         editor = QsciEditor(self)
@@ -124,7 +124,7 @@ class HistoryLog(PluginWidget):
         Slot for SIGNAL('append_to_history(QString,QString)')
         emitted by shell instance
         """
-        filename, command = unicode(filename), unicode(command)
+        filename, command = encoding.to_unicode(filename), unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
         self.editors[index].set_cursor_position('eof')
