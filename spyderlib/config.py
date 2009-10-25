@@ -356,7 +356,7 @@ def get_family(families):
             return family
     else:
         print "Warning: None of the following fonts is installed: %r" % families
-        return QFont()
+        return QFont().family()
     
 FONT_CACHE = {}
 def get_font(section, option=None):
