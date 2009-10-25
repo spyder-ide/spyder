@@ -1229,7 +1229,8 @@ def initialize():
         """Spyder's fake QApplication"""
         def __init__(self, args):
             self = app
-        def exec_(self):
+        @staticmethod
+        def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
     from PyQt4 import QtGui
