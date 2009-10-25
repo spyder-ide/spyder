@@ -57,7 +57,7 @@ class DocViewer(ReadOnlyEditor):
     Docstrings viewer widget
     """
     ID = 'docviewer'
-    log_path = get_conf_path('.docviewer')
+    LOG_PATH = get_conf_path('.docviewer')
     def __init__(self, parent):
         ReadOnlyEditor.__init__(self, parent)
         
@@ -112,16 +112,16 @@ class DocViewer(ReadOnlyEditor):
         
     def load_dvhistory(self, obj=None):
         """Load history from a text file in user home directory"""
-        if osp.isfile(self.log_path):
+        if osp.isfile(self.LOG_PATH):
             dvhistory = [line.replace('\n','')
-                         for line in file(self.log_path, 'r').readlines()]
+                         for line in file(self.LOG_PATH, 'r').readlines()]
         else:
             dvhistory = [ ]
         return dvhistory
     
     def save_dvhistory(self):
         """Save history to a text file in user home directory"""
-        file(self.log_path, 'w').write("\n".join( \
+        file(self.LOG_PATH, 'w').write("\n".join( \
             [ unicode( self.combo.itemText(index) )
                 for index in range(self.combo.count()) ] ))
         

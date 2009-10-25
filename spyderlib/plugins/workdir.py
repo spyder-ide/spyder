@@ -38,7 +38,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
     ID = 'workingdir'
 #    allowed_areas = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea
 #    location = Qt.TopDockWidgetArea
-    log_path = get_conf_path('.workingdir')
+    LOG_PATH = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         PluginMixin.__init__(self, parent)
@@ -116,8 +116,8 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
-        if osp.isfile(self.log_path):
-            wdhistory, _ = encoding.readlines(self.log_path)
+        if osp.isfile(self.LOG_PATH):
+            wdhistory, _ = encoding.readlines(self.LOG_PATH)
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
@@ -129,7 +129,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
         """Save history to a text file in user home directory"""
         text = [ unicode( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
-        encoding.writelines(text, self.log_path)
+        encoding.writelines(text, self.LOG_PATH)
         
     def refresh(self):
         """Refresh widget"""
