@@ -112,35 +112,17 @@ def encode(text, orig_coding):
     return text.encode('utf-8'), 'utf-8'
     
 def to_unicode(string):
-    """
-    Public method to convert a string to unicode.
-    
-    If the passed in string is of type QString, it is
-    simply returned unaltered, assuming, that it is already
-    a unicode string. For all other strings, various codes
-    are tried until one converts the string without an error.
-    If all codecs fail, the string is returned unaltered.
-    
-    @param s string to be converted (string or QString)
-    @return converted string (unicode or QString)
-    """
-    if isinstance(string, QString):
-        return string
-    
-    if type(string) is type(u""):
-        return string
-    
-    for codec in CODECS:
-        try:
-            unic = unicode(string, codec)
-        except UnicodeError:
-            pass
-        except TypeError:
-            break
-        else:
-            return unic
-    
-    # we didn't succeed
+    """Convert a string to unicode"""
+    if not isinstance(string, unicode):
+        for codec in CODECS:
+            try:
+                unic = unicode(string, codec)
+            except UnicodeError:
+                pass
+            except TypeError:
+                break
+            else:
+                return unic
     return string
     
 
