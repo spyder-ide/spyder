@@ -45,14 +45,14 @@ def str2type(strings):
     """Convert strings to types"""
     return tuple( [eval(string) for string in strings] )
 
-SANS_SERIF = ['Bitstream Vera Sans', 'Bitstream Charter', 'Lucida Grande',
-              'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica',
-              'Avant Garde', 'sans-serif']
+SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
+              'Bitstream Charter', 'Lucida Grande', 'Verdana', 'Geneva',
+              'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
 SANS_SERIF.insert(0, unicode(QFont().family()))
 
-MONOSPACE = ['Courier New', 'Bitstream Vera Sans Mono', 'Andale Mono',
-             'Liberation Mono', 'Monaco', 'Courier', 'monospace', 'Fixed',
-             'Terminal']
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Courier New',
+             'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
+             'Monaco', 'Courier', 'monospace', 'Fixed', 'Terminal']
 MEDIUM = 10
 SMALL = 9
 
