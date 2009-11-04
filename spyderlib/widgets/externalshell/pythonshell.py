@@ -220,6 +220,7 @@ class ExternalPythonShell(ExternalShellBase):
         if os.environ.get(pypath) is not None:
             env.replaceInStrings(pypath+'=', pypath+'='+pathstr+os.pathsep,
                                  Qt.CaseSensitive)
+            env.append('OLD_PYTHONPATH='+os.environ[pypath])
         else:
             env.append(pypath+'='+pathstr)
         self.process.setEnvironment(env)

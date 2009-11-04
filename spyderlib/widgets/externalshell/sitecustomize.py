@@ -47,3 +47,11 @@ sys.displayhook = displayhook
 
 from PyQt4.QtCore import pyqtRemoveInputHook
 pyqtRemoveInputHook()
+
+# Restoring original PYTHONPATH
+try:
+    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
+    del os.environ['OLD_PYTHONPATH']
+except KeyError:
+    if os.environ.get('PYTHONPATH') is not None:
+        del os.environ['PYTHONPATH']
