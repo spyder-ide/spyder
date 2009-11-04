@@ -14,7 +14,7 @@ import sys
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QDockWidget
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, SIGNAL
 
 # Local imports
 from spyderlib.plugins import PluginWidget
@@ -98,5 +98,6 @@ class MatplotlibFigure(PluginWidget):
             # QMainWindow has been created instead of a QDockWidget
             self.main.widgetlist.pop(self.main.widgetlist.index(self))
         self.dockwidget.close()
+        self.emit(SIGNAL('destroyed()'))
         event.accept()
 

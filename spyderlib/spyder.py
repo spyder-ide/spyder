@@ -1297,6 +1297,14 @@ def run_spyder(app, qt_translator, app_translator,
         from spyderlib.plugins.figure import MatplotlibFigure
         import matplotlib
         
+        # Class added to matplotlib to fix a bug with PyQt4 v4.6+
+        class FigureWindow(QMainWindow):
+            def __init__(self):
+                super(FigureWindow, self).__init__()
+                
+            def closeEvent(self, event):
+                super(FigureWindow, self).closeEvent(event)
+                self.emit(SIGNAL('destroyed()'))
         # ****************************************************************
         # *  FigureManagerQT
         # ****************************************************************
@@ -1314,7 +1322,7 @@ def run_spyder(app, qt_translator, app_translator,
                 if dockable:
                     self.window = MatplotlibFigure(main, canvas, num)
                 else:
-                    self.window = QMainWindow()
+                    self.window = FigureWindow()
                     self.window.setWindowTitle("Figure %d" % num)
                 self.window.setAttribute(Qt.WA_DeleteOnClose)
         
