@@ -333,6 +333,8 @@ class EditorTabWidget(Tabs):
         if filename:
             finfo.filename = filename
             self.save(index=index, force=True)
+            self.setTabToolTip(index, filename)
+            self.refresh(index)
         
     def save_all(self):
         """Save all opened files"""
@@ -1762,6 +1764,7 @@ class Editor(PluginWidget):
         """Save *as* the currently edited file"""
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.save_as()
+        self.__add_recent_file(editortabwidget.get_current_filename())
         
     def save_all(self):
         """Save all opened files"""
