@@ -180,7 +180,8 @@ class SearchThread(QThread):
         return True
 
     def find_files_in_hg_manifest(self):
-        p = Popen(['hg', 'manifest'], stdout=PIPE, cwd=self.rootpath)
+        p = Popen(['hg', 'manifest'], stdout=PIPE,
+                  cwd=self.rootpath, shell=True)
         self.filenames = []
         hgroot = get_hg_root(self.rootpath)
         for path in p.stdout.read().splitlines():
