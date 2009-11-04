@@ -931,22 +931,29 @@ class Editor(PluginWidget):
         
         self.editortabwidgets = []
         
+        # Tabbed editor widget + Find/Replace widget
+        editor_widgets = QWidget(self)
+        editor_layout = QVBoxLayout()
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_widgets.setLayout(editor_layout)
+        editor_layout.addWidget(EditorSplitter(self, self.tab_actions,
+                                               first=True))
+        self.find_widget = FindReplace(self, enable_replace=True)
+        self.find_widget.hide()
+        editor_layout.addWidget(self.find_widget)
+
+        # Splitter: editor widgets (see above) + toolboxes (class browser, ...)
         cb_splitter = QSplitter(self)
-        cb_splitter.addWidget(EditorSplitter(self, self.tab_actions,
-                                             first=True))
+        cb_splitter.addWidget(editor_widgets)
         cb_splitter.addWidget(self.toolbox)
-        cb_splitter.setStretchFactor(0, 3)
+        cb_splitter.setStretchFactor(0, 5)
         cb_splitter.setStretchFactor(1, 1)
         layout.addWidget(cb_splitter)
+        self.setLayout(layout)
         
         toolbox_state = CONF.get(self.ID, 'toolbox_panel')
         self.toolbox_action.setChecked(toolbox_state)
         self.toolbox.setVisible(toolbox_state)
-        
-        self.find_widget = FindReplace(self, enable_replace=True)
-        self.find_widget.hide()
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
         
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
         
