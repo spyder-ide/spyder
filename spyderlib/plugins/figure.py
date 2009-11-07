@@ -98,6 +98,8 @@ class MatplotlibFigure(PluginWidget):
             # QMainWindow has been created instead of a QDockWidget
             self.main.widgetlist.pop(self.main.widgetlist.index(self))
         self.dockwidget.close()
-        self.emit(SIGNAL('destroyed()'))
+        from PyQt4.QtCore import PYQT_VERSION_STR
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))
         event.accept()
 

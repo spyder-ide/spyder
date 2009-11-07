@@ -1304,7 +1304,8 @@ def run_spyder(app, qt_translator, app_translator,
                 
             def closeEvent(self, event):
                 super(FigureWindow, self).closeEvent(event)
-                self.emit(SIGNAL('destroyed()'))
+                if PYQT_VERSION_STR.startswith('4.6'):
+                    self.emit(SIGNAL('destroyed()'))
         # ****************************************************************
         # *  FigureManagerQT
         # ****************************************************************
