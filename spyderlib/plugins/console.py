@@ -228,11 +228,9 @@ class Console(PluginWidget):
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
-        if silent:
-            self.shell.write(command+'\n')
-            self.shell.run_command(command)
-        else:
-            self.shell.write(command)
+        self.shell.write(command+'\n')
+        self.shell.run_command(command)
+
             
     def go_to_error(self, text):
         """Go to error if relevant"""
