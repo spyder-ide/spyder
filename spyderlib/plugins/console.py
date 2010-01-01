@@ -174,6 +174,13 @@ class Console(PluginWidget):
                 toggled=self.toggle_rollbackimporter)
         rollbackimporter_action.setChecked( CONF.get(self.ID,
                                                      'rollback_importer') )
+        
+        option_menu = QMenu(self.tr("Interactive console settings"), self)
+        option_menu.setIcon(get_icon('tooloptions.png'))
+        add_actions(option_menu, (font_action, wrap_action, calltips_action,
+                                  codecompletion_action, codecompenter_action,
+                                  rollbackimporter_action, exteditor_action))
+
         try:
             imp.find_module('matplotlib')
             dockablefigures_action = create_action(self,
@@ -182,17 +189,20 @@ class Console(PluginWidget):
                                         "be docked to Spyder's main window "
                                         "(will apply only for new figures)"),
                             toggled=self.toggle_dockablefigures_mode)
+            self.tabifiedfigures_action = create_action(self,
+                            self.tr("Tabified figures"),
+                            tip = self.tr("If enabled, new matplotlib figures "
+                                          "will be tabified with last figure "
+                                          "(unless last figure is floating)"),
+                            toggled=self.toggle_tabifiedfigures_mode)
             dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
+            self.tabifiedfigures_action.setChecked( CONF.get('figure',
+                                                             'tabified') )
+            add_actions(option_menu, (None, dockablefigures_action,
+                                      self.tabifiedfigures_action))
         except ImportError:
-            dockablefigures_action = None
-            
-        option_menu = QMenu(self.tr("Interactive console settings"), self)
-        option_menu.setIcon(get_icon('tooloptions.png'))
-        add_actions(option_menu, (font_action, wrap_action, calltips_action,
-                                  codecompletion_action, codecompenter_action,
-                                  rollbackimporter_action, exteditor_action,
-                                  dockablefigures_action))
-        
+            pass
+                    
         menu_actions = [None, run_action, environ_action, syspath_action,
                         option_menu, None, quit_action]
         toolbar_actions = []
@@ -270,6 +280,11 @@ class Console(PluginWidget):
     def toggle_dockablefigures_mode(self, checked):
         """Toggle dockable figures mode"""
         CONF.set('figure', 'dockable', checked)
+        self.tabifiedfigures_action.setEnabled(checked)
+            
+    def toggle_tabifiedfigures_mode(self, checked):
+        """Toggle tabified figures mode"""
+        CONF.set('figure', 'tabified', checked)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
