@@ -73,7 +73,7 @@ setup(
       platforms = ['any'],
       packages = packages,
       package_data = package_data,
-      requires=["PyQt4 (>4.3)"],
+      requires=["QScintilla2 (>2.1)", "PyQt4 (>4.3)"],
       scripts = scripts,
       classifiers = classifiers + [
         'License :: OSI Approved :: MIT License',
@@ -83,6 +83,7 @@ setup(
         'Operating System :: POSIX',
         'Operating System :: Unix',
         'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
         ],
       **addl_args
     )
