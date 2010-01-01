@@ -89,6 +89,12 @@ def getargtxt(obj, one_arg_per_line=True):
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
         return getargfromdoc(obj)
+    
+    # Supporting tuple arguments in def statement:
+    for i_arg, arg in enumerate(args):
+        if isinstance(arg, list):
+            args[i_arg] = "(%s)" % ", ".join(arg)
+            
     defaults = func_obj.func_defaults
     if defaults is not None:
         for index, default in enumerate(defaults):
@@ -110,7 +116,7 @@ def getargtxt(obj, one_arg_per_line=True):
 
 if __name__ == "__main__":
     class Test(object):
-        def method(self, x, y):
+        def method(self, x, y=2, (u, v, w)=(None, 0, 0)):
             pass
     print getargtxt(Test.__init__)
     print getargtxt(Test.method)
