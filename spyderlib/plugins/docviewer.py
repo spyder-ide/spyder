@@ -10,8 +10,7 @@ from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                          QCheckBox, QComboBox)
 from PyQt4.QtCore import Qt, SIGNAL
 
-import sys
-import os.path as osp
+import sys, re, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -23,6 +22,15 @@ from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor
 from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
 
+# Import commands for modules docstrings
+EVAL_IMPORT = u'__import__("%s")'
+EVAL_IMPORT_F = u'__import__("%(module)s", fromlist=["%(func)s"]).%(func)s'
+SHELL_IMPORT = """
+try:
+    if %(module)s: pass
+except:
+    import %(module)s
+"""
 
 class DocComboBox(EditableComboBox):
     """
@@ -36,9 +44,20 @@ class DocComboBox(EditableComboBox):
         
     def is_valid(self, qstr):
         """Return True if string is valid"""
+        if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
+            return False
         shell = self.parent().shell
         if hasattr(shell, 'interpreter'):
             _, valid = shell.interpreter.eval(unicode(qstr))
+            # try to import as module name or as a func from module
+            if not valid:
+                req = str(qstr).split('.', 1)
+                if len(req) > 1:
+                    import_cmd = EVAL_IMPORT_F % {'module': req[0],
+                                                  'func': req[1]}
+                else:
+                    import_cmd = EVAL_IMPORT % qstr
+                _, valid = shell.interpreter.eval(unicode(import_cmd))
             return valid
         
     def keyPressEvent(self, event):
@@ -187,6 +206,17 @@ class DocViewer(ReadOnlyEditor):
                 # binding DocViewer to interactive console instead
                 self.shell = self.main.console.shell
         obj_text = unicode(obj_text)
+
+        # If not a known function - extract module name and import it
+        if not self.shell.interpreter.eval(obj_text)[1]:
+            req = str(obj_text).split('.', 1)
+            module = req[0]
+            import_cmd = EVAL_IMPORT % module
+            _, valid = self.shell.interpreter.eval(import_cmd)
+            if valid:
+                self.shell.run_command(SHELL_IMPORT % {'module': module}, 
+                                       new_prompt=False)
+
         doc_text = self.shell.get_doc(obj_text)
         try:
             source_text = self.shell.get_source(obj_text)
