@@ -969,7 +969,7 @@ class MainWindow(QMainWindow):
             plugin = self.console
         elif widget is self.docviewer.editor:
             plugin = self.docviewer
-        elif isinstance(widget, QsciEditor) and widget.isReadOnly():
+        elif widget in self.historylog.editors:
             plugin = self.historylog
         elif isinstance(widget, ShellBaseWidget):
             plugin = self.extconsole
