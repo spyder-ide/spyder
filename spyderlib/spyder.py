@@ -26,7 +26,7 @@ STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
-                         QFileDialog)
+                         QFileDialog, QInputDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
                           QObject)
@@ -1307,11 +1307,11 @@ def run_spyder(app, qt_translator, app_translator,
         # Customizing matplotlib's parameters
         from matplotlib import rcParams
         rcParams['font.size'] = CONF.get('figure', 'font/size')
-        rcParams["interactive"]=True # interactive mode
-        rcParams["backend"]="Qt4Agg" # using Qt4 to render figures
-        bgcolor = unicode( \
-                    QLabel().palette().color(QLabel().backgroundRole()).name() )
-        rcParams['figure.facecolor'] = CONF.get('figure', 'facecolor', bgcolor)
+        rcParams["interactive"] = True # interactive mode
+        rcParams["backend"] = "Qt4Agg" # using Qt4 to render figures
+        bgcolor = QLabel().palette().color(QLabel().backgroundRole()).name()
+        rcParams['figure.facecolor'] = CONF.get('figure', 'facecolor',
+                                                unicode(bgcolor))
         
         # Monkey patching matplotlib's figure manager for better integration
         from matplotlib.backends import backend_qt4
@@ -1377,8 +1377,6 @@ def run_spyder(app, qt_translator, app_translator,
         
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
-                
-                self.canvas.axes = self.canvas.figure.add_subplot(111)
         
                 def notify_axes_change( fig ):
                     # This will be called whenever the current axes is changed
@@ -1404,7 +1402,32 @@ def run_spyder(app, qt_translator, app_translator,
                     a.setToolTip('Edit curves line and axes parameters')
             def edit_parameters(self):
                 if figure_edit:
-                    figure_edit(self.canvas, self)
+                    allaxes = self.canvas.figure.get_axes()
+                    if len(allaxes) == 1:
+                        axes = allaxes[0]
+                    else:
+                        titles = []
+                        for axes in allaxes:
+                            title = axes.get_title()
+                            ylabel = axes.get_ylabel()
+                            if title:
+                                text = title
+                                if ylabel:
+                                    text += ": "+ylabel
+                                text += " (%s)"
+                            elif ylabel:
+                                text = "%s (%s)" % ylabel
+                            else:
+                                text = "%s"
+                            titles.append(text % repr(axes))
+                        item, ok = QInputDialog.getItem(self, 'Customize',
+                                                        'Select axes:', titles,
+                                                        0, False)
+                        if ok:
+                            axes = allaxes[titles.index(unicode(item))]
+                        else:
+                            return
+                    figure_edit(axes, self)
             def save_figure( self ):
                 main.console.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()

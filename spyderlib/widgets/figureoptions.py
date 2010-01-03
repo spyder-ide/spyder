@@ -50,12 +50,11 @@ def col2hex(color):
     """Convert matplotlib color to hex"""
     return COLORS.get(color, color)
 
-def figure_edit(canvas, parent=None):
+def figure_edit(axes, parent=None):
     """Edit matplotlib figure options"""
-    axes = canvas.axes
     sep = (None, None) # separator
     
-    has_curve = len(axes.get_lines())>0
+    has_curve = len(axes.get_lines()) > 0
     
     # Get / General
     xmin, xmax = axes.get_xlim()
@@ -143,5 +142,6 @@ def figure_edit(canvas, parent=None):
                 line.set_markeredgecolor(markeredgecolor)
         
     # Redraw
-    canvas.draw()
+    figure = axes.get_figure()
+    figure.canvas.draw()
     
