@@ -30,23 +30,45 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '1.0.2'
 __license__ = __doc__
 
-def check_required_package(package, actual_str, required_str):
-    actual = actual_str.split('.')
-    required = required_str.split('.')
-    wng = ''
-    if actual[0] < required[0] or \
-       (actual[0] == required[0] and actual[1] < required[1]):
-        wng = "\n%s v%s or higher is required (found v%s)" % (package,
-                                                              required_str,
-                                                              actual_str)
-    return wng
+def check_requirement(package, module_name, version_attr, required_str):
+    wng = "\n%s v%s or higher is required" % (package, required_str)
+    try:
+        module = __import__(module_name)
+    except ImportError:
+        return wng+" (not found!)"
+    else:
+        if module_name.find('.'):
+            module = getattr(module, module_name.split('.')[1])
+        actual_str = getattr(module, version_attr)
+        actual = actual_str.split('.')
+        required = required_str.split('.')
+        if actual[0] < required[0] or \
+           (actual[0] == required[0] and actual[1] < required[1]):
+            return wng+" (found v%s)" % actual_str
+        else:
+            return ''
 
 def check_pyqt_qscintilla():
-    from PyQt4.QtCore import PYQT_VERSION_STR
-    wng = check_required_package("PyQt", PYQT_VERSION_STR, "4.4")
-    from PyQt4.Qsci import QSCINTILLA_VERSION_STR
-    wng += check_required_package("QScintilla", QSCINTILLA_VERSION_STR, "2.2")
+    wng = check_requirement("PyQt", "PyQt4.QtCorex", "PYQT_VERSION_STR", "4.4")
+    wng += check_requirement("QScintilla", "PyQt4.Qsci",
+                             "QSCINTILLA_VERSION_STR", "2.2")
     if wng:
-        raise ImportError, wng
+        import os
+        message = "Please check Spyder installation requirements:"+wng
+        if os.name == 'nt':
+            message += """
     
+Windows XP/Vista/7 users:
+QScintilla2 is distributed together with PyQt4
+(Python(x,y) plugin or official PyQt4 Windows installer)"""
+        try:
+            # If Tkinter is installed (highly probable), showing an error pop-up
+            import Tkinter, tkMessageBox
+            root = Tkinter.Tk()
+            root.withdraw()
+            tkMessageBox.showerror("Spyder", message)
+        except ImportError:
+            pass
+        raise ImportError, wng
+
 check_pyqt_qscintilla()
