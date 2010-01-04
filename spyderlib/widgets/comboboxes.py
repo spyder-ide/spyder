@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QComboBox, QFont, QToolTip, QSizePolicy
+from PyQt4.QtGui import QComboBox, QFont, QToolTip, QSizePolicy, QCompleter
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -30,6 +30,7 @@ class PatternComboBox(QComboBox):
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.setEditable(True)
+        self.setCompleter(QCompleter(self))
         if items is not None:
             self.addItems(items)
         if tip is not None:
@@ -44,6 +45,7 @@ class EditableComboBox(QComboBox):
         super(EditableComboBox, self).__init__(parent)
         self.font = QFont()
         self.setEditable(True)
+        self.setCompleter(QCompleter(self))
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
         self.connect(self, SIGNAL("activated(QString)"),
                      lambda qstr: self.validate(qstr, editing=False))
