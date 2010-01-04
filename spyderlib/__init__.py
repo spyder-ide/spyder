@@ -49,7 +49,7 @@ def check_requirement(package, module_name, version_attr, required_str):
             return ''
 
 def check_pyqt_qscintilla():
-    wng = check_requirement("PyQt", "PyQt4.QtCorex", "PYQT_VERSION_STR", "4.4")
+    wng = check_requirement("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
     wng += check_requirement("QScintilla", "PyQt4.Qsci",
                              "QSCINTILLA_VERSION_STR", "2.2")
     if wng:
