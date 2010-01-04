@@ -189,6 +189,8 @@ class ArrayModel(QAbstractTableModel):
         elif self._data.dtype.name.startswith("unicode"):
             val = unicode(value)
         else:
+            if value.lower().startswith('e') or value.lower().endswith('e'):
+                return False
             try:
                 val = complex(value)
                 if not val.imag:
