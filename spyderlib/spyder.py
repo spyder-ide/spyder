@@ -961,7 +961,6 @@ class MainWindow(QMainWindow):
         console, extconsole, editor, docviewer or historylog"""
         widget = QApplication.focusWidget()
         from spyderlib.widgets.qscibase import TextEditBaseWidget
-        from spyderlib.widgets.qscieditor import QsciEditor
         from spyderlib.widgets.shell import ShellBaseWidget
         if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
             return
@@ -1378,7 +1377,7 @@ def run_spyder(app, qt_translator, app_translator,
                 # attach a show method to the figure for pylab ease of use
                 self.canvas.figure.show = lambda *args: self.window.show()
         
-                def notify_axes_change( fig ):
+                def notify_axes_change(fig):
                     # This will be called whenever the current axes is changed
                     if self.toolbar != None: self.toolbar.update()
                 self.canvas.figure.add_axobserver(notify_axes_change)
@@ -1389,19 +1388,23 @@ def run_spyder(app, qt_translator, app_translator,
         # *  NavigationToolbar2QT
         # ****************************************************************
         try:
-            from spyderlib.widgets.figureoptions import figure_edit
-        except ImportError, error:
-            print >> STDOUT, error
-            figure_edit = None
-        class NavigationToolbar2QT( backend_qt4.NavigationToolbar2QT ):
+            # This will work with the next matplotlib release:
+            edit_parameters = backend_qt4.edit_parameters
+            # -> Figure options button has already been added by matplotlib
+        except AttributeError:
+            edit_parameters = None
+            # -> Figure options button does not exist yet
+            
+        from spyderlib.widgets.figureoptions import figure_edit
+        class NavigationToolbar2QT(backend_qt4.NavigationToolbar2QT):
             def _init_toolbar(self):
                 super(NavigationToolbar2QT, self)._init_toolbar()
-                if figure_edit:
+                if edit_parameters is None:
                     a = self.addAction(get_icon("options.svg"),
                                        'Customize', self.edit_parameters)
                     a.setToolTip('Edit curves line and axes parameters')
             def edit_parameters(self):
-                if figure_edit:
+                if edit_parameters is None:
                     allaxes = self.canvas.figure.get_axes()
                     if len(allaxes) == 1:
                         axes = allaxes[0]
@@ -1428,13 +1431,15 @@ def run_spyder(app, qt_translator, app_translator,
                         else:
                             return
                     figure_edit(axes, self)
-            def save_figure( self ):
+                else:
+                    super(NavigationToolbar2QT, self).edit_parameters()
+            def save_figure(self):
                 main.console.shell.restore_stds()
                 super(NavigationToolbar2QT, self).save_figure()
                 main.console.shell.redirect_stds()
-            def set_cursor( self, cursor ):
+            def set_cursor(self, cursor):
                 if backend_qt4.DEBUG: print 'Set cursor' , cursor
-                self.parent().setCursor( QCursor(backend_qt4.cursord[cursor]) )
+                self.parent().setCursor(QCursor(backend_qt4.cursord[cursor]))
         # ****************************************************************
         backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT
         
