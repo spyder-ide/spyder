@@ -13,8 +13,8 @@ NumPy Array Editor Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import Qt, QVariant, QModelIndex, QAbstractTableModel
-from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
+                          SIGNAL, SLOT)
 from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                          QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
                          QDialog, QDialogButtonBox, QMessageBox, QPushButton,
@@ -24,29 +24,50 @@ from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
 import numpy as np
 import StringIO
 
-# Local import
+# Local imports
 from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
                                        keybinding)
 
-# string and unicode data types will be formatted with '%s' (see below)
+# Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
                      'single': '%.3f',
                      'double': '%.3f',
                      'float_': '%.3f',
+                     'longfloat': '%.3f',
                      'float32': '%.3f',
                      'float64': '%.3f',
                      'float96': '%.3f',
+                     'float128': '%.3f',
+                     'csingle': '%r',
+                     'complex_': '%r',
+                     'clongfloat': '%r',
+                     'complex64': '%r',
+                     'complex128': '%r',
+                     'complex192': '%r',
+                     'complex256': '%r',
+                     'byte': '%d',
+                     'short': '%d',
+                     'intc': '%d',
                      'int_': '%d',
+                     'longlong': '%d',
+                     'intp': '%d',
                      'int8': '%d',
                      'int16': '%d',
                      'int32': '%d',
                      'int64': '%d',
+                     'ubyte': '%d',
+                     'ushort': '%d',
+                     'uintc': '%d',
                      'uint': '%d',
+                     'ulonglong': '%d',
+                     'uintp': '%d',
                      'uint8': '%d',
                      'uint16': '%d',
                      'uint32': '%d',
                      'uint64': '%d',
+                     'bool_': '%r',
+                     'bool8': '%r',
                      'bool': '%r',
                      }
 
@@ -61,7 +82,7 @@ def is_number(dtype):
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
-    rows, cols = zip(*[(i.row(),i.column()) for i in index_list])
+    rows, cols = zip(*[(i.row(), i.column()) for i in index_list])
     return ( min(rows), max(rows), min(cols), max(cols) )
 
 
@@ -92,7 +113,7 @@ class ArrayModel(QAbstractTableModel):
             if self.vmax == self.vmin:
                 self.vmin -= 1
             self.hue0 = huerange[0]
-            self.dhue = huerange[1] - huerange[0]
+            self.dhue = huerange[1]-huerange[0]
             self.bgcolor_enabled = True
         except TypeError:
             self.vmin = None
@@ -140,7 +161,7 @@ class ArrayModel(QAbstractTableModel):
             return QVariant()
         value = self.get_value(index)
         if role == Qt.DisplayRole:
-            return QVariant( self._format % value )
+            return QVariant(self._format % value)
         elif role == Qt.TextAlignmentRole:
             return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
@@ -169,10 +190,13 @@ class ArrayModel(QAbstractTableModel):
             val = unicode(value)
         else:
             try:
-                val = float(value)
+                val = complex(value)
+                if not val.imag:
+                    val = val.real
             except ValueError, e:
                 QMessageBox.critical(self.dialog, "Error",
-                                     "Value error: %s" % e.message)
+                                     "Value error: %s" % str(e))
+                return False
         try:
             self.test_array[0] = val # will raise an Exception eventually
         except OverflowError, e:
@@ -234,7 +258,7 @@ class ArrayDelegate(QItemDelegate):
             editor.setFont(get_font('arrayeditor'))
             editor.setAlignment(Qt.AlignCenter)
             if is_number(self.dtype):
-                editor.setValidator( QDoubleValidator(editor) )
+                editor.setValidator(QDoubleValidator(editor))
             self.connect(editor, SIGNAL("returnPressed()"),
                          self.commitAndCloseEditor)
             return editor
@@ -248,7 +272,7 @@ class ArrayDelegate(QItemDelegate):
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
         text = index.model().data(index, Qt.DisplayRole).toString()
-        editor.setText( text )
+        editor.setText(text)
 
 
 #TODO: Implement "Paste" (from clipboard) feature
@@ -293,7 +317,7 @@ class ArrayView(QTableView):
                                          triggered=self.copy,
                                          window_context=False)
         menu = QMenu(self)
-        add_actions(menu, [self.copy_action,])
+        add_actions(menu, [self.copy_action, ])
         return menu
 
     def contextMenuEvent(self, event):
@@ -410,7 +434,7 @@ class ArrayEditor(QDialog):
         """
         self.arraywidget = None
         self.is_record_array = data.dtype.names is not None
-        if len(data.shape) > 2:
+        if data.ndim > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
             return False
@@ -516,12 +540,12 @@ def aedit(data, title="", xy=False, readonly=False, parent=None):
             return data
 
 
-if __name__ == "__main__":
+def run_tests():
     arr = np.array(["kjrekrjkejr"])
     print "out:", aedit(arr, "string array")
     arr = np.array([u"kjrekrjkejr"])
     print "out:", aedit(arr, "unicode array")
-    arr = np.zeros((2,2), {'names': ('red','green','blue'),
+    arr = np.zeros((2,2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
     print "out:", aedit(arr, "record array")
     arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
@@ -529,6 +553,8 @@ if __name__ == "__main__":
     print "out:", aedit(arr, "record array with titles")
     arr = np.random.rand(5, 5)
     print "out:", aedit(arr, "float array")
+    arr = np.round(np.random.rand(5, 5)*10)+np.round(np.random.rand(5, 5)*10)*1j
+    print "out:", aedit(arr, "complex array")
     arr_in = np.array([True, False, True])
     print "in:", arr_in
     arr_out = aedit(arr_in, "bool array")
@@ -536,3 +562,7 @@ if __name__ == "__main__":
     print arr_in is arr_out
     arr = np.array([1, 2, 3], dtype="int8")
     print "out:", aedit(arr, "int array")
+
+
+if __name__ == "__main__":
+    run_tests()
