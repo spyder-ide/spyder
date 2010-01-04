@@ -655,27 +655,30 @@ class EditorTabWidget(Tabs):
         editor = self.currentWidget()
         ls = editor.get_line_separator()
         
-        line_from, _index_from, line_to, index_to = editor.getSelection()
-        if line_from != line_to:
-            # Multiline selection -> first line must be entirely selected
-            editor.setSelection(line_from, 0, line_to, index_to)
-        lines = unicode( editor.selectedText() )
+        _indent = lambda line: len(line)-len(line.lstrip())
+        
+        _line_from, _index_from, line_to, _index_to = editor.getSelection()
+        text = unicode(editor.selectedText())
+
+        lines = text.split(ls)
+        if len(lines) > 1:
+            # Multiline selection -> fixing first line indentation
+            text = (" "*(_indent(lines[1])-_indent(lines[0])))+text
         
         # If there is a common indent to all lines, remove it
         min_indent = 999
-        for line in lines.split(ls):
+        for line in text.split(ls):
             if line.strip():
-                min_indent = min(len(line)-len(line.lstrip()), min_indent)
+                min_indent = min(_indent(line), min_indent)
         if min_indent:
-            lines = [line[min_indent:] for line in lines.split(ls)]
-            lines = ls.join(lines)
+            text = ls.join([line[min_indent:] for line in text.split(ls)])
 
-        last_line = lines.split(ls)[-1]
+        last_line = text.split(ls)[-1]
         if last_line.strip() == unicode(editor.text(line_to)).strip():
             # If last line is complete, add an EOL character
-            lines += ls
+            text += ls
         
-        return lines
+        return text
     
     def __run_in_interactive_console(self, lines):
         self.interactive_console.shell.execute_lines(lines)
