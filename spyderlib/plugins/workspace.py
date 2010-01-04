@@ -131,7 +131,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     def set_interpreter(self, interpreter):
         """Bind to interpreter"""
         self.interpreter = interpreter
-        self.refresh()
+        self.refresh(force=True)
         
     def get_namespace(self, itermax=ITERMAX):
         """Return filtered namespace"""
@@ -142,7 +142,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         keys = self.get_namespace().keys()
         for key in keys:
             self.namespace.pop(key)
-        self.refresh()
+        self.refresh(force=True)
     
     def clear(self):
         """Ask to clear workspace"""
@@ -152,9 +152,9 @@ class Workspace(DictEditorTableView, PluginMixin):
         if answer == QMessageBox.Yes:
             self.__clear_namespace()
 
-    def refresh(self):
+    def refresh(self, force=False):
         """Refresh widget"""
-        if CONF.get(self.ID, 'autorefresh'):
+        if CONF.get(self.ID, 'autorefresh') or force:
             self.refresh_editor()
         
     def refresh_editor(self):
@@ -299,7 +299,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             self.import_data(self.filename)
         else:
             self.namespace = None
-            self.refresh()
+            self.refresh(force=True)
 
     def import_data(self, filename=None):
         """
@@ -357,7 +357,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                                  self.tr("<b>Unable to load '%1'</b>"
                                          "<br><br>Error message:<br>%2") \
                                          .arg(self.filename).arg(error_message))
-        self.refresh()
+        self.refresh(force=True)
 
     def save_as(self):
         """Save current workspace as"""
@@ -394,23 +394,23 @@ class Workspace(DictEditorTableView, PluginMixin):
                                     "<br><br>Error message:<br>%1") \
                             .arg(error_message))
             
-        self.refresh()
+        self.refresh(force=True)
         return True
 
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
         CONF.set(self.ID, 'exclude_private', checked)
-        self.refresh()
+        self.refresh(force=True)
         
     def toggle_exclude_upper(self, checked):
         """Toggle exclude upper-case references"""
         CONF.set(self.ID, 'exclude_upper', checked)
-        self.refresh()
+        self.refresh(force=True)
 
     def toggle_exclude_unsupported(self, checked):
         """Toggle exclude unsupported datatypes"""
         CONF.set(self.ID, 'exclude_unsupported', checked)
-        self.refresh()
+        self.refresh(force=True)
 
     #----Focus
     def focusInEvent(self, event):
