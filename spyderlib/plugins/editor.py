@@ -707,8 +707,8 @@ class EditorTabWidget(Tabs):
             # Run current line in interactive console and go to next line
             run_callback( editor.get_current_line().strip() )
             editor.setFocus()
-            editor.stdkey_down(False)
-
+            editor.move_cursor_to_next('line', 'down')
+            
     #------ Drag and drop
     def dragEnterEvent(self, event):
         """Reimplement Qt method

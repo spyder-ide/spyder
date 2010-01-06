@@ -420,6 +420,11 @@ class TextEditBaseWidget(QTextEdit):
                 self.moveCursor(QTextCursor.PreviousWord, move_mode)
             elif direction == 'right':
                 self.moveCursor(QTextCursor.NextWord, move_mode)
+        elif what == 'line':
+            if direction == 'down':
+                self.moveCursor(QTextCursor.NextRow, move_mode)
+            elif direction == 'up':
+                self.moveCursor(QTextCursor.PreviousRow, move_mode)
                 
     def move_cursor_to_next(self, what='word', direction='left'):
         """

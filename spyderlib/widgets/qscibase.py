@@ -181,6 +181,12 @@ class TextEditBaseWidget(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_CHARLEFT)
             elif direction == 'right':
                 self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
+        elif what == 'line':
+            cline, _cindex = self.getCursorPosition()
+            if direction == 'down':
+                self.setCursorPosition(max(0, cline+1), 0)
+            elif direction == 'up':
+                self.setCursorPosition(min(self.lines()-1, cline-1), 0)
     
 
     #------Selection
