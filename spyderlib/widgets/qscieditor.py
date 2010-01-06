@@ -151,14 +151,14 @@ class QsciEditor(TextEditBaseWidget):
         # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.tab_mode = tab_mode
-        
-        if linenumbers:
-            self.connect( self, SIGNAL('linesChanged()'), self.__lines_changed )
-        self.setup_margins(linenumbers, code_analysis, code_folding)
 
         if font is not None:
             self.set_font(font)
-             
+        
+        if linenumbers:
+            self.connect(self, SIGNAL('linesChanged()'), self.__lines_changed)
+        self.setup_margins(linenumbers, code_analysis, code_folding)
+        
         # Re-enable brace matching (already enabled in TextEditBaseWidget.setup
         # but for an unknown reason, changing the 'set_font' call above reset
         # this setting to default, which is no brace matching):
@@ -250,7 +250,7 @@ class QsciEditor(TextEditBaseWidget):
         if code_folding:
             # 0: Folding margin
             self.setMarginWidth(2, 14)
-            self.setFolding(QsciScintilla.BoxedFoldStyle)                
+            self.setFolding(QsciScintilla.BoxedFoldStyle)
         # Colors
         fcol = CONF.get('scintilla', 'margins/foregroundcolor')
         bcol = CONF.get('scintilla', 'margins/backgroundcolor')
@@ -420,6 +420,7 @@ class QsciEditor(TextEditBaseWidget):
         else:
             self.lexer().setFont(font)
             self.setLexer(self.lexer())
+        font.setPointSize(font.pointSize()-1)
         self.setMarginsFont(font)
         
     def set_text(self, text):
