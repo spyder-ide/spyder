@@ -11,6 +11,7 @@ from code import InteractiveConsole
 
 # Local imports:
 from spyderlib.config import CONF
+from spyderlib.utils.dochelpers import isdefined
 
 # For debugging purpose
 STDOUT, STDERR = sys.stdout, sys.stderr
@@ -113,6 +114,11 @@ class Interpreter(InteractiveConsole):
             return eval(text, self.locals), True
         except:
             return None, False
+        
+    def is_defined(self, objtxt, force_import=False):
+        """Return True if object is defined"""
+        return isdefined(objtxt, force_import=force_import,
+                         namespace=self.locals)
         
     #===========================================================================
     # InteractiveConsole API

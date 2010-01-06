@@ -22,15 +22,6 @@ from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor
 from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
 
-# Import commands for modules docstrings
-EVAL_IMPORT = u'__import__("%s")'
-EVAL_IMPORT_F = u'__import__("%(module)s", fromlist=["%(func)s"]).%(func)s'
-SHELL_IMPORT = """
-try:
-    if %(module)s: pass
-except:
-    import %(module)s
-"""
 
 class DocComboBox(EditableComboBox):
     """
@@ -47,18 +38,9 @@ class DocComboBox(EditableComboBox):
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         shell = self.parent().shell
-        if hasattr(shell, 'interpreter'):
-            _, valid = shell.interpreter.eval(unicode(qstr))
-            # try to import as module name or as a func from module
-            if not valid:
-                req = str(qstr).split('.', 1)
-                if len(req) > 1:
-                    import_cmd = EVAL_IMPORT_F % {'module': req[0],
-                                                  'func': req[1]}
-                else:
-                    import_cmd = EVAL_IMPORT % qstr
-                _, valid = shell.interpreter.eval(unicode(import_cmd))
-            return valid
+        if shell is not None:
+            force_import = CONF.get('docviewer', 'automatic_import')
+            return shell.is_defined(unicode(qstr), force_import=force_import)
         
     def keyPressEvent(self, event):
         """Handle key press events"""
@@ -70,7 +52,11 @@ class DocComboBox(EditableComboBox):
                 self.set_default_style()
         else:
             QComboBox.keyPressEvent(self, event)
-    
+        
+    def validate_current_text(self):
+        self.validate(self.currentText())
+
+
 class DocViewer(ReadOnlyEditor):
     """
     Docstrings viewer widget
@@ -96,13 +82,19 @@ class DocViewer(ReadOnlyEditor):
         self.combo.addItems( dvhistory )
         
         # Doc/source checkbox
-        self.help_or_doc = QCheckBox(self.tr("Show source"))
-        self.connect(self.help_or_doc, SIGNAL("stateChanged(int)"),
-                     self.toggle_help)
-        layout_edit.addWidget(self.help_or_doc)
+        help_or_doc = QCheckBox(self.tr("Show source"))
+        self.connect(help_or_doc, SIGNAL("stateChanged(int)"), self.toggle_help)
+        layout_edit.addWidget(help_or_doc)
         self.docstring = None
         self.autosource = False
         self.toggle_help(Qt.Unchecked)
+        
+        # Automatic import checkbox
+        auto_import = QCheckBox(self.tr("Automatic import"))
+        self.connect(auto_import, SIGNAL("stateChanged(int)"),
+                     self.toggle_auto_import)
+        auto_import.setChecked(CONF.get('docviewer', 'automatic_import'))
+        layout_edit.addWidget(auto_import)
         
         # Lock checkbox
         self.locked_button = create_toolbutton(self,
@@ -148,6 +140,12 @@ class DocViewer(ReadOnlyEditor):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
         self.refresh(force=True)
+        
+    def toggle_auto_import(self, state):
+        """Toggle automatic import feature"""
+        CONF.set('docviewer', 'automatic_import', state == Qt.Checked)
+        self.refresh(force=True)
+        self.combo.validate_current_text()
         
     def toggle_locked(self):
         """
@@ -207,16 +205,9 @@ class DocViewer(ReadOnlyEditor):
                 self.shell = self.main.console.shell
         obj_text = unicode(obj_text)
 
-        # If not a known function - extract module name and import it
-        if not self.shell.interpreter.eval(obj_text)[1]:
-            req = str(obj_text).split('.', 1)
-            module = req[0]
-            import_cmd = EVAL_IMPORT % module
-            _, valid = self.shell.interpreter.eval(import_cmd)
-            if valid:
-                self.shell.run_command(SHELL_IMPORT % {'module': module}, 
-                                       new_prompt=False)
-
+        if CONF.get('docviewer', 'automatic_import'):
+            self.shell.is_defined(obj_text, force_import=True) # force import
+        
         doc_text = self.shell.get_doc(obj_text)
         try:
             source_text = self.shell.get_source(obj_text)

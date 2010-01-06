@@ -114,9 +114,40 @@ def getargtxt(obj, one_arg_per_line=True):
         textlist.remove('self'+sep)
     return textlist
 
+
+def isdefined(obj, force_import=False, namespace=None):
+    """Return True if object is defined"""
+    if namespace is None:
+        namespace = locals()
+    attr_list = obj.split('.')
+    base = attr_list.pop(0)
+    if base not in locals() and base not in globals() and base not in namespace:
+        if force_import:
+            try:
+                module = __import__(base, globals(), namespace)
+                globals()[base] = module
+                namespace[base] = module
+            except ImportError:
+                return False
+        else:
+            return False
+    for attr in attr_list:
+        if not hasattr(eval(base, namespace), attr):
+            if force_import:
+                try:
+                    __import__(base+'.'+attr, globals(), namespace)
+                except ImportError:
+                    return False
+            else:
+                return False
+        base += '.'+attr
+    return True
+    
+
 if __name__ == "__main__":
     class Test(object):
         def method(self, x, y=2, (u, v, w)=(None, 0, 0)):
             pass
     print getargtxt(Test.__init__)
     print getargtxt(Test.method)
+    print isdefined('numpy.take', force_import=True)

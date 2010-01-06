@@ -6,7 +6,8 @@ import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
-from spyderlib.utils.dochelpers import getargtxt, getdoc, getsource, getobjdir
+from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
+                                        isdefined)
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
                                           value_to_display, globalsfilter)
 
@@ -100,11 +101,14 @@ class Monitor(threading.Thread):
         self.request = socket.socket( socket.AF_INET )
         self.request.connect( (host, port) )
         write_packet(self.request, shell_id)
+        from __main__ import __dict__ as glbs
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
                        "getargtxt": getargtxt,
                        "getdoc": getdoc,
                        "getsource": getsource,
+                       "isdefined": lambda objtxt, force_import: \
+                                    isdefined(objtxt, force_import, glbs),
                        "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
                        "__set_global__": self.setglobal,

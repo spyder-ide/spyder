@@ -91,6 +91,11 @@ class ExtPyQsciShell(PythonShellWidget):
     def get_source(self, objtxt):
         """Get object source"""
         return self.ask_monitor("getsource(%s)" % objtxt)
+    
+    def is_defined(self, objtxt, force_import=False):
+        """Return True if object is defined"""
+        return self.ask_monitor("isdefined('%s', force_import=%s)"
+                                % (objtxt, force_import))
 
 
 class ExternalPythonShell(ExternalShellBase):

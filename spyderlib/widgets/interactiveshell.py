@@ -536,3 +536,7 @@ has the same effect as typing a particular string at the help> prompt.
         obj, valid = self._eval(objtxt)
         if valid:
             return getsource(obj)
+
+    def is_defined(self, objtxt, force_import=False):
+        """Return True if object is defined"""
+        return self.interpreter.is_defined(objtxt, force_import)

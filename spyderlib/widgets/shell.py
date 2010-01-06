@@ -911,6 +911,9 @@ class PythonShellWidget(ShellBaseWidget):
     def get_source(self, objtxt):
         """Get object source"""
         raise NotImplementedError
+    def is_defined(self, objtxt, force_import=False):
+        """Return True if object is defined"""
+        raise NotImplementedError
         
     def show_code_completion(self, text):
         """Display a completion list based on the last token"""
