@@ -657,17 +657,14 @@ class EditorTabWidget(Tabs):
         
         _indent = lambda line: len(line)-len(line.lstrip())
         
-        _line_from, _index_from, line_to, _index_to = editor.getSelection()
+        line_from, _index_from, line_to, _index_to = editor.getSelection()
         text = unicode(editor.selectedText())
 
         lines = text.split(ls)
         if len(lines) > 1:
-            # Multiline selection
-            indent1, indent2 = _indent(lines[0]), _indent(lines[1])
-            if indent2 < indent1:
-                # First line is partially selected:
-                # assuming that it's intentional -> fixing indentation
-                text = (" "*(indent2-indent1))+text
+            # Multiline selection -> eventually fixing indentation
+            original_indent = _indent(unicode(editor.text(line_from)))
+            text = (" "*(original_indent-_indent(lines[0])))+text
         
         # If there is a common indent to all lines, remove it
         min_indent = 999
