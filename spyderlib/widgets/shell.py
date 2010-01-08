@@ -724,7 +724,11 @@ class PythonShellWidget(ShellBaseWidget):
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
         text = unicode(self.selectedText()).replace(u"\u2029", os.linesep)
-        text = text.replace('>>> ', '').strip()
+        lines = text.split(os.linesep)
+        for index, line in enumerate(lines):
+            if line.startswith('>>> ') or line.startswith('... '):
+                lines[index] = line[4:]
+        text = os.linesep.join(lines)
         QApplication.clipboard().setText(text)
     
     
