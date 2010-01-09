@@ -332,7 +332,6 @@ has the same effect as typing a particular string at the help> prompt.
     #------ Keyboard events
     def on_enter(self, command):
         """on_enter"""
-        self.busy = True
         if self.profile:
             # Simple profiling test
             t0 = time()
@@ -342,7 +341,6 @@ has the same effect as typing a particular string at the help> prompt.
             self.new_prompt(self.p1)
         else:
             self.execute_command(command)
-        self.busy = False
         self.__flush_eventqueue()
 
     def keyPressEvent(self, event):
@@ -413,6 +411,7 @@ has the same effect as typing a particular string at the help> prompt.
         """Run command in interpreter"""
         
         # Before running command
+        self.busy = True
         self.emit(SIGNAL("status(QString)"), self.tr('Busy...'))
         self.emit(SIGNAL("executing_command(bool)"), True)
         
@@ -494,6 +493,7 @@ has the same effect as typing a particular string at the help> prompt.
         # After running command
         self.emit(SIGNAL("executing_command(bool)"), False)
         self.emit(SIGNAL("status(QString)"), QString())
+        self.busy = False
     
     
     #------ Code completion / Calltips
