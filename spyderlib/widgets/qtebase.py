@@ -390,6 +390,12 @@ class TextEditBaseWidget(QTextEdit):
         for _i in range(abs(chars)):
             self.moveCursor(direction, QTextCursor.MoveAnchor)
 
+    def is_cursor_on_first_line(self):
+        """Return True if cursor is on the first line"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        return cursor.atStart()
+
     def is_cursor_on_last_line(self):
         """Return True if cursor is on the last line"""
         cursor = self.textCursor()
@@ -425,6 +431,11 @@ class TextEditBaseWidget(QTextEdit):
                 self.moveCursor(QTextCursor.NextRow, move_mode)
             elif direction == 'up':
                 self.moveCursor(QTextCursor.PreviousRow, move_mode)
+        elif what == 'block':
+            if direction == 'down':
+                self.moveCursor(QTextCursor.NextBlock, move_mode)
+            elif direction == 'up':
+                self.moveCursor(QTextCursor.PreviousBlock, move_mode)
                 
     def move_cursor_to_next(self, what='word', direction='left'):
         """
@@ -447,6 +458,15 @@ class TextEditBaseWidget(QTextEdit):
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
+                
+    def select_current_block(self):
+        """
+        Select block under cursor
+        Block = group of lines separated by either empty lines or commentaries
+        """
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.BlockUnderCursor)
+        self.setTextCursor(cursor)
         
 
     #------Text: get, set, replace, ...

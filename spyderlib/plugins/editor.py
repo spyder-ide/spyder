@@ -689,11 +689,11 @@ class EditorTabWidget(Tabs):
         self.plugin.emit(SIGNAL('external_console_execute_lines(QString)'),
                          lines)
     
-    def run_selection_or_line(self, external=False):
+    def run_selection_or_block(self, external=False):
         """
         Run selected text in console and set focus to console
         *or*, if there is no selection,
-        Run current line in console and go to next line
+        Run current block of lines in console and go to next block
         """
         if external:
             run_callback = self.__run_in_external_console
@@ -704,10 +704,11 @@ class EditorTabWidget(Tabs):
             # Run selected text in interactive console and set focus to console
             run_callback( self.__process_lines() )
         else:
-            # Run current line in interactive console and go to next line
-            run_callback( editor.get_current_line().strip() )
+            # Run current block in interactive console and go to next block
+            editor.select_current_block()
+            run_callback( self.__process_lines() )
             editor.setFocus()
-            editor.move_cursor_to_next('line', 'down')
+            editor.move_cursor_to_next('block', 'down')
             
     #------ Drag and drop
     def dragEnterEvent(self, event):
@@ -1084,12 +1085,12 @@ class Editor(PluginWidget):
                     "and set focus to shell"),
             triggered=self.run_script_and_interact)
         run_selected_action = create_action(self,
-            self.tr("Run selection or current line"), "Ctrl+F9",
+            self.tr("Run selection or current block"), "Ctrl+F9",
             'run_selection.png',
             self.tr("Run selected text in interactive console\n"
-                    "(or run current line and go to next line "
+                    "(or run current block of lines and go to next block "
                     "if there is no selection)"),
-            triggered=lambda: self.run_selection_or_line(external=False))
+            triggered=lambda: self.run_selection_or_block(external=False))
         run_process_action = create_action(self,
             self.tr("Run in e&xternal console"), "F5", 'run_external.png',
             self.tr("Run current script in external console"
@@ -1107,12 +1108,12 @@ class Editor(PluginWidget):
                         "separate process)"),
             triggered=lambda: self.run_script_extconsole(interact=True))
         run_selected_extconsole_action = create_action(self,
-            self.tr("Run &selection or current line"), "Ctrl+F5",
+            self.tr("Run &selection or current block"), "Ctrl+F5",
             'run_external.png',
             tip=self.tr("Run selected text in external console\n"
-                    "(or run current line and go to next line "
+                    "(or run current block of lines and go to next block "
                     "if there is no selection)"),
-            triggered=lambda: self.run_selection_or_line(external=True))
+            triggered=lambda: self.run_selection_or_block(external=True))
         run_process_args_actionn = create_action(self,
             self.tr("Run with arguments"), "Alt+F5", 'run_external.png',
             tip=self.tr("Run current script in external console specifying "
@@ -1925,10 +1926,10 @@ class Editor(PluginWidget):
         """Run current script and set focus to shell"""
         self.run_script(set_focus=True)
         
-    def run_selection_or_line(self, external=False):
+    def run_selection_or_block(self, external=False):
         """Run selection or current line in interactive or external console"""
         editortabwidget = self.get_current_editortabwidget()
-        editortabwidget.run_selection_or_line(external=external)
+        editortabwidget.run_selection_or_block(external=external)
         
         
     #------ Options

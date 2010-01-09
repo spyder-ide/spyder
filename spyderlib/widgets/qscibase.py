@@ -149,6 +149,11 @@ class TextEditBaseWidget(QsciScintilla):
         index = min([0, max([self.lineLength(line), index+chars])])
         self.setCursorPosition(line, index)
 
+    def is_cursor_on_first_line(self):
+        """Return True if cursor is on the first line"""
+        cline, _ = self.getCursorPosition()
+        return cline == 0
+
     def is_cursor_on_last_line(self):
         """Return True if cursor is on the last line"""
         cline, _ = self.getCursorPosition()
@@ -182,11 +187,19 @@ class TextEditBaseWidget(QsciScintilla):
             elif direction == 'right':
                 self.SendScintilla(QsciScintilla.SCI_CHARRIGHT)
         elif what == 'line':
+            # Do not use "SCI_LINEUP" and "SCI_LINEDOWN"
+            # otherwise, when word wrapping is enabled, cursor would not go
+            # to next/previous line of code but to next/previous displayed line
             cline, _cindex = self.getCursorPosition()
             if direction == 'down':
                 self.setCursorPosition(max(0, cline+1), 0)
             elif direction == 'up':
                 self.setCursorPosition(min(self.lines()-1, cline-1), 0)
+        elif what == 'block':
+            if direction == 'up':
+                self.SendScintilla(QsciScintilla.SCI_PARAUP)
+            elif direction == 'down':
+                self.SendScintilla(QsciScintilla.SCI_PARADOWN)
     
 
     #------Selection
@@ -210,6 +223,57 @@ class TextEditBaseWidget(QsciScintilla):
                 self.SendScintilla(QsciScintilla.SCI_CHARLEFTEXTEND)
             elif direction == 'right':
                 self.SendScintilla(QsciScintilla.SCI_CHARRIGHTEXTEND)
+        elif what == 'block':
+            if direction == 'up':
+                self.SendScintilla(QsciScintilla.SCI_PARAUPEXTEND)
+            elif direction == 'down':
+                self.SendScintilla(QsciScintilla.SCI_PARADOWNEXTEND)
+                
+    def select_current_line(self):
+        """Select line under cursor"""
+        self.set_cursor_position('eol')
+        cline, cindex = self.getCursorPosition()
+        self.setSelection(cline, cindex, cline, 0)
+
+    def __get_previous_line(self):
+        cline, cindex = self.getCursorPosition()
+        self.move_cursor_to_next('line', 'up')
+        text = self.get_current_line()
+        self.setCursorPosition(cline, cindex)
+        return text
+                
+    def __reverse_selection(self):
+        line_from, index_from, line_to, index_to = self.getSelection()
+        self.setSelection(line_to, index_to, line_from, index_from)
+                
+    def select_current_block(self):
+        """
+        Select block under cursor
+        Block = group of lines separated by either empty lines or commentaries
+        """
+        self.set_cursor_position('sol')
+        _is_empty_line = lambda text: len(text.strip()) == 0
+        _is_comment = lambda text: text.lstrip()[0] == '#'
+        _is_separator = lambda text: _is_empty_line(text) or _is_comment(text)
+        if not _is_separator(self.get_current_line()) \
+           and not _is_separator(self.__get_previous_line()):
+            # Current line *and* previous line contain code:
+            # moving to the beginning of the block
+            self.move_cursor_to_next('block', 'up')
+        elif _is_empty_line(self.get_current_line()):
+            # Current line is empty, moving to next block
+            self.move_cursor_to_next('block', 'down')
+        else:
+            # This is useful when cursor is in the middle of a block commentary
+            while _is_comment(self.get_current_line()):
+                if self.is_cursor_on_first_line():
+                    break
+                self.move_cursor_to_next('line', 'up')
+                if _is_empty_line(self.get_current_line()):
+                    self.move_cursor_to_next('line', 'down')
+                    break
+        self.extend_selection_to_next('block', 'down')
+        self.__reverse_selection()
         
 
     #------Text: get, set, replace, ...
