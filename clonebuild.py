@@ -27,7 +27,8 @@ os.system('hg clone %s %s' % (name, version))
 
 ## Creating source distribution archive
 tar = tarfile.open("%s.tar.gz" % version, "w|gz")
-tar.add(version, recursive=True)
+tar.add(version, recursive=True,
+        exclude=lambda fn: osp.relpath(fn, version).startswith('.hg'))
 tar.close()
 
 ## Building .exe and .egg installers
