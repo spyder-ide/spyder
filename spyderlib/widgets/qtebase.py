@@ -345,11 +345,11 @@ class TextEditBaseWidget(QTextEdit):
         
         
     #------Positions, coordinates (cursor, EOF, ...)
-    def compare_position_sup(self, pos1, pos2):
+    def is_position_sup(self, pos1, pos2):
         """Return True is pos1 > pos2"""
         return pos1 > pos2
         
-    def compare_position_inf(self, pos1, pos2):
+    def is_position_inf(self, pos1, pos2):
         """Return True is pos1 < pos2"""
         return pos1 < pos2
         

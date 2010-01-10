@@ -223,12 +223,13 @@ class FindReplace(QWidget):
         """Replace and find"""
         if (self.editor is not None):
             replace_text = self.replace_text.currentText()
+            search_text = self.search_text.currentText()
             first = True
             while True:
                 if first:
                     # First found
                     if self.editor.hasSelectedText() \
-                       and self.editor.selectedText() == self.search_text.currentText():
+                       and self.editor.selectedText() == search_text:
                         # Text was already found, do nothing
                         pass
                     else:
@@ -239,16 +240,17 @@ class FindReplace(QWidget):
                     position0 = position
                 else:
                     position1 = self.editor.get_position('cursor')
-                    if position1 == position0:
-                        # Avoid infinite loop: single found occurence
-                        break
-                    if self.editor.compare_position_inf(position1, position0):
-                        wrapped = True
                     if wrapped:
-                        if self.editor.compare_position_sup(position0, position):
+                        if position1 == position or \
+                           self.editor.is_position_sup(position1, position):
                             # Avoid infinite loop: replace string includes
                             # part of the search string
                             break
+                    if position1 == position0:
+                        # Avoid infinite loop: single found occurence
+                        break
+                    if self.editor.is_position_inf(position1, position0):
+                        wrapped = True
                     position0 = position1
                 
                 self.editor.replace(replace_text)

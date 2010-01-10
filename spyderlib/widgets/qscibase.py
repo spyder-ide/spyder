@@ -104,13 +104,13 @@ class TextEditBaseWidget(QsciScintilla):
         
         
     #------Positions, coordinates (cursor, EOF, ...)
-    def compare_position_sup(self, pos1, pos2):
+    def is_position_sup(self, pos1, pos2):
         """Return True is pos1 > pos2"""
         line1, index1 = pos1
         line2, index2 = pos2
         return line1 > line2 or (line1 == line2 and index1 > index2)
         
-    def compare_position_inf(self, pos1, pos2):
+    def is_position_inf(self, pos1, pos2):
         """Return True is pos1 < pos2"""
         line1, index1 = pos1
         line2, index2 = pos2
