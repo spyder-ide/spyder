@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, re, time
+import sys, os, re, time, os.path as osp
 from math import log
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
@@ -67,7 +67,7 @@ def check(filename):
         return results
 
 if __name__ == '__main__':
-    check_results = check(os.path.abspath("../spyder.py"))
+    check_results = check(osp.abspath("../spyder.py"))
     for message, line, error in check_results:
         print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
 
@@ -270,8 +270,13 @@ class QsciEditor(TextEditBaseWidget):
         self.api = QsciAPIs(self.lexer())
         is_api_ready = False
         api_path = CONF.get('editor', 'api')
-        if not os.path.isfile(api_path):
-            return False
+        if not osp.isfile(api_path):
+            from spyderlib.config import DATA_PATH
+            api_path = osp.join(DATA_PATH, 'python.api')
+            if osp.isfile(api_path):
+                CONF.set('editor', 'api', api_path)
+            else:
+                return False
         api_stat = CONF.get('editor', 'api_stat', None)
         current_api_stat = os.stat(api_path)
         if (api_stat is not None) and (api_stat == current_api_stat):
