@@ -95,7 +95,10 @@ class ResultsTree(OneColumnTree):
                     i_base = module.find(basename)
                     module = module[i_base:]
                 dirname = osp.dirname(self.filename)
-                modname = osp.join(dirname, *module.split('.'))
+                if module.startswith('.'):
+                    modname = osp.join(dirname, module)
+                else:
+                    modname = osp.join(dirname, *module.split('.'))
                 if osp.isdir(modname):
                     modname = osp.join(modname, '__init__')
                 for ext in ('.py', '.pyw'):
