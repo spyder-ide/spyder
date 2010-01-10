@@ -33,7 +33,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.5'
+# History:
+# 1.0.6: code cleaning
+
+__version__ = '1.0.6'
 __license__ = __doc__
 
 DEBUG = False
@@ -67,21 +70,21 @@ class ColorButton(QPushButton):
         QPushButton.__init__(self, parent)
         self.setFixedSize(20, 20)
         self.setIconSize(QSize(12, 12))
-        self.connect(self, SIGNAL("clicked()"), self.chooseColor)
+        self.connect(self, SIGNAL("clicked()"), self.choose_color)
         self._color = QColor()
     
-    def chooseColor(self):
+    def choose_color(self):
         rgba, valid = QColorDialog.getRgba(self._color.rgba(),
                                            self.parentWidget())
         if valid:
             color = QColor.fromRgba(rgba)
-            self.setColor(color)
+            self.set_color(color)
     
-    def color(self):
+    def get_color(self):
         return self._color
     
     @pyqtSignature("QColor")
-    def setColor(self, color):
+    def set_color(self, color):
         if color != self._color:
             self._color = color
             self.emit(SIGNAL("colorChanged(QColor)"), self._color)
@@ -89,7 +92,7 @@ class ColorButton(QPushButton):
             pixmap.fill(color)
             self.setIcon(QIcon(pixmap))
     
-    color = pyqtProperty("QColor", color, setColor)
+    color = pyqtProperty("QColor", get_color, set_color)
 
 
 def text_to_qcolor(text):
