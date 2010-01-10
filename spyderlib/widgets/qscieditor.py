@@ -797,7 +797,7 @@ class QsciEditor(TextEditBaseWidget):
         shift = event.modifiers() & Qt.ShiftModifier
         # Zoom in/out
         if ((key == Qt.Key_Plus) and ctrl) \
-             or ((key==Qt.Key_Equal) and shift and ctrl):
+             or ((key == Qt.Key_Equal) and shift and ctrl):
             self.zoomIn()
             event.accept()
         elif (key == Qt.Key_Minus) and ctrl:
@@ -831,6 +831,14 @@ class QsciEditor(TextEditBaseWidget):
 #            event.accept()
         else:
             QsciScintilla.keyPressEvent(self, event)
+            if CONF.get('main', 'workaround/gnome_qscintilla'):
+                # Workaround for QScintilla's completion with Gnome
+                from PyQt4.QtGui import QListWidget
+                if self.is_completion_widget_visible():
+                    for w in self.children():
+                        if isinstance(w, QListWidget):
+                            w.setWindowFlags(Qt.Dialog| Qt.FramelessWindowHint)
+                            w.show()
             
     def mousePressEvent(self, event):
         """Reimplement Qt method"""

@@ -78,6 +78,7 @@ DEFAULTS = [
               'window/state': STATE1,
               'lightwindow/size': (650, 400),
               'lightwindow/position': (30, 30),
+              'workaround/gnome_qscintilla': False,
               }),
             ('scintilla',
              {
