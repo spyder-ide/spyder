@@ -1389,7 +1389,7 @@ def run_spyder(app, qt_translator, app_translator,
         # ****************************************************************
         try:
             # This will work with the next matplotlib release:
-            edit_parameters = backend_qt4.edit_parameters
+            edit_parameters = backend_qt4.NavigationToolbar2QT.edit_parameters
             # -> Figure options button has already been added by matplotlib
         except AttributeError:
             edit_parameters = None
