@@ -29,6 +29,9 @@ def getobj(txt, last=False):
             token = tokens.pop()
         if token.endswith('.'):
             token = token[:-1]
+        if token.startswith('.'):
+            # Invalid object name
+            return None
         if last:
             #XXX: remove this statement as well as the "last" argument
             token += txt[ txt.rfind(token) + len(token) ]
@@ -121,7 +124,11 @@ def isdefined(obj, force_import=False, namespace=None):
         namespace = locals()
     attr_list = obj.split('.')
     base = attr_list.pop(0)
-    if base not in locals() and base not in globals() and base not in namespace:
+    if len(base) == 0:
+        return False
+    import __builtin__
+    if base not in locals() and base not in globals() \
+       and base not in __builtin__.__dict__ and base not in namespace:
         if force_import:
             try:
                 module = __import__(base, globals(), namespace)
@@ -151,3 +158,7 @@ if __name__ == "__main__":
     print getargtxt(Test.__init__)
     print getargtxt(Test.method)
     print isdefined('numpy.take', force_import=True)
+    print isdefined('__import__')
+    print getobj('globals')
+    print getobj('globals().keys')
+    print isdefined('.keys', force_import=True)
