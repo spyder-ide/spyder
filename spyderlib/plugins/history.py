@@ -48,8 +48,6 @@ class HistoryLog(PluginWidget):
         self.tabwidget = Tabs(self, self.menu_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
-        self.connect(self.tabwidget, SIGNAL("close_tab(int)"),
-                     self.tabwidget.removeTab)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
         layout.addWidget(self.tabwidget)
