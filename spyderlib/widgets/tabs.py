@@ -16,7 +16,8 @@ from PyQt4.QtGui import (QTabWidget, QMenu, QDrag, QApplication, QTabBar,
 from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
-from spyderlib.utils.qthelpers import add_actions
+from spyderlib.config import get_icon
+from spyderlib.utils.qthelpers import add_actions, create_toolbutton
 
 # For debugging purpose:
 import sys
@@ -98,6 +99,23 @@ class Tabs(QTabWidget):
                      self.__current_changed)
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+    def set_close_function(self, func):
+        """Setting Tabs close function
+        None -> tabs are not closable"""
+        state = func is not None
+        if state:
+            self.connect(self, SIGNAL("close_tab(int)"), func)
+        try:
+            # Assuming Qt >= 4.5
+            QTabWidget.setTabsClosable(self, state)
+            self.connect(self, SIGNAL("tabCloseRequested(int)"), func)
+        except AttributeError:
+            # Workaround for Qt < 4.5
+            close_button = create_toolbutton(self, triggered=func,
+                                             icon=get_icon("fileclose.png"),
+                                             tip=self.tr("Close current tab"))
+            self.setCornerWidget(close_button if state else None)
         
     def __current_changed(self, index):
         for i, ind in [(i, ind) for i, ind in enumerate(self.index_history)]:

@@ -68,14 +68,10 @@ class EditorTabWidget(Tabs):
         self.connect(self, SIGNAL('move_data(int,int)'), self.move_data)
         self.connect(self, SIGNAL('move_tab_finished()'),
                      self.move_tab_finished)
-        self.connect(self, SIGNAL("close_tab(int)"), self.close_file)
-        self.close_button = create_toolbutton(self,
-                                          icon=get_icon("fileclose.png"),
-                                          triggered=self.close_file,
-                                          tip=self.tr("Close current script"))
-        self.setCornerWidget(self.close_button)
+                     
+        self.set_close_function(self.close_file)
+            
         self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
-
         self.cursor_position_changed_callback = lambda line, index: \
                 self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
         self.focus_changed_callback = lambda: \

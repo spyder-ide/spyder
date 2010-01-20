@@ -55,15 +55,11 @@ class ExternalConsole(PluginWidget):
         self.tabwidget = Tabs(self, self.menu_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh)
-        self.connect(self.tabwidget, SIGNAL("close_tab(int)"),
-                     self.tabwidget.removeTab)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
-        self.close_button = create_toolbutton(self.tabwidget,
-                                          icon=get_icon("fileclose.png"),
-                                          triggered=self.close_console,
-                                          tip=self.tr("Close current console"))
-        self.tabwidget.setCornerWidget(self.close_button)
+                     
+        self.tabwidget.set_close_function(self.close_console)
+
         layout.addWidget(self.tabwidget)
         
         # Find/replace widget
