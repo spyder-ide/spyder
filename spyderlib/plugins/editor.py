@@ -53,6 +53,9 @@ class EditorTabWidget(Tabs):
     """Editor tabwidget"""
     def __init__(self, parent, actions):
         Tabs.__init__(self, parent)
+        if hasattr(self, 'setDocumentMode'):
+            # Only available with PyQt >= 4.5
+            self.setDocumentMode(True)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.original_actions = actions
         self.additional_actions = self.__get_split_actions()
