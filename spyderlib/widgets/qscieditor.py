@@ -166,6 +166,11 @@ class QsciEditor(TextEditBaseWidget):
         self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
         self.setMatchedBraceBackgroundColor(Qt.yellow)
         
+        # Indentation (moved from QsciEditor.setup for the same reason as brace
+        # matching -- see comment above)
+        self.setIndentationGuides(True)
+        self.setIndentationGuidesForegroundColor(Qt.lightGray)
+        
         self.set_eol_chars_visible(show_eol_chars)
         self.set_whitespace_visible(show_whitespace)
         
@@ -210,10 +215,6 @@ class QsciEditor(TextEditBaseWidget):
         # Wrapping
         if CONF.get('editor', 'wrapflag'):
             self.setWrapVisualFlags(QsciScintilla.WrapFlagByBorder)
-        
-        # Indentation
-        self.setIndentationGuides(True)
-        self.setIndentationGuidesForegroundColor(Qt.lightGray)
         
         # 80-columns edge
         self.setEdgeColumn(80)
