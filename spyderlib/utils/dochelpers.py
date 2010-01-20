@@ -119,7 +119,8 @@ def getargtxt(obj, one_arg_per_line=True):
 
 
 def isdefined(obj, force_import=False, namespace=None):
-    """Return True if object is defined"""
+    """Return True if object is defined in namespace
+    If namespace is None --> namespace = locals()"""
     if namespace is None:
         namespace = locals()
     attr_list = obj.split('.')
@@ -127,12 +128,12 @@ def isdefined(obj, force_import=False, namespace=None):
     if len(base) == 0:
         return False
     import __builtin__
-    if base not in locals() and base not in globals() \
-       and base not in __builtin__.__dict__ and base not in namespace:
+    if base not in __builtin__.__dict__ and base not in namespace:
         if force_import:
             try:
                 module = __import__(base, globals(), namespace)
-                globals()[base] = module
+                if base not in globals():
+                    globals()[base] = module
                 namespace[base] = module
             except ImportError:
                 return False
