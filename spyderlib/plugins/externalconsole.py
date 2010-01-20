@@ -22,8 +22,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, get_icon, set_font
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       mimedata2url)
+from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell

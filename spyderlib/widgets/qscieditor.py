@@ -629,11 +629,12 @@ class QsciEditor(TextEditBaseWidget):
                 i_right = prevtext.rfind(par)
                 if i_right != -1:
                     prevtext = prevtext[:i_right]
-                    i_left = prevtext.rfind(rlmap[par])
-                    if i_left != -1:
-                        prevtext = prevtext[:i_left]
-                    else:
-                        break
+                    for _i in range(len(prevtext.split(par))):
+                        i_left = prevtext.rfind(rlmap[par])
+                        if i_left != -1:
+                            prevtext = prevtext[:i_left]
+                        else:
+                            break
             else:
                 prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
                 correct_indent = len(prevtext)-len(prevexpr)
