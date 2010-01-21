@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Editor widgets"""
+"""Console History Plugin"""
 
 from PyQt4.QtGui import (QVBoxLayout, QFontDialog, QInputDialog, QToolButton,
                          QMenu)

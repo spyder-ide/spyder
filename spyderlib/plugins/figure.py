@@ -4,9 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""
-Matplotlib figure integration
-"""
+"""Matplotlib Figure Integration Plugin"""
 
 import sys
 

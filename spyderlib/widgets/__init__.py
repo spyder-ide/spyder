@@ -19,7 +19,7 @@ from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import create_action, add_actions
+from spyderlib.utils.qthelpers import create_action, add_actions, translate
 
 class OneColumnTree(QTreeWidget):
     def __init__(self, parent):
@@ -41,11 +41,11 @@ class OneColumnTree(QTreeWidget):
     def setup_common_actions(self):
         """Setup context menu common actions"""
         collapse_act = create_action(self,
-                    text=self.tr('Collapse all'),
+                    text=translate('OneColumnTree', 'Collapse all'),
                     icon=get_icon('collapse.png'),
                     triggered=self.collapseAll)
         expand_act = create_action(self,
-                    text=self.tr('Expand all'),
+                    text=translate('OneColumnTree', 'Expand all'),
                     icon=get_icon('expand.png'),
                     triggered=self.expandAll)
         return [collapse_act, expand_act]

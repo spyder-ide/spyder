@@ -24,7 +24,7 @@ from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
 from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.externalshell.monitor import communicate
 
@@ -68,7 +68,7 @@ class ExternalShellBase(QWidget):
         self.resize(640, 480)
         if parent is None:
             self.setWindowIcon(self.get_icon())
-            self.setWindowTitle(self.tr("Console"))
+            self.setWindowTitle(translate('ExternalShellBase', "Console"))
 
         self.t0 = None
         self.timer = QTimer(self)
@@ -83,13 +83,15 @@ class ExternalShellBase(QWidget):
         
     def get_toolbar_buttons(self):
         self.run_button = create_toolbutton(self, get_icon('run.png'),
-                              self.tr("Run"),
-                              tip=self.tr("Run again this program"),
+                              translate('ExternalShellBase', "Run"),
+                              tip=translate('ExternalShellBase',
+                                            "Run again this program"),
                               triggered=self.start)
         self.kill_button = create_toolbutton(self, get_icon('kill.png'),
-                              self.tr("Kill"),
-                              tip=self.tr("Kills the current process, "
-                                          "causing it to exit immediately"))
+                              translate('ExternalShellBase', "Kill"),
+                              tip=translate('ExternalShellBase',
+                                            "Kills the current process, "
+                                            "causing it to exit immediately"))
         return [self.run_button, self.kill_button]
         
     def get_shell_widget(self):
@@ -122,13 +124,14 @@ class ExternalShellBase(QWidget):
         self.set_buttons_runnning_state(state)
         self.shell.setReadOnly(not state)
         if state:
-            self.state_label.setText(self.tr("<span style=\'color: #44AA44\'>"
-                                             "<b>Running...</b></span>"))
+            self.state_label.setText(translate('ExternalShellBase',
+                   "<span style=\'color: #44AA44\'><b>Running...</b></span>"))
             self.t0 = time()
             self.connect(self.timer, SIGNAL("timeout()"), self.show_time)
             self.timer.start(1000)        
         else:
-            self.state_label.setText(self.tr('Terminated.'))
+            self.state_label.setText(translate('ExternalShellBase',
+                                               'Terminated.'))
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
 
     def set_buttons_runnning_state(self, state):
@@ -143,9 +146,11 @@ class ExternalShellBase(QWidget):
         self.create_process()
 
     def get_arguments(self):
-        arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
-                          self.tr('Command line arguments:'),
-                          QLineEdit.Normal, self.arguments)
+        arguments, valid = QInputDialog.getText(self,
+                                  translate('ExternalShellBase', 'Arguments'),
+                                  translate('ExternalShellBase',
+                                            'Command line arguments:'),
+                                  QLineEdit.Normal, self.arguments)
         if valid:
             self.arguments = unicode(arguments)
         return valid

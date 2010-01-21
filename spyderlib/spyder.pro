@@ -16,6 +16,7 @@ SOURCES	     += plugins/pylintgui.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
 
+SOURCES      += widgets/__init__.py
 SOURCES      += widgets/arrayeditor.py
 SOURCES      += widgets/browser.py
 SOURCES      += widgets/classbrowser.py

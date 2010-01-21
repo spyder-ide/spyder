@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""External Console widget"""
+"""External Console plugin"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903

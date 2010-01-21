@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Pylint code analysis plugin"""
+"""Pylint Code Analysis Plugin"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -20,7 +20,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, set_font
-from spyderlib.utils.qthelpers import create_action, translate
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.pylintgui import PylintWidget
 from spyderlib.plugins import PluginMixin
 
@@ -57,9 +57,8 @@ class Pylint(PylintWidget, PluginMixin):
                                        None, 'history.png',
                                        self.tr("Set history maximum entries"),
                                        triggered=self.change_history_depth)
-        font_action = create_action(self, translate('Pylint', "&Font..."),
-                                    None, 'font.png',
-                                    translate("Pylint", "Set font style"),
+        font_action = create_action(self, self.tr("&Font..."),
+                                    None, 'font.png', self.tr("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, history_action, font_action)
         return (None, None)
@@ -80,7 +79,7 @@ class Pylint(PylintWidget, PluginMixin):
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,
-                                  translate("Pylint", "Select a new font"))
+                                          self.tr("Select a new font"))
         if valid:
             self.set_font(font)
             set_font(font, self.ID)
