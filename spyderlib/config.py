@@ -202,7 +202,7 @@ DEFAULTS = [
               'font/bold': False,
               'wrap': True,
               }),
-            ('docviewer',
+            ('inspector',
              {
               'shortcut': "Ctrl+Shift+D",
               'enable': True,

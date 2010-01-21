@@ -91,9 +91,9 @@ class Console(PluginWidget):
         self.connect(self.shell, SIGNAL('append_to_history(QString,QString)'),
                      historylog.append_to_history)
         
-    def set_docviewer(self, docviewer):
-        """Bind docviewer instance to this console"""
-        self.shell.docviewer = docviewer
+    def set_inspector(self, inspector):
+        """Bind inspector instance to this console"""
+        self.shell.inspector = inspector
         
     def change_cursor(self, state):
         """Change widget cursor"""

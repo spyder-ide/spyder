@@ -674,7 +674,7 @@ class PythonShellWidget(ShellBaseWidget):
     def __init__(self, parent, history_filename, debug=False, profile=False):
         ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
         
-        self.docviewer = None
+        self.inspector = None
         
         # Allow raw_input support:
         self.input_loop = None
@@ -935,11 +935,11 @@ class PythonShellWidget(ShellBaseWidget):
         
         text = unicode(text) # Useful only for ExternalShellBase
         
-        if (self.docviewer is not None) and \
-           (self.docviewer.dockwidget.isVisible()):
-            # DocViewer widget exists and is visible
-            self.docviewer.refresh(text)
-            self.setFocus() # if docviewer was not at top level, raising it to
+        if (self.inspector is not None) and \
+           (self.inspector.dockwidget.isVisible()):
+            # ObjectInspector widget exists and is visible
+            self.inspector.refresh(text)
+            self.setFocus() # if inspector was not at top level, raising it to
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell
@@ -953,7 +953,7 @@ class PythonShellWidget(ShellBaseWidget):
                             self.show_calltip(translate("PythonShellWidget",
                                                         "Arguments"),
                                               arglist, '#129625')
-        else: # docviewer is not visible
+        else: # inspector is not visible
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(translate("PythonShellWidget",
@@ -967,10 +967,10 @@ class PythonShellWidget(ShellBaseWidget):
         """
         return getobj(self.get_current_line_to_cursor(), last=last)
         
-    def set_docviewer(self, docviewer):
-        """Set DocViewer DockWidget reference"""
-        self.docviewer = docviewer
-        self.docviewer.set_shell(self)
+    def set_inspector(self, inspector):
+        """Set ObjectInspector DockWidget reference"""
+        self.inspector = inspector
+        self.inspector.set_shell(self)
 
 
 class TerminalWidget(ShellBaseWidget):

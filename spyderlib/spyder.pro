@@ -5,13 +5,13 @@ SOURCES	     += utils/qthelpers.py
 
 SOURCES	     += plugins/__init__.py
 SOURCES	     += plugins/console.py
-SOURCES	     += plugins/docviewer.py
 SOURCES	     += plugins/editor.py
 SOURCES	     += plugins/explorer.py
 SOURCES	     += plugins/externalconsole.py
 SOURCES	     += plugins/figure.py
 SOURCES	     += plugins/findinfiles.py
 SOURCES	     += plugins/history.py
+SOURCES	     += plugins/inspector.py
 SOURCES	     += plugins/pylintgui.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py

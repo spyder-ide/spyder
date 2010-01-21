@@ -41,7 +41,7 @@ class ExternalConsole(PluginWidget):
         self.commands = commands
         self.tabwidget = None
         self.menu_actions = None
-        self.docviewer = None
+        self.inspector = None
         self.historylog = None
         
         self.shells = []
@@ -98,9 +98,9 @@ class ExternalConsole(PluginWidget):
         """Bind historylog instance to this console"""
         self.historylog = historylog
         
-    def set_docviewer(self, docviewer):
-        """Bind docviewer instance to this console"""
-        self.docviewer = docviewer
+    def set_inspector(self, inspector):
+        """Bind inspector instance to this console"""
+        self.inspector = inspector
         
     def execute_python_code(self, lines):
         """Execute Python code in an already opened Python interpreter"""
@@ -161,7 +161,7 @@ class ExternalConsole(PluginWidget):
         shell.shell.set_codecompletion_enter(CONF.get(self.ID,
                                                  'autocompletion/enter-key'))
         if python:
-            shell.shell.set_docviewer(self.docviewer)
+            shell.shell.set_inspector(self.inspector)
         self.historylog.add_history(shell.shell.history_filename)
         self.connect(shell.shell, SIGNAL('append_to_history(QString,QString)'),
                      self.historylog.append_to_history)

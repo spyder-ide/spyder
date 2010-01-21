@@ -478,12 +478,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
     <message>
         <location filename="plugins/docviewer.py" line="32"/>
         <source>Press enter to validate this object name</source>
-        <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
+        <translation type="obsolete">Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="35"/>
         <source>This object name is incorrect</source>
-        <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
+        <translation type="obsolete">Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
 </context>
 <context>
@@ -491,42 +491,42 @@ Souhaitez-vous néanmoins continuer ?</translation>
     <message>
         <location filename="plugins/docviewer.py" line="76"/>
         <source>Object</source>
-        <translation>Objet</translation>
+        <translation type="obsolete">Objet</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="84"/>
         <source>Show source</source>
-        <translation>Afficher les sources</translation>
+        <translation type="obsolete">Afficher les sources</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="216"/>
         <source>No documentation available.</source>
-        <translation>Aucune documentation disponible.</translation>
+        <translation type="obsolete">Aucune documentation disponible.</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="115"/>
         <source>Doc</source>
-        <translation>Aide</translation>
+        <translation type="obsolete">Aide</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="161"/>
         <source>Unlock</source>
-        <translation>Déverrouiller</translation>
+        <translation type="obsolete">Déverrouiller</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="162"/>
         <source>Lock</source>
-        <translation>Verrouiller</translation>
+        <translation type="obsolete">Verrouiller</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="222"/>
         <source>No source code available.</source>
-        <translation>Aucun code source disponible.</translation>
+        <translation type="obsolete">Aucun code source disponible.</translation>
     </message>
     <message>
         <location filename="plugins/docviewer.py" line="92"/>
         <source>Automatic import</source>
-        <translation>Import automatique</translation>
+        <translation type="obsolete">Import automatique</translation>
     </message>
 </context>
 <context>
@@ -2401,7 +2401,7 @@ Souhaitez-vous continuer ?</translation>
     <message>
         <location filename="spyder.py" line="513"/>
         <source>Loading docviewer plugin...</source>
-        <translation>Chargement du visualiseur d&apos;aide...</translation>
+        <translation type="obsolete">Chargement du visualiseur d&apos;aide...</translation>
     </message>
     <message>
         <location filename="spyder.py" line="522"/>
@@ -2556,6 +2556,11 @@ Souhaitez-vous continuer ?</translation>
             &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</source>
         <translation>&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;Scientific PYthon Development EnviRonment            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://spyderlib.googlecode.com&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyderlib&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
+    <message>
+        <location filename="spyder.py" line="513"/>
+        <source>Loading inspector plugin...</source>
+        <translation>Chargement de l&apos;inspecteur d&apos;objets...</translation>
+    </message>
 </context>
 <context>
     <name>MatplotlibFigure</name>
@@ -2568,6 +2573,67 @@ Souhaitez-vous continuer ?</translation>
         <location filename="plugins/figure.py" line="54"/>
         <source>Figure %d</source>
         <translation>Figure %d</translation>
+    </message>
+</context>
+<context>
+    <name>ObjectComboBox</name>
+    <message>
+        <location filename="plugins/inspector.py" line="32"/>
+        <source>Press enter to validate this object name</source>
+        <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="35"/>
+        <source>This object name is incorrect</source>
+        <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
+    </message>
+</context>
+<context>
+    <name>ObjectInspector</name>
+    <message>
+        <location filename="plugins/inspector.py" line="76"/>
+        <source>Object</source>
+        <translation>Objet</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="84"/>
+        <source>Show source</source>
+        <translation>Afficher les sources</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="92"/>
+        <source>Automatic import</source>
+        <translation>Import automatique</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="115"/>
+        <source>Doc</source>
+        <translation type="obsolete">Aide</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="161"/>
+        <source>Unlock</source>
+        <translation>Déverrouiller</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="162"/>
+        <source>Lock</source>
+        <translation>Verrouiller</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="216"/>
+        <source>No documentation available.</source>
+        <translation>Aucune documentation disponible.</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="222"/>
+        <source>No source code available.</source>
+        <translation>Aucun code source disponible.</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="115"/>
+        <source>Object inspector</source>
+        <translation>Inspecteur d&apos;objets</translation>
     </message>
 </context>
 <context>

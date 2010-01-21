@@ -23,12 +23,12 @@ from spyderlib.plugins import ReadOnlyEditor
 from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
 
 
-class DocComboBox(EditableComboBox):
+class ObjectComboBox(EditableComboBox):
     """
-    QComboBox handling doc viewer history
+    QComboBox handling object names
     """
     def __init__(self, parent):
-        super(DocComboBox, self).__init__(parent)
+        super(ObjectComboBox, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this object name"),
                      False: self.tr('This object name is incorrect')}
@@ -39,7 +39,7 @@ class DocComboBox(EditableComboBox):
             return False
         shell = self.parent().shell
         if shell is not None:
-            force_import = CONF.get('docviewer', 'automatic_import')
+            force_import = CONF.get('inspector', 'automatic_import')
             return shell.is_defined(unicode(qstr), force_import=force_import)
         
     def keyPressEvent(self, event):
@@ -57,12 +57,12 @@ class DocComboBox(EditableComboBox):
         self.validate(self.currentText())
 
 
-class DocViewer(ReadOnlyEditor):
+class ObjectInspector(ReadOnlyEditor):
     """
     Docstrings viewer widget
     """
-    ID = 'docviewer'
-    LOG_PATH = get_conf_path('.docviewer')
+    ID = 'inspector'
+    LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         ReadOnlyEditor.__init__(self, parent)
         
@@ -75,7 +75,7 @@ class DocViewer(ReadOnlyEditor):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.addWidget(QLabel(self.tr("Object")))
-        self.combo = DocComboBox(self)
+        self.combo = ObjectComboBox(self)
         layout_edit.addWidget(self.combo)
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         dvhistory = self.load_dvhistory()
@@ -93,7 +93,7 @@ class DocViewer(ReadOnlyEditor):
         auto_import = QCheckBox(self.tr("Automatic import"))
         self.connect(auto_import, SIGNAL("stateChanged(int)"),
                      self.toggle_auto_import)
-        auto_import.setChecked(CONF.get('docviewer', 'automatic_import'))
+        auto_import.setChecked(CONF.get('inspector', 'automatic_import'))
         layout_edit.addWidget(auto_import)
         
         # Lock checkbox
@@ -111,7 +111,7 @@ class DocViewer(ReadOnlyEditor):
             
     def get_widget_title(self):
         """Return widget title"""
-        return self.tr('Doc')
+        return self.tr('Object inspector')
     
     def get_focus_widget(self):
         """
@@ -143,7 +143,7 @@ class DocViewer(ReadOnlyEditor):
         
     def toggle_auto_import(self, state):
         """Toggle automatic import feature"""
-        CONF.set('docviewer', 'automatic_import', state == Qt.Checked)
+        CONF.set('inspector', 'automatic_import', state == Qt.Checked)
         self.refresh(force=True)
         self.combo.validate_current_text()
         
@@ -196,11 +196,11 @@ class DocViewer(ReadOnlyEditor):
         if isinstance(self.shell, ExtPyQsciShell):
             if not self.shell.externalshell.is_running():
                 # Binded external shell was stopped:
-                # binding DocViewer to interactive console instead
+                # binding ObjectInspector to interactive console instead
                 self.shell = self.main.console.shell
         obj_text = unicode(obj_text)
 
-        if CONF.get('docviewer', 'automatic_import'):
+        if CONF.get('inspector', 'automatic_import'):
             self.shell.is_defined(obj_text, force_import=True) # force import
         
         doc_text = self.shell.get_doc(obj_text)

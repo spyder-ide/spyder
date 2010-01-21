@@ -43,7 +43,7 @@ from spyderlib.plugins.console import Console
 from spyderlib.plugins.workdir import WorkingDirectory
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
-from spyderlib.plugins.docviewer import DocViewer
+from spyderlib.plugins.inspector import ObjectInspector
 from spyderlib.plugins.workspace import Workspace
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
@@ -201,7 +201,7 @@ class MainWindow(QMainWindow):
         self.editor = None
         self.workspace = None
         self.explorer = None
-        self.docviewer = None
+        self.inspector = None
         self.historylog = None
         self.extconsole = None
         self.findinfiles = None
@@ -510,13 +510,13 @@ class MainWindow(QMainWindow):
                              self.historylog.refresh)
         
             # Doc viewer widget
-            if CONF.get('docviewer', 'enable'):
-                self.set_splash(self.tr("Loading docviewer plugin..."))
-                self.docviewer = DocViewer(self)
-                self.connect(self.docviewer, SIGNAL('focus_changed()'),
+            if CONF.get('inspector', 'enable'):
+                self.set_splash(self.tr("Loading inspector plugin..."))
+                self.inspector = ObjectInspector(self)
+                self.connect(self.inspector, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
-                self.add_dockwidget(self.docviewer)
-                self.console.set_docviewer(self.docviewer)
+                self.add_dockwidget(self.inspector)
+                self.console.set_inspector(self.inspector)
                 
             # Pylint
             if CONF.get('pylint', 'enable'):
@@ -547,7 +547,7 @@ class MainWindow(QMainWindow):
             
             # External console menu
             self.extconsole = ExternalConsole(self, self.commands)
-            self.extconsole.set_docviewer(self.docviewer)
+            self.extconsole.set_inspector(self.inspector)
             self.extconsole.set_historylog(self.historylog)
             self.connect(self.extconsole, SIGNAL("edit_goto(QString,int)"),
                          self.editor.load)
@@ -678,8 +678,8 @@ class MainWindow(QMainWindow):
         self.update_edit_menu()
         self.update_search_menu()
         shell = self.__focus_shell()
-        if shell is not None and self.docviewer is not None:
-            self.docviewer.set_shell(shell)
+        if shell is not None and self.inspector is not None:
+            self.inspector.set_shell(shell)
         
     def update_file_menu(self):
         """Update file menu"""
@@ -958,7 +958,7 @@ class MainWindow(QMainWindow):
     
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
-        console, extconsole, editor, docviewer or historylog"""
+        console, extconsole, editor, inspector or historylog"""
         widget = QApplication.focusWidget()
         from spyderlib.widgets.qscibase import TextEditBaseWidget
         from spyderlib.widgets.shell import ShellBaseWidget
@@ -966,8 +966,8 @@ class MainWindow(QMainWindow):
             return
         if widget is self.console.shell:
             plugin = self.console
-        elif widget is self.docviewer.editor:
-            plugin = self.docviewer
+        elif widget is self.inspector.editor:
+            plugin = self.inspector
         elif widget in self.historylog.editors:
             plugin = self.historylog
         elif isinstance(widget, ShellBaseWidget):
