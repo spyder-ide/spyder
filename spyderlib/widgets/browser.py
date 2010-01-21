@@ -107,9 +107,8 @@ class WebBrowser(QWidget):
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
 
-        find_button = create_toolbutton(self,
+        find_button = create_toolbutton(self, icon='find.png',
                                     tip=translate("FindReplace", "Find text"),
-                                    shortcut="Ctrl+F", icon='find.png',
                                     toggled=self.toggle_find_widget)
         self.connect(self.find_widget, SIGNAL("visibility_changed(bool)"),
                      find_button.setChecked)
