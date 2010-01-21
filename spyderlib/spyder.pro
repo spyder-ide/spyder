@@ -17,6 +17,7 @@ SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
 
 SOURCES      += widgets/arrayeditor.py
+SOURCES      += widgets/browser.py
 SOURCES      += widgets/classbrowser.py
 SOURCES      += widgets/comboboxes.py
 SOURCES	     += widgets/dicteditor.py

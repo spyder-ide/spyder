@@ -147,6 +147,21 @@ class PathComboBox(EditableComboBox):
             QComboBox.keyPressEvent(self, event)
 
 
+class UrlComboBox(PathComboBox):
+    """
+    QComboBox handling urls
+    """
+    def __init__(self, parent, adjust_to_contents=False):
+        super(UrlComboBox, self).__init__(parent, adjust_to_contents)
+        self.disconnect(self, SIGNAL("editTextChanged(QString)"), self.validate)
+        
+    def is_valid(self, qstr=None):
+        """Return True if string is valid"""
+        if qstr is None:
+            qstr = self.currentText()
+        return QUrl(qstr).isValid()
+
+
 def is_module_or_package(path):
     """Return True if path is a Python module/package"""
     is_module = osp.isfile(path) and osp.splitext(path)[1] in ('.py', '.pyw')
