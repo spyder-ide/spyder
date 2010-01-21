@@ -36,6 +36,11 @@ class WebView(QWebView):
         if case:
             findflag = findflag | QWebPage.FindCaseSensitively
         return self.findText(text, findflag)
+    
+    #------ QWebView API -------------------------------------------------------
+    def createWindow(self, webwindowtype):
+        import webbrowser
+        webbrowser.open(unicode(self.url().toString()))
         
 
 class WebBrowser(QWidget):
