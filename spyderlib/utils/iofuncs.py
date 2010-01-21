@@ -197,7 +197,8 @@ def load_dictionary(filename):
 
 from spyderlib.config import get_conf_path
 
-SAVED_CONFIG_FILES = ('.inspector', '.history_ec.py', '.history_ic.py',
+SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp',
+                      '.history_ec.py', '.history_ic.py',
                       '.path', '.pylint.results', '.spyder.ini', '.temp.py',
                       '.workingdir', '.temp.spydata', 'template.py')
 

@@ -44,6 +44,12 @@ from spyderlib.plugins.workdir import WorkingDirectory
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
 from spyderlib.plugins.inspector import ObjectInspector
+try:
+    # Assuming Qt >= v4.4
+    from spyderlib.plugins.onlinehelp import OnlineHelp
+except ImportError:
+    # Qt < v4.4
+    OnlineHelp = None
 from spyderlib.plugins.workspace import Workspace
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
@@ -202,6 +208,7 @@ class MainWindow(QMainWindow):
         self.workspace = None
         self.explorer = None
         self.inspector = None
+        self.onlinehelp = None
         self.historylog = None
         self.extconsole = None
         self.findinfiles = None
@@ -509,7 +516,7 @@ class MainWindow(QMainWindow):
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh)
         
-            # Doc viewer widget
+            # Object inspector widget
             if CONF.get('inspector', 'enable'):
                 self.set_splash(self.tr("Loading inspector plugin..."))
                 self.inspector = ObjectInspector(self)
@@ -517,6 +524,12 @@ class MainWindow(QMainWindow):
                              self.plugin_focus_changed)
                 self.add_dockwidget(self.inspector)
                 self.console.set_inspector(self.inspector)
+                
+            # Online help widget
+            if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
+                self.set_splash(self.tr("Loading online help plugin..."))
+                self.onlinehelp = OnlineHelp(self)
+                self.add_dockwidget(self.onlinehelp)
                 
             # Pylint
             if CONF.get('pylint', 'enable'):

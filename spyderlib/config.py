@@ -204,7 +204,7 @@ DEFAULTS = [
               }),
             ('inspector',
              {
-              'shortcut': "Ctrl+Shift+D",
+              'shortcut': "Ctrl+Shift+I",
               'enable': True,
               'max_history_entries': 20,
               'font/family': MONOSPACE,
@@ -213,6 +213,13 @@ DEFAULTS = [
               'font/bold': False,
               'wrap': True,
               'automatic_import': True,
+              }),
+            ('onlinehelp',
+             {
+              'shortcut': "Ctrl+Shift+D",
+              'enable': True,
+              'zoom_factor': 1.,
+              'max_history_entries': 20,
               }),
             ('workspace',
              {

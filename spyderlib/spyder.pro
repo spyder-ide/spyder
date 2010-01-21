@@ -12,6 +12,7 @@ SOURCES	     += plugins/figure.py
 SOURCES	     += plugins/findinfiles.py
 SOURCES	     += plugins/history.py
 SOURCES	     += plugins/inspector.py
+SOURCES	     += plugins/onlinehelp.py
 SOURCES	     += plugins/pylintgui.py
 SOURCES	     += plugins/workdir.py
 SOURCES	     += plugins/workspace.py
