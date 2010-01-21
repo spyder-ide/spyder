@@ -6,11 +6,6 @@
 
 """Simple web browser widget"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
 from PyQt4.QtGui import QHBoxLayout, QWidget, QVBoxLayout, QProgressBar
 from PyQt4.QtWebKit import QWebView, QWebPage
 from PyQt4.QtCore import SIGNAL, QUrl
@@ -55,8 +50,9 @@ class WebBrowser(QWidget):
         self.webview = WebView(self)
         self.connect(self.webview, SIGNAL("loadFinished(bool)"),
                      self.load_finished)
-        self.connect(self.webview, SIGNAL("linkClicked(QUrl)"),
-                     self.link_clicked)
+        self.connect(self.webview, SIGNAL("titleChanged(QString)"),
+                     self.setWindowTitle)
+        self.connect(self.webview, SIGNAL("urlChanged(QUrl)"), self.url_changed)
         
         previous_button = create_toolbutton(self, get_icon('previous.png'),
                                             tip=self.tr("Previous"),
@@ -114,10 +110,7 @@ class WebBrowser(QWidget):
         layout.addWidget(progressbar)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-        
-        self.connect(self.webview, SIGNAL("titleChanged(QString)"),
-                     self.setWindowTitle)
-        
+                
     def set_home_url(self, home_url):
         """Set home URL"""
         self.home_url = home_url
@@ -130,7 +123,7 @@ class WebBrowser(QWidget):
         
     def go_to(self, address):
         """Go to page *address*"""
-        self.webview.setUrl(QUrl(address))
+        self.webview.load(QUrl(address))
         
     def go_home(self):
         """Go to home page"""
@@ -149,8 +142,8 @@ class WebBrowser(QWidget):
         if not ok:
             self.webview.setHtml(self.tr("Unable to load page"))
             
-    def link_clicked(self, url):
-        self.url_combo.addItem(url.path())
+    def url_changed(self, url):
+        self.url_combo.add_text(url.toString())
             
     def icon_changed(self):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),
