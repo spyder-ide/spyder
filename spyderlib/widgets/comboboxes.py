@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QComboBox, QFont, QToolTip, QSizePolicy, QCompleter
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, Qt, QUrl
 
 import sys
 import os.path as osp
@@ -98,6 +98,16 @@ class EditableComboBox(QComboBox):
                     self.emit(SIGNAL('valid(bool)'), False)
         else:
             self.set_default_style()
+            
+    def add_text(self, text):
+        """Add text to combo box: add a new item if text is not found in 
+        combo box items"""
+        index = self.findText(text)
+        while index!=-1:
+            self.removeItem(index)
+            index = self.findText(text)
+        self.insertItem(0, text)
+        self.setCurrentIndex(0)
 
 
 class PathComboBox(EditableComboBox):

@@ -134,12 +134,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
     def refresh(self):
         """Refresh widget"""
         curdir = os.getcwdu()
-        index = self.pathedit.findText(curdir)
-        while index!=-1:
-            self.pathedit.removeItem(index)
-            index = self.pathedit.findText(curdir)
-        self.pathedit.insertItem(0, curdir)
-        self.pathedit.setCurrentIndex(0)
+        self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.emit(SIGNAL("set_previous_enabled(bool)"),
                   self.histindex is not None and self.histindex > 0)

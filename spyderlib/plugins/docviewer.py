@@ -174,12 +174,7 @@ class DocViewer(ReadOnlyEditor):
         if text is None:
             text = self.combo.currentText()
         else:
-            index = self.combo.findText(text)
-            while index!=-1:
-                self.combo.removeItem(index)
-                index = self.combo.findText(text)
-            self.combo.insertItem(0, text)
-            self.combo.setCurrentIndex(0)
+            self.combo.add_text(text)
             
         self.set_help(text)
         self.save_dvhistory()
