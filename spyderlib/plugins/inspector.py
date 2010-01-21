@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Editor widgets"""
+"""Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                          QCheckBox, QComboBox)
@@ -78,8 +78,7 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo = ObjectComboBox(self)
         layout_edit.addWidget(self.combo)
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
-        dvhistory = self.load_dvhistory()
-        self.combo.addItems( dvhistory )
+        self.combo.addItems( self.load_history() )
         
         # Doc/source checkbox
         help_or_doc = QCheckBox(self.tr("Show source"))
@@ -121,16 +120,16 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo.lineEdit().selectAll()
         return self.combo
         
-    def load_dvhistory(self, obj=None):
+    def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
-            dvhistory = [line.replace('\n','')
-                         for line in file(self.LOG_PATH, 'r').readlines()]
+            history = [line.replace('\n','')
+                       for line in file(self.LOG_PATH, 'r').readlines()]
         else:
-            dvhistory = [ ]
-        return dvhistory
+            history = []
+        return history
     
-    def save_dvhistory(self):
+    def save_history(self):
         """Save history to a text file in user home directory"""
         file(self.LOG_PATH, 'w').write("\n".join( \
             [ unicode( self.combo.itemText(index) )
@@ -177,7 +176,7 @@ class ObjectInspector(ReadOnlyEditor):
             self.combo.add_text(text)
             
         self.set_help(text)
-        self.save_dvhistory()
+        self.save_history()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
             if self.dockwidget and self.dockwidget.isVisible() \
