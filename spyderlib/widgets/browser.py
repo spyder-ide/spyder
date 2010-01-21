@@ -6,7 +6,7 @@
 
 """Simple web browser widget"""
 
-from PyQt4.QtGui import QHBoxLayout, QWidget, QVBoxLayout, QProgressBar
+from PyQt4.QtGui import QHBoxLayout, QWidget, QVBoxLayout, QProgressBar, QLabel
 from PyQt4.QtWebKit import QWebView, QWebPage
 from PyQt4.QtCore import SIGNAL, QUrl
 
@@ -84,8 +84,11 @@ class WebBrowser(QWidget):
         self.connect(self.webview, SIGNAL("loadFinished(bool)"),
                      progressbar.hide)
         
+        label = QLabel(self.get_label())
+        
         self.url_combo = UrlComboBox(self)
-        self.connect(self.url_combo, SIGNAL('valid(bool)'), self.refresh)
+        self.connect(self.url_combo, SIGNAL('valid(bool)'),
+                     self.url_combo_activated)
         self.connect(self.webview, SIGNAL("iconChanged()"), self.icon_changed)
         
         self.find_widget = FindReplace(self)
@@ -101,7 +104,7 @@ class WebBrowser(QWidget):
 
         hlayout = QHBoxLayout()
         for widget in (previous_button, next_button, home_button, find_button,
-                       self.url_combo, refresh_button, stop_button):
+                       label, self.url_combo, refresh_button, stop_button):
             hlayout.addWidget(widget)
         
         layout = QVBoxLayout()
@@ -111,19 +114,27 @@ class WebBrowser(QWidget):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
                 
-    def set_home_url(self, home_url):
+    def get_label(self):
+        """Return address label text"""
+        return self.tr("Address:")
+                
+    def set_home_url(self, text):
         """Set home URL"""
-        self.home_url = home_url
+        self.home_url = QUrl(text)
         self.go_home()
         
-    def set_url(self, address):
+    def set_url(self, url):
         """Set current URL"""
-        self.url_combo.add_text(address)
-        self.go_to(address)
+        self.url_changed(url)
+        self.go_to(url)
         
-    def go_to(self, address):
+    def go_to(self, url_or_text):
         """Go to page *address*"""
-        self.webview.load(QUrl(address))
+        if isinstance(url_or_text, basestring):
+            url = QUrl(url_or_text)
+        else:
+            url = url_or_text
+        self.webview.load(url)
         
     def go_home(self):
         """Go to home page"""
@@ -134,16 +145,25 @@ class WebBrowser(QWidget):
         """Reload page"""
         self.webview.reload()
         
-    def refresh(self, valid):
-        """Refresh widget"""
-        self.go_to(self.url_combo.currentText())
+    def text_to_url(self, text):
+        """Convert text address into QUrl object"""
+        return QUrl(text)
+        
+    def url_combo_activated(self, valid):
+        """Load URL from combo box first item"""
+        self.go_to(self.text_to_url(self.url_combo.currentText()))
         
     def load_finished(self, ok):
         if not ok:
             self.webview.setHtml(self.tr("Unable to load page"))
             
+    def url_to_text(self, url):
+        """Convert QUrl object to displayed text in combo box"""
+        return url.toString()
+            
     def url_changed(self, url):
-        self.url_combo.add_text(url.toString())
+        """Displayed URL has changed -> updating URL combo box"""
+        self.url_combo.add_text(self.url_to_text(url))
             
     def icon_changed(self):
         self.url_combo.setItemIcon(self.url_combo.currentIndex(),

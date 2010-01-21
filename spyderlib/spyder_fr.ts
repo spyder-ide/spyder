@@ -1804,22 +1804,22 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/findreplace.py" line="65"/>
+        <location filename="widgets/findreplace.py" line="68"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="67"/>
+        <location filename="widgets/findreplace.py" line="70"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="96"/>
+        <location filename="widgets/findreplace.py" line="99"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="259"/>
+        <location filename="widgets/browser.py" line="98"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
@@ -1829,27 +1829,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="53"/>
+        <location filename="widgets/findreplace.py" line="56"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="57"/>
+        <location filename="widgets/findreplace.py" line="60"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="78"/>
+        <location filename="widgets/findreplace.py" line="81"/>
         <source>Replace</source>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="83"/>
+        <location filename="widgets/findreplace.py" line="86"/>
         <source>with:</source>
         <translation>par :</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="88"/>
+        <location filename="widgets/findreplace.py" line="91"/>
         <source>Replace/find</source>
         <translation>Remplacer/rechercher</translation>
     </message>
@@ -1859,12 +1859,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="47"/>
+        <location filename="widgets/findreplace.py" line="50"/>
         <source>Search string</source>
         <translation>Chaîne de caractères à rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="85"/>
+        <location filename="widgets/findreplace.py" line="88"/>
         <source>Replace string</source>
         <translation>Chaîne de caractères de remplacement</translation>
     </message>
@@ -2660,6 +2660,14 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     </message>
 </context>
 <context>
+    <name>PydocWidget</name>
+    <message>
+        <location filename="widgets/pydocgui.py" line="54"/>
+        <source>Module or package:</source>
+        <translation>Module ou paquet :</translation>
+    </message>
+</context>
+<context>
     <name>Pylint</name>
     <message>
         <location filename="widgets/pylintgui.py" line="69"/>
@@ -2963,34 +2971,39 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>WebBrowser</name>
     <message>
-        <location filename="widgets/browser.py" line="44"/>
+        <location filename="widgets/browser.py" line="57"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="47"/>
+        <location filename="widgets/browser.py" line="60"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="50"/>
+        <location filename="widgets/browser.py" line="63"/>
         <source>Home</source>
         <translation>Accueil</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="53"/>
+        <location filename="widgets/browser.py" line="66"/>
         <source>Reload</source>
         <translation>Actualiser</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="56"/>
+        <location filename="widgets/browser.py" line="69"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="111"/>
+        <location filename="widgets/browser.py" line="157"/>
         <source>Unable to load page</source>
         <translation>Impossible de charger la page</translation>
+    </message>
+    <message>
+        <location filename="widgets/browser.py" line="120"/>
+        <source>Address:</source>
+        <translation>Adresse :</translation>
     </message>
 </context>
 <context>
