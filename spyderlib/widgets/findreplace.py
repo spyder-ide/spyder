@@ -28,6 +28,9 @@ from spyderlib.widgets.comboboxes import PatternComboBox
 class FindReplace(QWidget):
     """
     Find widget
+    
+    Signals:
+        visibility_changed(bool)
     """
     STYLE = {False: "background-color:rgb(255, 175, 90);",
              True: ""}
@@ -151,20 +154,23 @@ class FindReplace(QWidget):
     def show(self):
         """Overrides Qt Method"""
         QWidget.show(self)
+        self.emit(SIGNAL("visibility_changed(bool)"), True)
         if self.editor is not None:
             text = self.editor.selectedText()
-            if len(text)>0:
+            if len(text) > 0:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
                 self.refresh()
             else:
                 self.search_text.lineEdit().selectAll()
+            self.search_text.setFocus()
         
     def hide(self):
         """Overrides Qt Method"""
         for widget in self.replace_widgets:
             widget.hide()
         QWidget.hide(self)
+        self.emit(SIGNAL("visibility_changed(bool)"), False)
         if self.editor is not None:
             self.editor.setFocus()
         
@@ -189,8 +195,15 @@ class FindReplace(QWidget):
             self.find()
             
     def set_editor(self, editor, refresh=True):
-        """Set parent editor"""
+        """
+        Set associated editor/web page:
+            qtebase.TextEditBaseWidget
+            qscibase.TextEditBaseWidget
+            browser.WebView
+        """
         self.editor = editor
+        from PyQt4.QtWebKit import QWebView
+        self.words_check.setVisible(not isinstance(editor, QWebView))
         if refresh:
             self.refresh()
         
