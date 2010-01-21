@@ -28,13 +28,13 @@ class PydocServer(QThread):
         pydoc.serve(self.port)
 
 
-class PydocWidget(WebBrowser):
+class PydocBrowser(WebBrowser):
     """
     pydoc widget
     """
     PORT = 1234
     def __init__(self, parent):
-        super(PydocWidget, self).__init__(parent)
+        super(PydocBrowser, self).__init__(parent)
         self.server = None
         self.start_server()
         self.set_home_url('http://localhost:%d/' % self.PORT)
@@ -55,7 +55,7 @@ class PydocWidget(WebBrowser):
     def reload(self):
         """Reload page"""
         self.start_server()
-        super(PydocWidget, self).reload()
+        super(PydocBrowser, self).reload()
         
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     from PyQt4.QtGui import QApplication
     app = QApplication([])
     
-    widget = PydocWidget(None)
+    widget = PydocBrowser(None)
     widget.show()
     
     sys.exit(app.exec_())

@@ -46,6 +46,7 @@ class WebBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.home_url = None
+        self.zoom_factor = 1.
         
         self.webview = WebView(self)
         self.connect(self.webview, SIGNAL("loadFinished(bool)"),
@@ -63,6 +64,12 @@ class WebBrowser(QWidget):
         home_button = create_toolbutton(self, get_icon('home.png'),
                                         tip=self.tr("Home"),
                                         triggered=self.go_home)
+        zoom_out_button = create_toolbutton(self, get_icon('zoom_out.png'),
+                                            tip=self.tr("Zoom out"),
+                                            triggered=self.zoom_out)
+        zoom_in_button = create_toolbutton(self, get_icon('zoom_in.png'),
+                                           tip=self.tr("Zoom in"),
+                                           triggered=self.zoom_in)
         refresh_button = create_toolbutton(self, get_icon('reload.png'),
                                            tip=self.tr("Reload"),
                                            triggered=self.reload)
@@ -104,7 +111,8 @@ class WebBrowser(QWidget):
 
         hlayout = QHBoxLayout()
         for widget in (previous_button, next_button, home_button, find_button,
-                       label, self.url_combo, refresh_button, stop_button):
+                       label, self.url_combo, zoom_out_button, zoom_in_button,
+                       refresh_button, stop_button):
             hlayout.addWidget(widget)
         
         layout = QVBoxLayout()
@@ -117,6 +125,34 @@ class WebBrowser(QWidget):
     def get_label(self):
         """Return address label text"""
         return self.tr("Address:")
+            
+    def apply_zoom_factor(self):
+        """Apply zoom factor"""
+        if hasattr(self.webview, 'setZoomFactor'):
+            # Assuming Qt >=v4.5
+            self.webview.setZoomFactor(self.zoom_factor)
+        else:
+            # Qt v4.4
+            self.webview.setTextSizeMultiplier(self.zoom_factor)
+        
+    def set_zoom_factor(self, zoom_factor):
+        """Set zoom factor"""
+        self.zoom_factor = zoom_factor
+        self.apply_zoom_factor()
+    
+    def get_zoom_factor(self):
+        """Return zoom factor"""
+        return self.zoom_factor
+            
+    def zoom_out(self):
+        """Zoom out"""
+        self.zoom_factor = max(.1, self.zoom_factor-.1)
+        self.apply_zoom_factor()
+    
+    def zoom_in(self):
+        """Zoom in"""
+        self.zoom_factor += .1
+        self.apply_zoom_factor()
                 
     def set_home_url(self, text):
         """Set home URL"""
