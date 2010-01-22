@@ -116,13 +116,12 @@ class WebBrowser(QWidget):
         hlayout = QHBoxLayout()
         for widget in (previous_button, next_button, home_button, find_button,
                        label, self.url_combo, zoom_out_button, zoom_in_button,
-                       refresh_button, stop_button):
+                       refresh_button, progressbar, stop_button):
             hlayout.addWidget(widget)
         
         layout = QVBoxLayout()
         layout.addLayout(hlayout)
         layout.addWidget(self.webview)
-        layout.addWidget(progressbar)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
                 
