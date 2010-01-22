@@ -388,9 +388,10 @@ class EditorTabWidget(Tabs):
                and finfo.editor.is_python() and classbrowser.isVisible():
                 enable = True
                 classbrowser.setEnabled(True)
-                classes = classbrowser.refresh(finfo.classes, update=update)
-                if update:
-                    finfo.classes = classes
+                if update or finfo.filename != classbrowser.fname:
+                    classes = classbrowser.refresh(finfo.classes, update=update)
+                    if update:
+                        finfo.classes = classes
         if not enable:
             classbrowser.setEnabled(False)
             classbrowser.clear()
