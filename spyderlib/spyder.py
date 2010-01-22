@@ -28,8 +28,7 @@ from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
                          QFileDialog, QInputDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
-                          QLibraryInfo, QLocale, QTranslator, QSize, QByteArray,
-                          QObject)
+                          QSize, QByteArray, QObject)
 
 # Local imports
 from spyderlib import __version__
@@ -58,10 +57,10 @@ from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        add_module_dependent_bookmarks,
                                        add_bookmark, create_program_action,
-                                       keybinding, translate,
+                                       keybinding, translate, qapplication,
                                        create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
-                              DATA_PATH, DOC_PATH)
+                              DOC_PATH)
 from spyderlib.utils.programs import run_python_gui_script
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 
@@ -1175,6 +1174,10 @@ def get_options():
     intitlelist = []
     commands = []
     
+    # Option --debug
+    if options.debug:
+        intitlelist.append('DEBUG MODE')
+    
     # Option --all
     if options.all:
         intitlelist.append('all')
@@ -1255,7 +1258,13 @@ def get_options():
 
 def initialize():
     """Initialize Qt and collect command line options"""
-    app = QApplication(sys.argv)
+    # Note regarding Options:
+    # It's important to collect options before monkey patching sys.exit,
+    # otherwise, optparse won't be able to exit if --help option is passed
+    commands, intitle, message, options = get_options()
+    
+    enable_translation = CONF.get('main', 'translation') and not options.debug
+    app = qapplication(translate=enable_translation)
     
     #----Monkey patching PyQt4.QtGui.QApplication
     class FakeQApplication(QApplication):
@@ -1269,29 +1278,11 @@ def initialize():
     from PyQt4 import QtGui
     QtGui.QApplication = FakeQApplication
     
-    # Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, optparse won't be able to exit if --help option is passed
-    commands, intitle, message, options = get_options()
-    
     #----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass
     sys.exit = fake_sys_exit
     
-    # Translation
-    qt_translator = None
-    app_translator = None
-    if CONF.get('main', 'translation'):
-        locale = QLocale.system().name()
-        qt_translator = QTranslator()
-        if qt_translator.load("qt_" + locale,
-                      QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-            app.installTranslator(qt_translator)
-        app_translator = QTranslator()
-        if app_translator.load("spyder_" + locale, DATA_PATH):
-            app.installTranslator(app_translator)
-
     # Selecting Qt4 backend for Enthought Tool Suite (if installed)
     try:
         from enthought.etsconfig.api import ETSConfig
@@ -1299,13 +1290,10 @@ def initialize():
     except ImportError:
         pass
     
-    # qt_translator, app_translator are returned only to keep references alive
-    return (app, qt_translator, app_translator,
-            commands, intitle, message, options)
+    return (app, commands, intitle, message, options)
 
 
-def run_spyder(app, qt_translator, app_translator,
-               commands, intitle, message, options):
+def run_spyder(app, commands, intitle, message, options):
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration

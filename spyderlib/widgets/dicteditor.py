@@ -26,7 +26,8 @@ from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 
 # Local import
 from spyderlib.config import get_icon, get_font
-from spyderlib.utils.qthelpers import translate, add_actions, create_action
+from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
+                                       qapplication)
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
 
@@ -1012,8 +1013,7 @@ def dedit(seq):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    if QApplication.startingUp():
-        QApplication([])
+    _app = qapplication()
     dialog = DictEditor(seq)
     if dialog.exec_():
         return dialog.get_copy()
@@ -1100,33 +1100,39 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
     return output_dict
 
 
-if __name__ == "__main__":
+def get_test_data():
+    """Create test data"""
     import numpy as np
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
-    example = {'str': 'kjkj kj k j j kj k jkj',
-               'unicode': u'éù',
-               'list': [1, 3, [4, 5, 6], 'kjkj', None],
-               'tuple': ([1, testdate, testdict], 'kjkj', None),
-               'dict': testdict,
-               'float': 1.2233,
-               'array': np.random.rand(10, 10),
-               'empty_array': np.array([]),
-               'date': testdate,
-               'datetime': datetime.datetime(1945, 5, 8),
-               }
-    
-#    # Remote dict test:
-#    from spyderlib.widgets.monitor import make_remote_view
-#    remote = make_remote_view(example)
-#    from pprint import pprint
-#    pprint(remote)
-#    if QApplication.startingUp():
-#        QApplication([])
-#    dialog = DictEditor(remote, remote=True)
-#    if dialog.exec_():
-#        print dialog.get_copy()
-    
-    out = dedit(example)
+    return {'str': 'kjkj kj k j j kj k jkj',
+            'unicode': u'éù',
+            'list': [1, 3, [4, 5, 6], 'kjkj', None],
+            'tuple': ([1, testdate, testdict], 'kjkj', None),
+            'dict': testdict,
+            'float': 1.2233,
+            'array': np.random.rand(10, 10),
+            'empty_array': np.array([]),
+            'date': testdate,
+            'datetime': datetime.datetime(1945, 5, 8),
+            }
+
+def test():
+    """Dictionary editor test"""
+    out = dedit( get_test_data() )
     print "out:", out
     
+def remote_editor_test():
+    """Remote dictionary editor test"""
+    from spyderlib.widgets.externalshell.globalsexplorer import get_settings
+    from spyderlib.widgets.externalshell.monitor import make_remote_view
+    remote = make_remote_view(get_test_data(), get_settings())
+    from pprint import pprint
+    pprint(remote)
+    _app = qapplication()
+    dialog = DictEditor(remote, remote=True)
+    if dialog.exec_():
+        print dialog.get_copy()
+
+if __name__ == "__main__":
+    test()

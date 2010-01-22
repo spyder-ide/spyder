@@ -8,6 +8,7 @@
 Object Editor Dialog based on PyQt4
 """
 
+
 def oedit(obj):
     """
     Edit the object 'obj' in a GUI-based editor and return the edited copy
@@ -25,11 +26,8 @@ def oedit(obj):
     from spyderlib.widgets.texteditor import TextEditor
     from spyderlib.widgets.dicteditor import DictEditor, ndarray, FakeObject
     from spyderlib.widgets.arrayeditor import ArrayEditor
-
-    # Creating QApplication if necessary
-    from PyQt4.QtGui import QApplication
-    if QApplication.startingUp():
-        QApplication([])
+    from spyderlib.utils.qthelpers import qapplication
+    _app = qapplication()
 
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
         dialog = ArrayEditor()
@@ -47,7 +45,9 @@ def oedit(obj):
     else:
         raise RuntimeError("Unsupported datatype")
 
-if __name__ == "__main__":
+
+def test():
+    """Run object editor test"""
     import datetime
     import numpy as np
     example = {'str': 'kjkj kj k j j kj k jkj',
@@ -61,3 +61,6 @@ if __name__ == "__main__":
     print "result:", oedit(example)
     print "result:", oedit(np.random.rand(10, 10))
     print "result:", oedit(oedit.__doc__)
+    
+if __name__ == "__main__":
+    test()

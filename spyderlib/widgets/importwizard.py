@@ -540,13 +540,11 @@ class ImportWizard(QDialog):
 
 def test(text):
     """Test"""
-    from PyQt4.QtGui import QApplication
-    if QApplication.startingUp():
-        QApplication([])
+    from spyderlib.utils.qthelpers import qapplication
+    _app = qapplication()
     dialog = ImportWizard(None, text)
     if dialog.exec_():
-        return dialog.get_data()
-
+        print dialog.get_data()
 
 if __name__ == "__main__":
-    print test(QString(u"17/11/1976\t1.34\n14/05/09\t3.14"))
+    test(QString(u"17/11/1976\t1.34\n14/05/09\t3.14"))

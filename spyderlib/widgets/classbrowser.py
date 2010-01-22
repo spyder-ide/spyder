@@ -11,6 +11,7 @@ Class browser widget
 import os.path as osp
 import sys
 
+# For debugging purpose:
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import QTreeWidgetItem
@@ -26,7 +27,9 @@ from spyderlib.widgets.classparser import get_classes
 class ClassBrowser(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
-        self.set_title(translate("ClassBrowser", "Classes and functions"))
+        title = translate("ClassBrowser", "Classes and functions")
+        self.setWindowTitle(title)
+        self.set_title(title)
         self.fname = None
         self.classes = None
         self.lines = None
@@ -90,13 +93,20 @@ class ClassBrowser(OneColumnTree):
                 item.setIcon(0, get_icon('method.png'))
 
 
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
+def test(fname):
+    """Show class browser for Python script *fname*"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     widget = ClassBrowser(None)
-    data = (sys.argv[1], None, None)
+    data = (fname, None, None)
     widget.refresh(data)
     widget.show()
-    
     sys.exit(app.exec_())
+    
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+    else:
+        fname = "classbrowser.py"
+    test(fname)
+    

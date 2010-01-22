@@ -12,10 +12,11 @@ import os, webbrowser, imp
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
                          QKeySequence, QToolButton, QKeyEvent, QMenu)
-from PyQt4.QtCore import SIGNAL, QVariant, QObject, Qt
+from PyQt4.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale, QTranslator,
+                          QLibraryInfo)
 
 # Local import
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, DATA_PATH
 from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -27,6 +28,32 @@ from spyderlib.utils import programs
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
+
+TRANSLATORS = []
+
+def qapplication(translate=True):
+    """
+    Return QApplication instance
+    Creates it if it doesn't already exist
+    """
+    if QApplication.startingUp():
+        app = QApplication([])
+        if translate:
+            locale = QLocale.system().name()
+            # Qt-specific translator
+            qt_translator = QTranslator()
+            TRANSLATORS.append(qt_translator) # Keep reference alive
+            paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+            if qt_translator.load("qt_"+locale, paths):
+                app.installTranslator(qt_translator)
+            # Spyder-specific translator
+            app_translator = QTranslator()
+            TRANSLATORS.append(app_translator) # Keep reference alive
+            if app_translator.load("spyder_"+locale, DATA_PATH):
+                app.installTranslator(app_translator)
+    else:
+        app = QApplication.instance()
+    return app
 
 def translate(context, string):
     """Translation"""
@@ -247,10 +274,10 @@ def show_std_icons():
     """
     Show all standard Icons
     """
-    import sys
-    app = QApplication(sys.argv)
+    app = qapplication()
     dialog = ShowStdIcons(None)
     dialog.show()
+    import sys
     sys.exit(app.exec_())
 
 if __name__ == "__main__":

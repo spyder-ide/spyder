@@ -26,6 +26,18 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.config import get_icon, CONF
 
 
+def get_settings():
+    """
+    Return Globals Browser settings
+    according to Spyder's configuration file
+    """
+    settings = {}
+    for name in ('filters', 'itermax', 'exclude_private', 'exclude_upper',
+                 'exclude_unsupported', 'excluded_names',
+                 'truncate', 'minmax', 'collvalue'):
+        settings[name] = CONF.get('external_shell', name)
+
+
 class GlobalsExplorer(QWidget):
     ID = 'external_shell'
     
@@ -132,11 +144,7 @@ class GlobalsExplorer(QWidget):
         sock = self.shell.monitor_socket
         if sock is None:
             return
-        settings = {}
-        for name in ('filters', 'itermax', 'exclude_private', 'exclude_upper',
-                     'exclude_unsupported', 'excluded_names',
-                     'truncate', 'minmax', 'collvalue'):
-            settings[name] = CONF.get('external_shell', name)
+        settings = get_settings()
         self.set_data( monitor_get_remote_view(sock, settings) )
         
     def get_value(self, name):

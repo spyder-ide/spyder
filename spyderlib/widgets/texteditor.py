@@ -8,13 +8,7 @@
 Text Editor Dialog based on PyQt4
 """
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
-
-from PyQt4.QtCore import Qt
-from PyQt4.QtCore import SIGNAL, SLOT
+from PyQt4.QtCore import Qt, SIGNAL, SLOT
 from PyQt4.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
@@ -61,10 +55,10 @@ class TextEditor(QDialog):
         return unicode(self.edit.toPlainText())
     
     
-def main():
+def test():
     """Text editor demo"""
-    from PyQt4.QtGui import QApplication
-    QApplication([])
+    from spyderlib.utils.qthelpers import qapplication
+    _app = qapplication()
     dialog = TextEditor("""
     01234567890123456789012345678901234567890123456789012345678901234567890123456789
     dedekdh elkd ezd ekjd lekdj elkdfjelfjk e
@@ -78,4 +72,4 @@ def main():
         print "Canceled"
 
 if __name__ == "__main__":
-    main()
+    test()

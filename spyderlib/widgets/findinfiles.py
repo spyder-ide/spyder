@@ -597,6 +597,8 @@ class FindInFilesWidget(QWidget):
                  exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_regexp=True,
                  supported_encodings=("utf-8", "iso-8859-1", "cp1252")):
         QWidget.__init__(self, parent)
+        
+        self.setWindowTitle(translate('FindInFiles', 'Find in files'))
 
         self.search_thread = SearchThread(self)
         self.connect(self.search_thread, SIGNAL("finished()"),
@@ -666,11 +668,14 @@ class FindInFilesWidget(QWidget):
             self.result_browser.show()
             
             
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
+def test():
+    """Run Find in Files widget test"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     widget = FindInFilesWidget(None)
     widget.show()
-    
     sys.exit(app.exec_())
+    
+if __name__ == '__main__':
+    test()
+    

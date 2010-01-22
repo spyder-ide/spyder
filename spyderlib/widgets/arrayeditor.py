@@ -27,7 +27,7 @@ import StringIO
 # Local imports
 from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
-                                       keybinding)
+                                       keybinding, qapplication)
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -534,15 +534,15 @@ def aedit(data, title="", xy=False, readonly=False, parent=None):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    if QApplication.startingUp():
-        QApplication([])
+    _app = qapplication()
     dialog = ArrayEditor(parent)
     if dialog.setup_and_check(data, title, xy=xy, readonly=readonly):
         if dialog.exec_():
             return data
 
 
-def run_tests():
+def test():
+    """Array editor test"""
     arr = np.array(["kjrekrjkejr"])
     print "out:", aedit(arr, "string array")
     arr = np.array([u"kjrekrjkejr"])
@@ -565,6 +565,5 @@ def run_tests():
     arr = np.array([1, 2, 3], dtype="int8")
     print "out:", aedit(arr, "int array")
 
-
 if __name__ == "__main__":
-    run_tests()
+    test()

@@ -68,11 +68,13 @@ class PydocBrowser(WebBrowser):
         return osp.splitext(unicode(url.path()))[0][1:]
 
 
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
+def main():
+    """Run web browser"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     widget = PydocBrowser(None)
     widget.show()
-    
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()

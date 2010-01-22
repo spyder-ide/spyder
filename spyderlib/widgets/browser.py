@@ -217,12 +217,14 @@ class WebBrowser(QWidget):
             self.find_widget.hide()
 
 
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
+def main():
+    """Run web browser"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     widget = WebBrowser()
     widget.show()
     widget.set_home_url('http://localhost:7464/')
-    
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    main()

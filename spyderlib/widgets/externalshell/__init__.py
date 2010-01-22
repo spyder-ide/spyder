@@ -208,7 +208,8 @@ class ExternalShellBase(QWidget):
 def test():
     from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
     from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
-    app = QApplication(sys.argv)
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     import spyderlib
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
                                 interact=True)

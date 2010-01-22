@@ -8,13 +8,11 @@
 
 from __future__ import with_statement
 
-from PyQt4.QtGui import (QDialog, QListWidget, QListWidgetItem, QVBoxLayout,
-                         QHBoxLayout, QDialogButtonBox, QApplication,
-                         QMessageBox, QFileDialog)
+from PyQt4.QtGui import (QDialog, QListWidget, QFileDialog, QDialogButtonBox,
+                         QVBoxLayout, QHBoxLayout, QMessageBox, QListWidgetItem)
 from PyQt4.QtCore import Qt, SIGNAL, SLOT
 
-import os, sys
-import os.path as osp
+import os, sys, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -215,8 +213,13 @@ class PathManager(QDialog):
             self.update_list()
 
 
-if __name__ == "__main__":
-    QApplication([])
+def test():
+    """Run path manager test"""
+    from spyderlib.utils.qthelpers import qapplication
+    _app = qapplication()
     test = PathManager(None, sys.path)
     if test.exec_():
         print test.get_path_list()
+
+if __name__ == "__main__":
+    test()

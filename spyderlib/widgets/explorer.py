@@ -608,9 +608,15 @@ class Test(QDialog):
         self.connect(self.explorer, SIGNAL("open_parent_dir()"),
                      lambda: self.explorer.listwidget.refresh('..'))
 
-if __name__ == "__main__":
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
+
+def test():
+    """Run file/directory explorer test"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     test = Test()
     test.show()
     sys.exit(app.exec_())
+    
+if __name__ == "__main__":
+    test()
+    

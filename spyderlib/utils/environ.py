@@ -8,7 +8,7 @@
 Environment variable utilities
 """
 
-from PyQt4.QtGui import QDialog, QMessageBox, QApplication
+from PyQt4.QtGui import QDialog, QMessageBox
 
 import os
 
@@ -117,7 +117,13 @@ except ImportError:
     #---- Other platforms
     pass
 
-if __name__ == "__main__":
-    qapp = QApplication([])
+
+def main():
+    """Run Windows environment variable editor"""
+    from spyderlib.utils.qthelpers import qapplication
+    _app = qapplication()
     dialog = WinUserEnvDialog()
     dialog.exec_()
+
+if __name__ == "__main__":
+    main()

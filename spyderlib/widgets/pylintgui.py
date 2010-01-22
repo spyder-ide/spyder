@@ -130,6 +130,8 @@ class PylintWidget(QWidget):
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
         
+        self.setWindowTitle("Pylint")
+        
         self.output = None
         self.error_output = None
         
@@ -426,12 +428,14 @@ class PylintWidget(QWidget):
         self.datelabel.setText(date_text)
 
 
-if __name__ == '__main__':
-    from PyQt4.QtGui import QApplication
-    app = QApplication([])
-    
+def test():
+    """Run pylint widget test"""
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
     widget = PylintWidget(None)
     widget.show()
     widget.analyze(__file__)
-    
     sys.exit(app.exec_())
+    
+if __name__ == '__main__':
+    test()
