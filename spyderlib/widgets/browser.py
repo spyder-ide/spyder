@@ -160,7 +160,6 @@ class WebBrowser(QWidget):
     def set_home_url(self, text):
         """Set home URL"""
         self.home_url = QUrl(text)
-        self.go_home()
         
     def set_url(self, url):
         """Set current URL"""
@@ -223,6 +222,7 @@ def main():
     widget = WebBrowser()
     widget.show()
     widget.set_home_url('http://localhost:7464/')
+    widget.go_home()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

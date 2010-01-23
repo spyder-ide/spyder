@@ -15,6 +15,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.widgets.browser import WebBrowser
+from spyderlib.utils import select_port
 
 
 class PydocServer(QThread):
@@ -32,19 +33,24 @@ class PydocBrowser(WebBrowser):
     """
     pydoc widget
     """
-    PORT = 1234
+    DEFAULT_PORT = 30128
+    
     def __init__(self, parent):
         super(PydocBrowser, self).__init__(parent)
         self.server = None
+        self.port = None
         self.start_server()
-        self.set_home_url('http://localhost:%d/' % self.PORT)
+        self.go_home()
         
     #------ Public API -----------------------------------------------------
     def start_server(self):
         """Start pydoc server"""
-        if self.server is not None and self.server.isRunning():
+        if self.server is None:
+            self.port = select_port(default_port=self.DEFAULT_PORT)
+            self.set_home_url('http://localhost:%d/' % self.port)
+        elif self.server.isRunning():
             self.server.quit()
-        self.server = PydocServer(port=self.PORT)
+        self.server = PydocServer(port=self.port)
         self.server.start()
 
     #------ WebBrowser API -----------------------------------------------------

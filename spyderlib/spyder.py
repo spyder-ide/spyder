@@ -15,8 +15,7 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
-import sys, os, platform, re, webbrowser, imp
-import os.path as osp
+import sys, os, platform, re, webbrowser, imp, os.path as osp
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')

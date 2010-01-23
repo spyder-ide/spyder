@@ -6,6 +6,7 @@ import StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
+from spyderlib.utils import select_port
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
@@ -180,32 +181,13 @@ class Monitor(threading.Thread):
 
 SPYDER_PORT = 20128
 
-def select_port(port=20128):
-    """Find and return a non used port"""
-    while True:
-        try:
-            sock = socket.socket(socket.AF_INET,
-                                 socket.SOCK_STREAM,
-                                 socket.IPPROTO_TCP)
-#            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            sock.bind( ("127.0.0.1", port) )
-        except socket.error, _msg:
-            port += 1
-        else:
-            break
-        finally:
-            sock.close()
-            sock = None
-    return port
-
-
 class Server(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.setDaemon(True)
         self.shells = {}
         global SPYDER_PORT
-        SPYDER_PORT = select_port()
+        SPYDER_PORT = select_port(default_port=SPYDER_PORT)
         
     def register(self, shell_id, shell):
         nt = NotificationThread(shell)
