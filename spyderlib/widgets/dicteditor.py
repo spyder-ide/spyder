@@ -597,7 +597,7 @@ class BaseTableView(QTableView):
             value = self.delegate.get_value(index)
             is_array = isinstance(value, ndarray) and len(value) != 0
             condition_plot = is_array and len(value.shape) <= 2
-            condition_imshow = condition_plot and min(value.shape) > 2
+            condition_imshow = condition_plot and value.ndim == 2
         else:
             is_array = condition_plot = condition_imshow = False
         self.plot_action.setVisible(condition_plot)
@@ -1112,6 +1112,7 @@ def get_test_data():
             'dict': testdict,
             'float': 1.2233,
             'array': np.random.rand(10, 10),
+            '1D-array': np.linspace(-10, 10),
             'empty_array': np.array([]),
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8),
