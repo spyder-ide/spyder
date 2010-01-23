@@ -36,6 +36,7 @@ def get_settings():
                  'exclude_unsupported', 'excluded_names',
                  'truncate', 'minmax', 'collvalue'):
         settings[name] = CONF.get('external_shell', name)
+    return settings
 
 
 class GlobalsExplorer(QWidget):
