@@ -36,8 +36,8 @@ class WorkingDirectory(QToolBar, PluginMixin):
     Working directory changer widget
     """
     ID = 'workingdir'
-#    allowed_areas = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea
-#    location = Qt.TopDockWidgetArea
+#    ALLOWED_AREAS = Qt.TopDockWidgetArea | Qt.BottomDockWidgetArea
+#    LOCATION = Qt.TopDockWidgetArea
     LOG_PATH = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)

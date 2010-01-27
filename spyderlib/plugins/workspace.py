@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog, QMenu
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, Qt
 
 import os, sys
 import os.path as osp
@@ -52,6 +52,7 @@ class Workspace(DictEditorTableView, PluginMixin):
     Workspace widget (namespace explorer)
     """
     ID = 'workspace'
+    LOCATION = Qt.RightDockWidgetArea
     TEMPFILE_PATH = get_conf_path('.temp.spydata')
         
     def __init__(self, parent):

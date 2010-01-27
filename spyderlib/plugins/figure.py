@@ -24,8 +24,8 @@ class MatplotlibFigure(PluginWidget):
     Matplotlib Figure Dockwidget
     """
     ID = 'figure'
-    features = QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
-    location = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable
+    LOCATION = Qt.LeftDockWidgetArea
     def __init__(self, parent, canvas, num):        
         self.canvas = canvas
         self.num = num

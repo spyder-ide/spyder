@@ -39,10 +39,10 @@ class PluginMixin(object):
     Useful methods to bind widgets to the main window
     See PluginWidget class for required widget interface
     """
-    flags = Qt.Window
-    allowed_areas = Qt.AllDockWidgetAreas
-    location = Qt.LeftDockWidgetArea
-    features = QDockWidget.DockWidgetClosable | \
+    FLAGS = Qt.Window
+    ALLOWED_AREAS = Qt.AllDockWidgetAreas
+    LOCATION = Qt.LeftDockWidgetArea
+    FEATURES = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
     def __init__(self, main):
@@ -58,10 +58,10 @@ class PluginMixin(object):
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
-        dock = QDockWidget(self.get_widget_title(), self.main)#, self.flags) -> bug in Qt 4.4
+        dock = QDockWidget(self.get_widget_title(), self.main)#, self.FLAGS) -> bug in Qt 4.4
         dock.setObjectName(self.__class__.__name__+"_dw")
-        dock.setAllowedAreas(self.allowed_areas)
-        dock.setFeatures(self.features)
+        dock.setAllowedAreas(self.ALLOWED_AREAS)
+        dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
@@ -71,7 +71,7 @@ class PluginMixin(object):
         if short is not None:
             QShortcut(QKeySequence(short), self.main,
                       lambda: self.visibility_changed(True))
-        return (dock, self.location)
+        return (dock, self.LOCATION)
     
     def create_mainwindow(self):
         """

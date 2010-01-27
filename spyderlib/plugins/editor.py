@@ -872,6 +872,7 @@ class Editor(PluginWidget):
     Multi-file Editor widget
     """
     ID = 'editor'
+    LOCATION = Qt.LeftDockWidgetArea
     TEMPFILE_PATH = get_conf_path('.temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     def __init__(self, parent):

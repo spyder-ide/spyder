@@ -163,6 +163,7 @@ class MainWindow(QMainWindow):
         self.debug = options.debug
         self.profile = options.profile
         self.light = options.light
+        self.reset = options.reset_session
         
         self.debug_print("Start of MainWindow constructor")
         
@@ -210,6 +211,7 @@ class MainWindow(QMainWindow):
         self.historylog = None
         self.extconsole = None
         self.findinfiles = None
+        self.pylint = None
         
         # Set Window title and icon
         title = "Spyder"
@@ -368,7 +370,6 @@ class MainWindow(QMainWindow):
                                 
         # Working directory changer widget
         self.workdir = WorkingDirectory(self, self.init_workdir)
-        self.addToolBar(self.workdir)
         self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
                      self.redirect_interactiveshell_stdio)
         self.connect(self.console.shell, SIGNAL("refresh()"),
@@ -634,9 +635,37 @@ class MainWindow(QMainWindow):
                 help_menu.addAction(qtaact)
             add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
                 
+        # Adding Working directory toolbar in last position
+        self.addToolBar(self.workdir)
+                
         # Window set-up
-        self.debug_print("Setting up window...")
         prefix = ('lightwindow' if self.light else 'window') + '/'
+        hexstate = CONF.get('main', prefix+'state', None)
+        if hexstate is None:
+            self.reset = True
+        if self.reset and not self.light:
+            # First Spyder execution *or* --reset option:
+            # trying to set-up the dockwidget/toolbar positions to the best 
+            # appearance possible
+            for first, second in ((self.console, self.extconsole),
+                                  (self.extconsole, self.historylog),
+                                  (self.onlinehelp, self.inspector),
+                                  (self.inspector, self.workspace),
+                                  (self.workspace, self.explorer),
+                                  (self.explorer, self.findinfiles),
+                                  (self.findinfiles, self.pylint),
+                                  ):
+                if first is not None and second is not None:
+                    self.tabifyDockWidget(first.dockwidget, second.dockwidget)
+            for plugin in (self.pylint, self.findinfiles):
+                if plugin is not None:
+                    plugin.dockwidget.close()
+            for plugin in (self.console, self.onlinehelp):
+                if plugin is not None:
+                    plugin.dockwidget.raise_()
+            for toolbar in (run_toolbar, edit_toolbar):
+                toolbar.close()
+        self.debug_print("Setting up window...")
         width, height = CONF.get('main', prefix+'size')
         self.resize( QSize(width, height) )
         self.window_size = self.size()
@@ -645,8 +674,8 @@ class MainWindow(QMainWindow):
         
         if not self.light:
             # Window layout
-            hexstate = str(CONF.get('main', prefix+'state'))
-            self.restoreState( QByteArray().fromHex(hexstate) )
+            if not self.reset:
+                self.restoreState( QByteArray().fromHex(str(hexstate)) )
             # Is maximized?
             if CONF.get('main', prefix+'is_maximized'):
                 self.setWindowState(Qt.WindowMaximized)

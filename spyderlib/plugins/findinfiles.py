@@ -16,7 +16,7 @@ import sys, os
 # For debugging purpose:
 STDOUT = sys.stdout
 
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
 from spyderlib.config import CONF
@@ -27,6 +27,7 @@ from spyderlib.plugins import PluginMixin
 class FindInFiles(FindInFilesWidget, PluginMixin):
     """Find in files DockWidget"""
     ID = 'find_in_files'
+    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent=None):
         supported_encodings = CONF.get(self.ID, 'supported_encodings')
         

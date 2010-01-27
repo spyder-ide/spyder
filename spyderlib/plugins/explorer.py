@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFontDialog
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
 import os.path as osp
@@ -30,6 +30,7 @@ from spyderlib.plugins import PluginMixin
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
+    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent=None, path=None):
         ExplorerWidget.__init__(self, parent=parent, path=path,
                             name_filters=CONF.get(self.ID, 'name_filters'),
