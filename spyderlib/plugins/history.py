@@ -32,7 +32,6 @@ class HistoryLog(PluginWidget):
     History log widget
     """
     ID = 'historylog'
-    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None

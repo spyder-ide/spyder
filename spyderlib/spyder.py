@@ -647,6 +647,12 @@ class MainWindow(QMainWindow):
             # First Spyder execution *or* --reset option:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
+            splitting = ((self.editor, self.onlinehelp, Qt.Horizontal),
+                         (self.onlinehelp, self.console, Qt.Vertical),)
+            for first, second, orientation in splitting:
+                if first is not None and second is not None:
+                    self.splitDockWidget(first.dockwidget, second.dockwidget,
+                                         orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
                                   (self.onlinehelp, self.inspector),
@@ -660,7 +666,7 @@ class MainWindow(QMainWindow):
             for plugin in (self.pylint, self.findinfiles):
                 if plugin is not None:
                     plugin.dockwidget.close()
-            for plugin in (self.console, self.onlinehelp):
+            for plugin in (self.onlinehelp, self.console):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             for toolbar in (run_toolbar, edit_toolbar):

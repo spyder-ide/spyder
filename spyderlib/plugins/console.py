@@ -44,7 +44,6 @@ class Console(PluginWidget):
     Console widget
     """
     ID = 'shell'
-    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent=None, namespace=None, commands=None, message="",
                  debug=False, exitfunc=None, profile=False):
         # Shell

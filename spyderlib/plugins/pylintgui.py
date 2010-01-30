@@ -29,7 +29,6 @@ from spyderlib.plugins import PluginMixin
 class Pylint(PylintWidget, PluginMixin):
     """Python source code analysis based on pylint"""
     ID = 'pylint'
-    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=CONF.get(self.ID, 'max_entries'))

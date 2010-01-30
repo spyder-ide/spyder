@@ -36,7 +36,6 @@ class ExternalConsole(PluginWidget):
     Console widget
     """
     ID = 'external_shell'
-    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent, commands=None):
         self.commands = commands
         self.tabwidget = None

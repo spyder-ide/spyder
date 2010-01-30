@@ -24,7 +24,6 @@ class OnlineHelp(PydocBrowser, PluginMixin):
     Online Help Plugin
     """
     ID = 'onlinehelp'
-    LOCATION = Qt.RightDockWidgetArea
     LOG_PATH = get_conf_path('.onlinehelp')
     def __init__(self, parent):
         PydocBrowser.__init__(self, parent)

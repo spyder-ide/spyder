@@ -30,7 +30,6 @@ from spyderlib.plugins import PluginMixin
 class Explorer(ExplorerWidget, PluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
-    LOCATION = Qt.RightDockWidgetArea
     def __init__(self, parent=None, path=None):
         ExplorerWidget.__init__(self, parent=parent, path=path,
                             name_filters=CONF.get(self.ID, 'name_filters'),

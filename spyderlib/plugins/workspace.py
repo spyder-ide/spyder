@@ -52,7 +52,6 @@ class Workspace(DictEditorTableView, PluginMixin):
     Workspace widget (namespace explorer)
     """
     ID = 'workspace'
-    LOCATION = Qt.RightDockWidgetArea
     TEMPFILE_PATH = get_conf_path('.temp.spydata')
         
     def __init__(self, parent):

@@ -62,7 +62,6 @@ class ObjectInspector(ReadOnlyEditor):
     Docstrings viewer widget
     """
     ID = 'inspector'
-    LOCATION = Qt.RightDockWidgetArea
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         ReadOnlyEditor.__init__(self, parent)
