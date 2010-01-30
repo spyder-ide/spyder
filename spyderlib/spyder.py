@@ -378,7 +378,7 @@ class MainWindow(QMainWindow):
         if not self.light:
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
-            self.editor = Editor( self )
+            self.editor = Editor(self, ignore_last_opened_files=self.reset)
             self.connect(self.editor, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.connect(self.console, SIGNAL("edit_goto(QString,int)"),

@@ -874,7 +874,7 @@ class Editor(PluginWidget):
     ID = 'editor'
     TEMPFILE_PATH = get_conf_path('.temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
-    def __init__(self, parent):
+    def __init__(self, parent, ignore_last_opened_files=False):
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
             header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
@@ -964,7 +964,7 @@ class Editor(PluginWidget):
         self.untitled_num = 0
         
         filenames = CONF.get(self.ID, 'filenames', [])
-        if filenames:
+        if filenames and not ignore_last_opened_files:
             self.load(filenames)
             self.set_current_filename(CONF.get(self.ID, 'current_filename', ''))
         else:
