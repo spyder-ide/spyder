@@ -3,23 +3,34 @@
 # See LICENSE file for details
 
 import __builtin__
+import os.path
 from compiler import ast
 
 from spyderlib.pyflakes import messages
 
 
+
 class Binding(object):
     """
+    Represents the binding of a value to a name.
+
+    The checker uses this to keep track of which names have been bound and
+    which names have not. See L{Assignment} for a special type of binding that
+    is checked with stricter rules.
+
     @ivar used: pair of (L{Scope}, line-number) indicating the scope and
                 line number that this binding was last used
     """
+
     def __init__(self, name, source):
         self.name = name
         self.source = source
         self.used = False
 
+
     def __str__(self):
         return self.name
+
 
     def __repr__(self):
         return '<%s object %r from line %r at 0x%x>' % (self.__class__.__name__,
@@ -27,29 +38,90 @@ class Binding(object):
                                                         self.source.lineno,
                                                         id(self))
 
+
+
 class UnBinding(Binding):
     '''Created by the 'del' operator.'''
 
+
+
 class Importation(Binding):
+    """
+    A binding created by an import statement.
+
+    @ivar fullName: The complete name given to the import statement,
+        possibly including multiple dotted components.
+    @type fullName: C{str}
+    """
     def __init__(self, name, source):
+        self.fullName = name
         name = name.split('.')[0]
         super(Importation, self).__init__(name, source)
 
+
+
+class Argument(Binding):
+    """
+    Represents binding a name as an argument.
+    """
+
+
+
 class Assignment(Binding):
-    pass
+    """
+    Represents binding a name with an explicit assignment.
+
+    The checker will raise warnings for any Assignment that isn't used. Also,
+    the checker does not consider assignments in tuple/list unpacking to be
+    Assignments, rather it treats them as simple Bindings.
+    """
+
+
 
 class FunctionDefinition(Binding):
     pass
 
 
+
+class ExportBinding(Binding):
+    """
+    A binding created by an C{__all__} assignment.  If the names in the list
+    can be determined statically, they will be treated as names for export and
+    additional checking applied to them.
+
+    The only C{__all__} assignment that can be recognized is one which takes
+    the value of a literal list containing literal strings.  For example::
+
+        __all__ = ["foo", "bar"]
+
+    Names which are imported and not otherwise used but appear in the value of
+    C{__all__} will not have an unused import warning reported for them.
+    """
+    def names(self):
+        """
+        Return a list of the names referenced by this binding.
+        """
+        names = []
+        if isinstance(self.source, ast.List):
+            for node in self.source.nodes:
+                if isinstance(node, ast.Const):
+                    names.append(node.value)
+        return names
+
+
+
 class Scope(dict):
     importStarred = False       # set to True when import * is found
+
 
     def __repr__(self):
         return '<%s at 0x%x %s>' % (self.__class__.__name__, id(self), dict.__repr__(self))
 
+
     def __init__(self):
         super(Scope, self).__init__()
+
+
 
 class ClassScope(Scope):
     pass
@@ -72,41 +144,77 @@ class ModuleScope(Scope):
     pass
 
 
-
 # Globally defined names which are not attributes of the __builtin__ module.
 _MAGIC_GLOBALS = ['__file__', '__builtins__']
 
 
 
 class Checker(object):
+    """
+    I check the cleanliness and sanity of Python code.
+
+    @ivar _deferredFunctions: Tracking list used by L{deferFunction}.  Elements
+        of the list are two-tuples.  The first element is the callable passed
+        to L{deferFunction}.  The second element is a copy of the scope stack
+        at the time L{deferFunction} was called.
+
+    @ivar _deferredAssignments: Similar to C{_deferredFunctions}, but for
+        callables which are deferred assignment checks.
+    """
+
     nodeDepth = 0
     traceTree = False
 
     def __init__(self, tree, filename='(none)'):
-        self.deferred = []
+        self._deferredFunctions = []
+        self._deferredAssignments = []
         self.dead_scopes = []
         self.messages = []
         self.filename = filename
         self.scopeStack = [ModuleScope()]
         self.futuresAllowed = True
-
         self.handleChildren(tree)
-        for handler, scope in self.deferred:
-            self.scopeStack = scope
-            handler()
+        self._runDeferred(self._deferredFunctions)
+        # Set _deferredFunctions to None so that deferFunction will fail
+        # noisily if called after we've run through the deferred functions.
+        self._deferredFunctions = None
+        self._runDeferred(self._deferredAssignments)
+        # Set _deferredAssignments to None so that deferAssignment will fail
+        # noisly if called after we've run through the deferred assignments.
+        self._deferredAssignments = None
         del self.scopeStack[1:]
         self.popScope()
         self.check_dead_scopes()
 
-    def defer(self, callable):
-        '''Schedule something to be called after just before completion.
+
+    def deferFunction(self, callable):
+        '''
+        Schedule a function handler to be called just before completion.
 
         This is used for handling function bodies, which must be deferred
         because code later in the file might modify the global scope. When
         `callable` is called, the scope at the time this is called will be
         restored, however it will contain any new bindings added to it.
         '''
-        self.deferred.append( (callable, self.scopeStack[:]) )
+        self._deferredFunctions.append((callable, self.scopeStack[:]))
+
+
+    def deferAssignment(self, callable):
+        """
+        Schedule an assignment handler to be called just after deferred
+        function handlers.
+        """
+        self._deferredAssignments.append((callable, self.scopeStack[:]))
+
+
+    def _runDeferred(self, deferred):
+        """
+        Run the callables in C{deferred} using their associated scope stack.
+        """
+        for handler, scope in deferred:
+            self.scopeStack = scope
+            handler()
+
 
     def scope(self):
         return self.scopeStack[-1]
@@ -115,11 +223,36 @@ class Checker(object):
     def popScope(self):
         self.dead_scopes.append(self.scopeStack.pop())
 
+
     def check_dead_scopes(self):
+        """
+        Look at scopes which have been fully examined and report names in them
+        which were imported but unused.
+        """
         for scope in self.dead_scopes:
+            export = isinstance(scope.get('__all__'), ExportBinding)
+            if export:
+                all = scope['__all__'].names()
+                if os.path.split(self.filename)[1] != '__init__.py':
+                    # Look for possible mistakes in the export list
+                    undefined = set(all) - set(scope)
+                    for name in undefined:
+                        self.report(
+                            messages.UndefinedExport,
+                            scope['__all__'].source.lineno,
+                            name)
+            else:
+                all = []
+
+            # Look for imported names that aren't used.
             for importation in scope.itervalues():
-                if isinstance(importation, Importation) and not importation.used:
-                    self.report(messages.UnusedImport, importation.source.lineno, importation.name)
+                if isinstance(importation, Importation):
+                    if not importation.used and importation.name not in all:
+                        self.report(
+                            messages.UnusedImport,
+                            importation.source.lineno,
+                            importation.name)
+
 
     def pushFunctionScope(self):
         self.scopeStack.append(FunctionScope())
@@ -132,9 +265,10 @@ class Checker(object):
 
     def handleChildren(self, tree):
         for node in tree.getChildNodes():
-            self.handleNode(node)
+            self.handleNode(node, tree)
 
-    def handleNode(self, node):
+    def handleNode(self, node, parent):
+        node.parent = parent
         if self.traceTree:
             print '  ' * self.nodeDepth + node.__class__.__name__
         self.nodeDepth += 1
@@ -179,8 +313,10 @@ class Checker(object):
 
         if not isinstance(self.scope, ClassScope):
             for scope in self.scopeStack[::-1]:
-                if (isinstance(scope.get(value.name), Importation)
-                        and not scope[value.name].used
+                existing = scope.get(value.name)
+                if (isinstance(existing, Importation)
+                        and not existing.used
+                        and (not isinstance(value, Importation) or value.fullName == existing.fullName)
                         and reportRedef):
 
                     self.report(messages.RedefinedWhileUnused,
@@ -197,28 +333,17 @@ class Checker(object):
 
     def WITH(self, node):
         """
-        Handle C{with} by adding bindings for the name or tuple of names it
-        puts into scope and by continuing to process the suite within the
-        statement.
+        Handle C{with} by checking the target of the statement (which can be an
+        identifier, a list or tuple of targets, an attribute, etc) for
+        undefined names and defining any it adds to the scope and by continuing
+        to process the suite within the statement.
         """
-        # for "with foo as bar", there is no AssName node for "bar".
-        # Instead, there is a Name node. If the "as" expression assigns to
-        # a tuple, it will instead be a AssTuple node of Name nodes.
-        #
-        # Of course these are assignments, not references, so we have to
-        # handle them as a special case here.
+        # Check the "foo" part of a "with foo as bar" statement.  Do this no
+        # matter what, since there's always a "foo" part.
+        self.handleNode(node.expr, node)
 
-        self.handleNode(node.expr)
-
-        if isinstance(node.vars, ast.AssTuple):
-            varNodes = node.vars.nodes
-        elif node.vars is not None:
-            varNodes = [node.vars]
-        else:
-            varNodes = []
-
-        for varNode in varNodes:
-            self.addBinding(varNode.lineno, Assignment(varNode.name, varNode))
+        if node.vars is not None:
+            self.handleNode(node.vars, node)
 
         self.handleChildren(node.body)
 
@@ -232,8 +357,8 @@ class Checker(object):
 
     def LISTCOMP(self, node):
         for qual in node.quals:
-            self.handleNode(qual)
-        self.handleNode(node.expr)
+            self.handleNode(qual, node)
+        self.handleNode(node.expr, node)
 
     GENEXPRINNER = LISTCOMP
 
@@ -294,7 +419,12 @@ class Checker(object):
             if ((not hasattr(__builtin__, node.name))
                     and node.name not in _MAGIC_GLOBALS
                     and not importStarred):
-                self.report(messages.UndefinedName, node.lineno, node.name)
+                if (os.path.basename(self.filename) == '__init__.py' and
+                    node.name == '__path__'):
+                    # the special name __path__ is valid only in packages
+                    pass
+                else:
+                    self.report(messages.UndefinedName, node.lineno, node.name)
 
 
     def FUNCTION(self, node):
@@ -305,7 +435,7 @@ class Checker(object):
 
     def LAMBDA(self, node):
         for default in node.defaults:
-            self.handleNode(default)
+            self.handleNode(default, node)
 
         def runFunction():
             args = []
@@ -322,19 +452,38 @@ class Checker(object):
             self.pushFunctionScope()
             addArgs(node.argnames)
             for name in args:
-                self.addBinding(node.lineno, Assignment(name, node), reportRedef=False)
-            self.handleNode(node.code)
+                self.addBinding(node.lineno, Argument(name, node), reportRedef=False)
+            self.handleNode(node.code, node)
+            def checkUnusedAssignments():
+                """
+                Check to see if any assignments have not been used.
+                """
+                for name, binding in self.scope.iteritems():
+                    if (not binding.used and not name in self.scope.globals
+                        and isinstance(binding, Assignment)):
+                        self.report(messages.UnusedVariable,
+                                    binding.source.lineno, name)
+            self.deferAssignment(checkUnusedAssignments)
             self.popScope()
 
-        self.defer(runFunction)
+        self.deferFunction(runFunction)
+
 
     def CLASS(self, node):
-        self.addBinding(node.lineno, Assignment(node.name, node))
+        """
+        Check names used in a class definition, including its decorators, base
+        classes, and the body of its definition.  Additionally, add its name to
+        the current scope.
+        """
+        if getattr(node, "decorators", None) is not None:
+            self.handleChildren(node.decorators)
         for baseNode in node.bases:
-            self.handleNode(baseNode)
+            self.handleNode(baseNode, node)
+        self.addBinding(node.lineno, Binding(node.name, node))
         self.pushClassScope()
         self.handleChildren(node.code)
         self.popScope()
+
 
     def ASSNAME(self, node):
         if node.flags == 'OP_DELETE':
@@ -363,12 +512,24 @@ class Checker(object):
                                     scope[node.name].source.lineno)
                         break
 
-            self.addBinding(node.lineno, Assignment(node.name, node))
+            if isinstance(node.parent,
+                          (ast.For, ast.ListCompFor, ast.GenExprFor,
+                           ast.AssTuple, ast.AssList)):
+                binding = Binding(node.name, node)
+            elif (node.name == '__all__' and
+                  isinstance(self.scope, ModuleScope) and
+                  isinstance(node.parent, ast.Assign)):
+                binding = ExportBinding(node.name, node.parent.expr)
+            else:
+                binding = Assignment(node.name, node)
+            if node.name in self.scope:
+                binding.used = self.scope[node.name].used
+            self.addBinding(node.lineno, binding)
 
     def ASSIGN(self, node):
-        self.handleNode(node.expr)
+        self.handleNode(node.expr, node)
         for subnode in node.nodes[::-1]:
-            self.handleNode(subnode)
+            self.handleNode(subnode, node)
 
     def IMPORT(self, node):
         for name, alias in node.names:
