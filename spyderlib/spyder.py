@@ -970,6 +970,7 @@ class MainWindow(QMainWindow):
             qsci = ", QScintilla "+ qsci
         except ImportError:
             qsci = ""
+        from spyderlib.pyflakes import __version__ as pyflakes_version
         QMessageBox.about(self,
             self.tr("About %1").arg("Spyder"),
             self.tr("""<b>%1 %2</b>
@@ -985,7 +986,7 @@ class MainWindow(QMainWindow):
             technical solutions - without him, the <i>external console</i> 
             wouldn't have so many features)
             and all the Spyder beta-testers and regular users.
-            <p>Integrated Python code analysis powered by %8pyflakes%9:
+            <p>Integrated Python code analysis powered by %8pyflakes %10%9:
             <br>Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
             <p>Most of the icons are coming from the %8Crystal Project%9:
             <br>Copyright &copy; 2006-2007 Everaldo Coelho
@@ -1000,7 +1001,8 @@ class MainWindow(QMainWindow):
             .arg("Spyder").arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
             .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()) \
-            .arg("<span style=\'color: #444444\'><b>").arg("</b></span>"))
+            .arg("<span style=\'color: #444444\'><b>").arg("</b></span>") \
+            .arg(pyflakes_version))
     
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:

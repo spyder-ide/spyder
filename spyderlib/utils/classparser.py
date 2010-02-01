@@ -177,7 +177,9 @@ def match(pattern, data, vars=None):
 
 
 if __name__ == '__main__':
-    import sys
+    import sys, time
+    t0 = time.time()
     classes = get_classes(sys.argv[1])
-    from pprint import pprint
-    pprint(classes)
+    print "Elapsed time: %s ms" % round((time.time()-t0)*1000)
+#    from pprint import pprint
+#    pprint(classes)
