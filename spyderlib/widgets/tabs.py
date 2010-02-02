@@ -17,7 +17,8 @@ from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import add_actions, create_toolbutton
+from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
+                                       create_action)
 
 # For debugging purpose:
 import sys
@@ -99,6 +100,28 @@ class Tabs(QTabWidget):
                      self.__current_changed)
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        # Browsing tabs button
+        browse_button = create_toolbutton(self,
+                                          icon=get_icon("browse_tab.png"),
+                                          tip=self.tr("Browse tabs"))
+        self.browse_tabs_menu = QMenu(self)
+        browse_button.setMenu(self.browse_tabs_menu)
+        browse_button.setPopupMode(browse_button.InstantPopup)
+        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
+                     self.update_browse_tabs_menu)
+        self.setCornerWidget(browse_button)
+        
+    def update_browse_tabs_menu(self):
+        """Update browse tabs menu"""
+        self.browse_tabs_menu.clear()
+        for index in range(self.count()):
+            tab_action = create_action(self, self.tabText(index),
+                                       icon=self.tabIcon(index),
+                                       toggled=lambda state, index=index:
+                                               self.setCurrentIndex(index),
+                                       tip=self.tabToolTip(index))
+            tab_action.setChecked(index == self.currentIndex())
+            self.browse_tabs_menu.addAction(tab_action)
         
     def set_close_function(self, func):
         """Setting Tabs close function
