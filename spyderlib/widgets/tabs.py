@@ -18,7 +18,7 @@ from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 # Local imports
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action)
+                                       create_action, translate)
 
 # For debugging purpose:
 import sys
@@ -103,7 +103,7 @@ class Tabs(QTabWidget):
         # Browsing tabs button
         browse_button = create_toolbutton(self,
                                           icon=get_icon("browse_tab.png"),
-                                          tip=self.tr("Browse tabs"))
+                                          tip=translate("Tabs", "Browse tabs"))
         self.browse_tabs_menu = QMenu(self)
         browse_button.setMenu(self.browse_tabs_menu)
         browse_button.setPopupMode(browse_button.InstantPopup)
@@ -137,7 +137,8 @@ class Tabs(QTabWidget):
             # Workaround for Qt < 4.5
             close_button = create_toolbutton(self, triggered=func,
                                              icon=get_icon("fileclose.png"),
-                                             tip=self.tr("Close current tab"))
+                                             tip=translate("Tabs",
+                                                           "Close current tab"))
             self.setCornerWidget(close_button if state else None)
         
     def __current_changed(self, index):
