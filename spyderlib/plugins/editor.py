@@ -16,7 +16,8 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
                          QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
                          QAbstractPrintDialog, QActionGroup, QInputDialog)
-from PyQt4.QtCore import SIGNAL, QStringList, Qt, QVariant, QFileInfo
+from PyQt4.QtCore import (SIGNAL, QStringList, Qt, QVariant, QFileInfo,
+                          QByteArray)
 
 import os, sys, time, re
 import os.path as osp
@@ -947,13 +948,18 @@ class Editor(PluginWidget):
         editor_layout.addWidget(self.find_widget)
 
         # Splitter: editor widgets (see above) + toolboxes (class browser, ...)
-        cb_splitter = QSplitter(self)
-        cb_splitter.addWidget(editor_widgets)
-        cb_splitter.addWidget(self.toolbox)
-        cb_splitter.setStretchFactor(0, 5)
-        cb_splitter.setStretchFactor(1, 1)
-        layout.addWidget(cb_splitter)
+        self.splitter = QSplitter(self)
+        self.splitter.addWidget(editor_widgets)
+        self.splitter.addWidget(self.toolbox)
+        self.splitter.setStretchFactor(0, 5)
+        self.splitter.setStretchFactor(1, 1)
+        layout.addWidget(self.splitter)
         self.setLayout(layout)
+        
+        # Editor's splitter state
+        state = CONF.get('editor', 'splitter_state', None)
+        if state is not None:
+            self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
         toolbox_state = CONF.get(self.ID, 'toolbox_panel')
         self.toolbox_action.setChecked(toolbox_state)
@@ -1028,6 +1034,8 @@ class Editor(PluginWidget):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        state = self.splitter.saveState()
+        CONF.set('editor', 'splitter_state', str(state.toHex()))
         filenames = []
         for editortabwidget in self.editortabwidgets:
             filenames += [finfo.filename for finfo in editortabwidget.data]
