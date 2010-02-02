@@ -30,10 +30,10 @@ from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate)
-from spyderlib.widgets.qscieditor import QsciEditor, check, Printer
+from spyderlib.widgets.qscieditor import (QsciEditor, check, Printer,
+                                          ClassBrowser)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.classbrowser import ClassBrowser
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.plugins import PluginWidget
 
@@ -195,6 +195,11 @@ class EditorTabWidget(Tabs):
                 return
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
+            
+            # Removing editor reference from class browser settings:
+            classbrowser = self.plugin.classbrowser
+            classbrowser.remove_editor(self.data[index].editor)
+            
             self.data.pop(index)
             self.removeTab(index)
             if not self.data:
@@ -389,10 +394,8 @@ class EditorTabWidget(Tabs):
                and finfo.editor.is_python() and classbrowser.isVisible():
                 enable = True
                 classbrowser.setEnabled(True)
-                if update or finfo.filename != classbrowser.fname:
-                    classes = classbrowser.refresh(finfo.classes, update=update)
-                    if update:
-                        finfo.classes = classes
+                if update or finfo.editor is not classbrowser.editor:
+                    classbrowser.set_editor(finfo.editor, finfo.filename)
         if not enable:
             classbrowser.setEnabled(False)
             classbrowser.clear()

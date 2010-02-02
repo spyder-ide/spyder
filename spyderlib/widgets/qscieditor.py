@@ -15,7 +15,7 @@ import sys, os, re, time, os.path as osp
 from math import log
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
-                         QApplication)
+                         QApplication, QTreeWidgetItem, QSplitter)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
@@ -35,6 +35,7 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
+from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.qscibase import TextEditBaseWidget
 from spyderlib.utils import sourcecode
 
@@ -73,6 +74,129 @@ if __name__ == '__main__':
 
 
 #===============================================================================
+# Class browser
+#===============================================================================
+class PythonClassFuncMatch(object):
+    """
+    Collection of helpers to match functions and classes
+    for Python language
+    This has to be reimplemented for other languages for the class browser 
+    to be supported (not implemented yet: class browser won't be populated
+    unless the current script is a Python script)
+    """
+    def __get_name(self, statmt, text):
+        match = re.match(r'[\ ]*%s ([a-zA-Z0-9_]*)[\ ]*[\(|\:]' % statmt, text)
+        if match is not None:
+            return match.group(1)
+        
+    def get_function_name(self, text):
+        return self.__get_name('def', text)
+    
+    def get_class_name(self, text):
+        return self.__get_name('class', text)
+    
+    def get_decorator(self, text):
+        match = re.match(r'[\ ]*\@([a-zA-Z0-9_]*)', text)
+        if match is not None:
+            return match.group(1)
+
+
+class TreeItem(QTreeWidgetItem):
+    """Class browser item base class"""
+    def __init__(self, name, line, parent):
+        QTreeWidgetItem.__init__(self, parent, [name])
+        self.line = line
+        
+    def set_icon(self, icon_name):
+        self.setIcon(0, get_icon(icon_name))
+        
+    def setup(self):
+        raise NotImplementedError
+
+class ClassItem(TreeItem):
+    def setup(self):
+        self.set_icon('class.png')
+        self.setToolTip(0, translate("ClassBrowser", "Go to class definition"))
+
+class FunctionItem(TreeItem):
+    def __init__(self, name, line, parent):
+        super(FunctionItem, self).__init__(name, line, parent)
+        self.decorator = None
+        
+    def set_decorator(self, decorator):
+        self.decorator = decorator
+        
+    def is_method(self):
+        return isinstance(self.parent(), ClassItem)
+    
+    def setup(self):
+        if self.is_method():
+            self.setToolTip(0, translate("ClassBrowser",
+                                         "Go to method definition"))
+            if self.decorator is not None:
+                self.set_icon('decorator.png')
+            else:
+                name = unicode(self.text(0))
+                if name.startswith('__'):
+                    self.set_icon('private2.png')
+                elif name.startswith('_'):
+                    self.set_icon('private1.png')
+                else:
+                    self.set_icon('method.png')
+        else:
+            self.set_icon('function.png')
+            self.setToolTip(0, translate("ClassBrowser",
+                                         "Go to function definition"))
+
+
+class ClassBrowser(OneColumnTree):
+    def __init__(self, parent):
+        OneColumnTree.__init__(self, parent)
+        title = translate("ClassBrowser", "Classes and functions")
+        self.setWindowTitle(title)
+        self.set_title(title)
+        self.editor = None
+        self.settings = {} # Class browser settings cache
+                
+    def clear(self):
+        """Reimplemented Qt method"""
+        self.set_title('')
+        OneColumnTree.clear(self)
+        
+    def set_editor(self, editor, fname):
+        """Bind editor instance"""
+        if self.editor is not None:
+            self.settings[self.editor] = (self.horizontalScrollBar().value(),
+                                          self.verticalScrollBar().value())
+        self.editor = editor
+        self.clear()
+        self.set_title(osp.basename(fname))
+        self.populate()
+        self.resizeColumnToContents(0)
+        self.expandAll()
+        if self.editor in self.settings:
+            hor, ver = self.settings[self.editor]
+            self.horizontalScrollBar().setValue(hor)
+            self.verticalScrollBar().setValue(ver)
+        
+    def remove_editor(self, editor):
+        """Remove editor from class browser settings cache"""
+        if editor in self.settings:
+            self.settings.pop(editor)
+        
+    def populate(self):
+        """Populate tree"""
+#        import time
+#        t0 = time.time()
+        self.editor.populate_classbrowser(self)
+#        print "Elapsed time: %d ms" % round((time.time()-t0)*1000)
+
+    def activated(self, item):
+        """Double-click or click event"""
+        self.emit(SIGNAL('go_to_line(int)'), item.line)
+
+
+#===============================================================================
 # QsciEditor widget
 #===============================================================================
 class QsciEditor(TextEditBaseWidget):
@@ -80,16 +204,17 @@ class QsciEditor(TextEditBaseWidget):
     QScintilla Base Editor Widget
     """
     LEXERS = {
-              ('py', 'pyw', 'python'): (QsciLexerPython, '#'),
-              ('f', 'for'): (QsciLexerFortran77, 'c'),
-              ('f90', 'f95', 'f2k'): (QsciLexerFortran, '!'),
-              ('diff', 'patch', 'rej'): (QsciLexerDiff, ''),
-              'css': (QsciLexerCSS, '#'),
-              ('htm', 'html'): (QsciLexerHTML, ''),
-              ('c', 'cpp', 'h'): (QsciLexerCPP, '//'),
-              ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem '),
+              ('py', 'pyw', 'python'): (QsciLexerPython, '#',
+                                        PythonClassFuncMatch),
+              ('f', 'for'): (QsciLexerFortran77, 'c', None),
+              ('f90', 'f95', 'f2k'): (QsciLexerFortran, '!', None),
+              ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),
+              'css': (QsciLexerCSS, '#', None),
+              ('htm', 'html'): (QsciLexerHTML, '', None),
+              ('c', 'cpp', 'h'): (QsciLexerCPP, '//', None),
+              ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
               ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-               'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#'),
+               'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
               }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
@@ -114,6 +239,7 @@ class QsciEditor(TextEditBaseWidget):
                            0x4400FF)
 
         self.supported_language = None
+        self.classfunc_match = None
         self.comment_string = None
 
         # Mark errors, warnings, ...
@@ -144,7 +270,7 @@ class QsciEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
-                     font=None, wrap=True, tab_mode=True):
+                     font=None, wrap=False, tab_mode=True):
         # Lexer
         self.set_language(language)
                 
@@ -192,8 +318,12 @@ class QsciEditor(TextEditBaseWidget):
             for key in self.LEXERS:
                 if language.lower() in key:
                     self.supported_language = True
-                    lexer_class, comment_string = self.LEXERS[key]
+                    lexer_class, comment_string, CFMatch = self.LEXERS[key]
                     self.comment_string = comment_string
+                    if CFMatch is None:
+                        self.classfunc_match = None
+                    else:
+                        self.classfunc_match = CFMatch()
                     if lexer_class is not None:
                         # Fortran lexers are sometimes unavailable:
                         # the corresponding class is then replaced by None
@@ -203,6 +333,44 @@ class QsciEditor(TextEditBaseWidget):
                 
     def is_python(self):
         return isinstance(self.lexer(), QsciLexerPython)
+        
+    def populate_classbrowser(self, treewidget):
+        """Populate classes and functions browser (tree widget)"""
+        line = -1
+        ancestors = [treewidget]
+        previous_item = None
+        previous_level = None
+        while line < self.lines():
+            line += 1
+            level = self.get_fold_level(line)
+            if level is not None:
+                text = unicode(self.text(line))
+                class_name = self.classfunc_match.get_class_name(text)
+                if class_name is None:
+                    func_name = self.classfunc_match.get_function_name(text)
+                    if func_name is None:
+                        continue
+                    
+                if previous_level is not None:
+                    if level == previous_level:
+                        pass
+                    elif level > previous_level:
+                        ancestors.append(previous_item)
+                    elif level < previous_level and len(ancestors) > 1:
+                        ancestors = ancestors[:-1]
+                parent = ancestors[-1]
+                    
+                if class_name is not None:
+                    item = ClassItem(class_name, line+1, parent)
+                else:
+                    item = FunctionItem(func_name, line+1, parent)
+                    if item.is_method() and line > 0:
+                        text = unicode(self.text(line-1))
+                        decorator = self.classfunc_match.get_decorator(text)
+                        item.set_decorator(decorator)
+                item.setup()
+                previous_level = level
+                previous_item = item
         
         
 #===============================================================================
@@ -433,6 +601,8 @@ class QsciEditor(TextEditBaseWidget):
         """Set the text of the editor"""
         self.setText(text)
         self.set_eol_mode(text)
+        if self.supported_language:
+            self.colourise_all()
 
     def get_text(self):
         """Return editor text"""
@@ -452,10 +622,18 @@ class QsciEditor(TextEditBaseWidget):
         # Standard paste
         TextEditBaseWidget.paste(self)
         
-    def fold_header(self, line):
-        """Is it a fold header line?"""
+    def colourise_all(self):
+        """Force Scintilla to process the whole document"""
+        textlength = self.SendScintilla(QsciScintilla.SCI_GETTEXTLENGTH)
+        self.SendScintilla(QsciScintilla.SCI_COLOURISE, 0, textlength)
+        
+    def get_fold_level(self, line):
+        """Is it a fold header line?
+        If so, return fold level
+        If not, return None"""
         lvl = self.SendScintilla(QsciScintilla.SCI_GETFOLDLEVEL, line)
-        return lvl & QsciScintilla.SC_FOLDLEVELHEADERFLAG
+        if lvl & QsciScintilla.SC_FOLDLEVELHEADERFLAG:
+            return lvl & QsciScintilla.SC_FOLDLEVELNUMBERMASK
     
     def fold_expanded(self, line):
         """Is fold expanded?"""
@@ -464,7 +642,7 @@ class QsciEditor(TextEditBaseWidget):
     def get_folded_lines(self):
         """Return the list of folded line numbers"""
         return [line for line in xrange(self.lines()) \
-                if self.fold_header(line) and not self.fold_expanded(line) ]
+                if self.get_fold_level(line) and not self.fold_expanded(line)]
         
     def unfold_all(self):
         """Unfold all folded lines"""
@@ -903,3 +1081,49 @@ class Printer(QsciPrinter):
                              area.top()+painter.fontMetrics().ascent(), header)
         area.setTop(area.top()+painter.fontMetrics().height()+5)
         painter.restore()
+
+
+#===============================================================================
+# Editor + Class browser test
+#===============================================================================
+class TestEditor(QsciEditor):
+    def __init__(self, parent):
+        super(TestEditor, self).__init__(parent)
+        self.setup_editor(code_folding=True)
+        
+    def load(self, filename):
+        self.set_language(osp.splitext(filename)[1][1:])
+        self.set_text(file(filename, 'rb').read())
+        self.setWindowTitle(filename)
+
+class TestWidget(QSplitter):
+    def __init__(self, parent):
+        super(TestWidget, self).__init__(parent)
+        self.editor = TestEditor(self)
+        self.addWidget(self.editor)
+        self.classtree = ClassBrowser(self)
+        self.addWidget(self.classtree)
+        self.connect(self.classtree, SIGNAL("go_to_line(int)"),
+                     self.editor.highlight_line)
+        self.setStretchFactor(0, 4)
+        self.setStretchFactor(1, 1)
+        
+    def load(self, filename):
+        self.editor.load(filename)
+        self.classtree.set_editor(self.editor, filename)
+        
+def test(fname):
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    win = TestWidget(None)
+    win.show()
+    win.load(fname)
+    win.resize(800, 800)
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+    else:
+        fname = __file__
+    test(fname)
