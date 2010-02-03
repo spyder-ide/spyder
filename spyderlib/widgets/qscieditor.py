@@ -189,7 +189,7 @@ class ClassBrowser(OneColumnTree):
 #        import time
 #        t0 = time.time()
         self.editor.populate_classbrowser(self)
-#        print "Elapsed time: %d ms" % round((time.time()-t0)*1000)
+#        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
 
     def activated(self, item):
         """Double-click or click event"""
@@ -301,7 +301,8 @@ class QsciEditor(TextEditBaseWidget):
         self.set_whitespace_visible(show_whitespace)
         
         self.toggle_wrap_mode(wrap)
-        self.setup_api()
+        if self.is_python():
+            self.setup_api()
         self.setModified(False)
         
     def set_tab_mode(self, enable):
@@ -433,7 +434,7 @@ class QsciEditor(TextEditBaseWidget):
             self.setFoldMarginColors(QColor(fcol), QColor(bcol))
         
     def setup_api(self):
-        """Load and prepare API"""
+        """Load and prepare Python API"""
         if self.lexer() is None:
             return
         self.api = QsciAPIs(self.lexer())
@@ -446,13 +447,13 @@ class QsciEditor(TextEditBaseWidget):
                 CONF.set('editor', 'api', api_path)
             else:
                 return False
-        api_stat = CONF.get('editor', 'api_stat', None)
-        current_api_stat = os.stat(api_path)
-        if (api_stat is not None) and (api_stat == current_api_stat):
+        api_size = CONF.get('editor', 'api_size', None)
+        current_api_size = os.stat(api_path).st_size
+        if api_size is not None and api_size == current_api_size:
             if self.api.isPrepared():
                 is_api_ready = self.api.loadPrepared()
         else:
-            CONF.set('editor', 'api_stat', current_api_stat)
+            CONF.set('editor', 'api_size', current_api_size)
         if not is_api_ready:
             if self.api.load(api_path):
                 self.api.prepare()
