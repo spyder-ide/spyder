@@ -15,7 +15,7 @@ import sys, os, re, time, os.path as osp
 from math import log
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
-                         QApplication, QTreeWidgetItem, QSplitter)
+                         QApplication, QTreeWidgetItem, QSplitter, QFont)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
@@ -595,8 +595,9 @@ class QsciEditor(TextEditBaseWidget):
         else:
             self.lexer().setFont(font)
             self.setLexer(self.lexer())
-        font.setPointSize(font.pointSize()-1)
-        self.setMarginsFont(font)
+        margin_font = QFont(font)
+        margin_font.setPointSize(margin_font.pointSize()-1)
+        self.setMarginsFont(margin_font)
         
     def set_text(self, text):
         """Set the text of the editor"""
