@@ -659,6 +659,12 @@ class QsciEditor(TextEditBaseWidget):
         text = unicode(self.text(line-1)).rstrip()
         self.setSelection(line-1, len(text), line-1, 0)
         self.ensureLineVisible(line-1)
+        self.horizontalScrollBar().setValue(0)
+        
+    def go_to_line(self, line):
+        """Go to line number *line*"""
+        self.setCursorPosition(line-1, 0)
+        self.ensureLineVisible(line-1)
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""

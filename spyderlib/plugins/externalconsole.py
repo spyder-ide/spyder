@@ -353,8 +353,8 @@ class ExternalConsole(PluginWidget):
         match = get_error_match(unicode(text))
         if match:
             fname, lnb = match.groups()
-            self.emit(SIGNAL("edit_goto(QString,int)"),
-                      osp.abspath(fname), int(lnb))
+            self.emit(SIGNAL("edit_goto(QString,int,bool)"),
+                      osp.abspath(fname), int(lnb), True)
             
             
     #----Drag and drop

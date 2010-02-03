@@ -485,8 +485,8 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(self.currentItem())
         if itemdata is not None:
             filename, lineno = itemdata
-            self.parent().emit(SIGNAL("edit_goto(QString,int)"),
-                               filename, lineno)
+            self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
+                               filename, lineno, True)
         
     def set_results(self, search_text, results, nb, error_flag):
         self.search_text = search_text

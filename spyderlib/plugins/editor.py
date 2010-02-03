@@ -602,7 +602,7 @@ class EditorTabWidget(Tabs):
         
         return editor
         
-    def load(self, filename, goto=0):
+    def load(self, filename, goto=0, highlight=False):
         """Load filename"""
         self.plugin.starting_long_process(self.tr("Loading %1...").arg(filename))
         text, enc = encoding.read(filename)
@@ -611,8 +611,10 @@ class EditorTabWidget(Tabs):
         self.analyze_script(index)
         self.__refresh_classbrowser(index)
         self.plugin.ending_long_process()
-        if goto > 0:
+        if highlight:
             editor.highlight_line(goto)
+        else:
+            editor.go_to_line(goto)
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
@@ -973,8 +975,9 @@ class Editor(PluginWidget):
         self.untitled_num = 0
         
         filenames = CONF.get(self.ID, 'filenames', [])
+        currentlines = CONF.get(self.ID, 'currentlines', [])
         if filenames and not ignore_last_opened_files:
-            self.load(filenames)
+            self.load(filenames, goto=currentlines, highlight=False)
             self.set_current_filename(CONF.get(self.ID, 'current_filename', ''))
         else:
             self.__load_temp_file()
@@ -1040,9 +1043,13 @@ class Editor(PluginWidget):
         state = self.splitter.saveState()
         CONF.set('editor', 'splitter_state', str(state.toHex()))
         filenames = []
+        currentlines = []
         for editortabwidget in self.editortabwidgets:
             filenames += [finfo.filename for finfo in editortabwidget.data]
+            currentlines += [finfo.editor.get_cursor_line_number()
+                             for finfo in editortabwidget.data]
         CONF.set(self.ID, 'filenames', filenames)
+        CONF.set(self.ID, 'currentlines', currentlines)
         CONF.set(self.ID, 'current_filename', self.get_current_filename())
         CONF.set(self.ID, 'recent_files', self.recent_files)
         is_ok = True
@@ -1670,7 +1677,7 @@ class Editor(PluginWidget):
         if valid:
             CONF.set(self.ID, 'max_recent_files', mrf)
         
-    def load(self, filenames=None, goto=0):
+    def load(self, filenames=None, goto=None, highlight=False):
         """Load a text file"""
         if not filenames:
             # Recent files action
@@ -1706,8 +1713,14 @@ class Editor(PluginWidget):
         else:
             filenames = [osp.abspath(encoding.to_unicode(fname)) \
                          for fname in list(filenames)]
+        if isinstance(goto, int):
+            goto = [goto]
+        elif goto is not None and len(goto) != len(filenames):
+            goto = None
+        if goto is None:
+            goto = [0]*len(filenames)
             
-        for filename in filenames:
+        for index, filename in enumerate(filenames):
             for editortabwidget in self.editortabwidgets:
                 # -- Do not open an already opened file
                 if editortabwidget.set_current_filename(filename):
@@ -1718,13 +1731,9 @@ class Editor(PluginWidget):
                     continue
                 # --
                 editortabwidget = self.get_current_editortabwidget()
-                editortabwidget.load(filename, goto)
+                editortabwidget.load(filename, goto[index], highlight=highlight)
                 self.__add_recent_file(filename)
                 QApplication.processEvents()
-                
-        if goto > 0:
-            editor = self.get_current_editor()
-            editor.highlight_line(goto)
 
     def print_file(self):
         """Print current file"""

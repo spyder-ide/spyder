@@ -137,6 +137,10 @@ class TextEditBaseWidget(QsciScintilla):
     def get_coordinates(self, position):
         line, index = self.get_position(position)
         return self.__get_coordinates_from_lineindex(line, index)
+        
+    def get_cursor_line_number(self):
+        line, _index = self.getCursorPosition()
+        return line+1
 
     def set_cursor_position(self, position):
         line, index = self.get_position(position)

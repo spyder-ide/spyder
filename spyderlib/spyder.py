@@ -381,8 +381,8 @@ class MainWindow(QMainWindow):
             self.editor = Editor(self, ignore_last_opened_files=self.reset)
             self.connect(self.editor, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
-            self.connect(self.console, SIGNAL("edit_goto(QString,int)"),
-                         self.editor.load)            
+            self.connect(self.console, SIGNAL("edit_goto(QString,int,bool)"),
+                         self.editor.load)
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.connect(self.editor,
@@ -433,7 +433,8 @@ class MainWindow(QMainWindow):
             if CONF.get('find_in_files', 'enable'):
                 self.findinfiles = FindInFiles(self)
                 self.add_dockwidget(self.findinfiles)
-                self.connect(self.findinfiles, SIGNAL("edit_goto(QString,int)"),
+                self.connect(self.findinfiles,
+                             SIGNAL("edit_goto(QString,int,bool)"),
                              self.editor.load)
                 self.connect(self.findinfiles, SIGNAL('redirect_stdio(bool)'),
                              self.redirect_interactiveshell_stdio)
@@ -536,7 +537,7 @@ class MainWindow(QMainWindow):
                 self.pylint = Pylint(self)
                 self.connect(self.editor, SIGNAL('run_pylint(QString)'),
                              self.pylint.analyze)
-                self.connect(self.pylint, SIGNAL("edit_goto(QString,int)"),
+                self.connect(self.pylint, SIGNAL("edit_goto(QString,int,bool)"),
                              self.editor.load)
                 self.connect(self.pylint, SIGNAL('redirect_stdio(bool)'),
                              self.redirect_interactiveshell_stdio)
@@ -561,7 +562,7 @@ class MainWindow(QMainWindow):
             self.extconsole = ExternalConsole(self, self.commands)
             self.extconsole.set_inspector(self.inspector)
             self.extconsole.set_historylog(self.historylog)
-            self.connect(self.extconsole, SIGNAL("edit_goto(QString,int)"),
+            self.connect(self.extconsole, SIGNAL("edit_goto(QString,int,bool)"),
                          self.editor.load)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_interactiveshell_stdio)

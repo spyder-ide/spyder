@@ -256,8 +256,8 @@ class Console(PluginWidget):
             self.shell.external_editor(filename, goto)
             return
         if filename is not None:
-            self.emit(SIGNAL("edit_goto(QString,int)"),
-                      osp.abspath(filename), goto)
+            self.emit(SIGNAL("edit_goto(QString,int,bool)"),
+                      osp.abspath(filename), goto, True)
         
     def change_font(self):
         """Change console font"""
