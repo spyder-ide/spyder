@@ -137,11 +137,13 @@ class EditorTabWidget(Tabs):
                 return index
         
     def set_current_filename(self, filename):
+        """Set current filename and return the associated editor instance"""
         index = self.has_filename(filename)
         if index is not None:
             self.setCurrentIndex(index)
-            self.data[index].editor.setFocus()
-            return True
+            editor = self.data[index].editor
+            editor.setFocus()
+            return editor
 
         
     #------ Tabs drag'n drop
@@ -602,8 +604,8 @@ class EditorTabWidget(Tabs):
         
         return editor
         
-    def load(self, filename, goto=0, highlight=False):
-        """Load filename"""
+    def load(self, filename):
+        """Load filename, create an editor instance and return it"""
         self.plugin.starting_long_process(self.tr("Loading %1...").arg(filename))
         text, enc = encoding.read(filename)
         editor = self.create_new_editor(filename, enc, text)
@@ -611,10 +613,6 @@ class EditorTabWidget(Tabs):
         self.analyze_script(index)
         self.__refresh_classbrowser(index)
         self.plugin.ending_long_process()
-        if highlight:
-            editor.highlight_line(goto)
-        else:
-            editor.go_to_line(goto)
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
@@ -627,6 +625,7 @@ class EditorTabWidget(Tabs):
             if answer == QMessageBox.Yes:
                 self.set_os_eol_chars(index)
                 self.convert_eol_chars(index)
+        return editor
     
     def set_os_eol_chars(self, index=None):
         if index is None:
@@ -1474,7 +1473,8 @@ class Editor(PluginWidget):
             return editortabwidget
         
     def set_current_filename(self, filename):
-        """Set focus to *filename* if this file has been opened"""
+        """Set focus to *filename* if this file has been opened
+        Return the editor instance associated to *filename*"""
         editortabwidget, _index = self.get_editortabwidget_index(filename)
         if editortabwidget is not None:
             return editortabwidget.set_current_filename(filename)
@@ -1721,19 +1721,21 @@ class Editor(PluginWidget):
             goto = [0]*len(filenames)
             
         for index, filename in enumerate(filenames):
-            for editortabwidget in self.editortabwidgets:
-                # -- Do not open an already opened file
-                if editortabwidget.set_current_filename(filename):
-                    break
-            else:
+            # -- Do not open an already opened file
+            editor = self.set_current_filename(filename)
+            if editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
                     continue
                 # --
                 editortabwidget = self.get_current_editortabwidget()
-                editortabwidget.load(filename, goto[index], highlight=highlight)
+                editor = editortabwidget.load(filename)
                 self.__add_recent_file(filename)
-                QApplication.processEvents()
+            if highlight:
+                editor.highlight_line(goto[index])
+            else:
+                editor.go_to_line(goto[index])
+            QApplication.processEvents()
 
     def print_file(self):
         """Print current file"""
