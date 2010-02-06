@@ -1998,102 +1998,102 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ImportWizard</name>
     <message>
-        <location filename="widgets/importwizard.py" line="99"/>
+        <location filename="widgets/importwizard.py" line="100"/>
         <source>Import as</source>
         <translation>Importer en tant que</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="101"/>
+        <location filename="widgets/importwizard.py" line="102"/>
         <source>data</source>
         <translation>données</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="419"/>
+        <location filename="widgets/importwizard.py" line="450"/>
         <source>text</source>
         <translation>texte</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="119"/>
+        <location filename="widgets/importwizard.py" line="181"/>
         <source>Transpose</source>
         <translation>Transposer</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="130"/>
+        <location filename="widgets/importwizard.py" line="121"/>
         <source>Column separator:</source>
         <translation>Séparateur de colonne :</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="134"/>
+        <location filename="widgets/importwizard.py" line="125"/>
         <source>Tab</source>
         <translation>Tab</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="155"/>
+        <location filename="widgets/importwizard.py" line="146"/>
         <source>other</source>
         <translation>autre</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="402"/>
+        <location filename="widgets/importwizard.py" line="526"/>
         <source>Import wizard</source>
         <translation>Assistant d&apos;importation</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="407"/>
+        <location filename="widgets/importwizard.py" line="438"/>
         <source>Raw text</source>
         <translation>Text brut</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="410"/>
+        <location filename="widgets/importwizard.py" line="441"/>
         <source>variable_name</source>
         <translation>nom_de_variable</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="422"/>
+        <location filename="widgets/importwizard.py" line="453"/>
         <source>table</source>
         <translation>tableau</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="424"/>
+        <location filename="widgets/importwizard.py" line="455"/>
         <source>Preview</source>
         <translation>Aperçu</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="432"/>
+        <location filename="widgets/importwizard.py" line="463"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="440"/>
+        <location filename="widgets/importwizard.py" line="471"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="446"/>
+        <location filename="widgets/importwizard.py" line="477"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="451"/>
+        <location filename="widgets/importwizard.py" line="482"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="455"/>
+        <location filename="widgets/importwizard.py" line="486"/>
         <source>Done</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="105"/>
+        <location filename="widgets/importwizard.py" line="106"/>
         <source>code</source>
         <translation>code</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="148"/>
+        <location filename="widgets/importwizard.py" line="139"/>
         <source>Row separator:</source>
         <translation>Séparateur de ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="152"/>
+        <location filename="widgets/importwizard.py" line="143"/>
         <source>EOL</source>
         <translation>EOL</translation>
     </message>
@@ -2103,9 +2103,29 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Tableau</translation>
     </message>
     <message>
-        <location filename="widgets/importwizard.py" line="373"/>
+        <location filename="widgets/importwizard.py" line="403"/>
         <source>Import as array</source>
         <translation>Importer en tant que tableau</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="159"/>
+        <source>Additionnal options</source>
+        <translation>Options supplémentaires</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="164"/>
+        <source>Skip rows:</source>
+        <translation>Sauter des lignes :</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="175"/>
+        <source>Comments:</source>
+        <translation>Commentaires :</translation>
+    </message>
+    <message>
+        <location filename="widgets/importwizard.py" line="526"/>
+        <source>&lt;b&gt;Unable to proceed to next step&lt;/b&gt;&lt;br&gt;&lt;br&gt;Please check your entries.&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
+        <translation>&lt;b&gt;Impossible de passer à l&apos;étape suivante&lt;/b&gt;&lt;br&gt;&lt;br&gt;Merci de vérifier votre saisie.&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
 </context>
 <context>
@@ -2814,62 +2834,62 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>Pylint</name>
     <message>
-        <location filename="widgets/pylintgui.py" line="73"/>
+        <location filename="widgets/pylintgui.py" line="72"/>
         <source>Results for </source>
         <translation>Résultats pour </translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="78"/>
+        <location filename="widgets/pylintgui.py" line="77"/>
         <source>Convention</source>
         <translation>Convention</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="78"/>
+        <location filename="widgets/pylintgui.py" line="77"/>
         <source>Refactor</source>
         <translation>Factorisation</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="78"/>
+        <location filename="widgets/pylintgui.py" line="77"/>
         <source>Warning</source>
         <translation>Avertissement</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="307"/>
+        <location filename="widgets/pylintgui.py" line="306"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="160"/>
+        <location filename="widgets/pylintgui.py" line="159"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="160"/>
+        <location filename="widgets/pylintgui.py" line="159"/>
         <source>Stop current analysis</source>
         <translation>Arrêter l&apos;analyse en cours</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="307"/>
+        <location filename="widgets/pylintgui.py" line="306"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="407"/>
+        <location filename="widgets/pylintgui.py" line="406"/>
         <source>Source code has not been rated yet.</source>
         <translation>Le code source n&apos;a pas encore été analysé.</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="430"/>
+        <location filename="widgets/pylintgui.py" line="429"/>
         <source>previous run:</source>
         <translation>analyse précédente :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="214"/>
+        <location filename="widgets/pylintgui.py" line="213"/>
         <source>Please install &lt;b&gt;pylint&lt;/b&gt;:</source>
         <translation>Merci d&apos;installer au préalable &lt;b&gt;pylint&lt;/b&gt; :</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="426"/>
+        <location filename="widgets/pylintgui.py" line="425"/>
         <source>Global evaluation:</source>
         <translation>Évaluation globale :</translation>
     </message>
@@ -2914,47 +2934,47 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="156"/>
+        <location filename="widgets/pylintgui.py" line="155"/>
         <source>Analyze</source>
         <translation>Analyser</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="156"/>
+        <location filename="widgets/pylintgui.py" line="155"/>
         <source>Run analysis</source>
         <translation>Analyser le code source</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="174"/>
+        <location filename="widgets/pylintgui.py" line="173"/>
         <source>Output</source>
         <translation>Sortie</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="174"/>
+        <location filename="widgets/pylintgui.py" line="173"/>
         <source>Complete Pylint output</source>
         <translation>Sortie complète de l&apos;analyse Pylint</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="281"/>
+        <location filename="widgets/pylintgui.py" line="280"/>
         <source>Pylint output</source>
         <translation>Analyse Pylint</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="413"/>
+        <location filename="widgets/pylintgui.py" line="412"/>
         <source>Analysis did not succeed (see output for more details).</source>
         <translation>L&apos;analyse n&apos;a pas réussi (voir la sortie pour plus de détails).</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="238"/>
+        <location filename="widgets/pylintgui.py" line="237"/>
         <source>Select Python script</source>
         <translation>Sélectionner un script Python</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="238"/>
+        <location filename="widgets/pylintgui.py" line="237"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/pylintgui.py" line="210"/>
+        <location filename="widgets/pylintgui.py" line="209"/>
         <source>Pylint script was not found. Please add &quot;%s&quot; to PATH.</source>
         <translation>Le script pylint est introuvable. Merci d&apos;ajouter &quot;%s&quot; au PATH.</translation>
     </message>
