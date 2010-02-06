@@ -50,3 +50,11 @@ def run_python_gui_script(package, module, args=''):
     if args:
         command.append(args)
     subprocess.Popen(" ".join(command) )
+
+def is_python_module_installed(module_name):
+    """Return True if module *module_name* is installed"""
+    try:
+        imp.find_module(module_name)
+        return True
+    except ImportError:
+        return False

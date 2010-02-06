@@ -33,7 +33,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.programs import is_program_installed
+from spyderlib.utils.programs import (is_program_installed,
+                                      is_python_module_installed)
 from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets import OneColumnTree
@@ -202,9 +203,16 @@ class PylintWidget(QWidget):
             for widget in (self.treewidget, self.filecombo,
                            self.start_button, self.stop_button):
                 widget.setDisabled(True)
-            text = translate('Pylint', 'Please install <b>pylint</b>:')
-            url = 'http://www.logilab.fr'
-            text += ' <a href=%s>%s</a>' % (url, url)
+            if os.name == 'nt' and is_python_module_installed("pylint"):
+                # Pylint is installed but pylint script is not in PATH
+                # (AFAIK, could happen only on Windows)
+                text = translate('Pylint',
+                     'Pylint script was not found. Please add "%s" to PATH.')
+                text = unicode(text) % osp.join(sys.prefix, "Scripts")
+            else:
+                text = translate('Pylint', 'Please install <b>pylint</b>:')
+                url = 'http://www.logilab.fr'
+                text += ' <a href=%s>%s</a>' % (url, url)
             self.ratelabel.setText(text)
         else:
             self.show_data()
