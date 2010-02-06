@@ -370,6 +370,15 @@ class FindOptions(QWidget):
                        self.custom_dir, self.dir_combo, browse]:
             hlayout3.addWidget(widget)
             
+        self.connect(self.search_text, SIGNAL("valid(bool)"),
+                     lambda valid: self.emit(SIGNAL('find()')))
+        self.connect(self.include_pattern, SIGNAL("valid(bool)"),
+                     lambda valid: self.emit(SIGNAL('find()')))
+        self.connect(self.exclude_pattern, SIGNAL("valid(bool)"),
+                     lambda valid: self.emit(SIGNAL('find()')))
+        self.connect(self.dir_combo, SIGNAL("valid(bool)"),
+                     lambda valid: self.emit(SIGNAL('find()')))
+            
         vlayout = QVBoxLayout()
         vlayout.addLayout(hlayout1)
         vlayout.addLayout(hlayout2)

@@ -7,7 +7,7 @@
 """Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
-                         QCheckBox, QComboBox)
+                         QCheckBox)
 from PyQt4.QtCore import Qt, SIGNAL
 
 import sys, re, os.path as osp
@@ -33,25 +33,16 @@ class ObjectComboBox(EditableComboBox):
         self.tips = {True: self.tr("Press enter to validate this object name"),
                      False: self.tr('This object name is incorrect')}
         
-    def is_valid(self, qstr):
+    def is_valid(self, qstr=None):
         """Return True if string is valid"""
+        if qstr is None:
+            qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         shell = self.parent().shell
         if shell is not None:
             force_import = CONF.get('inspector', 'automatic_import')
             return shell.is_defined(unicode(qstr), force_import=force_import)
-        
-    def keyPressEvent(self, event):
-        """Handle key press events"""
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            text = self.currentText()
-            valid = self.is_valid(text)
-            if valid or valid is None:
-                self.parent().refresh(text, force=True)
-                self.set_default_style()
-        else:
-            QComboBox.keyPressEvent(self, event)
         
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -79,6 +70,8 @@ class ObjectInspector(ReadOnlyEditor):
         layout_edit.addWidget(self.combo)
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         self.combo.addItems( self.load_history() )
+        self.connect(self.combo, SIGNAL("valid(bool)"),
+                     lambda valid: self.refresh(force=True))
         
         # Doc/source checkbox
         help_or_doc = QCheckBox(self.tr("Show source"))

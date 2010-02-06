@@ -21,31 +21,67 @@ import os.path as osp
 STDOUT = sys.stdout
 
 
-class PatternComboBox(QComboBox):
+class BaseComboBox(QComboBox):
+    """Editable combo box base class"""
+    def __init__(self, parent):
+        super(BaseComboBox, self).__init__(parent)
+        self.setEditable(True)
+        self.setCompleter(QCompleter(self))
+        
+    def is_valid(self, qstr):
+        """
+        Return True if string is valid
+        Return None if validation can't be done
+        """
+        pass
+        
+    def selected(self):
+        """Action to be executed when a valid item has been selected"""
+        self.emit(SIGNAL('valid(bool)'), True)
+        
+    def add_text(self, text):
+        """Add text to combo box: add a new item if text is not found in 
+        combo box items"""
+        index = self.findText(text)
+        while index != -1:
+            self.removeItem(index)
+            index = self.findText(text)
+        self.insertItem(0, text)
+        self.setCurrentIndex(0)
+
+    def keyPressEvent(self, event):
+        """Handle key press events"""
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            text = self.currentText()
+            valid = self.is_valid(text)
+            if valid or valid is None:
+                self.add_text(text)
+                self.selected()
+        else:
+            QComboBox.keyPressEvent(self, event)
+        
+
+class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
-        QComboBox.__init__(self, parent)
+        super(PatternComboBox, self).__init__(parent)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.setEditable(True)
-        self.setCompleter(QCompleter(self))
         if items is not None:
             self.addItems(items)
         if tip is not None:
             self.setToolTip(tip)
 
 
-class EditableComboBox(QComboBox):
+class EditableComboBox(BaseComboBox):
     """
-    Editable QComboBox
+    Editable combo box + Validate
     """
     def __init__(self, parent):
         super(EditableComboBox, self).__init__(parent)
         self.font = QFont()
-        self.setEditable(True)
-        self.setCompleter(QCompleter(self))
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
         self.connect(self, SIGNAL("activated(QString)"),
                      lambda qstr: self.validate(qstr, editing=False))
@@ -64,17 +100,10 @@ class EditableComboBox(QComboBox):
         self.setStyleSheet("")
         self.show_tip()
         
-    def is_valid(self, qstr):
-        """
-        Return True if string is valid
-        Return None if validation can't be done
-        """
-        pass
-        
     def selected(self):
         """Action to be executed when a valid item has been selected"""
+        super(EditableComboBox, self).selected()        
         self.set_default_style()
-        self.emit(SIGNAL('valid(bool)'), True)
         
     def validate(self, qstr, editing=True):
         """Validate entered path"""
@@ -99,16 +128,6 @@ class EditableComboBox(QComboBox):
         else:
             self.set_default_style()
             
-    def add_text(self, text):
-        """Add text to combo box: add a new item if text is not found in 
-        combo box items"""
-        index = self.findText(text)
-        while index!=-1:
-            self.removeItem(index)
-            index = self.findText(text)
-        self.insertItem(0, text)
-        self.setCurrentIndex(0)
-
 
 class PathComboBox(EditableComboBox):
     """
@@ -136,15 +155,6 @@ class PathComboBox(EditableComboBox):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
         self.emit(SIGNAL("open_dir(QString)"), self.currentText())
-
-    def keyPressEvent(self, event):
-        """Handle key press events"""
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if self.is_valid():
-                self.selected()
-                QComboBox.keyPressEvent(self, event) # Insert item in combo box
-        else:
-            QComboBox.keyPressEvent(self, event)
 
 
 class UrlComboBox(PathComboBox):
@@ -186,12 +196,3 @@ class PythonModulesComboBox(PathComboBox):
         """Action to be executed when a valid item has been selected"""
         EditableComboBox.selected(self)
         self.emit(SIGNAL("open(QString)"), self.currentText())
-
-    def keyPressEvent(self, event):
-        """Handle key press events"""
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            if self.is_valid():
-                self.selected()
-                QComboBox.keyPressEvent(self, event) # Insert item in combo box
-        else:
-            QComboBox.keyPressEvent(self, event)
