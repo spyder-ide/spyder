@@ -329,7 +329,8 @@ class QsciEditor(TextEditBaseWidget):
                         # Fortran lexers are sometimes unavailable:
                         # the corresponding class is then replaced by None
                         # (see the import lines at the beginning of the script)
-                        self.setLexer( lexer_class(self) )
+                        lexer = lexer_class(self)
+                        self.setLexer(lexer)
                     break
                 
     def is_python(self):
@@ -593,7 +594,12 @@ class QsciEditor(TextEditBaseWidget):
         if self.lexer() is None:
             self.setFont(font)
         else:
-            self.lexer().setFont(font)
+            lexer = self.lexer()
+            for style in range(16):
+                font_i = QFont(font)
+                if font.weight() == QFont.Normal:
+                    font_i.setWeight(lexer.defaultFont(style).weight())
+                lexer.setFont(font_i, style)
             self.setLexer(self.lexer())
         margin_font = QFont(font)
         margin_font.setPointSize(margin_font.pointSize()-1)
