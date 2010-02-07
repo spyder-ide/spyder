@@ -199,13 +199,23 @@ class ClassBrowser(OneColumnTree):
 #===============================================================================
 # QsciEditor widget
 #===============================================================================
+class PythonLexer(QsciLexerPython):
+    def __init__(self, parent):
+        super(PythonLexer, self).__init__(parent)
+
+class CythonLexer(QsciLexerPython):
+    def __init__(self, parent):
+        super(CythonLexer, self).__init__(parent)
+    def language(self):
+        return "Cython"
+
 class QsciEditor(TextEditBaseWidget):
     """
     QScintilla Base Editor Widget
     """
     LEXERS = {
-              ('py', 'pyw', 'python'): (QsciLexerPython, '#',
-                                        PythonClassFuncMatch),
+              ('py', 'pyw', 'python'): (PythonLexer, '#', PythonClassFuncMatch),
+              ('pyx',): (CythonLexer, '#', PythonClassFuncMatch),
               ('f', 'for'): (QsciLexerFortran77, 'c', None),
               ('f90', 'f95', 'f2k'): (QsciLexerFortran, '!', None),
               ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),
@@ -334,7 +344,7 @@ class QsciEditor(TextEditBaseWidget):
                     break
                 
     def is_python(self):
-        return isinstance(self.lexer(), QsciLexerPython)
+        return isinstance(self.lexer(), PythonLexer)
         
     def populate_classbrowser(self, treewidget):
         """Populate classes and functions browser (tree widget)"""
