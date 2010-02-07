@@ -1366,7 +1366,7 @@ class Editor(PluginWidget):
         self.connect(editortabwidget, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
         self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
-                     self.refresh_openedfileslistwidget)
+                     self.opened_files_list_changed)
         self.connect(editortabwidget, SIGNAL('refresh_analysis_results()'),
                      self.refresh_analysislistwidget)
         self.connect(editortabwidget,
@@ -1574,9 +1574,9 @@ class Editor(PluginWidget):
         --> current edited file has changed
         """
         # Refresh Python file dependent actions:
-        fname = self.get_current_filename()
-        if fname:
-            enable = osp.splitext(fname)[1] in ('.py', '.pyw')
+        editor = self.get_current_editor()
+        if editor:
+            enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
                 action.setEnabled(enable)
         # Refresh openedfileslistwidget:
