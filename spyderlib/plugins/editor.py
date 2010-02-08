@@ -1317,7 +1317,6 @@ class Editor(PluginWidget):
                 run_interact_action, run_selected_action, run_process_action,
                 re_run_process_action, run_process_interact_action,
                 run_process_args_actionn, run_process_debug_action,
-                self.previous_warning_action, self.next_warning_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
                 )
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
