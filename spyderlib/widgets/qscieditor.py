@@ -228,6 +228,7 @@ class QsciEditor(TextEditBaseWidget):
               }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
     OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
+    CA_REFERENCE_INDICATOR = QsciScintilla.INDIC_BOX
     EOL_MODES = {"\r\n": QsciScintilla.EolWindows,
                  "\n":   QsciScintilla.EolUnix,
                  "\r":   QsciScintilla.EolMac}
@@ -247,6 +248,12 @@ class QsciEditor(TextEditBaseWidget):
         self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
                            self.OCCURENCE_INDICATOR,
                            0x4400FF)
+        self.SendScintilla(QsciScintilla.SCI_INDICSETSTYLE,
+                           self.CA_REFERENCE_INDICATOR,
+                           QsciScintilla.INDIC_SQUIGGLE)
+        self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
+                           self.CA_REFERENCE_INDICATOR,
+                           0x39A2F1)
 
         self.supported_language = None
         self.classfunc_match = None
@@ -530,14 +537,30 @@ class QsciEditor(TextEditBaseWidget):
         else:
             return ''
     
-    def __find_first(self, text):
-        """Find first occurence"""
+    def __find_first(self, text, line=None):
+        """
+        Find first occurence
+        line is None: scan whole document
+        *or*
+        line is not None: scan only line number *line*
+        """
         self.__find_flags = QsciScintilla.SCFIND_MATCHCASE | \
                             QsciScintilla.SCFIND_WHOLEWORD
-        self.__find_start = 0
-        line = self.lines()-1
+        if line is None:
+            # Scanning whole document
+            self.__find_start = 0
+            line = self.lines()-1
+        else:
+            # Scanning line number *line* and following lines if continued
+            self.__find_start = self.position_from_lineindex(line, 0)
+            def is_line_splitted(line_no):
+                stripped = unicode(self.text(line_no)).strip()
+                return stripped.endswith('\\') or stripped.endswith(',') \
+                       or len(stripped) == 0
+            while line < self.lines()-1 and is_line_splitted(line):
+                line += 1
         self.__find_end = self.position_from_lineindex(line,
-                                                       self.text(line).length())
+                                               self.text(line).length())
         return self.__find_next(text)
     
     def __find_next(self, text):
@@ -711,6 +734,10 @@ class QsciEditor(TextEditBaseWidget):
             self.markerDeleteHandle(marker)
         self.ca_markers = []
         self.ca_marker_lines = {}
+        self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
+                           self.CA_REFERENCE_INDICATOR)
+        self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
+                           0, self.length())
         
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
@@ -725,7 +752,18 @@ class QsciEditor(TextEditBaseWidget):
             self.ca_markers.append(marker)
             if line1 not in self.ca_marker_lines:
                 self.ca_marker_lines[line1] = []
-                self.ca_marker_lines[line1].append( (message, error) )
+            self.ca_marker_lines[line1].append( (message, error) )
+            refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
+            for ref in refs:
+                # Highlighting found references
+                text = ref[1:-1]
+                ok = self.__find_first(text, line=line1)
+                while ok:
+                    spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
+                    epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
+                    self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
+                                       spos, epos-spos)
+                    ok = self.__find_next(text)
 
     def __highlight_warning(self, line):
         self.highlight_line(line+1)
