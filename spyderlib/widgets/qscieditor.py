@@ -252,14 +252,24 @@ class QsciEditor(TextEditBaseWidget):
         self.classfunc_match = None
         self.comment_string = None
 
-        # Mark errors, warnings, ...
-        self.markers = []
-        self.marker_lines = {}
+        # Code analysis markers: errors, warnings
+        self.ca_markers = []
+        self.ca_marker_lines = {}
         self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
                                                'png'))
         self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
                                                  'png'))
-            
+        
+        # Current line and find markers
+        self.currentline_marker = None
+        self.foundline_markers = []
+        self.currentline = self.markerDefine(QsciScintilla.Background)
+        bcol = CONF.get('editor', 'currentline/backgroundcolor')
+        self.setMarkerBackgroundColor(QColor(bcol), self.currentline)
+        self.foundline = self.markerDefine(QsciScintilla.Background)
+        bcol = CONF.get('editor', 'foundline/backgroundcolor')
+        self.setMarkerBackgroundColor(QColor(bcol), self.foundline)
+
         # Scintilla Python API
         self.api = None
         
@@ -557,6 +567,10 @@ class QsciEditor(TextEditBaseWidget):
         
     def __cursor_position_changed(self):
         """Cursor position has changed"""
+        if self.currentline_marker is not None:
+            self.markerDeleteHandle(self.currentline_marker)
+        line, _index = self.getCursorPosition()
+        self.currentline_marker = self.markerAdd(line, self.currentline)
         #TODO: Add attribute for occurences marking enable/disable:
         # if self.occurences_marking:
         self.occurences_timer.stop()
@@ -682,13 +696,21 @@ class QsciEditor(TextEditBaseWidget):
         """Go to line number *line*"""
         self.setCursorPosition(line-1, 0)
         self.ensureLineVisible(line-1)
+        
+    def set_found_lines(self, lines):
+        """Set found lines, i.e. lines corresponding to found results"""
+        for marker in self.foundline_markers:
+            self.markerDeleteHandle(marker)
+        self.foundline_markers = []
+        for line in lines:
+            self.foundline_markers.append(self.markerAdd(line, self.foundline))
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
-        for marker in self.markers:
+        for marker in self.ca_markers:
             self.markerDeleteHandle(marker)
-        self.markers = []
-        self.marker_lines = {}
+        self.ca_markers = []
+        self.ca_marker_lines = {}
         
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
@@ -698,11 +720,12 @@ class QsciEditor(TextEditBaseWidget):
             return
         for message, line0, error in check_results:
             line1 = line0 - 1
-            marker = self.markerAdd(line1, 0 if error else 1)
-            self.markers.append(marker)
-            if line1 not in self.marker_lines:
-                self.marker_lines[line1] = []
-            self.marker_lines[line1].append( (message, error) )
+            marker = self.markerAdd(line1,
+                                    self.error if error else self.warning)
+            self.ca_markers.append(marker)
+            if line1 not in self.ca_marker_lines:
+                self.ca_marker_lines[line1] = []
+                self.ca_marker_lines[line1].append( (message, error) )
 
     def __highlight_warning(self, line):
         self.highlight_line(line+1)
@@ -711,7 +734,7 @@ class QsciEditor(TextEditBaseWidget):
     def go_to_next_warning(self):
         """Go to next code analysis warning message"""
         cline, _ = self.getCursorPosition()
-        lines = sorted(self.marker_lines.keys())
+        lines = sorted(self.ca_marker_lines.keys())
         for line in lines:
             if line > cline:
                 self.__highlight_warning(line)
@@ -722,7 +745,7 @@ class QsciEditor(TextEditBaseWidget):
     def go_to_previous_warning(self):
         """Go to previous code analysis warning message"""
         cline, _ = self.getCursorPosition()
-        lines = sorted(self.marker_lines.keys(), reverse=True)
+        lines = sorted(self.ca_marker_lines.keys(), reverse=True)
         for line in lines:
             if line < cline:
                 self.__highlight_warning(line)
@@ -732,8 +755,8 @@ class QsciEditor(TextEditBaseWidget):
 
     def __show_code_analysis_results(self, line):
         """Show warning/error messages"""
-        if line in self.marker_lines:
-            msglist = [ msg for msg, _error in self.marker_lines[line] ]
+        if line in self.ca_marker_lines:
+            msglist = [ msg for msg, _error in self.ca_marker_lines[line] ]
             self.show_calltip(self.tr("Code analysis"), msglist,
                               color='#129625', at_line=line)
     
@@ -1143,6 +1166,7 @@ def test(fname):
     win.show()
     win.load(fname)
     win.resize(800, 800)
+    win.editor.set_found_lines([6, 8, 10])
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

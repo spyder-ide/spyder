@@ -193,6 +193,8 @@ DEFAULTS = [
               'tab_always_indent': True,
               'api': osp.join(DATA_PATH, 'python.api'),
               'max_recent_files': 20,
+              'currentline/backgroundcolor': "#EEFFDD",
+              'foundline/backgroundcolor': "#DDFFDD",
               }),
             ('historylog',
              {
