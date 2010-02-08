@@ -424,7 +424,7 @@ class TextEditBaseWidget(QsciScintilla):
         Show calltip
         This is here because QScintilla does not implement well calltips
         """
-        if text is None or len(text)==0:
+        if text is None or len(text) == 0:
             return
         weight = 'bold' if self.calltip_font.bold() else 'normal'
         size = self.calltip_font.pointSize()
@@ -433,8 +433,7 @@ class TextEditBaseWidget(QsciScintilla):
         format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
         if isinstance(text, list):
             text = "\n    ".join(text)
-        else:
-            text = text.replace('\n', '<br>')
+        text = text.replace('\n', '<br>')
         if len(text) > self.calltip_size:
             text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) \

@@ -16,7 +16,7 @@ import sys, os
 # For debugging purpose:
 STDOUT = sys.stdout
 
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import CONF
