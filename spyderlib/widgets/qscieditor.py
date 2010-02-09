@@ -366,7 +366,7 @@ class QsciEditor(TextEditBaseWidget):
     def populate_classbrowser(self, treewidget):
         """Populate classes and functions browser (tree widget)"""
         line = -1
-        ancestors = [treewidget]
+        ancestors = [(treewidget, 0)]
         previous_item = None
         previous_level = None
         while line < self.lines():
@@ -384,10 +384,12 @@ class QsciEditor(TextEditBaseWidget):
                     if level == previous_level:
                         pass
                     elif level > previous_level:
-                        ancestors.append(previous_item)
-                    elif level < previous_level and len(ancestors) > 1:
-                        ancestors = ancestors[:-1]
-                parent = ancestors[-1]
+                        ancestors.append((previous_item, previous_level))
+                    else:
+                        while len(ancestors) > 1 and level <= previous_level:
+                            ancestors.pop(-1)
+                            _item, previous_level = ancestors[-1]
+                parent, _level = ancestors[-1]
                     
                 if class_name is not None:
                     item = ClassItem(class_name, line+1, parent)
@@ -1180,6 +1182,7 @@ class TestEditor(QsciEditor):
         self.set_language(osp.splitext(filename)[1][1:])
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
+        self.set_font(QFont("Courier New", 10))
 
 class TestWidget(QSplitter):
     def __init__(self, parent):
