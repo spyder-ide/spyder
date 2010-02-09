@@ -158,7 +158,7 @@ class EditorTabWidget(Tabs):
         
         finfo = self.data.pop(index_from)
         if editortabwidget_to is None:
-            editortabwidget_to = self        
+            editortabwidget_to = self
         editortabwidget_to.data.insert(index_to, finfo)
         
         if editortabwidget_to is not self:
@@ -1391,7 +1391,7 @@ class Editor(PluginWidget):
                 return editortabwidget
         
     def move_tabs_between_editortabwidgets(self, id_from, id_to,
-                                        index_from, index_to):
+                                           index_from, index_to):
         """
         Move tab between tabwidgets
         (see editortabwidget.move_data when moving tabs inside one tabwidget)

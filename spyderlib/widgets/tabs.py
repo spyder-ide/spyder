@@ -72,6 +72,8 @@ class TabsBase(QTabBar):
         mimeData = event.mimeData()
         index_from = mimeData.data("source-index").toInt()[0]
         index_to = self.tabAt(event.pos())
+        if index_to == -1:
+            index_to = self.count()
         if mimeData.data("tabbar-id").toLong()[0] != id(self):
             tabwidget_from = mimeData.data("tabwidget-id").toLong()[0]
             self.emit(SIGNAL("move_tab(long,int,int)"), 
