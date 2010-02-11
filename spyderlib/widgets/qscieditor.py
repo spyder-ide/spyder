@@ -805,10 +805,10 @@ class QsciEditor(TextEditBaseWidget):
         if margin == 0:
             self.__show_code_analysis_results(line)
 
-    def mouseMoveEvent(self, event):
-        line = self.get_line_number_at(event.pos())
-        self.__show_code_analysis_results(line)
-        QsciScintilla.mouseMoveEvent(self, event)
+#    def mouseMoveEvent(self, event):
+#        line = self.get_line_number_at(event.pos())
+#        self.__show_code_analysis_results(line)
+#        QsciScintilla.mouseMoveEvent(self, event)
         
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""        
