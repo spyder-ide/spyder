@@ -283,7 +283,7 @@ class QsciEditor(TextEditBaseWidget):
         # Mark occurences timer
         self.occurences_timer = QTimer(self)
         self.occurences_timer.setSingleShot(True)
-        self.occurences_timer.setInterval(750)
+        self.occurences_timer.setInterval(1500)
         self.connect(self.occurences_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
         
@@ -608,7 +608,7 @@ class QsciEditor(TextEditBaseWidget):
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
 
-        if not self.supported_language:
+        if not self.supported_language or self.hasSelectedText():
             return
             
         text = self.get_current_word()
