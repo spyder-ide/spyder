@@ -46,6 +46,13 @@ def abspardir(path):
     """Return absolute parent dir"""
     return osp.abspath(osp.join(path, os.pardir))
 
+def get_common_path(pathlist):
+    common = osp.commonprefix(pathlist)
+    if len(common) > 1:
+        if not osp.isdir(common):
+            common = osp.dirname(common)
+        return osp.abspath(common)
+
 def is_hg_installed():
     return is_program_installed('hg.exe' if os.name == 'nt' else 'hg')
 
@@ -126,10 +133,19 @@ class SearchThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
-        self.stopped = False
+        self.stopped = None
         self.results = None
+        self.pathlist = None
         self.nb = None
         self.error_flag = None
+        self.rootpath = None
+        self.python_path = None
+        self.hg_manifest = None
+        self.include = None
+        self.exclude = None
+        self.texts = None
+        self.text_re = None
+        self.completed = None
         
     def initialize(self, path, python_path, hg_manifest,
                    include, exclude, texts, text_re):
@@ -144,12 +160,13 @@ class SearchThread(QThread):
         self.completed = False
         
     def run(self):
+        self.filenames = []
         if self.hg_manifest:
             ok = self.find_files_in_hg_manifest()
         elif self.python_path:
             ok = self.find_files_in_python_path()
         else:
-            ok = self.find_files_in_path()
+            ok = self.find_files_in_path(self.rootpath)
         if ok:
             self.find_string_in_files()
         self.stop()
@@ -160,30 +177,18 @@ class SearchThread(QThread):
             self.stopped = True
 
     def find_files_in_python_path(self):
-        self.filenames = []
-        directories = [path for path in sys.path \
-                       if not path.startswith(sys.prefix)]
-        for path in directories:
-            if not path:
-                path = os.getcwdu()
-            with QMutexLocker(self.mutex):
-                if self.stopped:
-                    return False
-            dirname = osp.dirname(path)
-            if re.search(self.exclude, dirname+os.sep):
-                continue
-            filename = osp.dirname(path)
-            if re.search(self.exclude, filename):
-                continue
-            if re.search(self.include, filename):
-                self.filenames.append(path)
-        return True
+        for path in os.environ['PYTHONPATH'].split(os.pathsep):
+            if osp.isdir(path):
+                ok = self.find_files_in_path(path)
+                if not ok:
+                    break
+        return ok
 
     def find_files_in_hg_manifest(self):
         p = Popen(['hg', 'manifest'], stdout=PIPE,
                   cwd=self.rootpath, shell=True)
-        self.filenames = []
         hgroot = get_hg_root(self.rootpath)
+        self.pathlist = [hgroot]
         for path in p.stdout.read().splitlines():
             with QMutexLocker(self.mutex):
                 if self.stopped:
@@ -198,9 +203,11 @@ class SearchThread(QThread):
                 self.filenames.append(osp.join(hgroot, path))
         return True
     
-    def find_files_in_path(self):
-        self.filenames = []
-        for path, dirs, files in os.walk(self.rootpath):
+    def find_files_in_path(self, path):
+        if self.pathlist is None:
+            self.pathlist = []
+        self.pathlist.append(path)
+        for path, dirs, files in os.walk(path):
             with QMutexLocker(self.mutex):
                 if self.stopped:
                     return False
@@ -257,7 +264,7 @@ class SearchThread(QThread):
         self.completed = True
     
     def get_results(self):
-        return self.results, self.nb, self.error_flag
+        return self.results, self.pathlist, self.nb, self.error_flag
 
 
 class FindOptions(QWidget):
@@ -486,9 +493,10 @@ class ResultsBrowser(OneColumnTree):
         self.results = None
         self.nb = None
         self.error_flag = None
+        self.completed = None
         self.data = None
         self.set_title('')
-        self.root_item = None
+        self.root_items = None
         
     def activated(self):
         itemdata = self.data.get(self.currentItem())
@@ -497,19 +505,23 @@ class ResultsBrowser(OneColumnTree):
             self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
                                filename, lineno, True)
         
-    def set_results(self, search_text, results, nb, error_flag):
+    def set_results(self, search_text, results, pathlist, nb,
+                    error_flag, completed):
         self.search_text = search_text
         self.results = results
+        self.pathlist = pathlist
         self.nb = nb
         self.error_flag = error_flag
+        self.completed = completed
         self.refresh()
         if not self.error_flag and self.nb:
             self.restore()
         
     def restore(self):
         self.collapseAll()
-        if self.root_item is not None:
-            self.root_item.setExpanded(True)
+        if self.root_items is not None:
+            for root_item in self.root_items:
+                root_item.setExpanded(True)
         
     def refresh(self):
         """
@@ -531,30 +543,39 @@ class ResultsBrowser(OneColumnTree):
                                         nb_files, text_files)
             if self.error_flag:
                 text += ' (' + self.error_flag + ')'
+            if not self.completed:
+                text += ' (' + translate('FindInFiles', 'interrupted') + ')'
         self.set_title(title+text)
         self.clear()
         self.data = {}
         
-        if self.results is None: # First search interrupted
+        if not self.results: # First search interrupted *or* No result
             return
-        
-        # Root path
-        root_path = None
-        dir_set = set()        
-        for filename in self.results:
-            dirname = osp.dirname(filename)
+
+        # Directory set
+        dir_set = set()
+        for filename in sorted(self.results.keys()):
+            dirname = osp.abspath(osp.dirname(filename))
             dir_set.add(dirname)
-            if root_path is None:
-                root_path = dirname
+                
+        # Root path
+        root_path_list = None
+        _common = get_common_path(list(dir_set))
+        if _common is not None:
+            root_path_list = [_common]
+        else:
+            _common = get_common_path(self.pathlist)
+            if _common is not None:
+                root_path_list = [_common]
             else:
-                while root_path not in dirname:
-                    root_path = abspardir(root_path)
-        if root_path is None:
+                root_path_list = self.pathlist
+        if not root_path_list:
             return
-        dir_set.add(root_path)
+        for _root_path in root_path_list:
+            dir_set.add(_root_path)
         # Populating tree: directories
         def create_dir_item(dirname, parent):
-            if dirname != root_path:
+            if dirname not in root_path_list:
                 displayed_name = osp.basename(dirname)
             else:
                 displayed_name = dirname
@@ -563,7 +584,7 @@ class ResultsBrowser(OneColumnTree):
             return item
         dirs = {}
         for dirname in sorted(list(dir_set)):
-            if dirname == root_path:
+            if dirname in root_path_list:
                 parent = self
             else:
                 parent_dirname = abspardir(dirname)
@@ -571,6 +592,9 @@ class ResultsBrowser(OneColumnTree):
                 if parent is None:
                     # This is related to directories which contain found
                     # results only in some of their children directories
+                    if osp.commonprefix([dirname]+root_path_list):
+                        # create new root path
+                        pass
                     items_to_create = []
                     while dirs.get(parent_dirname) is None:
                         items_to_create.append(parent_dirname)
@@ -582,7 +606,7 @@ class ResultsBrowser(OneColumnTree):
                     parent_dirname = abspardir(dirname)
                     parent = dirs[parent_dirname]
             dirs[dirname] = create_dir_item(dirname, parent)
-        self.root_item = dirs[root_path]
+        self.root_items = [dirs[_root_path] for _root_path in root_path_list]
         # Populating tree: files
         for filename in sorted(self.results.keys()):
             parent_item = dirs[osp.dirname(filename)]
@@ -593,6 +617,12 @@ class ResultsBrowser(OneColumnTree):
                            ["%d (%d): %s" % (lineno, colno, line.rstrip())])
                 item.setIcon(0, get_icon('arrow.png'))
                 self.data[item] = (filename, lineno)
+        # Removing empty directories
+        top_level_items = [self.topLevelItem(index)
+                           for index in range(self.topLevelItemCount())]
+        for item in top_level_items:
+            if not item.childCount():
+                self.takeTopLevelItem(self.indexOfTopLevelItem(item))
 
 
 class FindInFilesWidget(QWidget):
@@ -610,7 +640,7 @@ class FindInFilesWidget(QWidget):
         self.setWindowTitle(translate('FindInFiles', 'Find in files'))
 
         self.search_thread = SearchThread(self)
-        self.connect(self.search_thread, SIGNAL("finished()"),
+        self.connect(self.search_thread, SIGNAL("finished(bool)"),
                      self.search_complete)
         
         self.find_options = FindOptions(self, search_text, search_text_regexp,
@@ -665,15 +695,15 @@ class FindInFilesWidget(QWidget):
         if self.search_thread.isRunning():
             self.search_thread.stop()
             
-    def search_complete(self):
+    def search_complete(self, completed):
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
         if found is not None:
-            results, nb, error_flag = found
+            results, pathlist, nb, error_flag = found
             search_text = unicode( self.find_options.search_text.currentText() )
-            self.result_browser.set_results(search_text, results,
-                                            nb, error_flag)
+            self.result_browser.set_results(search_text, results, pathlist,
+                                            nb, error_flag, completed)
             self.result_browser.show()
             
             
