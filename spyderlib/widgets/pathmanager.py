@@ -22,13 +22,14 @@ from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.config import get_icon
 
 
-#TODO: Add an export button to configure environment variables outside Spyder
 class PathManager(QDialog):
-    def __init__(self, parent=None, pathlist=None):
+    def __init__(self, parent=None, pathlist=None, ro_pathlist=None):
         QDialog.__init__(self, parent)
         
         assert isinstance(pathlist, list)
+        assert isinstance(ro_pathlist, list)
         self.pathlist = pathlist
+        self.ro_pathlist = ro_pathlist
         
         self.last_path = os.getcwdu()
         
@@ -137,26 +138,29 @@ class PathManager(QDialog):
                                              listdict2envdict)
         env = get_user_env()
         if remove:
-            ppath = self.pathlist
+            ppath = self.pathlist+self.ro_pathlist
         else:
             ppath = env.get('PYTHONPATH', [])
             if not isinstance(ppath, list):
                 ppath = [ppath]
-            ppath = [path for path in ppath if path not in self.pathlist]
-            ppath.extend(self.pathlist)
+            ppath = [path for path in ppath
+                     if path not in (self.pathlist+self.ro_pathlist)]
+            ppath.extend(self.pathlist+self.ro_pathlist)
         env['PYTHONPATH'] = ppath
         set_user_env( listdict2envdict(env) )
         
     def get_path_list(self):
-        """Return path list"""
+        """Return path list (does not include the read-only path list)"""
         return self.pathlist
         
     def update_list(self):
         """Update path list"""
         self.listwidget.clear()
-        for name in self.pathlist:
+        for name in self.pathlist+self.ro_pathlist:
             item = QListWidgetItem(name)
             item.setIcon(get_std_icon('DirClosedIcon'))
+            if name in self.ro_pathlist:
+                item.setFlags(Qt.NoItemFlags)
             self.listwidget.addItem(item)
         self.refresh()
         
@@ -217,9 +221,9 @@ def test():
     """Run path manager test"""
     from spyderlib.utils.qthelpers import qapplication
     _app = qapplication()
-    test = PathManager(None, sys.path)
-    if test.exec_():
-        print test.get_path_list()
+    test = PathManager(None, sys.path[:-10], sys.path[-10:])
+    test.exec_()
+    print test.get_path_list()
 
 if __name__ == "__main__":
     test()
