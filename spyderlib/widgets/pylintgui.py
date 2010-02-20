@@ -262,7 +262,7 @@ class PylintWidget(QWidget):
         filename = osp.abspath(filename)
         index, _data = self.get_data(filename)
         if index is not None:
-            self.data.pop(index)
+            self.data.pop(index+1)
         self.data.append( (filename, data) )
         self.save()
         
