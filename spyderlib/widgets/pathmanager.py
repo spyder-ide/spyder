@@ -23,12 +23,13 @@ from spyderlib.config import get_icon
 
 
 class PathManager(QDialog):
-    def __init__(self, parent=None, pathlist=None, ro_pathlist=None):
+    def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
         assert isinstance(pathlist, list)
-        assert isinstance(ro_pathlist, list)
         self.pathlist = pathlist
+        if ro_pathlist is None:
+            ro_pathlist = []
         self.ro_pathlist = ro_pathlist
         
         self.last_path = os.getcwdu()
@@ -52,7 +53,8 @@ class PathManager(QDialog):
 
         bottom_layout = QHBoxLayout()
         layout.addLayout(bottom_layout)
-        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout)        
+        self.sync_button = None
+        self.toolbar_widgets2 = self.setup_bottom_toolbar(bottom_layout, sync)        
         
         # Buttons configuration
         bbox = QDialogButtonBox(QDialogButtonBox.Close)
@@ -93,7 +95,7 @@ class PathManager(QDialog):
         self._add_widgets_to_layout(layout, toolbar)
         return toolbar
     
-    def setup_bottom_toolbar(self, layout):
+    def setup_bottom_toolbar(self, layout, sync=True):
         toolbar = []
         add_button = create_toolbutton(self, text=self.tr("Add path"),
                                        icon=get_icon('edit_add.png'),
@@ -106,7 +108,7 @@ class PathManager(QDialog):
         self.selection_widgets.append(remove_button)
         self._add_widgets_to_layout(layout, toolbar)
         layout.addStretch(1)
-        if os.name == 'nt':
+        if os.name == 'nt' and sync:
             self.sync_button = create_toolbutton(self,
                   text=self.tr("Synchronize..."),
                   icon=get_icon('synchronize.png'), triggered=self.synchronize,
@@ -169,7 +171,7 @@ class PathManager(QDialog):
         for widget in self.selection_widgets:
             widget.setEnabled(self.listwidget.currentItem() is not None)
         not_empty = self.listwidget.count() > 0
-        if os.name == 'nt':
+        if self.sync_button is not None:
             self.sync_button.setEnabled(not_empty)
     
     def move_to(self, absolute=None, relative=None):
