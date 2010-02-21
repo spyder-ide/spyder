@@ -13,11 +13,13 @@ import os.path as osp
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QApplication, QMessageBox, QCheckBox, QSplitter
+from PyQt4.QtGui import (QApplication, QMessageBox, QCheckBox, QSplitter, QMenu,
+                         QToolButton)
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.config import CONF, get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
@@ -103,22 +105,21 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPyQsciShell
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[]):
+        self.fname = startup.__file__ if fname is None else fname
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec.py')
         
         self.shell.set_externalshell(self)
 
         self.toggle_globals_explorer(False)
-        self.interact_check.setChecked(interact)
-        self.debug_check.setChecked(debug)
+        self.interact_action.setChecked(interact)
+        self.debug_action.setChecked(debug)
         
         self.monitor_socket = None
         self.interpreter = fname is None
-        self.fname = startup.__file__ if fname is None else fname
         
         if self.interpreter:
-            self.interact_check.hide()
-            self.debug_check.hide()
+            self.options_button.hide()
             self.terminate_button.hide()
         
         self.commands = ["import sys", "sys.path.insert(0, '')"] + commands
@@ -138,11 +139,23 @@ class ExternalPythonShell(ExternalShellBase):
                           "The process may not exit as a result of clicking "
                           "this button\n(it is given the chance to prompt "
                           "the user for any unsaved files, etc)."))        
-        self.interact_check = QCheckBox(self.tr("Interact"), self)
-        self.debug_check = QCheckBox(self.tr("Debug"), self)
-        return [self.interact_check, self.debug_check,
-                self.globalsexplorer_button, self.run_button,
-                self.terminate_button, self.kill_button]
+        
+        self.interact_action = create_action(self, self.tr("Interact"))
+        self.interact_action.setCheckable(True)
+        self.debug_action = create_action(self, self.tr("Debug"))
+        self.debug_action.setCheckable(True)
+        self.args_action = create_action(self, self.tr("Arguments..."),
+                                         triggered=self.get_arguments)
+        self.options_button = create_toolbutton(self, text=self.tr("Options"),
+                                            icon=get_icon('tooloptions.png'))
+        self.options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        add_actions(menu, (self.interact_action, self.debug_action,
+                           self.args_action))
+        self.options_button.setMenu(menu)
+        
+        return [self.globalsexplorer_button, self.run_button,
+                self.options_button, self.terminate_button, self.kill_button]
         
     def get_shell_widget(self):
         # Globals explorer
@@ -166,8 +179,16 @@ class ExternalPythonShell(ExternalShellBase):
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)
-        self.interact_check.setEnabled(not state)
-        self.debug_check.setEnabled(not state)
+        for act in (self.interact_action, self.debug_action, self.args_action):
+            act.setEnabled(not state)
+        if state:
+            if self.arguments:
+                argstr = self.tr("Arguments: %1").arg(self.arguments)
+            else:
+                argstr = self.tr("No argument")
+        else:
+            argstr = self.tr("Arguments...")
+        self.args_action.setText(argstr)
         self.terminate_button.setEnabled(state)
         if not state:
             self.toggle_globals_explorer(False)
@@ -188,9 +209,9 @@ class ExternalPythonShell(ExternalShellBase):
         #-------------------------Python specific-------------------------------
         # Python arguments
         p_args = ['-u']
-        if self.interact_check.isChecked():
+        if self.interact_action.isChecked():
             p_args.append('-i')
-        if self.debug_check.isChecked():
+        if self.debug_action.isChecked():
             p_args.extend(['-m', 'pdb'])
         p_args.append(self.fname)
         
