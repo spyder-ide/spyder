@@ -11,6 +11,10 @@ Spyder
 Interactive Python shell and related widgets based on PyQt4
 """
 
+try:
+    from setuptools import setup
+except ImportError:
+    from distutils.core import setup
 import os, os.path as osp
 
 def get_package_data(name, extlist):
@@ -72,5 +76,4 @@ setup(
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         ],
-      **addl_args
     )
