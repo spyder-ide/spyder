@@ -669,6 +669,8 @@ class MainWindow(QMainWindow):
                 
         # Window set-up
         prefix = ('lightwindow' if self.light else 'window') + '/'
+        self.debug_print("Setting up window...")
+        width, height = CONF.get('main', prefix+'size')
         hexstate = CONF.get('main', prefix+'state', None)
         if hexstate is None:
             self.reset = True
@@ -676,9 +678,11 @@ class MainWindow(QMainWindow):
             # First Spyder execution *or* --reset option:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
-            splitting = ((self.projectexplorer, self.editor, Qt.Horizontal),
+            splitting = (
+                         (self.projectexplorer, self.editor, Qt.Horizontal),
                          (self.editor, self.onlinehelp, Qt.Horizontal),
-                         (self.onlinehelp, self.console, Qt.Vertical),)
+                         (self.onlinehelp, self.console, Qt.Vertical),
+                         )
             for first, second, orientation in splitting:
                 if first is not None and second is not None:
                     self.splitDockWidget(first.dockwidget, second.dockwidget,
@@ -701,8 +705,8 @@ class MainWindow(QMainWindow):
                     plugin.dockwidget.raise_()
             for toolbar in (run_toolbar, edit_toolbar):
                 toolbar.close()
-        self.debug_print("Setting up window...")
-        width, height = CONF.get('main', prefix+'size')
+            self.projectexplorer.dockwidget.close()
+            self.editor.setFixedWidth(width*.5)
         self.resize( QSize(width, height) )
         self.window_size = self.size()
         posx, posy = CONF.get('main', prefix+'position')
