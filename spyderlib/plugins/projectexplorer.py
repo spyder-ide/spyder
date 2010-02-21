@@ -27,7 +27,8 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
     DATAPATH = get_conf_path('.projects')
     def __init__(self, parent=None):
         include = CONF.get(self.ID, 'include', '.')
-        exclude = CONF.get(self.ID, 'exclude', r'\.pyc$|^\.')
+        exclude = CONF.get(self.ID, 'exclude',
+                           r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn')
         show_all = CONF.get(self.ID, 'show_all', False)
         ProjectExplorerWidget.__init__(self, parent=parent, include=include,
                                        exclude=exclude, show_all=show_all)
