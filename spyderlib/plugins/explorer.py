@@ -39,6 +39,8 @@ class Explorer(ExplorerWidget, PluginMixin):
                             show_icontext=CONF.get(self.ID, 'show_icontext'))
         PluginMixin.__init__(self, parent)
 
+        self.editor_valid_types = None
+        
         self.set_font(get_font(self.ID))
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)

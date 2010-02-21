@@ -146,6 +146,7 @@ class SearchThread(QThread):
         self.texts = None
         self.text_re = None
         self.completed = None
+        self.get_pythonpath_callback = None
         
     def initialize(self, path, python_path, hg_manifest,
                    include, exclude, texts, text_re):
@@ -177,7 +178,10 @@ class SearchThread(QThread):
             self.stopped = True
 
     def find_files_in_python_path(self):
-        for path in os.environ['PYTHONPATH'].split(os.pathsep):
+        pathlist = os.environ['PYTHONPATH'].split(os.pathsep)
+        if self.get_pythonpath_callback is not None:
+            pathlist += self.get_pythonpath_callback()
+        for path in set(pathlist):
             if osp.isdir(path):
                 ok = self.find_files_in_path(path)
                 if not ok:
@@ -680,6 +684,9 @@ class FindInFilesWidget(QWidget):
             
     def set_search_text(self, text):
         self.find_options.set_search_text(text)
+        
+    def set_pythonpath_callback(self, callback):
+        self.search_thread.get_pythonpath_callback = callback
 
     def find(self):
         """Call the find function"""

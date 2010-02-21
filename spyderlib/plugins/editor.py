@@ -11,6 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+#TODO: FindReplace widget: it should be parented with editortabwidget instead
+#                          of editor plugin as it is right now
+
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QSplitter, QToolBar, QAction, QApplication, QToolBox,
                          QListWidget, QListWidgetItem, QLabel, QWidget,
@@ -749,7 +752,7 @@ class EditorSplitter(QSplitter):
         self.tab_actions = actions
         self.editortabwidget = EditorTabWidget(self.plugin, actions)
         if not first:
-            self.plugin.new(self.editortabwidget)
+            self.plugin.new(editortabwidget=self.editortabwidget)
         self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
                      self.editortabwidget_closed)
         self.connect(self.editortabwidget, SIGNAL("split_vertically()"),
@@ -1613,7 +1616,7 @@ class Editor(PluginWidget):
             if len(self.recent_files) > CONF.get(self.ID, 'max_recent_files'):
                 self.recent_files.pop(-1)
     
-    def new(self, editortabwidget=None):
+    def new(self, fname=None, editortabwidget=None):
         """Create a new file - Untitled"""
         # Creating template
         text, enc = encoding.read(self.TEMPLATE_PATH)
@@ -1626,18 +1629,19 @@ class Editor(PluginWidget):
         except:
             pass
         create_fname = lambda n: unicode(self.tr("untitled")) + ("%d.py" % n)
-        while True:
-            fname = create_fname(self.untitled_num)
-            self.untitled_num += 1
-            if not osp.isfile(fname):
-                break
+        if fname is None:
+            while True:
+                fname = create_fname(self.untitled_num)
+                self.untitled_num += 1
+                if not osp.isfile(fname):
+                    break
         # Creating editor widget
         if editortabwidget is None:
             editortabwidget = self.get_current_editortabwidget()
         editor = editortabwidget.create_new_editor(fname, enc, text, new=True)
         editor.set_cursor_position('eof')
         editor.insert_text(os.linesep)
-        
+                
     def edit_template(self):
         """Edit new file template"""
         self.load(self.TEMPLATE_PATH)

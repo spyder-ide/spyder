@@ -226,6 +226,11 @@ DEFAULTS = [
               'zoom_factor': .8,
               'max_history_entries': 20,
               }),
+            ('project_explorer',
+             {
+              'shortcut': "Ctrl+Shift+P",
+              'enable': True,
+              }),
             ('workspace',
              {
               'shortcut': "Ctrl+Shift+W",

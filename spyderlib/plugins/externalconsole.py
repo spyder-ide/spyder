@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
-from PyQt4.QtCore import Qt, SIGNAL, QString
+from PyQt4.QtCore import SIGNAL, QString
 
 import sys, os
 import os.path as osp
@@ -148,8 +148,9 @@ class ExternalConsole(PluginWidget):
 
         # Creating a new external shell
         if python:
+            pythonpath = self.main.get_spyder_pythonpath()
             shell = ExternalPythonShell(self, fname, wdir, self.commands,
-                                        interact, debug, path=self.main.path)
+                                        interact, debug, path=pythonpath)
         else:
             shell = ExternalSystemShell(self, wdir)
         shell.shell.set_font( get_font(self.ID) )

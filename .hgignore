@@ -1,5 +1,6 @@
 \.pyc$
 \.settings$
+\.spyderproject$
 \.orig$
 ^build/
 ^dist/

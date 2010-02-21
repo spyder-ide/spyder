@@ -52,13 +52,14 @@ class OneColumnTree(QTreeWidget):
                      
     def update_menu(self):
         self.menu.clear()
-        actions = self.specific_actions()
+        items = self.selectedItems()
+        actions = self.get_actions_from_items(items)
         if actions:
             actions.append(None)
         actions += self.common_actions
         add_actions(self.menu, actions)
         
-    def specific_actions(self):
+    def get_actions_from_items(self, items):
         # Right here: add other actions if necessary
         # (reimplement this method)
         return []

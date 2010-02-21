@@ -52,6 +52,7 @@ from spyderlib.plugins.workspace import Workspace
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.findinfiles import FindInFiles
+from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        add_module_dependent_bookmarks,
@@ -175,6 +176,7 @@ class MainWindow(QMainWindow):
         
         # Loading Spyder path
         self.path = []
+        self.project_path = []
         if osp.isfile(self.spyder_path):
             self.path, _ = encoding.readlines(self.spyder_path)
             self.path = [name for name in self.path if osp.isdir(name)]
@@ -196,8 +198,8 @@ class MainWindow(QMainWindow):
                                         tip=self.tr("Save current session "
                                                     "and quit application"))
         self.spyder_path_action = create_action(self,
-                                        self.tr("Path manager..."),
-                                        None, 'folder_new.png',
+                                        self.tr("PYTHONPATH manager"),
+                                        None, 'pythonpath.png',
                                         triggered=self.path_manager_callback,
                                         tip=self.tr("Open Spyder path manager"))
         
@@ -208,6 +210,7 @@ class MainWindow(QMainWindow):
         self.explorer = None
         self.inspector = None
         self.onlinehelp = None
+        self.projectexplorer = None
         self.historylog = None
         self.extconsole = None
         self.findinfiles = None
@@ -432,6 +435,8 @@ class MainWindow(QMainWindow):
             # Find in files
             if CONF.get('find_in_files', 'enable'):
                 self.findinfiles = FindInFiles(self)
+                self.findinfiles.set_pythonpath_callback( \
+                                                  self.get_spyder_pythonpath)
                 self.add_dockwidget(self.findinfiles)
                 self.connect(self.findinfiles,
                              SIGNAL("edit_goto(QString,int,bool)"),
@@ -531,7 +536,30 @@ class MainWindow(QMainWindow):
                 self.onlinehelp = OnlineHelp(self)
                 self.add_dockwidget(self.onlinehelp)
                 
-            # Pylint
+            # Project explorer widget
+            if CONF.get('project_explorer', 'enable'):
+                self.projectexplorer = ProjectExplorer(self)
+                self.pythonpath_changed()
+                valid_types = self.editor.get_valid_types()
+                self.projectexplorer.set_editor_valid_types(valid_types)
+                self.connect(self.projectexplorer,
+                             SIGNAL("pythonpath_changed()"),
+                             self.pythonpath_changed)
+                self.connect(self.projectexplorer,
+                             SIGNAL("create_module(QString)"), self.editor.new)
+                self.connect(self.projectexplorer, SIGNAL("edit(QString)"),
+                             self.editor.load)
+                self.connect(self.projectexplorer, SIGNAL("removed(QString)"),
+                             self.editor.removed)
+                self.connect(self.projectexplorer,
+                             SIGNAL("renamed(QString,QString)"),
+                             self.editor.renamed)
+                self.connect(self.projectexplorer,
+                             SIGNAL("import_data(QString)"),
+                             self.workspace.import_data)
+                self.add_dockwidget(self.projectexplorer)
+                
+            # Pylint widget
             if CONF.get('pylint', 'enable'):
                 self.set_splash(self.tr("Loading pylint plugin..."))
                 self.pylint = Pylint(self)
@@ -648,7 +676,8 @@ class MainWindow(QMainWindow):
             # First Spyder execution *or* --reset option:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
-            splitting = ((self.editor, self.onlinehelp, Qt.Horizontal),
+            splitting = ((self.projectexplorer, self.editor, Qt.Horizontal),
+                         (self.editor, self.onlinehelp, Qt.Horizontal),
                          (self.onlinehelp, self.console, Qt.Vertical),)
             for first, second, orientation in splitting:
                 if first is not None and second is not None:
@@ -1108,26 +1137,37 @@ class MainWindow(QMainWindow):
         self.extconsole.raise_()
         self.extconsole.execute_python_code(lines)
         
+    def get_spyder_pythonpath(self):
+        """Return Spyder PYTHONPATH"""
+        return self.path+self.project_path
+        
     def add_path_to_sys_path(self):
         """Add Spyder path to sys.path"""
-        for path in reversed(self.path):
+        for path in reversed(self.get_spyder_pythonpath()):
             sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
-        while sys_path[1] in self.path:
+        while sys_path[1] in self.get_spyder_pythonpath():
             sys_path.pop(1)
         
     def path_manager_callback(self):
         """Spyder path manager"""
         self.remove_path_from_sys_path()
-        dialog = PathManager(self, self.path)
+        project_pathlist = self.projectexplorer.get_pythonpath()
+        dialog = PathManager(self, self.path, project_pathlist, sync=True)
         self.connect(dialog, SIGNAL('redirect_stdio(bool)'),
                      self.redirect_interactiveshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
+        
+    def pythonpath_changed(self):
+        """Project Explorer PYTHONPATH contribution has changed"""
+        self.remove_path_from_sys_path()
+        self.project_path = self.projectexplorer.get_pythonpath()
+        self.add_path_to_sys_path()
     
     def win_env(self):
         """Show Windows current user environment variables"""

@@ -29,3 +29,28 @@ def select_port(default_port=20128):
             sock.close()
             sock = None
     return default_port
+
+def count_lines(path, extensions=None, excluded_dirnames=None):
+    """Return number of source code lines for all filenames in subdirectories
+    of *path* with names ending with *extensions*
+    Directory names *excluded_dirnames* will be ignored"""
+    import os, os.path as osp
+    if extensions is None:
+        extensions = ['.py', '.pyw', '.c', '.h', '.cpp', '.inc',
+                      '.f', '.for', '.f90', '.f77']
+    if excluded_dirnames is None:
+        excluded_dirnames = ['build', 'dist', '.hg', '.svn']
+    lines = 0
+    files = 0
+    for dirpath, dirnames, filenames in os.walk(path):
+        for d in dirnames[:]:
+            if d in excluded_dirnames:
+                dirnames.remove(d)
+        if excluded_dirnames is None or \
+           osp.dirname(dirpath) not in excluded_dirnames:
+            for fname in filenames:
+                if osp.splitext(fname)[1] in extensions:
+                    files += 1
+                    with open(osp.join(dirpath, fname), 'rb') as textfile:
+                        lines += len(textfile.read().strip().splitlines())
+    return files, lines
