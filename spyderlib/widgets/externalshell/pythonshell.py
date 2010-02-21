@@ -13,8 +13,7 @@ import os.path as osp
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QApplication, QMessageBox, QCheckBox, QSplitter, QMenu,
-                         QToolButton)
+from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QMenu, QToolButton
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
