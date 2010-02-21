@@ -35,7 +35,7 @@ extensions = ('.qm', '.api', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
 package_data={libname: get_package_data(libname, extensions)}
 if os.name == 'nt':
-    scripts = ['spyder.pyw']
+    scripts = ['spyder.pyw', 'spyder.py']
 else:
     scripts = ['spyder']
 description = 'Spyder development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, workspace (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
@@ -45,19 +45,6 @@ classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: Widget Sets',
                ]
-
-try:
-    from setuptools import setup
-    addl_args = dict(
-        entry_points = {        
-        'gui_scripts': [
-            'spyder = spyderlib.spyder:main'
-            ],
-        },
-        )
-except ImportError:
-    from distutils.core import setup
-    addl_args = {}
 
 setup(
       name = name,
