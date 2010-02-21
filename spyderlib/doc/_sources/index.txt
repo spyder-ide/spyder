@@ -32,6 +32,7 @@ Contents:
     historylog
     extconsole
     explorer
+    projectexplorer
     editor
     findinfiles
     pylint

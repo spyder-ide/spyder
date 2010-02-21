@@ -1345,7 +1345,7 @@ def initialize():
     commands, intitle, message, options = get_options()
     
     enable_translation = CONF.get('main', 'translation') and not options.debug
-    app = qapplication(translate=enable_translation)
+    app = qapplication(translate=False)#enable_translation)
     
     #----Monkey patching PyQt4.QtGui.QApplication
     class FakeQApplication(QApplication):

@@ -294,6 +294,11 @@ class QsciEditor(TextEditBaseWidget):
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
         
+    def set_as_clone(self, editor):
+        """Set as clone editor"""
+        self.setDocument(editor.document())
+        #TODO: synchronized the two clone editors
+        
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
