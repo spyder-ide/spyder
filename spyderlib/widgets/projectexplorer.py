@@ -650,12 +650,20 @@ class ExplorerTreeWidget(OneColumnTree):
             title += "s"
         self.set_title(title)
         
+    def __sort_toplevel_items(self):
+        items = sorted([self.takeTopLevelItem(0)
+                        for index in range(self.topLevelItemCount())],
+                       key=lambda item: item.text(0).toLower())
+        for index, item in enumerate(items):
+            self.insertTopLevelItem(index, item)
+        
     def add_project(self, root_path):
         project = Project(root_path)
         project.load()
         self.projects.append(project)
         self.__update_title()
         project.populate_tree(self, self.include, self.exclude, self.show_all)
+        self.__sort_toplevel_items()
         return project
         
     def open_project(self, projects, open_related=True):
@@ -887,6 +895,7 @@ class ExplorerTreeWidget(OneColumnTree):
                             relproj[relproj.index(old_name)] = new_name
                             proj.set_related_projects(relproj)
                     project.set_name(new_name)
+                    self.__sort_toplevel_items()
             else:
                 fname = get_item_path(item)
                 path, valid = QInputDialog.getText(self,
@@ -1248,7 +1257,7 @@ class Test(QDialog):
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
 #        self.treewidget.close_project(p1)
-        p2 = self.explorer.add_project(r"D:\Python\formlayout")        
+        p2 = self.explorer.add_project(r"D:\Python\ipythonext")        
         
         vlayout.addWidget(self.explorer)
         
