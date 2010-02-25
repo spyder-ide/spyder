@@ -658,7 +658,9 @@ class ExplorerTreeWidget(OneColumnTree):
         for index, item in enumerate(items):
             self.insertTopLevelItem(index, item)
         
-    def add_project(self, root_path):
+    def add_project(self, root_path, silent=False):
+        if self.is_project_already_here(root_path, silent=silent):
+            return
         project = Project(root_path)
         project.load()
         self.projects.append(project)
@@ -728,6 +730,18 @@ class ExplorerTreeWidget(OneColumnTree):
             return
         self.last_folder = osp.join(root_path, osp.pardir)
         
+    def is_project_already_here(self, root_path, silent=False):
+        if root_path in [project.root_path for project in self.projects]:
+            if not silent:
+                QMessageBox.critical(self,
+                        translate('ProjectExplorer', "Project Explorer"),
+                        translate('ProjectExplorer', "The project <b>%1</b>"
+                                  " is already opened!"
+                                  ).arg(osp.basename(root_path)))
+            return True
+        else:
+            return False
+        
     def __select_project_root_path(self):
         self.__set_last_folder()
         while True:
@@ -741,12 +755,7 @@ class ExplorerTreeWidget(OneColumnTree):
             else:
                 folder = osp.abspath(unicode(folder))
                 self.last_folder = folder
-                if folder in [project.root_path for project in self.projects]:
-                    QMessageBox.critical(self,
-                            translate('ProjectExplorer', "Project Explorer"),
-                            translate('ProjectExplorer', "The project <b>%1</b>"
-                                      " is already opened!"
-                                      ).arg(osp.basename(folder)))
+                if self.is_project_already_here(folder):
                     continue
                 return folder
         
@@ -777,37 +786,63 @@ class ExplorerTreeWidget(OneColumnTree):
             if folder is None:
                 return
             if not osp.isfile(osp.join(folder, configname)):
-                QMessageBox.critical(self, title,
-                     translate('ProjectExplorer', "The folder <i>%1</i> "
-                               "does not contain a valid %2 project"
-                               ).arg(osp.basename(folder)).arg(typename))
-                continue
+                subfolders = [osp.join(folder, _f) for _f in os.listdir(folder)
+                              if osp.isdir(osp.join(folder, _f))
+                              and osp.isfile(osp.join(folder, _f, configname))]
+                if subfolders:
+                    data = []
+                    for subfolder in subfolders:
+                        data.append((subfolder, False))
+                    comment = translate('ProjectExplorer',
+                                        "Select projects to import")
+                    result = fedit(data, title=title, comment=comment)
+                    if result is None:
+                        return
+                    else:
+                        selected_folders = []
+                        for index, is_selected in enumerate(result):
+                            if is_selected:
+                                selected_folders.append(subfolders[index])
+                        return selected_folders
+                else:
+                    QMessageBox.critical(self, title,
+                         translate('ProjectExplorer', "The folder <i>%1</i> "
+                                   "does not contain a valid %2 project"
+                                   ).arg(osp.basename(folder)).arg(typename))
+                    continue
             return folder
     
     def import_existing_project(self):
-        folder = self.__select_existing_project("Spyder", Project.CONFIG_NAME)
-        if folder is None:
+        folders = self.__select_existing_project("Spyder", Project.CONFIG_NAME)
+        if folders is None:
             return
-        self.add_project(folder)
+        if not isinstance(folders, (tuple, list)):
+            folders = [folders]
+        for folder in folders:
+            self.add_project(folder, silent=True)
     
     def import_existing_pydev_project(self):
-        folder = self.__select_existing_project("Pydev", ".pydevproject")
-        if folder is None:
+        folders = self.__select_existing_project("Pydev", ".pydevproject")
+        if folders is None:
             return
-        try:
-            name, related_projects, path = get_pydev_project_infos(folder)
-        except RuntimeError, error:
-            QMessageBox.critical(self,
-                translate('ProjectExplorer', 'Import existing Pydev project'),
-                translate('ProjectExplorer',
-                          "<b>Unable to read Pydev project <i>%1</i></b>"
-                          "<br><br>Error message:<br>%2") \
-                .arg(osp.basename(folder)).arg(str(error)))
-        finally:
-            project = self.add_project(folder)
-            project.set_name(name)
-            project.set_related_projects(related_projects)
-            project.set_pythonpath(path)
+        if not isinstance(folders, (tuple, list)):
+            folders = [folders]
+        for folder in folders:
+            try:
+                name, related_projects, path = get_pydev_project_infos(folder)
+            except RuntimeError, error:
+                QMessageBox.critical(self,
+                    translate('ProjectExplorer', 'Import existing Pydev project'),
+                    translate('ProjectExplorer',
+                              "<b>Unable to read Pydev project <i>%1</i></b>"
+                              "<br><br>Error message:<br>%2") \
+                    .arg(osp.basename(folder)).arg(str(error)))
+            finally:
+                project = self.add_project(folder, silent=True)
+                if project is not None:
+                    project.set_name(name)
+                    project.set_related_projects(related_projects)
+                    project.set_pythonpath(path)
     
     def __create_new_file(self, item, title, filters, create_func):
         current_path = get_item_path(item)
@@ -1260,7 +1295,7 @@ class Test(QDialog):
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
 #        self.treewidget.close_project(p1)
-        p2 = self.explorer.add_project(r"D:\Python\ipythonext")        
+#        p2 = self.explorer.add_project(r"D:\Python\ipythonext")        
         
         vlayout.addWidget(self.explorer)
         
