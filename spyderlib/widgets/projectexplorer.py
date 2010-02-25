@@ -175,9 +175,12 @@ class Project(object):
         for path, item in self.items.iteritems():
             if osp.isfile(path):
                 continue
-            item.setIcon(0, get_dir_icon(path, opened=item.isExpanded(),
-                                         pythonpath=path in self.pythonpath,
-                                         root=self.is_root_item(item)))
+            if path == self.root_path and not self.is_opened():
+                item.setIcon(0, get_icon('project_closed.png'))
+            else:
+                item.setIcon(0, get_dir_icon(path, opened=item.isExpanded(),
+                                             pythonpath=path in self.pythonpath,
+                                             root=self.is_root_item(item)))
     
     def set_pythonpath(self, pythonpath):
         self.pythonpath = pythonpath
