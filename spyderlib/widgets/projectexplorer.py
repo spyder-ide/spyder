@@ -368,6 +368,7 @@ class ExplorerTreeWidget(OneColumnTree):
         self.parent_widget = parent
         
         self.projects = []
+        self.__update_title()
         
         self.watcher = QFileSystemWatcher(self)
         self.watcher_pathlist = []
@@ -663,6 +664,7 @@ class ExplorerTreeWidget(OneColumnTree):
         self.projects.append(project)
         self.__update_title()
         project.populate_tree(self, self.include, self.exclude, self.show_all)
+        project.refresh(self, self.include, self.exclude, self.show_all)
         self.__sort_toplevel_items()
         return project
         
