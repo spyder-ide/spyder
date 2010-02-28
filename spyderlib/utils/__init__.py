@@ -40,17 +40,28 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
                       '.f', '.for', '.f90', '.f77']
     if excluded_dirnames is None:
         excluded_dirnames = ['build', 'dist', '.hg', '.svn']
+    def get_filelines(path):
+        dfiles, dlines = 0, 0
+        if osp.splitext(path)[1] in extensions:
+            dfiles = 1
+            with open(path, 'rb') as textfile:
+                dlines = len(textfile.read().strip().splitlines())
+        return dfiles, dlines
     lines = 0
     files = 0
-    for dirpath, dirnames, filenames in os.walk(path):
-        for d in dirnames[:]:
-            if d in excluded_dirnames:
-                dirnames.remove(d)
-        if excluded_dirnames is None or \
-           osp.dirname(dirpath) not in excluded_dirnames:
-            for fname in filenames:
-                if osp.splitext(fname)[1] in extensions:
-                    files += 1
-                    with open(osp.join(dirpath, fname), 'rb') as textfile:
-                        lines += len(textfile.read().strip().splitlines())
+    if osp.isdir(path):
+        for dirpath, dirnames, filenames in os.walk(path):
+            for d in dirnames[:]:
+                if d in excluded_dirnames:
+                    dirnames.remove(d)
+            if excluded_dirnames is None or \
+               osp.dirname(dirpath) not in excluded_dirnames:
+                for fname in filenames:
+                    dfiles, dlines = get_filelines(osp.join(dirpath, fname))
+                    files += dfiles
+                    lines += dlines
+    else:
+        dfiles, dlines = get_filelines(path)
+        files += dfiles
+        lines += dlines
     return files, lines
