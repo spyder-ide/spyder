@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.1.0alpha1'
+__version__ = '1.1.0alpha2'
 __license__ = __doc__
 
 def check_requirement(package, module_name, version_attr, required_str):
