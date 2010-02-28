@@ -1250,7 +1250,10 @@ class ProjectExplorerWidget(QWidget):
     
     def set_project_config(self, data):
         for root_path in data:
-            self.add_project(root_path)
+            if osp.isdir(root_path):
+                #XXX: It would be better to add the project anyway but to 
+                # notify the user that it's not valid (red icon...)
+                self.add_project(root_path)
 
     def get_pythonpath(self):
         return self.treewidget.get_pythonpath()
