@@ -1635,6 +1635,8 @@ class Editor(PluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
+        else:
+            fname = unicode(fname) # QString when triggered by a Qt signal
         # Creating editor widget
         if editortabwidget is None:
             editortabwidget = self.get_current_editortabwidget()

@@ -770,13 +770,14 @@ class ExplorerTreeWidget(OneColumnTree):
                                translate('ProjectExplorer', 'Project name:'),
                                QLineEdit.Normal, name)
             if valid and name:
+                name = unicode(name)
                 if name in [project.name for project in self.projects]:
                     QMessageBox.critical(self, title,
                             translate('ProjectExplorer', "A project named "
                                       "<b>%1</b> already exists").arg(name))
                     continue
                 project = self.add_project(folder)
-                project.set_name(unicode(name))
+                project.set_name(name)
                 break
     
     def __select_existing_project(self, typename, configname):
@@ -852,7 +853,7 @@ class ExplorerTreeWidget(OneColumnTree):
         fname = QFileDialog.getSaveFileName(self, title, current_path, filters)
         self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
         try:
-            create_func(fname)
+            create_func(unicode(fname))
         except EnvironmentError, error:
             QMessageBox.critical(self, translate('ProjectExplorer', "New file"),
                                  translate('ProjectExplorer',
@@ -875,7 +876,7 @@ class ExplorerTreeWidget(OneColumnTree):
         name, valid = QInputDialog.getText(self, title, subtitle,
                                            QLineEdit.Normal, "")
         if valid:
-            dirname = osp.join(current_path, name)
+            dirname = osp.join(current_path, unicode(name))
             try:
                 os.mkdir(dirname)
             except EnvironmentError, error:
@@ -902,7 +903,6 @@ class ExplorerTreeWidget(OneColumnTree):
         self.__create_new_folder(item, title, subtitle, is_package=False)
     
     def new_module(self, item):
-        raise NotImplementedError
         title = translate('ProjectExplorer', "New module")
         filters = translate('Explorer', "Python scripts")+" (*.py *.pyw)"
         create_func = lambda fname: self.parent_widget.emit( \
