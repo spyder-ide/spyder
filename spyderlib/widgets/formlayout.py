@@ -278,7 +278,7 @@ class FormWidget(QWidget):
             elif isinstance(value, int):
                 field = QSpinBox(self)
                 field.setValue(value)
-                field.setMaximum(1e9)
+                field.setRange(-1e9, 1e9)
             elif isinstance(value, date):
                 if hasattr(value, 'hour'):
                     field = QDateTimeEdit(self)
@@ -455,7 +455,7 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
     # Create a QApplication instance if no instance currently exists
     # (e.g. if the module is used directly from the interpreter)
     if QApplication.startingUp():
-        QApplication([])
+        _app = QApplication([])
         
     dialog = FormDialog(data, title, comment, icon, parent, apply)
     if dialog.exec_():
