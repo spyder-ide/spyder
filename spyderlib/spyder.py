@@ -552,6 +552,9 @@ class MainWindow(QMainWindow):
                 self.connect(self.projectexplorer, SIGNAL("removed(QString)"),
                              self.editor.removed)
                 self.connect(self.projectexplorer,
+                             SIGNAL("removed_tree(QString)"),
+                             self.editor.removed_tree)
+                self.connect(self.projectexplorer,
                              SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
                 self.connect(self.projectexplorer,
