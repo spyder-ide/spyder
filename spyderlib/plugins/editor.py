@@ -20,7 +20,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
                          QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
                          QAbstractPrintDialog, QActionGroup, QInputDialog)
 from PyQt4.QtCore import (SIGNAL, QStringList, Qt, QVariant, QFileInfo,
-                          QByteArray)
+                          QByteArray, QThread, QObject)
 
 import os, sys, time, re
 import os.path as osp
@@ -41,9 +41,25 @@ from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.plugins import PluginWidget
 
 
-class TabInfo(object):
+class CodeAnalysisThread(QThread):
+    """Pyflakes code analysis thread"""
+    def __init__(self, parent):
+        QThread.__init__(self, parent)
+        self.filename = None
+        
+    def set_filename(self, filename):
+        self.filename = filename
+        
+    def run(self):
+        self.analysis_results = check(self.filename)
+        
+    def get_results(self):
+        return self.analysis_results
+
+class TabInfo(QObject):
     """File properties"""
     def __init__(self, filename, encoding, editor, new):
+        QObject.__init__(self)
         self.filename = filename
         self.newly_created = new
         self.encoding = encoding
@@ -51,6 +67,21 @@ class TabInfo(object):
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
+            
+        self.analysis_thread = CodeAnalysisThread(self)
+        self.connect(self.analysis_thread, SIGNAL('finished()'),
+                     self.code_analysis_finished)
+    
+    def run_code_analysis(self):
+        if self.editor.is_python():
+            self.analysis_thread.set_filename(self.filename)
+            self.analysis_thread.start()
+        
+    def code_analysis_finished(self):
+        """Code analysis thread has finished"""
+        self.analysis_results = self.analysis_thread.get_results()
+        self.editor.process_code_analysis(self.analysis_results)
+        self.emit(SIGNAL('refresh_analysis_results()'))
 
 class EditorTabWidget(Tabs):
     """Editor tabwidget"""
@@ -354,19 +385,15 @@ class EditorTabWidget(Tabs):
         for folder in folders:
             self.plugin.emit(SIGNAL("refresh_explorer(QString)"), folder)
     
-
     #------ Update UI
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes"""
         if index is None:
             index = self.currentIndex()
         if self.data:
-            finfo = self.data[index]
-            fname, editor = finfo.filename, finfo.editor
-            if CONF.get(self.ID, 'code_analysis') and editor.is_python():
-                finfo.analysis_results = check(fname)
-                finfo.editor.process_code_analysis(finfo.analysis_results)
-            self.emit(SIGNAL('refresh_analysis_results()'))
+            if CONF.get(self.ID, 'code_analysis'):
+                finfo = self.data[index]
+                finfo.run_code_analysis()
         
     def get_analysis_results(self):
         if self.data:
@@ -573,7 +600,10 @@ class EditorTabWidget(Tabs):
                 else:
                     break
         editor = QsciEditor(self)
-        self.data.append( TabInfo(fname, enc, editor, new) )
+        finfo = TabInfo(fname, enc, editor, new)
+        self.connect(finfo, SIGNAL('refresh_analysis_results()'),
+                     lambda: self.emit(SIGNAL('refresh_analysis_results()')))
+        self.data.append(finfo)
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=language,
                             code_analysis=CONF.get(self.ID, 'code_analysis'),
