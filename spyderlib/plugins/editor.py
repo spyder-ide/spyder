@@ -1821,8 +1821,15 @@ class Editor(PluginWidget):
                     self.load(unicode(new_filename))
                 
     def removed(self, filename):
-        """File was removed in explorer widget"""
+        """File was removed in explorer/project explorer widget"""
         self.__close_and_reload(filename)
+    
+    def removed_tree(self, dirname):
+        """Directory was removed in project explorer widget"""
+        dirname = osp.abspath(unicode(dirname))
+        for fname in self.get_filenames():
+            if osp.abspath(fname).startswith(dirname):
+                self.__close_and_reload(fname)
     
     def renamed(self, source, dest):
         """File was renamed in explorer widget"""

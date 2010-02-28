@@ -1000,9 +1000,10 @@ class ExplorerTreeWidget(OneColumnTree):
                         self.parent_widget.emit(SIGNAL("removed(QString)"),
                                                 fname)
                     else:
-                        os.rmdir(fname)
+                        shutil.rmtree(fname)
                         self.remove_path_from_project_pythonpath(project, fname)
-                    self.parent_widget.emit(SIGNAL("removed(QString)"), fname)
+                        self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
+                                                fname)
                 except EnvironmentError, error:
                     action_str = translate('ProjectExplorer', 'delete')
                     QMessageBox.critical(self,
