@@ -32,7 +32,6 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
     """List files and directories"""
     namelist = []
-#    dirlist = [unicode(osp.pardir)]
     dirlist = []
     for item in os.listdir(unicode(path)):
         if re.search(exclude, item) and not show_all:
@@ -52,16 +51,14 @@ def abspardir(path):
 
 def has_children_files(path, include, exclude, show_all):
     try:
-        # > 1 because of '..'
-        return len( listdir(path, include, exclude, show_all) ) > 1
+        return len( listdir(path, include, exclude, show_all) ) > 0
     except (IOError, OSError):
         return False
 
 def has_subdirectories(path, include, exclude, show_all):
     try:
-        # > 1 because of '..'
         return len( listdir(path, include, exclude,
-                            show_all, folders_only=True) ) > 1
+                            show_all, folders_only=True) ) > 0
     except (IOError, OSError):
         return False
     
