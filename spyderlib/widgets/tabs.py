@@ -144,9 +144,9 @@ class Tabs(QTabWidget):
             self.setCornerWidget(close_button if state else None)
         
     def __current_changed(self, index):
-        for i, ind in enumerate(sorted(self.index_history, reverse=True)):
-            if ind > self.count()-1:
-                self.index_history.pop(i)
+        for _i in self.index_history[:]:
+            if _i > self.count()-1:
+                self.index_history.pop(self.index_history.index(_i))
         while index in self.index_history:
             self.index_history.pop(self.index_history.index(index))
         self.index_history.append(index)
