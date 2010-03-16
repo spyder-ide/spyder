@@ -64,12 +64,19 @@ def keybinding(attr):
     ks = getattr(QKeySequence, attr)
     return QKeySequence.keyBindings(ks)[0].toString()
 
-def mimedata2url(source):
-    """Extract url list from MIME data"""
+def mimedata2url(source, extlist):
+    """Extract url list from MIME data
+    extlist: for example ('.py', '.pyw')
+    """
     if source.hasUrls():
-        paths = [unicode(url.toString()) for url in source.urls()]
-        return [path[8:] for path in paths if path.startswith(r"file://") \
-                and (path.endswith(".py") or path.endswith(".pyw"))]
+        pathlist = []
+        for url in source.urls():
+            path = unicode(url.toString())
+            if path.startswith(r"file://"):
+                path = path[8:]
+            if osp.exists(path) and osp.splitext(path)[1] in extlist:
+                pathlist.append(path)
+        return pathlist
 
 def keyevent2tuple(event):
     """Convert QKeyEvent instance into a tuple"""

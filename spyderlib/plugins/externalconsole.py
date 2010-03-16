@@ -369,8 +369,12 @@ class ExternalConsole(PluginWidget):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         source = event.mimeData()
-        if source.hasUrls() or \
-           ( source.hasText() and self.__is_python_script(source.text()) ):
+        if source.hasUrls():
+            if mimedata2url(source):
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        elif source.hasText() and self.__is_python_script(source.text()):
             event.acceptProposedAction()            
             
     def dropEvent(self, event):

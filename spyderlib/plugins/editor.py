@@ -755,15 +755,22 @@ class EditorTabWidget(Tabs):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         source = event.mimeData()
-        if source.hasUrls() or source.hasText():
+        if source.hasUrls():
+            if mimedata2url(source, extlist=self.plugin.get_valid_types()):
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        elif source.hasText():
             event.acceptProposedAction()
+        else:
+            event.ignore()
             
     def dropEvent(self, event):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasUrls():
-            files = mimedata2url(source)
+            files = mimedata2url(source, extlist=self.plugin.get_valid_types())
             if files:
                 self.plugin.load(files)
         elif source.hasText():
