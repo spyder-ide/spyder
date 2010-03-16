@@ -191,6 +191,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
     def __init__(self, parent, fullpath=False):
         self.fullpath = fullpath
         OneColumnTree.__init__(self, parent)
+        self.freeze = False # Freezing widget to avoid any unwanted update
         self.editors = {}
         self.current_editor = None
         self.update_title()
@@ -241,8 +242,9 @@ class ClassBrowserTreeWidget(OneColumnTree):
         """Bind editor instance"""
         if editor in self.editors:
             item = self.editors[editor]
-            self.scrollToItem(item)
-            self.root_item_selected(item)
+            if not self.freeze:
+                self.scrollToItem(item)
+                self.root_item_selected(item)
             if update:
                 editor.populate_classbrowser(item)
         else:
@@ -309,8 +311,10 @@ class ClassBrowserTreeWidget(OneColumnTree):
         if isinstance(item, TreeItem):
             line = item.line
         root_item = self.get_root_item(item)
+        self.freeze = True
         self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
                            root_item.path, line, True)
+        self.freeze = False
         for editor, i_item in self.editors.iteritems():
             if i_item is root_item:
                 self.current_editor = editor
