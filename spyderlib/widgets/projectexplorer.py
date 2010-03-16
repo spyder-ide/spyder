@@ -1112,6 +1112,18 @@ class ExplorerTreeWidget(OneColumnTree):
         data.setUrls([QUrl(get_item_path(item)) for item in items])
         return data
     
+    def dragMoveEvent(self, event):
+        """Reimplement Qt method"""
+        item = self.itemAt(event.pos())
+        if item is None:
+            event.ignore()
+        else:
+            dst = get_item_path(item)
+            if osp.isdir(dst):
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+
     def dropEvent(self, event):
         """Reimplement Qt method"""
         event.ignore()
