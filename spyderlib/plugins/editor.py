@@ -422,15 +422,18 @@ class EditorTabWidget(Tabs):
         classbrowser = self.plugin.classbrowser
         if self.data:
             finfo = self.data[index]
-            if CONF.get(self.ID, 'class_browser') \
-               and finfo.editor.is_python() and classbrowser.isVisible():
+            # cb_visible: if class browser is not visible, maybe the whole
+            # GUI is not visible (Spyder is starting up) -> in this case,
+            # it is necessary to update the class browser
+            cb_visible = classbrowser.isVisible() or not self.plugin.isVisible()
+            if CONF.get(self.ID, 'class_browser') and finfo.editor.is_python() \
+               and cb_visible:
                 enable = True
                 classbrowser.setEnabled(True)
-                if update or finfo.editor is not classbrowser.editor:
-                    classbrowser.set_editor(finfo.editor, finfo.filename)
+                classbrowser.set_current_editor(finfo.editor, finfo.filename,
+                                                update=update)
         if not enable:
             classbrowser.setEnabled(False)
-            classbrowser.clear()
             
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
@@ -610,7 +613,7 @@ class EditorTabWidget(Tabs):
                             code_folding=CONF.get(self.ID, 'code_folding'),
                             show_eol_chars=CONF.get(self.ID, 'show_eol_chars'),
                             show_whitespace=CONF.get(self.ID, 'show_whitespace'),
-                            font=get_font('editor'),
+                            font=get_font(self.ID),
                             wrap=CONF.get(self.ID, 'wrap'),
                             tab_mode=CONF.get(self.ID, 'tab_always_indent'))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
@@ -939,16 +942,11 @@ class Editor(PluginWidget):
         layout.addWidget(self.dock_toolbar)
         
         # Class browser
-        self.classbrowser = ClassBrowser(self)
+        self.classbrowser = ClassBrowser(self,
+                 fullpath=CONF.get(self.ID, 'class_browser_fullpath', False))
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
-        self.connect(self.classbrowser, SIGNAL('go_to_line(int)'),
-                     self.go_to_line)
-        
-        # Opened files listwidget
-        self.openedfileslistwidget = QListWidget(self)
-        self.connect(self.openedfileslistwidget,
-                     SIGNAL('itemActivated(QListWidgetItem*)'),
-                     self.openedfileslistwidget_clicked)
+        self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
+                     self.load)
         
         # Analysis results listwidget
         self.analysislistwidget = QListWidget(self)
@@ -961,9 +959,6 @@ class Editor(PluginWidget):
         self.toolbox = QToolBox(self)
         self.toolbox.addItem(self.classbrowser, get_icon('class_browser.png'),
                              translate("ClassBrowser", "Classes and functions"))
-        self.toolbox.addItem(self.openedfileslistwidget,
-                             get_icon('opened_files.png'),
-                             self.tr('Opened files'))
         self.toolbox.addItem(self.analysislistwidget,
                              get_icon('analysis_results.png'),
                              self.tr('Code analysis'))
@@ -994,7 +989,7 @@ class Editor(PluginWidget):
         self.setLayout(layout)
         
         # Editor's splitter state
-        state = CONF.get('editor', 'splitter_state', None)
+        state = CONF.get(self.ID, 'splitter_state', None)
         if state is not None:
             self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
@@ -1072,8 +1067,10 @@ class Editor(PluginWidget):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        CONF.set(self.ID, 'class_browser_fullpath',
+                 self.classbrowser.get_fullpath_state())
         state = self.splitter.saveState()
-        CONF.set('editor', 'splitter_state', str(state.toHex()))
+        CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
         currentlines = []
         for editortabwidget in self.editortabwidgets:
@@ -1548,24 +1545,6 @@ class Editor(PluginWidget):
                                        self.analysislistwidget)
                 item.setData(Qt.UserRole, QVariant(line0-1))
             
-    def refresh_openedfileslistwidget(self):
-        if self.openedfileslistwidget.isHidden():
-            return
-        filenames = self.get_filenames()
-        current_filename = self.get_current_filename()
-        self.openedfileslistwidget.clear()
-        for filename in filenames:
-            editortabwidget, index = self.get_editortabwidget_index(filename)
-            title = editortabwidget.get_full_title(index=index)
-            item = QListWidgetItem(get_filetype_icon(filename),
-                                   title, self.openedfileslistwidget)
-            item.setData(Qt.UserRole, QVariant(filename))
-            if filename == current_filename:
-                font = item.font()
-                font.setBold(True)
-                item.setFont(font)
-            self.openedfileslistwidget.addItem(item)
-            
     def refresh_eol_mode(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         if os_name == 'nt':
@@ -1579,21 +1558,13 @@ class Editor(PluginWidget):
     #------ Slots
     def toolbox_current_changed(self, index=None):
         """Toolbox current index has changed"""
-        if self.openedfileslistwidget.isVisible():
-            self.refresh_openedfileslistwidget()
-        elif self.classbrowser.isVisible():
+        if self.classbrowser.isVisible():
             # Refreshing class browser
             editortabwidget = self.get_current_editortabwidget()
             editortabwidget.refresh()
         elif self.analysislistwidget.isVisible():
             self.refresh_analysislistwidget()
 
-    def openedfileslistwidget_clicked(self, item):
-        filename = unicode(item.data(Qt.UserRole).toString())
-        editortabwidget, index = self.get_editortabwidget_index(filename)
-        editortabwidget.data[index].editor.setFocus()
-        editortabwidget.setCurrentIndex(index)
-    
     def analysislistwidget_clicked(self, item):
         line, _ok = item.data(Qt.UserRole).toInt()
         self.get_current_editor().highlight_line(line+1)
@@ -1611,8 +1582,6 @@ class Editor(PluginWidget):
             enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
                 action.setEnabled(enable)
-        # Refresh openedfileslistwidget:
-        self.refresh_openedfileslistwidget()
         
                 
     #------ File I/O
@@ -1777,7 +1746,7 @@ class Editor(PluginWidget):
         editor = self.get_current_editor()
         filename = self.get_current_filename()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=get_font('editor', 'printer_header'))
+                          header_font=get_font(self.ID, 'printer_header'))
         printDialog = QPrintDialog(printer, self)
         if editor.hasSelectedText():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
@@ -1805,7 +1774,7 @@ class Editor(PluginWidget):
         from PyQt4.QtGui import QPrintPreviewDialog
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=get_font('editor', 'printer_header'))
+                          header_font=get_font(self.ID, 'printer_header'))
         preview = QPrintPreviewDialog(printer, self)
         self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
                      lambda printer: printer.printRange(editor))

@@ -14,8 +14,9 @@
 import sys, os, re, time, os.path as osp
 from math import log
 
-from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
-                         QApplication, QTreeWidgetItem, QSplitter, QFont)
+from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
+                         QApplication, QTreeWidgetItem, QSplitter, QFont,
+                         QHBoxLayout, QVBoxLayout)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
@@ -34,7 +35,7 @@ STDOUT = sys.stdout
 # Local import
 from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       translate)
+                                       translate, create_toolbutton)
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.qscibase import TextEditBaseWidget
 from spyderlib.utils import sourcecode
@@ -101,10 +102,30 @@ class PythonClassFuncMatch(object):
             return match.group(1)
 
 
+class FileRootItem(QTreeWidgetItem):
+    def __init__(self, path, treewidget):
+        QTreeWidgetItem.__init__(self, treewidget)
+        self.path = path
+        self.setIcon(0, get_icon('python.png'))
+        self.setToolTip(0, path)
+        
+    def set_text(self, fullpath):
+        self.setText(0, self.path if fullpath else osp.basename(self.path))
+        
 class TreeItem(QTreeWidgetItem):
     """Class browser item base class"""
-    def __init__(self, name, line, parent):
-        QTreeWidgetItem.__init__(self, parent, [name])
+    def __init__(self, name, line, parent, preceding):
+        if preceding is None:
+            QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
+        else:
+            if preceding is not parent:
+                # Preceding must be either the same as item's parent
+                # or have the same parent as item
+                while preceding.parent() is not parent:
+                    preceding = preceding.parent()
+            QTreeWidgetItem.__init__(self, parent, preceding,
+                                     QTreeWidgetItem.Type)
+        self.setText(0, name)
         self.line = line
         
     def set_icon(self, icon_name):
@@ -116,11 +137,12 @@ class TreeItem(QTreeWidgetItem):
 class ClassItem(TreeItem):
     def setup(self):
         self.set_icon('class.png')
-        self.setToolTip(0, translate("ClassBrowser", "Go to class definition"))
+        self.setToolTip(0, translate("ClassBrowser",
+                             "Class defined at line %1").arg(str(self.line)))
 
 class FunctionItem(TreeItem):
-    def __init__(self, name, line, parent):
-        super(FunctionItem, self).__init__(name, line, parent)
+    def __init__(self, name, line, parent, preceding):
+        super(FunctionItem, self).__init__(name, line, parent, preceding)
         self.decorator = None
         
     def set_decorator(self, decorator):
@@ -132,7 +154,7 @@ class FunctionItem(TreeItem):
     def setup(self):
         if self.is_method():
             self.setToolTip(0, translate("ClassBrowser",
-                                         "Go to method definition"))
+                             "Method defined at line %1").arg(str(self.line)))
             if self.decorator is not None:
                 self.set_icon('decorator.png')
             else:
@@ -146,54 +168,203 @@ class FunctionItem(TreeItem):
         else:
             self.set_icon('function.png')
             self.setToolTip(0, translate("ClassBrowser",
-                                         "Go to function definition"))
+                             "Function defined at line %1").arg(str(self.line)))
 
 
-class ClassBrowser(OneColumnTree):
-    def __init__(self, parent):
+def get_item_children(item):
+    children = [item.child(index) for index in range(item.childCount())]
+    for child in children[:]:
+        others = get_item_children(child)
+        if others is not None:
+            children += others
+    return sorted(children, key=lambda child: child.line)
+
+def item_at_line(root_item, line):
+    previous_item = root_item
+    for item in get_item_children(root_item):
+        if item.line > line:
+            return previous_item
+        previous_item = item
+
+
+class ClassBrowserTreeWidget(OneColumnTree):
+    def __init__(self, parent, fullpath=False):
+        self.fullpath = fullpath
         OneColumnTree.__init__(self, parent)
-        title = translate("ClassBrowser", "Classes and functions")
-        self.setWindowTitle(title)
-        self.set_title(title)
-        self.editor = None
-        self.settings = {} # Class browser settings cache
+        self.editors = {}
+        self.current_editor = None
+        self.update_title()
+
+    def get_actions_from_items(self, items):
+        """Reimplemented OneColumnTree method"""
+        fromcursor_act = create_action(self,
+                        text=translate('ClassBrowser', 'Go to cursor position'),
+                        icon=get_icon('fromcursor.png'),
+                        triggered=self.go_to_cursor_position)
+        fullpath_act = create_action(self,
+                        text=translate('ClassBrowser', 'Show absolute path'),
+                        toggled=self.toggle_fullpath_mode)
+        fullpath_act.setChecked(self.fullpath)
+        actions = [fullpath_act, fromcursor_act]
+        return actions
+    
+    def toggle_fullpath_mode(self, state):
+        self.fullpath = state
+        for index in range(self.topLevelItemCount()):
+            self.topLevelItem(index).set_text(fullpath=self.fullpath)
+        
+    def go_to_cursor_position(self):
+        if self.current_editor is None:
+            return
+        line = self.current_editor.get_cursor_line_number()
+        root_item = self.editors[self.current_editor]
+        item = item_at_line(root_item, line)
+        self.setCurrentItem(item)
+        self.scrollToItem(item)
                 
     def clear(self):
         """Reimplemented Qt method"""
         self.set_title('')
         OneColumnTree.clear(self)
         
-    def set_editor(self, editor, fname):
+    def update_title(self):
+        nb = len(self.editors)
+        if nb > 1:
+            text = translate("ClassBrowser", "opened files")
+        else:
+            text = translate("ClassBrowser", "opened file")
+        title = "%d %s" % (nb, text)
+        self.set_title(title)
+        self.setWindowTitle(title)
+        
+    def set_current_editor(self, editor, fname, update):
         """Bind editor instance"""
-        if self.editor is not None:
-            self.settings[self.editor] = (self.horizontalScrollBar().value(),
-                                          self.verticalScrollBar().value())
-        self.editor = editor
-        self.clear()
-        self.set_title(osp.basename(fname))
-        self.populate()
-        self.resizeColumnToContents(0)
-        self.expandAll()
-        if self.editor in self.settings:
-            hor, ver = self.settings[self.editor]
-            self.horizontalScrollBar().setValue(hor)
-            self.verticalScrollBar().setValue(ver)
+        if editor in self.editors:
+            item = self.editors[editor]
+            self.scrollToItem(item)
+            self.root_item_selected(item)
+            if update:
+                editor.populate_classbrowser(item)
+        else:
+            self.editors[editor] = self.populate(editor, fname)
+            self.update_title()
+            self.resizeColumnToContents(0)
+        self.current_editor = editor
         
     def remove_editor(self, editor):
-        """Remove editor from class browser settings cache"""
-        if editor in self.settings:
-            self.settings.pop(editor)
+        if editor in self.editors:
+            if self.current_editor is editor:
+                self.current_editor = None
+            root_item = self.editors.pop(editor)
+            self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
         
-    def populate(self):
+    def __sort_toplevel_items(self):
+        items = sorted([self.takeTopLevelItem(0)
+                        for index in range(self.topLevelItemCount())],
+                       key=lambda item: item.path.lower())
+        for index, item in enumerate(items):
+            self.insertTopLevelItem(index, item)
+        
+    def populate(self, editor, fname):
         """Populate tree"""
 #        import time
 #        t0 = time.time()
-        self.editor.populate_classbrowser(self)
+        root_item = FileRootItem(fname, self)
+        root_item.set_text(fullpath=self.fullpath)
+        editor.populate_classbrowser(root_item)
+        self.__sort_toplevel_items()
+        self.expandItem(root_item)
 #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
+        return root_item
 
+    def root_item_selected(self, item):
+        """Root item has been selected: expanding it and collapsing others"""
+        for index in range(self.topLevelItemCount()):
+            root_item = self.topLevelItem(index)
+            if root_item is item:
+                self.expandItem(root_item)
+            else:
+                self.collapseItem(root_item)
+                
+    def restore(self):
+        if self.current_editor is not None:
+            self.collapseAll()
+            self.root_item_selected(self.editors[self.current_editor])
+
+    def clicked(self, item):
+        """Click event"""
+        if isinstance(item, FileRootItem):
+            self.root_item_selected(item)
+        self.activated(item)
+
+    def get_root_item(self, item):
+        root_item = item
+        while isinstance(root_item.parent(), QTreeWidgetItem):
+            root_item = root_item.parent()
+        return root_item
+                
     def activated(self, item):
-        """Double-click or click event"""
-        self.emit(SIGNAL('go_to_line(int)'), item.line)
+        """Double-click event"""
+        line = 0
+        if isinstance(item, TreeItem):
+            line = item.line
+        root_item = self.get_root_item(item)
+        self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
+                           root_item.path, line, True)
+        for editor, i_item in self.editors.iteritems():
+            if i_item is root_item:
+                self.current_editor = editor
+                break
+    
+#TODO: Add an option to show/hide code analysis results
+#TODO: Add an option to show/hide TODOs, FIXMEs and XXXs
+class ClassBrowser(QWidget):
+    """
+    Class browser
+    
+    Signals:
+        SIGNAL("edit_goto(QString,int,bool)")
+    """
+    def __init__(self, parent=None, fullpath=True):
+        QWidget.__init__(self, parent)
+        
+        self.treewidget = ClassBrowserTreeWidget(self, fullpath=fullpath)
+
+        btn_layout = QHBoxLayout()
+        btn_layout.setAlignment(Qt.AlignRight)
+        for btn in self.setup_buttons():
+            btn_layout.addWidget(btn)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.treewidget)
+        layout.addLayout(btn_layout)
+        self.setLayout(layout)
+        
+    def setup_buttons(self):
+        fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
+                             tip=translate('ClassBrowser',
+                                           'Go to cursor position'),
+                             triggered=self.treewidget.go_to_cursor_position)
+        collapse_btn = create_toolbutton(self, get_icon("collapse.png"),
+                             tip=translate('ClassBrowser', "Collapse all"),
+                             triggered=self.treewidget.collapseAll)
+        expand_btn = create_toolbutton(self, get_icon("expand.png"),
+                             tip=translate('ClassBrowser', "Expand all"),
+                             triggered=self.treewidget.expandAll)
+        restore_btn = create_toolbutton(self, get_icon("restore.png"),
+                             tip=translate('ClassBrowser',
+                                           "Restore original tree layout"),
+                             triggered=self.treewidget.restore)
+        return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
+        
+    def set_current_editor(self, editor, fname, update):
+        self.treewidget.set_current_editor(editor, fname, update)
+        
+    def remove_editor(self, editor):
+        self.treewidget.remove_editor(editor)
+        
+    def get_fullpath_state(self):
+        return self.treewidget.fullpath
 
 
 #===============================================================================
@@ -257,6 +428,7 @@ class QsciEditor(TextEditBaseWidget):
 
         self.supported_language = None
         self.classfunc_match = None
+        self.__classbrowser_cache = None
         self.comment_string = None
 
         # Code analysis markers: errors, warnings
@@ -368,21 +540,33 @@ class QsciEditor(TextEditBaseWidget):
     def is_python(self):
         return isinstance(self.lexer(), PythonLexer)
         
-    def populate_classbrowser(self, treewidget):
+    def __remove_from_classbrowser_cache(self, line):
+        citem, _clevel = self.__classbrowser_cache.pop(line)
+        citem.parent().removeChild(citem)
+        
+    def populate_classbrowser(self, root_item):
         """Populate classes and functions browser (tree widget)"""
+        if self.__classbrowser_cache is None:
+            self.__classbrowser_cache = {}
+            
         line = -1
-        ancestors = [(treewidget, 0)]
+        ancestors = [(root_item, 0)]
         previous_item = None
         previous_level = None
         while line < self.lines():
             line += 1
             level = self.get_fold_level(line)
             if level is not None:
+                # Searching for class/function statements
                 text = unicode(self.text(line))
+                citem, clevel = self.__classbrowser_cache.get(line+1,
+                                                              (None, None))
                 class_name = self.classfunc_match.get_class_name(text)
                 if class_name is None:
                     func_name = self.classfunc_match.get_function_name(text)
                     if func_name is None:
+                        if citem is not None:
+                            self.__remove_from_classbrowser_cache(line+1)
                         continue
                     
                 if previous_level is not None:
@@ -395,16 +579,40 @@ class QsciEditor(TextEditBaseWidget):
                             ancestors.pop(-1)
                             _item, previous_level = ancestors[-1]
                 parent, _level = ancestors[-1]
+                
+                if citem is not None:
+                    try:
+                        cname = unicode(citem.text(0))
+                    except:
+                        self.__classbrowser_cache.pop(line+1)
+                        citem, clevel = None, None
                     
                 if class_name is not None:
-                    item = ClassItem(class_name, line+1, parent)
+                    if citem is not None:
+                        if class_name == cname and level == clevel:
+                            previous_level = clevel
+                            previous_item = citem
+                            continue
+                        else:
+                            self.__remove_from_classbrowser_cache(line+1)
+                    item = ClassItem(class_name, line+1,
+                                     parent, previous_item)
                 else:
-                    item = FunctionItem(func_name, line+1, parent)
+                    if citem is not None:
+                        if func_name == cname and level == clevel:
+                            previous_level = clevel
+                            previous_item = citem
+                            continue
+                        else:
+                            self.__remove_from_classbrowser_cache(line+1)
+                    item = FunctionItem(func_name, line+1,
+                                        parent, previous_item)
                     if item.is_method() and line > 0:
                         text = unicode(self.text(line-1))
                         decorator = self.classfunc_match.get_decorator(text)
                         item.set_decorator(decorator)
                 item.setup()
+                self.__classbrowser_cache[line+1] = (item, level)
                 previous_level = level
                 previous_item = item
         
@@ -1188,6 +1396,7 @@ class TestEditor(QsciEditor):
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
         self.set_font(QFont("Courier New", 10))
+        self.setup_margins(True, True, True)
 
 class TestWidget(QSplitter):
     def __init__(self, parent):
@@ -1196,14 +1405,14 @@ class TestWidget(QSplitter):
         self.addWidget(self.editor)
         self.classtree = ClassBrowser(self)
         self.addWidget(self.classtree)
-        self.connect(self.classtree, SIGNAL("go_to_line(int)"),
-                     self.editor.highlight_line)
+        self.connect(self.classtree, SIGNAL("edit_goto(QString,int,bool)"),
+                     lambda _fn, line, _h: self.editor.highlight_line(line))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         
     def load(self, filename):
         self.editor.load(filename)
-        self.classtree.set_editor(self.editor, filename)
+        self.classtree.set_current_editor(self.editor, filename, False)
         
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
@@ -1213,6 +1422,10 @@ def test(fname):
     win.load(fname)
     win.resize(800, 800)
     win.editor.set_found_lines([6, 8, 10])
+    
+    analysis_results = check(fname)
+    win.editor.process_code_analysis(analysis_results)
+    
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

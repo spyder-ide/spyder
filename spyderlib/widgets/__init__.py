@@ -28,12 +28,17 @@ class OneColumnTree(QTreeWidget):
         self.setColumnCount(1)
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
                      self.activated)
+        self.connect(self, SIGNAL('itemClicked(QTreeWidgetItem*,int)'),
+                     self.clicked)
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
                      
     def activated(self):
         raise NotImplementedError
+        
+    def clicked(self):
+        pass
                      
     def set_title(self, title):
         self.setHeaderLabels([title])
