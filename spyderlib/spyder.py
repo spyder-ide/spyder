@@ -562,6 +562,9 @@ class MainWindow(QMainWindow):
                 self.connect(self.projectexplorer,
                              SIGNAL("import_data(QString)"),
                              self.workspace.import_data)
+                self.connect(self.projectexplorer,
+                             SIGNAL("open_terminal(QString)"),
+                             self.open_terminal)
                 self.add_dockwidget(self.projectexplorer)
                 
             # Pylint widget

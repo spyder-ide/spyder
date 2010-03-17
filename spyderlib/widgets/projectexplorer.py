@@ -461,11 +461,11 @@ class ExplorerTreeWidget(OneColumnTree):
             add_actions(new_act_menu, (new_project_act, None,
                                        new_file_act, new_folder_act, None,
                                        new_module_act, new_package_act))
-            actions = [new_act_menu, None]
+            actions = [new_act_menu]
         else:
             new_project_act.setText(translate('ProjectExplorer',
                                               'New project...'))
-            actions = [new_project_act, None]
+            actions = [new_project_act]
         
         import_spyder_act = create_action(self,
                             text=translate('ProjectExplorer',
@@ -534,11 +534,26 @@ class ExplorerTreeWidget(OneColumnTree):
                             text=translate('ProjectExplorer', 'Properties'),
                             icon=get_icon('advanced.png'),
                             triggered=lambda: self.show_properties(items))
+        
+        if os.name == 'nt':
+            winexp_act = create_action(self,
+                            text=translate('ProjectExplorer',
+                                           "Open in Windows Explorer"),
+                            icon="magnifier.png",
+                            triggered=lambda: self.open_windows_explorer(items))
+            _title = translate('Explorer', "Open command prompt here")
+        else:
+            winexp_act = None
+            _title = translate('Explorer', "Open terminal here")
+        terminal_act = create_action(self, text=_title, icon="cmdprompt.png",
+                            triggered=lambda: self.open_terminal(items))
+        
         if only_folders:
             if any_folder_not_in_path:
                 actions += [add_to_path_act]
             if any_folder_in_path:
                 actions += [remove_from_path_act]
+            actions += [None, winexp_act, terminal_act]
         actions += [None, properties_act]
         
         return actions
@@ -1094,6 +1109,14 @@ class ExplorerTreeWidget(OneColumnTree):
                                           "<b>%1</b> files.<br>"
                                           "<b>%2</b> lines of code.") \
                                 .arg(str(files)).arg(str(lines)))
+        
+    def open_windows_explorer(self, items):
+        for path in sorted([get_item_path(_it) for _it in items]):
+            os.startfile(path)
+        
+    def open_terminal(self, items):
+        for path in sorted([get_item_path(_it) for _it in items]):
+            self.parent_widget.emit(SIGNAL("open_terminal(QString)"), path)
         
     def refresh(self, clear=True):
 #        if clear:
