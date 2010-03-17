@@ -1921,8 +1921,10 @@ class Editor(PluginWidget):
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
             wdir = osp.dirname(fname)
+            python = True # Note: in the future, it may be useful to run
+            # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, ask_for_arguments,
-                                   interact, debug)
+                                   interact, debug, python)
             self.re_run_extconsole()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -1935,9 +1937,10 @@ class Editor(PluginWidget):
         """Re-run script in external console"""
         if self.__last_ec_exec is None:
             return
-        fname, wdir, ask_for_arguments, interact, debug = self.__last_ec_exec
-        self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool)'),
-                  fname, wdir, ask_for_arguments, interact, debug)
+        (fname, wdir, ask_for_arguments,
+         interact, debug, python) = self.__last_ec_exec
+        self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool,bool)'),
+                  fname, wdir, ask_for_arguments, interact, debug, python)
     
     def run_script(self, set_focus=False):
         """Run current script"""

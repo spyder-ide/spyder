@@ -177,7 +177,11 @@ class ExternalConsole(PluginWidget):
                 name = osp.basename(fname)
                 icon = get_icon('run.png')
         else:
-            name = "Command Window"
+            fname = id(shell)
+            if os.name == 'nt':
+                name = self.tr("Command Window")
+            else:
+                name = self.tr("Terminal")
             icon = get_icon('cmdprompt.png')
         self.shells.insert(index, shell)
         self.filenames.insert(index, fname)
@@ -233,8 +237,8 @@ class ExternalConsole(PluginWidget):
             text = self.tr("Open &command prompt")
             tip = self.tr("Open a Windows command prompt")
         else:
-            text = self.tr("Open &command shell")
-            tip = self.tr("Open a shell window inside Spyder")
+            text = self.tr("Open &terminal")
+            tip = self.tr("Open a terminal window inside Spyder")
         console_action = create_action(self, text, None, 'cmdprompt.png', tip,
                             triggered=self.open_console)
         run_action = create_action(self,

@@ -389,7 +389,7 @@ class MainWindow(QMainWindow):
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                          self.workdir.chdir)
             self.connect(self.editor,
-                         SIGNAL("open_external_console(QString,QString,bool,bool,bool)"),
+                         SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
                          self.open_external_console)
             self.connect(self.editor,
                          SIGNAL('external_console_execute_lines(QString)'),
@@ -492,10 +492,12 @@ class MainWindow(QMainWindow):
                 self.connect(self.explorer, SIGNAL("import_data(QString)"),
                              self.workspace.import_data)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
-                             lambda fname: \
+                             lambda fname:
                              self.open_external_console(unicode(fname),
                                                 osp.dirname(unicode(fname)),
-                                                False, False, False))
+                                                False, False, False, True))
+                self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
+                             self.open_terminal)
                 # Signal "refresh_explorer()" will eventually force the
                 # explorer to change the opened directory:
                 self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
@@ -1131,12 +1133,16 @@ class MainWindow(QMainWindow):
             self.console.shell.restore_stds()
         
     def open_external_console(self, fname, wdir,
-                              ask_for_arguments, interact, debug):
+                              ask_for_arguments, interact, debug, python):
         """Open external console"""
         self.extconsole.setVisible(True)
         self.extconsole.raise_()
         self.extconsole.start(unicode(fname), wdir,
-                              ask_for_arguments, interact, debug)
+                              ask_for_arguments, interact, debug, python)
+        
+    def open_terminal(self, path):
+        """Open terminal in external console"""
+        self.open_external_console(None, path, False, False, False, False)
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external console"""

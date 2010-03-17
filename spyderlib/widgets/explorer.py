@@ -250,11 +250,17 @@ class ExplorerTreeWidget(DirView):
                            translate('Explorer', "Open in Windows Explorer"),
                            icon="magnifier.png",
                            triggered=self.startfile) )
-        if os.name == 'nt':
-            actions.append( create_action(self,
-                       translate('Explorer', "Open command prompt here"),
-                       icon="cmdprompt.png",
-                       triggered=lambda cmd='cmd.exe': os.startfile(cmd)) )
+            if is_dir:
+                if os.name == 'nt':
+                    _title = translate('Explorer', "Open command prompt here")
+                else:
+                    _title = translate('Explorer', "Open terminal here")
+                actions.append( create_action(self,
+                                   _title, icon="cmdprompt.png",
+                                   triggered=lambda dirname=fname:
+                                             self.parent_widget.emit(
+                                             SIGNAL("open_terminal(QString)"),
+                                             dirname)) )
         if actions:
             actions.append(None)
         actions += self.common_actions
