@@ -432,7 +432,7 @@ class QsciEditor(TextEditBaseWidget):
 
         self.supported_language = None
         self.classfunc_match = None
-        self.__classbrowser_cache = None
+        self.__tree_cache = None
         self.comment_string = None
 
         # Code analysis markers: errors, warnings
@@ -544,15 +544,20 @@ class QsciEditor(TextEditBaseWidget):
     def is_python(self):
         return isinstance(self.lexer(), PythonLexer)
         
-    def __remove_from_classbrowser_cache(self, line):
-        citem, _clevel = self.__classbrowser_cache.pop(line)
+    def __remove_from_tree_cache(self, line):
+        citem, _clevel = self.__tree_cache.pop(line)
         citem.parent().removeChild(citem)
         
     def populate_classbrowser(self, root_item):
         """Populate classes and functions browser (tree widget)"""
-        if self.__classbrowser_cache is None:
-            self.__classbrowser_cache = {}
-            
+        if self.__tree_cache is None:
+            self.__tree_cache = {}
+        
+        # Removing cached items for which line is > total line nb
+        to_be_removed = [_l for _l in self.__tree_cache if _l >= self.lines()]
+        for _l in to_be_removed:
+            self.__remove_from_tree_cache(_l)
+        
         line = -1
         ancestors = [(root_item, 0)]
         previous_item = None
@@ -560,17 +565,16 @@ class QsciEditor(TextEditBaseWidget):
         while line < self.lines():
             line += 1
             level = self.get_fold_level(line)
-            if level is not None:
+            citem, clevel = self.__tree_cache.get(line, (None, None))
+            if level is None and citem is not None:
+                self.__remove_from_tree_cache(line)
+            else:
                 # Searching for class/function statements
                 text = unicode(self.text(line))
-                citem, clevel = self.__classbrowser_cache.get(line+1,
-                                                              (None, None))
                 class_name = self.classfunc_match.get_class_name(text)
                 if class_name is None:
                     func_name = self.classfunc_match.get_function_name(text)
                     if func_name is None:
-                        if citem is not None:
-                            self.__remove_from_classbrowser_cache(line+1)
                         continue
                     
                 if previous_level is not None:
@@ -588,7 +592,7 @@ class QsciEditor(TextEditBaseWidget):
                     try:
                         cname = unicode(citem.text(0))
                     except:
-                        self.__classbrowser_cache.pop(line+1)
+                        self.__tree_cache.pop(line)
                         citem, clevel = None, None
                     
                 if class_name is not None:
@@ -598,7 +602,7 @@ class QsciEditor(TextEditBaseWidget):
                             previous_item = citem
                             continue
                         else:
-                            self.__remove_from_classbrowser_cache(line+1)
+                            self.__remove_from_tree_cache(line)
                     item = ClassItem(class_name, line+1,
                                      parent, previous_item)
                 else:
@@ -608,7 +612,7 @@ class QsciEditor(TextEditBaseWidget):
                             previous_item = citem
                             continue
                         else:
-                            self.__remove_from_classbrowser_cache(line+1)
+                            self.__remove_from_tree_cache(line)
                     item = FunctionItem(func_name, line+1,
                                         parent, previous_item)
                     if item.is_method() and line > 0:
@@ -616,7 +620,7 @@ class QsciEditor(TextEditBaseWidget):
                         decorator = self.classfunc_match.get_decorator(text)
                         item.set_decorator(decorator)
                 item.setup()
-                self.__classbrowser_cache[line+1] = (item, level)
+                self.__tree_cache[line] = (item, level)
                 previous_level = level
                 previous_item = item
         
