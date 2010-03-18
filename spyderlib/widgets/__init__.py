@@ -15,7 +15,7 @@ They are also used in Spyder through the Plugin interface
 """
 
 from PyQt4.QtGui import QTreeWidget, QMenu
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
 from spyderlib.config import get_icon
@@ -33,6 +33,8 @@ class OneColumnTree(QTreeWidget):
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
+        
+        self.__expanded_state = None
                      
     def activated(self):
         raise NotImplementedError
@@ -68,6 +70,51 @@ class OneColumnTree(QTreeWidget):
         # Right here: add other actions if necessary
         # (reimplement this method)
         return []
+    
+    def get_top_level_items(self):
+        """Iterate over top level items"""
+        return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
+    
+    def get_items(self):
+        """Return items (excluding top level items)"""
+        itemlist = []
+        def add_to_itemlist(item):
+            for index in range(item.childCount()):
+                citem = item.child(index)
+                itemlist.append(citem)
+                add_to_itemlist(citem)
+        for tlitem in self.get_top_level_items():
+            add_to_itemlist(tlitem)
+        return itemlist
+    
+    def save_expanded_state(self):
+        """Save all items expanded state"""
+        self.__expanded_state = {}
+        def add_to_state(item):
+            for index in range(item.childCount()):
+                citem = item.child(index)
+                self.__expanded_state[id(citem)] = citem.isExpanded()
+                add_to_state(citem)
+        for tlitem in self.get_top_level_items():
+            add_to_state(tlitem)
+    
+    def restore_expanded_state(self):
+        """Restore all items expanded state"""
+        if self.__expanded_state is None:
+            return
+        for item in self.get_items():
+            is_expanded = self.__expanded_state.get(id(item))
+            if is_expanded is not None:
+                item.setExpanded(is_expanded)
+
+    def sort_top_level_items(self, key):
+        """Sorting tree wrt top level items"""
+        self.save_expanded_state()
+        items = sorted([self.takeTopLevelItem(0)
+                        for index in range(self.topLevelItemCount())], key=key)
+        for index, item in enumerate(items):
+            self.insertTopLevelItem(index, item)
+        self.restore_expanded_state()
                      
     def contextMenuEvent(self, event):
         """Override Qt method"""

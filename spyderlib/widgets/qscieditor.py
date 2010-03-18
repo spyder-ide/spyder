@@ -261,11 +261,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
             self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
         
     def __sort_toplevel_items(self):
-        items = sorted([self.takeTopLevelItem(0)
-                        for index in range(self.topLevelItemCount())],
-                       key=lambda item: item.path.lower())
-        for index, item in enumerate(items):
-            self.insertTopLevelItem(index, item)
+        self.sort_top_level_items(key=lambda item: item.path.lower())
         
     def populate(self, editor, fname):
         """Populate tree"""

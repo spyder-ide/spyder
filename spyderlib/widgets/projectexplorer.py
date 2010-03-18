@@ -667,11 +667,7 @@ class ExplorerTreeWidget(OneColumnTree):
         self.set_title(title)
         
     def __sort_toplevel_items(self):
-        items = sorted([self.takeTopLevelItem(0)
-                        for index in range(self.topLevelItemCount())],
-                       key=lambda item: item.text(0).toLower())
-        for index, item in enumerate(items):
-            self.insertTopLevelItem(index, item)
+        self.sort_top_level_items(key=lambda item: item.text(0).toLower())
         
     def add_project(self, root_path, silent=False):
         if self.is_project_already_here(root_path, silent=silent):
