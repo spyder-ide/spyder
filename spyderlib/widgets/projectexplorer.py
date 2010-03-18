@@ -9,7 +9,7 @@
 from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QMenu,
                          QWidget, QTreeWidgetItem, QFileIconProvider,
                          QMessageBox, QInputDialog, QLineEdit, QFileDialog)
-from PyQt4.QtCore import (Qt, SIGNAL, QVariant, QFileInfo, QFileSystemWatcher,
+from PyQt4.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
                           QUrl)
 
 import os, sys, re, shutil, cPickle
@@ -21,7 +21,9 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import count_lines
 from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
-                                       create_toolbutton, add_actions)
+                                       create_toolbutton, add_actions,
+                                       set_item_user_text)
+from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
 from spyderlib.config import get_icon, get_image_path
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
@@ -88,10 +90,6 @@ def get_dir_icon(dirname, opened=False, pythonpath=False, root=False):
             return get_icon(prefix+'folder_collapsed.png')
             
 
-def get_item_path(item):
-    """Return path associated to tree widget *item*"""
-    return unicode(item.data(0, Qt.UserRole).toString())
-    
 class Project(object):
     """Spyder project"""
     CONFIG_NAME = '.spyderproject'
@@ -213,7 +211,7 @@ class Project(object):
         else:
             item.setText(0, osp.basename(dirname))
             item.setFlags(flags|Qt.ItemIsDragEnabled)
-        item.setData(0, Qt.UserRole, QVariant(dirname))
+        set_item_user_text(item, dirname)
         in_path = dirname in self.pythonpath
         item.setIcon(0, get_dir_icon(dirname, opened=False, pythonpath=in_path,
                                      root=is_root))
@@ -235,7 +233,7 @@ class Project(object):
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsUserCheckable|
                       Qt.ItemIsEnabled|Qt.ItemIsDragEnabled)
         item.setText(0, displayed_name)
-        item.setData(0, Qt.UserRole, QVariant(filename))
+        set_item_user_text(item, filename)
         item.setIcon(0, self.get_file_icon(filename))
         self.items[filename] = item
         return item

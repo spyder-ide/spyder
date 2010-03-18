@@ -83,13 +83,27 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
         self.treewidget.setFont(font)
         
     def save_config(self):
-        """Save configuration: opened projects"""
+        """Save configuration: opened projects & tree widget state"""
         data = self.get_project_config()
         cPickle.dump(data, file(self.DATAPATH, 'w'))
+        CONF.set(self.ID, 'expanded_state',
+                 self.treewidget.get_expanded_state())
+        CONF.set(self.ID, 'scrollbar_position',
+                 self.treewidget.get_scrollbar_position())
         
     def load_config(self):
+        """Load configuration: opened projects & tree widget state"""
         data = cPickle.load(file(self.DATAPATH))
         self.set_project_config(data)
+        expanded_state = CONF.get(self.ID, 'expanded_state', None)
+        if expanded_state is not None:
+            self.treewidget.set_expanded_state(expanded_state)
+        
+    def restore_scrollbar_position(self):
+        """Restoring scrollbar position after main window is visible"""
+        scrollbar_pos = CONF.get(self.ID, 'scrollbar_position', None)
+        if scrollbar_pos is not None:
+            self.treewidget.set_scrollbar_position(scrollbar_pos)
         
     def set_editor_valid_types(self, valid_types):
         self.editor_valid_types = valid_types

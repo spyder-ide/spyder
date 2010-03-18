@@ -185,6 +185,16 @@ def add_actions(target, actions, insert_before=None):
                 target.insertAction(insert_before, action)
         previous_action = action
 
+
+def get_item_user_text(item):
+    """Get QTreeWidgetItem user role string"""
+    return unicode(item.data(0, Qt.UserRole).toString())
+
+def set_item_user_text(item, text):
+    """Set QTreeWidgetItem user role string"""
+    item.setData(0, Qt.UserRole, QVariant(text))
+
+
 def add_bookmark(parent, menu, url, title, icon=None, shortcut=None):
     """Add bookmark to a menu"""
     if icon is None:

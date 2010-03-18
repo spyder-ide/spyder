@@ -382,6 +382,8 @@ class MainWindow(QMainWindow):
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
             self.editor = Editor(self, ignore_last_opened_files=self.reset)
+            self.connect(self, SIGNAL('restore_scrollbar_position()'),
+                         self.editor.restore_scrollbar_position)
             self.connect(self.editor, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.connect(self.console, SIGNAL("edit_goto(QString,int,bool)"),
@@ -544,6 +546,8 @@ class MainWindow(QMainWindow):
                 self.pythonpath_changed()
                 valid_types = self.editor.get_valid_types()
                 self.projectexplorer.set_editor_valid_types(valid_types)
+                self.connect(self, SIGNAL('restore_scrollbar_position()'),
+                             self.projectexplorer.restore_scrollbar_position)
                 self.connect(self.projectexplorer,
                              SIGNAL("pythonpath_changed()"),
                              self.pythonpath_changed)
@@ -1540,6 +1544,7 @@ def run_spyder(app, commands, intitle, message, options):
     main.setup()
     main.show()
     main.give_focus_to_interactive_console()
+    main.emit(SIGNAL('restore_scrollbar_position()'))
     app.exec_()
     return main
 

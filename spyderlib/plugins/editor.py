@@ -1042,7 +1042,18 @@ class Editor(PluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # interactive console
         self.__last_ec_exec = None # external console
-            
+        
+        # Restoring class browser state
+        expanded_state = CONF.get(self.ID, 'class_browser_expanded_state', None)
+        if expanded_state is not None:
+            self.classbrowser.treewidget.set_expanded_state(expanded_state)
+        
+    def restore_scrollbar_position(self):
+        """Restoring scrollbar position after main window is visible"""
+        scrollbar_pos = CONF.get(self.ID,
+                                 'class_browser_scrollbar_position', None)
+        if scrollbar_pos is not None:
+            self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
             
     #------ Plugin API
     def get_widget_title(self):
@@ -1074,6 +1085,10 @@ class Editor(PluginWidget):
         
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        CONF.set(self.ID, 'class_browser_expanded_state',
+                 self.classbrowser.treewidget.get_expanded_state())
+        CONF.set(self.ID, 'class_browser_scrollbar_position',
+                 self.classbrowser.treewidget.get_scrollbar_position())
         CONF.set(self.ID, 'class_browser_fullpath',
                  self.classbrowser.get_fullpath_state())
         state = self.splitter.saveState()

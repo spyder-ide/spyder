@@ -35,7 +35,8 @@ STDOUT = sys.stdout
 # Local import
 from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       translate, create_toolbutton)
+                                       translate, create_toolbutton,
+                                       set_item_user_text)
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.qscibase import TextEditBaseWidget
 from spyderlib.utils import sourcecode
@@ -108,6 +109,7 @@ class FileRootItem(QTreeWidgetItem):
         self.path = path
         self.setIcon(0, get_icon('python.png'))
         self.setToolTip(0, path)
+        set_item_user_text(self, path)
         
     def set_text(self, fullpath):
         self.setText(0, self.path if fullpath else osp.basename(self.path))
@@ -126,6 +128,8 @@ class TreeItem(QTreeWidgetItem):
             QTreeWidgetItem.__init__(self, parent, preceding,
                                      QTreeWidgetItem.Type)
         self.setText(0, name)
+        parent_text = unicode(parent.data(0, Qt.UserRole).toString())
+        set_item_user_text(self, parent_text+'/'+name)
         self.line = line
         
     def set_icon(self, icon_name):

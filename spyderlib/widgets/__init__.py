@@ -15,11 +15,12 @@ They are also used in Spyder through the Plugin interface
 """
 
 from PyQt4.QtGui import QTreeWidget, QMenu
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL, Qt, QVariant
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import create_action, add_actions, translate
+from spyderlib.utils.qthelpers import (create_action, add_actions, translate,
+                                       get_item_user_text)
 
 class OneColumnTree(QTreeWidget):
     def __init__(self, parent):
@@ -87,13 +88,31 @@ class OneColumnTree(QTreeWidget):
             add_to_itemlist(tlitem)
         return itemlist
     
+    def get_scrollbar_position(self):
+        return (self.horizontalScrollBar().value(),
+                self.verticalScrollBar().value())
+        
+    def set_scrollbar_position(self, position):
+        hor, ver = position
+        self.horizontalScrollBar().setValue(hor)
+        self.verticalScrollBar().setValue(ver)
+        
+    def get_expanded_state(self):
+        self.save_expanded_state()
+        return self.__expanded_state
+    
+    def set_expanded_state(self, state):
+        self.__expanded_state = state
+        self.restore_expanded_state()
+    
     def save_expanded_state(self):
         """Save all items expanded state"""
         self.__expanded_state = {}
         def add_to_state(item):
             for index in range(item.childCount()):
                 citem = item.child(index)
-                self.__expanded_state[id(citem)] = citem.isExpanded()
+                user_text = get_item_user_text(citem)
+                self.__expanded_state[user_text] = citem.isExpanded()
                 add_to_state(citem)
         for tlitem in self.get_top_level_items():
             add_to_state(tlitem)
@@ -103,7 +122,8 @@ class OneColumnTree(QTreeWidget):
         if self.__expanded_state is None:
             return
         for item in self.get_items():
-            is_expanded = self.__expanded_state.get(id(item))
+            user_text = get_item_user_text(item)
+            is_expanded = self.__expanded_state.get(user_text)
             if is_expanded is not None:
                 item.setExpanded(is_expanded)
 
