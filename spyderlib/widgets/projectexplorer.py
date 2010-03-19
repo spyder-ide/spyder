@@ -855,6 +855,7 @@ class ExplorerTreeWidget(OneColumnTree):
                     project.set_name(name)
                     project.set_related_projects(related_projects)
                     project.set_pythonpath(path)
+                    self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
     
     def __create_new_file(self, item, title, filters, create_func):
         current_path = get_item_path(item)
