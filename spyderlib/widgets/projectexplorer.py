@@ -674,8 +674,10 @@ class ExplorerTreeWidget(OneColumnTree):
         project.load()
         self.projects.append(project)
         self.__update_title()
+        self.save_expanded_state()
         project.populate_tree(self, self.include, self.exclude, self.show_all)
         project.refresh(self, self.include, self.exclude, self.show_all)
+        self.restore_expanded_state()
         self.__sort_toplevel_items()
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         return project
