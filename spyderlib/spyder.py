@@ -500,6 +500,8 @@ class MainWindow(QMainWindow):
                                                 False, False, False, True))
                 self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
                              self.open_terminal)
+                self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
+                             self.open_interpreter)
                 # Signal "refresh_explorer()" will eventually force the
                 # explorer to change the opened directory:
                 self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
@@ -569,6 +571,9 @@ class MainWindow(QMainWindow):
                 self.connect(self.projectexplorer,
                              SIGNAL("open_terminal(QString)"),
                              self.open_terminal)
+                self.connect(self.projectexplorer,
+                             SIGNAL("open_interpreter(QString)"),
+                             self.open_interpreter)
                 self.add_dockwidget(self.projectexplorer)
                 
             # Pylint widget
@@ -1144,12 +1149,20 @@ class MainWindow(QMainWindow):
         """Open external console"""
         self.extconsole.setVisible(True)
         self.extconsole.raise_()
-        self.extconsole.start(unicode(fname), wdir,
+        if fname is not None:
+            fname = unicode(fname)
+        self.extconsole.start(fname, wdir,
                               ask_for_arguments, interact, debug, python)
         
     def open_terminal(self, path):
         """Open terminal in external console"""
-        self.open_external_console(None, path, False, False, False, False)
+        self.open_external_console(None, unicode(path),
+                                   False, False, False, False)
+        
+    def open_interpreter(self, path):
+        """Open interpreter in external console"""
+        self.open_external_console(None, unicode(path),
+                                   False, True, False, True)
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external console"""

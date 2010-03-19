@@ -240,7 +240,7 @@ class ExternalConsole(PluginWidget):
             text = self.tr("Open &terminal")
             tip = self.tr("Open a terminal window inside Spyder")
         console_action = create_action(self, text, None, 'cmdprompt.png', tip,
-                            triggered=self.open_console)
+                            triggered=self.open_terminal)
         run_action = create_action(self,
                             self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
@@ -279,11 +279,13 @@ class ExternalConsole(PluginWidget):
         
     def open_interpreter(self):
         """Open interpreter"""
-        self.start(None, os.getcwdu(), False, True, False)
+        self.start(None, os.getcwdu(), False,
+                   True, False, python=True)
         
-    def open_console(self):
-        """Open interpreter"""
-        self.start(None, os.getcwdu(), False, True, False, python=False)
+    def open_terminal(self):
+        """Open terminal"""
+        self.start(None, os.getcwdu(), False,
+                   True, False, python=False)
         
     def run_script(self):
         """Run a Python script"""

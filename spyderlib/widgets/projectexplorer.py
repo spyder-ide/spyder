@@ -539,19 +539,22 @@ class ExplorerTreeWidget(OneColumnTree):
                                            "Open in Windows Explorer"),
                             icon="magnifier.png",
                             triggered=lambda: self.open_windows_explorer(items))
-            _title = translate('Explorer', "Open command prompt here")
+            _title = translate('ProjectExplorer', "Open command prompt here")
         else:
             winexp_act = None
-            _title = translate('Explorer', "Open terminal here")
+            _title = translate('ProjectExplorer', "Open terminal here")
         terminal_act = create_action(self, text=_title, icon="cmdprompt.png",
                             triggered=lambda: self.open_terminal(items))
+        _title = translate('ProjectExplorer', "Open Python interpreter here")
+        interpreter_act = create_action(self, text=_title, icon="python.png",
+                            triggered=lambda: self.open_interpreter(items))
         
         if only_folders:
             if any_folder_not_in_path:
                 actions += [add_to_path_act]
             if any_folder_in_path:
                 actions += [remove_from_path_act]
-            actions += [None, winexp_act, terminal_act]
+            actions += [None, winexp_act, terminal_act, interpreter_act]
         actions += [None, properties_act]
         
         return actions
@@ -1114,6 +1117,10 @@ class ExplorerTreeWidget(OneColumnTree):
     def open_terminal(self, items):
         for path in sorted([get_item_path(_it) for _it in items]):
             self.parent_widget.emit(SIGNAL("open_terminal(QString)"), path)
+            
+    def open_interpreter(self, items):
+        for path in sorted([get_item_path(_it) for _it in items]):
+            self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
         
     def refresh(self, clear=True):
 #        if clear:

@@ -243,7 +243,7 @@ class ExplorerTreeWidget(DirView):
                 actions.append(browse_action if is_dir else edit_action)
             else:
                 actions.append(open_action)
-            actions += [delete_action, rename_action]
+            actions += [delete_action, rename_action, None]
             if is_dir and os.name == 'nt':
                 # Actions specific to Windows directories
                 actions.append( create_action(self,
@@ -255,12 +255,17 @@ class ExplorerTreeWidget(DirView):
                     _title = translate('Explorer', "Open command prompt here")
                 else:
                     _title = translate('Explorer', "Open terminal here")
-                actions.append( create_action(self,
-                                   _title, icon="cmdprompt.png",
-                                   triggered=lambda dirname=fname:
-                                             self.parent_widget.emit(
-                                             SIGNAL("open_terminal(QString)"),
-                                             dirname)) )
+                action = create_action(self, _title, icon="cmdprompt.png",
+                                       triggered=lambda _fn=fname:
+                                       self.parent_widget.emit(
+                                       SIGNAL("open_terminal(QString)"), _fn))
+                actions.append(action)
+                _title = translate('Explorer', "Open Python interpreter here")
+                action = create_action(self, _title, icon="python.png",
+                                   triggered=lambda _fn=fname:
+                                   self.parent_widget.emit(
+                                   SIGNAL("open_interpreter(QString)"), _fn))
+                actions.append(action)
         if actions:
             actions.append(None)
         actions += self.common_actions
