@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr">
+<!DOCTYPE TS><TS version="1.1" language="fr">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -107,7 +106,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>ClassBrowser</name>
     <message>
-        <location filename="widgets/classbrowser.py" line="36"/>
+        <location filename="widgets/qscieditor.py" line="201"/>
         <source>Classes and functions</source>
         <translation>Classes et fonctions</translation>
     </message>
@@ -142,37 +141,37 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Fonction déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="357"/>
+        <location filename="widgets/qscieditor.py" line="348"/>
         <source>Go to cursor position</source>
         <translation>Aller à la position du curseur</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="209"/>
+        <location filename="widgets/qscieditor.py" line="211"/>
         <source>Show absolute path</source>
         <translation>Afficher les chemins complets</translation>
     </message>
     <message>
         <location filename="widgets/qscieditor.py" line="238"/>
         <source>opened files</source>
-        <translation>fichiers ouverts</translation>
+        <translation type="obsolete">fichiers ouverts</translation>
     </message>
     <message>
         <location filename="widgets/qscieditor.py" line="240"/>
         <source>opened file</source>
-        <translation>fichier ouvert</translation>
+        <translation type="obsolete">fichier ouvert</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="360"/>
+        <location filename="widgets/qscieditor.py" line="351"/>
         <source>Collapse all</source>
         <translation>Replier tout</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="363"/>
+        <location filename="widgets/qscieditor.py" line="354"/>
         <source>Expand all</source>
         <translation>Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="367"/>
+        <location filename="widgets/qscieditor.py" line="358"/>
         <source>Restore original tree layout</source>
         <translation>Restaurer l&apos;organisation initiale de l&apos;arbre</translation>
     </message>
@@ -3523,7 +3522,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="1047"/>
+        <location filename="widgets/qscieditor.py" line="1037"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
@@ -3584,37 +3583,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qscieditor.py" line="1273"/>
+        <location filename="widgets/qscieditor.py" line="1263"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1277"/>
+        <location filename="widgets/qscieditor.py" line="1267"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1281"/>
+        <location filename="widgets/qscieditor.py" line="1271"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1285"/>
+        <location filename="widgets/qscieditor.py" line="1275"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1289"/>
+        <location filename="widgets/qscieditor.py" line="1279"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1293"/>
+        <location filename="widgets/qscieditor.py" line="1283"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor.py" line="1298"/>
+        <location filename="widgets/qscieditor.py" line="1288"/>
         <source>Select all</source>
         <translation>Sélectionner tout</translation>
     </message>

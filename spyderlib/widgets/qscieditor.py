@@ -198,7 +198,9 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editors = {}
         self.current_editor = None
-        self.update_title()
+        title = translate("ClassBrowser", "Classes and functions")
+        self.set_title(title)
+        self.setWindowTitle(title)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
@@ -232,16 +234,6 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.set_title('')
         OneColumnTree.clear(self)
         
-    def update_title(self):
-        nb = len(self.editors)
-        if nb > 1:
-            text = translate("ClassBrowser", "opened files")
-        else:
-            text = translate("ClassBrowser", "opened file")
-        title = "%d %s" % (nb, text)
-        self.set_title(title)
-        self.setWindowTitle(title)
-        
     def set_current_editor(self, editor, fname, update):
         """Bind editor instance"""
         if editor in self.editors:
@@ -255,7 +247,6 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 self.restore_expanded_state()
         else:
             self.editors[editor] = self.populate(editor, fname)
-            self.update_title()
             self.resizeColumnToContents(0)
         self.current_editor = editor
         
