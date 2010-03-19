@@ -619,6 +619,7 @@ class QsciEditor(TextEditBaseWidget):
             if citem is not None:
                 cname = unicode(citem.text(0))
                 
+            preceding = root_item if previous_item is None else previous_item
             if class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
@@ -627,8 +628,7 @@ class QsciEditor(TextEditBaseWidget):
                         continue
                     else:
                         self.__remove_from_tree_cache(line=line)
-                item = ClassItem(class_name, line+1,
-                                 parent, previous_item)
+                item = ClassItem(class_name, line+1, parent, preceding)
             else:
                 if citem is not None:
                     if func_name == cname and level == clevel:
@@ -637,8 +637,7 @@ class QsciEditor(TextEditBaseWidget):
                         continue
                     else:
                         self.__remove_from_tree_cache(line=line)
-                item = FunctionItem(func_name, line+1,
-                                    parent, previous_item)
+                item = FunctionItem(func_name, line+1, parent, preceding)
                 if item.is_method() and line > 0:
                     text = unicode(self.text(line-1))
                     decorator = self.classfunc_match.get_decorator(text)
