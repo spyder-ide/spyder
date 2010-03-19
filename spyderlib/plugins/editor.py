@@ -81,7 +81,7 @@ class TabInfo(QObject):
         """Code analysis thread has finished"""
         self.analysis_results = self.analysis_thread.get_results()
         self.editor.process_code_analysis(self.analysis_results)
-        self.emit(SIGNAL('refresh_analysis_results()'))
+        self.emit(SIGNAL('analysis_results_changed()'))
 
 class EditorTabWidget(Tabs):
     """Editor tabwidget"""
@@ -243,8 +243,8 @@ class EditorTabWidget(Tabs):
                 # (if it's not the first editortabwidget)
                 self.close_editortabwidget()
             self.emit(SIGNAL('opened_files_list_changed()'))
-            self.emit(SIGNAL('refresh_analysis_results()'))
-            self.__refresh_classbrowser()
+            self.emit(SIGNAL('analysis_results_changed()'))
+            self._refresh_classbrowser()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
     
@@ -342,7 +342,7 @@ class EditorTabWidget(Tabs):
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.modification_changed(index=index)
             self.analyze_script(index)
-            self.__refresh_classbrowser(index)
+            self._refresh_classbrowser(index)
             if refresh_explorer:
                 # Refresh the explorer widget if it exists:
                 self.plugin.emit(SIGNAL("refresh_explorer(QString)"),
@@ -414,7 +414,7 @@ class EditorTabWidget(Tabs):
             if fwidget is finfo.editor:
                 self.refresh()
         
-    def __refresh_classbrowser(self, index=None, update=True):
+    def _refresh_classbrowser(self, index=None, update=True):
         """Refresh class browser panel"""
         if index is None:
             index = self.currentIndex()
@@ -509,8 +509,8 @@ class EditorTabWidget(Tabs):
             editor = finfo.editor
             editor.setFocus()
             plugin_title += " - " + osp.abspath(finfo.filename)
-            self.__refresh_classbrowser(index, update=False)
-            self.emit(SIGNAL('refresh_analysis_results()'))
+            self._refresh_classbrowser(index, update=False)
+            self.emit(SIGNAL('analysis_results_changed()'))
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -604,8 +604,8 @@ class EditorTabWidget(Tabs):
                     break
         editor = QsciEditor(self)
         finfo = TabInfo(fname, enc, editor, new)
-        self.connect(finfo, SIGNAL('refresh_analysis_results()'),
-                     lambda: self.emit(SIGNAL('refresh_analysis_results()')))
+        self.connect(finfo, SIGNAL('analysis_results_changed()'),
+                     lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.data.append(finfo)
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=language,
@@ -647,7 +647,7 @@ class EditorTabWidget(Tabs):
         editor = self.create_new_editor(filename, enc, text)
         index = self.currentIndex()
         self.analyze_script(index)
-        self.__refresh_classbrowser(index)
+        self._refresh_classbrowser(index)
         self.plugin.ending_long_process()
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
            and sourcecode.has_mixed_eol_chars(text):
@@ -955,24 +955,6 @@ class Editor(PluginWidget):
         self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
                      self.load)
         
-        # Analysis results listwidget
-        self.analysislistwidget = QListWidget(self)
-        self.analysislistwidget.setWordWrap(True)
-        self.connect(self.analysislistwidget,
-                     SIGNAL('itemActivated(QListWidgetItem*)'),
-                     self.analysislistwidget_clicked)
-        
-        # Right panel toolbox
-        self.toolbox = QToolBox(self)
-        self.toolbox.addItem(self.classbrowser, get_icon('class_browser.png'),
-                             translate("ClassBrowser", "Classes and functions"))
-        self.toolbox.addItem(self.analysislistwidget,
-                             get_icon('analysis_results.png'),
-                             self.tr('Code analysis'))
-        #TODO: New toolbox item: template list
-        self.connect(self.toolbox, SIGNAL('currentChanged(int)'),
-                     self.toolbox_current_changed)
-        
         self.editortabwidgets = []
         
         # Tabbed editor widget + Find/Replace widget
@@ -986,10 +968,10 @@ class Editor(PluginWidget):
         self.find_widget.hide()
         editor_layout.addWidget(self.find_widget)
 
-        # Splitter: editor widgets (see above) + toolboxes (class browser, ...)
+        # Splitter: editor widgets (see above) + class browser
         self.splitter = QSplitter(self)
         self.splitter.addWidget(editor_widgets)
-        self.splitter.addWidget(self.toolbox)
+        self.splitter.addWidget(self.classbrowser)
         self.splitter.setStretchFactor(0, 5)
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
@@ -1000,9 +982,9 @@ class Editor(PluginWidget):
         if state is not None:
             self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
-        toolbox_state = CONF.get(self.ID, 'toolbox_panel')
-        self.toolbox_action.setChecked(toolbox_state)
-        self.toolbox.setVisible(toolbox_state)
+        _state = CONF.get(self.ID, 'classbrowser_visibility', False)
+        self.classbrowser_action.setChecked(_state)
+        self.classbrowser.setVisible(_state)
         
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
         
@@ -1198,6 +1180,14 @@ class Editor(PluginWidget):
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
         
+        self.warning_list_action = create_action(self,
+            self.tr("Show warning/error list"), icon='wng_list.png',
+            tip=self.tr("Show code analysis warnings/errors"),
+            triggered=self.go_to_next_warning)
+        self.warning_menu = QMenu(self)
+        self.warning_list_action.setMenu(self.warning_menu)
+        self.connect(self.warning_menu, SIGNAL("aboutToShow()"),
+                     self.update_warning_menu)
         self.previous_warning_action = create_action(self,
             self.tr("Previous warning/error"), icon='prev_wng.png',
             tip=self.tr("Go to previous code analysis warning/error"),
@@ -1311,11 +1301,9 @@ class Editor(PluginWidget):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
 
-        self.toolbox_action = create_action(self,
-            self.tr("Lateral panel"), None, 'toolbox.png',
-            tip=self.tr("Editor lateral panel (class browser, "
-                        "opened file list, ...)"),
-            toggled=self.toggle_toolbox)
+        self.classbrowser_action = create_action(self,
+            self.tr("Show/hide class browser"), None, 'class_browser_vis.png',
+            toggled=self.toggle_classbrowser_visibility)
                 
         self.max_recent_action = create_action(self,
             self.tr("Maximum number of recent files..."),
@@ -1340,7 +1328,7 @@ class Editor(PluginWidget):
         add_actions(option_menu, (template_action, font_action, wrap_action,
                                   tab_action, fold_action, checkeol_action,
                                   showeol_action, showws_action,
-                                  analyze_action, self.toolbox_action))
+                                  analyze_action, self.classbrowser_action))
         
         source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
@@ -1355,8 +1343,9 @@ class Editor(PluginWidget):
                 trailingspaces_action, fixindentation_action, None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
-        self.analysis_toolbar_actions = [self.previous_warning_action,
-                self.next_warning_action, self.toolbox_action]
+        self.analysis_toolbar_actions = [self.classbrowser_action,
+                self.warning_list_action, self.previous_warning_action,
+                self.next_warning_action]
         self.run_toolbar_actions = [run_action, run_interact_action,
                 run_selected_action, None, run_process_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
@@ -1382,7 +1371,7 @@ class Editor(PluginWidget):
                 run_action, run_process_action,
                 workdir_action, self.close_action)
         return (source_menu_actions, self.dock_toolbar_actions)        
-        
+    
         
     #------ Focus tabwidget
     def __get_focus_editortabwidget(self):
@@ -1418,8 +1407,8 @@ class Editor(PluginWidget):
                      self.cursorpos_status.cursor_position_changed)
         self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
                      self.opened_files_list_changed)
-        self.connect(editortabwidget, SIGNAL('refresh_analysis_results()'),
-                     self.refresh_analysislistwidget)
+        self.connect(editortabwidget, SIGNAL('analysis_results_changed()'),
+                     self.analysis_results_changed)
         self.connect(editortabwidget,
                      SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
@@ -1548,24 +1537,27 @@ class Editor(PluginWidget):
                                       in editortabwidget.data])
         self.save_all_action.setEnabled(state)
             
-    def refresh_analysislistwidget(self):
-        """Refresh analysislistwidget *and* analysis navigation buttons"""
+    def update_warning_menu(self):
+        """Update warning list menu"""
+        editortabwidget = self.get_current_editortabwidget()
+        check_results = editortabwidget.get_analysis_results()
+        self.warning_menu.clear()
+        for message, line0, error in check_results:
+            text = message[:1].upper()+message[1:]
+            icon = get_icon('error.png' if error else 'warning.png')
+            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l)
+            action = create_action(self, text=text, icon=icon, triggered=slot)
+            self.warning_menu.addAction(action)
+            
+    def analysis_results_changed(self):
+        """Refresh analysis navigation buttons"""
         editortabwidget = self.get_current_editortabwidget()
         check_results = editortabwidget.get_analysis_results()
         state = CONF.get(self.ID, 'code_analysis') \
                 and check_results is not None and len(check_results)
-        self.previous_warning_action.setEnabled(state)
-        self.next_warning_action.setEnabled(state)
-        if self.analysislistwidget.isHidden():
-            return
-        self.analysislistwidget.clear()
-        self.analysislistwidget.setEnabled(state and check_results is not None)
-        if state and check_results:
-            for message, line0, error in check_results:
-                icon = get_icon('error.png' if error else 'warning.png')
-                item = QListWidgetItem(icon, message[:1].upper() + message[1:],
-                                       self.analysislistwidget)
-                item.setData(Qt.UserRole, QVariant(line0-1))
+        for action in (self.warning_list_action, self.previous_warning_action,
+                       self.next_warning_action):
+            action.setEnabled(state)
             
     def refresh_eol_mode(self, eol_chars):
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
@@ -1578,19 +1570,6 @@ class Editor(PluginWidget):
     
     
     #------ Slots
-    def toolbox_current_changed(self, index=None):
-        """Toolbox current index has changed"""
-        if self.classbrowser.isVisible():
-            # Refreshing class browser
-            editortabwidget = self.get_current_editortabwidget()
-            editortabwidget.refresh()
-        elif self.analysislistwidget.isVisible():
-            self.refresh_analysislistwidget()
-
-    def analysislistwidget_clicked(self, item):
-        line, _ok = item.data(Qt.UserRole).toInt()
-        self.get_current_editor().highlight_line(line+1)
-    
     def opened_files_list_changed(self):
         """
         Opened files list has changed:
@@ -2066,8 +2045,11 @@ class Editor(PluginWidget):
             #  last editor instead of showing the one of the current editor)
             current_editortabwidget.analyze_script()
 
-    def toggle_toolbox(self, checked):
-        """Toggle toolbox"""
-        self.toolbox.setVisible(checked)
-        CONF.set(self.ID, 'toolbox_panel', checked)
-        self.toolbox_current_changed() # refreshing class browser (workaround)
+    def toggle_classbrowser_visibility(self, checked):
+        """Toggle class browser"""
+        self.classbrowser.setVisible(checked)
+        CONF.set(self.ID, 'classbrowser_visibility', checked)
+        if checked:
+            self.classbrowser.update()
+            editortabwidget = self.get_current_editortabwidget()
+            editortabwidget._refresh_classbrowser(update=True)

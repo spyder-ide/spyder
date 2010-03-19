@@ -259,6 +259,12 @@ class ClassBrowserTreeWidget(OneColumnTree):
             self.resizeColumnToContents(0)
         self.current_editor = editor
         
+    def update_all(self):
+        self.save_expanded_state()
+        for editor, item in self.editors.iteritems():
+            editor.populate_classbrowser(item)
+        self.restore_expanded_state()
+        
     def remove_editor(self, editor):
         if editor in self.editors:
             if self.current_editor is editor:
@@ -371,6 +377,9 @@ class ClassBrowser(QWidget):
         
     def get_fullpath_state(self):
         return self.treewidget.fullpath
+    
+    def update(self):
+        self.treewidget.update_all()
 
 
 #===============================================================================
