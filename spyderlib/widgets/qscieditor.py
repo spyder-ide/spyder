@@ -250,7 +250,9 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 self.scrollToItem(item)
                 self.root_item_selected(item)
             if update:
+                self.save_expanded_state()
                 editor.populate_classbrowser(item)
+                self.restore_expanded_state()
         else:
             self.editors[editor] = self.populate(editor, fname)
             self.update_title()
@@ -544,9 +546,20 @@ class QsciEditor(TextEditBaseWidget):
     def is_python(self):
         return isinstance(self.lexer(), PythonLexer)
         
-    def __remove_from_tree_cache(self, line):
-        citem, _clevel = self.__tree_cache.pop(line)
-        citem.parent().removeChild(citem)
+    def __remove_from_tree_cache(self, line=None, item=None):
+        if line is None:
+            for line, (_it, _level, _debug) in self.__tree_cache.iteritems():
+                if _it is item:
+                    break
+        item, _level, debug = self.__tree_cache.pop(line)
+        try:
+            for child in [item.child(_i) for _i in range(item.childCount())]:
+                self.__remove_from_tree_cache(item=child)
+            item.parent().removeChild(item)
+        except RuntimeError:
+            # Item has already been deleted
+            #XXX: remove this debug-related fragment of code
+            print >>STDOUT, "unable to remove tree item: ", debug
         
     def populate_classbrowser(self, root_item):
         """Populate classes and functions browser (tree widget)"""
@@ -554,75 +567,80 @@ class QsciEditor(TextEditBaseWidget):
             self.__tree_cache = {}
         
         # Removing cached items for which line is > total line nb
-        to_be_removed = [_l for _l in self.__tree_cache if _l >= self.lines()]
-        for _l in to_be_removed:
-            self.__remove_from_tree_cache(_l)
+        for _l in self.__tree_cache.keys():
+            if _l >= self.lines():
+                self.__remove_from_tree_cache(line=_l)
         
         line = -1
         ancestors = [(root_item, 0)]
         previous_item = None
         previous_level = None
+        
         while line < self.lines():
             line += 1
             level = self.get_fold_level(line)
-            citem, clevel = self.__tree_cache.get(line, (None, None))
+            citem, clevel, _d = self.__tree_cache.get(line, (None, None, ""))
+            
+            # Skip iteration if line is not the first line of a foldable block
             if level is None and citem is not None:
-                self.__remove_from_tree_cache(line)
-            else:
-                # Searching for class/function statements
-                text = unicode(self.text(line))
-                class_name = self.classfunc_match.get_class_name(text)
-                if class_name is None:
-                    func_name = self.classfunc_match.get_function_name(text)
-                    if func_name is None:
-                        continue
-                    
-                if previous_level is not None:
-                    if level == previous_level:
-                        pass
-                    elif level > previous_level:
-                        ancestors.append((previous_item, previous_level))
-                    else:
-                        while len(ancestors) > 1 and level <= previous_level:
-                            ancestors.pop(-1)
-                            _item, previous_level = ancestors[-1]
-                parent, _level = ancestors[-1]
+                self.__remove_from_tree_cache(line=line)
+                continue
+
+            # Searching for class/function statements
+            text = unicode(self.text(line))
+            class_name = self.classfunc_match.get_class_name(text)
+            if class_name is None:
+                func_name = self.classfunc_match.get_function_name(text)
+                if func_name is None:
+                    if citem is not None:
+                        self.__remove_from_tree_cache(line=line)
+                    continue
                 
-                if citem is not None:
-                    try:
-                        cname = unicode(citem.text(0))
-                    except:
-                        self.__tree_cache.pop(line)
-                        citem, clevel = None, None
-                    
-                if class_name is not None:
-                    if citem is not None:
-                        if class_name == cname and level == clevel:
-                            previous_level = clevel
-                            previous_item = citem
-                            continue
-                        else:
-                            self.__remove_from_tree_cache(line)
-                    item = ClassItem(class_name, line+1,
-                                     parent, previous_item)
+            if previous_level is not None:
+                if level == previous_level:
+                    pass
+                elif level > previous_level:
+                    ancestors.append((previous_item, previous_level))
                 else:
-                    if citem is not None:
-                        if func_name == cname and level == clevel:
-                            previous_level = clevel
-                            previous_item = citem
-                            continue
-                        else:
-                            self.__remove_from_tree_cache(line)
-                    item = FunctionItem(func_name, line+1,
-                                        parent, previous_item)
-                    if item.is_method() and line > 0:
-                        text = unicode(self.text(line-1))
-                        decorator = self.classfunc_match.get_decorator(text)
-                        item.set_decorator(decorator)
-                item.setup()
-                self.__tree_cache[line] = (item, level)
-                previous_level = level
-                previous_item = item
+                    while len(ancestors) > 1 and level <= previous_level:
+                        ancestors.pop(-1)
+                        _item, previous_level = ancestors[-1]
+            parent, _level = ancestors[-1]
+            
+            if citem is not None:
+                cname = unicode(citem.text(0))
+                
+            if class_name is not None:
+                if citem is not None:
+                    if class_name == cname and level == clevel:
+                        previous_level = clevel
+                        previous_item = citem
+                        continue
+                    else:
+                        self.__remove_from_tree_cache(line=line)
+                item = ClassItem(class_name, line+1,
+                                 parent, previous_item)
+            else:
+                if citem is not None:
+                    if func_name == cname and level == clevel:
+                        previous_level = clevel
+                        previous_item = citem
+                        continue
+                    else:
+                        self.__remove_from_tree_cache(line=line)
+                item = FunctionItem(func_name, line+1,
+                                    parent, previous_item)
+                if item.is_method() and line > 0:
+                    text = unicode(self.text(line-1))
+                    decorator = self.classfunc_match.get_decorator(text)
+                    item.set_decorator(decorator)
+            item.setup()
+            debug = "%s -- %s/%s" % (str(item.line).rjust(6),
+                                     unicode(item.parent().text(0)),
+                                     unicode(item.text(0)))
+            self.__tree_cache[line] = (item, level, debug)
+            previous_level = level
+            previous_item = item
         
         
 #===============================================================================
