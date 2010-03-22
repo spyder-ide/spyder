@@ -147,12 +147,12 @@ class ExternalConsole(PluginWidget):
             index = 0
 
         # Creating a new external shell
+        pythonpath = self.main.get_spyder_pythonpath()
         if python:
-            pythonpath = self.main.get_spyder_pythonpath()
             shell = ExternalPythonShell(self, fname, wdir, self.commands,
                                         interact, debug, path=pythonpath)
         else:
-            shell = ExternalSystemShell(self, wdir)
+            shell = ExternalSystemShell(self, wdir, path=pythonpath)
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_calltips( CONF.get(self.ID, 'calltips') )

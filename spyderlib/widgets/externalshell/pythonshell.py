@@ -24,7 +24,8 @@ from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.globalsexplorer import GlobalsExplorer
 from spyderlib.widgets.externalshell.monitor import communicate
-from spyderlib.widgets.externalshell import ExternalShellBase
+from spyderlib.widgets.externalshell import (ExternalShellBase,
+                                             add_pathlist_to_PYTHONPATH)
 
 
 class ExtPyQsciShell(PythonShellWidget):
@@ -240,14 +241,8 @@ class ExternalPythonShell(ExternalShellBase):
         pathlist += self.path
         
         # Adding path list to PYTHONPATH environment variable
-        pypath = "PYTHONPATH"
-        pathstr = os.pathsep.join(pathlist)
-        if os.environ.get(pypath) is not None:
-            env.replaceInStrings(pypath+'=', pypath+'='+pathstr+os.pathsep,
-                                 Qt.CaseSensitive)
-            env.append('OLD_PYTHONPATH='+os.environ[pypath])
-        else:
-            env.append(pypath+'='+pathstr)
+        add_pathlist_to_PYTHONPATH(env, pathlist)
+        
         self.process.setEnvironment(env)
         #-------------------------Python specific-------------------------------
             

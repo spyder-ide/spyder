@@ -11,8 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
-import os.path as osp
+import sys, os, os.path as osp
 from time import time, strftime, gmtime
 
 # Debug
@@ -21,13 +20,26 @@ STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                          QLabel, QInputDialog, QLineEdit)
-from PyQt4.QtCore import QProcess, SIGNAL, QByteArray, QString, QTimer
+from PyQt4.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
+                          QStringList, Qt)
 
 # Local imports
 from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.externalshell.monitor import communicate
 
+
+def add_pathlist_to_PYTHONPATH(env, pathlist):
+    assert isinstance(env, QStringList)
+    pypath = "PYTHONPATH"
+    pathstr = os.pathsep.join(pathlist)
+    if os.environ.get(pypath) is not None:
+        env.replaceInStrings(pypath+'=', pypath+'='+pathstr+os.pathsep,
+                             Qt.CaseSensitive)
+        env.append('OLD_PYTHONPATH='+os.environ[pypath])
+    else:
+        env.append(pypath+'='+pathstr)
+    
 
 #TODO: code refactoring/cleaning (together with systemshell.py and pythonshell.py)
 class ExternalShellBase(QWidget):

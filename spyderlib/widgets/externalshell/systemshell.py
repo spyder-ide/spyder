@@ -18,16 +18,20 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.config import get_icon
-from spyderlib.widgets.externalshell import ExternalShellBase
+from spyderlib.widgets.externalshell import (ExternalShellBase,
+                                             add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
 
 
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = TerminalWidget
-    def __init__(self, parent=None, wdir=None):
+    def __init__(self, parent=None, wdir=None, path=[]):
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec')
+        
+        # Additional python path list
+        self.path = path
 
     def get_icon(self):
         return get_icon('cmdprompt.png')
@@ -37,6 +41,11 @@ class ExternalSystemShell(ExternalShellBase):
             
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.MergedChannels)
+        
+        # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
+        env = self.process.systemEnvironment()
+        add_pathlist_to_PYTHONPATH(env, self.path)
+        self.process.setEnvironment(env)
         
         # Working directory
         if self.wdir is not None:
