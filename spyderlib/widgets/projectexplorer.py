@@ -68,23 +68,23 @@ def is_drive_path(path):
     path = osp.abspath(path)
     return osp.normpath(osp.join(path, osp.pardir)) == path
 
-def get_dir_icon(dirname, opened=False, pythonpath=False, root=False):
+def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
     """Return appropriate directory icon"""
     if is_drive_path(dirname):
         return get_std_icon('DriveHDIcon')
     prefix = 'pp_' if pythonpath else ''
     if root:
-        if opened:
+        if expanded:
             return get_icon(prefix+'project_expanded.png')
         else:
             return get_icon(prefix+'project_collapsed.png')
     elif osp.isfile(osp.join(dirname, '__init__.py')):
-        if opened:
+        if expanded:
             return get_icon(prefix+'package_expanded.png')
         else:
             return get_icon(prefix+'package_collapsed.png')
     else:
-        if opened:
+        if expanded:
             return get_icon(prefix+'folder_expanded.png')
         else:
             return get_icon(prefix+'folder_collapsed.png')
@@ -173,7 +173,7 @@ class Project(object):
             if path == self.root_path and not self.is_opened():
                 item.setIcon(0, get_icon('project_closed.png'))
             else:
-                item.setIcon(0, get_dir_icon(path, opened=item.isExpanded(),
+                item.setIcon(0, get_dir_icon(path, expanded=item.isExpanded(),
                                              pythonpath=path in self.pythonpath,
                                              root=self.is_root_item(item)))
     
@@ -213,8 +213,8 @@ class Project(object):
             item.setFlags(flags|Qt.ItemIsDragEnabled)
         set_item_user_text(item, dirname)
         in_path = dirname in self.pythonpath
-        item.setIcon(0, get_dir_icon(dirname, opened=False, pythonpath=in_path,
-                                     root=is_root))
+        item.setIcon(0, get_dir_icon(dirname, expanded=False,
+                                     pythonpath=in_path, root=is_root))
         if not item.childCount() and has_children_files(dirname, include,
                                                         exclude, show_all):
             item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
@@ -243,7 +243,7 @@ class Project(object):
         if self.is_opened():
             if root_item.childCount():
                 root_item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-            icon = get_dir_icon(self.root_path, opened=root_item.isExpanded(),
+            icon = get_dir_icon(self.root_path, expanded=root_item.isExpanded(),
                                 pythonpath=self.root_path in self.pythonpath,
                                 root=True)
             root_item.setIcon(0, icon)
@@ -643,8 +643,12 @@ class ExplorerTreeWidget(OneColumnTree):
             return
         in_path = project.is_item_in_pythonpath(item)
         is_root = project.is_root_item(item)
-        item.setIcon(0, get_dir_icon(get_item_path(item), opened=True,
-                                     pythonpath=in_path, root=is_root))
+        if project.is_opened():
+            icon = get_dir_icon(get_item_path(item), expanded=True,
+                                pythonpath=in_path, root=is_root)
+        else:
+            icon = get_icon('project_closed.png')
+        item.setIcon(0, icon)
         if not item.childCount():
             # A non-populated item was just expanded
             for project in self.projects:
@@ -657,8 +661,12 @@ class ExplorerTreeWidget(OneColumnTree):
         project = self.__get_project_from_item(item)
         in_path = project.is_item_in_pythonpath(item)
         is_root = project.is_root_item(item)
-        item.setIcon(0, get_dir_icon(get_item_path(item), opened=False,
-                                     pythonpath=in_path, root=is_root))
+        if project.is_opened():
+            icon = get_dir_icon(get_item_path(item), expanded=False,
+                                pythonpath=in_path, root=is_root)
+        else:
+            icon = get_icon('project_closed.png')
+        item.setIcon(0, icon)
         
     def __update_title(self):
         nb = len(self.projects)
@@ -1281,7 +1289,7 @@ class ProjectExplorerWidget(QWidget):
         self.setLayout(layout)
         
     def add_project(self, project):
-        self.treewidget.add_project(project)
+        return self.treewidget.add_project(project)
         
     def get_project_config(self):
         projects = self.treewidget.projects
