@@ -11,14 +11,15 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+#TODO: Make a plugin for the class browser ?
+
 #TODO: FindReplace widget: it should be parented with editortabwidget instead
 #                          of editor plugin as it is right now
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QFontDialog,
-                         QSplitter, QToolBar, QAction, QApplication, QToolBox,
-                         QListWidget, QListWidgetItem, QLabel, QWidget,
-                         QHBoxLayout, QPrinter, QPrintDialog, QDialog, QMenu,
-                         QAbstractPrintDialog, QActionGroup, QInputDialog)
+from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
+                         QSplitter, QToolBar, QAction, QApplication, QDialog,
+                         QWidget, QHBoxLayout, QLabel, QPrinter, QActionGroup,
+                         QInputDialog, QMenu, QFontDialog, QAbstractPrintDialog)
 from PyQt4.QtCore import (SIGNAL, QStringList, Qt, QVariant, QFileInfo,
                           QByteArray, QThread, QObject)
 
@@ -116,9 +117,7 @@ class EditorTabWidget(Tabs):
         self.__file_status_flag = False
         
         self.already_closed = False
-        
-        self.plugin.register_editortabwidget(self)
-            
+                    
         # Accepting drops
         self.setAcceptDrops(True)
 
@@ -425,7 +424,7 @@ class EditorTabWidget(Tabs):
             # cb_visible: if class browser is not visible, maybe the whole
             # GUI is not visible (Spyder is starting up) -> in this case,
             # it is necessary to update the class browser
-            cb_visible = classbrowser.isVisible() or not self.plugin.isVisible()
+            cb_visible = classbrowser.isVisible() or not self.isVisible()
             if CONF.get(self.ID, 'class_browser') and finfo.editor.is_python() \
                and cb_visible:
                 enable = True
@@ -570,11 +569,12 @@ class EditorTabWidget(Tabs):
         self.setTabText(index, title)
         # Toggle save/save all actions state
         self.plugin.save_action.setEnabled(state)
-        self.plugin.refresh_save_all_action()
+        self.emit(SIGNAL('refresh_save_all_action()'))
         # Refreshing eol mode
         editor = self.data[index].editor
         eol_chars = editor.get_line_separator()
-        self.plugin.refresh_eol_mode(eol_chars)
+        os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
+        self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
         
 
     #------ Load, reload
@@ -722,8 +722,8 @@ class EditorTabWidget(Tabs):
         return text
     
     def __run_in_interactive_console(self, lines):
-        self.interactive_console.shell.execute_lines(lines)
-        self.interactive_console.shell.setFocus()
+        self.plugin.emit(SIGNAL('interactive_console_execute_lines(QString)'),
+                         lines)
 
     def __run_in_external_console(self, lines):
         self.plugin.emit(SIGNAL('external_console_execute_lines(QString)'),
@@ -791,6 +791,7 @@ class EditorSplitter(QSplitter):
         self.plugin = parent
         self.tab_actions = actions
         self.editortabwidget = EditorTabWidget(self.plugin, actions)
+        self.plugin.register_editortabwidget(self.editortabwidget)
         if not first:
             self.plugin.new(editortabwidget=self.editortabwidget)
         self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
@@ -1414,6 +1415,10 @@ class Editor(PluginWidget):
                      self.refresh_file_dependent_actions)
         self.connect(editortabwidget, SIGNAL('move_tab(long,long,int,int)'),
                      self.move_tabs_between_editortabwidgets)
+        self.connect(editortabwidget, SIGNAL('refresh_save_all_action()'),
+                     self.refresh_save_all_action)
+        self.connect(editortabwidget, SIGNAL('refresh_eol_mode(QString)'),
+                     self.refresh_eol_mode)
         
     def unregister_editortabwidget(self, editortabwidget):
         """Removing editortabwidget only if it's not the last remaining"""
@@ -1559,8 +1564,8 @@ class Editor(PluginWidget):
                        self.next_warning_action):
             action.setEnabled(state)
             
-    def refresh_eol_mode(self, eol_chars):
-        os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
+    def refresh_eol_mode(self, os_name):
+        os_name = unicode(os_name)
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
         elif os_name == 'posix':

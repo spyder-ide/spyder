@@ -394,6 +394,9 @@ class MainWindow(QMainWindow):
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
                          self.open_external_console)
             self.connect(self.editor,
+                         SIGNAL('interactive_console_execute_lines(QString)'),
+                         self.console.execute_lines)
+            self.connect(self.editor,
                          SIGNAL('external_console_execute_lines(QString)'),
                          self.execute_python_code_in_external_console)
             self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),

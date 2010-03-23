@@ -259,6 +259,11 @@ class Console(PluginWidget):
             self.emit(SIGNAL("edit_goto(QString,int,bool)"),
                       osp.abspath(filename), goto, True)
         
+    def execute_lines(self, lines):
+        """Execute lines and give focus to shell"""
+        self.shell.execute_lines(unicode(lines))
+        self.shell.setFocus()
+        
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.ID),
