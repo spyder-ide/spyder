@@ -13,14 +13,15 @@
 
 #TODO: Make a plugin for the class browser ?
 
-#TODO: FindReplace widget: it should be parented with editorstack instead
+#TODO: FindReplace widget: it should be parented with editortabwidget instead
 #                          of editor plugin as it is right now
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QHBoxLayout, QLabel, QPrinter, QActionGroup,
                          QInputDialog, QMenu, QFontDialog, QAbstractPrintDialog)
-from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray
+from PyQt4.QtCore import (SIGNAL, QStringList, Qt, QVariant, QFileInfo,
+                          QByteArray, QThread, QObject)
 
 import os, sys, time, re
 import os.path as osp
@@ -31,13 +32,810 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
-from spyderlib.utils.qthelpers import (create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate)
-from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
+from spyderlib.widgets.qscieditor import (QsciEditor, check, Printer,
+                                          ClassBrowser)
+from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
-from spyderlib.widgets.editor import EditorSplitter, EditorStack
 from spyderlib.plugins import PluginWidget
+
+
+class CodeAnalysisThread(QThread):
+    """Pyflakes code analysis thread"""
+    def __init__(self, parent):
+        QThread.__init__(self, parent)
+        self.filename = None
+        
+    def set_filename(self, filename):
+        self.filename = filename
+        
+    def run(self):
+        self.analysis_results = check(self.filename)
+        
+    def get_results(self):
+        return self.analysis_results
+
+class TabInfo(QObject):
+    """File properties"""
+    def __init__(self, filename, encoding, editor, new):
+        QObject.__init__(self)
+        self.filename = filename
+        self.newly_created = new
+        self.encoding = encoding
+        self.editor = editor
+        self.classes = (filename, None, None)
+        self.analysis_results = []
+        self.lastmodified = QFileInfo(filename).lastModified()
+            
+        self.analysis_thread = CodeAnalysisThread(self)
+        self.connect(self.analysis_thread, SIGNAL('finished()'),
+                     self.code_analysis_finished)
+    
+    def run_code_analysis(self):
+        if self.editor.is_python():
+            self.analysis_thread.set_filename(self.filename)
+            self.analysis_thread.start()
+        
+    def code_analysis_finished(self):
+        """Code analysis thread has finished"""
+        self.analysis_results = self.analysis_thread.get_results()
+        self.editor.process_code_analysis(self.analysis_results)
+        self.emit(SIGNAL('analysis_results_changed()'))
+
+class EditorTabWidget(Tabs):
+    """Editor tabwidget"""
+    def __init__(self, parent, actions):
+        Tabs.__init__(self, parent)
+        if hasattr(self, 'setDocumentMode'):
+            # Only available with PyQt >= 4.5
+            self.setDocumentMode(True)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.original_actions = actions
+        self.additional_actions = self.__get_split_actions()
+        self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
+        
+        self.plugin = parent
+        self.ID = self.plugin.ID
+        self.interactive_console = self.plugin.main.console
+        
+        self.connect(self, SIGNAL('move_data(int,int)'), self.move_data)
+        self.connect(self, SIGNAL('move_tab_finished()'),
+                     self.move_tab_finished)
+                     
+        self.set_close_function(self.close_file)
+            
+        self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
+        self.cursor_position_changed_callback = lambda line, index: \
+                self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
+        self.focus_changed_callback = lambda: \
+                self.plugin.emit(SIGNAL("focus_changed()"))
+        
+        self.data = []
+        
+        self.__file_status_flag = False
+        
+        self.already_closed = False
+                    
+        # Accepting drops
+        self.setAcceptDrops(True)
+
+    def __setup_menu(self):
+        """Setup tab context menu before showing it"""
+        self.menu.clear()
+        if self.data:
+            actions = self.original_actions
+        else:
+            actions = (self.plugin.new_action, self.plugin.open_action)
+            self.setFocus() # --> Editor.__get_focus_editortabwidget
+        add_actions(self.menu, actions + self.additional_actions)
+        self.close_action.setEnabled( len(self.plugin.editortabwidgets) > 1 )
+
+
+    #------ Hor/Ver splitting
+    def __get_split_actions(self):
+        # Splitting
+        self.versplit_action = create_action(self,
+                    self.tr("Split vertically"), icon="versplit.png",
+                    tip=self.tr("Split vertically this editor window"),
+                    triggered=lambda: self.emit(SIGNAL("split_vertically()")))
+        self.horsplit_action = create_action(self,
+                    self.tr("Split horizontally"), icon="horsplit.png",
+                    tip=self.tr("Split horizontally this editor window"),
+                    triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
+        self.close_action = create_action(self,
+                    self.tr("Close this panel"), icon="close_panel.png",
+                    triggered=self.close_editortabwidget)
+        return (None, self.versplit_action, self.horsplit_action,
+                self.close_action)
+        
+    def reset_orientation(self):
+        self.horsplit_action.setEnabled(True)
+        self.versplit_action.setEnabled(True)
+        
+    def set_orientation(self, orientation):
+        self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
+        self.versplit_action.setEnabled(orientation == Qt.Vertical)
+        
+    
+    #------ Accessors
+    def get_current_filename(self):
+        if self.data:
+            return self.data[self.currentIndex()].filename
+        
+    def has_filename(self, filename):
+        for index, finfo in enumerate(self.data):
+            if osp.realpath(filename) == osp.realpath(finfo.filename):
+                return index
+        
+    def set_current_filename(self, filename):
+        """Set current filename and return the associated editor instance"""
+        index = self.has_filename(filename)
+        if index is not None:
+            self.setCurrentIndex(index)
+            editor = self.data[index].editor
+            editor.setFocus()
+            return editor
+
+        
+    #------ Tabs drag'n drop
+    def move_data(self, index_from, index_to, editortabwidget_to=None):
+        """
+        Move tab
+        In fact tabs have already been moved by the tabwidget
+        but we have to move the self.data elements too
+        """
+        self.disconnect(self, SIGNAL('currentChanged(int)'),
+                        self.current_changed)
+        
+        finfo = self.data.pop(index_from)
+        if editortabwidget_to is None:
+            editortabwidget_to = self
+        editortabwidget_to.data.insert(index_to, finfo)
+        
+        if editortabwidget_to is not self:
+            self.disconnect(finfo.editor, SIGNAL('modificationChanged(bool)'),
+                            self.modification_changed)
+            self.disconnect(finfo.editor, SIGNAL("focus_in()"),
+                            self.focus_changed)
+            self.disconnect(finfo.editor,
+                            SIGNAL('cursorPositionChanged(int,int)'),
+                            self.cursor_position_changed_callback)
+            self.disconnect(finfo.editor, SIGNAL("focus_changed()"),
+                            self.focus_changed_callback)
+            self.connect(finfo.editor, SIGNAL('modificationChanged(bool)'),
+                         editortabwidget_to.modification_changed)
+            self.connect(finfo.editor, SIGNAL("focus_in()"),
+                         editortabwidget_to.focus_changed)
+            self.connect(finfo.editor,
+                         SIGNAL('cursorPositionChanged(int,int)'),
+                         editortabwidget_to.cursor_position_changed_callback)
+            self.connect(finfo.editor, SIGNAL("focus_changed()"),
+                         editortabwidget_to.focus_changed_callback)
+        
+    def move_tab_finished(self):
+        """Reconnecting current changed signal"""
+        self.connect(self, SIGNAL('currentChanged(int)'), self.current_changed)
+    
+    
+    #------ Close file, tabwidget...
+    def close_file(self, index=None):
+        """Close current file"""
+        if index is None:
+            if self.count():
+                index = self.currentIndex()
+            else:
+                self.plugin.find_widget.set_editor(None)
+                return
+        is_ok = self.save_if_changed(cancelable=True, index=index)
+        if is_ok:
+            
+            # Removing editor reference from class browser settings:
+            classbrowser = self.plugin.classbrowser
+            classbrowser.remove_editor(self.data[index].editor)
+            
+            self.data.pop(index)
+            self.removeTab(index)
+            if not self.data:
+                # editortabwidget is empty: removing it
+                # (if it's not the first editortabwidget)
+                self.close_editortabwidget()
+            self.emit(SIGNAL('opened_files_list_changed()'))
+            self.emit(SIGNAL('analysis_results_changed()'))
+            self._refresh_classbrowser()
+            self.emit(SIGNAL('refresh_file_dependent_actions()'))
+        return is_ok
+    
+    def close_editortabwidget(self):
+        if self.data:
+            self.close_all_files()
+            if self.already_closed:
+                # All opened files were closed and *self* is not the last
+                # editortabwidget remaining --> *self* was automatically closed
+                return
+        removed = self.plugin.unregister_editortabwidget(self)
+        if removed:
+            self.close()
+            
+    def close(self):
+        Tabs.close(self)
+        self.already_closed = True # used in self.close_tabbeeditor
+
+    def close_all_files(self):
+        """Close all opened scripts"""
+        while self.close_file():
+            pass
+        
+
+    #------ Save
+    def save_if_changed(self, cancelable=False, index=None):
+        """Ask user to save file if modified"""
+        if index is None:
+            indexes = range(self.count())
+        else:
+            indexes = [index]
+        buttons = QMessageBox.Yes | QMessageBox.No
+        if cancelable:
+            buttons |= QMessageBox.Cancel
+        unsaved_nb = 0
+        for index in indexes:
+            if self.data[index].editor.isModified():
+                unsaved_nb += 1
+        if not unsaved_nb:
+            # No file to save
+            return True
+        if unsaved_nb > 1:
+            buttons |= QMessageBox.YesAll | QMessageBox.NoAll
+        yes_all = False
+        for index in indexes:
+            self.setCurrentIndex(index)
+            finfo = self.data[index]
+            if finfo.filename == self.plugin.TEMPFILE_PATH or yes_all:
+                if not self.save(refresh_explorer=False):
+                    return False
+            elif finfo.editor.isModified():
+                answer = QMessageBox.question(self,
+                            self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> has been modified."
+                                    "<br>Do you want to save changes?") \
+                                    .arg(osp.basename(finfo.filename)),
+                            buttons)
+                if answer == QMessageBox.Yes:
+                    if not self.save(refresh_explorer=False):
+                        return False
+                elif answer == QMessageBox.YesAll:
+                    if not self.save(refresh_explorer=False):
+                        return False
+                    yes_all = True
+                elif answer == QMessageBox.NoAll:
+                    return True
+                elif answer == QMessageBox.Cancel:
+                    return False
+        return True
+    
+    def save(self, index=None, force=False, refresh_explorer=True):
+        """Save file"""
+        if index is None:
+            # Save the currently edited file
+            if not self.count():
+                return
+            index = self.currentIndex()
+            
+        finfo = self.data[index]
+        if not finfo.editor.isModified() and not force:
+            return True
+        if not osp.isfile(finfo.filename) and not force:
+            # File has not been saved yet
+            filename = self.select_savename(finfo.filename)
+            if filename:
+                finfo.filename = filename
+            else:
+                return False
+        txt = unicode(finfo.editor.get_text())
+        try:
+            finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
+            finfo.newly_created = False
+            self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
+            finfo.editor.setModified(False)
+            finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+            self.modification_changed(index=index)
+            self.analyze_script(index)
+            self._refresh_classbrowser(index)
+            if refresh_explorer:
+                # Refresh the explorer widget if it exists:
+                self.plugin.emit(SIGNAL("refresh_explorer(QString)"),
+                                 osp.dirname(finfo.filename))
+            return True
+        except EnvironmentError, error:
+            QMessageBox.critical(self, self.tr("Save"),
+                            self.tr("<b>Unable to save script '%1'</b>"
+                                    "<br><br>Error message:<br>%2") \
+                            .arg(osp.basename(finfo.filename)).arg(str(error)))
+            return False
+    
+    def select_savename(self, original_filename):
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), False)
+        filename = QFileDialog.getSaveFileName(self,
+                                           self.tr("Save Python script"),
+                                           original_filename,
+                                           self.plugin.get_filetype_filters())
+        self.plugin.emit(SIGNAL('redirect_stdio(bool)'), True)
+        if filename:
+            return osp.normpath(unicode(filename))
+    
+    def save_as(self):
+        """Save file as..."""
+        index = self.currentIndex()
+        finfo = self.data[index]
+        filename = self.select_savename(finfo.filename)
+        if filename:
+            finfo.filename = filename
+            self.save(index=index, force=True)
+            self.setTabToolTip(index, filename)
+            self.refresh(index)
+        
+    def save_all(self):
+        """Save all opened files"""
+        folders = set()
+        for index in range(self.count()):
+            folders.add(osp.dirname(self.data[index].filename))
+            self.save(index, refresh_explorer=False)
+        for folder in folders:
+            self.plugin.emit(SIGNAL("refresh_explorer(QString)"), folder)
+    
+    #------ Update UI
+    def analyze_script(self, index=None):
+        """Analyze current script with pyflakes"""
+        if index is None:
+            index = self.currentIndex()
+        if self.data:
+            if CONF.get(self.ID, 'code_analysis'):
+                finfo = self.data[index]
+                finfo.run_code_analysis()
+        
+    def get_analysis_results(self):
+        if self.data:
+            return self.data[self.currentIndex()].analysis_results
+        
+    def current_changed(self, index):
+        """Tab index has changed"""
+        if index != -1:
+            self.currentWidget().setFocus()
+        else:
+            self.emit(SIGNAL('reset_statusbar()'))
+        self.emit(SIGNAL('opened_files_list_changed()'))
+        
+    def focus_changed(self):
+        """Editor focus has changed"""
+        fwidget = QApplication.focusWidget()
+        for finfo in self.data:
+            if fwidget is finfo.editor:
+                self.refresh()
+        
+    def _refresh_classbrowser(self, index=None, update=True):
+        """Refresh class browser panel"""
+        if index is None:
+            index = self.currentIndex()
+        enable = False
+        classbrowser = self.plugin.classbrowser
+        if self.data:
+            finfo = self.data[index]
+            # cb_visible: if class browser is not visible, maybe the whole
+            # GUI is not visible (Spyder is starting up) -> in this case,
+            # it is necessary to update the class browser
+            cb_visible = classbrowser.isVisible() or not self.isVisible()
+            if CONF.get(self.ID, 'class_browser') and finfo.editor.is_python() \
+               and cb_visible:
+                enable = True
+                classbrowser.setEnabled(True)
+                classbrowser.set_current_editor(finfo.editor, finfo.filename,
+                                                update=update)
+        if not enable:
+            classbrowser.setEnabled(False)
+            
+    def __refresh_statusbar(self, index):
+        """Refreshing statusbar widgets"""
+        finfo = self.data[index]
+        self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
+        # Refresh cursor position status:
+        line, index = finfo.editor.getCursorPosition()
+        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
+        
+    def __refresh_readonly(self, index):
+        finfo = self.data[index]
+        read_only = not QFileInfo(finfo.filename).isWritable()
+        if not osp.isfile(finfo.filename):
+            # This is an 'untitledX.py' file (newly created)
+            read_only = False
+        finfo.editor.setReadOnly(read_only)
+        self.emit(SIGNAL('readonly_changed(bool)'), read_only)
+        
+    def __check_file_status(self, index):
+        if self.__file_status_flag:
+            # Avoid infinite loop: when the QMessageBox.question pops, it
+            # gets focus and then give it back to the QsciEditor instance,
+            # triggering a refresh cycle which calls this method
+            return
+        
+        finfo = self.data[index]
+        if finfo.newly_created:
+            return
+        
+        self.__file_status_flag = True
+        name = osp.basename(finfo.filename)
+        
+        # First, testing if file still exists (removed, moved or offline):
+        if not osp.isfile(finfo.filename):
+            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> is unavailable "
+                                    "(this file may have been removed, moved "
+                                    "or renamed outside Spyder)."
+                                    "<br>Do you want to close it?").arg(name),
+                            QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                self.close_file(index)
+        else:
+            # Else, testing if it has been modified elsewhere:
+            lastm = QFileInfo(finfo.filename).lastModified()
+            if lastm.toString().compare(finfo.lastmodified.toString()):
+                if finfo.editor.isModified():
+                    answer = QMessageBox.question(self,
+                        self.plugin.get_widget_title(),
+                        self.tr("<b>%1</b> has been modified outside Spyder."
+                                "<br>Do you want to reload it and loose all "
+                                "your changes?").arg(name),
+                        QMessageBox.Yes | QMessageBox.No)
+                    if answer == QMessageBox.Yes:
+                        self.reload(index)
+                    else:
+                        finfo.lastmodified = lastm
+                else:
+                    self.reload(index)
+                    
+        # Finally, resetting temporary flag:
+        self.__file_status_flag = False
+        
+    def refresh(self, index=None):
+        """Refresh tabwidget"""
+        if index is None:
+            index = self.currentIndex()
+        # Set current editor
+        plugin_title = self.plugin.get_widget_title()
+        if self.count():
+            index = self.currentIndex()
+            finfo = self.data[index]
+            editor = finfo.editor
+            editor.setFocus()
+            plugin_title += " - " + osp.abspath(finfo.filename)
+            self._refresh_classbrowser(index, update=False)
+            self.emit(SIGNAL('analysis_results_changed()'))
+            self.__refresh_statusbar(index)
+            self.__refresh_readonly(index)
+            self.__check_file_status(index)
+        else:
+            editor = None
+        if self.plugin.dockwidget:
+            self.plugin.dockwidget.setWindowTitle(plugin_title)
+        # Update the modification-state-dependent parameters
+        self.modification_changed()
+        # Update FindReplace binding
+        self.plugin.find_widget.set_editor(editor, refresh=False)
+                
+    def get_title(self, filename):
+        """Return tab title"""
+        if filename != encoding.to_unicode(self.plugin.TEMPFILE_PATH):
+            return osp.basename(filename)
+        else:
+            return unicode(self.tr("Temporary file"))
+        
+    def __get_state_index(self, state, index):
+        if index is None:
+            index = self.currentIndex()
+        if index == -1:
+            return None, None
+        if state is None:
+            state = self.data[index].editor.isModified()
+        return state, index
+        
+    def get_full_title(self, state=None, index=None):
+        state, index = self.__get_state_index(state, index)
+        if index is None:
+            return
+        finfo = self.data[index]
+        title = self.get_title(finfo.filename)
+        if state:
+            title += "*"
+        elif title.endswith('*'):
+            title = title[:-1]
+        if finfo.editor.isReadOnly():
+            title = '(' + title + ')'
+        return title
+
+    def modification_changed(self, state=None, index=None):
+        """
+        Current editor's modification state has changed
+        --> change tab title depending on new modification state
+        --> enable/disable save/save all actions
+        """
+        # This must be done before refreshing save/save all actions:
+        # (otherwise Save/Save all actions will always be enabled)
+        self.emit(SIGNAL('opened_files_list_changed()'))
+        # --
+        state, index = self.__get_state_index(state, index)
+        title = self.get_full_title(state, index)
+        if index is None or title is None:
+            return
+        self.setTabText(index, title)
+        # Toggle save/save all actions state
+        self.plugin.save_action.setEnabled(state)
+        self.emit(SIGNAL('refresh_save_all_action()'))
+        # Refreshing eol mode
+        editor = self.data[index].editor
+        eol_chars = editor.get_line_separator()
+        os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
+        self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
+        
+
+    #------ Load, reload
+    def reload(self, index):
+        finfo = self.data[index]
+        txt, finfo.encoding = encoding.read(finfo.filename)
+        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+        line, index = finfo.editor.getCursorPosition()
+        finfo.editor.set_text(txt)
+        finfo.editor.setModified(False)
+        finfo.editor.setCursorPosition(line, index)
+        
+    def create_new_editor(self, fname, enc, txt, new=False):
+        """
+        Create a new editor instance
+        Returns finfo object (instead of editor as in previous releases)
+        """
+        ext = osp.splitext(fname)[1]
+        if ext.startswith('.'):
+            ext = ext[1:] # file extension with leading dot
+        language = ext
+        if not ext:
+            for line in txt.splitlines():
+                if not line.strip():
+                    continue
+                if line.startswith('#!') and \
+                   line[2:].split() == ['/usr/bin/env', 'python']:
+                        language = 'python'
+                else:
+                    break
+        editor = QsciEditor(self)
+        finfo = TabInfo(fname, enc, editor, new)
+        self.connect(finfo, SIGNAL('analysis_results_changed()'),
+                     lambda: self.emit(SIGNAL('analysis_results_changed()')))
+        self.data.append(finfo)
+        editor.set_text(txt)
+        editor.setup_editor(linenumbers=True, language=language,
+                            code_analysis=CONF.get(self.ID, 'code_analysis'),
+                            code_folding=CONF.get(self.ID, 'code_folding'),
+                            show_eol_chars=CONF.get(self.ID, 'show_eol_chars'),
+                            show_whitespace=CONF.get(self.ID, 'show_whitespace'),
+                            font=get_font(self.ID),
+                            wrap=CONF.get(self.ID, 'wrap'),
+                            tab_mode=CONF.get(self.ID, 'tab_always_indent'))
+        self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
+                     self.cursor_position_changed_callback)
+        self.connect(editor, SIGNAL('modificationChanged(bool)'),
+                     self.modification_changed)
+        self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
+        self.connect(editor, SIGNAL("focus_changed()"),
+                     self.focus_changed_callback)
+
+        title = self.get_title(fname)
+        index = self.addTab(editor, title)
+        self.setTabToolTip(index, fname)
+        self.setTabIcon(index, get_filetype_icon(fname))
+        
+        self.plugin.find_widget.set_editor(editor)
+       
+        self.emit(SIGNAL('refresh_file_dependent_actions()'))
+        self.modification_changed()
+        
+        self.setCurrentIndex(index)
+        
+        editor.setFocus()
+        
+        return finfo
+        
+    def load(self, filename):
+        """Load filename, create an editor instance and return it"""
+        self.plugin.starting_long_process(self.tr("Loading %1...").arg(filename))
+        text, enc = encoding.read(filename)
+        finfo = self.create_new_editor(filename, enc, text)
+        index = self.currentIndex()
+        self.analyze_script(index)
+        self._refresh_classbrowser(index)
+        self.plugin.ending_long_process()
+        if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
+           and sourcecode.has_mixed_eol_chars(text):
+            name = osp.basename(filename)
+            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+                            self.tr("<b>%1</b> contains mixed end-of-line "
+                                    "characters.<br>Do you want to fix this "
+                                    "automatically?"
+                                    ).arg(name),
+                            QMessageBox.Yes | QMessageBox.No)
+            if answer == QMessageBox.Yes:
+                self.set_os_eol_chars(index)
+                self.convert_eol_chars(index)
+        return finfo.editor
+    
+    def set_os_eol_chars(self, index=None):
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os.name))
+    
+    def convert_eol_chars(self, index=None):
+        """Convert end-of-line characters"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.convert_eol_chars()
+        
+    def remove_trailing_spaces(self, index=None):
+        """Remove trailing spaces"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.remove_trailing_spaces()
+        
+    def fix_indentation(self, index=None):
+        """Replace tabs by spaces"""
+        if index is None:
+            index = self.currentIndex()
+        finfo = self.data[index]
+        finfo.editor.fix_indentation()
+
+    #------ Run
+    def __process_lines(self):
+        editor = self.currentWidget()
+        ls = editor.get_line_separator()
+        
+        _indent = lambda line: len(line)-len(line.lstrip())
+        
+        line_from, _index_from, line_to, _index_to = editor.getSelection()
+        text = unicode(editor.selectedText())
+
+        lines = text.split(ls)
+        if len(lines) > 1:
+            # Multiline selection -> eventually fixing indentation
+            original_indent = _indent(unicode(editor.text(line_from)))
+            text = (" "*(original_indent-_indent(lines[0])))+text
+        
+        # If there is a common indent to all lines, remove it
+        min_indent = 999
+        for line in text.split(ls):
+            if line.strip():
+                min_indent = min(_indent(line), min_indent)
+        if min_indent:
+            text = ls.join([line[min_indent:] for line in text.split(ls)])
+
+        last_line = text.split(ls)[-1]
+        if last_line.strip() == unicode(editor.text(line_to)).strip():
+            # If last line is complete, add an EOL character
+            text += ls
+        
+        return text
+    
+    def __run_in_interactive_console(self, lines):
+        self.plugin.emit(SIGNAL('interactive_console_execute_lines(QString)'),
+                         lines)
+
+    def __run_in_external_console(self, lines):
+        self.plugin.emit(SIGNAL('external_console_execute_lines(QString)'),
+                         lines)
+    
+    def run_selection_or_block(self, external=False):
+        """
+        Run selected text in console and set focus to console
+        *or*, if there is no selection,
+        Run current block of lines in console and go to next block
+        """
+        if external:
+            run_callback = self.__run_in_external_console
+        else:
+            run_callback = self.__run_in_interactive_console
+        editor = self.currentWidget()
+        if editor.hasSelectedText():
+            # Run selected text in interactive console and set focus to console
+            run_callback( self.__process_lines() )
+        else:
+            # Run current block in interactive console and go to next block
+            editor.select_current_block()
+            run_callback( self.__process_lines() )
+            editor.setFocus()
+            editor.move_cursor_to_next('block', 'down')
+            
+    #------ Drag and drop
+    def dragEnterEvent(self, event):
+        """Reimplement Qt method
+        Inform Qt about the types of data that the widget accepts"""
+        source = event.mimeData()
+        if source.hasUrls():
+            if mimedata2url(source, extlist=self.plugin.get_valid_types()):
+                event.acceptProposedAction()
+            else:
+                event.ignore()
+        elif source.hasText():
+            event.acceptProposedAction()
+        else:
+            event.ignore()
+            
+    def dropEvent(self, event):
+        """Reimplement Qt method
+        Unpack dropped data and handle it"""
+        source = event.mimeData()
+        if source.hasUrls():
+            files = mimedata2url(source, extlist=self.plugin.get_valid_types())
+            if files:
+                self.plugin.load(files)
+        elif source.hasText():
+            editor = self.currentWidget()
+            if editor is not None:
+                editor.insert_text( source.text() )
+        event.acceptProposedAction()
+
+
+#TODO: Transform EditorSplitter into a real generic splittable editor
+# -> i.e. all QSplitter widgets must be of the same kind
+#    (currently there are editortabwidgets and editorsplitters at the same level)
+class EditorSplitter(QSplitter):
+    def __init__(self, parent, actions, first=False):
+        QSplitter.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        self.setChildrenCollapsible(False)
+        self.plugin = parent
+        self.tab_actions = actions
+        self.editortabwidget = EditorTabWidget(self.plugin, actions)
+        self.plugin.register_editortabwidget(self.editortabwidget)
+        if not first:
+            self.plugin.new(editortabwidget=self.editortabwidget)
+        self.connect(self.editortabwidget, SIGNAL("destroyed(QObject*)"),
+                     self.editortabwidget_closed)
+        self.connect(self.editortabwidget, SIGNAL("split_vertically()"),
+                     lambda: self.split(orientation=Qt.Vertical))
+        self.connect(self.editortabwidget, SIGNAL("split_horizontally()"),
+                     lambda: self.split(orientation=Qt.Horizontal))
+        self.addWidget(self.editortabwidget)
+        
+    def __give_focus_to_remaining_editor(self):
+        focus_widget = self.plugin.get_focus_widget()
+        if focus_widget is not None:
+            focus_widget.setFocus()
+        
+    def editortabwidget_closed(self):
+        self.editortabwidget = None
+        if self.count() == 1:
+            # editortabwidget just closed was the last widget in this QSplitter
+            self.close()
+            return
+        self.__give_focus_to_remaining_editor()
+        
+    def editorsplitter_closed(self, obj):
+        if self.count() == 1 and self.editortabwidget is None:
+            # editorsplitter just closed was the last widget in this QSplitter
+            self.close()
+            return
+        elif self.count() == 2 and self.editortabwidget:
+            # back to the initial state: a single editortabwidget instance,
+            # as a single widget in this QSplitter: orientation may be changed
+            self.editortabwidget.reset_orientation()
+        self.__give_focus_to_remaining_editor()
+        
+    def split(self, orientation=Qt.Vertical):
+        self.setOrientation(orientation)
+        self.editortabwidget.set_orientation(orientation)
+        editorsplitter = EditorSplitter(self.plugin, self.tab_actions)
+        self.addWidget(editorsplitter)
+        self.connect(editorsplitter, SIGNAL("destroyed(QObject*)"),
+                     self.editorsplitter_closed)
 
 
 #===============================================================================
@@ -143,25 +941,6 @@ class Editor(PluginWidget):
         self.run_toolbar_actions = None
         self.edit_toolbar_actions = None
         PluginWidget.__init__(self, parent)
-
-        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
-                          (self.tr("Pyrex files"), ('.pyx',)),
-                          (self.tr("C files"), ('.c', '.h')),
-                          (self.tr("C++ files"), ('.cc', '.cpp', '.h', '.cxx',
-                                                  '.hpp', '.hh')),
-                          (self.tr("Fortran files"),
-                           ('.f', '.for', '.f90', '.f95', '.f2k')),
-                          (self.tr("Patch and diff files"),
-                           ('.patch', '.diff', '.rej')),
-                          (self.tr("Batch files"),
-                           ('.bat', '.cmd')),
-                          (self.tr("Text files"), ('.txt',)),
-                          (self.tr("Web page files"),
-                           ('.css', '.htm', '.html',)),
-                          (self.tr("Configuration files"),
-                           ('.properties', '.session', '.ini', '.inf',
-                            '.reg', '.cfg')),
-                          (self.tr("All files"), ('.*',)))
         
         statusbar = self.main.statusBar()
         self.readwrite_status = _ReadWriteStatus(self, statusbar)
@@ -169,7 +948,6 @@ class Editor(PluginWidget):
         self.cursorpos_status = _CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
@@ -181,7 +959,7 @@ class Editor(PluginWidget):
         self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
                      self.load)
         
-        self.editorstacks = []
+        self.editortabwidgets = []
         
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
@@ -215,7 +993,7 @@ class Editor(PluginWidget):
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
         
         self.untitled_num = 0
-                
+        
         filenames = CONF.get(self.ID, 'filenames', [])
         currentlines = CONF.get(self.ID, 'currentlines', [])
         if filenames and not ignore_last_opened_files:
@@ -224,9 +1002,28 @@ class Editor(PluginWidget):
         else:
             self.__load_temp_file()
         
-        self.last_focus_editorstack = None
+        self.last_focus_editortabwidget = None
         self.connect(self, SIGNAL("focus_changed()"),
-                     self.save_focus_editorstack)
+                     self.save_focus_editortabwidget)
+        
+        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
+                          (self.tr("Pyrex files"), ('.pyx',)),
+                          (self.tr("C files"), ('.c', '.h')),
+                          (self.tr("C++ files"), ('.cc', '.cpp', '.h', '.cxx',
+                                                  '.hpp', '.hh')),
+                          (self.tr("Fortran files"),
+                           ('.f', '.for', '.f90', '.f95', '.f2k')),
+                          (self.tr("Patch and diff files"),
+                           ('.patch', '.diff', '.rej')),
+                          (self.tr("Batch files"),
+                           ('.bat', '.cmd')),
+                          (self.tr("Text files"), ('.txt',)),
+                          (self.tr("Web page files"),
+                           ('.css', '.htm', '.html',)),
+                          (self.tr("Configuration files"),
+                           ('.properties', '.session', '.ini', '.inf',
+                            '.reg', '.cfg')),
+                          (self.tr("All files"), ('.*',)))
         
         # Parameters of last file execution:
         self.__last_ic_exec = None # interactive console
@@ -268,8 +1065,8 @@ class Editor(PluginWidget):
     
     def refresh(self):
         """Refresh editor plugin"""
-        editorstack = self.get_current_editorstack()
-        editorstack.refresh()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.refresh()
         self.refresh_save_all_action()
         
     def closing(self, cancelable=False):
@@ -284,17 +1081,17 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
         currentlines = []
-        for editorstack in self.editorstacks:
-            filenames += [finfo.filename for finfo in editorstack.data]
+        for editortabwidget in self.editortabwidgets:
+            filenames += [finfo.filename for finfo in editortabwidget.data]
             currentlines += [finfo.editor.get_cursor_line_number()
-                             for finfo in editorstack.data]
+                             for finfo in editortabwidget.data]
         CONF.set(self.ID, 'filenames', filenames)
         CONF.set(self.ID, 'currentlines', currentlines)
         CONF.set(self.ID, 'current_filename', self.get_current_filename())
         CONF.set(self.ID, 'recent_files', self.recent_files)
         is_ok = True
-        for editorstack in self.editorstacks:
-            is_ok = is_ok and editorstack.save_if_changed(cancelable)
+        for editortabwidget in self.editortabwidgets:
+            is_ok = is_ok and editortabwidget.save_if_changed(cancelable)
             if not is_ok and cancelable:
                 break
         return is_ok
@@ -581,120 +1378,91 @@ class Editor(PluginWidget):
     
         
     #------ Focus tabwidget
-    def __get_focus_editorstack(self):
+    def __get_focus_editortabwidget(self):
         fwidget = QApplication.focusWidget()
         if isinstance(fwidget, QsciEditor):
-            for editorstack in self.editorstacks:
-                if fwidget is editorstack.get_current_editor():
-                    return editorstack
-        elif isinstance(fwidget, EditorStack):
+            for editortabwidget in self.editortabwidgets:
+                if fwidget is editortabwidget.currentWidget():
+                    return editortabwidget
+        elif isinstance(fwidget, EditorTabWidget):
             return fwidget
         
-    def save_focus_editorstack(self):
-        editorstack = self.__get_focus_editorstack()
-        if editorstack is not None:
-            self.last_focus_editorstack = editorstack
+    def save_focus_editortabwidget(self):
+        editortabwidget = self.__get_focus_editortabwidget()
+        if editortabwidget is not None:
+            self.last_focus_editortabwidget = editortabwidget
     
         
-    #------ Handling editorstacks
-    def register_editorstack(self, editorstack):
-        self.editorstacks.append(editorstack)
-        if len(self.editorstacks) > 1:
-            editorstack.set_closable(True)
-            
-        editorstack.set_classbrowser(self.classbrowser)
-        editorstack.set_io_actions(self.new_action, self.open_action,
-                                   self.save_action)
-        editorstack.set_tempfile_path(self.TEMPFILE_PATH)
-        editorstack.set_filetype_filters(self.get_filetype_filters())
-        editorstack.set_valid_types(self.get_valid_types())
-        editorstack.set_codeanalysis_enabled(CONF.get(self.ID, 'code_analysis'))
-        editorstack.set_classbrowser_enabled(CONF.get(self.ID, 'class_browser'))
-        editorstack.set_codefolding_enabled(CONF.get(self.ID, 'code_folding'))
-        editorstack.set_showeolchars_enabled(CONF.get(self.ID, 'show_eol_chars'))
-        editorstack.set_showwhitespace_enabled(CONF.get(self.ID, 'show_whitespace'))
-        editorstack.set_default_font(get_font(self.ID))
-        editorstack.set_wrap_enabled(CONF.get(self.ID, 'wrap'))
-        editorstack.set_tabmode_enabled(CONF.get(self.ID, 'tab_always_indent'))
-        editorstack.set_checkeolchars_enabled(CONF.get(self.ID, 'check_eol_chars'))
-        
-        self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
-                     self.starting_long_process)
-        self.connect(editorstack, SIGNAL('ending_long_process(QString)'),
-                     self.ending_long_process)
-        
-        # Redirect signals
-        self.connect(editorstack, SIGNAL("refresh_explorer(QString)"),
-                     lambda text:
-                     self.emit(SIGNAL("refresh_explorer(QString)"), text))
-        self.connect(editorstack, SIGNAL('redirect_stdio(bool)'),
-                     lambda state:
-                     self.emit(SIGNAL('redirect_stdio(bool)'), state))
-        self.connect(editorstack,
-                     SIGNAL('external_console_execute_lines(QString)'),
-                     lambda text:
-                     self.emit(SIGNAL('external_console_execute_lines(QString)'), text))
-        self.connect(editorstack,
-                     SIGNAL('interactive_console_execute_lines(QString)'),
-                     lambda text:
-                     self.emit(SIGNAL('interactive_console_execute_lines(QString)'), text))
-        
-        self.connect(editorstack, SIGNAL('close_file(int)'),
-                     self.close_file_in_all_editorstacks)
-        
-        self.last_focus_editorstack = editorstack
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+    #------ Handling editortabwidgets
+    def register_editortabwidget(self, editortabwidget):
+        self.editortabwidgets.append(editortabwidget)
+        self.last_focus_editortabwidget = editortabwidget
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.readwrite_status.hide)
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.encoding_status.hide)
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+        self.connect(editortabwidget, SIGNAL('reset_statusbar()'),
                      self.cursorpos_status.hide)
-        self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
+        self.connect(editortabwidget, SIGNAL('readonly_changed(bool)'),
                      self.readwrite_status.readonly_changed)
-        self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
+        self.connect(editortabwidget, SIGNAL('encoding_changed(QString)'),
                      self.encoding_status.encoding_changed)
-        self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
+        self.connect(editortabwidget, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
-        self.connect(editorstack, SIGNAL('opened_files_list_changed()'),
+        self.connect(editortabwidget, SIGNAL('opened_files_list_changed()'),
                      self.opened_files_list_changed)
-        self.connect(editorstack, SIGNAL('analysis_results_changed()'),
+        self.connect(editortabwidget, SIGNAL('analysis_results_changed()'),
                      self.analysis_results_changed)
-        self.connect(editorstack,
+        self.connect(editortabwidget,
                      SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
-        self.connect(editorstack, SIGNAL('refresh_save_all_action()'),
+        self.connect(editortabwidget, SIGNAL('move_tab(long,long,int,int)'),
+                     self.move_tabs_between_editortabwidgets)
+        self.connect(editortabwidget, SIGNAL('refresh_save_all_action()'),
                      self.refresh_save_all_action)
-        self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
+        self.connect(editortabwidget, SIGNAL('refresh_eol_mode(QString)'),
                      self.refresh_eol_mode)
         
-    def unregister_editorstack(self, editorstack):
-        """Removing editorstack only if it's not the last remaining"""
-        if self.last_focus_editorstack is editorstack:
-            self.last_focus_editorstack = None
-        if len(self.editorstacks) > 1:
-            index = self.editorstacks.index(editorstack)
-            self.editorstacks.pop(index)
-            editorstack.close() # remove widget from splitter
+    def unregister_editortabwidget(self, editortabwidget):
+        """Removing editortabwidget only if it's not the last remaining"""
+        if len(self.editortabwidgets) > 1:
+            index = self.editortabwidgets.index(editortabwidget)
+            self.editortabwidgets.pop(index)
+            editortabwidget.close() # remove widget from splitter
             return True
         else:
             # Tabbededitor was not removed!
             return False
         
-    def clone_editorstack(self, editorstack):
-        editorstack.clone_from(self.editorstacks[0])
+    def __get_editortabwidget_from_id(self, t_id):
+        for editortabwidget in self.editortabwidgets:
+            if id(editortabwidget) == t_id:
+                return editortabwidget
         
-    def __get_editorstack_from_id(self, t_id):
-        for editorstack in self.editorstacks:
-            if id(editorstack) == t_id:
-                return editorstack
-            
-    def close_file_in_all_editorstacks(self, index):
-        sender = self.sender()
-        for editorstack in self.editorstacks:
-            if editorstack is not sender:
-                editorstack.blockSignals(True)
-                editorstack.close_file(index)
-                editorstack.blockSignals(False)
+    def move_tabs_between_editortabwidgets(self, id_from, id_to,
+                                           index_from, index_to):
+        """
+        Move tab between tabwidgets
+        (see editortabwidget.move_data when moving tabs inside one tabwidget)
+        Tabs haven't been moved yet since tabwidgets don't have any
+        reference towards other tabwidget instances
+        """
+        tw_from = self.__get_editortabwidget_from_id(id_from)
+        tw_to = self.__get_editortabwidget_from_id(id_to)
+
+        tw_from.move_data(index_from, index_to, tw_to)
+
+        tip, text = tw_from.tabToolTip(index_from), tw_from.tabText(index_from)
+        icon, widget = tw_from.tabIcon(index_from), tw_from.widget(index_from)
+        
+        tw_from.removeTab(index_from)
+        tw_to.insertTab(index_to, widget, icon, text)
+        tw_to.setTabToolTip(index_to, tip)
+        
+        tw_to.setCurrentIndex(index_to)
+        
+        if tw_from.count() == 0:
+            tw_from.close_editortabwidget
         
         
     #------ Accessors
@@ -711,39 +1479,53 @@ class Editor(PluginWidget):
         return ftype_list
 
     def get_filenames(self):
-        return [finfo.filename for finfo in self.editorstacks[0].data]
+        filenames = []
+        for editortabwidget in self.editortabwidgets:
+            filenames += [finfo.filename for finfo in editortabwidget.data]
+        return filenames
 
-    def get_filename_index(self, filename):
-        return self.editorstacks[0].has_filename(filename)
-
-    def get_current_editorstack(self):
-        if len(self.editorstacks) == 1:
-            return self.editorstacks[0]
+    def get_editortabwidget_index(self, filename):
+        for editortabwidget in self.editortabwidgets:
+            index = editortabwidget.has_filename(filename)
+            if index is not None:
+                return (editortabwidget, index)
         else:
-            editorstack = self.__get_focus_editorstack()
-            if editorstack is None:
-                return self.last_focus_editorstack
+            return (None, None)
+
+    def get_current_editortabwidget(self):
+        if len(self.editortabwidgets) == 1:
+            return self.editortabwidgets[0]
+        else:
+            editortabwidget = self.__get_focus_editortabwidget()
+            if editortabwidget is None:
+                return self.last_focus_editortabwidget
             else:
-                return editorstack
+                return editortabwidget
         
     def get_current_editor(self):
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            return editorstack.get_current_editor()
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.currentWidget()
         
     def get_current_filename(self):
-        editorstack = self.get_current_editorstack()
-        if editorstack is not None:
-            return editorstack.get_current_filename()
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget is not None:
+            return editortabwidget.get_current_filename()
         
     def is_file_opened(self, filename=None):
-        return self.editorstacks[0].is_file_opened(filename)
+        if filename is None:
+            # Is there any file opened?
+            return self.get_current_editor() is not None
+        else:
+            editortabwidget, _index = self.get_editortabwidget_index(filename)
+            return editortabwidget
         
     def set_current_filename(self, filename):
         """Set focus to *filename* if this file has been opened
         Return the editor instance associated to *filename*"""
-        editorstack = self.get_current_editorstack()
-        return editorstack.set_current_filename(filename)
+        editortabwidget, _index = self.get_editortabwidget_index(filename)
+        if editortabwidget is not None:
+            return editortabwidget.set_current_filename(filename)
     
     
     #------ Refresh methods
@@ -757,16 +1539,16 @@ class Editor(PluginWidget):
                 
     def refresh_save_all_action(self):
         state = False
-        for editorstack in self.editorstacks:
-            if editorstack.get_stack_count() > 1:
+        for editortabwidget in self.editortabwidgets:
+            if editortabwidget.count() > 1:
                 state = state or any([finfo.editor.isModified() for finfo \
-                                      in editorstack.data])
+                                      in editortabwidget.data])
         self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):
         """Update warning list menu"""
-        editorstack = self.get_current_editorstack()
-        check_results = editorstack.get_analysis_results()
+        editortabwidget = self.get_current_editortabwidget()
+        check_results = editortabwidget.get_analysis_results()
         self.warning_menu.clear()
         for message, line0, error in check_results:
             text = message[:1].upper()+message[1:]
@@ -777,8 +1559,8 @@ class Editor(PluginWidget):
             
     def analysis_results_changed(self):
         """Refresh analysis navigation buttons"""
-        editorstack = self.get_current_editorstack()
-        check_results = editorstack.get_analysis_results()
+        editortabwidget = self.get_current_editortabwidget()
+        check_results = editortabwidget.get_analysis_results()
         state = CONF.get(self.ID, 'code_analysis') \
                 and check_results is not None and len(check_results)
         for action in (self.warning_list_action, self.previous_warning_action,
@@ -842,7 +1624,7 @@ class Editor(PluginWidget):
             if len(self.recent_files) > CONF.get(self.ID, 'max_recent_files'):
                 self.recent_files.pop(-1)
     
-    def new(self, fname=None, editorstack=None):
+    def new(self, fname=None, editortabwidget=None):
         """Create a new file - Untitled"""
         # Creating template
         text, enc = encoding.read(self.TEMPLATE_PATH)
@@ -864,9 +1646,9 @@ class Editor(PluginWidget):
         else:
             fname = unicode(fname) # QString when triggered by a Qt signal
         # Creating editor widget
-        if editorstack is None:
-            editorstack = self.get_current_editorstack()
-        finfo = editorstack.create_new_editor(fname, enc, text, new=True)
+        if editortabwidget is None:
+            editortabwidget = self.get_current_editortabwidget()
+        finfo = editortabwidget.create_new_editor(fname, enc, text, new=True)
         finfo.editor.set_cursor_position('eof')
         finfo.editor.insert_text(os.linesep)
                 
@@ -959,10 +1741,8 @@ class Editor(PluginWidget):
                 if not osp.isfile(filename):
                     continue
                 # --
-                current = self.get_current_editorstack()
-                for editorstack in self.editorstacks:
-                    editor = editorstack.load(filename,
-                                          set_current=editorstack is current)
+                editortabwidget = self.get_current_editortabwidget()
+                editor = editortabwidget.load(filename)
                 self.__add_recent_file(filename)
             if highlight:
                 editor.highlight_line(goto[index])
@@ -1013,38 +1793,38 @@ class Editor(PluginWidget):
 
     def close_file(self):
         """Close current file"""
-        editorstack = self.get_current_editorstack()
-        editorstack.close_file()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.close_file()
             
     def close_all_files(self):
         """Close all opened scripts"""
-        for editorstack in self.editorstacks:
-            editorstack.close_all_files()
+        for editortabwidget in self.editortabwidgets:
+            editortabwidget.close_all_files()
                 
     def save(self, index=None, force=False):
         """Save file"""
-        editorstack = self.get_current_editorstack()
-        editorstack.save(index=index, force=force)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.save(index=index, force=force)
                 
     def save_as(self):
         """Save *as* the currently edited file"""
-        editorstack = self.get_current_editorstack()
-        editorstack.save_as()
-        self.__add_recent_file(editorstack.get_current_filename())
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.save_as()
+        self.__add_recent_file(editortabwidget.get_current_filename())
         
     def save_all(self):
         """Save all opened files"""
-        for editorstack in self.editorstacks:
-            editorstack.save_all()
+        for editortabwidget in self.editortabwidgets:
+            editortabwidget.save_all()
     
     
     #------ Explorer widget
     def __close_and_reload(self, filename, new_filename=None):
         filename = osp.abspath(unicode(filename))
-        for editorstack in self.editorstacks:
-            index = editorstack.has_filename(filename)
+        for editortabwidget in self.editortabwidgets:
+            index = editortabwidget.has_filename(filename)
             if index is not None:
-                editorstack.close_file(index)
+                editortabwidget.close_file(index)
                 if new_filename is not None:
                     self.load(unicode(new_filename))
                 
@@ -1119,27 +1899,27 @@ class Editor(PluginWidget):
         self.emit(SIGNAL('run_pylint(QString)'), fname)
         
     def convert_eol_chars(self):
-        editorstack = self.get_current_editorstack()
-        editorstack.convert_eol_chars()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.convert_eol_chars()
     
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
         editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os_name))
         
     def remove_trailing_spaces(self):
-        editorstack = self.get_current_editorstack()
-        editorstack.remove_trailing_spaces()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.remove_trailing_spaces()
         
     def fix_indentation(self):
-        editorstack = self.get_current_editorstack()
-        editorstack.fix_indentation()
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.fix_indentation()
         
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,
                               interact=False, debug=False):
         """Run current script in another process"""
-        editorstack = self.get_current_editorstack()
-        if editorstack.save():
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget.save():
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
             wdir = osp.dirname(fname)
@@ -1166,8 +1946,8 @@ class Editor(PluginWidget):
     
     def run_script(self, set_focus=False):
         """Run current script"""
-        editorstack = self.get_current_editorstack()
-        if editorstack.save():
+        editortabwidget = self.get_current_editortabwidget()
+        if editortabwidget.save():
             filename = self.get_current_filename()
             editor = self.get_current_editor()
             self.__last_ic_exec = (filename, set_focus)
@@ -1192,8 +1972,8 @@ class Editor(PluginWidget):
         
     def run_selection_or_block(self, external=False):
         """Run selection or current line in interactive or external console"""
-        editorstack = self.get_current_editorstack()
-        editorstack.run_selection_or_block(external=external)
+        editortabwidget = self.get_current_editortabwidget()
+        editortabwidget.run_selection_or_block(external=external)
         
         
     #------ Options
@@ -1202,21 +1982,18 @@ class Editor(PluginWidget):
         font, valid = QFontDialog.getFont(get_font(self.ID), self,
                                           self.tr("Select a new font"))
         if valid:
-            for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
-                for finfo in editorstack.data:
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.set_font(font)
             set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        if hasattr(self, 'editorstacks'):
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.toggle_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_wrap_enabled(checked)
             
     def toggle_tab_mode(self, checked):
         """
@@ -1224,67 +2001,57 @@ class Editor(PluginWidget):
         checked = tab always indent
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
-        if hasattr(self, 'editorstacks'):
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.set_tab_mode(checked)
             CONF.set(self.ID, 'tab_always_indent', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_tabmode_enabled(checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
-        if hasattr(self, 'editorstacks'):
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.setup_margins(linenumbers=True,
                               code_folding=checked,
                               code_analysis=CONF.get(self.ID, 'code_analysis'))
                     if not checked:
                         finfo.editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_codefolding_enabled(checked)
             
     def toggle_show_eol_chars(self, checked):
         """Toggle show EOL characters"""
-        if hasattr(self, 'editorstacks'):
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.set_eol_chars_visible(checked)
             CONF.set(self.ID, 'show_eol_chars', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_showeolchars_enabled(checked)
             
     def toggle_show_whitespace(self, checked):
         """Toggle show whitespace"""
-        if hasattr(self, 'editorstacks'):
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
+        if hasattr(self, 'editortabwidgets'):
+            for editortabwidget in self.editortabwidgets:
+                for finfo in editortabwidget.data:
                     finfo.editor.set_whitespace_visible(checked)
             CONF.set(self.ID, 'show_whitespace', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_showwhitespace_enabled(checked)
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
-        if hasattr(self, 'editorstacks'):
+        if hasattr(self, 'editortabwidgets'):
             CONF.set(self.ID, 'code_analysis', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_codeanalysis_enabled(checked)
-            current_editorstack = self.get_current_editorstack()
-            current_index = current_editorstack.currentIndex()
-            for editorstack in self.editorstacks:
-                for index, finfo in enumerate(editorstack.data):
+            current_editortabwidget = self.get_current_editortabwidget()
+            current_index = current_editortabwidget.currentIndex()
+            for editortabwidget in self.editortabwidgets:
+                for index, finfo in enumerate(editortabwidget.data):
                     finfo.editor.setup_margins(linenumbers=True,
                               code_analysis=checked,
                               code_folding=CONF.get(self.ID, 'code_folding'))
                     if index != current_index:
-                        editorstack.analyze_script(index)
+                        editortabwidget.analyze_script(index)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            current_editorstack.analyze_script()
+            current_editortabwidget.analyze_script()
 
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""
@@ -1292,5 +2059,5 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'classbrowser_visibility', checked)
         if checked:
             self.classbrowser.update()
-            editorstack = self.get_current_editorstack()
-            editorstack._refresh_classbrowser(update=True)
+            editortabwidget = self.get_current_editortabwidget()
+            editortabwidget._refresh_classbrowser(update=True)

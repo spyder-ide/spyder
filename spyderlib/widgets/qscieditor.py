@@ -282,7 +282,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
         root_item.set_text(fullpath=self.fullpath)
         editor.populate_classbrowser(root_item)
         self.__sort_toplevel_items()
-        self.expandItem(root_item)
+        self.root_item_selected(root_item)
 #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
         return root_item
 
@@ -323,11 +323,12 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
                            root_item.path, line, True)
         self.freeze = False
+        parent = self.current_editor.parent()
         for editor_id, i_item in self.editor_items.iteritems():
             if i_item is root_item:
                 #XXX: not working anymore!!!
                 for editor, _id in self.editor_ids.iteritems():
-                    if _id == editor_id:
+                    if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
                         break
                 break
