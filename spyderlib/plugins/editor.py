@@ -588,7 +588,10 @@ class EditorTabWidget(Tabs):
         finfo.editor.setCursorPosition(line, index)
         
     def create_new_editor(self, fname, enc, txt, new=False):
-        """Create a new editor instance"""
+        """
+        Create a new editor instance
+        Returns finfo object (instead of editor as in previous releases)
+        """
         ext = osp.splitext(fname)[1]
         if ext.startswith('.'):
             ext = ext[1:] # file extension with leading dot
@@ -638,13 +641,13 @@ class EditorTabWidget(Tabs):
         
         editor.setFocus()
         
-        return editor
+        return finfo
         
     def load(self, filename):
         """Load filename, create an editor instance and return it"""
         self.plugin.starting_long_process(self.tr("Loading %1...").arg(filename))
         text, enc = encoding.read(filename)
-        editor = self.create_new_editor(filename, enc, text)
+        finfo = self.create_new_editor(filename, enc, text)
         index = self.currentIndex()
         self.analyze_script(index)
         self._refresh_classbrowser(index)
@@ -661,7 +664,7 @@ class EditorTabWidget(Tabs):
             if answer == QMessageBox.Yes:
                 self.set_os_eol_chars(index)
                 self.convert_eol_chars(index)
-        return editor
+        return finfo.editor
     
     def set_os_eol_chars(self, index=None):
         if index is None:
@@ -1645,9 +1648,9 @@ class Editor(PluginWidget):
         # Creating editor widget
         if editortabwidget is None:
             editortabwidget = self.get_current_editortabwidget()
-        editor = editortabwidget.create_new_editor(fname, enc, text, new=True)
-        editor.set_cursor_position('eof')
-        editor.insert_text(os.linesep)
+        finfo = editortabwidget.create_new_editor(fname, enc, text, new=True)
+        finfo.editor.set_cursor_position('eof')
+        finfo.editor.insert_text(os.linesep)
                 
     def edit_template(self):
         """Edit new file template"""

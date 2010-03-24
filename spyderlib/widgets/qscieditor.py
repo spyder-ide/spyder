@@ -196,7 +196,8 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.fullpath = fullpath
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
-        self.editors = {}
+        self.editor_items = {}
+        self.editor_ids = {}
         self.current_editor = None
         title = translate("ClassBrowser", "Classes and functions")
         self.set_title(title)
@@ -224,7 +225,8 @@ class ClassBrowserTreeWidget(OneColumnTree):
         if self.current_editor is None:
             return
         line = self.current_editor.get_cursor_line_number()
-        root_item = self.editors[self.current_editor]
+        editor_id = self.editor_ids[self.current_editor]
+        root_item = self.editor_items[editor_id]
         item = item_at_line(root_item, line)
         self.setCurrentItem(item)
         self.scrollToItem(item)
@@ -236,8 +238,9 @@ class ClassBrowserTreeWidget(OneColumnTree):
         
     def set_current_editor(self, editor, fname, update):
         """Bind editor instance"""
-        if editor in self.editors:
-            item = self.editors[editor]
+        editor_id = editor.get_document_id()
+        if editor_id in self.editor_ids.values():
+            item = self.editor_items[editor_id]
             if not self.freeze:
                 self.scrollToItem(item)
                 self.root_item_selected(item)
@@ -246,22 +249,27 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 editor.populate_classbrowser(item)
                 self.restore_expanded_state()
         else:
-            self.editors[editor] = self.populate(editor, fname)
+            self.editor_items[editor_id] = self.populate(editor, fname)
             self.resizeColumnToContents(0)
+        if editor not in self.editor_ids:
+            self.editor_ids[editor] = editor_id
         self.current_editor = editor
         
     def update_all(self):
         self.save_expanded_state()
-        for editor, item in self.editors.iteritems():
+        for editor, editor_id in self.editor_ids.iteritems():
+            item = self.editor_items[editor_id]
             editor.populate_classbrowser(item)
         self.restore_expanded_state()
         
     def remove_editor(self, editor):
-        if editor in self.editors:
+        if editor in self.editor_ids:
             if self.current_editor is editor:
                 self.current_editor = None
-            root_item = self.editors.pop(editor)
-            self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
+            editor_id = self.editor_ids.pop(editor)
+            if editor_id not in self.editor_ids.values():
+                root_item = self.editor_items.pop(editor_id)
+                self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
         
     def __sort_toplevel_items(self):
         self.sort_top_level_items(key=lambda item: item.path.lower())
@@ -290,7 +298,8 @@ class ClassBrowserTreeWidget(OneColumnTree):
     def restore(self):
         if self.current_editor is not None:
             self.collapseAll()
-            self.root_item_selected(self.editors[self.current_editor])
+            editor_id = self.editor_ids[self.current_editor]
+            self.root_item_selected(self.editor_items[editor_id])
 
     def clicked(self, item):
         """Click event"""
@@ -314,13 +323,16 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
                            root_item.path, line, True)
         self.freeze = False
-        for editor, i_item in self.editors.iteritems():
+        for editor_id, i_item in self.editor_items.iteritems():
             if i_item is root_item:
-                self.current_editor = editor
+                #XXX: not working anymore!!!
+                for editor, _id in self.editor_ids.iteritems():
+                    if _id == editor_id:
+                        self.current_editor = editor
+                        break
                 break
     
-#TODO: Add an option to show/hide code analysis results
-#TODO: Add an option to show/hide TODOs, FIXMEs and XXXs
+    
 class ClassBrowser(QWidget):
     """
     Class browser
@@ -386,6 +398,7 @@ class CythonLexer(QsciLexerPython):
     def language(self):
         return "Cython"
 
+#TODO: Show/hide TODOs, FIXMEs and XXXs (the same way as code analysis results)
 class QsciEditor(TextEditBaseWidget):
     """
     QScintilla Base Editor Widget
@@ -412,6 +425,8 @@ class QsciEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        self.document_id = id(self)
                     
         # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged(int, int)'),
@@ -472,9 +487,13 @@ class QsciEditor(TextEditBaseWidget):
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
         
+    def get_document_id(self):
+        return self.document_id
+        
     def set_as_clone(self, editor):
         """Set as clone editor"""
         self.setDocument(editor.document())
+        self.document_id = editor.get_document_id()
         #TODO: synchronized the two clone editors
         
     def setup_editor(self, linenumbers=True, language=None,
