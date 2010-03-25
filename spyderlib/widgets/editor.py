@@ -29,7 +29,6 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate,
                                        create_toolbutton)
 from spyderlib.widgets.qscieditor import QsciEditor, check
-from spyderlib.widgets.findreplace import FindReplace
 
 
 class CodeAnalysisThread(QThread):
@@ -86,6 +85,7 @@ class EditorStack(QWidget):
         self.setLayout(layout)
         
         header_layout = QHBoxLayout()
+        header_layout.setContentsMargins(0, 0, 0, 0)
         menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
                                      tip=translate("Editor", "Options"))
         self.menu = QMenu(self)
@@ -124,9 +124,7 @@ class EditorStack(QWidget):
                      self.stack.setCurrentIndex)
         layout.addWidget(self.stack)
         
-        self.find_widget = FindReplace(self, enable_replace=True)
-        self.find_widget.hide()
-        layout.addWidget(self.find_widget)
+        self.find_widget = None
 
         self.menu_actions = actions
         self.classbrowser = None
@@ -184,6 +182,9 @@ class EditorStack(QWidget):
         self.open_action = open_action
         self.save_action = save_action
         
+    def set_find_widget(self, find_widget):
+        self.find_widget = find_widget
+        
     def set_classbrowser(self, classbrowser):
         self.classbrowser = classbrowser
         self.classbrowser_enabled = True
@@ -223,6 +224,7 @@ class EditorStack(QWidget):
     def set_default_font(self, font):
         # get_font(self.ID)
         self.default_font = font
+        self.combo.setFont(font)
         
     def set_wrap_enabled(self, state):
         # CONF.get(self.ID, 'wrap')
@@ -547,11 +549,15 @@ class EditorStack(QWidget):
         self.close_btn.setEnabled(count > 0)
         for btn in (self.previous_btn, self.next_btn):
             btn.setEnabled(count > 1)
+        
+        editor = self.get_current_editor()
         if index != -1:
-            self.get_current_editor().setFocus()
+            editor.setFocus()
+#            print >>STDOUT, "setfocusto:", editor
         else:
             self.emit(SIGNAL('reset_statusbar()'))
         self.emit(SIGNAL('opened_files_list_changed()'))
+        
         # Index history management
         id_list = [id(self.stack.widget(_i))
                    for _i in range(self.stack.count())]
@@ -816,7 +822,6 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL("focus_changed()"),
                      self.focus_changed_callback)
 
-        
         self.find_widget.set_editor(editor)
        
         self.emit(SIGNAL('refresh_file_dependent_actions()'))
@@ -1028,10 +1033,20 @@ class FakePlugin(QSplitter):
 
         self.editorstacks = []
 
+        from spyderlib.widgets.findreplace import FindReplace
+        self.find_widget = FindReplace(self, enable_replace=True)
+
         from spyderlib.widgets.qscieditor import ClassBrowser
         self.classbrowser = ClassBrowser(self, fullpath=False)
-        self.editorsplitter = EditorSplitter(self, [], first=True)
-        self.addWidget(self.editorsplitter)
+
+        editor_widgets = QWidget(self)
+        editor_layout = QVBoxLayout()
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_widgets.setLayout(editor_layout)
+        editor_layout.addWidget(EditorSplitter(self, [], first=True))
+        editor_layout.addWidget(self.find_widget)
+        
+        self.addWidget(editor_widgets)
         self.addWidget(self.classbrowser)
         
         self.setStretchFactor(0, 5)
@@ -1044,6 +1059,7 @@ class FakePlugin(QSplitter):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         editorstack.set_classbrowser(self.classbrowser)
+        editorstack.set_find_widget(self.find_widget)
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)
         if len(self.editorstacks) > 1:

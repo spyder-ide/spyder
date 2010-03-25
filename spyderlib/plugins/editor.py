@@ -13,9 +13,6 @@
 
 #TODO: Make a plugin for the class browser ?
 
-#TODO: FindReplace widget: it should be parented with editorstack instead
-#                          of editor plugin as it is right now
-
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QHBoxLayout, QLabel, QPrinter, QActionGroup,
@@ -183,6 +180,10 @@ class Editor(PluginWidget):
         
         self.editorstacks = []
         
+        # Find widget
+        self.find_widget = FindReplace(self, enable_replace=True)
+        self.find_widget.hide()
+        
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -190,8 +191,6 @@ class Editor(PluginWidget):
         editor_widgets.setLayout(editor_layout)
         editor_layout.addWidget(EditorSplitter(self, self.tab_actions,
                                                first=True))
-        self.find_widget = FindReplace(self, enable_replace=True)
-        self.find_widget.hide()
         editor_layout.addWidget(self.find_widget)
 
         # Splitter: editor widgets (see above) + class browser
@@ -603,6 +602,7 @@ class Editor(PluginWidget):
             editorstack.set_closable(True)
             
         editorstack.set_classbrowser(self.classbrowser)
+        editorstack.set_find_widget(self.find_widget)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
