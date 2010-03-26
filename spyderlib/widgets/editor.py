@@ -11,9 +11,13 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,  QSplitter,
-                         QAction, QApplication,  QWidget, QHBoxLayout,  QMenu,
-                         QStackedWidget, QComboBox, QKeySequence, QShortcut)
+#TODO: Add a button "Opened files management" -> opens a qlistwidget with
+#      checkboxes + toolbar with "Save", "Close"
+
+from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
+                         QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
+                         QStackedWidget, QComboBox, QKeySequence, QShortcut,
+                         QSizePolicy)
 from PyQt4.QtCore import SIGNAL, Qt, QFileInfo, QThread, QObject
 
 import os, sys
@@ -101,17 +105,25 @@ class EditorStack(QWidget):
                              tip=translate("Editor", "Next (Ctrl+Shift+Tab)"),
                              triggered=self.go_to_next_file)
         header_layout.addWidget(self.next_btn)
-        self.combo = QComboBox(self)
-        self.combo.setMaxVisibleItems(20)
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.current_changed)
+
+        # Local shortcuts
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
                           self.go_to_previous_file)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
         tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
                                self.go_to_next_file)
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+        self.combo = QComboBox(self)
+        self.combo.setMaxVisibleItems(20)
+        self.combo.setEditable(True)
+        self.combo.lineEdit().setReadOnly(True)
+        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
+                     self.current_changed)
         header_layout.addWidget(self.combo)
+        
         self.close_btn = create_toolbutton(self, triggered=self.close_file,
                                        icon=get_icon("fileclose.png"),
                                        tip=translate("Editor", "Close file"))
@@ -225,7 +237,9 @@ class EditorStack(QWidget):
     def set_default_font(self, font):
         # get_font(self.ID)
         self.default_font = font
-        self.combo.setFont(font)
+        combo_font = QFont(font)
+        combo_font.setPointSize(combo_font.pointSize()-1)
+        self.combo.setFont(combo_font)
         
     def set_wrap_enabled(self, state):
         # CONF.get(self.ID, 'wrap')
