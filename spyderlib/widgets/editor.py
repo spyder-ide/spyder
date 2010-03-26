@@ -102,6 +102,7 @@ class EditorStack(QWidget):
                              triggered=self.go_to_next_file)
         header_layout.addWidget(self.next_btn)
         self.combo = QComboBox(self)
+        self.combo.setMaxVisibleItems(20)
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
                      self.current_changed)
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
