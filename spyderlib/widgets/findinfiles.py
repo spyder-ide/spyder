@@ -265,6 +265,9 @@ class SearchThread(QThread):
             except IOError, (_errno, _strerror):
                 self.error_flag = translate("FindInFiles",
                                   "permission denied errors were encountered")
+            except re.error:
+                self.error_flag = translate("FindInFiles",
+                                  "invalid regular expression")
         self.completed = True
     
     def get_results(self):
