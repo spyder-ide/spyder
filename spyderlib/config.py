@@ -298,7 +298,7 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': ['.', r'\.pyw?$|\.txt$|\.c$|\.cpp$|\.h$|\.f$|\.ini$'],
+              'include': ['.', r'\.pyw?$|\.txt$|\.c$|\.cpp$|\.h$|\.hpp$|\.f$|\.ini$'],
               'include_regexp': True,
               'exclude': [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn'],
               'exclude_regexp': True,

@@ -412,7 +412,7 @@ class QsciEditor(TextEditBaseWidget):
               ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),
               'css': (QsciLexerCSS, '#', None),
               ('htm', 'html'): (QsciLexerHTML, '', None),
-              ('c', 'cpp', 'h'): (QsciLexerCPP, '//', None),
+              ('c', 'cpp', 'h', 'hpp', 'cxx'): (QsciLexerCPP, '//', None),
               ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
               ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
