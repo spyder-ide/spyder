@@ -11,6 +11,8 @@ spyderlib.utils
 Spyder's utilities
 """
 
+from __future__ import with_statement
+
 def select_port(default_port=20128):
     """Find and return a non used port"""
     import socket

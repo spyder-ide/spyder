@@ -12,9 +12,9 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 """
 
 from __future__ import with_statement
+
 import re, os, locale
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
-from PyQt4.QtCore import QString
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
 
