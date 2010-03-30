@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFontDialog
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL
 
 import sys
 import os.path as osp

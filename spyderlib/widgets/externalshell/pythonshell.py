@@ -13,12 +13,11 @@ import os.path as osp
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QMenu, QToolButton
+from PyQt4.QtGui import QApplication, QMessageBox, QSplitter
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
+from spyderlib.utils.qthelpers import create_toolbutton, create_action
 from spyderlib.config import CONF, get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
@@ -106,6 +105,10 @@ class ExternalPythonShell(ExternalShellBase):
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[]):
         self.fname = startup.__file__ if fname is None else fname
+        
+        self.globalsexplorer_button = None
+        self.terminate_button = None
+        
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec.py')
         
@@ -129,33 +132,30 @@ class ExternalPythonShell(ExternalShellBase):
         
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
-        self.globalsexplorer_button = create_toolbutton(self,
+        if self.globalsexplorer_button is None:
+            self.globalsexplorer_button = create_toolbutton(self,
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer)
-        self.terminate_button = create_toolbutton(self,
-              get_icon('terminate.png'), self.tr("Terminate"),
-              tip=self.tr("Attempts to terminate the process.\n"
-                          "The process may not exit as a result of clicking "
-                          "this button\n(it is given the chance to prompt "
-                          "the user for any unsaved files, etc)."))        
-        
+        if self.terminate_button is None:
+            self.terminate_button = create_toolbutton(self,
+                          get_icon('terminate.png'), self.tr("Terminate"),
+                          tip=self.tr("Attempts to terminate the process.\n"
+                                      "The process may not exit as a result of "
+                                      "clicking this button\n"
+                                      "(it is given the chance to prompt "
+                                      "the user for any unsaved files, etc)."))        
+        return [self.globalsexplorer_button, self.run_button,
+                self.options_button, self.terminate_button, self.kill_button]
+
+    def get_options_menu(self):
         self.interact_action = create_action(self, self.tr("Interact"))
         self.interact_action.setCheckable(True)
         self.debug_action = create_action(self, self.tr("Debug"))
         self.debug_action.setCheckable(True)
         self.args_action = create_action(self, self.tr("Arguments..."),
                                          triggered=self.get_arguments)
-        self.options_button = create_toolbutton(self, text=self.tr("Options"),
-                                            icon=get_icon('tooloptions.png'))
-        self.options_button.setPopupMode(QToolButton.InstantPopup)
-        menu = QMenu(self)
-        add_actions(menu, (self.interact_action, self.debug_action,
-                           self.args_action))
-        self.options_button.setMenu(menu)
-        
-        return [self.globalsexplorer_button, self.run_button,
-                self.options_button, self.terminate_button, self.kill_button]
+        return [self.interact_action, self.debug_action, self.args_action]
         
     def get_shell_widget(self):
         # Globals explorer

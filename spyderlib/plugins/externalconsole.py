@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
-from PyQt4.QtCore import SIGNAL, QString
+from PyQt4.QtCore import SIGNAL, QString, Qt
 
 import sys, os
 import os.path as osp
@@ -202,6 +202,8 @@ class ExternalConsole(PluginWidget):
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         
+        self.toggle_icontext(CONF.get(self.ID, 'show_icontext'))
+        
         # Start process and give focus to console
         shell.start(ask_for_arguments)
         shell.shell.setFocus()
@@ -269,10 +271,13 @@ class ExternalConsole(PluginWidget):
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
         singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
+        icontext_action = create_action(self, self.tr("Show icons and text"),
+                                        toggled=self.toggle_icontext)
+        icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         self.menu_actions = [interpreter_action, run_action, None,
                              font_action, wrap_action, calltips_action,
                              codecompletion_action, codecompenter_action,
-                             singletab_action]
+                             singletab_action, icontext_action]
         if console_action:
             self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
@@ -341,7 +346,17 @@ class ExternalConsole(PluginWidget):
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""
         CONF.set(self.ID, 'single_tab', checked)
-        
+
+    def toggle_icontext(self, checked):
+        """Toggle icon text"""
+        CONF.set(self.ID, 'show_icontext', checked)
+        for index in range(self.tabwidget.count()):
+            for widget in self.tabwidget.widget(index).get_toolbar_buttons():
+                if checked:
+                    widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+                else:
+                    widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
+                
     def closing(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True

@@ -18,13 +18,14 @@ from time import time, strftime, gmtime
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-                         QLabel, QInputDialog, QLineEdit)
+from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QMenu,
+                         QLabel, QInputDialog, QLineEdit, QToolButton)
 from PyQt4.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
                           QStringList, Qt)
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton, translate
+from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
+                                       translate, add_actions)
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.externalshell.monitor import communicate
 
@@ -45,8 +46,15 @@ def add_pathlist_to_PYTHONPATH(env, pathlist):
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
-    def __init__(self, parent=None, wdir=None, history_filename=None):
+    def __init__(self, parent=None, wdir=None, history_filename=None,
+                 show_icontext=True):
         QWidget.__init__(self, parent)
+        
+        self.run_button = None
+        self.kill_button = None
+        self.options_button = None
+        self.icontext_action = None
+        
         if wdir is None:
             wdir = osp.dirname(osp.abspath(self.fname))
         self.wdir = wdir if osp.isdir(wdir) else None
@@ -94,18 +102,36 @@ class ExternalShellBase(QWidget):
             return self.process.state() == QProcess.Running
         
     def get_toolbar_buttons(self):
-        self.run_button = create_toolbutton(self, get_icon('run.png'),
+        if self.run_button is None:
+            self.run_button = create_toolbutton(self, get_icon('run.png'),
                               translate('ExternalShellBase', "Run"),
                               tip=translate('ExternalShellBase',
                                             "Run again this program"),
                               triggered=self.start)
-        self.kill_button = create_toolbutton(self, get_icon('kill.png'),
+        if self.kill_button is None:
+            self.kill_button = create_toolbutton(self, get_icon('kill.png'),
                               translate('ExternalShellBase', "Kill"),
                               tip=translate('ExternalShellBase',
                                             "Kills the current process, "
                                             "causing it to exit immediately"))
-        return [self.run_button, self.kill_button]
-        
+        buttons = [self.run_button, self.kill_button]
+        if self.options_button is None:
+            options = self.get_options_menu()
+            if options:
+                self.options_button = create_toolbutton(self,
+                                            text=self.tr("Options"),
+                                            icon=get_icon('tooloptions.png'))
+                self.options_button.setPopupMode(QToolButton.InstantPopup)
+                menu = QMenu(self)
+                add_actions(menu, options)
+                self.options_button.setMenu(menu)
+        if self.options_button is not None:
+            buttons.insert(1, self.options_button)
+        return buttons
+    
+    def get_options_menu(self):
+        return []
+    
     def get_shell_widget(self):
         return self.shell
     
