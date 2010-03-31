@@ -625,27 +625,27 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="935"/>
+        <location filename="plugins/editor.py" line="936"/>
         <source>Open Python script</source>
         <translation>Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1220"/>
+        <location filename="plugins/editor.py" line="1222"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="502"/>
+        <location filename="plugins/editor.py" line="504"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="830"/>
+        <location filename="plugins/editor.py" line="831"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="829"/>
+        <location filename="plugins/editor.py" line="830"/>
         <source>Spyder Editor</source>
         <translation>Éditeur de Spyder</translation>
     </message>
@@ -675,17 +675,17 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Fermer tout</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="866"/>
+        <location filename="plugins/editor.py" line="867"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="511"/>
+        <location filename="plugins/editor.py" line="513"/>
         <source>Set working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="512"/>
+        <location filename="plugins/editor.py" line="514"/>
         <source>Change working directory to current script directory</source>
         <translation>Choisir le répertoire du script en cours d&apos;édition comme répertoire de travail</translation>
     </message>
@@ -970,7 +970,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Tous les fichiers</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="505"/>
+        <location filename="plugins/editor.py" line="507"/>
         <source>Tab always indent</source>
         <translation>Toujours indenter avec la touche Tab</translation>
     </message>
@@ -1005,7 +1005,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Changer la police d&apos;écriture du texte et de la marge</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="509"/>
+        <location filename="plugins/editor.py" line="511"/>
         <source>If enabled, pressing Tab will always indent, even when the cursor is not at the beginning of a line</source>
         <translation>Si l&apos;option est activée, presser la touche Tab indentera toujours la ligne en cours d&apos;édition, quelle que soit la position du curseur</translation>
     </message>
@@ -1077,22 +1077,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Imprimer le fichier en cours d&apos;édition...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1003"/>
+        <location filename="plugins/editor.py" line="1005"/>
         <source>Printing...</source>
         <translation>Impression en cours...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1014"/>
+        <location filename="plugins/editor.py" line="1016"/>
         <source>Print</source>
         <translation>Impression</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1016"/>
+        <location filename="plugins/editor.py" line="1018"/>
         <source>&lt;b&gt;Unable to print document &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Impossible d&apos;imprimer le document &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="496"/>
+        <location filename="plugins/editor.py" line="498"/>
         <source>Show end-of-line characters</source>
         <translation>Afficher les caractères de fin de ligne</translation>
     </message>
@@ -1102,7 +1102,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Options de l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="537"/>
+        <location filename="plugins/editor.py" line="539"/>
         <source>Code source editor settings</source>
         <translation>Options de l&apos;éditeur de code source</translation>
     </message>
@@ -1132,7 +1132,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Caractères de fin de ligne</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="491"/>
+        <location filename="plugins/editor.py" line="493"/>
         <source>Always check end-of-line characters</source>
         <translation>Toujours vérifier les caractères de fin de ligne</translation>
     </message>
@@ -1142,32 +1142,32 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Supprimer les espaces en fin de ligne</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="520"/>
+        <location filename="plugins/editor.py" line="522"/>
         <source>Maximum number of recent files...</source>
         <translation>Nombre maximum de fichiers récents...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="523"/>
+        <location filename="plugins/editor.py" line="525"/>
         <source>Clear this list</source>
         <translation>Effacer cette liste</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="523"/>
+        <location filename="plugins/editor.py" line="525"/>
         <source>Clear recent files list</source>
         <translation>Effacer la liste des fichiers récents</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="525"/>
+        <location filename="plugins/editor.py" line="527"/>
         <source>Open &amp;recent</source>
         <translation>Fichiers &amp;récents</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="916"/>
+        <location filename="plugins/editor.py" line="917"/>
         <source>Maximum number of recent files</source>
         <translation>Nombre maximum de fichiers récents</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="499"/>
+        <location filename="plugins/editor.py" line="501"/>
         <source>Show whitespace</source>
         <translation>Afficher les espaces et tabulations</translation>
     </message>
@@ -1239,7 +1239,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">E</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="516"/>
+        <location filename="plugins/editor.py" line="518"/>
         <source>Show/hide class browser</source>
         <translation>Afficher/masquer l&apos;explorateur de classes</translation>
     </message>
@@ -2880,6 +2880,16 @@ Souhaitez-vous continuer ?</translation>
         <source>PYTHONPATH manager</source>
         <translation>Gestionnaire de PYTHONPATH</translation>
     </message>
+    <message>
+        <location filename="spyder.py" line="1430"/>
+        <source>Import error</source>
+        <translation>Erreur d&apos;import</translation>
+    </message>
+    <message>
+        <location filename="spyder.py" line="1434"/>
+        <source>Please install &lt;b&gt;%1&lt;/b&gt; and restart Spyder.&lt;br&gt;&lt;br&gt;Running Spyder with option &lt;b&gt;%2&lt;/b&gt; require the &lt;b&gt;%1&lt;/b&gt; Python module.</source>
+        <translation>Veuillez installer &lt;b&gt;%1&lt;/b&gt; et redémarrer Spyder.&lt;br&gt;&lt;br&gt;Exécuter Spyder avec l&apos;option &lt;b&gt;%2&lt;/b&gt; requiert l&apos;installation du module Python &lt;b&gt;%1&lt;/b&gt;.</translation>
+    </message>
 </context>
 <context>
     <name>MatplotlibFigure</name>
@@ -4194,6 +4204,19 @@ Souhaitez-vous %3 sauvegarder ?</translation>
         <location filename="plugins/workspace.py" line="327"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Would you like to import it as a text file?</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Souhaitez-vous ouvrir ce fichier en tant que fichier texte ?</translation>
+    </message>
+</context>
+<context>
+    <name>main</name>
+    <message>
+        <location filename="spyder.py" line="1429"/>
+        <source>Import error</source>
+        <translation type="obsolete">Erreur d&apos;import</translation>
+    </message>
+    <message>
+        <location filename="spyder.py" line="1427"/>
+        <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.&lt;br&gt;&lt;br&gt;Running Spyder with options &lt;i&gt;pylab&lt;/i&gt;, &lt;i&gt;basics&lt;/i&gt; or &lt;i&gt;all&lt;/i&gt; require the matplotlib module.</source>
+        <translation type="obsolete">Veuillez installer &lt;b&gt;matplotlib&lt;/b&gt;.&lt;br&gt;&lt;br&gt;Exécuter Spyder avec l&apos;option &lt;i&gt;pylab&lt;/i&gt;, &lt;i&gt;basics&lt;/i&gt; ou &lt;i&gt;all&lt;/i&gt; requiert l&apos;installation du module Python matplotlib.</translation>
     </message>
 </context>
 </TS>

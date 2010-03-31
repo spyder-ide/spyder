@@ -1415,6 +1415,28 @@ def run_spyder(app, commands, intitle, message, options):
     # Main window
     main = MainWindow(commands, intitle, message, options)
     
+    # Checking if required modules are installed
+    required_modules = {'pylab':  ('numpy', 'matplotlib'),
+                        'basics': ('numpy', 'scipy', 'matplotlib'),
+                        'all':    ('numpy', 'scipy', 'matplotlib')}
+    error = False
+    for optname, modnames in required_modules.items():
+        if getattr(options, optname):
+            for modname in modnames:
+                try:
+                    imp.find_module(modname)
+                except ImportError:
+                    main.splash.hide()
+                    QMessageBox.critical(main,
+                        translate("MainWindow", "Import error"),
+                        translate("MainWindow", "Please install <b>%1</b> and "
+                                  "restart Spyder.<br><br>Running Spyder with "
+                                  "option <b>%2</b> require the <b>%1</b> "
+                                  "Python module.").arg(modname).arg(optname))
+                    error = True
+    if error:
+        return
+    
     #----Patching matplotlib's FigureManager
     if options.pylab or options.basics:
         # Customizing matplotlib's parameters
@@ -1593,6 +1615,8 @@ def main():
                                       % (osp.basename(next_session_name),
                                          error_message))
         mainwindow = run_spyder(*args)
+        if mainwindow is None:
+            return
         next_session_name = mainwindow.next_session_name
         save_session_name = mainwindow.save_session_name
         if next_session_name is not None:
