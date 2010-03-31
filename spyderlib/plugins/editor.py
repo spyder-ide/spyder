@@ -28,6 +28,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
+from spyderlib.utils.programs import is_program_installed, run_program
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon, translate)
 from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
@@ -35,6 +36,12 @@ from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editor import EditorSplitter, EditorStack
 from spyderlib.plugins import PluginWidget
+
+
+WINPDB_PATH = 'winpdb.bat' if os.name == 'nt' else 'winpdb'
+
+def is_winpdb_installed():
+    return is_program_installed(WINPDB_PATH)
 
 
 #===============================================================================
@@ -439,6 +446,10 @@ class Editor(PluginWidget):
                                       "F7", triggered=self.run_pylint)
         pylint_action.setEnabled(is_pylint_installed())
         
+        winpdb_action = create_action(self, self.tr("Debug with winpdb"),
+                                      "F8", triggered=self.run_winpdb)
+        winpdb_action.setEnabled(is_winpdb_installed())
+        
         convert_eol_action = create_action(self,
                            self.tr("Convert end-of-line characters"),
                            triggered=self.convert_eol_chars)
@@ -464,8 +475,6 @@ class Editor(PluginWidget):
         fixindentation_action = create_action(self, self.tr("Fix indentation"),
                       tip=self.tr("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
-        
-        pylint_action.setEnabled(is_pylint_installed())
 
         template_action = create_action(self, self.tr("Edit template for "
                                                       "new modules"),
@@ -554,8 +563,9 @@ class Editor(PluginWidget):
                 run_selected_extconsole_action,
                 run_process_args_actionn,
                 run_process_debug_action, None,
-                pylint_action, convert_eol_action, eol_menu,
-                trailingspaces_action, fixindentation_action, None, option_menu)
+                pylint_action, winpdb_action, None,
+                convert_eol_action, eol_menu, trailingspaces_action,
+                fixindentation_action, None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.classbrowser_action,
@@ -574,7 +584,7 @@ class Editor(PluginWidget):
                 re_run_process_action, run_process_interact_action,
                 run_process_args_actionn, run_process_debug_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
-                )
+                winpdb_action)
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 (self.save_action, save_as_action,
                  print_preview_action, print_action,
@@ -1044,7 +1054,7 @@ class Editor(PluginWidget):
     def save(self, index=None, force=False):
         """Save file"""
         editorstack = self.get_current_editorstack()
-        editorstack.save(index=index, force=force)
+        return editorstack.save(index=index, force=force)
                 
     def save_as(self):
         """Save *as* the currently edited file"""
@@ -1137,6 +1147,12 @@ class Editor(PluginWidget):
         """Run pylint code analysis"""
         fname = self.get_current_filename()
         self.emit(SIGNAL('run_pylint(QString)'), fname)
+        
+    def run_winpdb(self):
+        """Run winpdb to debug current file"""
+        if self.save():
+            fname = self.get_current_filename()
+            run_program(WINPDB_PATH, fname)
         
     def convert_eol_chars(self):
         editorstack = self.get_current_editorstack()
