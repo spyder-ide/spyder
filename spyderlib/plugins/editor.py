@@ -490,15 +490,15 @@ class Editor(PluginWidget):
                         "using pyflakes, lines containing errors or "
                         "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis', True) )
-        fold_action = create_action(self, self.tr("Code folding"),
-                                    toggled=self.toggle_code_folding)
-        fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
         self.foldonopen_action = create_action(self, self.tr("Fold on open"),
                                      toggled=lambda checked:
                                      CONF.set(self.ID, 'fold_on_open', checked))
         self.foldonopen_action.setChecked( CONF.get(self.ID,
                                                     'fold_on_open', False) )
         self.foldonopen_action.setEnabled( CONF.get(self.ID, 'code_folding') )
+        fold_action = create_action(self, self.tr("Code folding"),
+                                    toggled=self.toggle_code_folding)
+        fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
         checkeol_action = create_action(self,
             self.tr("Always check end-of-line characters"),
             toggled=lambda checked: self.emit(SIGNAL('option_changed'),
