@@ -480,22 +480,28 @@ class Editor(PluginWidget):
             tip=self.tr("If enabled, Python source code will be analyzed "
                         "using pyflakes, lines containing errors or "
                         "warnings will be highlighted"))
-        analyze_action.setChecked( CONF.get(self.ID, 'code_analysis') )
+        analyze_action.setChecked( CONF.get(self.ID, 'code_analysis', True) )
         fold_action = create_action(self, self.tr("Code folding"),
                                     toggled=self.toggle_code_folding)
-        fold_action.setChecked( CONF.get(self.ID, 'code_folding') )
+        fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
+        self.foldonopen_action = create_action(self, self.tr("Fold on open"),
+                                     toggled=lambda checked:
+                                     CONF.set(self.ID, 'fold_on_open', checked))
+        self.foldonopen_action.setChecked( CONF.get(self.ID,
+                                                    'fold_on_open', False) )
+        self.foldonopen_action.setEnabled( CONF.get(self.ID, 'code_folding') )
         checkeol_action = create_action(self,
             self.tr("Always check end-of-line characters"),
             toggled=lambda checked: self.emit(SIGNAL('option_changed'),
                                               'check_eol_chars', checked))
-        checkeol_action.setChecked( CONF.get(self.ID, 'check_eol_chars') )
+        checkeol_action.setChecked( CONF.get(self.ID, 'check_eol_chars', True) )
         showeol_action = create_action(self,
                                        self.tr("Show end-of-line characters"),
                                        toggled=self.toggle_show_eol_chars)
-        showeol_action.setChecked( CONF.get(self.ID, 'show_eol_chars') )
+        showeol_action.setChecked( CONF.get(self.ID, 'show_eol_chars', False) )
         showws_action = create_action(self, self.tr("Show whitespace"),
                                       toggled=self.toggle_show_whitespace)
-        showws_action.setChecked( CONF.get(self.ID, 'show_whitespace') )
+        showws_action.setChecked( CONF.get(self.ID, 'show_whitespace', False) )
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
@@ -504,7 +510,7 @@ class Editor(PluginWidget):
             tip=self.tr("If enabled, pressing Tab will always indent, "
                         "even when the cursor is not at the beginning "
                         "of a line"))
-        tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent') )
+        tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent', True) )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
@@ -534,8 +540,9 @@ class Editor(PluginWidget):
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (template_action, font_action, wrap_action,
-                                  tab_action, fold_action, checkeol_action,
-                                  showeol_action, showws_action,
+                                  tab_action, None, fold_action,
+                                  self.foldonopen_action, checkeol_action,
+                                  showeol_action, showws_action, None,
                                   analyze_action, self.classbrowser_action))
         
         source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -610,15 +617,17 @@ class Editor(PluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
         editorstack.set_filetype_filters(self.get_filetype_filters())
         editorstack.set_valid_types(self.get_valid_types())
-        editorstack.set_codeanalysis_enabled(CONF.get(self.ID, 'code_analysis'))
-        editorstack.set_classbrowser_enabled(CONF.get(self.ID, 'class_browser'))
-        editorstack.set_codefolding_enabled(CONF.get(self.ID, 'code_folding'))
-        editorstack.set_showeolchars_enabled(CONF.get(self.ID, 'show_eol_chars'))
-        editorstack.set_showwhitespace_enabled(CONF.get(self.ID, 'show_whitespace'))
+        settings = (('set_codeanalysis_enabled',   'code_analysis'),
+                    ('set_classbrowser_enabled',   'class_browser'),
+                    ('set_codefolding_enabled',    'code_folding'),
+                    ('set_showeolchars_enabled',   'show_eol_chars'),
+                    ('set_showwhitespace_enabled', 'show_whitespace'),
+                    ('set_wrap_enabled',           'wrap'),
+                    ('set_tabmode_enabled',        'tab_always_indent'),
+                    ('set_checkeolchars_enabled',  'check_eol_chars'))
+        for method, setting in settings:
+            getattr(editorstack, method)(CONF.get(self.ID, setting))
         editorstack.set_default_font(get_font(self.ID))
-        editorstack.set_wrap_enabled(CONF.get(self.ID, 'wrap'))
-        editorstack.set_tabmode_enabled(CONF.get(self.ID, 'tab_always_indent'))
-        editorstack.set_checkeolchars_enabled(CONF.get(self.ID, 'check_eol_chars'))
         
         self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
                      self.starting_long_process)
@@ -956,21 +965,29 @@ class Editor(PluginWidget):
             
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            editor = self.set_current_filename(filename)
-            if editor is None:
+            current_editor = self.set_current_filename(filename)
+            new_editors = []
+            if current_editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
                     continue
                 # --
                 current = self.get_current_editorstack()
                 for editorstack in self.editorstacks:
-                    editor = editorstack.load(filename,
-                                          set_current=editorstack is current)
+                    is_current = editorstack is current
+                    editor = editorstack.load(filename, set_current=is_current)
+                    if is_current:
+                        current_editor = editor
+                    new_editors.append(editor)
                 self.__add_recent_file(filename)
             if highlight:
-                editor.highlight_line(goto[index])
+                current_editor.highlight_line(goto[index])
             else:
-                editor.go_to_line(goto[index])
+                current_editor.go_to_line(goto[index])
+            for editor in new_editors:
+                if CONF.get(self.ID, 'fold_on_open') \
+                   and CONF.get(self.ID, 'code_folding'):
+                    editor.foldAll()
             QApplication.processEvents()
 
     def print_file(self):
@@ -1237,6 +1254,7 @@ class Editor(PluginWidget):
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
+        self.foldonopen_action.setEnabled(checked)
         if hasattr(self, 'editorstacks'):
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
