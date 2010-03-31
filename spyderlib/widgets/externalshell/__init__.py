@@ -197,6 +197,7 @@ class ExternalShellBase(QWidget):
         raise NotImplementedError
     
     def finished(self, exit_code, exit_status):
+        self.shell.flush()
         if self.is_closing:
             return
         self.set_running_state(False)
@@ -237,7 +238,7 @@ class ExternalShellBase(QWidget):
         byte_array.append(char)
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
-        self.shell.write(QString(byte_array))
+        self.shell.write(QString(byte_array), flush=True)
         
     def keyboard_interrupt(self):
         raise NotImplementedError
