@@ -29,6 +29,11 @@ try:
     FILTERS.append(ndarray)
 except ImportError:
     pass
+try:
+    from PIL.Image import Image
+    FILTERS.append(Image)
+except ImportError:
+    pass
 
 # Max number of filter iterations for worskpace display:
 # (for workspace saving, itermax == -1, see Workspace.save)

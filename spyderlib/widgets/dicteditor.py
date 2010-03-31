@@ -43,6 +43,14 @@ except ImportError:
         """Fake ndarray"""
         pass
 
+#----PIL Images support
+try:
+    from PIL.Image import Image
+except:
+    class Image(FakeObject):
+        """Fake PIL Image"""
+        pass
+
 #----Misc.
 def address(obj):
     """Return object address as a string: '<classname @ address>'"""
@@ -71,6 +79,7 @@ COLORS = {
           tuple: Qt.lightGray,
           (str, unicode): Qt.darkRed,
           ndarray: Qt.green,
+          Image: Qt.darkGreen,
           datetime.date: Qt.darkYellow,
           }
 
@@ -105,6 +114,8 @@ def value_to_display(value, truncate=False,
             return 'Min: %r\nMax: %r' % (value.min(), value.max())
         except TypeError:
             pass
+    if isinstance(value, Image):
+        return '%s  Mode: %s' % (address(value), value.mode)
     if not isinstance(value, (str, unicode)):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
@@ -149,6 +160,8 @@ def get_size(item):
         return len(item)
     elif isinstance(item, ndarray):
         return item.shape
+    elif isinstance(item, Image):
+        return item.size
     else:
         return 1
 
@@ -159,6 +172,8 @@ def get_type(item):
            if not found else found[0]
     if isinstance(item, ndarray):
         text = item.dtype.name
+    if isinstance(item, Image):
+        text = "Image"
     return text[text.find('.')+1:]
 
 
@@ -419,6 +434,11 @@ class DictDelegate(QItemDelegate):
                     # Only necessary for child class RemoteDictDelegate:
                     # (ArrayEditor does not make a copy of value)
                     self.set_value(index, value)
+            return None
+        #---showing image
+        elif isinstance(value, Image) and ndarray is not FakeObject \
+             and Image is not FakeObject:
+            value.show()
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
@@ -966,8 +986,7 @@ class DictEditor(QDialog):
     def __init__(self, data, title="", width=500,
                  readonly=False, icon='dictedit.png', remote=False):
         QDialog.__init__(self)
-        import copy
-        self.data_copy = copy.deepcopy(data)
+        self.data_copy = data.copy()
         self.widget = DictEditorWidget(self, self.data_copy, title=title,
                                        readonly=readonly, remote=remote)
         
@@ -1102,7 +1121,8 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
 
 def get_test_data():
     """Create test data"""
-    import numpy as np
+    import numpy as np, PIL.Image
+    image = PIL.Image.fromarray(np.random.rand(100, 100))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     return {'str': 'kjkj kj k j j kj k jkj',
@@ -1114,6 +1134,7 @@ def get_test_data():
             'array': np.random.rand(10, 10),
             '1D-array': np.linspace(-10, 10),
             'empty_array': np.array([]),
+            'image': image,
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8),
             }
