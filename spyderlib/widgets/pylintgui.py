@@ -33,8 +33,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.programs import (is_program_installed,
-                                      is_python_module_installed)
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets import OneColumnTree
@@ -43,10 +42,10 @@ from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 
 
-PYLINT_PATH = 'pylint.bat' if os.name == 'nt' else 'pylint'
+PYLINT_PATH = programs.get_nt_program_name('pylint')
 
 def is_pylint_installed():
-    return is_program_installed(PYLINT_PATH)
+    return programs.is_program_installed(PYLINT_PATH)
 
 class ResultsTree(OneColumnTree):
     def __init__(self, parent):
@@ -203,7 +202,8 @@ class PylintWidget(QWidget):
             for widget in (self.treewidget, self.filecombo,
                            self.start_button, self.stop_button):
                 widget.setDisabled(True)
-            if os.name == 'nt' and is_python_module_installed("pylint"):
+            if os.name == 'nt' \
+               and programs.is_python_module_installed("pylint"):
                 # Pylint is installed but pylint script is not in PATH
                 # (AFAIK, could happen only on Windows)
                 text = translate('Pylint',

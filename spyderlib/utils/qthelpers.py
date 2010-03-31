@@ -222,10 +222,9 @@ def add_module_dependent_bookmarks(parent, menu, bookmarks):
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""
     if os.name == 'nt':
-        if nt_name is None:
-            name += ".exe"
-        else:
+        if nt_name is not None:
             name = nt_name
+        name = programs.get_nt_program_name(name)
     if isinstance(icon, basestring):
         icon = get_icon(icon)
     if programs.is_program_installed(name):

@@ -28,7 +28,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
-from spyderlib.utils.programs import is_program_installed, run_program
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon, translate)
 from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
@@ -38,10 +38,10 @@ from spyderlib.widgets.editor import EditorSplitter, EditorStack
 from spyderlib.plugins import PluginWidget
 
 
-WINPDB_PATH = 'winpdb.bat' if os.name == 'nt' else 'winpdb'
+WINPDB_PATH = programs.get_nt_program_name('winpdb')
 
 def is_winpdb_installed():
-    return is_program_installed(WINPDB_PATH)
+    return programs.is_program_installed(WINPDB_PATH)
 
 
 #===============================================================================
@@ -1152,7 +1152,7 @@ class Editor(PluginWidget):
         """Run winpdb to debug current file"""
         if self.save():
             fname = self.get_current_filename()
-            run_program(WINPDB_PATH, fname)
+            programs.run_program(WINPDB_PATH, fname)
         
     def convert_eol_chars(self):
         editorstack = self.get_current_editorstack()

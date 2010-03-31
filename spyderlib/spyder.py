@@ -656,6 +656,13 @@ class MainWindow(QMainWindow):
                     additact.append(act)
             if len(additact) > 1:
                 tools_actions += additact
+                
+            # ViTables
+            vitables_act = create_program_action(self, self.tr("ViTables"),
+                                                 'vitables.png', "vitables")
+            if vitables_act:
+                tools_actions += [None, vitables_act]
+                
             add_actions(tools_menu, tools_actions)
             add_actions(main_toolbar, tools_actions)
                     

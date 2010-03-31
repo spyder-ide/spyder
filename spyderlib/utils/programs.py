@@ -11,6 +11,14 @@ Running programs utilities
 import os, sys, subprocess, imp, os.path as osp
 
 
+def get_nt_program_name(name):
+    """Return Windows-specific program name, i.e. adding '.bat' or '.exe'"""
+    if os.name == 'nt':
+        for ext in ('.exe', '.bat'):
+            if is_program_installed(name+ext):
+                return name+ext
+    return name
+
 def is_program_installed(basename, get_path=False):
     """Return True if program is installed and present in PATH"""
     for path in os.environ["PATH"].split(os.pathsep):
