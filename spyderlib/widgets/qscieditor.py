@@ -427,6 +427,8 @@ class QsciEditor(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         
+        self.setup_editor_args = None
+        
         self.document_id = id(self)
                     
         # Indicate occurences of the selected word
@@ -495,12 +497,17 @@ class QsciEditor(TextEditBaseWidget):
         """Set as clone editor"""
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
-        #TODO: synchronized the two clone editors
+        self.setup_editor(**self.setup_editor_args)
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
                      font=None, wrap=False, tab_mode=True):
+        self.setup_editor_args = dict(linenumbers=True, language=None,
+                                  code_analysis=False, code_folding=False,
+                                  show_eol_chars=False, show_whitespace=False,
+                                  font=None, wrap=False, tab_mode=True)
+        
         # Lexer
         self.set_language(language)
                 
@@ -541,7 +548,7 @@ class QsciEditor(TextEditBaseWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         self.tab_mode = enable
-        
+
     def set_language(self, language):
         self.supported_language = False
         self.comment_string = ''
