@@ -148,6 +148,7 @@ DEFAULTS = [
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
               'rollback_importer': False,
+              'rollback_importer/blacklist': ['guidata', 'guiqwt'],
               }),
             ('external_shell',
              {

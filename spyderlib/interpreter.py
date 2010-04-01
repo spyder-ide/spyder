@@ -17,16 +17,20 @@ from spyderlib.utils.dochelpers import isdefined
 STDOUT, STDERR = sys.stdout, sys.stderr
 
 
+def is_module_blacklisted(module, pathlist):
+    """Return True if module path starts with one of the path in pathlist"""
+    for path in [sys.prefix]+pathlist:
+        if module.__file__.startswith(path):
+            return True
+    else:
+        return False
+
 class RollbackImporter:
     """
     Rollback importer is derived from:
         PyUnit (Steve Purcell)
         http://pyunit.sourceforge.net
     """
-    # Blacklisted modules won't be unloaded:
-    BLACKLIST = ('PyQt4', 'spyderlib', 'numpy', 'scipy', 'matplotlib', 'pytz',
-                 'vtk', 'itk', 'wx', 'visual', 'sympy', 'h5py', 'tables',
-                 'guidata', 'guiqwt')
     def __init__(self):
         "Creates an instance and installs as the global importer"
         self.previous_modules = sys.modules.copy()
@@ -40,9 +44,10 @@ class RollbackImporter:
         return result
         
     def uninstall(self):
+        blacklist = CONF.get('shell', 'rollback_importer/blacklist')
         for name in self.new_modules:
-            if name not in self.previous_modules \
-               and name.split('.')[0] not in self.BLACKLIST:
+            if name not in self.previous_modules and name in sys.modules \
+               and not is_module_blacklisted(sys.modules[name], blacklist):
                 try:
                     # Force reload when modname next imported
                     del sys.modules[name]
@@ -80,7 +85,7 @@ class Interpreter(InteractiveConsole):
         if self.rollback_importer is not None:
             self.rollback_importer.uninstall()
         
-    def _install_rollback_importer(self):
+    def install_rollback_importer(self):
         if self.rollback_importer is not None:
             self.rollback_importer.uninstall()
         if CONF.get('shell', 'rollback_importer'):
@@ -96,7 +101,7 @@ class Interpreter(InteractiveConsole):
                 name = filename.encode('ascii')
             except UnicodeEncodeError:
                 name = '<executed_script>'
-            self._install_rollback_importer()
+            self.install_rollback_importer()
             code = compile(source, name, "exec")
         except (OverflowError, SyntaxError):
             InteractiveConsole.showsyntaxerror(self, filename)
