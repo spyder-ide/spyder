@@ -175,6 +175,7 @@ DEFAULTS = [
               'truncate': True,
               'minmax': True,
               'collvalue': False,
+              'show_icontext': False,
               }),
             ('editor',
              {
