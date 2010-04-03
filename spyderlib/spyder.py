@@ -55,8 +55,9 @@ from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
-                                       add_module_dependent_bookmarks,
-                                       add_bookmark, create_program_action,
+                                       create_module_bookmark_actions,
+                                       create_bookmark_action,
+                                       create_program_action,
                                        keybinding, translate, qapplication,
                                        create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
@@ -216,6 +217,32 @@ class MainWindow(QMainWindow):
         self.findinfiles = None
         self.pylint = None
         
+        # Actions
+        self.find_action = None
+        self.find_next_action = None
+        self.replace_action = None
+        self.findinfiles_action = None        
+        self.undo_action = None
+        self.redo_action = None
+        self.copy_action = None
+        self.cut_action = None
+        self.paste_action = None
+        self.delete_action = None
+        self.selectall_action = None
+        self.edit_menu_actions = None
+        self.search_menu_actions = None
+        self.maximize_action = None
+        self.fullscreen_action = None
+        self.quit_action = None
+        self.tools_menu_actions = None
+        self.help_menu_actions = None
+        
+        # Menu bars
+        self.file_menu = None
+        self.edit_menu = None
+        self.search_menu = None
+        self.view_menu = None
+        
         # Set Window title and icon
         title = "Spyder"
         if intitle:
@@ -340,7 +367,6 @@ class MainWindow(QMainWindow):
             
             # Search menu
             self.search_menu = self.menuBar().addMenu(self.tr("&Search"))
-            add_actions(self.search_menu, self.search_menu_actions)
                     
             # Status bar
             status = self.statusBar()
@@ -417,7 +443,7 @@ class MainWindow(QMainWindow):
             add_actions(edit_toolbar, self.editor.edit_toolbar_actions)
             
             # Populating file menu entries
-            file_actions = self.editor.file_menu_actions
+            file_actions = self.editor.file_menu_actions[:]
             file_actions += [self.load_temp_session_action,
                              self.load_session_action, self.save_session_action,
                              None, self.spyder_path_action]
@@ -432,10 +458,6 @@ class MainWindow(QMainWindow):
                 file_actions.append(winenv_action)
             file_actions += (None, self.quit_action)
             add_actions(self.file_menu, file_actions)
-        
-            # Seach actions in toolbar
-            toolbar_search_actions = [self.find_action, self.find_next_action,
-                                      self.replace_action]
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
@@ -452,12 +474,13 @@ class MainWindow(QMainWindow):
                              self.findinfiles.set_search_text)
                 self.connect(self.workdir, SIGNAL("refresh_findinfiles()"),
                              self.findinfiles.refreshdir)
-                add_actions(self.search_menu, (None, self.findinfiles_action))
-                toolbar_search_actions.append(self.findinfiles_action)
+                self.search_menu_actions += [None, self.findinfiles_action]
                 
-            find_toolbar = self.create_toolbar(self.tr("Find toolbar"),
-                                               "find_toolbar")
-            add_actions(find_toolbar, [None] + toolbar_search_actions)
+            # Populating search menu and toolbar
+            add_actions(self.search_menu, self.search_menu_actions)
+            search_toolbar = self.create_toolbar(self.tr("Search toolbar"),
+                                                 "search_toolbar")
+            add_actions(search_toolbar, self.search_menu_actions)
             
             # Workspace
             if self.workspace is not None:
@@ -626,14 +649,14 @@ class MainWindow(QMainWindow):
             
             # Tools menu
             tools_menu = self.menuBar().addMenu(self.tr("&Tools"))
-            tools_actions = []
+            self.tools_menu_actions = []
             # Python(x,y) launcher
             self.xy_action = create_action(self,
                                        self.tr("Python(x,y) launcher"),
                                        icon=get_icon('pythonxy.png'),
                                        triggered=lambda:
                                        run_python_gui_script('xy', 'xyhome'))
-            tools_actions.append(self.xy_action)
+            self.tools_menu_actions.append(self.xy_action)
             try:
                 imp.find_module('xy')
             except ImportError:
@@ -655,41 +678,47 @@ class MainWindow(QMainWindow):
                 if act:
                     additact.append(act)
             if len(additact) > 1:
-                tools_actions += additact
+                self.tools_menu_actions += additact
                 
             # ViTables
             vitables_act = create_program_action(self, self.tr("ViTables"),
                                                  'vitables.png', "vitables")
             if vitables_act:
-                tools_actions += [None, vitables_act]
+                self.tools_menu_actions += [None, vitables_act]
                 
-            add_actions(tools_menu, tools_actions)
-            add_actions(main_toolbar, tools_actions)
+            add_actions(tools_menu, self.tools_menu_actions)
+            add_actions(main_toolbar, self.tools_menu_actions)
                     
             # ? menu
             help_menu = self.menuBar().addMenu("?")
-            help_menu.addAction( create_action(self,
+            about_action = create_action(self,
                                     self.tr("About %1...").arg("Spyder"),
                                     icon=get_std_icon('MessageBoxInformation'),
-                                    triggered=self.about) )
+                                    triggered=self.about)
             spyder_doc = osp.join(DOC_PATH, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(DOC_PATH, "index.html")
-            add_bookmark(self, help_menu, spyder_doc,
-                         self.tr("Spyder documentation"), shortcut="F1",
-                         icon=get_std_icon('DialogHelpButton'))
+            doc_action = create_bookmark_action(self, spyder_doc,
+                               self.tr("Spyder documentation"), shortcut="F1",
+                               icon=get_std_icon('DialogHelpButton'))
+            self.help_menu_actions = [about_action, doc_action]
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, self.tr("Python documentation"),
                                           icon=get_icon('python.png'),
                                           triggered=open_python_doc)
-                add_actions(help_menu, (None, pydoc_act))
-                
+                self.help_menu_actions += [None, pydoc_act]
             # Qt assistant link
-            qtaact = create_program_action(self, self.tr("Qt Assistant"),
-                                           'qtassistant.png', "assistant")
-            if qtaact:
-                help_menu.addAction(qtaact)
-            add_module_dependent_bookmarks(self, help_menu, self.BOOKMARKS)
+            qta_act = create_program_action(self, self.tr("Qt Assistant"),
+                                            'qtassistant.png', "assistant")
+            if qta_act:
+                self.help_menu_actions.append(qta_act)
+            self.help_menu_actions += create_module_bookmark_actions(self,
+                                                                self.BOOKMARKS)
+            add_actions(help_menu, self.help_menu_actions)
+            
+            # Now that every single menu and toolbar actions are defined,
+            # we may setup the "New window" Editor's main windows:
+            self.editor.setup_other_windows()
                 
         # Adding Working directory toolbar in last position
         self.addToolBar(self.workdir)
@@ -1082,7 +1111,13 @@ class MainWindow(QMainWindow):
         elif isinstance(widget, ShellBaseWidget):
             plugin = self.extconsole
         else:
+            # Editor plugin
             plugin = self.editor
+            if not plugin.isAncestorOf(widget):
+                plugin = widget
+                from spyderlib.widgets.editor import EditorWidget
+                while not isinstance(plugin, EditorWidget):
+                    plugin = plugin.parent()
         return plugin
     
     def find(self):

@@ -195,29 +195,31 @@ def set_item_user_text(item, text):
     item.setData(0, Qt.UserRole, QVariant(text))
 
 
-def add_bookmark(parent, menu, url, title, icon=None, shortcut=None):
-    """Add bookmark to a menu"""
+def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
+    """Create bookmark action"""
     if icon is None:
         icon = get_icon('browser.png')
     if os.name == 'nt':
         callback = os.startfile
     else:
         callback = webbrowser.open
-    act = create_action( parent, title, shortcut=shortcut, icon=icon,
-                         triggered=lambda u=url: callback(u) )
-    menu.addAction(act)
+    return create_action( parent, title, shortcut=shortcut, icon=icon,
+                          triggered=lambda u=url: callback(u) )
 
-def add_module_dependent_bookmarks(parent, menu, bookmarks):
+def create_module_bookmark_actions(parent, bookmarks):
     """
-    Add bookmarks to a menu depending on module installation:
+    Create bookmark actions depending on module installation:
     bookmarks = ((module_name, url, title), ...)
     """
+    actions = []
     for key, url, title, icon in bookmarks:
         try:
             imp.find_module(key)
-            add_bookmark(parent, menu, url, title, get_icon(icon))
+            act = create_bookmark_action(parent, url, title, get_icon(icon))
+            actions.append(act)
         except ImportError:
             pass
+    return actions
         
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""

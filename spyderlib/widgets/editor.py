@@ -17,7 +17,7 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QStackedWidget, QComboBox, QKeySequence, QShortcut,
-                         QSizePolicy)
+                         QSizePolicy, QMainWindow, QLabel)
 from PyQt4.QtCore import SIGNAL, Qt, QFileInfo, QThread, QObject
 
 import os, sys
@@ -25,14 +25,17 @@ import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
+DEBUG = False
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate,
                                        create_toolbutton)
 from spyderlib.widgets.qscieditor import QsciEditor, check
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.qscieditor import ClassBrowser
 
 
 class CodeAnalysisThread(QThread):
@@ -80,7 +83,7 @@ class TabInfo(QObject):
 
 
 class EditorStack(QWidget):
-    def __init__(self, parent, actions):
+    def __init__(self, parent, plugin, actions):
         QWidget.__init__(self, parent)
         
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -163,14 +166,12 @@ class EditorStack(QWidget):
         self.cursor_position_changed_callback = lambda line, index: \
                 self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
         self.focus_changed_callback = lambda: \
-                                      parent.emit(SIGNAL("focus_changed()"))
+                                      plugin.emit(SIGNAL("focus_changed()"))
         
         self.data = []
         
         self.__file_status_flag = False
         
-        self.already_closed = False
-            
         # Accepting drops
         self.setAcceptDrops(True)
         
@@ -186,9 +187,6 @@ class EditorStack(QWidget):
     def set_closable(self, state):
         """Parent widget must handle the closable state"""
         self.is_closable = state
-        
-    def set_unregister_callback(self, callback):
-        self.unregister_callback = callback
         
     def set_io_actions(self, new_action, open_action, save_action):
         self.new_action = new_action
@@ -327,6 +325,12 @@ class EditorStack(QWidget):
 
     #------ Hor/Ver splitting
     def __get_split_actions(self):
+        # New window
+        newwindow_action = create_action(self,
+                    translate("Editor", "New window"),
+                    icon="newwindow.png",
+                    tip=translate("Editor", "Create a new editor window"),
+                    triggered=lambda: self.emit(SIGNAL("create_new_window()")))
         # Splitting
         self.versplit_action = create_action(self,
                     translate("Editor", "Split vertically"),
@@ -343,9 +347,9 @@ class EditorStack(QWidget):
         self.close_action = create_action(self,
                     translate("Editor", "Close this panel"),
                     icon="close_panel.png",
-                    triggered=self.close_editorstack)
-        return [None, self.versplit_action, self.horsplit_action,
-                self.close_action]
+                    triggered=self.close)
+        return [None, newwindow_action, None, 
+                self.versplit_action, self.horsplit_action, self.close_action]
         
     def reset_orientation(self):
         self.horsplit_action.setEnabled(True)
@@ -403,27 +407,13 @@ class EditorStack(QWidget):
             if not self.data:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
-                self.close_editorstack()
+                self.close()
             self.emit(SIGNAL('opened_files_list_changed()'))
             self.emit(SIGNAL('analysis_results_changed()'))
             self._refresh_classbrowser()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
     
-    def close_editorstack(self):
-        if self.data:
-            if self.already_closed:
-                # All opened files were closed and *self* is not the last
-                # editortabwidget remaining --> *self* was automatically closed
-                return
-        self.unregister_callback(self)
-        if self.is_closable:
-            self.close()
-            
-    def close(self):
-        QWidget.close(self)
-        self.already_closed = True # used in self.close_tabbeeditor
-
     def close_all_files(self):
         """Close all opened scripts"""
         while self.close_file():
@@ -568,7 +558,8 @@ class EditorStack(QWidget):
         editor = self.get_current_editor()
         if index != -1:
             editor.setFocus()
-#            print >>STDOUT, "setfocusto:", editor
+            if DEBUG:
+                print >>STDOUT, "setfocusto:", editor
         else:
             self.emit(SIGNAL('reset_statusbar()'))
         self.emit(SIGNAL('opened_files_list_changed()'))
@@ -583,7 +574,9 @@ class EditorStack(QWidget):
         while current_id in self.stack_history:
             self.stack_history.pop(self.stack_history.index(current_id))
         self.stack_history.append(current_id)
-#        print >>STDOUT, "current_changed:", index, self.data[index].editor, self.data[index].editor.get_document_id()
+        if DEBUG:
+            print >>STDOUT, "current_changed:", index, self.data[index].editor,
+            print >>STDOUT, self.data[index].editor.get_document_id()
         
     def go_to_previous_file(self):
         """Ctrl+Tab"""
@@ -989,16 +982,27 @@ class EditorStack(QWidget):
 
 
 class EditorSplitter(QSplitter):
-    def __init__(self, parent, actions, first=False):
+    def __init__(self, parent, plugin, menu_actions, first=False,
+                 register_editorstack_cb=None, unregister_editorstack_cb=None):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setChildrenCollapsible(False)
-        self.plugin = parent
-        self.tab_actions = actions
-        self.editorstack = EditorStack(self.plugin, actions)
-        self.plugin.register_editorstack(self.editorstack)
-        callback = self.plugin.unregister_editorstack
-        self.editorstack.set_unregister_callback(callback)
+        
+        self.toolbar_list = None
+        self.menu_list = None
+        
+        self.plugin = plugin
+        
+        if register_editorstack_cb is None:
+            register_editorstack_cb = self.plugin.register_editorstack
+        self.register_editorstack_cb = register_editorstack_cb
+        if unregister_editorstack_cb is None:
+            unregister_editorstack_cb = self.plugin.unregister_editorstack
+        self.unregister_editorstack_cb = unregister_editorstack_cb
+        
+        self.menu_actions = menu_actions
+        self.editorstack = EditorStack(self, self.plugin, menu_actions)
+        self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.connect(self.editorstack, SIGNAL("destroyed(QObject*)"),
@@ -1008,22 +1012,39 @@ class EditorSplitter(QSplitter):
         self.connect(self.editorstack, SIGNAL("split_horizontally()"),
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
-        
+            
     def __give_focus_to_remaining_editor(self):
         focus_widget = self.plugin.get_focus_widget()
         if focus_widget is not None:
             focus_widget.setFocus()
         
     def editorstack_closed(self):
+        if DEBUG:
+            print >>STDOUT, "editorstack_closed:", self
+        self.unregister_editorstack_cb(self.editorstack)
         self.editorstack = None
-        if self.count() == 1:
+        try:
+            close_splitter = self.count() == 1
+        except RuntimeError:
+            # editorsplitter has been destroyed (happens when closing a
+            # EditorMainWindow instance)
+            return
+        if close_splitter:
             # editorstack just closed was the last widget in this QSplitter
             self.close()
             return
         self.__give_focus_to_remaining_editor()
         
-    def editorsplitter_closed(self, obj):
-        if self.count() == 1 and self.editorstack is None:
+    def editorsplitter_closed(self):
+        if DEBUG:
+            print >>STDOUT, "editorsplitter_closed:", self
+        try:
+            close_splitter = self.count() == 1 and self.editorstack is None
+        except RuntimeError:
+            # editorsplitter has been destroyed (happens when closing a
+            # EditorMainWindow instance)
+            return
+        if close_splitter:
             # editorsplitter just closed was the last widget in this QSplitter
             self.close()
             return
@@ -1036,29 +1057,208 @@ class EditorSplitter(QSplitter):
     def split(self, orientation=Qt.Vertical):
         self.setOrientation(orientation)
         self.editorstack.set_orientation(orientation)
-        editorsplitter = EditorSplitter(self.plugin, self.tab_actions)
+        editorsplitter = EditorSplitter(self.parent(), self.plugin,
+                    self.menu_actions,
+                    register_editorstack_cb=self.register_editorstack_cb,
+                    unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
         self.connect(editorsplitter, SIGNAL("destroyed(QObject*)"),
                      self.editorsplitter_closed)
 
 
+class EditorWidget(QSplitter):
+    def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list):
+        super(EditorWidget, self).__init__(parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        statusbar = parent.statusBar() # Create a status bar
+        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.encoding_status = EncodingStatus(self, statusbar)
+        self.cursorpos_status = CursorPositionStatus(self, statusbar)
+        
+        self.editorstacks = []
+        
+        self.plugin = plugin
+        
+        self.find_widget = FindReplace(self, enable_replace=True)
+        self.find_widget.hide()
+        self.classbrowser = ClassBrowser(self, fullpath=False)
+        self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
+                     plugin.load)
+        
+        editor_widgets = QWidget(self)
+        editor_layout = QVBoxLayout()
+        editor_layout.setContentsMargins(0, 0, 0, 0)
+        editor_widgets.setLayout(editor_layout)
+        editorsplitter = EditorSplitter(self, plugin, menu_actions,
+                        register_editorstack_cb=self.register_editorstack,
+                        unregister_editorstack_cb=self.unregister_editorstack)
+        self.editorsplitter = editorsplitter
+        editor_layout.addWidget(editorsplitter)
+        editor_layout.addWidget(self.find_widget)
+        
+        splitter = QSplitter(self)
+        splitter.addWidget(editor_widgets)
+        splitter.addWidget(self.classbrowser)
+        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(1, 1)
+
+        # Refreshing class browser
+        for index in range(editorsplitter.editorstack.get_stack_count()):
+            editorsplitter.editorstack._refresh_classbrowser(index, update=True)
+        
+    def register_editorstack(self, editorstack):
+        editorstack.set_closable( len(self.editorstacks) > 1 )
+        editorstack.set_classbrowser(self.classbrowser)
+        editorstack.set_find_widget(self.find_widget)
+        self.editorstacks.append(editorstack)
+        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                     self.readwrite_status.hide)
+        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                     self.encoding_status.hide)
+        self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                     self.cursorpos_status.hide)
+        self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
+                     self.readwrite_status.readonly_changed)
+        self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
+                     self.encoding_status.encoding_changed)
+        self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
+                     self.cursorpos_status.cursor_position_changed)
+        self.plugin.register_editorstack(editorstack)
+        
+    def unregister_editorstack(self, editorstack):
+        if DEBUG:
+            print >>STDOUT, "EditorWidget.unregister_editorstack:", editorstack
+        self.plugin.unregister_editorstack(editorstack)
+        self.editorstacks.pop(self.editorstacks.index(editorstack))
+
+
+#===============================================================================
+# Status bar widgets
+#===============================================================================
+class StatusBarWidget(QWidget):
+    def __init__(self, parent, statusbar):
+        QWidget.__init__(self, parent)
+
+        self.label_font = font = get_font('editor')
+        font.setPointSize(self.font().pointSize())
+        font.setBold(True)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.hide()
+        statusbar.addPermanentWidget(self)
+
+class ReadWriteStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
+        self.readwrite = QLabel()
+        self.readwrite.setFont(self.label_font)
+        layout.addWidget(self.readwrite)
+        layout.addSpacing(10)
+        
+    def readonly_changed(self, readonly):
+        readwrite = "R" if readonly else "RW"
+        self.readwrite.setText(readwrite.ljust(3))
+        self.show()
+
+class EncodingStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
+        self.encoding = QLabel()
+        self.encoding.setFont(self.label_font)
+        layout.addWidget(self.encoding)
+        layout.addSpacing(10)
+        
+    def encoding_changed(self, encoding):
+        self.encoding.setText(str(encoding).upper().ljust(15))
+        self.show()
+
+class CursorPositionStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Line:")))
+        self.line = QLabel()
+        self.line.setFont(self.label_font)
+        layout.addWidget(self.line)
+        layout.addWidget(QLabel(translate("Editor", "Column:")))
+        self.column = QLabel()
+        self.column.setFont(self.label_font)
+        layout.addWidget(self.column)
+        self.setLayout(layout)
+        
+    def cursor_position_changed(self, line, index):
+        self.line.setText("%-6d" % (line+1))
+        self.column.setText("%-4d" % (index+1))
+        self.show()
+        
+
+class EditorMainWindow(QMainWindow):
+    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
+        super(EditorMainWindow, self).__init__()
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        self.editorwidget = EditorWidget(self, plugin, menu_actions,
+                                         toolbar_list, menu_list)
+        self.setCentralWidget(self.editorwidget)
+
+        # Give focus to current editor to update/show all status bar widgets
+        editorstack = self.editorwidget.editorsplitter.editorstack
+        editor = editorstack.get_current_editor()
+        if editor is not None:
+            editor.setFocus()
+        
+        self.setWindowTitle("Spyder - %s" % plugin.windowTitle())
+        self.setWindowIcon(plugin.windowIcon())
+        
+        if toolbar_list:
+            toolbars = []
+            for title, actions in toolbar_list:
+                toolbar = self.addToolBar(title)
+                add_actions(toolbar, actions)
+                toolbars.append(toolbar)
+        if menu_list:
+            quit_action = create_action(self,
+                                translate("Editor", "Close window"),
+                                icon="close_panel.png",
+                                tip=translate("Editor", "Close this window"),
+                                triggered=self.close)
+            menus = []
+            for index, (title, actions) in enumerate(menu_list):
+                menu = self.menuBar().addMenu(title)
+                if index == 0:
+                    # File menu
+                    add_actions(menu, actions+[None, quit_action])
+                else:
+                    add_actions(menu, actions)
+                menus.append(menu)
+
+
 class FakePlugin(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
-
+                
+        menu_actions = []
+                
         self.editorstacks = []
+        self.editorwindows = []
 
-        from spyderlib.widgets.findreplace import FindReplace
         self.find_widget = FindReplace(self, enable_replace=True)
-
-        from spyderlib.widgets.qscieditor import ClassBrowser
         self.classbrowser = ClassBrowser(self, fullpath=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editor_layout.addWidget(EditorSplitter(self, [], first=True))
+        editor_layout.addWidget(EditorSplitter(self, self, menu_actions,
+                                               first=True))
         editor_layout.addWidget(self.find_widget)
         
         self.addWidget(editor_widgets)
@@ -1067,26 +1267,69 @@ class FakePlugin(QSplitter):
         self.setStretchFactor(0, 5)
         self.setStretchFactor(1, 1)
         
+        self.menu_actions = menu_actions
+        self.toolbar_list = None
+        self.menu_list = None
+        self.setup_window([], [])
+        
+    def closeEvent(self, event):
+        for win in self.editorwindows[:]:
+            win.close()
+        if DEBUG:
+            print >>STDOUT, len(self.editorwindows), ":", self.editorwindows
+            print >>STDOUT, len(self.editorstacks), ":", self.editorstacks
+        event.accept()
+        
     def load(self, fname):
         editorstack = self.editorstacks[0]
         editorstack.load(fname)
     
     def register_editorstack(self, editorstack):
+        if DEBUG:
+            print >>STDOUT, "FakePlugin.register_editorstack:", editorstack
+        if self.isAncestorOf(editorstack):
+            # editorstack is a child of the Editor plugin
+            editorstack.set_closable( len(self.editorstacks) > 1 )
+            editorstack.set_classbrowser(self.classbrowser)
+            editorstack.set_find_widget(self.find_widget)
         self.editorstacks.append(editorstack)
-        editorstack.set_classbrowser(self.classbrowser)
-        editorstack.set_find_widget(self.find_widget)
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)
-        if len(self.editorstacks) > 1:
-            editorstack.set_closable(True)
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
+        self.connect(editorstack, SIGNAL("create_new_window()"),
+                     self.create_new_window)
             
     def unregister_editorstack(self, editorstack):
-        print "unregister_editorstack:", editorstack
+        if DEBUG:
+            print >>STDOUT, "FakePlugin.unregister_editorstack:", editorstack
+        self.editorstacks.pop(self.editorstacks.index(editorstack))
         
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
+        
+    def setup_window(self, toolbar_list, menu_list):
+        self.toolbar_list = toolbar_list
+        self.menu_list = menu_list
+        
+    def create_new_window(self):
+        window = EditorMainWindow(self, self.menu_actions,
+                                  self.toolbar_list, self.menu_list)
+        window.resize(self.size())
+        window.show()
+        self.register_editorwindow(window)
+        self.connect(window, SIGNAL("destroyed(QObject*)"),
+                     lambda obj, win=window: self.unregister_editorwindow(win))
+        
+    def register_editorwindow(self, window):
+        if DEBUG:
+            print >>STDOUT, "register_editorwindow:", window
+        self.editorwindows.append(window)
+        
+    def unregister_editorwindow(self, window):
+        if DEBUG:
+            print >>STDOUT, "unregister_editorwindow:", window
+        self.editorwindows.pop(self.editorwindows.index(window))
     
     def get_focus_widget(self):
         pass

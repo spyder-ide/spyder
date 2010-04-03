@@ -15,8 +15,8 @@
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
-                         QWidget, QHBoxLayout, QLabel, QPrinter, QActionGroup,
-                         QInputDialog, QMenu, QFontDialog, QAbstractPrintDialog)
+                         QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
+                         QFontDialog, QAbstractPrintDialog)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray
 
 import os, sys, time, re
@@ -30,11 +30,13 @@ from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       get_filetype_icon, translate)
+                                       get_filetype_icon)
 from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
-from spyderlib.widgets.editor import EditorSplitter, EditorStack
+from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
+                                      CursorPositionStatus, EditorSplitter,
+                                      EditorStack, EditorMainWindow)
 from spyderlib.plugins import PluginWidget
 
 
@@ -43,87 +45,6 @@ WINPDB_PATH = programs.get_nt_program_name('winpdb')
 def is_winpdb_installed():
     return programs.is_program_installed(WINPDB_PATH)
 
-
-#===============================================================================
-# Status bar widgets
-#===============================================================================
-class _ReadWriteStatus(QWidget):
-    def __init__(self, parent, statusbar):
-        QWidget.__init__(self, parent)
-        
-        font = get_font('editor')
-        font.setPointSize(self.font().pointSize())
-        font.setBold(True)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
-        self.readwrite = QLabel()
-        self.readwrite.setFont(font)
-        layout.addWidget(self.readwrite)
-        layout.addSpacing(10)
-        self.setLayout(layout)
-        
-        statusbar.addPermanentWidget(self)
-        self.hide()
-        
-    def readonly_changed(self, readonly):
-        readwrite = "R" if readonly else "RW"
-        self.readwrite.setText(readwrite.ljust(3))
-        self.show()
-
-class _EncodingStatus(QWidget):
-    def __init__(self, parent, statusbar):
-        QWidget.__init__(self, parent)
-        
-        font = get_font('editor')
-        font.setPointSize(self.font().pointSize())
-        font.setBold(True)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
-        self.encoding = QLabel()
-        self.encoding.setFont(font)
-        layout.addWidget(self.encoding)
-        layout.addSpacing(10)
-        self.setLayout(layout)
-        
-        statusbar.addPermanentWidget(self)
-        self.hide()
-        
-    def encoding_changed(self, encoding):
-        self.encoding.setText(str(encoding).upper().ljust(15))
-        self.show()
-
-class _CursorPositionStatus(QWidget):
-    def __init__(self, parent, statusbar):
-        QWidget.__init__(self, parent)
-        
-        font = get_font('editor')
-        font.setPointSize(self.font().pointSize())
-        font.setBold(True)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel(translate("Editor", "Line:")))
-        self.line = QLabel()
-        self.line.setFont(font)
-        layout.addWidget(self.line)
-        layout.addWidget(QLabel(translate("Editor", "Column:")))
-        self.column = QLabel()
-        self.column.setFont(font)
-        layout.addWidget(self.column)
-        self.setLayout(layout)
-        
-        statusbar.addPermanentWidget(self)
-        self.hide()
-        
-    def cursor_position_changed(self, line, index):
-        self.line.setText("%-6d" % (line+1))
-        self.column.setText("%-4d" % (index+1))
-        self.show()
-        
 
 class Editor(PluginWidget):
     """
@@ -146,6 +67,9 @@ class Editor(PluginWidget):
         self.analysis_toolbar_actions = None
         self.run_toolbar_actions = None
         self.edit_toolbar_actions = None
+        self.file_menu_actions = None
+        self.source_menu_actions = None
+        self.stack_menu_actions = None
         PluginWidget.__init__(self, parent)
 
         self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
@@ -170,9 +94,9 @@ class Editor(PluginWidget):
                           (self.tr("All files"), ('.*',)))
         
         statusbar = self.main.statusBar()
-        self.readwrite_status = _ReadWriteStatus(self, statusbar)
-        self.encoding_status = _EncodingStatus(self, statusbar)
-        self.cursorpos_status = _CursorPositionStatus(self, statusbar)
+        self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.encoding_status = EncodingStatus(self, statusbar)
+        self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
@@ -188,6 +112,9 @@ class Editor(PluginWidget):
                      self.load)
         
         self.editorstacks = []
+        self.editorwindows = []
+        self.toolbar_list = None
+        self.menu_list = None
         
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -198,8 +125,9 @@ class Editor(PluginWidget):
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
         editor_widgets.setLayout(editor_layout)
-        editor_layout.addWidget(EditorSplitter(self, self.tab_actions,
-                                               first=True))
+        self.editorsplitter = EditorSplitter(self, self,
+                                         self.stack_menu_actions, first=True)
+        editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
         # Splitter: editor widgets (see above) + class browser
@@ -252,6 +180,7 @@ class Editor(PluginWidget):
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
             
+            
     #------ Plugin API
     def get_widget_title(self):
         """Return widget title"""
@@ -292,10 +221,10 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
         currentlines = []
-        for editorstack in self.editorstacks:
-            filenames += [finfo.filename for finfo in editorstack.data]
-            currentlines += [finfo.editor.get_cursor_line_number()
-                             for finfo in editorstack.data]
+        editorstack = self.get_current_editorstack()
+        filenames += [finfo.filename for finfo in editorstack.data]
+        currentlines += [finfo.editor.get_cursor_line_number()
+                         for finfo in editorstack.data]
         CONF.set(self.ID, 'filenames', filenames)
         CONF.set(self.ID, 'currentlines', currentlines)
         CONF.set(self.ID, 'current_filename', self.get_current_filename())
@@ -305,6 +234,9 @@ class Editor(PluginWidget):
             is_ok = is_ok and editorstack.save_if_changed(cancelable)
             if not is_ok and cancelable:
                 break
+        if is_ok:
+            for win in self.editorwindows[:]:
+                win.close()
         return is_ok
 
     def set_actions(self):
@@ -554,7 +486,7 @@ class Editor(PluginWidget):
                                   showeol_action, showws_action, None,
                                   analyze_action, self.classbrowser_action))
         
-        source_menu_actions = (self.comment_action, self.uncomment_action,
+        self.source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
                 None, run_action, re_run_action, run_interact_action,
@@ -592,10 +524,10 @@ class Editor(PluginWidget):
                  self.close_all_action,
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action)
-        self.tab_actions = (self.save_action, save_as_action, print_action,
-                run_action, run_process_action,
-                workdir_action, self.close_action)
-        return (source_menu_actions, self.dock_toolbar_actions)        
+        self.stack_menu_actions = (self.save_action, save_as_action, print_action,
+                             run_action, run_process_action,
+                             workdir_action, self.close_action)
+        return (self.source_menu_actions, self.dock_toolbar_actions)        
     
         
     #------ Focus tabwidget
@@ -617,11 +549,25 @@ class Editor(PluginWidget):
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
-        if len(self.editorstacks) > 1:
-            editorstack.set_closable(True)
+        
+        if self.isAncestorOf(editorstack):
+            # editorstack is a child of the Editor plugin
+            editorstack.set_closable( len(self.editorstacks) > 1 )
+            editorstack.set_classbrowser(self.classbrowser)
+            editorstack.set_find_widget(self.find_widget)
+            self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                         self.readwrite_status.hide)
+            self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                         self.encoding_status.hide)
+            self.connect(editorstack, SIGNAL('reset_statusbar()'),
+                         self.cursorpos_status.hide)
+            self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
+                         self.readwrite_status.readonly_changed)
+            self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
+                         self.encoding_status.encoding_changed)
+            self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
+                         self.cursorpos_status.cursor_position_changed)
             
-        editorstack.set_classbrowser(self.classbrowser)
-        editorstack.set_find_widget(self.find_widget)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
@@ -663,19 +609,10 @@ class Editor(PluginWidget):
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
         
+        self.connect(editorstack, SIGNAL("create_new_window()"),
+                     self.create_new_window)
+        
         self.last_focus_editorstack = editorstack
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                     self.readwrite_status.hide)
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                     self.encoding_status.hide)
-        self.connect(editorstack, SIGNAL('reset_statusbar()'),
-                     self.cursorpos_status.hide)
-        self.connect(editorstack, SIGNAL('readonly_changed(bool)'),
-                     self.readwrite_status.readonly_changed)
-        self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
-                     self.encoding_status.encoding_changed)
-        self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
-                     self.cursorpos_status.cursor_position_changed)
         self.connect(editorstack, SIGNAL('opened_files_list_changed()'),
                      self.opened_files_list_changed)
         self.connect(editorstack, SIGNAL('analysis_results_changed()'),
@@ -695,10 +632,9 @@ class Editor(PluginWidget):
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
-            editorstack.close() # remove widget from splitter
             return True
         else:
-            # Tabbededitor was not removed!
+            # editorstack was not removed!
             return False
         
     def clone_editorstack(self, editorstack):
@@ -717,6 +653,41 @@ class Editor(PluginWidget):
                 editorstack.close_file(index)
                 editorstack.blockSignals(False)
         
+        
+    #------ Handling editor windows
+    def setup_other_windows(self):
+        """Setup toolbars and menus for 'New window' instances"""
+        self.toolbar_list = (
+                (self.tr("File toolbar"), self.file_toolbar_actions),
+                (self.tr("Search toolbar"), self.main.search_menu_actions),
+                (self.tr("Analysis toolbar"), self.analysis_toolbar_actions),
+                (self.tr("Run toolbar"), self.run_toolbar_actions),
+                (self.tr("Edit toolbar"), self.edit_toolbar_actions),
+                             )
+        self.menu_list = (
+                          (self.tr("&File"), self.file_menu_actions),
+                          (self.tr("&Edit"), self.main.edit_menu_actions),
+                          (self.tr("&Search"), self.main.search_menu_actions),
+                          (self.tr("&Source"), self.source_menu_actions),
+                          (self.tr("&Tools"), self.main.tools_menu_actions),
+                          (self.tr("?"), self.main.help_menu_actions),
+                          )
+        
+    def create_new_window(self):
+        window = EditorMainWindow(self, self.stack_menu_actions,
+                                  self.toolbar_list, self.menu_list)
+        window.resize(self.size())
+        window.show()
+        self.register_editorwindow(window)
+        self.connect(window, SIGNAL("destroyed(QObject*)"),
+                     lambda obj, win=window: self.unregister_editorwindow(win))
+    
+    def register_editorwindow(self, window):
+        self.editorwindows.append(window)
+        
+    def unregister_editorwindow(self, window):
+        self.editorwindows.pop(self.editorwindows.index(window))
+    
         
     #------ Accessors
     def get_filetype_filters(self):
@@ -924,7 +895,8 @@ class Editor(PluginWidget):
         
     def change_max_recent_files(self):
         "Change max recent files entries"""
-        mrf, valid = QInputDialog.getInteger(self, self.tr('Editor'),
+        editorstack = self.get_current_editorstack()
+        mrf, valid = QInputDialog.getInteger(editorstack, self.tr('Editor'),
                                self.tr('Maximum number of recent files'),
                                CONF.get(self.ID, 'max_recent_files'), 1, 100)
         if valid:
@@ -943,9 +915,9 @@ class Editor(PluginWidget):
             if fname is not None and fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(fname)
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
-            filenames = QFileDialog.getOpenFileNames(self,
-                          self.tr("Open Python script"), basedir,
-                          self.get_filetype_filters())
+            editorstack = self.get_current_editorstack()
+            filenames = QFileDialog.getOpenFileNames(editorstack,
+                     self.tr("Open file"), basedir, self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
             if len(filenames):
@@ -1006,7 +978,7 @@ class Editor(PluginWidget):
         filename = self.get_current_filename()
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=get_font(self.ID, 'printer_header'))
-        printDialog = QPrintDialog(printer, self)
+        printDialog = QPrintDialog(printer, editor)
         if editor.hasSelectedText():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
@@ -1024,7 +996,7 @@ class Editor(PluginWidget):
                 ok = printer.printRange(editor)
             self.ending_long_process()
             if not ok:
-                QMessageBox.critical(self, self.tr("Print"),
+                QMessageBox.critical(editor, self.tr("Print"),
                             self.tr("<b>Unable to print document '%1'</b>") \
                             .arg(osp.basename(filename)))
 
@@ -1235,7 +1207,8 @@ class Editor(PluginWidget):
     #------ Options
     def change_font(self):
         """Change editor font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+        editorstack = self.get_current_editorstack()
+        font, valid = QFontDialog.getFont(get_font(self.ID), editorstack,
                                           self.tr("Select a new font"))
         if valid:
             for editorstack in self.editorstacks:
