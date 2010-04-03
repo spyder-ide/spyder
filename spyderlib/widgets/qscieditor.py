@@ -477,10 +477,11 @@ class QsciEditor(TextEditBaseWidget):
         self.api = None
         
         # Mark occurences timer
-        self.occurences_timer = QTimer(self)
-        self.occurences_timer.setSingleShot(True)
-        self.occurences_timer.setInterval(1500)
-        self.connect(self.occurences_timer, SIGNAL("timeout()"), 
+        self.occurence_highlighting = None
+        self.occurence_timer = QTimer(self)
+        self.occurence_timer.setSingleShot(True)
+        self.occurence_timer.setInterval(1500)
+        self.connect(self.occurence_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
         
         # Context menu
@@ -502,18 +503,23 @@ class QsciEditor(TextEditBaseWidget):
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
-                     font=None, wrap=False, tab_mode=True):
+                     font=None, wrap=False, tab_mode=True,
+                     occurence_highlighting=True):
         self.setup_editor_args = dict(linenumbers=True, language=None,
                                   code_analysis=False, code_folding=False,
                                   show_eol_chars=False, show_whitespace=False,
-                                  font=None, wrap=False, tab_mode=True)
+                                  font=None, wrap=False, tab_mode=True,
+                                  occurence_highlighting=True)
         
         # Lexer
         self.set_language(language)
                 
+        # Occurence highlighting
+        self.set_occurence_highlighting(occurence_highlighting)
+                
         # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
-        self.tab_mode = tab_mode
+        self.set_tab_mode(tab_mode)
 
         if font is not None:
             self.set_font(font)
@@ -548,6 +554,12 @@ class QsciEditor(TextEditBaseWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         self.tab_mode = enable
+        
+    def set_occurence_highlighting(self, enable):
+        """Enable/disable occurence highlighting"""
+        self.occurence_highlighting = enable
+        if not enable:
+            self.__clear_occurence_markers()
 
     def set_language(self, language):
         self.supported_language = False
@@ -861,17 +873,20 @@ class QsciEditor(TextEditBaseWidget):
             self.markerDeleteHandle(self.currentline_marker)
         line, _index = self.getCursorPosition()
         self.currentline_marker = self.markerAdd(line, self.currentline)
-        #TODO: Add attribute for occurences marking enable/disable:
-        # if self.occurences_marking:
-        self.occurences_timer.stop()
-        self.occurences_timer.start()
+        if self.occurence_highlighting:
+            self.occurence_timer.stop()
+            self.occurence_timer.start()
         
-    def __mark_occurences(self):
-        """Marking occurences of the currently selected word"""
+    def __clear_occurence_markers(self):
+        """Clear occurence markers"""
         self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
                            self.OCCURENCE_INDICATOR)
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
+        
+    def __mark_occurences(self):
+        """Marking occurences of the currently selected word"""
+        self.__clear_occurence_markers()
 
         if not self.supported_language or self.hasSelectedText():
             return

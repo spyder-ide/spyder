@@ -452,6 +452,10 @@ class Editor(PluginWidget):
                         "even when the cursor is not at the beginning "
                         "of a line"))
         tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent', True) )
+        occurence_action = create_action(self, self.tr("Highlight occurences"),
+            toggled=self.toggle_occurence_highlighting)
+        occurence_action.setChecked( CONF.get(self.ID,
+                                              'occurence_highlighting', True) )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
@@ -481,9 +485,10 @@ class Editor(PluginWidget):
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (template_action, font_action, wrap_action,
-                                  tab_action, None, fold_action,
-                                  self.foldonopen_action, checkeol_action,
-                                  showeol_action, showws_action, None,
+                                  tab_action, occurence_action, None,
+                                  fold_action, self.foldonopen_action,
+                                  checkeol_action, showeol_action,
+                                  showws_action, None,
                                   analyze_action, self.classbrowser_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -580,6 +585,8 @@ class Editor(PluginWidget):
                     ('set_showwhitespace_enabled', 'show_whitespace'),
                     ('set_wrap_enabled',           'wrap'),
                     ('set_tabmode_enabled',        'tab_always_indent'),
+                    ('set_occurence_highlighting_enabled',
+                                                   'occurence_highlighting'),
                     ('set_checkeolchars_enabled',  'check_eol_chars'))
         for method, setting in settings:
             getattr(editorstack, method)(CONF.get(self.ID, setting))
@@ -1240,6 +1247,16 @@ class Editor(PluginWidget):
             CONF.set(self.ID, 'tab_always_indent', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_tabmode_enabled(checked)
+            
+    def toggle_occurence_highlighting(self, checked):
+        """Toggle occurence highlighting"""
+        if hasattr(self, 'editorstacks'):
+            for editorstack in self.editorstacks:
+                for finfo in editorstack.data:
+                    finfo.editor.set_occurence_highlighting(checked)
+            CONF.set(self.ID, 'occurence_highlighting', checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_occurence_highlighting_enabled(checked)
             
     def toggle_code_folding(self, checked):
         """Toggle code folding"""

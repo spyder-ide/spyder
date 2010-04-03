@@ -165,6 +165,7 @@ class EditorStack(QWidget):
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
+        self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
         
         self.cursor_position_changed_callback = lambda line, index: \
@@ -250,6 +251,10 @@ class EditorStack(QWidget):
     def set_tabmode_enabled(self, state):
         # CONF.get(self.ID, 'tab_always_indent'))
         self.tabmode_enabled = state
+        
+    def set_occurence_highlighting_enabled(self, state):
+        # CONF.get(self.ID, 'occurence_highlighting'))
+        self.occurence_highlighting_enabled = state
         
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.ID, 'check_eol_chars')
@@ -826,7 +831,9 @@ class EditorStack(QWidget):
                             show_whitespace=self.showwhitespace_enabled,
                             font=self.default_font,
                             wrap=self.wrap_enabled,
-                            tab_mode=self.tabmode_enabled)
+                            tab_mode=self.tabmode_enabled,
+                            occurence_highlighting=\
+                            self.occurence_highlighting_enabled)
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
