@@ -986,7 +986,12 @@ class DictEditor(QDialog):
     def __init__(self, data, title="", width=500,
                  readonly=False, icon='dictedit.png', remote=False):
         QDialog.__init__(self)
-        self.data_copy = data.copy()
+        if isinstance(data, dict):
+            # dictionnary
+            self.data_copy = data.copy()
+        else:
+            # list, tuple
+            self.data_copy = data[:]
         self.widget = DictEditorWidget(self, self.data_copy, title=title,
                                        readonly=readonly, remote=remote)
         
