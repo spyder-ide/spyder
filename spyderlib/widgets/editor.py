@@ -88,6 +88,10 @@ class EditorStack(QWidget):
         
         self.setAttribute(Qt.WA_DeleteOnClose)
         
+        self.horsplit_action = None
+        self.versplit_action = None
+        self.close_action = None
+        
         layout = QVBoxLayout()
         self.setLayout(layout)
         
@@ -310,7 +314,8 @@ class EditorStack(QWidget):
     def set_stack_title(self, index, title):
         self.combo.setItemText(index, title)
         
-    #------ Tab menu
+        
+    #------ Context menu
     def __setup_menu(self):
         """Setup tab context menu before showing it"""
         self.menu.clear()
@@ -404,7 +409,7 @@ class EditorStack(QWidget):
             
             self.remove_from_data(index)
             self.emit(SIGNAL('close_file(int)'), index)
-            if not self.data:
+            if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
                 self.close()
@@ -1295,6 +1300,9 @@ class FakePlugin(QSplitter):
         self.editorstacks.append(editorstack)
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)
+        font = QFont("Courier New")
+        font.setPointSize(10)
+        editorstack.set_default_font(font)
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
