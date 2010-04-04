@@ -432,12 +432,16 @@ has the same effect as typing a particular string at the help> prompt.
         special_pattern = r"^%s (?:r\')?(?:u\')?\"?\'?([a-zA-Z0-9_\.]+)"
         run_match = re.match(special_pattern % 'run', cmd)
         help_match = re.match(r'^([a-zA-Z0-9_\.]+)\?$', cmd)
+        cd_match = re.match(r"^\!cd \"?\'?([a-zA-Z0-9_ \.]+)", cmd)
         if help_match:
             cmd = 'help(%s)' % help_match.group(1)
         # run command
         elif run_match:
             filename = guess_filename(run_match.groups()[0])
             cmd = 'execfile(r"%s")' % filename
+        # !cd system command
+        elif cd_match:
+            cmd = 'import os; os.chdir(r"%s")' % cd_match.groups()[0].strip()
         # -- End of Special commands type I
             
         # -- Special commands type II
