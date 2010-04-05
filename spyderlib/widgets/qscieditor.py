@@ -192,8 +192,9 @@ def item_at_line(root_item, line):
 
 
 class ClassBrowserTreeWidget(OneColumnTree):
-    def __init__(self, parent, fullpath=False):
-        self.fullpath = fullpath
+    def __init__(self, parent, show_fullpath=False, fullpath_sorting=True):
+        self.show_fullpath = show_fullpath
+        self.fullpath_sorting = fullpath_sorting
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -212,14 +213,18 @@ class ClassBrowserTreeWidget(OneColumnTree):
         fullpath_act = create_action(self,
                         text=translate('ClassBrowser', 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
-        fullpath_act.setChecked(self.fullpath)
+        fullpath_act.setChecked(self.show_fullpath)
         actions = [fullpath_act, fromcursor_act]
         return actions
     
     def toggle_fullpath_mode(self, state):
-        self.fullpath = state
+        self.show_fullpath = state
         for index in range(self.topLevelItemCount()):
-            self.topLevelItem(index).set_text(fullpath=self.fullpath)
+            self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
+            
+    def set_fullpath_sorting(self, state):
+        self.fullpath_sorting = state
+        self.__sort_toplevel_items()
         
     def go_to_cursor_position(self):
         if self.current_editor is None:
@@ -272,14 +277,18 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
         
     def __sort_toplevel_items(self):
-        self.sort_top_level_items(key=lambda item: item.path.lower())
+        if self.fullpath_sorting:
+            sort_func = lambda item: osp.dirname(item.path.lower())
+        else:
+            sort_func = lambda item: osp.basename(item.path.lower())
+        self.sort_top_level_items(key=sort_func)
         
     def populate(self, editor, fname):
         """Populate tree"""
 #        import time
 #        t0 = time.time()
         root_item = FileRootItem(fname, self)
-        root_item.set_text(fullpath=self.fullpath)
+        root_item.set_text(fullpath=self.show_fullpath)
         editor.populate_classbrowser(root_item)
         self.__sort_toplevel_items()
         self.root_item_selected(root_item)
@@ -341,10 +350,11 @@ class ClassBrowser(QWidget):
     Signals:
         SIGNAL("edit_goto(QString,int,bool)")
     """
-    def __init__(self, parent=None, fullpath=True):
+    def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True):
         QWidget.__init__(self, parent)
         
-        self.treewidget = ClassBrowserTreeWidget(self, fullpath=fullpath)
+        self.treewidget = ClassBrowserTreeWidget(self,
+                show_fullpath=show_fullpath, fullpath_sorting=fullpath_sorting)
 
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignRight)
@@ -379,11 +389,14 @@ class ClassBrowser(QWidget):
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
         
-    def get_fullpath_state(self):
-        return self.treewidget.fullpath
+    def get_show_fullpath_state(self):
+        return self.treewidget.show_fullpath
     
     def update(self):
         self.treewidget.update_all()
+
+    def set_fullpath_sorting(self, state):
+        self.treewidget.set_fullpath_sorting(state)
 
 
 #===============================================================================

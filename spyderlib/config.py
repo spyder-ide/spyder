@@ -198,6 +198,7 @@ DEFAULTS = [
               'show_eol_chars': False,
               'show_whitespace': False,
               'tab_always_indent': True,
+              'fullpath_sorting': True,
               'api': osp.join(DATA_PATH, 'python.api'),
               'max_recent_files': 20,
               'currentline/backgroundcolor': "#EEFFDD",

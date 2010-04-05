@@ -122,9 +122,8 @@ class EditorStack(QWidget):
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         
         self.combo = QComboBox(self)
+        self.default_combo_font = self.combo.font()
         self.combo.setMaxVisibleItems(20)
-        self.combo.setEditable(True)
-        self.combo.lineEdit().setReadOnly(True)
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
@@ -146,6 +145,8 @@ class EditorStack(QWidget):
         
         self.find_widget = None
 
+        self.data = []
+        
         self.menu_actions = actions
         self.classbrowser = None
         self.unregister_callback = None
@@ -167,13 +168,13 @@ class EditorStack(QWidget):
         self.tabmode_enabled = False
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
+        self.fullpath_sorting_enabled = None
+        self.set_fullpath_sorting_enabled(False)
         
         self.cursor_position_changed_callback = lambda line, index: \
                 self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
         self.focus_changed_callback = lambda: \
                                       plugin.emit(SIGNAL("focus_changed()"))
-        
-        self.data = []
         
         self.__file_status_flag = False
         
@@ -240,9 +241,7 @@ class EditorStack(QWidget):
     def set_default_font(self, font):
         # get_font(self.ID)
         self.default_font = font
-        combo_font = QFont(font)
-        combo_font.setPointSize(combo_font.pointSize()-1)
-        self.combo.setFont(combo_font)
+        self.__update_combobox()
         
     def set_wrap_enabled(self, state):
         # CONF.get(self.ID, 'wrap')
@@ -259,7 +258,28 @@ class EditorStack(QWidget):
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.ID, 'check_eol_chars')
         self.checkeolchars_enabled = state
-    
+        
+    def __update_combobox(self):
+        if self.fullpath_sorting_enabled:
+            if self.default_font is not None:
+                combo_font = QFont(self.default_font)
+                combo_font.setPointSize(combo_font.pointSize()-1)
+                self.combo.setFont(combo_font)
+            self.combo.setEditable(True)
+            self.combo.lineEdit().setReadOnly(True)
+        else:
+            self.combo.setFont(self.default_combo_font)
+            self.combo.setEditable(False)
+        
+    def set_fullpath_sorting_enabled(self, state):
+        # CONF.get(self.ID, 'fullpath_sorting')
+        self.fullpath_sorting_enabled = state
+        self.__update_combobox()
+        if self.data:
+            finfo = self.data[self.get_stack_index()]
+            self.data.sort(key=self.__get_sorting_func())
+            new_index = self.data.index(finfo)
+            self.__repopulate_stack(new_index)
     
     #------ Stacked widget management
     def get_stack_index(self):
@@ -281,9 +301,15 @@ class EditorStack(QWidget):
         self.data.pop(index)
         self.combo.removeItem(index)
     
+    def __get_sorting_func(self):
+        if self.fullpath_sorting_enabled:
+            return lambda item: osp.dirname(item.filename)
+        else:
+            return lambda item: osp.basename(item.filename)
+    
     def add_to_data(self, finfo, set_current):
         self.data.append(finfo)
-        self.data.sort(key=lambda item: item.filename)
+        self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
         title = self.get_title(fname)
@@ -296,12 +322,7 @@ class EditorStack(QWidget):
         if set_current:
             self.current_changed(index)
         
-    def rename_in_data(self, index, new_filename):
-        finfo = self.data[index]
-        finfo.filename = new_filename
-        self.data.sort(key=lambda item: item.filename)
-        new_index = self.data.index(finfo)
-        
+    def __repopulate_stack(self, new_index):
         self.combo.blockSignals(True)
         for _i in range(self.stack.count()):
             self.stack.removeWidget(self.stack.widget(_i))
@@ -314,6 +335,12 @@ class EditorStack(QWidget):
         self.combo.blockSignals(False)
         self.set_stack_index(new_index)
         
+    def rename_in_data(self, index, new_filename):
+        finfo = self.data[index]
+        finfo.filename = new_filename
+        self.data.sort(key=self.__get_sorting_func())
+        new_index = self.data.index(finfo)
+        self.__repopulate_stack(new_index)
         return new_index
         
     def set_stack_title(self, index, title):
@@ -730,12 +757,27 @@ class EditorStack(QWidget):
         # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
                 
-    def get_title(self, filename):
-        """Return tab title"""
-        if filename != encoding.to_unicode(self.tempfile_path):
-            return filename
+    def get_title(self, filename, is_modified=None, is_readonly=None):
+        """Return combo box title"""
+        if self.fullpath_sorting_enabled:
+            text = filename
         else:
-            return unicode(translate("Editor", "Temporary file"))
+            text = "%s — %s"
+        if is_modified is not None and is_modified:
+            text += "*"
+        if is_readonly is not None and is_readonly:
+            text = "(%s)" % text
+        if filename == encoding.to_unicode(self.tempfile_path):
+            temp_file_str = unicode(translate("Editor", "Temporary file"))
+            if self.fullpath_sorting_enabled:
+                return "%s (%s)" % (text, temp_file_str)
+            else:
+                return text % (temp_file_str, self.tempfile_path)
+        else:
+            if self.fullpath_sorting_enabled:
+                return text
+            else:
+                return text % (osp.basename(filename), osp.dirname(filename))
         
     def __get_state_index(self, state, index):
         if index is None:
@@ -751,14 +793,8 @@ class EditorStack(QWidget):
         if index is None:
             return
         finfo = self.data[index]
-        title = self.get_title(finfo.filename)
-        if state:
-            title += "*"
-        elif title.endswith('*'):
-            title = title[:-1]
-        if finfo.editor.isReadOnly():
-            title = '(' + title + ')'
-        return title
+        return self.get_title(finfo.filename, is_modified=state,
+                              is_readonly=finfo.editor.isReadOnly())
     
     def modification_changed(self, state=None, index=None):
         """
@@ -1161,7 +1197,8 @@ class CursorPositionStatus(StatusBarWidget):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list):
+    def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list,
+                 show_fullpath, fullpath_sorting):
         super(EditorWidget, self).__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
@@ -1177,7 +1214,8 @@ class EditorWidget(QSplitter):
         
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
-        self.classbrowser = ClassBrowser(self, fullpath=False)
+        self.classbrowser = ClassBrowser(self, show_fullpath=show_fullpath,
+                                         fullpath_sorting=fullpath_sorting)
         self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
                      plugin.load)
         
@@ -1231,12 +1269,14 @@ class EditorWidget(QSplitter):
         
 
 class EditorMainWindow(QMainWindow):
-    def __init__(self, plugin, menu_actions, toolbar_list, menu_list):
+    def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
+                 show_fullpath, fullpath_sorting):
         super(EditorMainWindow, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         toolbar_list, menu_list)
+                                         toolbar_list, menu_list,
+                                         show_fullpath, fullpath_sorting)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -1281,7 +1321,7 @@ class FakePlugin(QSplitter):
         self.editorwindows = []
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.classbrowser = ClassBrowser(self, fullpath=False)
+        self.classbrowser = ClassBrowser(self, show_fullpath=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()

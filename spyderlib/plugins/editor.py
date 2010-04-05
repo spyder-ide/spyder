@@ -108,7 +108,8 @@ class Editor(PluginWidget):
         
         # Class browser
         self.classbrowser = ClassBrowser(self,
-                 fullpath=CONF.get(self.ID, 'class_browser_fullpath', False))
+             show_fullpath=CONF.get(self.ID, 'class_browser_fullpath', False),
+             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True))
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
         self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
                      self.load)
@@ -218,7 +219,7 @@ class Editor(PluginWidget):
         CONF.set(self.ID, 'class_browser_scrollbar_position',
                  self.classbrowser.treewidget.get_scrollbar_position())
         CONF.set(self.ID, 'class_browser_fullpath',
-                 self.classbrowser.get_fullpath_state())
+                 self.classbrowser.get_show_fullpath_state())
         state = self.splitter.saveState()
         CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
@@ -458,6 +459,10 @@ class Editor(PluginWidget):
             toggled=self.toggle_occurence_highlighting)
         occurence_action.setChecked( CONF.get(self.ID,
                                               'occurence_highlighting', True) )
+        fpsorting_action = create_action(self,
+                                 self.tr("Sort files according to full path"),
+                                 toggled=self.toggle_fullpath_sorting)
+        fpsorting_action.setChecked( CONF.get(self.ID, 'fullpath_sorting', True) )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
@@ -486,7 +491,8 @@ class Editor(PluginWidget):
         
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
-        add_actions(option_menu, (template_action, font_action, wrap_action,
+        add_actions(option_menu, (template_action, font_action,
+                                  fpsorting_action, None, wrap_action,
                                   tab_action, occurence_action, None,
                                   fold_action, self.foldonopen_action,
                                   checkeol_action, showeol_action,
@@ -591,7 +597,9 @@ class Editor(PluginWidget):
                     ('set_tabmode_enabled',        'tab_always_indent'),
                     ('set_occurence_highlighting_enabled',
                                                    'occurence_highlighting'),
-                    ('set_checkeolchars_enabled',  'check_eol_chars'))
+                    ('set_checkeolchars_enabled',  'check_eol_chars'),
+                    ('set_fullpath_sorting_enabled',
+                                                   'fullpath_sorting'))
         for method, setting in settings:
             getattr(editorstack, method)(CONF.get(self.ID, setting))
         editorstack.set_default_font(get_font(self.ID))
@@ -686,7 +694,9 @@ class Editor(PluginWidget):
         
     def create_new_window(self):
         window = EditorMainWindow(self, self.stack_menu_actions,
-                                  self.toolbar_list, self.menu_list)
+             self.toolbar_list, self.menu_list,
+             show_fullpath=CONF.get(self.ID, 'class_browser_fullpath', False),
+             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True))
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -1325,3 +1335,14 @@ class Editor(PluginWidget):
             self.classbrowser.update()
             editorstack = self.get_current_editorstack()
             editorstack._refresh_classbrowser(update=True)
+            
+    def toggle_fullpath_sorting(self, checked):
+        """Toggle full path sorting"""
+        if hasattr(self, 'editorstacks'):
+            self.emit(SIGNAL('option_changed'), 'fullpath_sorting', checked)
+            if self.classbrowser is not None:
+                self.classbrowser.set_fullpath_sorting(checked)
+            for window in self.editorwindows:
+                window.editorwidget.classbrowser.set_fullpath_sorting(checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_fullpath_sorting_enabled(checked)
