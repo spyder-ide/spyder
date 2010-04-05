@@ -35,8 +35,9 @@ from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
-                                      CursorPositionStatus, EditorSplitter,
-                                      EditorStack, EditorMainWindow)
+                                      CursorPositionStatus, EOLStatus,
+                                      EditorSplitter, EditorStack,
+                                      EditorMainWindow)
 from spyderlib.plugins import PluginWidget
 
 
@@ -95,6 +96,7 @@ class Editor(PluginWidget):
         
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.eol_status = EOLStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
@@ -572,6 +574,8 @@ class Editor(PluginWidget):
                          self.encoding_status.encoding_changed)
             self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
                          self.cursorpos_status.cursor_position_changed)
+            self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
+                         self.eol_status.eol_changed)
             
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)

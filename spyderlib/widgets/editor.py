@@ -1078,6 +1078,88 @@ class EditorSplitter(QSplitter):
                      self.editorsplitter_closed)
 
 
+#===============================================================================
+# Status bar widgets
+#===============================================================================
+class StatusBarWidget(QWidget):
+    def __init__(self, parent, statusbar):
+        QWidget.__init__(self, parent)
+
+        self.label_font = font = get_font('editor')
+        font.setPointSize(self.font().pointSize())
+        font.setBold(True)
+        
+        layout = QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+
+        self.hide()
+        statusbar.addPermanentWidget(self)
+
+class ReadWriteStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
+        self.readwrite = QLabel()
+        self.readwrite.setFont(self.label_font)
+        layout.addWidget(self.readwrite)
+        layout.addSpacing(20)
+        
+    def readonly_changed(self, readonly):
+        readwrite = "R" if readonly else "RW"
+        self.readwrite.setText(readwrite.ljust(3))
+        self.show()
+
+class EOLStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "End-of-lines:")))
+        self.eol = QLabel()
+        self.eol.setFont(self.label_font)
+        layout.addWidget(self.eol)
+        layout.addSpacing(20)
+        
+    def eol_changed(self, os_name):
+        os_name = unicode(os_name)
+        self.eol.setText({"nt": "CRLF", "posix": "LF"}.get(os_name, "CR"))
+        self.show()
+
+class EncodingStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
+        self.encoding = QLabel()
+        self.encoding.setFont(self.label_font)
+        layout.addWidget(self.encoding)
+        layout.addSpacing(20)
+        
+    def encoding_changed(self, encoding):
+        self.encoding.setText(str(encoding).upper().ljust(15))
+        self.show()
+
+class CursorPositionStatus(StatusBarWidget):
+    def __init__(self, parent, statusbar):
+        StatusBarWidget.__init__(self, parent, statusbar)
+        layout = self.layout()
+        layout.addWidget(QLabel(translate("Editor", "Line:")))
+        self.line = QLabel()
+        self.line.setFont(self.label_font)
+        layout.addWidget(self.line)
+        layout.addWidget(QLabel(translate("Editor", "Column:")))
+        self.column = QLabel()
+        self.column.setFont(self.label_font)
+        layout.addWidget(self.column)
+        self.setLayout(layout)
+        
+    def cursor_position_changed(self, line, index):
+        self.line.setText("%-6d" % (line+1))
+        self.column.setText("%-4d" % (index+1))
+        self.show()
+
+
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list):
         super(EditorWidget, self).__init__(parent)
@@ -1085,6 +1167,7 @@ class EditorWidget(QSplitter):
         
         statusbar = parent.statusBar() # Create a status bar
         self.readwrite_status = ReadWriteStatus(self, statusbar)
+        self.eol_status = EOLStatus(self, statusbar)
         self.encoding_status = EncodingStatus(self, statusbar)
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
@@ -1136,6 +1219,8 @@ class EditorWidget(QSplitter):
                      self.encoding_status.encoding_changed)
         self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
+        self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
+                     self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
         
     def unregister_editorstack(self, editorstack):
@@ -1143,73 +1228,6 @@ class EditorWidget(QSplitter):
             print >>STDOUT, "EditorWidget.unregister_editorstack:", editorstack
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
-
-
-#===============================================================================
-# Status bar widgets
-#===============================================================================
-class StatusBarWidget(QWidget):
-    def __init__(self, parent, statusbar):
-        QWidget.__init__(self, parent)
-
-        self.label_font = font = get_font('editor')
-        font.setPointSize(self.font().pointSize())
-        font.setBold(True)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-        self.hide()
-        statusbar.addPermanentWidget(self)
-
-class ReadWriteStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
-        self.readwrite = QLabel()
-        self.readwrite.setFont(self.label_font)
-        layout.addWidget(self.readwrite)
-        layout.addSpacing(10)
-        
-    def readonly_changed(self, readonly):
-        readwrite = "R" if readonly else "RW"
-        self.readwrite.setText(readwrite.ljust(3))
-        self.show()
-
-class EncodingStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
-        self.encoding = QLabel()
-        self.encoding.setFont(self.label_font)
-        layout.addWidget(self.encoding)
-        layout.addSpacing(10)
-        
-    def encoding_changed(self, encoding):
-        self.encoding.setText(str(encoding).upper().ljust(15))
-        self.show()
-
-class CursorPositionStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Line:")))
-        self.line = QLabel()
-        self.line.setFont(self.label_font)
-        layout.addWidget(self.line)
-        layout.addWidget(QLabel(translate("Editor", "Column:")))
-        self.column = QLabel()
-        self.column.setFont(self.label_font)
-        layout.addWidget(self.column)
-        self.setLayout(layout)
-        
-    def cursor_position_changed(self, line, index):
-        self.line.setText("%-6d" % (line+1))
-        self.column.setText("%-4d" % (index+1))
-        self.show()
         
 
 class EditorMainWindow(QMainWindow):
