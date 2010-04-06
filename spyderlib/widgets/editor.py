@@ -762,7 +762,7 @@ class EditorStack(QWidget):
         if self.fullpath_sorting_enabled:
             text = filename
         else:
-            text = "%s — %s"
+            text = u"%s — %s"
         if is_modified is not None and is_modified:
             text += "*"
         if is_readonly is not None and is_readonly:
