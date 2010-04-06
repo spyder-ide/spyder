@@ -285,7 +285,7 @@ class ExternalPythonShell(ExternalShellBase):
                 self.shell.write_error(text[pos:-5])
                 self.shell.write(text[-5:], flush=True)
             else:
-                self.shell.write_error(text[pos:], flush=True)
+                self.shell.write_error(text[pos:])
             return True
         return False
     
