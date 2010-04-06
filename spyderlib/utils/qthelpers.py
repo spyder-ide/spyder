@@ -100,7 +100,8 @@ def restore_keyevent(event):
     return event, text, key, ctrl, shift
 
 def create_toolbutton(parent, icon=None, text=None,
-                      triggered=None, tip=None, toggled=None, shortcut=None):
+                      triggered=None, tip=None, toggled=None, shortcut=None,
+                      autoraise=True, text_beside_icon=True):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:
@@ -111,8 +112,9 @@ def create_toolbutton(parent, icon=None, text=None,
         button.setIcon(icon)
     if text is not None or tip is not None:
         button.setToolTip(text if tip is None else tip)
-    button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-    button.setAutoRaise(True)
+    if text_beside_icon:
+        button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    button.setAutoRaise(autoraise)
     if triggered is not None:
         QObject.connect(button, SIGNAL('clicked()'), triggered)
     if toggled is not None:

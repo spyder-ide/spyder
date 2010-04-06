@@ -305,6 +305,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 self.collapseItem(root_item)
                 
     def restore(self):
+        """Reimplemented OneColumnTree method"""
         if self.current_editor is not None:
             self.collapseAll()
             editor_id = self.editor_ids[self.current_editor]
@@ -368,19 +369,14 @@ class ClassBrowser(QWidget):
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
-                             tip=translate('ClassBrowser',
-                                           'Go to cursor position'),
-                             triggered=self.treewidget.go_to_cursor_position)
-        collapse_btn = create_toolbutton(self, get_icon("collapse.png"),
-                             tip=translate('ClassBrowser', "Collapse all"),
-                             triggered=self.treewidget.collapseAll)
-        expand_btn = create_toolbutton(self, get_icon("expand.png"),
-                             tip=translate('ClassBrowser', "Expand all"),
-                             triggered=self.treewidget.expandAll)
-        restore_btn = create_toolbutton(self, get_icon("restore.png"),
-                             tip=translate('ClassBrowser',
-                                           "Restore original tree layout"),
-                             triggered=self.treewidget.restore)
+                         tip=translate('ClassBrowser', 'Go to cursor position'),
+                         triggered=self.treewidget.go_to_cursor_position)
+        collapse_btn = create_toolbutton(self, text_beside_icon=False)
+        collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
+        expand_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
+        restore_btn = create_toolbutton(self, text_beside_icon=False)
+        restore_btn.setDefaultAction(self.treewidget.restore_action)
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
     def set_current_editor(self, editor, fname, update):

@@ -14,7 +14,7 @@ They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)
 """
 
-from PyQt4.QtGui import QTreeWidget, QMenu
+from PyQt4.QtGui import QTreeWidget, QMenu, QTreeWidgetItem
 from PyQt4.QtCore import SIGNAL, Qt, QVariant
 
 # Local imports
@@ -33,9 +33,17 @@ class OneColumnTree(QTreeWidget):
                      self.clicked)
         # Setup context menu
         self.menu = QMenu(self)
+        self.collapse_all_action = None
+        self.collapse_selection_action = None
+        self.expand_all_action = None
+        self.expand_selection_action = None
         self.common_actions = self.setup_common_actions()
         
         self.__expanded_state = None
+
+        self.connect(self, SIGNAL('itemSelectionChanged()'),
+                     self.item_selection_changed)
+        self.item_selection_changed()
                      
     def activated(self):
         raise NotImplementedError
@@ -48,15 +56,31 @@ class OneColumnTree(QTreeWidget):
                      
     def setup_common_actions(self):
         """Setup context menu common actions"""
-        collapse_act = create_action(self,
-                    text=translate('OneColumnTree', 'Collapse all'),
-                    icon=get_icon('collapse.png'),
-                    triggered=self.collapseAll)
-        expand_act = create_action(self,
-                    text=translate('OneColumnTree', 'Expand all'),
-                    icon=get_icon('expand.png'),
-                    triggered=self.expandAll)
-        return [collapse_act, expand_act]
+        self.collapse_all_action = create_action(self,
+                         text=translate('OneColumnTree', 'Collapse all'),
+                         icon=get_icon('collapse.png'),
+                         triggered=self.collapseAll)
+        self.expand_all_action = create_action(self,
+                         text=translate('OneColumnTree', 'Expand all'),
+                         icon=get_icon('expand.png'),
+                         triggered=self.expandAll)
+        self.restore_action = create_action(self,
+                         text=translate('OneColumnTree', 'Restore'),
+                         tip=translate('OneColumnTree',
+                                       'Restore original tree layout'),
+                         icon=get_icon('restore.png'),
+                         triggered=self.restore)
+        self.collapse_selection_action = create_action(self,
+                         text=translate('OneColumnTree', 'Collapse selection'),
+                         icon=get_icon('collapse_selection.png'),
+                         triggered=self.collapse_selection)
+        self.expand_selection_action = create_action(self,
+                         text=translate('OneColumnTree', 'Expand selection'),
+                         icon=get_icon('expand_selection.png'),
+                         triggered=self.expand_selection)
+        return [self.collapse_all_action, self.expand_all_action,
+                self.restore_action, None,
+                self.collapse_selection_action, self.expand_selection_action]
                      
     def update_menu(self):
         self.menu.clear()
@@ -71,6 +95,53 @@ class OneColumnTree(QTreeWidget):
         # Right here: add other actions if necessary
         # (reimplement this method)
         return []
+
+    def restore(self):
+        self.collapseAll()
+        for item in self.get_top_level_items():
+            self.expandItem(item)
+        
+    def is_item_expandable(self, item):
+        """To be reimplemented in child class
+        See example in project explorer widget"""
+        return True
+        
+    def __expand_item(self, item):
+        if self.is_item_expandable(item):
+            self.expandItem(item)
+            for index in range(item.childCount()):
+                child = item.child(index)
+                self.__expand_item(child)
+        
+    def expand_selection(self):
+        items = self.selectedItems()
+        if not items:
+            items = self.get_top_level_items()
+        for item in items:
+            self.__expand_item(item)
+        if items:
+            self.scrollToItem(items[0])
+        
+    def __collapse_item(self, item):
+        self.collapseItem(item)
+        for index in range(item.childCount()):
+            child = item.child(index)
+            self.__collapse_item(child)
+
+    def collapse_selection(self):
+        items = self.selectedItems()
+        if not items:
+            items = self.get_top_level_items()
+        for item in items:
+            self.__collapse_item(item)
+        if items:
+            self.scrollToItem(items[0])
+            
+    def item_selection_changed(self):
+        """Item selection has changed"""
+        is_selection = len(self.selectedItems()) > 0
+        self.expand_selection_action.setEnabled(is_selection)
+        self.collapse_selection_action.setEnabled(is_selection)
     
     def get_top_level_items(self):
         """Iterate over top level items"""

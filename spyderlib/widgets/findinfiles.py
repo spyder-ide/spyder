@@ -524,12 +524,6 @@ class ResultsBrowser(OneColumnTree):
         if not self.error_flag and self.nb:
             self.restore()
         
-    def restore(self):
-        self.collapseAll()
-        if self.root_items is not None:
-            for root_item in self.root_items:
-                root_item.setExpanded(True)
-        
     def refresh(self):
         """
         Refreshing search results panel
@@ -659,19 +653,23 @@ class FindInFilesWidget(QWidget):
         
         self.result_browser = ResultsBrowser(self)
         
-        collapse_btn = create_toolbutton(self, get_icon("collapse.png"),
-                                 tip=translate('FindInFiles', "Collapse all"),
-                                 triggered=self.result_browser.collapseAll)
-        expand_btn = create_toolbutton(self, get_icon("expand.png"),
-                                 tip=translate('FindInFiles', "Expand all"),
-                                 triggered=self.result_browser.expandAll)
-        restore_btn = create_toolbutton(self, get_icon("restore.png"),
-                                 tip=translate('FindInFiles',
-                                               "Restore original tree layout"),
-                                 triggered=self.result_browser.restore)
+        collapse_btn = create_toolbutton(self, text_beside_icon=False)
+        collapse_btn.setDefaultAction(self.result_browser.collapse_all_action)
+        expand_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_btn.setDefaultAction(self.result_browser.expand_all_action)
+        restore_btn = create_toolbutton(self, text_beside_icon=False)
+        restore_btn.setDefaultAction(self.result_browser.restore_action)
+        collapse_sel_btn = create_toolbutton(self, text_beside_icon=False)
+        collapse_sel_btn.setDefaultAction(
+                                self.result_browser.collapse_selection_action)
+        expand_sel_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_sel_btn.setDefaultAction(
+                                self.result_browser.expand_selection_action)
+        
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignTop)
-        for widget in [collapse_btn, expand_btn, restore_btn]:
+        for widget in [collapse_btn, expand_btn, restore_btn,
+                       collapse_sel_btn, expand_sel_btn]:
             btn_layout.addWidget(widget)
         
         hlayout = QHBoxLayout()

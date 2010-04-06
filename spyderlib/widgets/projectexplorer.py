@@ -581,26 +581,20 @@ class ExplorerTreeWidget(OneColumnTree):
         
     def file_changed(self, qstr):
         self.directory_changed(osp.dirname(unicode(qstr)))
-        
-    def restore(self):
-        self.collapseAll()
-        for project in self.projects:
-            self.expandItem(project.get_root_item())
-        
-    def __expand_item(self, item):
-        if item.childIndicatorPolicy() != QTreeWidgetItem.ShowIndicator \
-           or item.isExpanded():
-            return
-        self.expandItem(item)
-        for index in range(item.childCount()):
-            child = item.child(index)
-            self.__expand_item(child)
+
+    def is_item_expandable(self, item):
+        """Reimplemented OneColumnTree method"""
+        return item.childIndicatorPolicy() == QTreeWidgetItem.ShowIndicator \
+               and not item.isExpanded()
         
     def expandAll(self):
-        item = self.currentItem()
-        if item:
-            self.__expand_item(item)
-
+        """Reimplement QTreeWidget method"""
+        self.clearSelection()
+        for item in self.get_top_level_items():
+            item.setSelected(True)
+        self.expand_selection()
+        self.clearSelection()
+        
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         if event.key() == Qt.Key_F2:
@@ -1266,16 +1260,12 @@ class ProjectExplorerWidget(QWidget):
                         icon=get_icon('reload.png'),
                         triggered=lambda: self.treewidget.refresh(clear=True))
         
-        collapse_btn = create_toolbutton(self, get_icon("collapse.png"),
-                             tip=translate('ProjectExplorer', "Collapse all"),
-                             triggered=self.treewidget.collapseAll)
-        expand_btn = create_toolbutton(self, get_icon("expand.png"),
-                             tip=translate('ProjectExplorer', "Expand all"),
-                             triggered=self.treewidget.expandAll)
-        restore_btn = create_toolbutton(self, get_icon("restore.png"),
-                             tip=translate('ProjectExplorer',
-                                           "Restore original tree layout"),
-                             triggered=self.treewidget.restore)
+        collapse_btn = create_toolbutton(self, text_beside_icon=False)
+        collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
+        expand_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
+        restore_btn = create_toolbutton(self, text_beside_icon=False)
+        restore_btn.setDefaultAction(self.treewidget.restore_action)
         
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignRight)
