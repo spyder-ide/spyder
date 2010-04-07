@@ -350,6 +350,8 @@ class ExternalConsole(PluginWidget):
     def toggle_icontext(self, checked):
         """Toggle icon text"""
         CONF.set(self.ID, 'show_icontext', checked)
+        if self.tabwidget is None:
+            return
         for index in range(self.tabwidget.count()):
             for widget in self.tabwidget.widget(index).get_toolbar_buttons():
                 if checked:
