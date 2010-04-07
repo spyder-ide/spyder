@@ -1250,10 +1250,10 @@ class EditorWidget(QSplitter):
             editorsplitter.editorstack._refresh_classbrowser(index, update=True)
         
     def register_editorstack(self, editorstack):
+        self.editorstacks.append(editorstack)
         editorstack.set_closable( len(self.editorstacks) > 1 )
         editorstack.set_classbrowser(self.classbrowser)
         editorstack.set_find_widget(self.find_widget)
-        self.editorstacks.append(editorstack)
         self.connect(editorstack, SIGNAL('reset_statusbar()'),
                      self.readwrite_status.hide)
         self.connect(editorstack, SIGNAL('reset_statusbar()'),
@@ -1366,12 +1366,12 @@ class FakePlugin(QSplitter):
     def register_editorstack(self, editorstack):
         if DEBUG:
             print >>STDOUT, "FakePlugin.register_editorstack:", editorstack
+        self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_classbrowser(self.classbrowser)
             editorstack.set_find_widget(self.find_widget)
-        self.editorstacks.append(editorstack)
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)
         font = QFont("Courier New")
