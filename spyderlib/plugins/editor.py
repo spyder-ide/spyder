@@ -1322,7 +1322,7 @@ class Editor(PluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.set_codeanalysis_enabled(checked)
             current_editorstack = self.get_current_editorstack()
-            current_index = current_editorstack.currentIndex()
+            current_index = current_editorstack.get_stack_index()
             for editorstack in self.editorstacks:
                 for index, finfo in enumerate(editorstack.data):
                     finfo.editor.setup_margins(linenumbers=True,
