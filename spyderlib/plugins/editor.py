@@ -1328,6 +1328,7 @@ class Editor(PluginWidget):
                     finfo.editor.setup_margins(linenumbers=True,
                               code_analysis=checked,
                               code_folding=CONF.get(self.ID, 'code_folding'))
+                    finfo.editor.cleanup_code_analysis()
                     if index != current_index:
                         editorstack.analyze_script(index)
             # We must update the current editor after the others:
