@@ -24,10 +24,8 @@ from PyQt4.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
                           QStringList, Qt)
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       translate, add_actions)
+from spyderlib.utils.qthelpers import create_toolbutton, translate, add_actions
 from spyderlib.config import get_icon, get_conf_path
-from spyderlib.widgets.externalshell.monitor import communicate
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist):

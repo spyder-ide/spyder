@@ -433,7 +433,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
             self.zoomOut()
             event.accept()
 
-        elif text.length():
+        elif text.length() and not self.isReadOnly():
             self.hist_wholeline = False
             self.insert_text(text)
             self._key_other(text)
@@ -602,8 +602,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         Insert text at the current cursor position
         or at the end of the command line
         """
-        if self.isReadOnly():
-            return
         if error and text.startswith('  File "<'):
             # Avoid printing 'File <console> [...]' which is related to the
             # code.InteractiveConsole Python interpreter emulation
