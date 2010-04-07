@@ -77,9 +77,13 @@ class TabInfo(QObject):
         
     def code_analysis_finished(self):
         """Code analysis thread has finished"""
-        self.analysis_results = self.analysis_thread.get_results()
-        self.editor.process_code_analysis(self.analysis_results)
-        self.emit(SIGNAL('analysis_results_changed()'))        
+        self.set_analysis_results( self.analysis_thread.get_results() )
+        self.emit(SIGNAL('analysis_results_changed()'))
+        
+    def set_analysis_results(self, analysis_results):
+        """Set analysis results and update warning markers in editor"""
+        self.analysis_results = analysis_results
+        self.editor.process_code_analysis(analysis_results)
 
 
 class EditorStack(QWidget):
@@ -188,6 +192,7 @@ class EditorStack(QWidget):
             enc = other_finfo.encoding
             finfo = self.create_new_editor(fname, enc, "", set_current=True)
             finfo.editor.set_as_clone(other_finfo.editor)
+            finfo.set_analysis_results(other_finfo.analysis_results)
         
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -580,6 +585,10 @@ class EditorStack(QWidget):
             if self.codeanalysis_enabled:
                 finfo = self.data[index]
                 finfo.run_code_analysis()
+                
+    def set_analysis_results(self, index, analysis_results):
+        """Synchronize analysis results between editorstacks"""
+        self.data[index].set_analysis_results(analysis_results)
         
     def get_analysis_results(self):
         if self.data:
@@ -1387,7 +1396,8 @@ class FakePlugin(QSplitter):
         
     def create_new_window(self):
         window = EditorMainWindow(self, self.menu_actions,
-                                  self.toolbar_list, self.menu_list)
+                                  self.toolbar_list, self.menu_list,
+                                  show_fullpath=False, fullpath_sorting=True)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

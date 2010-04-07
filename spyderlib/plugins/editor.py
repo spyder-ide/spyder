@@ -791,9 +791,17 @@ class Editor(PluginWidget):
     def analysis_results_changed(self):
         """Refresh analysis navigation buttons"""
         editorstack = self.get_current_editorstack()
-        check_results = editorstack.get_analysis_results()
+        results = editorstack.get_analysis_results()
+        
+        # Synchronize all editorstack analysis results
+        index = editorstack.get_stack_index()
+        for other_editorstack in self.editorstacks:
+            if other_editorstack is not editorstack:
+                other_editorstack.set_analysis_results(index, results)
+        
+        # Update code analysis buttons
         state = CONF.get(self.ID, 'code_analysis') \
-                and check_results is not None and len(check_results)
+                and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             action.setEnabled(state)

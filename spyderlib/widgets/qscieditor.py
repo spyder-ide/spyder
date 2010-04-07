@@ -514,11 +514,12 @@ class QsciEditor(TextEditBaseWidget):
                      show_eol_chars=False, show_whitespace=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True):
-        self.setup_editor_args = dict(linenumbers=True, language=None,
-                                  code_analysis=False, code_folding=False,
-                                  show_eol_chars=False, show_whitespace=False,
-                                  font=None, wrap=False, tab_mode=True,
-                                  occurence_highlighting=True)
+        self.setup_editor_args = dict(
+                linenumbers=linenumbers, language=language,
+                code_analysis=code_analysis, code_folding=code_folding,
+                show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
+                font=font, wrap=wrap, tab_mode=tab_mode,
+                occurence_highlighting=occurence_highlighting)
         
         # Lexer
         self.set_language(language)
