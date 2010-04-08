@@ -16,8 +16,8 @@
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
-                         QStackedWidget, QComboBox, QKeySequence, QShortcut,
-                         QSizePolicy, QMainWindow, QLabel)
+                         QComboBox, QKeySequence, QShortcut, QSizePolicy,
+                         QMainWindow, QLabel)
 from PyQt4.QtCore import SIGNAL, Qt, QFileInfo, QThread, QObject
 
 import os, sys
@@ -33,6 +33,7 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate,
                                        create_toolbutton)
+from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.qscieditor import QsciEditor, check
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.qscieditor import ClassBrowser
@@ -92,9 +93,11 @@ class EditorStack(QWidget):
         
         self.setAttribute(Qt.WA_DeleteOnClose)
         
+        self.newwindow_action = None
         self.horsplit_action = None
         self.versplit_action = None
         self.close_action = None
+        self.__get_split_actions()
         
         layout = QVBoxLayout()
         self.setLayout(layout)
@@ -108,13 +111,14 @@ class EditorStack(QWidget):
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
         header_layout.addWidget(menu_btn)
+        
         self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
-                             tip=translate("Editor", "Previous (Ctrl+Tab)"),
-                             triggered=self.go_to_previous_file)
+                         tip=translate("Editor", "Previous file (Ctrl+Tab)"),
+                         triggered=self.go_to_previous_file)
         header_layout.addWidget(self.previous_btn)
         self.next_btn = create_toolbutton(self, get_icon('next.png'),
-                             tip=translate("Editor", "Next (Ctrl+Shift+Tab)"),
-                             triggered=self.go_to_next_file)
+                         tip=translate("Editor", "Next file (Ctrl+Shift+Tab)"),
+                         triggered=self.go_to_next_file)
         header_layout.addWidget(self.next_btn)
 
         # Local shortcuts
@@ -133,18 +137,40 @@ class EditorStack(QWidget):
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
                      self.current_changed)
         header_layout.addWidget(self.combo)
+
+        newwin_btn = create_toolbutton(self, text_beside_icon=False)
+        newwin_btn.setDefaultAction(self.newwindow_action)
+        header_layout.addWidget(newwin_btn)
         
-        self.close_btn = create_toolbutton(self, triggered=self.close_file,
-                                       icon=get_icon("fileclose.png"),
-                                       tip=translate("Editor", "Close file"))
-        header_layout.addWidget(self.close_btn)
+        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
+        horsplit_btn.setDefaultAction(self.horsplit_action)
+        header_layout.addWidget(horsplit_btn)
+        
+        versplit_btn = create_toolbutton(self, text_beside_icon=False)
+        versplit_btn.setDefaultAction(self.versplit_action)
+        header_layout.addWidget(versplit_btn)
+        
+        self.stack = BaseTabs(self, menu=self.menu)
+        self.close_btn = None
+#        if hasattr(self.stack, 'setTabsClosable'):
+#            self.close_btn = create_toolbutton(self, triggered=self.close_file,
+#                                           icon=get_icon("fileclose.png"),
+#                                           tip=translate("Editor", "Close file"))
+#            header_layout.addWidget(self.close_btn)
+#        else:
+#            # Close button is not necessary
+#            self.close_btn = None
         layout.addLayout(header_layout)
 
         self.stack_history = []
         
-        self.stack = QStackedWidget(self)
+        self.stack.set_close_function(self.close_file)
+        if hasattr(self.stack, 'setDocumentMode'):
+            self.stack.setDocumentMode(True)
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
                      self.stack.setCurrentIndex)
+        self.connect(self.stack, SIGNAL('currentChanged(int)'),
+                     self.combo.setCurrentIndex)
         layout.addWidget(self.stack)
         
         self.find_widget = None
@@ -301,8 +327,7 @@ class EditorStack(QWidget):
             widget.setCurrentIndex(index)
     
     def remove_from_data(self, index):
-        widget = self.stack.widget(index)
-        self.stack.removeWidget(widget)
+        self.stack.removeTab(index)
         self.data.pop(index)
         self.combo.removeItem(index)
     
@@ -317,10 +342,11 @@ class EditorStack(QWidget):
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
-        title = self.get_title(fname)
         self.combo.blockSignals(True)
-        self.stack.insertWidget(index, editor)
-        self.combo.insertItem(index, get_filetype_icon(fname), title)
+        self.stack.insertTab(index, editor, get_filetype_icon(fname),
+                             self.get_tab_title(fname))
+        self.combo.insertItem(index, get_filetype_icon(fname),
+                              self.get_combo_title(fname))
         if set_current:
             self.set_stack_index(index)
         self.combo.blockSignals(False)
@@ -330,13 +356,14 @@ class EditorStack(QWidget):
     def __repopulate_stack(self, new_index):
         self.combo.blockSignals(True)
         for _i in range(self.stack.count()):
-            self.stack.removeWidget(self.stack.widget(_i))
+            self.stack.removeTab(_i)
         self.combo.clear()
         for _i, _fi in enumerate(self.data):
             fname, editor = _fi.filename, _fi.editor
-            title = self.get_title(fname)
-            self.stack.insertWidget(_i, editor)
-            self.combo.insertItem(_i, get_filetype_icon(fname), title)
+            self.stack.insertTab(_i, editor, get_filetype_icon(fname),
+                                 self.get_tab_title(fname))
+            self.combo.insertItem(_i, get_filetype_icon(fname),
+                                  self.get_combo_title(fname))
         self.combo.blockSignals(False)
         self.set_stack_index(new_index)
         
@@ -348,8 +375,9 @@ class EditorStack(QWidget):
         self.__repopulate_stack(new_index)
         return new_index
         
-    def set_stack_title(self, index, title):
-        self.combo.setItemText(index, title)
+    def set_stack_title(self, index, combo_title, tab_title):
+        self.combo.setItemText(index, combo_title)
+        self.stack.setTabText(index, tab_title)
         
         
     #------ Context menu
@@ -368,7 +396,7 @@ class EditorStack(QWidget):
     #------ Hor/Ver splitting
     def __get_split_actions(self):
         # New window
-        newwindow_action = create_action(self,
+        self.newwindow_action = create_action(self,
                     translate("Editor", "New window"),
                     icon="newwindow.png",
                     tip=translate("Editor", "Create a new editor window"),
@@ -390,7 +418,7 @@ class EditorStack(QWidget):
                     translate("Editor", "Close this panel"),
                     icon="close_panel.png",
                     triggered=self.close)
-        return [None, newwindow_action, None, 
+        return [None, self.newwindow_action, None, 
                 self.versplit_action, self.horsplit_action, self.close_action]
         
     def reset_orientation(self):
@@ -597,7 +625,8 @@ class EditorStack(QWidget):
     def current_changed(self, index):
         """Stack index has changed"""
         count = self.get_stack_count()
-        self.close_btn.setEnabled(count > 0)
+        if self.close_btn is not None:
+            self.close_btn.setEnabled(count > 0)
         for btn in (self.previous_btn, self.next_btn):
             btn.setEnabled(count > 1)
         
@@ -766,16 +795,26 @@ class EditorStack(QWidget):
         # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
                 
-    def get_title(self, filename, is_modified=None, is_readonly=None):
+    def __modified_readonly_title(self, title, is_modified, is_readonly):
+        if is_modified is not None and is_modified:
+            title += "*"
+        if is_readonly is not None and is_readonly:
+            title = "(%s)" % title
+        return title
+    
+    def get_tab_title(self, filename, is_modified=None, is_readonly=None):
+        """Return tab title"""
+        return self.__modified_readonly_title(osp.basename(filename),
+                                              is_modified, is_readonly)
+                
+    def get_combo_title(self, filename, is_modified=None, is_readonly=None):
         """Return combo box title"""
         if self.fullpath_sorting_enabled:
             text = filename
         else:
             text = u"%s — %s"
-        if is_modified is not None and is_modified:
-            text += "*"
-        if is_readonly is not None and is_readonly:
-            text = "(%s)" % text
+        text = self.__modified_readonly_title(text,
+                                              is_modified, is_readonly)
         if filename == encoding.to_unicode(self.tempfile_path):
             temp_file_str = unicode(translate("Editor", "Temporary file"))
             if self.fullpath_sorting_enabled:
@@ -797,13 +836,17 @@ class EditorStack(QWidget):
             state = self.data[index].editor.isModified()
         return state, index
         
-    def get_full_title(self, state=None, index=None):
+    def get_titles(self, state=None, index=None):
         state, index = self.__get_state_index(state, index)
         if index is None:
             return
         finfo = self.data[index]
-        return self.get_title(finfo.filename, is_modified=state,
-                              is_readonly=finfo.editor.isReadOnly())
+        fname = finfo.filename
+        is_modified = state
+        is_readonly = finfo.editor.isReadOnly()
+        combo_title = self.get_combo_title(fname, is_modified, is_readonly)
+        tab_title = self.get_tab_title(fname, is_modified, is_readonly)
+        return combo_title, tab_title
     
     def modification_changed(self, state=None, index=None):
         """
@@ -821,10 +864,10 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('opened_files_list_changed()'))
         # --
         state, index = self.__get_state_index(state, index)
-        title = self.get_full_title(state, index)
-        if index is None or title is None:
+        combo_title, tab_title = self.get_titles(state, index)
+        if index is None or combo_title is None:
             return
-        self.set_stack_title(index, title)
+        self.set_stack_title(index, combo_title, tab_title)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
         self.emit(SIGNAL('refresh_save_all_action()'))

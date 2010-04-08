@@ -219,6 +219,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
     
     def toggle_fullpath_mode(self, state):
         self.show_fullpath = state
+        self.setTextElideMode(Qt.ElideMiddle if state else Qt.ElideRight)
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
             

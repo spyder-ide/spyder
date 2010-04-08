@@ -25,7 +25,7 @@ import sys
 STDOUT = sys.stdout
 
 
-class TabsBase(QTabBar):
+class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""
     def __init__(self, parent, ancestor):
         QTabBar.__init__(self, parent)
@@ -85,81 +85,15 @@ class TabsBase(QTabBar):
         QTabBar.dropEvent(self, event)
         
         
-class Tabs(QTabWidget):
-    """TabWidget with a context-menu"""
-    def __init__(self, parent, actions=None):
+class BaseTabs(QTabWidget):
+    def __init__(self, parent, actions=None, menu=None):
         QTabWidget.__init__(self, parent)
-        tab_bar = TabsBase(self, parent)
-        self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
-        self.connect(tab_bar, SIGNAL('move_tab(long,int,int)'),
-                     self.move_tab_from_another_tabwidget)
-        self.setTabBar(tab_bar)
-        self.menu = QMenu(self)
-        if actions:
-            add_actions(self.menu, actions)
-        self.index_history = []
-        self.connect(self, SIGNAL('currentChanged(int)'),
-                     self.__current_changed)
-        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
-        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        # Browsing tabs button
-        browse_button = create_toolbutton(self,
-                                          icon=get_icon("browse_tab.png"),
-                                          tip=translate("Tabs", "Browse tabs"))
-        self.browse_tabs_menu = QMenu(self)
-        browse_button.setMenu(self.browse_tabs_menu)
-        browse_button.setPopupMode(browse_button.InstantPopup)
-        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
-                     self.update_browse_tabs_menu)
-        self.setCornerWidget(browse_button)
-        
-    def update_browse_tabs_menu(self):
-        """Update browse tabs menu"""
-        self.browse_tabs_menu.clear()
-        for index in range(self.count()):
-            tab_action = create_action(self, self.tabText(index),
-                                       icon=self.tabIcon(index),
-                                       toggled=lambda state, index=index:
-                                               self.setCurrentIndex(index),
-                                       tip=self.tabToolTip(index))
-            tab_action.setChecked(index == self.currentIndex())
-            self.browse_tabs_menu.addAction(tab_action)
-        
-    def set_close_function(self, func):
-        """Setting Tabs close function
-        None -> tabs are not closable"""
-        state = func is not None
-        if state:
-            self.connect(self, SIGNAL("close_tab(int)"), func)
-        try:
-            # Assuming Qt >= 4.5
-            QTabWidget.setTabsClosable(self, state)
-            self.connect(self, SIGNAL("tabCloseRequested(int)"), func)
-        except AttributeError:
-            # Workaround for Qt < 4.5
-            close_button = create_toolbutton(self, triggered=func,
-                                             icon=get_icon("fileclose.png"),
-                                             tip=translate("Tabs",
-                                                           "Close current tab"))
-            self.setCornerWidget(close_button if state else None)
-        
-    def __current_changed(self, index):
-        for _i in self.index_history[:]:
-            if _i > self.count()-1:
-                self.index_history.pop(self.index_history.index(_i))
-        while index in self.index_history:
-            self.index_history.pop(self.index_history.index(index))
-        self.index_history.append(index)
-        
-    def tab_navigate(self):
-        """Ctrl+Tab"""
-        if len(self.index_history) > 1:
-            last = len(self.index_history)-1
-            index = self.index_history.pop(last)
-            self.index_history.insert(0, index)
-            self.setCurrentIndex(self.index_history[last])
-        elif len(self.index_history) == 0 and self.count():
-            self.index_history = [self.currentIndex()]            
+        if menu is None:
+            self.menu = QMenu(self)
+            if actions:
+                add_actions(self.menu, actions)
+        else:
+            self.menu = menu
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
@@ -193,6 +127,80 @@ class Tabs(QTabWidget):
             event.accept()
         else:
             QTabWidget.keyPressEvent(self, event)
+        
+    def set_close_function(self, func):
+        """Setting Tabs close function
+        None -> tabs are not closable"""
+        state = func is not None
+        if state:
+            self.connect(self, SIGNAL("close_tab(int)"), func)
+        try:
+            # Assuming Qt >= 4.5
+            QTabWidget.setTabsClosable(self, state)
+            self.connect(self, SIGNAL("tabCloseRequested(int)"), func)
+        except AttributeError:
+            # Workaround for Qt < 4.5
+            close_button = create_toolbutton(self, triggered=func,
+                                             icon=get_icon("fileclose.png"),
+                                             tip=translate("Tabs",
+                                                           "Close current tab"))
+            self.setCornerWidget(close_button if state else None)
+
+        
+class Tabs(BaseTabs):
+    """TabWidget with a context-menu"""
+    def __init__(self, parent, actions=None):
+        BaseTabs.__init__(self, parent, actions)
+        tab_bar = TabBar(self, parent)
+        self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
+        self.connect(tab_bar, SIGNAL('move_tab(long,int,int)'),
+                     self.move_tab_from_another_tabwidget)
+        self.setTabBar(tab_bar)
+        self.index_history = []
+        self.connect(self, SIGNAL('currentChanged(int)'),
+                     self.__current_changed)
+        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
+        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        # Browsing tabs button
+        browse_button = create_toolbutton(self,
+                                          icon=get_icon("browse_tab.png"),
+                                          tip=translate("Tabs", "Browse tabs"))
+        self.browse_tabs_menu = QMenu(self)
+        browse_button.setMenu(self.browse_tabs_menu)
+        browse_button.setPopupMode(browse_button.InstantPopup)
+        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
+                     self.update_browse_tabs_menu)
+        self.setCornerWidget(browse_button)
+        
+    def update_browse_tabs_menu(self):
+        """Update browse tabs menu"""
+        self.browse_tabs_menu.clear()
+        for index in range(self.count()):
+            tab_action = create_action(self, self.tabText(index),
+                                       icon=self.tabIcon(index),
+                                       toggled=lambda state, index=index:
+                                               self.setCurrentIndex(index),
+                                       tip=self.tabToolTip(index))
+            tab_action.setChecked(index == self.currentIndex())
+            self.browse_tabs_menu.addAction(tab_action)
+        
+    def __current_changed(self, index):
+        for _i in self.index_history[:]:
+            if _i > self.count()-1:
+                self.index_history.pop(self.index_history.index(_i))
+        while index in self.index_history:
+            self.index_history.pop(self.index_history.index(index))
+        self.index_history.append(index)
+        
+    def tab_navigate(self):
+        """Ctrl+Tab"""
+        if len(self.index_history) > 1:
+            last = len(self.index_history)-1
+            index = self.index_history.pop(last)
+            self.index_history.insert(0, index)
+            self.setCurrentIndex(self.index_history[last])
+        elif len(self.index_history) == 0 and self.count():
+            self.index_history = [self.currentIndex()]            
 
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
