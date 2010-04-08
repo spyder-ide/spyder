@@ -7,7 +7,7 @@
 """Qt utilities"""
 
 import os.path as osp
-import os, webbrowser, imp
+import os, webbrowser
 
 from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                          QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
@@ -215,12 +215,9 @@ def create_module_bookmark_actions(parent, bookmarks):
     """
     actions = []
     for key, url, title, icon in bookmarks:
-        try:
-            imp.find_module(key)
+        if programs.is_module_installed(key):
             act = create_bookmark_action(parent, url, title, get_icon(icon))
             actions.append(act)
-        except ImportError:
-            pass
     return actions
         
 def create_program_action(parent, text, icon, name, nt_name=None):

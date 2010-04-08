@@ -203,7 +203,7 @@ class PylintWidget(QWidget):
                            self.start_button, self.stop_button):
                 widget.setDisabled(True)
             if os.name == 'nt' \
-               and programs.is_python_module_installed("pylint"):
+               and programs.is_module_installed("pylint"):
                 # Pylint is installed but pylint script is not in PATH
                 # (AFAIK, could happen only on Windows)
                 text = translate('Pylint',

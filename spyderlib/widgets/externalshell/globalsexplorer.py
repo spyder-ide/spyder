@@ -6,7 +6,7 @@
 
 """Globals explorer widget"""
 
-import sys, imp
+import sys
 
 # Debug
 STDOUT = sys.stdout
@@ -21,6 +21,7 @@ from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                                     monitor_set_global, monitor_get_global,
                                     monitor_del_global, monitor_copy_global)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
+from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.config import get_icon, CONF
@@ -124,11 +125,8 @@ class GlobalsExplorer(QWidget):
         actions = [exclude_private_action, exclude_upper_action,
                    exclude_unsupported_action, None, editor.truncate_action,
                    editor.inplace_action, editor.collvalue_action]
-        try:
-            imp.find_module('numpy')
+        if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
-        except ImportError:
-            pass
         add_actions(menu, actions)
         options_button.setMenu(menu)
 

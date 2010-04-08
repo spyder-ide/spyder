@@ -16,7 +16,7 @@ from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
                          QMessageBox)
 from PyQt4.QtCore import Qt, SIGNAL
 
-import os, sys, imp
+import os, sys
 import os.path as osp
 
 # For debugging purpose:
@@ -26,6 +26,7 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.utils.environ import EnvDialog
+from spyderlib.utils.programs import is_module_installed
 from spyderlib.widgets.interactiveshell import InteractiveShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
@@ -179,9 +180,8 @@ class Console(PluginWidget):
         add_actions(option_menu, (font_action, wrap_action, calltips_action,
                                   codecompletion_action, codecompenter_action,
                                   rollbackimporter_action, exteditor_action))
-
-        try:
-            imp.find_module('matplotlib')
+        
+        if is_module_installed('matplotlib'):
             dockablefigures_action = create_action(self,
                             self.tr("Dockable figures"),
                             tip=self.tr("If enabled, matplotlib figures may "
@@ -199,8 +199,6 @@ class Console(PluginWidget):
                                                              'tabified') )
             add_actions(option_menu, (None, dockablefigures_action,
                                       self.tabifiedfigures_action))
-        except ImportError:
-            pass
                     
         menu_actions = [None, run_action, environ_action, syspath_action,
                         option_menu, None, quit_action]

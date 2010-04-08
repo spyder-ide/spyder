@@ -15,7 +15,7 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
-import sys, os, platform, re, webbrowser, imp, os.path as osp
+import sys, os, platform, re, webbrowser, os.path as osp
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
@@ -62,7 +62,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               DOC_PATH)
-from spyderlib.utils.programs import run_python_gui_script
+from spyderlib.utils.programs import run_python_gui_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 
 
@@ -657,9 +657,7 @@ class MainWindow(QMainWindow):
                                        triggered=lambda:
                                        run_python_gui_script('xy', 'xyhome'))
             self.tools_menu_actions.append(self.xy_action)
-            try:
-                imp.find_module('xy')
-            except ImportError:
+            if not is_module_installed('xy'):
                 self.xy_action.setDisabled(True)
                 self.xy_action.setToolTip(self.xy_action.toolTip() + \
                                           '\nPlease install Python(x,y) to '
@@ -1465,9 +1463,7 @@ def run_spyder(app, commands, intitle, message, options):
     for optname, modnames in required_modules.items():
         if getattr(options, optname):
             for modname in modnames:
-                try:
-                    imp.find_module(modname)
-                except ImportError:
+                if not is_module_installed(modname):
                     main.splash.hide()
                     QMessageBox.critical(main,
                         translate("MainWindow", "Import error"),
@@ -1480,7 +1476,7 @@ def run_spyder(app, commands, intitle, message, options):
         return
     
     #----Patching matplotlib's FigureManager
-    if options.pylab or options.basics:
+    if is_module_installed('matplotlib'):
         # Customizing matplotlib's parameters
         from matplotlib import rcParams
         rcParams['font.size'] = CONF.get('figure', 'font/size')
