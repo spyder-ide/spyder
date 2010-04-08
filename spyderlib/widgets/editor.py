@@ -142,13 +142,13 @@ class EditorStack(QWidget):
         newwin_btn.setDefaultAction(self.newwindow_action)
         header_layout.addWidget(newwin_btn)
         
-        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
-        horsplit_btn.setDefaultAction(self.horsplit_action)
-        header_layout.addWidget(horsplit_btn)
-        
         versplit_btn = create_toolbutton(self, text_beside_icon=False)
         versplit_btn.setDefaultAction(self.versplit_action)
         header_layout.addWidget(versplit_btn)
+        
+        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
+        horsplit_btn.setDefaultAction(self.horsplit_action)
+        header_layout.addWidget(horsplit_btn)
         
         self.stack = BaseTabs(self, menu=self.menu)
         self.close_btn = None
