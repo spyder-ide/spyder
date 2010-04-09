@@ -19,8 +19,13 @@ STDOUT, STDERR = sys.stdout, sys.stderr
 
 def is_module_blacklisted(module, pathlist):
     """Return True if module path starts with one of the path in pathlist"""
+    modpath = getattr(module, '__file__', None)
+    if modpath is None:
+        # *module* is a C module that is statically linked into the interpreter
+        # There is no way to know its path, so we choose to blacklist it
+        return True
     for path in [sys.prefix]+pathlist:
-        if module.__file__.startswith(path):
+        if modpath.startswith(path):
             return True
     else:
         return False
