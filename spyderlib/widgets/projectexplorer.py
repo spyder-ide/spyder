@@ -433,6 +433,14 @@ class ExplorerTreeWidget(OneColumnTree):
             any_folder_not_in_path = only_folders and \
                                      any([not _proj.is_item_in_pythonpath(_it)
                                           for _proj, _it in pjitems])
+
+        actions = []
+
+        if not only_folders:
+            open_file_act = create_action(self,
+                              text=translate('ProjectExplorer', 'Open'),
+                              triggered=lambda: self.open_file_from_menu(items))
+            actions.append(open_file_act)
         
         new_project_act = create_action(self,
                             text=translate('ProjectExplorer', 'Project...'),
@@ -459,11 +467,11 @@ class ExplorerTreeWidget(OneColumnTree):
             add_actions(new_act_menu, (new_project_act, None,
                                        new_file_act, new_folder_act, None,
                                        new_module_act, new_package_act))
-            actions = [new_act_menu]
+            actions.append(new_act_menu)
         else:
             new_project_act.setText(translate('ProjectExplorer',
                                               'New project...'))
-            actions = [new_project_act]
+            actions.append(new_project_act)
         
         import_spyder_act = create_action(self,
                             text=translate('ProjectExplorer',
@@ -930,6 +938,16 @@ class ExplorerTreeWidget(OneColumnTree):
         title = translate('ProjectExplorer', 'New package')
         subtitle = translate('ProjectExplorer', 'Package name:')
         self.__create_new_folder(item, title, subtitle, is_package=True)
+    
+    def open_file_from_menu(self, items):
+        if not isinstance(items, (tuple, list)):
+            items = [items]
+        for item in items:
+            project = self.__get_project_from_item(item)
+            if not project.is_root_item(item):
+                fname = get_item_path(item)
+                if osp.isfile(fname):
+                    self.open_file(fname)
     
     def rename(self, items):
         if not isinstance(items, (tuple, list)):
