@@ -111,6 +111,27 @@ class EditorStack(QWidget):
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
         header_layout.addWidget(menu_btn)
+
+        newwin_btn = create_toolbutton(self, text_beside_icon=False)
+        newwin_btn.setDefaultAction(self.newwindow_action)
+        header_layout.addWidget(newwin_btn)
+        
+        versplit_btn = create_toolbutton(self, text_beside_icon=False)
+        versplit_btn.setDefaultAction(self.versplit_action)
+        header_layout.addWidget(versplit_btn)
+        
+        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
+        horsplit_btn.setDefaultAction(self.horsplit_action)
+        header_layout.addWidget(horsplit_btn)
+        
+        self.combo = QComboBox(self)
+        self.default_combo_font = self.combo.font()
+        self.combo.setMaxVisibleItems(20)
+        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
+                     self.current_changed)
+        header_layout.addWidget(self.combo)
         
         self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
                          tip=translate("Editor", "Previous file (Ctrl+Tab)"),
@@ -129,37 +150,16 @@ class EditorStack(QWidget):
                                self.go_to_next_file)
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         
-        self.combo = QComboBox(self)
-        self.default_combo_font = self.combo.font()
-        self.combo.setMaxVisibleItems(20)
-        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.current_changed)
-        header_layout.addWidget(self.combo)
-
-        newwin_btn = create_toolbutton(self, text_beside_icon=False)
-        newwin_btn.setDefaultAction(self.newwindow_action)
-        header_layout.addWidget(newwin_btn)
-        
-        versplit_btn = create_toolbutton(self, text_beside_icon=False)
-        versplit_btn.setDefaultAction(self.versplit_action)
-        header_layout.addWidget(versplit_btn)
-        
-        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
-        horsplit_btn.setDefaultAction(self.horsplit_action)
-        header_layout.addWidget(horsplit_btn)
-        
         self.stack = BaseTabs(self, menu=self.menu)
         self.close_btn = None
-#        if hasattr(self.stack, 'setTabsClosable'):
-#            self.close_btn = create_toolbutton(self, triggered=self.close_file,
-#                                           icon=get_icon("fileclose.png"),
-#                                           tip=translate("Editor", "Close file"))
-#            header_layout.addWidget(self.close_btn)
-#        else:
-#            # Close button is not necessary
-#            self.close_btn = None
+        if hasattr(self.stack, 'setTabsClosable'):
+            self.close_btn = create_toolbutton(self, triggered=self.close_file,
+                                           icon=get_icon("fileclose.png"),
+                                           tip=translate("Editor", "Close file"))
+            header_layout.addWidget(self.close_btn)
+        else:
+            # Close button is not necessary
+            self.close_btn = None
         layout.addLayout(header_layout)
 
         self.stack_history = []
