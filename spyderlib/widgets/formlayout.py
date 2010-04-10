@@ -37,7 +37,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.7'
+__version__ = '1.0.9'
 __license__ = __doc__
 
 DEBUG = False
@@ -58,7 +58,7 @@ from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
                          QFontDatabase, QGridLayout)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
-from datetime import date
+import datetime
 
 
 class ColorButton(QPushButton):
@@ -277,15 +277,14 @@ class FormWidget(QWidget):
                 field = QLineEdit(repr(value), self)
             elif isinstance(value, int):
                 field = QSpinBox(self)
-                field.setValue(value)
                 field.setRange(-1e9, 1e9)
-            elif isinstance(value, date):
-                if hasattr(value, 'hour'):
-                    field = QDateTimeEdit(self)
-                    field.setDateTime(value)
-                else:
-                    field = QDateEdit(self)
-                    field.setDate(value)
+                field.setValue(value)
+            elif isinstance(value, datetime.datetime):
+                field = QDateTimeEdit(self)
+                field.setDateTime(value)
+            elif isinstance(value, datetime.date):
+                field = QDateEdit(self)
+                field.setDate(value)
             else:
                 field = QLineEdit(repr(value), self)
             self.formlayout.addRow(label, field)
@@ -314,11 +313,10 @@ class FormWidget(QWidget):
                 value = float(field.text())
             elif isinstance(value, int):
                 value = int(field.value())
-            elif isinstance(value, date):
-                if hasattr(value, 'hour'):
-                    value = field.dateTime().toPyDateTime()
-                else:
-                    value = field.date().toPyDate()
+            elif isinstance(value, datetime.datetime):
+                value = field.dateTime().toPyDateTime()
+            elif isinstance(value, datetime.date):
+                value = field.date().toPyDate()
             else:
                 value = eval(str(field.text()))
             valuelist.append(value)
@@ -477,7 +475,8 @@ if __name__ == "__main__":
                 ('font', ('Arial', 10, False, True)),
                 ('color', '#123409'),
                 ('bool', True),
-                ('datetime', date(2010, 10, 10)),
+                ('date', datetime.date(2010, 10, 10)),
+                ('datetime', datetime.datetime(2010, 10, 10)),
                 ]
         
     def create_datagroup_example():
