@@ -165,7 +165,6 @@ class MainWindow(QMainWindow):
         self.debug = options.debug
         self.profile = options.profile
         self.light = options.light
-        self.reset = options.reset_session
         
         self.debug_print("Start of MainWindow constructor")
         
@@ -407,7 +406,7 @@ class MainWindow(QMainWindow):
         if not self.light:
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
-            self.editor = Editor(self, ignore_last_opened_files=self.reset)
+            self.editor = Editor(self)
             self.connect(self, SIGNAL('restore_scrollbar_position()'),
                          self.editor.restore_scrollbar_position)
             self.connect(self.editor, SIGNAL('focus_changed()'),
@@ -726,10 +725,9 @@ class MainWindow(QMainWindow):
         self.debug_print("Setting up window...")
         width, height = CONF.get('main', prefix+'size')
         hexstate = CONF.get('main', prefix+'state', None)
-        if hexstate is None:
-            self.reset = True
-        if self.reset and not self.light:
-            # First Spyder execution *or* --reset option:
+        first_spyder_execution = hexstate is None
+        if first_spyder_execution and not self.light:
+            # First Spyder execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
             splitting = (
@@ -768,7 +766,7 @@ class MainWindow(QMainWindow):
         
         if not self.light:
             # Window layout
-            if not self.reset:
+            if not first_spyder_execution:
                 self.restoreState( QByteArray().fromHex(str(hexstate)) )
             # Is maximized?
             if CONF.get('main', prefix+'is_maximized'):
@@ -1409,14 +1407,9 @@ def get_options():
     return commands, intitle, message, options
 
 
-def initialize():
-    """Initialize Qt and collect command line options"""
-    # Note regarding Options:
-    # It's important to collect options before monkey patching sys.exit,
-    # otherwise, optparse won't be able to exit if --help option is passed
-    commands, intitle, message, options = get_options()
-    
-    enable_translation = CONF.get('main', 'translation') and not options.debug
+def initialize(debug):
+    """Initialize Qt, patching sys.exit and eventually setting up ETS"""
+    enable_translation = CONF.get('main', 'translation') and not debug
     app = qapplication(translate=enable_translation)
     
     #----Monkey patching PyQt4.QtGui.QApplication
@@ -1443,7 +1436,7 @@ def initialize():
     except ImportError:
         pass
     
-    return (app, commands, intitle, message, options)
+    return app
 
 
 def run_spyder(app, commands, intitle, message, options):
@@ -1632,11 +1625,19 @@ def __remove_temp_session():
 def main():
     """Session manager"""
     __remove_temp_session()
-    args = initialize()
-    options = args[-1]
+    
+    # **** Collect command line options ****
+    # Note regarding Options:
+    # It's important to collect options before monkey patching sys.exit,
+    # otherwise, optparse won't be able to exit if --help option is passed
+    commands, intitle, message, options = get_options()
+    
+    app = initialize(debug=options.debug)
     if options.reset_session:
         reset_session()
-        CONF.reset_to_defaults(save=True)
+#        CONF.reset_to_defaults(save=True)
+        return
+        
     next_session_name = options.startup_session
     while isinstance(next_session_name, basestring):
         if next_session_name:
@@ -1652,7 +1653,7 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                       % (osp.basename(next_session_name),
                                          error_message))
-        mainwindow = run_spyder(*args)
+        mainwindow = run_spyder(app, commands, intitle, message, options)
         if mainwindow is None:
             return
         next_session_name = mainwindow.next_session_name
@@ -1672,7 +1673,6 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                        % (osp.basename(save_session_name),
                                           error_message))
-
 
 if __name__ == "__main__":
     main()

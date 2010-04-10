@@ -13,6 +13,8 @@ Note: 'load' functions has to return a dictionary from which a globals()
 
 import sys, os, cPickle, tarfile, os.path as osp, shutil
 
+STDERR = sys.stderr
+
 
 try:
     import numpy as np
@@ -197,17 +199,19 @@ def load_dictionary(filename):
 
 from spyderlib.config import get_conf_path
 
-SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp',
-                      '.history_ec.py', '.history_ic.py',
-                      '.path', '.pylint.results', '.spyder.ini', '.temp.py',
-                      '.workingdir', '.temp.spydata', 'template.py')
+SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.history_ec.py',
+                      '.history_ic.py', '.path', '.pylint.results',
+                      '.spyder.ini', '.temp.py', '.workingdir',
+                      '.temp.spydata', 'template.py', '.projects')
 
 def reset_session():
     """Remove all config files"""
+    print >>STDERR, "*** Reset Spyder settings to defaults ***"
     for fname in SAVED_CONFIG_FILES:
         cfg_fname = get_conf_path(fname)
         if osp.isfile(cfg_fname):
             os.remove(cfg_fname)
+            print >>STDERR, "removing:", cfg_fname
 
 def save_session(filename):
     """Save Spyder session"""
