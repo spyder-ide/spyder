@@ -140,6 +140,8 @@ def figure_edit(axes, parent=None):
                     line.set_markeredgecolor(markeredgecolor)
             
         # Redraw
+        if axes.get_legend() is not None:
+            axes.legend()
         figure = axes.get_figure()
         figure.canvas.draw()
         
