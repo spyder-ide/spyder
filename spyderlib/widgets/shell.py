@@ -126,14 +126,26 @@ class ShellBaseWidget(ConsoleBaseWidget):
                                           "Save current history log (i.e. all "
                                           "inputs and outputs) in a text file"),
                                     triggered=self.save_historylog)
+        self.delete_action = create_action(self,
+                                    translate("ShellBaseWidget", "Delete"),
+                                    shortcut=keybinding('Delete'),
+                                    icon=get_icon('editdelete.png'),
+                                    triggered=self.delete)
+        selectall_action = create_action(self,
+                                    translate("ShellBaseWidget", "Select all"),
+                                    shortcut=keybinding('SelectAll'),
+                                    icon=get_icon('selectall.png'),
+                                    triggered=self.selectAll)
         add_actions(self.menu, (self.cut_action, self.copy_action,
-                                paste_action, None, save_action) )
+                                paste_action, self.delete_action, None,
+                                selectall_action, None, save_action) )
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
         state = self.hasSelectedText()
         self.copy_action.setEnabled(state)
         self.cut_action.setEnabled(state)
+        self.delete_action.setEnabled(state)
         self.menu.popup(event.globalPos())
         event.accept()        
         
@@ -712,12 +724,8 @@ class PythonShellWidget(ShellBaseWidget):
     def contextMenuEvent(self, event):
         """Reimplements ShellBaseWidget method"""
         state = self.hasSelectedText()
-        self.copy_action.setEnabled(state)
         self.copy_without_prompts_action.setEnabled(state)
-        self.cut_action.setEnabled(state)
-        self.menu.popup(event.globalPos())
-        event.accept()
-        
+        ShellBaseWidget.contextMenuEvent(self, event)
         
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
