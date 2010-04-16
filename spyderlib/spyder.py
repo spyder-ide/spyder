@@ -15,6 +15,9 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+# Check requirements
+import spyderlib.requirements #@UnusedImport
+
 import sys, os, platform, re, webbrowser, os.path as osp
 
 # Force Python to search modules in the current directory first:
