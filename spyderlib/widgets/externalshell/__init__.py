@@ -223,8 +223,7 @@ class ExternalShellBase(QWidget):
         return self.transcode(bytes)
     
     def write_output(self):
-        text = self.get_stdout()
-        self.shell.write(text)
+        self.shell.write(self.get_stdout(), flush=True)
         QApplication.processEvents()
         
     def send_to_process(self, qstr):

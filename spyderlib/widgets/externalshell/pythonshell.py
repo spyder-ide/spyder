@@ -198,7 +198,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.clear()
             
         self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.MergedChannels)
+        self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.connect(self.shell, SIGNAL("wait_for_ready_read()"),
                      lambda: self.process.waitForReadyRead(250))
         
@@ -251,6 +251,8 @@ class ExternalPythonShell(ExternalShellBase):
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
+        self.connect(self.process, SIGNAL("readyReadStandardError()"),
+                     self.write_error)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
 
@@ -277,23 +279,11 @@ class ExternalPythonShell(ExternalShellBase):
 #===============================================================================
 #    Input/Output
 #===============================================================================
-    def _write_error(self, text, findstr):
-        pos = text.find(findstr)
-        if pos != -1:
-            self.shell.write(text[:pos])
-            if text.endswith(">>> "):
-                self.shell.write_error(text[pos:-5])
-                self.shell.write(text[-5:], flush=True)
-            else:
-                self.shell.write_error(text[pos:])
-            return True
-        return False
-    
-    def write_output(self):
-        text = self.get_stdout()
-        if not self._write_error(text, 'Traceback (most recent call last):') \
-           and not self._write_error(text, 'File "<stdin>", line 1'):
-            self.shell.write(text)
+    def write_error(self):
+        self.process.setReadChannel(QProcess.StandardOutput)
+        if self.process.waitForReadyRead(1):
+            self.write_output()
+        self.shell.write_error(self.get_stderr())
         QApplication.processEvents()
         
     def send_to_process(self, qstr):
@@ -303,6 +293,8 @@ class ExternalPythonShell(ExternalShellBase):
             qstr.append('\n')
         self.process.write(qstr.toLocal8Bit())
         self.process.waitForBytesWritten(-1)
+        # Eventually write prompt faster (when hitting Enter continuously):
+        self.write_error()
         
     def keyboard_interrupt(self):
         communicate(self.monitor_socket, "thread.interrupt_main()")
