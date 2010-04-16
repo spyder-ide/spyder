@@ -27,5 +27,11 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+#FIXME: When running a subprocess inside a subprocess, the communication is lost
+#       with the external shell remote server
+
+#FIXME: Object inspector: the set_shell is buggy -> try to get infos from
+#       terminated external shells!! (e.g. see previous fixme)
+
 __version__ = '1.1.0beta1'
 __license__ = __doc__

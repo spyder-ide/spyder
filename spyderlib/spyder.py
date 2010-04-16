@@ -639,6 +639,8 @@ class MainWindow(QMainWindow):
                          self.editor.load)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_interactiveshell_stdio)
+            self.connect(self.extconsole, SIGNAL('focus_changed()'),
+                         self.plugin_focus_changed)
             self.add_dockwidget(self.extconsole)
             self.add_to_menubar(self.extconsole)
             
