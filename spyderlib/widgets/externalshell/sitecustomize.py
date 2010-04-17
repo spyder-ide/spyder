@@ -45,8 +45,9 @@ def displayhook(obj):
 
 sys.displayhook = displayhook
 
-from PyQt4.QtCore import pyqtRemoveInputHook
-pyqtRemoveInputHook()
+if os.name == 'nt':
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
 
 ## Restoring original PYTHONPATH
 #try:
