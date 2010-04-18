@@ -331,6 +331,7 @@ class EditorStack(QWidget):
         self.tabs.removeTab(index)
         self.data.pop(index)
         self.combo.removeItem(index)
+        self.update_actions()
     
     def __get_sorting_func(self):
         if self.fullpath_sorting_enabled:
@@ -353,6 +354,7 @@ class EditorStack(QWidget):
         self.combo.blockSignals(False)
         if set_current:
             self.current_changed(index)
+        self.update_actions()
         
     def __repopulate_stack(self, new_index):
         self.combo.blockSignals(True)
@@ -430,6 +432,11 @@ class EditorStack(QWidget):
         self.horsplit_action.setEnabled(orientation == Qt.Horizontal)
         self.versplit_action.setEnabled(orientation == Qt.Vertical)
         
+    def update_actions(self):
+        state = self.get_stack_count() > 0
+        self.horsplit_action.setEnabled(state)
+        self.versplit_action.setEnabled(state)
+    
     
     #------ Accessors
     def get_current_filename(self):
