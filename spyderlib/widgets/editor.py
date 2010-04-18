@@ -487,7 +487,7 @@ class EditorStack(QWidget):
                 # (if it's not the first editortabwidget)
                 self.close()
             self.emit(SIGNAL('opened_files_list_changed()'))
-            self.emit(SIGNAL('analysis_results_changed()'))
+            self.emit(SIGNAL('update_code_analysis_actions()'))
             self._refresh_classbrowser()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
         return is_ok
@@ -792,7 +792,7 @@ class EditorStack(QWidget):
             editor = finfo.editor
             editor.setFocus()
             self._refresh_classbrowser(index, update=False)
-            self.emit(SIGNAL('analysis_results_changed()'))
+            self.emit(SIGNAL('update_code_analysis_actions()'))
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
@@ -948,14 +948,18 @@ class EditorStack(QWidget):
         return finfo
         
     def load(self, filename, set_current=True):
-        """Load filename, create an editor instance and return it"""
+        """
+        Load filename, create an editor instance and return it
+        *Warning* This is loading file, creating editor but not executing
+        the source code analysis -- the analysis must be done by the editor
+        plugin (in case multiple editorstack instances are handled)
+        """
         filename = osp.abspath(unicode(filename))
         self.emit(SIGNAL('starting_long_process(QString)'),
                   translate("Editor", "Loading %1...").arg(filename))
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
         index = self.get_stack_index()
-        self.analyze_script(index)
         self._refresh_classbrowser(index)
         self.emit(SIGNAL('ending_long_process(QString)'), "")
         if self.isVisible() and self.checkeolchars_enabled \
@@ -1412,7 +1416,7 @@ class FakePlugin(QSplitter):
         
     def load(self, fname):
         editorstack = self.editorstacks[0]
-        editorstack.load(fname)
+        editorstack.analyze_script()
     
     def register_editorstack(self, editorstack):
         if DEBUG:

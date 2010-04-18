@@ -636,6 +636,8 @@ class Editor(PluginWidget):
                      self.opened_files_list_changed)
         self.connect(editorstack, SIGNAL('analysis_results_changed()'),
                      self.analysis_results_changed)
+        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
+                     self.update_code_analysis_actions)
         self.connect(editorstack,
                      SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
@@ -795,16 +797,12 @@ class Editor(PluginWidget):
         
         # Synchronize all editorstack analysis results
         index = editorstack.get_stack_index()
-        for other_editorstack in self.editorstacks:
-            if other_editorstack is not editorstack:
-                other_editorstack.set_analysis_results(index, results)
-        
-        # Update code analysis buttons
-        state = CONF.get(self.ID, 'code_analysis') \
-                and results is not None and len(results)
-        for action in (self.warning_list_action, self.previous_warning_action,
-                       self.next_warning_action):
-            action.setEnabled(state)
+        if index != -1:
+            for other_editorstack in self.editorstacks:
+                if other_editorstack is not editorstack:
+                    other_editorstack.set_analysis_results(index, results)
+                    
+        self.update_code_analysis_actions()
             
     def refresh_eol_mode(self, os_name):
         os_name = unicode(os_name)
@@ -830,6 +828,17 @@ class Editor(PluginWidget):
             enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
                 action.setEnabled(enable)
+                
+    def update_code_analysis_actions(self):
+        editorstack = self.get_current_editorstack()
+        results = editorstack.get_analysis_results()
+        
+        # Update code analysis buttons
+        state = CONF.get(self.ID, 'code_analysis') \
+                and results is not None and len(results)
+        for action in (self.warning_list_action, self.previous_warning_action,
+                       self.next_warning_action):
+            action.setEnabled(state)
         
                 
     #------ File I/O
@@ -990,6 +999,8 @@ class Editor(PluginWidget):
                     if is_current:
                         current_editor = editor
                     new_editors.append(editor)
+                current.analyze_script() # Analyze script only once (and update
+                # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
             if highlight:
                 current_editor.highlight_line(goto[index])
