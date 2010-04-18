@@ -150,9 +150,9 @@ class EditorStack(QWidget):
                                self.go_to_next_file)
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         
-        self.stack = BaseTabs(self, menu=self.menu)
+        self.tabs = BaseTabs(self, menu=self.menu)
         self.close_btn = None
-        if hasattr(self.stack, 'setTabsClosable'):
+        if hasattr(self.tabs, 'setTabsClosable'):
             self.close_btn = create_toolbutton(self, triggered=self.close_file,
                                            icon=get_icon("fileclose.png"),
                                            tip=translate("Editor", "Close file"))
@@ -164,14 +164,14 @@ class EditorStack(QWidget):
 
         self.stack_history = []
         
-        self.stack.set_close_function(self.close_file)
-        if hasattr(self.stack, 'setDocumentMode'):
-            self.stack.setDocumentMode(True)
+        self.tabs.set_close_function(self.close_file)
+        if hasattr(self.tabs, 'setDocumentMode'):
+            self.tabs.setDocumentMode(True)
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.stack.setCurrentIndex)
-        self.connect(self.stack, SIGNAL('currentChanged(int)'),
+                     self.tabs.setCurrentIndex)
+        self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.combo.setCurrentIndex)
-        layout.addWidget(self.stack)
+        layout.addWidget(self.tabs)
         
         self.find_widget = None
 
@@ -219,6 +219,7 @@ class EditorStack(QWidget):
             finfo = self.create_new_editor(fname, enc, "", set_current=True)
             finfo.editor.set_as_clone(other_finfo.editor)
             finfo.set_analysis_results(other_finfo.analysis_results)
+        self.set_stack_index(other.get_stack_index())
         
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -314,20 +315,20 @@ class EditorStack(QWidget):
     
     #------ Stacked widget management
     def get_stack_index(self):
-        return self.stack.currentIndex()
+        return self.tabs.currentIndex()
     
     def get_current_editor(self):
-        return self.stack.currentWidget()
+        return self.tabs.currentWidget()
     
     def get_stack_count(self):
-        return self.stack.count()
+        return self.tabs.count()
     
     def set_stack_index(self, index):
-        for widget in (self.stack, self.combo):
+        for widget in (self.tabs, self.combo):
             widget.setCurrentIndex(index)
     
     def remove_from_data(self, index):
-        self.stack.removeTab(index)
+        self.tabs.removeTab(index)
         self.data.pop(index)
         self.combo.removeItem(index)
     
@@ -343,7 +344,7 @@ class EditorStack(QWidget):
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
         self.combo.blockSignals(True)
-        self.stack.insertTab(index, editor, get_filetype_icon(fname),
+        self.tabs.insertTab(index, editor, get_filetype_icon(fname),
                              self.get_tab_title(fname))
         self.combo.insertItem(index, get_filetype_icon(fname),
                               self.get_combo_title(fname))
@@ -355,12 +356,12 @@ class EditorStack(QWidget):
         
     def __repopulate_stack(self, new_index):
         self.combo.blockSignals(True)
-        for _i in range(self.stack.count()):
-            self.stack.removeTab(_i)
+        for _i in range(self.tabs.count()):
+            self.tabs.removeTab(_i)
         self.combo.clear()
         for _i, _fi in enumerate(self.data):
             fname, editor = _fi.filename, _fi.editor
-            self.stack.insertTab(_i, editor, get_filetype_icon(fname),
+            self.tabs.insertTab(_i, editor, get_filetype_icon(fname),
                                  self.get_tab_title(fname))
             self.combo.insertItem(_i, get_filetype_icon(fname),
                                   self.get_combo_title(fname))
@@ -377,7 +378,7 @@ class EditorStack(QWidget):
         
     def set_stack_title(self, index, combo_title, tab_title):
         self.combo.setItemText(index, combo_title)
-        self.stack.setTabText(index, tab_title)
+        self.tabs.setTabText(index, tab_title)
         
         
     #------ Context menu
@@ -640,12 +641,12 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('opened_files_list_changed()'))
         
         # Index history management
-        id_list = [id(self.stack.widget(_i))
-                   for _i in range(self.stack.count())]
+        id_list = [id(self.tabs.widget(_i))
+                   for _i in range(self.tabs.count())]
         for _id in self.stack_history[:]:
             if _id not in id_list:
                 self.stack_history.pop(self.stack_history.index(_id))
-        current_id = id(self.stack.widget(index))
+        current_id = id(self.tabs.widget(index))
         while current_id in self.stack_history:
             self.stack_history.pop(self.stack_history.index(current_id))
         self.stack_history.append(current_id)
@@ -660,12 +661,12 @@ class EditorStack(QWidget):
             w_id = self.stack_history.pop(last)
             self.stack_history.insert(0, w_id)
             last_id = self.stack_history[last]
-            for _i in range(self.stack.count()):
-                if id(self.stack.widget(_i)) == last_id:
+            for _i in range(self.tabs.count()):
+                if id(self.tabs.widget(_i)) == last_id:
                     self.set_stack_index(_i)
                     break
         elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.stack.currentWidget())]
+            self.stack_history = [id(self.tabs.currentWidget())]
     
     def go_to_next_file(self):
         """Ctrl+Shift+Tab"""
@@ -674,12 +675,12 @@ class EditorStack(QWidget):
             w_id = self.stack_history.pop(0)
             self.stack_history.append(w_id)
             last_id = self.stack_history[last]
-            for _i in range(self.stack.count()):
-                if id(self.stack.widget(_i)) == last_id:
+            for _i in range(self.tabs.count()):
+                if id(self.tabs.widget(_i)) == last_id:
                     self.set_stack_index(_i)
                     break
         elif len(self.stack_history) == 0 and self.get_stack_count():
-            self.stack_history = [id(self.stack.currentWidget())]
+            self.stack_history = [id(self.tabs.currentWidget())]
     
     def focus_changed(self):
         """Editor focus has changed"""
@@ -986,7 +987,7 @@ class EditorStack(QWidget):
         finfo.editor.remove_trailing_spaces()
         
     def fix_indentation(self, index=None):
-        """Replace tabs by spaces"""
+        """Replace tab characters by spaces"""
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
