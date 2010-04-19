@@ -436,7 +436,7 @@ class ExplorerTreeWidget(OneColumnTree):
 
         actions = []
 
-        if not only_folders:
+        if items and not only_folders:
             open_file_act = create_action(self,
                               text=translate('ProjectExplorer', 'Open'),
                               triggered=lambda: self.open_file_from_menu(items))
