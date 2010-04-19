@@ -702,8 +702,8 @@ class Editor(PluginWidget):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        self.connect(window, SIGNAL("destroyed(QObject*)"),
-                     lambda obj, win=window: self.unregister_editorwindow(win))
+        self.connect(window, SIGNAL("destroyed()"),
+                     lambda win=window: self.unregister_editorwindow(win))
     
     def register_editorwindow(self, window):
         self.editorwindows.append(window)

@@ -18,7 +18,8 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel)
-from PyQt4.QtCore import SIGNAL, Qt, QFileInfo, QThread, QObject
+from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
+                          PYQT_VERSION_STR)
 
 import os, sys
 import os.path as osp
@@ -211,6 +212,11 @@ class EditorStack(QWidget):
         # Accepting drops
         self.setAcceptDrops(True)
         
+    def closeEvent(self, event):
+        super(EditorStack, self).closeEvent(event)
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))        
+            
     def clone_from(self, other):
         """Clone EditorStack from other instance"""
         for other_finfo in other.data:
@@ -1126,14 +1132,19 @@ class EditorSplitter(QSplitter):
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
-        self.connect(self.editorstack, SIGNAL("destroyed(QObject*)"),
+        self.connect(self.editorstack, SIGNAL("destroyed()"),
                      self.editorstack_closed)
         self.connect(self.editorstack, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
         self.connect(self.editorstack, SIGNAL("split_horizontally()"),
                      lambda: self.split(orientation=Qt.Horizontal))
         self.addWidget(self.editorstack)
-            
+
+    def closeEvent(self, event):
+        super(EditorSplitter, self).closeEvent(event)
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))
+                                
     def __give_focus_to_remaining_editor(self):
         focus_widget = self.plugin.get_focus_widget()
         if focus_widget is not None:
@@ -1141,7 +1152,9 @@ class EditorSplitter(QSplitter):
         
     def editorstack_closed(self):
         if DEBUG:
-            print >>STDOUT, "editorstack_closed:", self
+            print >>STDOUT, "method 'editorstack_closed':"
+            print >>STDOUT, "    self  :", self
+            print >>STDOUT, "    sender:", self.sender()
         self.unregister_editorstack_cb(self.editorstack)
         self.editorstack = None
         try:
@@ -1158,7 +1171,9 @@ class EditorSplitter(QSplitter):
         
     def editorsplitter_closed(self):
         if DEBUG:
-            print >>STDOUT, "editorsplitter_closed:", self
+            print >>STDOUT, "method 'editorsplitter_closed':"
+            print >>STDOUT, "    self  :", self
+            print >>STDOUT, "    sender:", self.sender()
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
         except RuntimeError:
@@ -1183,7 +1198,7 @@ class EditorSplitter(QSplitter):
                     register_editorstack_cb=self.register_editorstack_cb,
                     unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
-        self.connect(editorsplitter, SIGNAL("destroyed(QObject*)"),
+        self.connect(editorsplitter, SIGNAL("destroyed()"),
                      self.editorsplitter_closed)
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
@@ -1318,6 +1333,9 @@ class EditorWidget(QSplitter):
         
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
+        if DEBUG:
+            print >>STDOUT, "EditorWidget.register_editorstack:", editorstack
+            self.__print_editorstacks()
         editorstack.set_closable( len(self.editorstacks) > 1 )
         editorstack.set_classbrowser(self.classbrowser)
         editorstack.set_find_widget(self.find_widget)
@@ -1337,11 +1355,19 @@ class EditorWidget(QSplitter):
                      self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
         
+    def __print_editorstacks(self):
+        print >>STDOUT, "%d editorstack(s) in editorwidget:" \
+                        % len(self.editorstacks)
+        for edst in self.editorstacks:
+            print >>STDOUT, "    ", edst
+        
     def unregister_editorstack(self, editorstack):
         if DEBUG:
             print >>STDOUT, "EditorWidget.unregister_editorstack:", editorstack
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
+        if DEBUG:
+            self.__print_editorstacks()
         
 
 class EditorMainWindow(QMainWindow):
@@ -1385,6 +1411,15 @@ class EditorMainWindow(QMainWindow):
                 else:
                     add_actions(menu, actions)
                 menus.append(menu)
+                
+    def closeEvent(self, event):
+        super(EditorMainWindow, self).closeEvent(event)
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))
+            for editorstack in self.editorwidget.editorstacks[:]:
+                if DEBUG:
+                    print >>STDOUT, "--> destroy_editorstack:", editorstack
+                editorstack.emit(SIGNAL('destroyed()'))
 
 
 class FakePlugin(QSplitter):
@@ -1469,12 +1504,12 @@ class FakePlugin(QSplitter):
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
-        self.connect(window, SIGNAL("destroyed(QObject*)"),
+        self.connect(window, SIGNAL("destroyed()"),
                      lambda obj, win=window: self.unregister_editorwindow(win))
         
     def register_editorwindow(self, window):
         if DEBUG:
-            print >>STDOUT, "register_editorwindow:", window
+            print >>STDOUT, "register_editorwindowQObject*:", window
         self.editorwindows.append(window)
         
     def unregister_editorwindow(self, window):
