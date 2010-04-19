@@ -381,9 +381,9 @@ class Editor(PluginWidget):
                                       "F7", triggered=self.run_pylint)
         pylint_action.setEnabled(is_pylint_installed())
         
-        winpdb_action = create_action(self, self.tr("Debug with winpdb"),
-                                      "F8", triggered=self.run_winpdb)
-        winpdb_action.setEnabled(is_winpdb_installed())
+        self.winpdb_action = create_action(self, self.tr("Debug with winpdb"),
+                                           "F8", triggered=self.run_winpdb)
+        self.winpdb_action.setEnabled(is_winpdb_installed())
         
         convert_eol_action = create_action(self,
                            self.tr("Convert end-of-line characters"),
@@ -508,7 +508,7 @@ class Editor(PluginWidget):
                 run_selected_extconsole_action,
                 run_process_args_actionn,
                 run_process_debug_action, None,
-                pylint_action, winpdb_action, None,
+                pylint_action, self.winpdb_action, None,
                 convert_eol_action, eol_menu, trailingspaces_action,
                 fixindentation_action, None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
@@ -529,7 +529,7 @@ class Editor(PluginWidget):
                 re_run_process_action, run_process_interact_action,
                 run_process_args_actionn, run_process_debug_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
-                winpdb_action)
+                self.winpdb_action)
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 (self.save_action, save_as_action,
                  print_preview_action, print_action,
@@ -827,6 +827,8 @@ class Editor(PluginWidget):
         if editor:
             enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
+                if action is self.winpdb_action:
+                    enable = enable and is_winpdb_installed()
                 action.setEnabled(enable)
                 
     def update_code_analysis_actions(self):
