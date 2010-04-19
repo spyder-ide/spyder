@@ -39,7 +39,7 @@ def run_program(name, args=''):
     command = [path]
     if args:
         command.append(args)
-    subprocess.Popen(" ".join(command) )
+    subprocess.Popen(command)
     
 def is_python_gui_script_installed(package, module, get_path=False):
     path = osp.join(imp.find_module(package)[1], module)+'.py'
@@ -54,10 +54,10 @@ def is_python_gui_script_installed(package, module, get_path=False):
 def run_python_gui_script(package, module, args=''):
     """Run GUI-based Python script in a separate process"""
     path = is_python_gui_script_installed(package, module, get_path=True)
-    command = [sys.executable, '"'+path+'"']
+    command = [sys.executable, path]
     if args:
         command.append(args)
-    subprocess.Popen(" ".join(command) )
+    subprocess.Popen(command)
 
 def is_module_installed(module_name):
     """Return True if module *module_name* is installed"""
