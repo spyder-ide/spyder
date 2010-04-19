@@ -1007,6 +1007,8 @@ class Editor(PluginWidget):
                 if CONF.get(self.ID, 'fold_on_open') \
                    and CONF.get(self.ID, 'code_folding'):
                     editor.foldAll()
+            current_editor.clearFocus()
+            current_editor.setFocus()
             QApplication.processEvents()
 
     def print_file(self):

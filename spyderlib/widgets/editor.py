@@ -943,8 +943,6 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('refresh_file_dependent_actions()'))
         self.modification_changed()
         
-        editor.setFocus()
-        
         return finfo
     
     def new(self, filename, encoding, text):
@@ -1187,6 +1185,9 @@ class EditorSplitter(QSplitter):
         self.addWidget(editorsplitter)
         self.connect(editorsplitter, SIGNAL("destroyed(QObject*)"),
                      self.editorsplitter_closed)
+        current_editor = editorsplitter.editorstack.get_current_editor()
+        if current_editor is not None:
+            current_editor.setFocus()
 
 
 #===============================================================================
