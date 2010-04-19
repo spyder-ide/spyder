@@ -896,10 +896,7 @@ class Editor(PluginWidget):
         # Creating editor widget
         if editorstack is None:
             editorstack = self.get_current_editorstack()
-        finfo = editorstack.create_new_editor(fname, enc, text,
-                                              set_current=True, new=True)
-        finfo.editor.set_cursor_position('eof')
-        finfo.editor.insert_text(os.linesep)
+        editorstack.new(fname, enc, text)
                 
     def edit_template(self):
         """Edit new file template"""

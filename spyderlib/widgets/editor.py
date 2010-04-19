@@ -946,6 +946,17 @@ class EditorStack(QWidget):
         editor.setFocus()
         
         return finfo
+    
+    def new(self, filename, encoding, text):
+        """
+        Create new filename with *encoding* and *text*
+        """
+        finfo = self.create_new_editor(filename, encoding, text,
+                                       set_current=True, new=True)
+        editor = finfo.editor
+        editor.set_cursor_position('eof')
+        editor.insert_text(os.linesep)
+        return editor
         
     def load(self, filename, set_current=True):
         """
@@ -1416,6 +1427,7 @@ class FakePlugin(QSplitter):
         
     def load(self, fname):
         editorstack = self.editorstacks[0]
+        editorstack.load(fname)
         editorstack.analyze_script()
     
     def register_editorstack(self, editorstack):
