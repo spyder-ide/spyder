@@ -311,27 +311,19 @@ class MainWindow(QMainWindow):
                                 tip=self.tr("Search text in multiple files"))        
             def create_edit_action(text, icon_name):
                 return create_action(self, translate("SimpleEditor", text),
-                                     shortcut=keybinding(text),
+                                     shortcut=keybinding(text.replace(' ', '')),
                                      icon=get_icon(icon_name),
                                      triggered=self.global_callback,
                                      data=text.lower(),
-                                     window_context=False)
+                                     context=Qt.WidgetShortcut)
             self.undo_action = create_edit_action("Undo",'undo.png')
             self.redo_action = create_edit_action("Redo", 'redo.png')
             self.copy_action = create_edit_action("Copy", 'editcopy.png')
             self.cut_action = create_edit_action("Cut", 'editcut.png')
             self.paste_action = create_edit_action("Paste", 'editpaste.png')
-            self.delete_action = create_action(self,
-                                       translate("SimpleEditor", "Delete"),
-                                       icon=get_icon('editdelete.png'),
-                                       triggered=self.global_callback,
-                                       data="delete")
-            self.selectall_action = create_action(self,
-                                       translate("SimpleEditor", "Select all"),
-                                       shortcut=keybinding('SelectAll'),
-                                       icon=get_icon('selectall.png'),
-                                       triggered=self.global_callback,
-                                       data="selectAll")
+            self.delete_action = create_edit_action("Delete", 'editdelete.png')
+            self.selectall_action = create_edit_action("Select All",
+                                                       'selectall.png')
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,

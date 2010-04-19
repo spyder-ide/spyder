@@ -423,6 +423,10 @@ class ShellBaseWidget(ConsoleBaseWidget):
         elif key == Qt.Key_Y and ctrl:
             self.redo()
             event.accept()
+            
+        elif key == Qt.Key_A and ctrl:
+            self.selectAll()
+            event.accept()
                 
         elif key == Qt.Key_Question and not self.hasSelectedText():
             self._key_question(text)

@@ -317,7 +317,7 @@ class ArrayView(QTableView):
                                          shortcut=keybinding("Copy"),
                                          icon=get_icon('editcopy.png'),
                                          triggered=self.copy,
-                                         window_context=False)
+                                         context=Qt.WidgetShortcut)
         menu = QMenu(self)
         add_actions(menu, [self.copy_action, ])
         return menu

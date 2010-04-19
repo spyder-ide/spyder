@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
                          QFontDialog, QAbstractPrintDialog)
-from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray
+from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
 import os.path as osp
@@ -367,14 +367,14 @@ class Editor(PluginWidget):
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in QsciEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
-        # (window_context=False -> disable shortcut for other widgets)
+        # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self, self.tr("Indent"), "Tab",
             'indent.png', self.tr("Indent current line or selection"),
-            triggered=self.indent, window_context=False)
+            triggered=self.indent, context=Qt.WidgetShortcut)
         self.unindent_action = create_action(self, self.tr("Unindent"),
             "Shift+Tab",
             'unindent.png', self.tr("Unindent current line or selection"),
-            triggered=self.unindent, window_context=False)
+            triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
         pylint_action = create_action(self, self.tr("Run pylint code analysis"),
