@@ -1428,6 +1428,17 @@ class QsciEditor(TextEditBaseWidget):
             menu = self.readonly_menu
         menu.popup(event.globalPos())
         event.accept()
+            
+    #------ Drag and drop
+    def dragEnterEvent(self, event):
+        """Reimplement Qt method
+        Inform Qt about the types of data that the widget accepts"""
+        event.ignore()
+            
+    def dropEvent(self, event):
+        """Reimplement Qt method
+        Unpack dropped data and handle it"""
+        event.ignore()
 
 
 #===============================================================================
