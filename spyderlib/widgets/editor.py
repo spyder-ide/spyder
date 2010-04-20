@@ -1100,7 +1100,7 @@ class EditorStack(QWidget):
             files = mimedata2url(source, extlist=self.valid_types)
             if files:
                 for fname in files:
-                    self.load(fname)
+                    self.emit(SIGNAL('plugin_load(QString)'), fname)
         elif source.hasText():
             editor = self.get_current_editor()
             if editor is not None:
@@ -1484,6 +1484,8 @@ class FakePlugin(QSplitter):
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
+        self.connect(editorstack, SIGNAL('plugin_load(QString)'),
+                     self.load)
             
     def unregister_editorstack(self, editorstack):
         if DEBUG:

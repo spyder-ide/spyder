@@ -646,6 +646,8 @@ class Editor(PluginWidget):
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.refresh_eol_mode)
         
+        self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
+        
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
         if self.last_focus_editorstack is editorstack:
