@@ -11,7 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys
+import sys, re
+
 from PyQt4.QtGui import (QTextEdit, QTextCursor, QColor, QFont, QApplication,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
                          QPen)
@@ -19,6 +20,7 @@ from PyQt4.QtCore import QPoint, SIGNAL, Qt
 
 # Local imports
 from spyderlib.config import CONF, get_font
+from spyderlib.widgets.shellhelpers import ANSIEscapeCodeHandler
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -698,12 +700,73 @@ class TextEditBaseWidget(QTextEdit):
         QTextEdit.focusOutEvent(self, event)
 
 
+class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
+    def __init__(self):
+        ANSIEscapeCodeHandler.__init__(self)
+        self.base_format = None
+        self.current_format = None
+        
+    def set_base_format(self, base_format):
+        self.base_format = base_format
+        
+    def get_format(self):
+        return self.current_format
+        
+    def set_style(self):
+        """
+        Set font style with the following attributes:
+        'foreground_color', 'background_color', 'italic', 'bold' and 'underline'
+        """
+        if self.current_format is None:
+            assert self.base_format is not None
+            self.current_format = QTextCharFormat(self.base_format)
+        # Foreground color
+        if self.foreground_color is None:
+            qcolor = self.base_format.foreground()
+        else:
+            cstr = self.ANSI_COLORS[self.foreground_color-30][self.intensity]
+            qcolor = QColor(cstr)
+        self.current_format.setForeground(qcolor)        
+        # Background color
+        if self.background_color is None:
+            qcolor = self.base_format.background()
+        else:
+            cstr = self.ANSI_COLORS[self.background_color-40][self.intensity]
+            qcolor = QColor(cstr)
+        self.current_format.setBackground(qcolor)
+        
+        font = self.current_format.font()
+        # Italic
+        if self.italic is None:
+            italic = self.base_format.fontItalic()
+        else:
+            italic = self.italic
+        font.setItalic(italic)
+        # Bold
+        if self.bold is None:
+            bold = self.base_format.font().bold()
+        else:
+            bold = self.bold
+        font.setBold(bold)
+        # Underline
+        if self.underline is None:
+            underline = self.base_format.font().underline()
+        else:
+            underline = self.underline
+        font.setUnderline(underline)
+        self.current_format.setFont(font)
+
 
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
+    COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
+    
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
-        
+
+        # ANSI escape code handler
+        self.ansi_handler = QtANSIEscapeCodeHandler()
+                
         # Disable undo/redo (nonsense for a console widget...):
         self.setUndoRedoEnabled(False)
         
@@ -764,7 +827,15 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             self.removeSelectedText()
         self.insert_text(QApplication.clipboard().text())
         
-    def append_text_to_pythonshell(self, text, error, prompt):
+    def append_text_to_shell(self, text, error, prompt):
+        """
+        Append text to Python shell
+        In a way, this method overrides the method 'insert_text' when text is 
+        inserted at the end of the text widget for a Python shell
+        
+        Handles error messages and show blue underlined links
+        Handles ANSI color sequences
+        """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
         if error:
@@ -781,7 +852,24 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             cursor.insertText(text, self.prompt_format)
         else:
             # Show other outputs in black
-            cursor.insertText(text, self.default_format)
+            last_end = 0
+            for match in self.COLOR_PATTERN.finditer(text):
+                cursor.insertText(text[last_end:match.start()],
+                                  self.default_format)
+                last_end = match.end()
+                for code in [int(_c) for _c in match.group(1).split(';')]:
+                    self.ansi_handler.set_code(code)
+                self.default_format = self.ansi_handler.get_format()
+            cursor.insertText(text[last_end:], self.default_format)
+#            # Slower alternative:
+#            segments = self.COLOR_PATTERN.split(text)
+#            cursor.insertText(segments.pop(0), self.default_format)
+#            if segments:
+#                for ansi_tags, text in zip(segments[::2], segments[1::2]):
+#                    for ansi_tag in ansi_tags.split(';'):
+#                        self.ansi_handler.set_code(int(ansi_tag))
+#                    self.default_format = self.ansi_handler.get_format()
+#                    cursor.insertText(text, self.default_format)
         self.set_cursor_position('eof')
         self.setCurrentCharFormat(self.default_format)
     
@@ -795,7 +883,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         
         getstyleconf = lambda name, prop: CONF.get('shell_appearance',
                                                    name+'/'+prop)
-        for format, stylestr in self.formats.iteritems():
+        for format, stylestr in self.formats.items():
             foreground = getstyleconf(stylestr, 'foregroundcolor')
             format.setForeground(QColor(foreground))
             background = getstyleconf(stylestr, 'backgroundcolor')
@@ -805,4 +893,5 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             font.setItalic(getstyleconf(stylestr, 'italic'))
             font.setUnderline(getstyleconf(stylestr, 'underline'))
             format.setFont(font)
-    
+            
+        self.ansi_handler.set_base_format(self.default_format)

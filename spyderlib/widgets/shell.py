@@ -624,7 +624,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
             return
         if at_end:
             # Insert text at the end of the command line
-            self.append_text_to_pythonshell(text, error, prompt)
+            self.append_text_to_shell(text, error, prompt)
         else:
             # Insert text at current cursor position
             ConsoleBaseWidget.insert_text(self, text)
