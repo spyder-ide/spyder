@@ -25,7 +25,7 @@ except ImportError:
 from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QDirModel,
                          QMessageBox, QInputDialog, QLineEdit, QMenu, QWidget,
                          QToolButton, QFileDialog, QToolBar, QTreeView, QDrag)
-from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QStringList
+from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QStringList, QUrl
 
 import os, sys, re
 import os.path as osp
@@ -321,10 +321,10 @@ class ExplorerTreeWidget(DirView):
             
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
-        mimeData = QMimeData()
-        mimeData.setText(self.get_filename())
+        data = QMimeData()
+        data.setUrls([QUrl(self.get_filename())])
         drag = QDrag(self)
-        drag.setMimeData(mimeData)
+        drag.setMimeData(data)
         drag.exec_()
             
             
