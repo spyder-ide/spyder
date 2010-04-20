@@ -74,7 +74,10 @@ def mimedata2url(source, extlist=None):
         for url in source.urls():
             path = unicode(url.toString())
             if path.startswith(r"file://"):
-                path = path[8:]
+                if os.name == 'nt':
+                    path = path[8:]
+                else:
+                    path = path[7:]
             if osp.exists(path):
                 if extlist is None or osp.splitext(path)[1] in extlist:
                     pathlist.append(path)
