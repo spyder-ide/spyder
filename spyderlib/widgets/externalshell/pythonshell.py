@@ -280,9 +280,12 @@ class ExternalPythonShell(ExternalShellBase):
 #    Input/Output
 #===============================================================================
     def write_error(self):
+        #---This is apparently necessary only on Windows (not sure though):
+        #   emptying standard output buffer before writing error output
         self.process.setReadChannel(QProcess.StandardOutput)
         if self.process.waitForReadyRead(1):
             self.write_output()
+            
         self.shell.write_error(self.get_stderr())
         QApplication.processEvents()
         
@@ -293,8 +296,11 @@ class ExternalPythonShell(ExternalShellBase):
             qstr.append('\n')
         self.process.write(qstr.toLocal8Bit())
         self.process.waitForBytesWritten(-1)
-        # Eventually write prompt faster (when hitting Enter continuously):
-        self.write_error()
+        
+        # Eventually write prompt faster (when hitting Enter continuously)
+        # -- necessary/working on Windows only:
+        if os.name == 'nt':
+            self.write_error()
         
     def keyboard_interrupt(self):
         communicate(self.monitor_socket, "thread.interrupt_main()")
