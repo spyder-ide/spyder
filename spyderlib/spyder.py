@@ -1142,10 +1142,12 @@ class MainWindow(QMainWindow):
         if not self.findinfiles.ismaximized:
             self.findinfiles.dockwidget.setVisible(True)
             self.findinfiles.dockwidget.raise_()
-        from spyderlib.widgets.qscibase import TextEditBaseWidget
         text = ''
-        if isinstance(widget, TextEditBaseWidget) and widget.hasSelectedText():
-            text = widget.selectedText()
+        from spyderlib.widgets import qscibase, qtebase
+        if isinstance(widget, (qscibase.TextEditBaseWidget,
+                               qtebase.TextEditBaseWidget)):
+            if widget.hasSelectedText():
+                text = widget.selectedText()
         self.emit(SIGNAL('find_files(QString)'), text)
     
     def global_callback(self):
