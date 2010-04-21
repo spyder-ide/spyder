@@ -34,10 +34,11 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # History:
+# 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.9'
+__version__ = '1.0.10'
 __license__ = __doc__
 
 DEBUG = False
@@ -55,7 +56,7 @@ from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
                          QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
                          QPixmap, QTabWidget, QApplication, QStackedWidget,
                          QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
-                         QFontDatabase, QGridLayout)
+                         QFontDatabase, QGridLayout, QDoubleValidator)
 from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                           pyqtSignature, pyqtProperty)
 import datetime
@@ -171,7 +172,6 @@ def qfont_to_tuple(font):
     return (unicode(font.family()), int(font.pointSize()),
             font.italic(), font.bold())
 
-
 class FontLayout(QGridLayout):
     """Font selection"""
     def __init__(self, value, parent=None):
@@ -214,6 +214,11 @@ class FontLayout(QGridLayout):
         return qfont_to_tuple(font)
 
 
+def is_edit_valid(edit):
+    text = edit.text()
+    state, _t = edit.validator().validate(text, 0)
+    return state == QDoubleValidator.Acceptable
+
 class FormWidget(QWidget):
     def __init__(self, data, comment="", parent=None):
         super(FormWidget, self).__init__(parent)
@@ -230,7 +235,13 @@ class FormWidget(QWidget):
             print "*"*80
             print "COMMENT:", comment
             print "*"*80
-        self.setup()
+            
+    def get_dialog(self):
+        """Return FormDialog instance"""
+        dialog = self.parent()
+        while not isinstance(dialog, QDialog):
+            dialog = dialog.parent()
+        return dialog
 
     def setup(self):
         for label, value in self.data:
@@ -275,6 +286,11 @@ class FormWidget(QWidget):
                 field.setCheckState(Qt.Checked if value else Qt.Unchecked)
             elif isinstance(value, float):
                 field = QLineEdit(repr(value), self)
+                field.setValidator(QDoubleValidator(field))
+                dialog = self.get_dialog()
+                dialog.register_float_field(field)
+                self.connect(field, SIGNAL('textChanged(QString)'),
+                             lambda text: dialog.update_buttons())
             elif isinstance(value, int):
                 field = QSpinBox(self)
                 field.setRange(-1e9, 1e9)
@@ -342,6 +358,10 @@ class FormComboWidget(QWidget):
             widget = FormWidget(data, comment=comment, parent=self)
             self.stackwidget.addWidget(widget)
             self.widgetlist.append(widget)
+            
+    def setup(self):
+        for widget in self.widgetlist:
+            widget.setup()
 
     def get(self):
         return [ widget.get() for widget in self.widgetlist]
@@ -363,6 +383,10 @@ class FormTabWidget(QWidget):
             index = self.tabwidget.addTab(widget, title)
             self.tabwidget.setTabToolTip(index, comment)
             self.widgetlist.append(widget)
+            
+    def setup(self):
+        for widget in self.widgetlist:
+            widget.setup()
             
     def get(self):
         return [ widget.get() for widget in self.widgetlist]
@@ -389,8 +413,14 @@ class FormDialog(QDialog):
         layout = QVBoxLayout()
         layout.addWidget(self.formwidget)
         
+        self.float_fields = []
+        self.formwidget.setup()
+        
         # Button box
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.bbox = bbox = QDialogButtonBox(QDialogButtonBox.Ok
+                                            |QDialogButtonBox.Cancel)
+        self.connect(self.formwidget, SIGNAL('update_buttons()'),
+                     self.update_buttons)
         if self.apply_callback is not None:
             apply_btn = bbox.addButton(QDialogButtonBox.Apply)
             self.connect(apply_btn, SIGNAL("clicked()"), self.apply)
@@ -404,6 +434,19 @@ class FormDialog(QDialog):
         if not isinstance(icon, QIcon):
             icon = QWidget().style().standardIcon(QStyle.SP_MessageBoxQuestion)
         self.setWindowIcon(icon)
+        
+    def register_float_field(self, field):
+        self.float_fields.append(field)
+        
+    def update_buttons(self):
+        valid = True
+        for field in self.float_fields:
+            if not is_edit_valid(field):
+                valid = False
+        for btn_type in (QDialogButtonBox.Ok, QDialogButtonBox.Apply):
+            btn = self.bbox.button(btn_type)
+            if btn is not None:
+                btn.setEnabled(valid)
         
     def accept(self):
         self.data = self.formwidget.get()
