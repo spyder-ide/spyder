@@ -158,6 +158,10 @@ class ObjectInspector(ReadOnlyEditor):
         """Bind to shell"""
         self.shell = shell
         
+    def get_shell(self):
+        """Return bound shell instance"""
+        return self.shell
+        
     def refresh(self, text=None, force=False):
         """Refresh widget"""
         if (self.locked and not force):

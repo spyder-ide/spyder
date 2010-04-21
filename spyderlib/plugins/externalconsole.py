@@ -212,11 +212,15 @@ class ExternalConsole(PluginWidget):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
                 self.tabwidget.setTabIcon(index, self.icons[index])
+                self.inspector.set_shell(shell.shell)
         
     def process_finished(self, shell_id):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
                 self.tabwidget.setTabIcon(index, get_icon('terminated.png'))
+                if self.inspector.get_shell() is shell.shell:
+                    # Switch back to interactive shell:
+                    self.inspector.set_shell(self.main.console.shell)
         
     def get_widget_title(self):
         """Return widget title"""
