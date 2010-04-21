@@ -938,23 +938,26 @@ class MainWindow(QMainWindow):
                 # Eventually tabify new figure (if last figure is docked)
                 if self.widgetlist:
                     last_object = self.widgetlist[-1]
-                    if isinstance(last_object, MatplotlibFigure):
+                    if not isinstance(last_object, MatplotlibFigure):
+                        # Do not tabify the first created figure
+                        dockwidget.setFloating(True)
+                    else:
                         if (last_object.dockwidget is None) \
                            or last_object.dockwidget.isWindow():
-                            # last_object is floating
+                            # Last figure is floating
                             dockwidget.setFloating(True)
                             size = QSize(*CONF.get('figure', 'size'))
                             if isinstance(last_object, MatplotlibFigure):
                                 size = last_object.size()
                             dockwidget.resize(size)
                         else:
-                            # last_object is docked
+                            # Last figure is docked
                             self.tabifyDockWidget(last_object.dockwidget,
                                                   dockwidget)
                 dockwidget.setVisible(True)
                 dockwidget.raise_()
             else:
-                # Do not tabify new figure
+                # Do not tabify new figures (policy set in config)
                 dockwidget.setFloating(True)
                 
         self.widgetlist.append(child)
