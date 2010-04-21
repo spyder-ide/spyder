@@ -10,7 +10,7 @@ from spyderlib.widgets.formlayout import fedit
 from spyderlib.config import get_icon
 
 import matplotlib.cm, matplotlib.image
-from matplotlib.colors import is_color_like
+from matplotlib.colors import rgb2hex, is_color_like
 
 
 COLORMAPS = matplotlib.cm.datad.keys()
@@ -77,12 +77,16 @@ COLORS = {'b': '#0000ff', 'g': '#008000', 'r': '#ff0000', 'c': '#00ffff',
 
 def col2hex(color):
     """Convert matplotlib color to hex"""
-    return COLORS.get(color, color)
+    if isinstance(color, tuple) and len(color) == 3:
+        output = rgb2hex(color) #RGB tuple format 
+    else :
+        output = COLORS.get(color, color)
+    return output
 
 def figure_edit(axes, parent=None):
     """Edit matplotlib figure options"""
     sep = (None, None) # separator
-    leg = axes.get_legend()
+    leg = axes.legend_
     loc = 0 if (leg is None) else leg._loc  
     has_legend = (leg is not None)
     has_curve = len(axes.get_lines()) > 0
