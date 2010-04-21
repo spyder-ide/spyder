@@ -619,7 +619,10 @@ class QsciEditor(TextEditBaseWidget):
         # Removing cached items for which line is > total line nb
         for _l in self.__tree_cache.keys():
             if _l >= self.lines():
-                self.__remove_from_tree_cache(line=_l)
+                # Checking if key is still in tree cache in case one of its 
+                # ancestors was deleted in the meantime (deleting all children):
+                if _l in self.__tree_cache:
+                    self.__remove_from_tree_cache(line=_l)
         
         line = -1
         ancestors = [(root_item, 0)]
