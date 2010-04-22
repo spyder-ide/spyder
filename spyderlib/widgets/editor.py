@@ -332,6 +332,9 @@ class EditorStack(QWidget):
     def set_stack_index(self, index):
         for widget in (self.tabs, self.combo):
             widget.setCurrentIndex(index)
+            
+    def set_tabbar_visible(self, state):
+        self.tabs.tabBar().setVisible(state)
     
     def remove_from_data(self, index):
         self.tabs.removeTab(index)

@@ -61,6 +61,9 @@ class Editor(PluginWidget):
                       '', '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
         
+        self.editorstacks = None
+        self.editorwindows = None
+        
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
@@ -463,6 +466,9 @@ class Editor(PluginWidget):
                                  self.tr("Sort files according to full path"),
                                  toggled=self.toggle_fullpath_sorting)
         fpsorting_action.setChecked( CONF.get(self.ID, 'fullpath_sorting', True) )
+        showtabbar_action = create_action(self, self.tr("Show tab bar"),
+                                 toggled=self.toggle_tabbar_visibility)
+        showtabbar_action.setChecked( CONF.get(self.ID, 'show_tab_bar', True) )
         workdir_action = create_action(self, self.tr("Set working directory"),
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
@@ -492,9 +498,9 @@ class Editor(PluginWidget):
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (template_action, font_action,
-                                  fpsorting_action, None, wrap_action,
-                                  tab_action, occurence_action, None,
-                                  fold_action, self.foldonopen_action,
+                                  fpsorting_action, showtabbar_action, None,
+                                  wrap_action, tab_action, occurence_action,
+                                  None, fold_action, self.foldonopen_action,
                                   checkeol_action, showeol_action,
                                   showws_action, None,
                                   analyze_action, self.classbrowser_action))
@@ -599,7 +605,8 @@ class Editor(PluginWidget):
                                                    'occurence_highlighting'),
                     ('set_checkeolchars_enabled',  'check_eol_chars'),
                     ('set_fullpath_sorting_enabled',
-                                                   'fullpath_sorting'))
+                                                   'fullpath_sorting'),
+                    ('set_tabbar_visible',         'show_tab_bar'))
         for method, setting in settings:
             getattr(editorstack, method)(CONF.get(self.ID, setting))
         editorstack.set_default_font(get_font(self.ID))
@@ -1262,7 +1269,7 @@ class Editor(PluginWidget):
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.toggle_wrap_mode(checked)
@@ -1276,7 +1283,7 @@ class Editor(PluginWidget):
         checked = tab always indent
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.set_tab_mode(checked)
@@ -1286,7 +1293,7 @@ class Editor(PluginWidget):
             
     def toggle_occurence_highlighting(self, checked):
         """Toggle occurence highlighting"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.set_occurence_highlighting(checked)
@@ -1297,7 +1304,7 @@ class Editor(PluginWidget):
     def toggle_code_folding(self, checked):
         """Toggle code folding"""
         self.foldonopen_action.setEnabled(checked)
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.setup_margins(linenumbers=True,
@@ -1311,7 +1318,7 @@ class Editor(PluginWidget):
             
     def toggle_show_eol_chars(self, checked):
         """Toggle show EOL characters"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.set_eol_chars_visible(checked)
@@ -1321,7 +1328,7 @@ class Editor(PluginWidget):
             
     def toggle_show_whitespace(self, checked):
         """Toggle show whitespace"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             for editorstack in self.editorstacks:
                 for finfo in editorstack.data:
                     finfo.editor.set_whitespace_visible(checked)
@@ -1331,7 +1338,7 @@ class Editor(PluginWidget):
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             CONF.set(self.ID, 'code_analysis', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codeanalysis_enabled(checked)
@@ -1361,7 +1368,7 @@ class Editor(PluginWidget):
             
     def toggle_fullpath_sorting(self, checked):
         """Toggle full path sorting"""
-        if hasattr(self, 'editorstacks'):
+        if self.editorstacks is not None:
             self.emit(SIGNAL('option_changed'), 'fullpath_sorting', checked)
             if self.classbrowser is not None:
                 self.classbrowser.set_fullpath_sorting(checked)
@@ -1369,3 +1376,10 @@ class Editor(PluginWidget):
                 window.editorwidget.classbrowser.set_fullpath_sorting(checked)
             for editorstack in self.editorstacks:
                 editorstack.set_fullpath_sorting_enabled(checked)
+
+    def toggle_tabbar_visibility(self, checked):
+        """Toggle tab bar visibility"""
+        if self.editorstacks is not None:
+            self.emit(SIGNAL('option_changed'), 'show_tab_bar', checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_tabbar_visible(checked)
