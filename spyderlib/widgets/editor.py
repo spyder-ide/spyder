@@ -841,22 +841,9 @@ class EditorStack(QWidget):
             else:
                 return text % (osp.basename(filename), osp.dirname(filename))
         
-    def __get_state_index(self, state, index):
-        if index is None:
-            index = self.get_stack_index()
-        if index == -1:
-            return None, None
-        if state is None:
-            state = self.data[index].editor.isModified()
-        return state, index
-        
-    def get_titles(self, state=None, index=None):
-        state, index = self.__get_state_index(state, index)
-        if index is None:
-            return
-        finfo = self.data[index]
+    def get_titles(self, is_modified, finfo):
+        """Return combo box and tab titles"""
         fname = finfo.filename
-        is_modified = state
         is_readonly = finfo.editor.isReadOnly()
         combo_title = self.get_combo_title(fname, is_modified, is_readonly)
         tab_title = self.get_tab_title(fname, is_modified, is_readonly)
@@ -877,17 +864,20 @@ class EditorStack(QWidget):
         # (otherwise Save/Save all actions will always be enabled)
         self.emit(SIGNAL('opened_files_list_changed()'))
         # --
-        state, index = self.__get_state_index(state, index)
-        combo_title, tab_title = self.get_titles(state, index)
-        if index is None or combo_title is None:
+        if index is None:
+            index = self.get_stack_index()
+        if index == -1:
             return
+        finfo = self.data[index]
+        if state is None:
+            state = finfo.editor.isModified()
+        combo_title, tab_title = self.get_titles(state, finfo)
         self.set_stack_title(index, combo_title, tab_title)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
         self.emit(SIGNAL('refresh_save_all_action()'))
         # Refreshing eol mode
-        editor = self.data[index].editor
-        eol_chars = editor.get_line_separator()
+        eol_chars = finfo.editor.get_line_separator()
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
         
