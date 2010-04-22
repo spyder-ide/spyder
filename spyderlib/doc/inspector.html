@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>History log &mdash; Spyder v1.1 documentation</title>
+    <title>Object inspector &mdash; Spyder v1.1 documentation</title>
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -21,8 +21,8 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
-    <link rel="next" title="External Console" href="extconsole.html" />
-    <link rel="prev" title="Online help" href="onlinehelp.html" /> 
+    <link rel="next" title="Online help" href="onlinehelp.html" />
+    <link rel="prev" title="Interactive Console" href="console.html" /> 
   </head>
   <body>
     <div class="related">
@@ -32,10 +32,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="extconsole.html" title="External Console"
+          <a href="onlinehelp.html" title="Online help"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="onlinehelp.html" title="Online help"
+          <a href="console.html" title="Interactive Console"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
       </ul>
@@ -46,18 +46,23 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="history-log">
-<h1>History log<a class="headerlink" href="#history-log" title="Permalink to this headline">¶</a></h1>
-<dl class="docutils">
-<dt>The history log plugin collects command histories of:</dt>
-<dd><ul class="first last simple">
-<li>the <a class="reference external" href="console.html"><em>Interactive Console</em></a></li>
-<li>the <a class="reference external" href="extconsole.html"><em>External Console</em></a> Python shells</li>
-<li>the <a class="reference external" href="extconsole.html"><em>External Console</em></a> terminal windows</li>
-</ul>
-</dd>
-</dl>
-<img alt="_images/historylog.png" src="_images/historylog.png" />
+  <div class="section" id="object-inspector">
+<h1>Object inspector<a class="headerlink" href="#object-inspector" title="Permalink to this headline">¶</a></h1>
+<p>The object inspector plugin works together with the <a class="reference external" href="console.html"><em>Interactive Console</em></a> and the
+<a class="reference external" href="extconsole.html"><em>External Console</em></a>: it shows automatically documentation available when the
+user is instantiating a class or calling a function (pressing the left
+parenthesis key after a valid function or class name triggers the object
+inspector).</p>
+<p>Note that this automatic link may be disabled by pressing the &#8220;Lock&#8221; button
+(at the top right corner of the window).</p>
+<p>Of course, one can use the documentation viewer directly by entering an object
+name in the editable combo box field, or by selecting old documentation requests
+in the combo box.</p>
+<img alt="_images/inspector1.png" src="_images/inspector1.png" />
+<p>Sometimes, when docstrings are not available or not sufficient to document the
+object, the documentation viewer can show the source code (if available, i.e.
+if the object is pure Python):</p>
+<img alt="_images/inspector2.png" src="_images/inspector2.png" />
 <dl class="docutils">
 <dt>Related plugins:</dt>
 <dd><ul class="first last simple">
@@ -78,14 +83,14 @@
               <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
             </a></p>
             <h4>Previous topic</h4>
-            <p class="topless"><a href="onlinehelp.html"
-                                  title="previous chapter">Online help</a></p>
+            <p class="topless"><a href="console.html"
+                                  title="previous chapter">Interactive Console</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="extconsole.html"
-                                  title="next chapter">External Console</a></p>
+            <p class="topless"><a href="onlinehelp.html"
+                                  title="next chapter">Online help</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="_sources/historylog.txt"
+              <li><a href="_sources/inspector.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -112,10 +117,10 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="extconsole.html" title="External Console"
+          <a href="onlinehelp.html" title="Online help"
              >next</a> |</li>
         <li class="right" >
-          <a href="onlinehelp.html" title="Online help"
+          <a href="console.html" title="Interactive Console"
              >previous</a> |</li>
         <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
       </ul>

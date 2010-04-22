@@ -23,7 +23,11 @@ The default Spyder global shortcuts are the following:
 
   Ctrl+Shift+H
   
-- Go to :doc:`docviewer`:
+- Go to :doc:`inspector`:
+
+  Ctrl+Shift+I
+  
+- Go to :doc:`onlinehelp`:
 
   Ctrl+Shift+D
   

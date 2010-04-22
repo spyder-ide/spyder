@@ -8,7 +8,7 @@ as Spyder's graphical user interface, providing unique features such as
 .. image:: images/intconsole.png
 
 Related plugins:
-    * :doc:`docviewer`
+    * :doc:`inspector`
     * :doc:`historylog`
     * :doc:`editor`
     * :doc:`explorer`

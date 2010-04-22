@@ -28,7 +28,8 @@ Contents:
     shortcuts
     options
     console
-    docviewer
+    inspector
+    onlinehelp
     historylog
     extconsole
     explorer

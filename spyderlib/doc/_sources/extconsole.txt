@@ -16,6 +16,6 @@ The external console can execute in a *separate process* the following consoles:
 
 
 Related plugins:
-    * :doc:`docviewer`
+    * :doc:`inspector`
     * :doc:`editor`
     * :doc:`explorer`

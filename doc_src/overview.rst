@@ -8,10 +8,15 @@ Spyder is a Python development environment with the following features:
     analysis (pyflakes and pylint are currently supported), horizontal/vertical
     splitting, etc.
     
-:doc:`docviewer`:
+:doc:`inspector`:
     Automatically show documentation (if available, or 
     source code otherwise) for any class instantiation or function call made
     in a Python shell (interactive/external console, see below)
+    
+:doc:`onlinehelp`:
+    Open an internal web browser to explore dynamically-generated Python 
+    documentation on installed module, including your own modules (this feature 
+    is using a pydoc server)
     
 :doc:`console`:
     Python shell with workspace support (variable explorer with GUI based 
