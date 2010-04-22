@@ -615,12 +615,13 @@ class BaseTableView(QTableView):
     def refresh_plot_entries(self, index):
         if index.isValid():
             value = self.delegate.get_value(index)
+            is_list = isinstance(value, (tuple, list))
             is_array = isinstance(value, ndarray) and len(value) != 0
-            condition_plot = is_array and len(value.shape) <= 2
+            condition_plot = (is_array and len(value.shape) <= 2)
             condition_imshow = condition_plot and value.ndim == 2
         else:
             is_array = condition_plot = condition_imshow = False
-        self.plot_action.setVisible(condition_plot)
+        self.plot_action.setVisible(condition_plot or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
         
@@ -794,8 +795,13 @@ class BaseTableView(QTableView):
         if self.__prepare_plot():
             from pylab import plot, show
             data = self.delegate.get_value(index)
-            plot(data)
-            show()
+            try:
+                plot(data)
+                show()
+            except ValueError, error:
+                QMessageBox.critical(self, translate("DictEditor", "Plot"),
+                    translate("DictEditor", "<b>Unable to plot data.</b>"
+                              "<br><br>Error message:<br>%1").arg(str(error)))
             
     def imshow_item(self):
         """Imshow item"""
@@ -803,8 +809,13 @@ class BaseTableView(QTableView):
         if self.__prepare_plot():
             from pylab import imshow, show
             data = self.delegate.get_value(index)
-            imshow(data)
-            show()
+            try:
+                imshow(data)
+                show()
+            except ValueError, error:
+                QMessageBox.critical(self, translate("DictEditor", "Plot"),
+                    translate("DictEditor", "<b>Unable to show image.</b>"
+                              "<br><br>Error message:<br>%1").arg(str(error)))
             
     def save_array(self):
         """Save array"""

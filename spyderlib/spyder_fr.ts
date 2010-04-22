@@ -398,32 +398,32 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="774"/>
+        <location filename="widgets/dicteditor.py" line="775"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="713"/>
+        <location filename="widgets/dicteditor.py" line="714"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="715"/>
+        <location filename="widgets/dicteditor.py" line="716"/>
         <source>Do you want to remove selected item%1?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="765"/>
+        <location filename="widgets/dicteditor.py" line="766"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="775"/>
+        <location filename="widgets/dicteditor.py" line="776"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="732"/>
+        <location filename="widgets/dicteditor.py" line="733"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
@@ -433,7 +433,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="854"/>
+        <location filename="widgets/dicteditor.py" line="865"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -468,32 +468,32 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="957"/>
+        <location filename="widgets/dicteditor.py" line="968"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="959"/>
+        <location filename="widgets/dicteditor.py" line="970"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="928"/>
+        <location filename="widgets/dicteditor.py" line="939"/>
         <source>new</source>
         <translation>nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="954"/>
+        <location filename="widgets/dicteditor.py" line="965"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="938"/>
+        <location filename="widgets/dicteditor.py" line="949"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="850"/>
+        <location filename="widgets/dicteditor.py" line="861"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -503,7 +503,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="540"/>
+        <location filename="widgets/dicteditor.py" line="815"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
@@ -513,29 +513,39 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="786"/>
+        <location filename="widgets/dicteditor.py" line="787"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="788"/>
+        <location filename="widgets/dicteditor.py" line="789"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.</source>
         <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="811"/>
+        <location filename="widgets/dicteditor.py" line="822"/>
         <source>Save array</source>
         <translation>Enregistrer le tableau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="815"/>
+        <location filename="widgets/dicteditor.py" line="826"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="826"/>
+        <location filename="widgets/dicteditor.py" line="837"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="803"/>
+        <source>&lt;b&gt;Unable to plot data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
+        <translation>&lt;b&gt;Impossible d&apos;afficher les données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="817"/>
+        <source>&lt;b&gt;Unable to show image.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
+        <translation>&lt;b&gt;Impossible d&apos;afficher l&apos;image&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
 </context>
 <context>
