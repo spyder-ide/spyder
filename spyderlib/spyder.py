@@ -755,7 +755,6 @@ class MainWindow(QMainWindow):
             for toolbar in (run_toolbar, edit_toolbar):
                 toolbar.close()
             self.projectexplorer.dockwidget.close()
-            self.editor.setFixedWidth(width*.5)
         self.resize( QSize(width, height) )
         self.window_size = self.size()
         posx, posy = CONF.get('main', prefix+'position')
