@@ -23,10 +23,21 @@ class PydocServer(QThread):
     def __init__(self, port=7464):
         super(PydocServer, self).__init__()
         self.port = port
+        self.server = None
+        self.complete = False
         
     def run(self):
         import pydoc
-        pydoc.serve(self.port)
+        pydoc.serve(self.port, self.callback, self.completer)
+        
+    def callback(self, server):
+        self.server = server
+        
+    def completer(self):
+        self.complete = True
+        
+    def quit_server(self):
+        self.server.quit = 1
 
 
 class PydocBrowser(WebBrowser):
@@ -41,6 +52,12 @@ class PydocBrowser(WebBrowser):
         self.port = None
         self.start_server()
         self.go_home()
+        
+    def closeEvent(self, event):
+        self.server.quit_server()
+#        while not self.server.complete: #XXX Is it really necessary?
+#            pass
+        event.accept()
         
     #------ Public API -----------------------------------------------------
     def start_server(self):
