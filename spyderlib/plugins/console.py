@@ -31,7 +31,7 @@ from spyderlib.widgets.interactiveshell import InteractiveShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 
     
 def show_syspath():
@@ -40,7 +40,7 @@ def show_syspath():
                      width=600, icon='syspath.png', readonly=True)
     dlg.exec_()
 
-class Console(PluginWidget):
+class Console(SpyderPluginWidget):
     """
     Console widget
     """
@@ -63,7 +63,7 @@ class Console(PluginWidget):
                      lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
                                              state))
         
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -85,6 +85,7 @@ class Console(PluginWidget):
         # Accepting drops
         self.setAcceptDrops(True)
         
+    #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
         """Bind historylog instance to this console"""
         historylog.add_history(self.shell.history_filename)
@@ -101,8 +102,9 @@ class Console(PluginWidget):
             QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
         else:
             QApplication.restoreOverrideCursor()
-            
-    def get_widget_title(self):
+
+    #------ SpyderPluginWidget API ---------------------------------------------
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Interactive console')
     
@@ -113,18 +115,14 @@ class Console(PluginWidget):
         """
         return self.shell
         
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
-    
-    def quit(self):
-        """Quit mainwindow"""
-        self.main.close()
         
-    def refresh(self):
+    def refresh_plugin(self):
         pass
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
                             'exit.png', self.tr("Quit"),
@@ -208,7 +206,12 @@ class Console(PluginWidget):
         add_actions(self.shell.menu, menu_actions)
         
         return menu_actions, toolbar_actions
-    
+        
+    #------ Public API ---------------------------------------------------------
+    def quit(self):
+        """Quit mainwindow"""
+        self.main.close()
+        
     def show_env(self):
         """Show environment variables"""
         dlg = EnvDialog()
@@ -312,7 +315,7 @@ class Console(PluginWidget):
         """Toggle rollback importer"""
         CONF.set(self.ID, 'rollback_importer', checked)
         if checked and self.isVisible():
-            QMessageBox.warning(self, self.get_widget_title(),
+            QMessageBox.warning(self, self.get_plugin_title(),
                         self.tr("The rollback importer requires a restart "
                                 "of Spyder to be fully functionnal "
                                 "(otherwise only newly imported modules "

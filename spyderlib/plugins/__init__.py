@@ -9,7 +9,8 @@ spyderlib.plugins
 =================
 
 Here, 'plugins' are widgets designed specifically for Spyder
-These plugins inherit the following classes (PluginMixin & PluginWidget)
+These plugins inherit the following classes
+(SpyderPluginMixin & SpyderPluginWidget)
 """
 
 # pylint: disable-msg=C0103
@@ -34,10 +35,10 @@ from spyderlib.widgets.qscieditor import QsciEditor
 from spyderlib.widgets.findreplace import FindReplace
 
 
-class PluginMixin(object):
+class SpyderPluginMixin(object):
     """
     Useful methods to bind widgets to the main window
-    See PluginWidget class for required widget interface
+    See SpyderPluginWidget class for required widget interface
     """
     FLAGS = Qt.Window
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
@@ -47,9 +48,9 @@ class PluginMixin(object):
                QDockWidget.DockWidgetMovable
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
-        super(PluginMixin, self).__init__()
+        super(SpyderPluginMixin, self).__init__()
         self.main = main
-        self.menu_actions, self.toolbar_actions = self.set_actions()
+        self.menu_actions, self.toolbar_actions = self.get_plugin_actions()
         self.dockwidget = None
         self.ismaximized = False
         QObject.connect(self, SIGNAL('option_changed'), self.option_changed)
@@ -58,7 +59,7 @@ class PluginMixin(object):
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
-        dock = QDockWidget(self.get_widget_title(), self.main)#, self.FLAGS) -> bug in Qt 4.4
+        dock = QDockWidget(self.get_plugin_title(), self.main)#, self.FLAGS) -> bug in Qt 4.4
         dock.setObjectName(self.__class__.__name__+"_dw")
         dock.setAllowedAreas(self.ALLOWED_AREAS)
         dock.setFeatures(self.FEATURES)
@@ -66,7 +67,7 @@ class PluginMixin(object):
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.dockwidget = dock
-        self.refresh()
+        self.refresh_plugin()
         short = CONF.get(self.ID, "shortcut", None)
         if short is not None:
             QShortcut(QKeySequence(short), self.main,
@@ -84,9 +85,9 @@ class PluginMixin(object):
         if isinstance(icon, basestring):
             icon = get_icon(icon)
         mainwindow.setWindowIcon(icon)
-        mainwindow.setWindowTitle(self.get_widget_title())
+        mainwindow.setWindowTitle(self.get_plugin_title())
         mainwindow.setCentralWidget(self)
-        self.refresh()
+        self.refresh_plugin()
         return mainwindow
 
     def visibility_changed(self, enable):
@@ -100,7 +101,7 @@ class PluginMixin(object):
         toggle_actions(self.menu_actions, visible)
         toggle_actions(self.toolbar_actions, visible)
         if visible:
-            self.refresh() #XXX Is it a good idea?
+            self.refresh_plugin() #XXX Is it a good idea?
 
     def option_changed(self, option, value):
         """
@@ -133,7 +134,7 @@ class PluginMixin(object):
         QApplication.processEvents()
 
 
-class PluginWidget(QWidget, PluginMixin):
+class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     """
     Spyder base widget class
     Spyder's widgets either inherit this class or reimplement its interface
@@ -141,22 +142,23 @@ class PluginWidget(QWidget, PluginMixin):
     ID = None
     def __init__(self, parent):
         QWidget.__init__(self, parent)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
         assert self.ID is not None
-        self.setWindowTitle(self.get_widget_title())
+        self.setWindowTitle(self.get_plugin_title())
         
-    def get_widget_title(self):
+    def get_plugin_title(self):
         """
-        Return widget title
+        Return plugin title
         Note: after some thinking, it appears that using a method
         is more flexible here than using a class attribute
         """
         raise NotImplementedError
     
-    def get_widget_icon(self):
+    def get_plugin_icon(self):
         """
-        Return widget icon name (e.g.: qt.png) or QIcon instance
-        Note: this method is used only by PluginMixin.create_mainwindow
+        Return plugin icon name (e.g.: qt.png) or QIcon instance
+        Note: this is required only for plugins creating a main window
+              (see SpyderPluginMixin.create_mainwindow)
         """
         return 'qt.png'
     
@@ -167,28 +169,33 @@ class PluginWidget(QWidget, PluginMixin):
         """
         pass
         
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        # Must return True or False (if cancelable)
+    def closing_plugin(self, cancelable=False):
+        """
+        Perform actions before parent main window is closed
+        Return True or False whether the plugin may be closed immediately or not
+        Note: returned value is ignored if *cancelable* is False
+        """
         raise NotImplementedError
         
-    def refresh(self):
+    def refresh_plugin(self):
         """Refresh widget"""
         raise NotImplementedError
     
-    def set_actions(self):
-        """Setup actions"""
-        # Return menu and toolbar actions
+    def get_plugin_actions(self):
+        """
+        Setup actions and return a tuple (menu_actions, toolbar_actions)
+        (each tuple element contains a list of QAction objects or None)
+        """
         raise NotImplementedError
 
 
-class ReadOnlyEditor(PluginWidget):
+class ReadOnlyEditor(SpyderPluginWidget):
     """
     Read-only editor plugin widget
     (see example of child class in inspector.py)
     """
     def __init__(self, parent):
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         # Read-only editor
         self.editor = QsciEditor(self)
@@ -225,11 +232,11 @@ class ReadOnlyEditor(PluginWidget):
         """
         return self.editor
             
-    def set_actions(self):
-        """Setup actions"""
+    def get_plugin_actions(self):
+        """Setup and return actions"""
         return (None, None)
         
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
         

@@ -28,10 +28,10 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 
 
-class ExternalConsole(PluginWidget):
+class ExternalConsole(SpyderPluginWidget):
     """
     Console widget
     """
@@ -47,12 +47,12 @@ class ExternalConsole(PluginWidget):
         self.filenames = []
         self.icons = []
         
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh)
+                     self.refresh_plugin)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
                      
@@ -132,7 +132,7 @@ class ExternalConsole(PluginWidget):
             if CONF.get(self.ID, 'single_tab'):
                 old_shell = self.shells[index]
                 if old_shell.is_running():
-                    answer = QMessageBox.question(self, self.get_widget_title(),
+                    answer = QMessageBox.question(self, self.get_plugin_title(),
                         self.tr("%1 is already running in a separate process.\n"
                                 "Do you want to kill the process before starting "
                                 "a new one?").arg(osp.basename(fname)),
@@ -208,6 +208,7 @@ class ExternalConsole(PluginWidget):
         shell.start(ask_for_arguments)
         shell.shell.setFocus()
         
+    #------ Private API --------------------------------------------------------
     def process_started(self, shell_id):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
@@ -222,7 +223,8 @@ class ExternalConsole(PluginWidget):
                     # Switch back to interactive shell:
                     self.inspector.set_shell(self.main.console.shell)
         
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('External console')
     
@@ -233,7 +235,7 @@ class ExternalConsole(PluginWidget):
         """
         return self.tabwidget.currentWidget()
         
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         interpreter_action = create_action(self,
                             self.tr("Open &interpreter"), None,
@@ -286,6 +288,20 @@ class ExternalConsole(PluginWidget):
             self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
         
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+    
+    def refresh_plugin(self):
+        """Refresh tabwidget"""
+        if self.tabwidget.count():
+            editor = self.tabwidget.currentWidget().shell
+            editor.setFocus()
+        else:
+            editor = None
+        self.find_widget.set_editor(editor)
+    
+    #------ Public API ---------------------------------------------------------
     def open_interpreter(self):
         """Open interpreter"""
         self.start(None, os.getcwdu(), False,
@@ -363,19 +379,6 @@ class ExternalConsole(PluginWidget):
                 else:
                     widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
                 
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-    
-    def refresh(self):
-        """Refresh tabwidget"""
-        if self.tabwidget.count():
-            editor = self.tabwidget.currentWidget().shell
-            editor.setFocus()
-        else:
-            editor = None
-        self.find_widget.set_editor(editor)
-    
     def go_to_error(self, text):
         """Go to error if relevant"""
         match = get_error_match(unicode(text))
@@ -383,7 +386,6 @@ class ExternalConsole(PluginWidget):
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int,bool)"),
                       osp.abspath(fname), int(lnb), True)
-            
             
     #----Drag and drop
     def __is_python_script(self, qstr):

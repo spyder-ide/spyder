@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import QFileDialog, QMessageBox, QFontDialog, QMenu
-from PyQt4.QtCore import SIGNAL, Qt
+from PyQt4.QtCore import SIGNAL
 
 import os, sys
 import os.path as osp
@@ -28,7 +28,7 @@ from spyderlib.utils.iofuncs import (save_dictionary, load_dictionary,
                                      load_array, load_image, load_dicom,
                                      load_matlab, save_matlab)
 from spyderlib.widgets.dicteditor import DictEditorTableView, globalsfilter
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
 FILTERS = tuple(str2type(CONF.get('workspace', 'filters')))
@@ -47,7 +47,7 @@ def wsfilter(input_dict, itermax=ITERMAX, filters=FILTERS):
                          excluded_names=excluded_names)
 
 
-class Workspace(DictEditorTableView, PluginMixin):
+class Workspace(DictEditorTableView, SpyderPluginMixin):
     """
     Workspace widget (namespace explorer)
     """
@@ -65,7 +65,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         DictEditorTableView.__init__(self, parent, None, names=True,
                                      truncate=truncate, inplace=inplace,
                                      minmax=minmax, collvalue=collvalue)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
         
         self.setup_io()
         self.load_temp_namespace()
@@ -117,7 +117,8 @@ class Workspace(DictEditorTableView, PluginMixin):
         self.load_funcs = load_funcs
         self.save_funcs = save_funcs
         
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Workspace')
     
@@ -128,44 +129,7 @@ class Workspace(DictEditorTableView, PluginMixin):
         """
         return self
         
-    def set_interpreter(self, interpreter):
-        """Bind to interpreter"""
-        self.interpreter = interpreter
-        self.refresh(force=True)
-        
-    def get_namespace(self, itermax=ITERMAX):
-        """Return filtered namespace"""
-        return wsfilter(self.namespace, itermax=itermax)
-    
-    def __clear_namespace(self):
-        """Clear namespace"""
-        keys = self.get_namespace().keys()
-        for key in keys:
-            self.namespace.pop(key)
-        self.refresh(force=True)
-    
-    def clear(self):
-        """Ask to clear workspace"""
-        answer = QMessageBox.question(self, self.tr("Clear workspace"),
-                    self.tr("Do you want to clear all data from workspace?"),
-                    QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.__clear_namespace()
-
-    def refresh(self, force=False):
-        """Refresh widget"""
-        if CONF.get(self.ID, 'autorefresh') or force:
-            self.refresh_editor()
-        
-    def refresh_editor(self):
-        """Refresh DictEditor"""
-        if self.interpreter is not None:
-            self.namespace = self.interpreter.namespace
-        self.set_filter( wsfilter )
-        self.set_data( self.namespace )
-        self.adjust_columns()
-        
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         import_action = create_action(self, self.tr("Import data..."), None,
             'ws_open.png', self.tr("Import data to workspace"),
@@ -232,31 +196,13 @@ class Workspace(DictEditorTableView, PluginMixin):
                         option_menu)
         toolbar_actions = (refresh_action, import_action, save_as_action)
         return (menu_actions, toolbar_actions)
+
+    def refresh_plugin(self, force=False):
+        """Refresh widget"""
+        if CONF.get(self.ID, 'autorefresh') or force:
+            self.refresh_editor()
         
-    def change_font1(self):
-        """Change font"""
-        self.__change_font('dicteditor_header')
-        
-    def change_font2(self):
-        """Change font"""
-        self.__change_font('dicteditor')
-    
-    def __change_font(self, section):
-        font, valid = QFontDialog.getFont(get_font(section), self,
-                                          self.tr("Select a new font"))
-        if valid:
-            set_font(font, section)
-    
-    def toggle_autorefresh(self, checked):
-        """Toggle autorefresh mode"""
-        CONF.set(self.ID, 'autorefresh', checked)
-        self.refresh()
-        
-    def toggle_autosave(self, checked):
-        """Toggle autosave mode"""
-        CONF.set(self.ID, 'autosave', checked)
-        
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         if CONF.get(self.ID, 'autosave'):
             # Saving workspace
@@ -278,7 +224,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                 buttons = QMessageBox.Yes | QMessageBox.No
                 if cancelable:
                     buttons = buttons | QMessageBox.Cancel
-                answer = QMessageBox.question(self, self.get_widget_title(),
+                answer = QMessageBox.question(self, self.get_plugin_title(),
                    self.tr("Workspace is currently keeping reference "
                            "to %1 object%2.\n\nDo you want to save %3?") \
                    .arg(srefnb).arg(s_or_not).arg(it_or_them), buttons)
@@ -291,6 +237,62 @@ class Workspace(DictEditorTableView, PluginMixin):
                     # Removing last saved workspace
                     os.remove(self.TEMPFILE_PATH)
         return True
+        
+    #------ Public API ---------------------------------------------------------
+    def set_interpreter(self, interpreter):
+        """Bind to interpreter"""
+        self.interpreter = interpreter
+        self.refresh_plugin(force=True)
+        
+    def get_namespace(self, itermax=ITERMAX):
+        """Return filtered namespace"""
+        return wsfilter(self.namespace, itermax=itermax)
+    
+    def __clear_namespace(self):
+        """Clear namespace"""
+        keys = self.get_namespace().keys()
+        for key in keys:
+            self.namespace.pop(key)
+        self.refresh_plugin(force=True)
+    
+    def clear(self):
+        """Ask to clear workspace"""
+        answer = QMessageBox.question(self, self.tr("Clear workspace"),
+                    self.tr("Do you want to clear all data from workspace?"),
+                    QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.__clear_namespace()
+        
+    def refresh_editor(self):
+        """Refresh DictEditor"""
+        if self.interpreter is not None:
+            self.namespace = self.interpreter.namespace
+        self.set_filter( wsfilter )
+        self.set_data( self.namespace )
+        self.adjust_columns()
+        
+    def change_font1(self):
+        """Change font"""
+        self.__change_font('dicteditor_header')
+        
+    def change_font2(self):
+        """Change font"""
+        self.__change_font('dicteditor')
+    
+    def __change_font(self, section):
+        font, valid = QFontDialog.getFont(get_font(section), self,
+                                          self.tr("Select a new font"))
+        if valid:
+            set_font(font, section)
+    
+    def toggle_autorefresh(self, checked):
+        """Toggle autorefresh mode"""
+        CONF.set(self.ID, 'autorefresh', checked)
+        self.refresh_plugin()
+        
+    def toggle_autosave(self, checked):
+        """Toggle autosave mode"""
+        CONF.set(self.ID, 'autosave', checked)
     
     def load_temp_namespace(self):
         """Attempt to load last session namespace"""
@@ -299,7 +301,7 @@ class Workspace(DictEditorTableView, PluginMixin):
             self.import_data(self.filename)
         else:
             self.namespace = None
-            self.refresh(force=True)
+            self.refresh_plugin(force=True)
 
     def import_data(self, filename=None):
         """
@@ -357,7 +359,7 @@ class Workspace(DictEditorTableView, PluginMixin):
                                  self.tr("<b>Unable to load '%1'</b>"
                                          "<br><br>Error message:<br>%2") \
                                          .arg(self.filename).arg(error_message))
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
 
     def save_as(self):
         """Save current workspace as"""
@@ -394,23 +396,23 @@ class Workspace(DictEditorTableView, PluginMixin):
                                     "<br><br>Error message:<br>%1") \
                             .arg(error_message))
             
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
         return True
 
     def toggle_exclude_private(self, checked):
         """Toggle exclude private references"""
         CONF.set(self.ID, 'exclude_private', checked)
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
         
     def toggle_exclude_upper(self, checked):
         """Toggle exclude upper-case references"""
         CONF.set(self.ID, 'exclude_upper', checked)
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
 
     def toggle_exclude_unsupported(self, checked):
         """Toggle exclude unsupported datatypes"""
         CONF.set(self.ID, 'exclude_unsupported', checked)
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
 
     #----Focus
     def focusInEvent(self, event):

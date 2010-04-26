@@ -24,10 +24,10 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_font, set_font
 from spyderlib.utils.qthelpers import create_action, translate
 from spyderlib.widgets.explorer import ExplorerWidget
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
-class Explorer(ExplorerWidget, PluginMixin):
+class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
     def __init__(self, parent=None, path=None):
@@ -37,7 +37,7 @@ class Explorer(ExplorerWidget, PluginMixin):
                             show_all=CONF.get(self.ID, 'show_all'),
                             show_toolbar=CONF.get(self.ID, 'show_toolbar'),
                             show_icontext=CONF.get(self.ID, 'show_icontext'))
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
 
         self.editor_valid_types = None
         
@@ -45,19 +45,13 @@ class Explorer(ExplorerWidget, PluginMixin):
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
         
+    #------ Private API --------------------------------------------------------
     def set_editor_valid_types(self, valid_types):
         self.editor_valid_types = valid_types
         self.treewidget.valid_types += valid_types
-        
-    def refresh(self, new_path=None, force_current=True):
-        """Refresh explorer widget"""
-        self.treewidget.refresh(new_path, force_current=force_current)
-        
-    def refresh_folder(self, folder):
-        """Refresh only *folder*"""
-        self.treewidget.refresh_folder(folder)
 
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr("File explorer")
     
@@ -68,7 +62,7 @@ class Explorer(ExplorerWidget, PluginMixin):
         """
         return self.treewidget
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         # Font
         font_action = create_action(self, translate('Explorer', "&Font..."),
@@ -78,9 +72,18 @@ class Explorer(ExplorerWidget, PluginMixin):
         self.treewidget.common_actions.append(font_action)
         return (None, None)
         
-    def closing(self, cancelable=False):
+    def refresh_plugin(self, new_path=None, force_current=True):
+        """Refresh explorer widget"""
+        self.treewidget.refresh(new_path, force_current=force_current)
+        
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
+        
+    #------ Public API ---------------------------------------------------------        
+    def refresh_folder(self, folder):
+        """Refresh only *folder*"""
+        self.treewidget.refresh_folder(folder)
         
     def open_file(self, fname):
         """

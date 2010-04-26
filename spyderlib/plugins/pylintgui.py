@@ -22,24 +22,21 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_font, set_font
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.pylintgui import PylintWidget
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
-class Pylint(PylintWidget, PluginMixin):
+class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     ID = 'pylint'
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=CONF.get(self.ID, 'max_entries'))
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
 
         self.set_font(get_font(self.ID))
         
-    def refresh(self):
-        """Refresh pylint widget"""
-        self.remove_obsolete_items()
-        
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr("Pylint")
     
@@ -50,7 +47,7 @@ class Pylint(PylintWidget, PluginMixin):
         """
         return self.treewidget
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         # Font
         history_action = create_action(self, self.tr("History..."),
@@ -63,6 +60,15 @@ class Pylint(PylintWidget, PluginMixin):
         self.treewidget.common_actions += (None, history_action, font_action)
         return (None, None)
         
+    def refresh_plugin(self):
+        """Refresh pylint widget"""
+        self.remove_obsolete_items()
+        
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+        
+    #------ Public API ---------------------------------------------------------
     def change_history_depth(self):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, self.tr('History'),
@@ -71,10 +77,6 @@ class Pylint(PylintWidget, PluginMixin):
                                        10, 10000)
         if valid:
             CONF.set(self.ID, 'max_entries', depth)
-        
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
         
     def change_font(self):
         """Change font"""

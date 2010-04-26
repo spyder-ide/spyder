@@ -27,11 +27,11 @@ from spyderlib.utils.qthelpers import get_std_icon, create_action
 
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.plugins.explorer import Explorer
 
 
-class WorkingDirectory(QToolBar, PluginMixin):
+class WorkingDirectory(QToolBar, SpyderPluginMixin):
     """
     Working directory changer widget
     """
@@ -41,10 +41,10 @@ class WorkingDirectory(QToolBar, PluginMixin):
     LOG_PATH = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
         
-        self.setWindowTitle(self.get_widget_title()) # Toolbar title
-        self.setObjectName(self.get_widget_title()) # Used to save Window state
+        self.setWindowTitle(self.get_plugin_title()) # Toolbar title
+        self.setObjectName(self.get_plugin_title()) # Used to save Window state
         
         self.addWidget( QLabel(self.tr("Working directory:")+" ") )
         
@@ -85,7 +85,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
                 workdir = "."
         self.chdir(workdir)
         self.pathedit.addItems( wdhistory )
-        self.refresh()
+        self.refresh_plugin()
         self.addWidget(self.pathedit)
         
         # Browse action
@@ -102,18 +102,31 @@ class WorkingDirectory(QToolBar, PluginMixin):
                                       triggered=self.parent_directory)
         self.addAction(parent_action)
                 
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Working directory')
         
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         return (None, None)
         
-    def closing(self, cancelable=False):
+    def refresh_plugin(self):
+        """Refresh widget"""
+        curdir = os.getcwdu()
+        self.pathedit.add_text(curdir)
+        self.save_wdhistory()
+        self.emit(SIGNAL("set_previous_enabled(bool)"),
+                  self.histindex is not None and self.histindex > 0)
+        self.emit(SIGNAL("set_next_enabled(bool)"),
+                  self.histindex is not None and \
+                  self.histindex < len(self.history)-1)
+        
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
         
+    #------ Public API ---------------------------------------------------------
     def load_wdhistory(self, workdir=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
@@ -130,17 +143,6 @@ class WorkingDirectory(QToolBar, PluginMixin):
         text = [ unicode( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         encoding.writelines(text, self.LOG_PATH)
-        
-    def refresh(self):
-        """Refresh widget"""
-        curdir = os.getcwdu()
-        self.pathedit.add_text(curdir)
-        self.save_wdhistory()
-        self.emit(SIGNAL("set_previous_enabled(bool)"),
-                  self.histindex is not None and self.histindex > 0)
-        self.emit(SIGNAL("set_next_enabled(bool)"),
-                  self.histindex is not None and \
-                  self.histindex < len(self.history)-1)
         
     def select_directory(self):
         """Select directory"""
@@ -180,7 +182,7 @@ class WorkingDirectory(QToolBar, PluginMixin):
         
         # Changing working directory
         os.chdir( unicode(directory) )
-        self.refresh()
+        self.refresh_plugin()
         if not isinstance(self.sender(), Explorer):
             # Explorer is not the sender: let's refresh it
             self.emit(SIGNAL("refresh_explorer()"))

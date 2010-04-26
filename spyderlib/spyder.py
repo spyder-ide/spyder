@@ -396,7 +396,7 @@ class MainWindow(QMainWindow):
         self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
                      self.redirect_interactiveshell_stdio)
         self.connect(self.console.shell, SIGNAL("refresh()"),
-                     self.workdir.refresh)
+                     self.workdir.refresh_plugin)
         
         if not self.light:
             # Editor widget
@@ -485,7 +485,7 @@ class MainWindow(QMainWindow):
                 self.add_to_toolbar(ws_toolbar, self.workspace)
                 self.workspace.set_interpreter(self.console.shell.interpreter)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
-                             self.workspace.refresh)
+                             self.workspace.refresh_plugin)
 
             # Explorer
             if CONF.get('explorer', 'enable'):
@@ -525,14 +525,16 @@ class MainWindow(QMainWindow):
                 # Signal "refresh_explorer()" will eventually force the
                 # explorer to change the opened directory:
                 self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
-                             lambda: self.explorer.refresh(force_current=True))
+                             lambda:
+                             self.explorer.refresh_plugin(force_current=True))
                 # Signal "refresh_explorer(QString)" will refresh only the
                 # contents of path passed by the signal in explorer:
                 self.connect(self.console.shell,
                              SIGNAL("refresh_explorer(QString)"),
                              self.explorer.refresh_folder)
                 self.connect(self.workdir, SIGNAL("refresh_explorer()"),
-                             lambda: self.explorer.refresh(force_current=True))
+                             lambda:
+                             self.explorer.refresh_plugin(force_current=True))
                 self.connect(self.editor, SIGNAL("refresh_explorer(QString)"),
                              self.explorer.refresh_folder)
 
@@ -545,7 +547,7 @@ class MainWindow(QMainWindow):
                 self.add_dockwidget(self.historylog)
                 self.console.set_historylog(self.historylog)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
-                             self.historylog.refresh)
+                             self.historylog.refresh_plugin)
         
             # Object inspector widget
             if CONF.get('inspector', 'enable'):
@@ -920,7 +922,7 @@ class MainWindow(QMainWindow):
             CONF.set('main', prefix+'statusbar',
                      not self.statusBar().isHidden())
         for widget in self.widgetlist:
-            if not widget.closing(cancelable):
+            if not widget.closing_plugin(cancelable):
                 return False
         self.already_closed = True
         return True
@@ -1032,7 +1034,7 @@ class MainWindow(QMainWindow):
         actions = widget.menu_actions
         if actions is not None:
             if not title:
-                title = widget.get_widget_title()
+                title = widget.get_plugin_title()
             if existing_menu is None:
                 menu = self.menuBar().addMenu(title)
                 add_actions(menu, actions)

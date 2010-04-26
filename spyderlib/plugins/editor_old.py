@@ -39,7 +39,7 @@ from spyderlib.widgets.qscieditor import (QsciEditor, check, Printer,
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 
 
 class CodeAnalysisThread(QThread):
@@ -296,7 +296,7 @@ class EditorTabWidget(Tabs):
                     return False
             elif finfo.editor.isModified():
                 answer = QMessageBox.question(self,
-                            self.plugin.get_widget_title(),
+                            self.plugin.get_plugin_title(),
                             self.tr("<b>%1</b> has been modified."
                                     "<br>Do you want to save changes?") \
                                     .arg(osp.basename(finfo.filename)),
@@ -467,7 +467,7 @@ class EditorTabWidget(Tabs):
         
         # First, testing if file still exists (removed, moved or offline):
         if not osp.isfile(finfo.filename):
-            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+            answer = QMessageBox.warning(self, self.plugin.get_plugin_title(),
                             self.tr("<b>%1</b> is unavailable "
                                     "(this file may have been removed, moved "
                                     "or renamed outside Spyder)."
@@ -481,7 +481,7 @@ class EditorTabWidget(Tabs):
             if lastm.toString().compare(finfo.lastmodified.toString()):
                 if finfo.editor.isModified():
                     answer = QMessageBox.question(self,
-                        self.plugin.get_widget_title(),
+                        self.plugin.get_plugin_title(),
                         self.tr("<b>%1</b> has been modified outside Spyder."
                                 "<br>Do you want to reload it and loose all "
                                 "your changes?").arg(name),
@@ -501,7 +501,7 @@ class EditorTabWidget(Tabs):
         if index is None:
             index = self.currentIndex()
         # Set current editor
-        plugin_title = self.plugin.get_widget_title()
+        plugin_title = self.plugin.get_plugin_title()
         if self.count():
             index = self.currentIndex()
             finfo = self.data[index]
@@ -655,7 +655,7 @@ class EditorTabWidget(Tabs):
         if self.isVisible() and CONF.get(self.ID, 'check_eol_chars') \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
-            answer = QMessageBox.warning(self, self.plugin.get_widget_title(),
+            answer = QMessageBox.warning(self, self.plugin.get_plugin_title(),
                             self.tr("<b>%1</b> contains mixed end-of-line "
                                     "characters.<br>Do you want to fix this "
                                     "automatically?"
@@ -919,7 +919,7 @@ class _CursorPositionStatus(QWidget):
         self.show()
         
 
-class Editor(PluginWidget):
+class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
     """
@@ -940,7 +940,7 @@ class Editor(PluginWidget):
         self.analysis_toolbar_actions = None
         self.run_toolbar_actions = None
         self.edit_toolbar_actions = None
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
         
         statusbar = self.main.statusBar()
         self.readwrite_status = _ReadWriteStatus(self, statusbar)
@@ -1034,6 +1034,7 @@ class Editor(PluginWidget):
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
         
+    #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = CONF.get(self.ID,
@@ -1041,8 +1042,8 @@ class Editor(PluginWidget):
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
             
-    #------ Plugin API
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Editor')
     
@@ -1055,21 +1056,21 @@ class Editor(PluginWidget):
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        PluginWidget.visibility_changed(self, enable)
+        SpyderPluginWidget.visibility_changed(self, enable)
         if self.dockwidget.isWindow():
             self.dock_toolbar.show()
         else:
             self.dock_toolbar.hide()
         if enable:
-            self.refresh()
+            self.refresh_plugin()
     
-    def refresh(self):
+    def refresh_plugin(self):
         """Refresh editor plugin"""
         editortabwidget = self.get_current_editortabwidget()
         editortabwidget.refresh()
         self.refresh_save_all_action()
         
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         CONF.set(self.ID, 'class_browser_expanded_state',
                  self.classbrowser.treewidget.get_expanded_state())
@@ -1096,7 +1097,7 @@ class Editor(PluginWidget):
                 break
         return is_ok
 
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         self.new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'filenew.png', self.tr("Create a new Python script"),
@@ -1932,7 +1933,7 @@ class Editor(PluginWidget):
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # current external shell automatically
-                # (see PluginWidget.visibility_changed method)
+                # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
     def re_run_extconsole(self):
@@ -1956,7 +1957,7 @@ class Editor(PluginWidget):
                 # If interactive console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # interactive shell automatically
-                # (see PluginWidget.visibility_changed method)
+                # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
     def re_run_intconsole(self):

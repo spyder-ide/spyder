@@ -71,7 +71,7 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.connect(self.combo, SIGNAL("valid(bool)"),
-                     lambda valid: self.refresh(force=True))
+                     lambda valid: self.refresh_plugin(force=True))
         
         # Doc/source checkbox
         help_or_doc = QCheckBox(self.tr("Show source"))
@@ -101,7 +101,8 @@ class ObjectInspector(ReadOnlyEditor):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
             
-    def get_widget_title(self):
+    #------ ReadOnlyEditor API -------------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Object inspector')
     
@@ -113,6 +114,30 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo.lineEdit().selectAll()
         return self.combo
         
+    def refresh_plugin(self, text=None, force=False):
+        """Refresh widget"""
+        if (self.locked and not force):
+            return
+        
+        if text is None:
+            text = self.combo.currentText()
+        else:
+            self.combo.add_text(text)
+            
+        self.set_help(text)
+        self.save_history()
+        if hasattr(self.main, 'tabifiedDockWidgets'):
+            # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
+            if self.dockwidget and self.dockwidget.isVisible() \
+               and not self.ismaximized and text != self._last_text:
+                dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
+                if self.main.console.dockwidget not in dockwidgets and \
+                   (hasattr(self.main, 'extconsole') and \
+                    self.main.extconsole.dockwidget not in dockwidgets):
+                    self.dockwidget.raise_()
+        self._last_text = text
+        
+    #------ Public API ---------------------------------------------------------
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
@@ -131,12 +156,12 @@ class ObjectInspector(ReadOnlyEditor):
     def toggle_help(self, state):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
         
     def toggle_auto_import(self, state):
         """Toggle automatic import feature"""
         CONF.set('inspector', 'automatic_import', state == Qt.Checked)
-        self.refresh(force=True)
+        self.refresh_plugin(force=True)
         self.combo.validate_current_text()
         
     def toggle_locked(self):
@@ -161,29 +186,6 @@ class ObjectInspector(ReadOnlyEditor):
     def get_shell(self):
         """Return bound shell instance"""
         return self.shell
-        
-    def refresh(self, text=None, force=False):
-        """Refresh widget"""
-        if (self.locked and not force):
-            return
-        
-        if text is None:
-            text = self.combo.currentText()
-        else:
-            self.combo.add_text(text)
-            
-        self.set_help(text)
-        self.save_history()
-        if hasattr(self.main, 'tabifiedDockWidgets'):
-            # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
-            if self.dockwidget and self.dockwidget.isVisible() \
-               and not self.ismaximized and text != self._last_text:
-                dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
-                if self.main.console.dockwidget not in dockwidgets and \
-                   (hasattr(self.main, 'extconsole') and \
-                    self.main.extconsole.dockwidget not in dockwidgets):
-                    self.dockwidget.raise_()
-        self._last_text = text
         
     def set_help(self, obj_text):
         """Show help"""

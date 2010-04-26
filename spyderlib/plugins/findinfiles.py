@@ -21,10 +21,10 @@ from PyQt4.QtCore import SIGNAL
 # Local imports
 from spyderlib.config import CONF
 from spyderlib.widgets.findinfiles import FindInFilesWidget
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
-class FindInFiles(FindInFilesWidget, PluginMixin):
+class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
     ID = 'find_in_files'
     def __init__(self, parent=None):
@@ -46,7 +46,7 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
                                    search_text, search_text_regexp, search_path,
                                    include, include_regexp,
                                    exclude, exclude_regexp, supported_encodings)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
         
         self.connect(self, SIGNAL('toggle_visibility(bool)'), self.toggle)
         
@@ -54,16 +54,13 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         """Toggle widget visibility"""
         if self.dockwidget:
             self.dockwidget.setVisible(state)
-        
-    def refresh(self):
-        """Refresh widget"""
-        pass
     
     def refreshdir(self):
         """Refresh search directory"""
         self.find_options.set_directory(os.getcwdu())
         
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr("Find in files")
     
@@ -74,11 +71,15 @@ class FindInFiles(FindInFilesWidget, PluginMixin):
         """
         return self.find_options.search_text
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         return (None, None)
         
-    def closing(self, cancelable=False):
+    def refresh_plugin(self):
+        """Refresh widget"""
+        pass
+        
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         options = self.find_options.get_options(all=True)
         if options is not None:

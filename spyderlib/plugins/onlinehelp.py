@@ -8,18 +8,16 @@
 
 import sys, os.path as osp
 
-from PyQt4.QtCore import Qt
-
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_conf_path
 from spyderlib.widgets.pydocgui import PydocBrowser
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
-class OnlineHelp(PydocBrowser, PluginMixin):
+class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     """
     Online Help Plugin
     """
@@ -27,13 +25,13 @@ class OnlineHelp(PydocBrowser, PluginMixin):
     LOG_PATH = get_conf_path('.onlinehelp')
     def __init__(self, parent):
         PydocBrowser.__init__(self, parent)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
         
         self.set_zoom_factor(CONF.get(self.ID, 'zoom_factor'))
         self.url_combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         self.url_combo.addItems( self.load_history() )
         
-    #------ Public API -----------------------------------------------------
+    #------ Public API ---------------------------------------------------------
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
@@ -49,8 +47,8 @@ class OnlineHelp(PydocBrowser, PluginMixin):
             [ unicode( self.url_combo.itemText(index) )
                 for index in range(self.url_combo.count()) ] ))
 
-    #------ PluginWidget API ---------------------------------------------------    
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Online help')
     
@@ -62,17 +60,17 @@ class OnlineHelp(PydocBrowser, PluginMixin):
         self.url_combo.lineEdit().selectAll()
         return self.url_combo
         
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_history()
         CONF.set(self.ID, 'zoom_factor', self.get_zoom_factor())
         return True
         
-    def refresh(self):
+    def refresh_plugin(self):
         """Refresh widget"""
         pass
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         # Return menu and toolbar actions
         return (None, None)

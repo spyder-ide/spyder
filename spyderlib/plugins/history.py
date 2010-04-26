@@ -8,7 +8,7 @@
 
 from PyQt4.QtGui import (QVBoxLayout, QFontDialog, QInputDialog, QToolButton,
                          QMenu)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import SIGNAL
 
 import os.path as osp
 
@@ -24,10 +24,10 @@ from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.qscieditor import QsciEditor
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 
 
-class HistoryLog(PluginWidget):
+class HistoryLog(SpyderPluginWidget):
     """
     History log widget
     """
@@ -41,12 +41,12 @@ class HistoryLog(PluginWidget):
         self.filenames = []
         self.icons = []
         
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
-                     self.refresh)
+                     self.refresh_plugin)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
         layout.addWidget(self.tabwidget)
@@ -66,7 +66,47 @@ class HistoryLog(PluginWidget):
         layout.addWidget(self.find_widget)
         
         self.setLayout(layout)
+            
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
+        """Return widget title"""
+        return self.tr('History log')
+    
+    def get_focus_widget(self):
+        """
+        Return the widget to give focus to when
+        this plugin's dockwidget is raised on top-level
+        """
+        return self.tabwidget.currentWidget()
         
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+    
+    def refresh_plugin(self):
+        """Refresh tabwidget"""
+        if self.tabwidget.count():
+            editor = self.tabwidget.currentWidget()
+        else:
+            editor = None
+        self.find_widget.set_editor(editor)
+        
+    def get_plugin_actions(self):
+        """Setup actions"""
+        history_action = create_action(self, self.tr("History..."),
+                                       None, 'history.png',
+                                       self.tr("Set history maximum entries"),
+                                       triggered=self.change_history_depth)
+        font_action = create_action(self, self.tr("&Font..."), None,
+                                    'font.png', self.tr("Set shell font style"),
+                                    triggered=self.change_font)
+        wrap_action = create_action(self, self.tr("Wrap lines"),
+                                    toggled=self.toggle_wrap_mode)
+        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        self.menu_actions = [history_action, font_action, wrap_action]
+        return (self.menu_actions, None)
+        
+    #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):
         """
         Move tab (tabs themselves have already been moved by the tabwidget)
@@ -79,6 +119,7 @@ class HistoryLog(PluginWidget):
         self.editors.insert(index_to, editor)
         self.icons.insert(index_to, icon)
         
+    #------ Public API ---------------------------------------------------------
     def add_history(self, filename):
         """
         Add new history tab
@@ -126,32 +167,6 @@ class HistoryLog(PluginWidget):
         self.editors[index].append(command)
         self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
-            
-    def get_widget_title(self):
-        """Return widget title"""
-        return self.tr('History log')
-    
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.tabwidget.currentWidget()
-        
-    def set_actions(self):
-        """Setup actions"""
-        history_action = create_action(self, self.tr("History..."),
-                                       None, 'history.png',
-                                       self.tr("Set history maximum entries"),
-                                       triggered=self.change_history_depth)
-        font_action = create_action(self, self.tr("&Font..."), None,
-                                    'font.png', self.tr("Set shell font style"),
-                                    triggered=self.change_font)
-        wrap_action = create_action(self, self.tr("Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
-        self.menu_actions = [history_action, font_action, wrap_action]
-        return (self.menu_actions, None)
         
     def change_history_depth(self):
         "Change history max entries"""
@@ -178,15 +193,3 @@ class HistoryLog(PluginWidget):
         for editor in self.editors:
             editor.toggle_wrap_mode(checked)
         CONF.set(self.ID, 'wrap', checked)
-        
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-    
-    def refresh(self):
-        """Refresh tabwidget"""
-        if self.tabwidget.count():
-            editor = self.tabwidget.currentWidget()
-        else:
-            editor = None
-        self.find_widget.set_editor(editor)

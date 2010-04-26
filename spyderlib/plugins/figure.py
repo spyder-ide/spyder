@@ -15,11 +15,11 @@ from PyQt4.QtGui import QHBoxLayout, QVBoxLayout, QLabel, QDockWidget
 from PyQt4.QtCore import Qt, SIGNAL
 
 # Local imports
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 from spyderlib.config import get_font, get_icon
 from spyderlib.utils.qthelpers import create_toolbutton
 
-class MatplotlibFigure(PluginWidget):
+class MatplotlibFigure(SpyderPluginWidget):
     """
     Matplotlib Figure Dockwidget
     """
@@ -29,7 +29,7 @@ class MatplotlibFigure(PluginWidget):
     def __init__(self, parent, canvas, num):        
         self.canvas = canvas
         self.num = num
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         # Close button
         self.close_button = create_toolbutton(self, triggered=self.close,
@@ -48,7 +48,8 @@ class MatplotlibFigure(PluginWidget):
         self.v_layout.addWidget(self.canvas)
         self.setLayout(self.v_layout)
             
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr("Figure %d" % self.num)
     
@@ -59,6 +60,19 @@ class MatplotlibFigure(PluginWidget):
         """
         return self.canvas
         
+    def refresh_plugin(self):
+        """Refresh widget"""
+        pass
+        
+    def get_plugin_actions(self):
+        """Setup actions"""
+        return (None, None)
+        
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+        
+    #------ Public API ---------------------------------------------------------
     def set_statusbar(self):
         """Set status bar"""
         statusbar = QLabel('')
@@ -76,18 +90,6 @@ class MatplotlibFigure(PluginWidget):
     def addToolBar(self, toolbar):
         """Fake Qt method --> for matplotlib"""
         self.h_layout.insertWidget(0, toolbar)
-        
-    def refresh(self):
-        """Refresh widget"""
-        pass
-        
-    def set_actions(self):
-        """Setup actions"""
-        return (None, None)
-        
-    def closing(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
 
     def closeEvent(self, event):
         """closeEvent reimplementation"""

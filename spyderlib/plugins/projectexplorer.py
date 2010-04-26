@@ -18,10 +18,10 @@ STDOUT = sys.stdout
 from spyderlib.config import get_font, set_font, get_conf_path, CONF
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
-from spyderlib.plugins import PluginMixin
+from spyderlib.plugins import SpyderPluginMixin
 
 
-class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
+class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     ID = 'project_explorer'
     DATAPATH = get_conf_path('.projects')
@@ -31,7 +31,7 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
         show_all = CONF.get(self.ID, 'show_all', False)
         ProjectExplorerWidget.__init__(self, parent=parent, include=include,
                                        exclude=exclude, show_all=show_all)
-        PluginMixin.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
 
         self.editor_valid_types = None
 
@@ -42,11 +42,8 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
 
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
         
-    def refresh(self):
-        """Refresh project explorer widget"""
-        pass
-        
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr("Project explorer")
     
@@ -57,7 +54,7 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
         """
         return self.treewidget
     
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         font_action = create_action(self, self.tr("&Font..."),
                                     None, 'font.png', self.tr("Set font style"),
@@ -65,11 +62,16 @@ class ProjectExplorer(ProjectExplorerWidget, PluginMixin):
         self.treewidget.common_actions += (None, font_action)
         return (None, None)
         
-    def closing(self, cancelable=False):
+    def refresh_plugin(self):
+        """Refresh project explorer widget"""
+        pass
+        
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
         return True
         
+    #------ Public API ---------------------------------------------------------
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,

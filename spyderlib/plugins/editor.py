@@ -38,7 +38,7 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
                                       EditorMainWindow)
-from spyderlib.plugins import PluginWidget
+from spyderlib.plugins import SpyderPluginWidget
 
 
 WINPDB_PATH = programs.get_nt_program_name('winpdb')
@@ -47,7 +47,7 @@ def is_winpdb_installed():
     return programs.is_program_installed(WINPDB_PATH)
 
 
-class Editor(PluginWidget):
+class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
     """
@@ -74,7 +74,7 @@ class Editor(PluginWidget):
         self.file_menu_actions = None
         self.source_menu_actions = None
         self.stack_menu_actions = None
-        PluginWidget.__init__(self, parent)
+        SpyderPluginWidget.__init__(self, parent)
 
         self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
                           (self.tr("Pyrex files"), ('.pyx',)),
@@ -179,6 +179,7 @@ class Editor(PluginWidget):
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
         
+    #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = CONF.get(self.ID,
@@ -186,9 +187,8 @@ class Editor(PluginWidget):
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
             
-            
-    #------ Plugin API
-    def get_widget_title(self):
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Editor')
     
@@ -201,21 +201,21 @@ class Editor(PluginWidget):
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
-        PluginWidget.visibility_changed(self, enable)
+        SpyderPluginWidget.visibility_changed(self, enable)
         if self.dockwidget.isWindow():
             self.dock_toolbar.show()
         else:
             self.dock_toolbar.hide()
         if enable:
-            self.refresh()
+            self.refresh_plugin()
     
-    def refresh(self):
+    def refresh_plugin(self):
         """Refresh editor plugin"""
         editorstack = self.get_current_editorstack()
         editorstack.refresh()
         self.refresh_save_all_action()
         
-    def closing(self, cancelable=False):
+    def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         CONF.set(self.ID, 'class_browser_expanded_state',
                  self.classbrowser.treewidget.get_expanded_state())
@@ -245,7 +245,7 @@ class Editor(PluginWidget):
                 win.close()
         return is_ok
 
-    def set_actions(self):
+    def get_plugin_actions(self):
         """Setup actions"""
         self.new_action = create_action(self, self.tr("New..."), "Ctrl+N",
             'filenew.png', self.tr("Create a new Python script"),
@@ -1210,7 +1210,7 @@ class Editor(PluginWidget):
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # current external shell automatically
-                # (see PluginWidget.visibility_changed method)
+                # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
     def re_run_extconsole(self):
@@ -1234,7 +1234,7 @@ class Editor(PluginWidget):
                 # If interactive console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
                 # interactive shell automatically
-                # (see PluginWidget.visibility_changed method)
+                # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
     def re_run_intconsole(self):
