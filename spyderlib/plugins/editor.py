@@ -54,6 +54,7 @@ class Editor(SpyderPluginWidget):
     ID = 'editor'
     TEMPFILE_PATH = get_conf_path('.temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
+    DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):

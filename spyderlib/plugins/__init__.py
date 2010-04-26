@@ -46,6 +46,7 @@ class SpyderPluginMixin(object):
     FEATURES = QDockWidget.DockWidgetClosable | \
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
+    DISABLE_ACTIONS_WHEN_HIDDEN = True
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
@@ -98,8 +99,9 @@ class SpyderPluginMixin(object):
             if widget is not None:
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
-        toggle_actions(self.menu_actions, visible)
-        toggle_actions(self.toolbar_actions, visible)
+        if self.DISABLE_ACTIONS_WHEN_HIDDEN:
+            toggle_actions(self.menu_actions, visible)
+            toggle_actions(self.toolbar_actions, visible)
         if visible:
             self.refresh_plugin() #XXX Is it a good idea?
 
