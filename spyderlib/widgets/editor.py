@@ -18,7 +18,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel)
-from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
+from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR)
 
 import os, sys
@@ -1196,6 +1196,41 @@ class EditorSplitter(QSplitter):
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
             current_editor.setFocus()
+            
+    def iter_editorstacks(self):
+        editorstacks = [(self.widget(0), self.orientation())]
+        if self.count() > 1:
+            editorsplitter = self.widget(1)
+            editorstacks += editorsplitter.iter_editorstacks()
+        return editorstacks
+
+    def get_layout_settings(self):
+        """Return layout state"""
+        settings = [str(self.saveState().toHex()), self.sizes()]
+        for editorstack, orientation in self.iter_editorstacks():
+            clines = [finfo.editor.get_cursor_line_number()
+                      for finfo in editorstack.data]
+            cfname = editorstack.get_current_filename()
+            settings.append( (orientation == Qt.Vertical, cfname, clines) )
+        return settings
+    
+    def set_layout_settings(self, settings):
+        """Restore layout state"""
+        hexstate, sizes = settings.pop(0), settings.pop(0)
+        splitter = self
+        for index, (is_vertical, cfname, clines) in enumerate(settings):
+            if index > 0:
+                splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
+                splitter = splitter.widget(1)
+            editorstack = splitter.widget(0)
+            for index, finfo in enumerate(editorstack.data):
+                editor = finfo.editor
+                editor.go_to_line(clines[index])
+            editorstack.set_current_filename(cfname)
+        self.restoreState( QByteArray().fromHex(str(hexstate)) )
+        self.setSizes(sizes)
+        editor.clearFocus()
+        editor.setFocus()
 
 
 #===============================================================================
@@ -1413,6 +1448,14 @@ class EditorMainWindow(QMainWindow):
                 if DEBUG:
                     print >>STDOUT, "--> destroy_editorstack:", editorstack
                 editorstack.emit(SIGNAL('destroyed()'))
+                                
+    def get_layout_settings(self):
+        """Return layout state"""
+        return self.editorwidget.editorsplitter.get_layout_settings()
+    
+    def set_layout_settings(self, settings):
+        """Restore layout state"""
+        self.editorwidget.editorsplitter.set_layout_settings(settings)
 
 
 class FakePlugin(QSplitter):

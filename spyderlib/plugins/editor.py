@@ -158,16 +158,19 @@ class Editor(SpyderPluginWidget):
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
         
         self.untitled_num = 0
+
+        self.last_focus_editorstack = None
                 
         filenames = CONF.get(self.ID, 'filenames', [])
-        currentlines = CONF.get(self.ID, 'currentlines', [])
+        layout_settings = CONF.get(self.ID, 'layout_settings', None)
         if filenames and not ignore_last_opened_files:
-            self.load(filenames, goto=currentlines, highlight=False)
-            self.set_current_filename(CONF.get(self.ID, 'current_filename', ''))
+            self.load(filenames)
+            if layout_settings is not None:
+                self.editorsplitter.set_layout_settings(layout_settings)
+            self.last_focus_editorstack = self.editorstacks[0]
         else:
             self.__load_temp_file()
         
-        self.last_focus_editorstack = None
         self.connect(self, SIGNAL("focus_changed()"),
                      self.save_focus_editorstack)
         
@@ -227,14 +230,11 @@ class Editor(SpyderPluginWidget):
         state = self.splitter.saveState()
         CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
-        currentlines = []
-        editorstack = self.get_current_editorstack()
+        editorstack = self.editorstacks[0]
         filenames += [finfo.filename for finfo in editorstack.data]
-        currentlines += [finfo.editor.get_cursor_line_number()
-                         for finfo in editorstack.data]
+        CONF.set(self.ID, 'layout_settings',
+                 self.editorsplitter.get_layout_settings())
         CONF.set(self.ID, 'filenames', filenames)
-        CONF.set(self.ID, 'currentlines', currentlines)
-        CONF.set(self.ID, 'current_filename', self.get_current_filename())
         CONF.set(self.ID, 'recent_files', self.recent_files)
         is_ok = True
         for editorstack in self.editorstacks:
