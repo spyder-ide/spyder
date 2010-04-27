@@ -19,7 +19,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
-                          PYQT_VERSION_STR)
+                          PYQT_VERSION_STR, QSize, QPoint)
 
 import os, sys
 import os.path as osp
@@ -1206,19 +1206,22 @@ class EditorSplitter(QSplitter):
 
     def get_layout_settings(self):
         """Return layout state"""
-        settings = [str(self.saveState().toHex()), self.sizes()]
+        splitsettings = []
         for editorstack, orientation in self.iter_editorstacks():
             clines = [finfo.editor.get_cursor_line_number()
                       for finfo in editorstack.data]
             cfname = editorstack.get_current_filename()
-            settings.append( (orientation == Qt.Vertical, cfname, clines) )
-        return settings
+            splitsettings.append((orientation == Qt.Vertical, cfname, clines))
+        return dict(hexstate=str(self.saveState().toHex()),
+                    sizes=self.sizes(), splitsettings=splitsettings)
     
     def set_layout_settings(self, settings):
         """Restore layout state"""
-        hexstate, sizes = settings.pop(0), settings.pop(0)
+        splitsettings = settings.get('splitsettings')
+        if splitsettings is None:
+            return
         splitter = self
-        for index, (is_vertical, cfname, clines) in enumerate(settings):
+        for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
             if index > 0:
                 splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
                 splitter = splitter.widget(1)
@@ -1227,8 +1230,12 @@ class EditorSplitter(QSplitter):
                 editor = finfo.editor
                 editor.go_to_line(clines[index])
             editorstack.set_current_filename(cfname)
-        self.restoreState( QByteArray().fromHex(str(hexstate)) )
-        self.setSizes(sizes)
+        hexstate = settings.get('hexstate')
+        if hexstate is not None:
+            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+        sizes = settings.get('sizes')
+        if sizes is not None:
+            self.setSizes(sizes)
         editor.clearFocus()
         editor.setFocus()
 
@@ -1403,6 +1410,8 @@ class EditorMainWindow(QMainWindow):
                  show_fullpath, fullpath_sorting):
         super(EditorMainWindow, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
+
+        self.window_size = None
         
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          toolbar_list, menu_list,
@@ -1422,6 +1431,7 @@ class EditorMainWindow(QMainWindow):
             toolbars = []
             for title, actions in toolbar_list:
                 toolbar = self.addToolBar(title)
+                toolbar.setObjectName(str(id(toolbar)))
                 add_actions(toolbar, actions)
                 toolbars.append(toolbar)
         if menu_list:
@@ -1439,8 +1449,15 @@ class EditorMainWindow(QMainWindow):
                 else:
                     add_actions(menu, actions)
                 menus.append(menu)
+            
+    def resizeEvent(self, event):
+        """Reimplement Qt method"""
+        if not self.isMaximized() and not self.isFullScreen():
+            self.window_size = self.size()
+        QMainWindow.resizeEvent(self, event)
                 
     def closeEvent(self, event):
+        """Reimplement Qt method"""
         super(EditorMainWindow, self).closeEvent(event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))
@@ -1451,11 +1468,33 @@ class EditorMainWindow(QMainWindow):
                                 
     def get_layout_settings(self):
         """Return layout state"""
-        return self.editorwidget.editorsplitter.get_layout_settings()
+        splitsettings = self.editorwidget.editorsplitter.get_layout_settings()
+        return dict(size=(self.window_size.width(), self.window_size.height()),
+                    pos=(self.pos().x(), self.pos().y()),
+                    is_maximized=self.isMaximized(),
+                    is_fullscreen=self.isFullScreen(),
+                    hexstate=str(self.saveState().toHex()),
+                    splitsettings=splitsettings)
     
     def set_layout_settings(self, settings):
         """Restore layout state"""
-        self.editorwidget.editorsplitter.set_layout_settings(settings)
+        size = settings.get('size')
+        if size is not None:
+            self.resize( QSize(*size) )
+            self.window_size = self.size()
+        pos = settings.get('pos')
+        if pos is not None:
+            self.move( QPoint(*pos) )
+        hexstate = settings.get('hexstate')
+        if hexstate is not None:
+            self.restoreState( QByteArray().fromHex(str(hexstate)) )
+        if settings.get('is_maximized'):
+            self.setWindowState(Qt.WindowMaximized)
+        if settings.get('is_fullscreen'):
+            self.setWindowState(Qt.WindowFullScreen)
+        splitsettings = settings.get('splitsettings')
+        if splitsettings is not None:
+            self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
 
 
 class FakePlugin(QSplitter):

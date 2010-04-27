@@ -711,14 +711,14 @@ class MainWindow(QMainWindow):
             self.help_menu_actions += create_module_bookmark_actions(self,
                                                                 self.BOOKMARKS)
             add_actions(help_menu, self.help_menu_actions)
-            
-            # Now that every single menu and toolbar actions are defined,
-            # we may setup the "New window" Editor's main windows:
-            self.editor.setup_other_windows()
                 
         # Adding Working directory toolbar in last position
         self.addToolBar(self.workdir)
-                
+        
+        # Emitting the signal notifying plugins that main window menu and 
+        # toolbar actions are all defined:
+        self.emit(SIGNAL('all_actions_defined'))
+        
         # Window set-up
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.debug_print("Setting up window...")

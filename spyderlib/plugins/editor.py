@@ -64,6 +64,7 @@ class Editor(SpyderPluginWidget):
         
         self.editorstacks = None
         self.editorwindows = None
+        self.editorwindows_to_be_created = None
         
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
@@ -120,8 +121,13 @@ class Editor(SpyderPluginWidget):
         
         self.editorstacks = []
         self.editorwindows = []
+        self.editorwindows_to_be_created = []
         self.toolbar_list = None
         self.menu_list = None
+        
+        # Setup new windows:
+        self.connect(self.main, SIGNAL('all_actions_defined'),
+                     self.setup_other_windows)
         
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -162,11 +168,15 @@ class Editor(SpyderPluginWidget):
         self.last_focus_editorstack = None
                 
         filenames = CONF.get(self.ID, 'filenames', [])
-        layout_settings = CONF.get(self.ID, 'layout_settings', None)
         if filenames and not ignore_last_opened_files:
             self.load(filenames)
-            if layout_settings is not None:
-                self.editorsplitter.set_layout_settings(layout_settings)
+            layout = CONF.get(self.ID, 'layout_settings', None)
+            if layout is not None:
+                self.editorsplitter.set_layout_settings(layout)
+            win_layout = CONF.get(self.ID, 'windows_layout_settings', None)
+            if win_layout:
+                for layout_settings in win_layout:
+                    self.editorwindows_to_be_created.append(layout_settings)
             self.last_focus_editorstack = self.editorstacks[0]
         else:
             self.__load_temp_file()
@@ -234,6 +244,8 @@ class Editor(SpyderPluginWidget):
         filenames += [finfo.filename for finfo in editorstack.data]
         CONF.set(self.ID, 'layout_settings',
                  self.editorsplitter.get_layout_settings())
+        CONF.set(self.ID, 'windows_layout_settings',
+                 [win.get_layout_settings() for win in self.editorwindows])
         CONF.set(self.ID, 'filenames', filenames)
         CONF.set(self.ID, 'recent_files', self.recent_files)
         is_ok = True
@@ -685,7 +697,7 @@ class Editor(SpyderPluginWidget):
                 editorstack.blockSignals(False)
         
         
-    #------ Handling editor windows
+    #------ Handling editor windows    
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
         self.toolbar_list = (
@@ -703,6 +715,10 @@ class Editor(SpyderPluginWidget):
                           (self.tr("&Tools"), self.main.tools_menu_actions),
                           (self.tr("?"), self.main.help_menu_actions),
                           )
+        # Create pending new windows:
+        for layout_settings in self.editorwindows_to_be_created:
+            win = self.create_new_window()
+            win.set_layout_settings(layout_settings)
         
     def create_new_window(self):
         window = EditorMainWindow(self, self.stack_menu_actions,
@@ -714,6 +730,7 @@ class Editor(SpyderPluginWidget):
         self.register_editorwindow(window)
         self.connect(window, SIGNAL("destroyed()"),
                      lambda win=window: self.unregister_editorwindow(win))
+        return window
     
     def register_editorwindow(self, window):
         self.editorwindows.append(window)
