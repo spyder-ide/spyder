@@ -877,16 +877,18 @@ class ExplorerTreeWidget(OneColumnTree):
         self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
         fname = QFileDialog.getSaveFileName(self, title, current_path, filters)
         self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
-        try:
-            create_func(unicode(fname))
-        except EnvironmentError, error:
-            QMessageBox.critical(self, translate('ProjectExplorer', "New file"),
+        if fname:
+            try:
+                create_func(unicode(fname))
+            except EnvironmentError, error:
+                QMessageBox.critical(self,
+                                 translate('ProjectExplorer', "New file"),
                                  translate('ProjectExplorer',
                                            "<b>Unable to create file <i>%1</i>"
                                            "</b><br><br>Error message:<br>%2"
                                            ).arg(fname).arg(str(error)))
-        finally:
-            self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
+            finally:
+                self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
     
     def new_file(self, item):
         title = translate('ProjectExplorer', "New file")
