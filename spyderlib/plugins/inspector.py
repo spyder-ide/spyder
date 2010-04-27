@@ -71,7 +71,7 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.connect(self.combo, SIGNAL("valid(bool)"),
-                     lambda valid: self.refresh_plugin(force=True))
+                     lambda valid: self.force_refresh())
         
         # Doc/source checkbox
         help_or_doc = QCheckBox(self.tr("Show source"))
@@ -114,9 +114,17 @@ class ObjectInspector(ReadOnlyEditor):
         self.combo.lineEdit().selectAll()
         return self.combo
         
-    def refresh_plugin(self, text=None, force=False):
+    def refresh_plugin(self):
         """Refresh widget"""
-        if (self.locked and not force):
+        self.set_object_text(None, force_refresh=False)
+        
+    #------ Public API ---------------------------------------------------------
+    def force_refresh(self):
+        self.set_object_text(None, force_refresh=True)
+    
+    def set_object_text(self, text, force_refresh=False):
+        """Set object analyzed by Object Inspector"""
+        if (self.locked and not force_refresh):
             return
         
         if text is None:
@@ -124,7 +132,8 @@ class ObjectInspector(ReadOnlyEditor):
         else:
             self.combo.add_text(text)
             
-        self.set_help(text)
+        self.show_help(text)
+        
         self.save_history()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
@@ -136,8 +145,7 @@ class ObjectInspector(ReadOnlyEditor):
                     self.main.extconsole.dockwidget not in dockwidgets):
                     self.dockwidget.raise_()
         self._last_text = text
-        
-    #------ Public API ---------------------------------------------------------
+    
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
@@ -156,12 +164,12 @@ class ObjectInspector(ReadOnlyEditor):
     def toggle_help(self, state):
         """Toggle between docstring and help()"""
         self.docstring = (state == Qt.Unchecked)
-        self.refresh_plugin(force=True)
+        self.force_refresh()
         
     def toggle_auto_import(self, state):
         """Toggle automatic import feature"""
         CONF.set('inspector', 'automatic_import', state == Qt.Checked)
-        self.refresh_plugin(force=True)
+        self.force_refresh()
         self.combo.validate_current_text()
         
     def toggle_locked(self):
@@ -187,7 +195,7 @@ class ObjectInspector(ReadOnlyEditor):
         """Return bound shell instance"""
         return self.shell
         
-    def set_help(self, obj_text):
+    def show_help(self, obj_text):
         """Show help"""
         if self.shell is None:
             return
