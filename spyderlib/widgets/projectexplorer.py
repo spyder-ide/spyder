@@ -327,11 +327,11 @@ class Project(object):
         if old_set is not None:
             for name in old_set-new_set:
                 item = self.items.pop(name)
-#                try:
-                item.parent().removeChild(item)
-#                except RuntimeError:
-#                    # Item has already been deleted by PyQt
-#                    pass
+                try:
+                    item.parent().removeChild(item)
+                except RuntimeError:
+                    # Item has already been deleted by PyQt
+                    pass
 
 
 def get_pydev_project_infos(project_path):
