@@ -152,15 +152,10 @@ class EditorStack(QWidget):
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         
         self.tabs = BaseTabs(self, menu=self.menu)
-        self.close_btn = None
-        if hasattr(self.tabs, 'setTabsClosable'):
-            self.close_btn = create_toolbutton(self, triggered=self.close_file,
-                                           icon=get_icon("fileclose.png"),
-                                           tip=translate("Editor", "Close file"))
-            header_layout.addWidget(self.close_btn)
-        else:
-            # Close button is not necessary
-            self.close_btn = None
+        self.close_btn = create_toolbutton(self, triggered=self.close_file,
+                                       icon=get_icon("fileclose.png"),
+                                       tip=translate("Editor", "Close file"))
+        header_layout.addWidget(self.close_btn)
         layout.addLayout(header_layout)
 
         self.stack_history = []
