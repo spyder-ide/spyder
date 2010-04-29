@@ -19,7 +19,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils import count_lines
+from spyderlib.utils import count_lines, rename_file, remove_file, move_file
 from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
@@ -982,7 +982,7 @@ class ExplorerTreeWidget(OneColumnTree):
                     if path == fname:
                         continue
                     try:
-                        os.rename(fname, path)
+                        rename_file(fname, path)
                         self.parent_widget.emit( \
                              SIGNAL("renamed(QString,QString)"), fname, path)
                         self.remove_path_from_project_pythonpath(project, fname)
@@ -1033,7 +1033,7 @@ class ExplorerTreeWidget(OneColumnTree):
                         yes_to_all = True
                 try:
                     if osp.isfile(fname):
-                        os.remove(fname)
+                        remove_file(fname)
                         self.parent_widget.emit(SIGNAL("removed(QString)"),
                                                 fname)
                     else:
@@ -1225,8 +1225,7 @@ class ExplorerTreeWidget(OneColumnTree):
                         shutil.copytree(src, dst)
                 else:
                     if osp.isfile(src):
-                        shutil.copy(src, dst)
-                        os.remove(src)
+                        move_file(src, dst)
                     else:
                         shutil.move(src, dst)
                     self.parent_widget.emit(SIGNAL("removed(QString)"), src)

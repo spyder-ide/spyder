@@ -37,7 +37,7 @@ STDOUT = sys.stdout
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.utils.qthelpers import (get_std_icon, create_action, add_actions,
                                        translate)
-from spyderlib.utils import encoding
+from spyderlib.utils import encoding, rename_file, remove_file
 from spyderlib.config import get_icon
 
 
@@ -396,7 +396,7 @@ class ExplorerTreeWidget(DirView):
                 return
             try:
                 if osp.isfile(fname):
-                    os.remove(fname)
+                    remove_file(fname)
                 else:
                     os.rmdir(fname)
                 self.parent_widget.emit(SIGNAL("removed(QString)"), fname)
@@ -423,7 +423,7 @@ class ExplorerTreeWidget(DirView):
                 if path == fname:
                     return
                 try:
-                    os.rename(fname, path)
+                    rename_file(fname, path)
                     self.parent_widget.emit(SIGNAL("renamed(QString,QString)"),
                                              fname, path)
                 except EnvironmentError, error:

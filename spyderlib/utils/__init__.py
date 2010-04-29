@@ -13,6 +13,40 @@ Spyder's utilities
 
 from __future__ import with_statement
 
+
+import os, os.path as osp, shutil
+
+def __remove_pyc_pyo(fname):
+    if osp.splitext(fname)[1] == '.py':
+        for ending in ('c', 'o'):
+            if osp.exists(fname+ending):
+                os.remove(fname+ending)
+
+def rename_file(source, dest):
+    """
+    Rename file from *source* to *dest*
+    If file is a Python script, also rename .pyc and .pyo files if any
+    """
+    os.rename(source, dest)
+    __remove_pyc_pyo(source)
+
+def remove_file(fname):
+    """
+    Remove file *fname*
+    If file is a Python script, also rename .pyc and .pyo files if any
+    """
+    os.remove(fname)
+    __remove_pyc_pyo(fname)
+
+def move_file(source, dest):
+    """
+    Move file from *source* to *dest*
+    If file is a Python script, also rename .pyc and .pyo files if any
+    """
+    shutil.copy(source, dest)
+    remove_file(source)
+
+
 def select_port(default_port=20128):
     """Find and return a non used port"""
     import socket
