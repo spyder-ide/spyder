@@ -102,6 +102,7 @@ class Project(object):
         self.icon_provider = QFileIconProvider()
         self.namesets = {}
         self.pythonpath = []
+        self.empty_directories = []
         self.opened = True
 
         config_path = self.__get_project_config_path()
@@ -196,13 +197,14 @@ class Project(object):
     def create_dir_item(self, dirname, parent, preceding,
                         tree, include, exclude, show_all):
         if dirname in self.items:
-            return self.items[dirname]
-        if preceding is None:
-            item = QTreeWidgetItem(parent, QTreeWidgetItem.Type)
+            item = self.items[dirname]
         else:
-            item = QTreeWidgetItem(parent, preceding, QTreeWidgetItem.Type)
-        flags = Qt.ItemIsSelectable|Qt.ItemIsUserCheckable|Qt.ItemIsEnabled| \
-                Qt.ItemIsDropEnabled
+            if preceding is None:
+                item = QTreeWidgetItem(parent, QTreeWidgetItem.Type)
+            else:
+                item = QTreeWidgetItem(parent, preceding, QTreeWidgetItem.Type)
+        flags = Qt.ItemIsSelectable|Qt.ItemIsUserCheckable| \
+                Qt.ItemIsEnabled|Qt.ItemIsDropEnabled
         is_root = dirname == self.root_path
         if is_root:
             # Root path: Project root item
@@ -219,6 +221,13 @@ class Project(object):
                                                         exclude, show_all):
             item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
             tree.collapseItem(item)
+            if dirname in self.empty_directories:
+                index = self.empty_directories.index(dirname)
+                self.empty_directories.pop(index)
+        else:
+            item.setChildIndicatorPolicy(\
+                                QTreeWidgetItem.DontShowIndicatorWhenChildless)
+            self.empty_directories.append(dirname)
         self.items[dirname] = item
         return item
         
@@ -261,7 +270,9 @@ class Project(object):
             tree.remove_from_watcher(self)
         
     def get_monitored_pathlist(self):
-        pathlist = [self.root_path]
+        self.empty_directories = [path for path in self.empty_directories
+                                  if osp.isdir(path)] # cleaning list
+        pathlist = [self.root_path]+self.empty_directories
         for branch in self.namesets.keys():
             if isinstance(branch, QTreeWidgetItem):
                 pathlist.append(get_item_path(branch))
