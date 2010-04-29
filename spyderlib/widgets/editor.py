@@ -344,7 +344,8 @@ class EditorStack(QWidget):
     
     def __get_sorting_func(self):
         if self.fullpath_sorting_enabled:
-            return lambda item: osp.dirname(item.filename)
+            return lambda item: osp.join(osp.dirname(item.filename),
+                                         '_'+osp.basename(item.filename))
         else:
             return lambda item: osp.basename(item.filename)
     
