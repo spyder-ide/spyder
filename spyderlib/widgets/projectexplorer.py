@@ -321,6 +321,8 @@ class Project(object):
                             item_preceding, tree, include, exclude, show_all)
                 parent_dirname = abspardir(dirname)
                 parent = dirs[parent_dirname]
+            if item_preceding is None:
+                item_preceding = parent
             item_preceding = self.create_dir_item(dirname, parent,
                                                   item_preceding, tree,
                                                   include, exclude, show_all)
