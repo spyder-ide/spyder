@@ -1436,12 +1436,18 @@ class QsciEditor(TextEditBaseWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        event.ignore()
+        if event.mimeData().hasText():
+            super(QsciEditor, self).dragEnterEvent(event)
+        else:
+            event.ignore()
             
     def dropEvent(self, event):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
-        event.ignore()
+        if event.mimeData().hasText():
+            super(QsciEditor, self).dropEvent(event)
+        else:
+            event.ignore()
 
 
 #===============================================================================
