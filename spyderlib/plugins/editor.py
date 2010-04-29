@@ -1038,6 +1038,7 @@ class Editor(SpyderPluginWidget):
                     editor.foldAll()
             current_editor.clearFocus()
             current_editor.setFocus()
+            current_editor.window().raise_()
             QApplication.processEvents()
 
     def print_file(self):
