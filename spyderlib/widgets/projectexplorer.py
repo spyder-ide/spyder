@@ -256,7 +256,7 @@ class Project(object):
                                 pythonpath=self.root_path in self.pythonpath,
                                 root=True)
             root_item.setIcon(0, icon)
-                
+            
             for branch in self.namesets.keys():
                 if branch is not tree and not osp.isdir(get_item_path(branch)):
                     self.namesets.pop(branch)
@@ -283,7 +283,20 @@ class Project(object):
         root_item = self.items[self.root_path]
         tree.takeTopLevelItem(tree.indexOfTopLevelItem(root_item))
         
+    def clean_items(self, tree):
+        """
+        Clean items dictionary following drag'n drop operation:
+        unfortunately, QTreeWidget does not emit any signal following an 
+        item deletion
+        """
+        for name, item in self.items.items():
+            try:
+                tree.indexFromItem(item, 0)
+            except RuntimeError:
+                self.items.pop(name)
+        
     def populate_tree(self, tree, include, exclude, show_all, branch=None):
+        self.clean_items(tree)
         dirnames, filenames = [], []
         if branch is None or branch is tree:
             branch = tree
@@ -340,11 +353,11 @@ class Project(object):
         if old_set is not None:
             for name in old_set-new_set:
                 item = self.items.pop(name)
-                try:
-                    item.parent().removeChild(item)
-                except RuntimeError:
-                    # Item has already been deleted by PyQt
-                    pass
+#                try:
+                item.parent().removeChild(item)
+#                except RuntimeError:
+#                    # Item has already been deleted by PyQt
+#                    pass
 
 
 def get_pydev_project_infos(project_path):
@@ -1192,6 +1205,10 @@ class ExplorerTreeWidget(OneColumnTree):
         action = event.dropAction()
         if action not in (Qt.MoveAction, Qt.CopyAction):
             return
+#        
+#        # QTreeWidget must not remove the source items even in MoveAction mode:
+#        event.setDropAction(Qt.CopyAction)
+#        
         dst = get_item_path(self.itemAt(event.pos()))
         yes_to_all, no_to_all = None, None
         src_list = [unicode(url.toString()) for url in event.mimeData().urls()]
