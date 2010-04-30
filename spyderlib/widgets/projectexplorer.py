@@ -102,7 +102,7 @@ class Project(object):
         self.icon_provider = QFileIconProvider()
         self.namesets = {}
         self.pythonpath = []
-        self.empty_directories = []
+        self.directories = set()
         self.opened = True
 
         config_path = self.__get_project_config_path()
@@ -221,13 +221,10 @@ class Project(object):
                                                         exclude, show_all):
             item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
             tree.collapseItem(item)
-            if dirname in self.empty_directories:
-                index = self.empty_directories.index(dirname)
-                self.empty_directories.pop(index)
         else:
             item.setChildIndicatorPolicy(\
                                 QTreeWidgetItem.DontShowIndicatorWhenChildless)
-            self.empty_directories.append(dirname)
+        self.directories.add(dirname)
         self.items[dirname] = item
         return item
         
@@ -257,8 +254,10 @@ class Project(object):
                                 root=True)
             root_item.setIcon(0, icon)
             
-            for branch in self.namesets.keys():
-                if branch is not tree and not osp.isdir(get_item_path(branch)):
+            for dirname in self.directories.copy():
+                branch = self.items[dirname]
+                if not osp.isdir(dirname):
+                    self.directories.remove(dirname)
                     self.namesets.pop(branch)
                     continue
                 self.populate_tree(tree, include, exclude,
@@ -270,9 +269,7 @@ class Project(object):
             tree.remove_from_watcher(self)
         
     def get_monitored_pathlist(self):
-        self.empty_directories = [path for path in self.empty_directories
-                                  if osp.isdir(path)] # cleaning list
-        pathlist = [self.root_path]+self.empty_directories
+        pathlist = [self.root_path]
         for branch in self.namesets.keys():
             if isinstance(branch, QTreeWidgetItem):
                 pathlist.append(get_item_path(branch))
