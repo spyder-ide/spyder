@@ -5,6 +5,8 @@
 ^build/
 ^dist/
 ^doctmp/
+^pyflakes/
+^rope/
 ^spyder.egg-info/
 \pypi.txt
 \Thumbs.db

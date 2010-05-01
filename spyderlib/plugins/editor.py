@@ -441,6 +441,7 @@ class Editor(SpyderPluginWidget):
                         "using pyflakes, lines containing errors or "
                         "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis', True) )
+        analyze_action.setEnabled(programs.is_module_installed('pyflakes'))
         self.foldonopen_action = create_action(self, self.tr("Fold on open"),
                                      toggled=lambda checked:
                                      CONF.set(self.ID, 'fold_on_open', checked))

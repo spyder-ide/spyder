@@ -1057,7 +1057,10 @@ class MainWindow(QMainWindow):
             qsci = ", QScintilla "+ qsci
         except ImportError:
             qsci = ""
-        from spyderlib.pyflakes import __version__ as pyflakes_version
+        try:
+            from pyflakes import __version__ as pyflakes_version
+        except ImportError:
+            pyflakes_version = self.tr('(not installed)')
         QMessageBox.about(self,
             self.tr("About %1").arg("Spyder"),
             self.tr("""<b>%1 %2</b>

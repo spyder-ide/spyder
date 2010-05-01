@@ -43,10 +43,11 @@ Licensed under the terms of the MIT License
             QScintilla2 2.x (x>=1) (PyQt4 extension)
             
         Optional modules
-            pylint (code analysis)
+	    pyflakes (real-time code analysis)
+            pylint (powerful code analysis)
             numpy (N-dimensional arrays)
             scipy (signal/image processing)
-            matplotlib (2D plotting)
+            matplotlib (2D/3D plotting)
 
     Installation
     

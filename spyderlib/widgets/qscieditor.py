@@ -46,9 +46,12 @@ from spyderlib.utils import sourcecode
 # Pyflakes code analysis
 #===============================================================================
 import compiler
-from spyderlib.pyflakes import checker
 
 def check(filename):
+    try:
+        import pyflakes.checker
+    except ImportError:
+        return []
     try:
         tree = compiler.parse(file(filename, 'U').read() + '\n')
     except (SyntaxError, IndentationError), e:
@@ -62,7 +65,7 @@ def check(filename):
         return [ (message, lineno, True) ]
     else:
         results = []
-        w = checker.Checker(tree, filename)
+        w = pyflakes.checker.Checker(tree, filename)
         w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
         for warning in w.messages:
             results.append( (warning.message % warning.message_args,
