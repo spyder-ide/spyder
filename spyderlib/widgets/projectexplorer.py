@@ -102,7 +102,7 @@ class Project(object):
         self.icon_provider = QFileIconProvider()
         self.namesets = {}
         self.pythonpath = []
-        self.directories = set()
+        self.folders = set()
         self.opened = True
 
         config_path = self.__get_project_config_path()
@@ -198,11 +198,13 @@ class Project(object):
                         tree, include, exclude, show_all):
         if dirname in self.items:
             item = self.items[dirname]
+            is_expanded = item.isExpanded()
         else:
             if preceding is None:
                 item = QTreeWidgetItem(parent, QTreeWidgetItem.Type)
             else:
                 item = QTreeWidgetItem(parent, preceding, QTreeWidgetItem.Type)
+            is_expanded = False
         flags = Qt.ItemIsSelectable|Qt.ItemIsUserCheckable| \
                 Qt.ItemIsEnabled|Qt.ItemIsDropEnabled
         is_root = dirname == self.root_path
@@ -215,7 +217,7 @@ class Project(object):
             item.setFlags(flags|Qt.ItemIsDragEnabled)
         set_item_user_text(item, dirname)
         in_path = dirname in self.pythonpath
-        item.setIcon(0, get_dir_icon(dirname, expanded=False,
+        item.setIcon(0, get_dir_icon(dirname, expanded=is_expanded,
                                      pythonpath=in_path, root=is_root))
         if not item.childCount() and has_children_files(dirname, include,
                                                         exclude, show_all):
@@ -224,7 +226,7 @@ class Project(object):
         else:
             item.setChildIndicatorPolicy(\
                                 QTreeWidgetItem.DontShowIndicatorWhenChildless)
-        self.directories.add(dirname)
+        self.folders.add(dirname)
         self.items[dirname] = item
         return item
         
@@ -254,11 +256,13 @@ class Project(object):
                                 root=True)
             root_item.setIcon(0, icon)
             
-            for dirname in self.directories.copy():
+            self.clean_items(tree)
+            for dirname in self.folders.copy():
                 branch = self.items[dirname]
                 if not osp.isdir(dirname):
-                    self.directories.remove(dirname)
+                    self.folders.remove(dirname)
                     self.namesets.pop(branch)
+                    self.items.pop(dirname)
                     continue
                 self.populate_tree(tree, include, exclude,
                                    show_all, branch=branch)
@@ -271,7 +275,7 @@ class Project(object):
     def get_monitored_pathlist(self):
         pathlist = [self.root_path]
         for branch in self.namesets.keys():
-            if isinstance(branch, QTreeWidgetItem):
+            if isinstance(branch, QTreeWidgetItem) and branch in self.items:
                 pathlist.append(get_item_path(branch))
         return pathlist
         
@@ -288,12 +292,15 @@ class Project(object):
         """
         for name, item in self.items.items():
             try:
-                tree.indexFromItem(item, 0)
+                item.text(0)
             except RuntimeError:
                 self.items.pop(name)
+                if name in self.folders:
+                    self.folders.remove(name)
+                if name in self.namesets:
+                    self.namesets.pop(name)
         
     def populate_tree(self, tree, include, exclude, show_all, branch=None):
-        self.clean_items(tree)
         dirnames, filenames = [], []
         if branch is None or branch is tree:
             branch = tree
@@ -349,12 +356,15 @@ class Project(object):
         tree.add_to_watcher(self)
         if old_set is not None:
             for name in old_set-new_set:
-                item = self.items.pop(name)
-#                try:
-                item.parent().removeChild(item)
-#                except RuntimeError:
-#                    # Item has already been deleted by PyQt
-#                    pass
+                # If name is not in self.items, that is because method
+                # 'clean_items' has already removed it
+                if name in self.items:
+                    item = self.items.pop(name)
+    #                try:
+                    item.parent().removeChild(item)
+    #                except RuntimeError:
+    #                    # Item has already been deleted by PyQt
+    #                    pass
 
 
 def get_pydev_project_infos(project_path):
@@ -607,7 +617,7 @@ class ExplorerTreeWidget(OneColumnTree):
     def directory_changed(self, qstr):
         path = osp.abspath(unicode(qstr))
         for project in self.projects:
-            if path in project.get_monitored_pathlist():
+            if path in project.folders:
                 project.refresh(self, self.include, self.exclude, self.show_all)
         
     def file_changed(self, qstr):
@@ -1202,10 +1212,10 @@ class ExplorerTreeWidget(OneColumnTree):
         action = event.dropAction()
         if action not in (Qt.MoveAction, Qt.CopyAction):
             return
-#        
+        
 #        # QTreeWidget must not remove the source items even in MoveAction mode:
 #        event.setDropAction(Qt.CopyAction)
-#        
+        
         dst = get_item_path(self.itemAt(event.pos()))
         yes_to_all, no_to_all = None, None
         src_list = [unicode(url.toString()) for url in event.mimeData().urls()]
@@ -1244,6 +1254,8 @@ class ExplorerTreeWidget(OneColumnTree):
                                          translate('ProjectExplorer', 'Folder '
                                                    '<b>%2</b> already exists.')\
                                          .arg(dst_fname), QMessageBox.Ok)
+                    event.setDropAction(Qt.CopyAction)
+                    return
             try:
                 if action == Qt.CopyAction:
                     if osp.isfile(src):
