@@ -842,7 +842,7 @@ class MainWindow(QMainWindow):
         elif textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QsciScintilla
-        #    or QTextEdit instance
+        #    or QPlainTextEdit instance
         console, not_readonly, readwrite_editor = textedit_properties
         
         # Editor has focus and there is no file opened in it

@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""QTextEdit base class"""
+"""QPlainTextEdit base class"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -13,9 +13,9 @@
 
 import sys, re
 
-from PyQt4.QtGui import (QTextEdit, QTextCursor, QColor, QFont, QApplication,
+from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
-                         QPen)
+                         QPen, QPlainTextEdit)
 from PyQt4.QtCore import QPoint, SIGNAL, Qt
 
 # Local imports
@@ -129,12 +129,12 @@ class CompletionWidget(QListWidget):
         self.hide()
 
 
-class TextEditBaseWidget(QTextEdit):
+class TextEditBaseWidget(QPlainTextEdit):
     """
     Text edit base widget
     """
     def __init__(self, parent=None):
-        QTextEdit.__init__(self, parent)
+        QPlainTextEdit.__init__(self, parent)
         # Undo/Redo
         self.undo_available = False
         self.redo_available = False
@@ -301,7 +301,7 @@ class TextEditBaseWidget(QTextEdit):
         
     #-----Widget setup and options
     def setup(self):
-        """Configure QTextEdit"""
+        """Configure QPlainTextEdit"""
         # Calltips
         self.calltip_size = CONF.get('shell_appearance', 'calltips/size')
         self.calltip_font = get_font('shell_appearance', 'calltips')
@@ -324,7 +324,7 @@ class TextEditBaseWidget(QTextEdit):
 
     def set_caret(self, color=None, width=None):
         """Set caret properties"""
-        #XXX: not possible to change caret color in QTextEdit
+        #XXX: not possible to change caret color in QPlainTextEdit
         if width is not None:
             self.setCursorWidth(width)
             
@@ -333,12 +333,12 @@ class TextEditBaseWidget(QTextEdit):
         Set wrap mode
         Valid *mode* values: None, 'word', 'character'
         """
-        wrap_mode = QTextEdit.NoWrap
-        #XXX: no word/character wrapping in QTextEdit
+        wrap_mode = QPlainTextEdit.NoWrap
+        #XXX: no word/character wrapping in QPlainTextEdit
         if mode == 'word':
-            wrap_mode = QTextEdit.WidgetWidth
+            wrap_mode = QPlainTextEdit.WidgetWidth
         elif mode == 'character':
-            wrap_mode = QTextEdit.WidgetWidth
+            wrap_mode = QPlainTextEdit.WidgetWidth
         self.setLineWrapMode(wrap_mode)
 
     def toggle_wrap_mode(self, enable):
@@ -592,7 +592,7 @@ class TextEditBaseWidget(QTextEdit):
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
-            #TODO: this code has not yet been ported to QTextEdit because it's
+            #TODO: this code has not yet been ported to QPlainTextEdit because it's
             # only used in editor widgets which are based on QsciScintilla
             raise NotImplementedError
 #            cx = 5
@@ -692,12 +692,12 @@ class TextEditBaseWidget(QTextEdit):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
         self.emit(SIGNAL("focus_in()"))
-        QTextEdit.focusInEvent(self, event)
+        QPlainTextEdit.focusInEvent(self, event)
         
     def focusOutEvent(self, event):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
-        QTextEdit.focusOutEvent(self, event)
+        QPlainTextEdit.focusOutEvent(self, event)
 
 
 class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
@@ -787,7 +787,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         
     def remove_margins(self):
         """Suppressing Scintilla margins"""
-        # Do nothing for QTextEdit...
+        #TODO: implement this method
         pass
 
     def set_selection(self, start, end):

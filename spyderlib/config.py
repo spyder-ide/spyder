@@ -122,7 +122,7 @@ DEFAULTS = [
               'calltips/font/italic': False,
               'calltips/font/bold': False,
               'calltips/size': 600,
-              # This only applys to QTextEdit-based widgets:
+              # This only applys to QPlainTextEdit-based widgets:
               'completion/font/family': MONOSPACE,
               'completion/font/size': SMALL,
               'completion/font/italic': False,
