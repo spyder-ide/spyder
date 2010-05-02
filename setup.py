@@ -64,7 +64,7 @@ setup(
       platforms = ['any'],
       packages = packages,
       package_data = package_data,
-      requires=["QScintilla2 (>2.1)", "PyQt4 (>4.3)"],
+      requires=["pyflakes (>0.3.0)", "QScintilla2 (>2.1)", "PyQt4 (>4.3)"],
       scripts = scripts,
       classifiers = classifiers + [
         'License :: OSI Approved :: MIT License',
