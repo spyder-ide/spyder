@@ -818,7 +818,7 @@ class MainWindow(QMainWindow):
     def __focus_widget_properties(self):
         widget = QApplication.focusWidget()
         from spyderlib.widgets.shell import ShellBaseWidget
-        from spyderlib.widgets.qscibase import TextEditBaseWidget
+        from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
         textedit_properties = None
         if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
             console = isinstance(widget, ShellBaseWidget)
@@ -1098,7 +1098,7 @@ class MainWindow(QMainWindow):
         """Return editor plugin which has focus:
         console, extconsole, editor, inspector or historylog"""
         widget = QApplication.focusWidget()
-        from spyderlib.widgets.qscibase import TextEditBaseWidget
+        from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
         from spyderlib.widgets.shell import ShellBaseWidget
         if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
             return
@@ -1147,7 +1147,8 @@ class MainWindow(QMainWindow):
             self.findinfiles.dockwidget.setVisible(True)
             self.findinfiles.dockwidget.raise_()
         text = ''
-        from spyderlib.widgets import qscibase, qtebase
+        from spyderlib.widgets.qscieditor import qscibase
+        from spyderlib.widgets.qteditor import qtebase
         if isinstance(widget, (qscibase.TextEditBaseWidget,
                                qtebase.TextEditBaseWidget)):
             if widget.hasSelectedText():
@@ -1159,7 +1160,7 @@ class MainWindow(QMainWindow):
         widget = QApplication.focusWidget()
         action = self.sender()
         callback = unicode(action.data().toString())
-        from spyderlib.widgets.qscibase import TextEditBaseWidget
+        from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
         elif isinstance(widget, Workspace):

@@ -6,12 +6,6 @@
 
 """
 Class browser widget
-
-******************************** WARNING ***************************************
-    This module is not used anymore in Spyder since v1.1.0.
-    However, it will still be part of spyderlib module for a little while -
-    we never know, it could be useful...
-********************************************************************************
 """
 
 import os.path as osp
@@ -26,8 +20,8 @@ from PyQt4.QtCore import SIGNAL
 # Local imports
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import translate
-from spyderlib.utils.classparser import get_classes
 from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.qteditor.classparser import get_classes
 
 
 class ClassBrowser(OneColumnTree):

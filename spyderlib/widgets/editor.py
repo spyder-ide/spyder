@@ -35,9 +35,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
-from spyderlib.widgets.qscieditor import QsciEditor, check
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.qscieditor import ClassBrowser
+from spyderlib.widgets.qscieditor.qscieditor import (QsciEditor, check,
+                                                     ClassBrowser)
 
 
 class CodeAnalysisThread(QThread):

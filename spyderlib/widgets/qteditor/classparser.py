@@ -3,12 +3,6 @@
 Python class/function parser
 
 Derived from "Demo/parser/example.py" from Python distribution
-
-******************************** WARNING ***************************************
-    This module is not used anymore in Spyder since v1.1.0.
-    However, it will still be part of spyderlib module for a little while -
-    we never know, it could be useful...
-********************************************************************************
 """
 
 import os

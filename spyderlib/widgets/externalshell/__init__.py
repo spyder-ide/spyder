@@ -4,7 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""External Shell widget: execute Python script/terminal in a separate process"""
+"""
+spyderlib.widgets.externalshell
+===============================
+
+External Shell widget: execute Python script/terminal in a separate process
+"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903

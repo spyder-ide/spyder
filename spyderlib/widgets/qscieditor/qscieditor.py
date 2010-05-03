@@ -37,9 +37,9 @@ from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate, create_toolbutton,
                                        set_item_user_text)
-from spyderlib.widgets import OneColumnTree
-from spyderlib.widgets.qscibase import TextEditBaseWidget
 from spyderlib.utils import sourcecode
+from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
 
 
 #===============================================================================

@@ -31,7 +31,8 @@ from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon)
-from spyderlib.widgets.qscieditor import QsciEditor, Printer, ClassBrowser
+from spyderlib.widgets.qscieditor.qscieditor import (QsciEditor, Printer,
+                                                     ClassBrowser)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
