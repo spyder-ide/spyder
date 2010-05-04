@@ -19,12 +19,14 @@ Editor widget based on PyQt4.QtGui.QPlainTextEdit
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
+from __future__ import division
+
 import sys, os, re, os.path as osp
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
                          QApplication, QTreeWidgetItem, QSplitter, QFont,
                          QHBoxLayout, QVBoxLayout, QTextEdit, QTextFormat,
-                         QPainter, QPlainTextEdit)
+                         QPainter, QPlainTextEdit, QBrush)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QSize,
                           QRect)
 
@@ -415,6 +417,21 @@ class LineNumberArea(QWidget):
     def paintEvent(self, event):
         self.code_editor.linenumberarea_paint_event(event)
 
+class ScrollFlagArea(QWidget):
+    WIDTH = 12
+    def __init__(self, editor):
+        super(ScrollFlagArea, self).__init__(editor)
+        self.code_editor = editor
+        self.resize(self.WIDTH, 0)
+#        
+#    def sizeHint(self):
+#        return QSize(10, 0)
+        
+    def paintEvent(self, event):
+        self.code_editor.scrollflagarea_paint_event(event)
+        
+    def mousePressEvent(self, event):
+        self.code_editor.scrollflagarea_mousepress_event(event)
 
 #TODO: Show/hide TODOs, FIXMEs and XXXs (the same way as code analysis results)
 class QtEditor(TextEditBaseWidget):
@@ -453,6 +470,9 @@ class QtEditor(TextEditBaseWidget):
         self.connect(self, SIGNAL("cursorPositionChanged()"),
                      self.highlight_current_line)
         self.update_linenumberarea_width(0)
+        
+        # Scrollbar flag area
+        self.scrollflagarea = ScrollFlagArea(self)
         
         self.highlighter_class = None
         self.highlighter = None
@@ -946,7 +966,8 @@ class QtEditor(TextEditBaseWidget):
         
     def update_linenumberarea_width(self, new_block_count):
         """Update line number area width"""
-        self.setViewportMargins(self.get_linenumberarea_width(), 0, 0, 0)
+        self.setViewportMargins(self.get_linenumberarea_width(), 0,
+                                ScrollFlagArea.WIDTH, 0)
         
     def update_linenumberarea(self, qrect, dy):
         """Update line number area"""
@@ -981,13 +1002,49 @@ class QtEditor(TextEditBaseWidget):
             bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
             
+    def scrollflagarea_paint_event(self, event):
+        vmargin = 20
+        painter = QPainter(self.scrollflagarea)
+        painter.setPen(QColor("#F6D357"))
+        painter.setBrush(QBrush(QColor("#FCF1CA")))
+        painter.fillRect(event.rect(), QColor("#EFEFEF"))
+        
+        block = self.firstVisibleBlock()
+        top = vmargin+self.blockBoundingGeometry(block).translated(
+                                                    self.contentOffset()).top()
+        bottom = top+self.contentsRect().height()-2*vmargin
+        
+        count = self.blockCount()
+        
+        make_flag = lambda nb: QRect(2, top+nb*(bottom-top)/count,
+                                     self.scrollflagarea.WIDTH-4, 4)
+        
+        painter.drawRect(make_flag(0))
+        painter.drawRect(make_flag(200))
+        painter.drawRect(make_flag(800))
+        
+    def scrollflagarea_mousepress_event(self, event):
+        y = event.pos().y()
+        vmargin = 20
+        block = self.firstVisibleBlock()
+        top = vmargin+self.blockBoundingGeometry(block).translated(
+                                                    self.contentOffset()).top()
+        bottom = top+self.contentsRect().height()-2*vmargin
+        count = self.blockCount()
+        nb = (y-top)*count/(bottom-top)
+        self.go_to_line(nb)
+            
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
         super(QtEditor, self).resizeEvent(event)
         cr = self.contentsRect()
-        self.linenumberarea.setGeometry(QRect(cr.left(), cr.top(),
-                                        self.get_linenumberarea_width(),
-                                        cr.height()))
+        self.linenumberarea.setGeometry(\
+                        QRect(cr.left(), cr.top(),
+                              self.get_linenumberarea_width(), cr.height()))
+        vsbw = self.verticalScrollBar().contentsRect().width()
+        self.scrollflagarea.setGeometry(\
+                        QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
+                              self.scrollflagarea.WIDTH, cr.height()))
     
     def highlight_current_line(self):
         """Highlight current line"""
@@ -1087,8 +1144,8 @@ class QtEditor(TextEditBaseWidget):
         
     def go_to_line(self, line):
         """Go to line number *line*"""
-        self.setCursorPosition(line-1, 0)
-        self.ensureLineVisible(line-1)
+        position = self.document().findBlockByNumber(line).position()
+        self.set_cursor_position(position)
         
     def set_found_lines(self, lines):
         """Set found lines, i.e. lines corresponding to found results"""
