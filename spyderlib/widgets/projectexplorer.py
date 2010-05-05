@@ -261,7 +261,8 @@ class Project(object):
                 branch = self.items[dirname]
                 if not osp.isdir(dirname):
                     self.folders.remove(dirname)
-                    self.namesets.pop(branch)
+                    if branch in self.namesets:
+                        self.namesets.pop(branch)
                     self.items.pop(dirname)
                     continue
                 self.populate_tree(tree, include, exclude,
