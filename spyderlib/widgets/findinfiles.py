@@ -426,7 +426,7 @@ class FindOptions(QWidget):
             return
         try:
             texts = [str(utext)]
-        except UnicodeDecodeError:
+        except UnicodeEncodeError:
             texts = []
             for encoding in self.supported_encodings:
                 try:
