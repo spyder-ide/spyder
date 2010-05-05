@@ -471,7 +471,8 @@ class QsciEditor(TextEditBaseWidget):
         self.occurences = []
         
         # Scrollbar flag area
-        self.scrollflagarea = None
+        self.scrollflagarea = ScrollFlagArea(self)
+        self.scrollflagarea.hide()
         
         self.setup_editor_args = None
         
@@ -527,10 +528,10 @@ class QsciEditor(TextEditBaseWidget):
     #===========================================================================
     def set_scrollflagarea_enabled(self, state):
         if state:
-            self.scrollflagarea = ScrollFlagArea(self)
+            self.scrollflagarea.show()
             self.setViewportMargins(0, 0, 10, 0)
         else:
-            self.scrollflagarea = None
+            self.scrollflagarea.hide()
             self.setViewportMargins(0, 0, 0, 0)
             
     def scrollflagarea_paint_event(self, event):
@@ -567,7 +568,7 @@ class QsciEditor(TextEditBaseWidget):
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
         super(QsciEditor, self).resizeEvent(event)
-        if self.scrollflagarea is not None:
+        if self.scrollflagarea.isVisible():
             cr = self.contentsRect()
             vsbw = self.verticalScrollBar().contentsRect().width()
             self.scrollflagarea.setGeometry(\
@@ -976,7 +977,7 @@ class QsciEditor(TextEditBaseWidget):
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
         self.occurences = []
-        if self.scrollflagarea is not None:
+        if self.scrollflagarea.isVisible():
             self.scrollflagarea.repaint()
         
     def __mark_occurences(self):
@@ -1004,7 +1005,7 @@ class QsciEditor(TextEditBaseWidget):
             ok = self.__find_next(text)
             line, _index = self.lineindex_from_position(spos)
             self.occurences.append(line)
-        if self.scrollflagarea is not None:
+        if self.scrollflagarea.isVisible():
             self.scrollflagarea.repaint()
         
     def __lines_changed(self):
