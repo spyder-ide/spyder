@@ -258,12 +258,13 @@ class Project(object):
             
             self.clean_items(tree)
             for dirname in self.folders.copy():
-                branch = self.items[dirname]
-                if not osp.isdir(dirname):
+                branch = self.items.get(dirname)
+                if branch is None or not osp.isdir(dirname):
                     self.folders.remove(dirname)
                     if branch in self.namesets:
                         self.namesets.pop(branch)
-                    self.items.pop(dirname)
+                    if dirname in self.items:
+                        self.items.pop(dirname)
                     continue
                 self.populate_tree(tree, include, exclude,
                                    show_all, branch=branch)
