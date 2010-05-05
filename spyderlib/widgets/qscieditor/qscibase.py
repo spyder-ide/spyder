@@ -286,11 +286,13 @@ class TextEditBaseWidget(QsciScintilla):
         line_to, index_to = self.get_position(position_to)
         self.setSelection(line_from, index_from, line_to, index_to)
 
-    def get_text(self, position_from, position_to):
+    def get_text(self, position_from=None, position_to=None):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
         """
+        if position_from is None and position_to is None:
+            return self.text()
         self.__select_text(position_from, position_to)
         text = unicode(self.selectedText())
         self.clear_selection()

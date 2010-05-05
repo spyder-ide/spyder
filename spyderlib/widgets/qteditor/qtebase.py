@@ -483,11 +483,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.setPosition(position_to, QTextCursor.KeepAnchor)
         return cursor
 
-    def get_text(self, position_from, position_to):
+    def get_text(self, position_from=None, position_to=None):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
         """
+        if position_from is None and position_to is None:
+            return self.text()
         cursor = self.__select_text(position_from, position_to)
         text = cursor.selectedText()
         if not text.isEmpty():
