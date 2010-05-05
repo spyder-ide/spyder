@@ -26,7 +26,7 @@ import sys, os, re, os.path as osp
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
                          QApplication, QTreeWidgetItem, QSplitter, QFont,
                          QHBoxLayout, QVBoxLayout, QTextEdit, QTextFormat,
-                         QPainter, QPlainTextEdit, QBrush)
+                         QPainter, QPlainTextEdit, QBrush, QTextCursor)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QSize,
                           QRect)
 
@@ -262,7 +262,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 editor.populate_classbrowser(item)
                 self.restore_expanded_state()
         else:
-#            self.editor_items[editor_id] = self.populate(editor, fname)
+            self.editor_items[editor_id] = self.populate(editor, fname)
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
@@ -423,15 +423,21 @@ class ScrollFlagArea(QWidget):
         super(ScrollFlagArea, self).__init__(editor)
         self.code_editor = editor
         self.resize(self.WIDTH, 0)
-#        
-#    def sizeHint(self):
-#        return QSize(10, 0)
         
     def paintEvent(self, event):
         self.code_editor.scrollflagarea_paint_event(event)
         
     def mousePressEvent(self, event):
         self.code_editor.scrollflagarea_mousepress_event(event)
+
+class EdgeLine(QWidget):
+    def __init__(self, editor):
+        super(EdgeLine, self).__init__(editor)
+        self.code_editor = editor
+        self.column = 80
+        
+    def paintEvent(self, event):
+        self.code_editor.edgeline_paint_event(event)
 
 #TODO: Show/hide TODOs, FIXMEs and XXXs (the same way as code analysis results)
 class QtEditor(TextEditBaseWidget):
@@ -460,6 +466,9 @@ class QtEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        # 80-col edge line
+        self.edge_line = EdgeLine(self)
         
         # Line number area management
         self.linenumberarea = LineNumberArea(self)
@@ -654,35 +663,38 @@ class QtEditor(TextEditBaseWidget):
         
         # Removing cached items for which line is > total line nb
         for _l in self.__tree_cache.keys():
-            if _l >= self.lines():
+            if _l >= self.blockCount():
                 # Checking if key is still in tree cache in case one of its 
                 # ancestors was deleted in the meantime (deleting all children):
                 if _l in self.__tree_cache:
                     self.__remove_from_tree_cache(line=_l)
         
-        line = -1
+        block_nb = -1
         ancestors = [(root_item, 0)]
         previous_item = None
         previous_level = None
         
-        while line < self.lines():
-            line += 1
-            level = self.get_fold_level(line)
-            citem, clevel, _d = self.__tree_cache.get(line, (None, None, ""))
+        iterator = self.highlighter.get_classbrowser_data_iterator()
+        for block_nb, data in iterator():
+            if data is None:
+                level = None
+            else:
+                level = data.fold_level
+            citem, clevel, _d = self.__tree_cache.get(block_nb, (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
-            if level is None and citem is not None:
-                self.__remove_from_tree_cache(line=line)
+            if level is None:
+                if citem is not None:
+                    self.__remove_from_tree_cache(line=block_nb)
                 continue
-
+            
             # Searching for class/function statements
-            text = unicode(self.text(line))
-            class_name = self.classfunc_match.get_class_name(text)
+            class_name = data.get_class_name()
             if class_name is None:
-                func_name = self.classfunc_match.get_function_name(text)
+                func_name = data.get_function_name()
                 if func_name is None:
                     if citem is not None:
-                        self.__remove_from_tree_cache(line=line)
+                        self.__remove_from_tree_cache(line=block_nb)
                     continue
                 
             if previous_level is not None:
@@ -707,8 +719,8 @@ class QtEditor(TextEditBaseWidget):
                         previous_item = citem
                         continue
                     else:
-                        self.__remove_from_tree_cache(line=line)
-                item = ClassItem(class_name, line+1, parent, preceding)
+                        self.__remove_from_tree_cache(line=block_nb)
+                item = ClassItem(class_name, block_nb, parent, preceding)
             else:
                 if citem is not None:
                     if func_name == cname and level == clevel:
@@ -716,17 +728,16 @@ class QtEditor(TextEditBaseWidget):
                         previous_item = citem
                         continue
                     else:
-                        self.__remove_from_tree_cache(line=line)
-                item = FunctionItem(func_name, line+1, parent, preceding)
-                if item.is_method() and line > 0:
-                    text = unicode(self.text(line-1))
-                    decorator = self.classfunc_match.get_decorator(text)
+                        self.__remove_from_tree_cache(line=block_nb)
+                item = FunctionItem(func_name, block_nb, parent, preceding)
+                if item.is_method() and block_nb > 0:
+                    decorator = self.classfunc_match.get_decorator(data.text)
                     item.set_decorator(decorator)
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
                                      unicode(item.parent().text(0)),
                                      unicode(item.text(0)))
-            self.__tree_cache[line] = (item, level, debug)
+            self.__tree_cache[block_nb] = (item, level, debug)
             previous_level = level
             previous_item = item
         
@@ -1033,6 +1044,12 @@ class QtEditor(TextEditBaseWidget):
         count = self.blockCount()
         nb = (y-top)*count/(bottom-top)
         self.go_to_line(nb)
+        
+    def edgeline_paint_event(self, event):
+        painter = QPainter(self.edge_line)
+        color = QColor(Qt.darkGray)
+        color.setAlphaF(.5)
+        painter.fillRect(event.rect(), color)
             
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
@@ -1045,6 +1062,17 @@ class QtEditor(TextEditBaseWidget):
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
+    
+    def viewportEvent(self, event):
+        # 80-column edge line
+        cr = self.contentsRect()
+        x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
+            .translated(self.contentOffset()).left() \
+            +self.linenumberarea.contentsRect().width() \
+            +self.fontMetrics().width('9')*self.edge_line.column+5
+        self.edge_line.setGeometry(\
+                        QRect(x, cr.top(), 1, cr.bottom()))
+        return super(QtEditor, self).viewportEvent(event)
     
     def highlight_current_line(self):
         """Highlight current line"""
@@ -1081,15 +1109,11 @@ class QtEditor(TextEditBaseWidget):
         
     def set_text(self, text):
         """Set the text of the editor"""
-        self.setText(text)
+        self.setPlainText(text)
 #        self.set_eol_mode(text)
 #        if self.supported_language:
 #            self.colourise_all()
 
-    def get_text(self):
-        """Return editor text"""
-        return self.text()
-    
     def paste(self):
         """
         Reimplement QsciScintilla's method to fix the following issue:
@@ -1103,19 +1127,17 @@ class QtEditor(TextEditBaseWidget):
             clipboard.setText( eol_chars.join((text+eol_chars).splitlines()) )
         # Standard paste
         TextEditBaseWidget.paste(self)
-        
-#    def colourise_all(self):
-#        """Force Scintilla to process the whole document"""
-#        textlength = self.SendScintilla(QsciScintilla.SCI_GETTEXTLENGTH)
-#        self.SendScintilla(QsciScintilla.SCI_COLOURISE, 0, textlength)
-#        
-#    def get_fold_level(self, line):
-#        """Is it a fold header line?
-#        If so, return fold level
-#        If not, return None"""
-#        lvl = self.SendScintilla(QsciScintilla.SCI_GETFOLDLEVEL, line)
-#        if lvl & QsciScintilla.SC_FOLDLEVELHEADERFLAG:
-#            return lvl & QsciScintilla.SC_FOLDLEVELNUMBERMASK
+
+    def get_block_data(self, block_nb):
+        block = self.document().findBlockByNumber(block_nb)
+        return self.highlighter.block_data.get(block)
+
+    def get_fold_level(self, block_nb):
+        """Is it a fold header line?
+        If so, return fold level
+        If not, return None"""
+        block = self.document().findBlockByNumber(block_nb)
+        return self.get_block_data(block).fold_level
 #    
 #    def fold_expanded(self, line):
 #        """Is fold expanded?"""
@@ -1137,9 +1159,12 @@ class QtEditor(TextEditBaseWidget):
 #===============================================================================
     def highlight_line(self, line):
         """Highlight line number *line*"""
-        text = unicode(self.text(line-1)).rstrip()
-        self.setSelection(line-1, len(text), line-1, 0)
-        self.ensureLineVisible(line-1)
+        block = self.document().findBlockByNumber(line)
+        cursor = self.textCursor()
+        cursor.setPosition(block.position())
+        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+        self.centerCursor()
         self.horizontalScrollBar().setValue(0)
         
     def go_to_line(self, line):
@@ -1622,9 +1647,9 @@ class TestEditor(QtEditor):
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])
+        self.set_font(QFont("Courier New", 10))
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
-        self.set_font(QFont("Courier New", 10))
 #        self.setup_margins(True, True, True)
 
 class TestWidget(QSplitter):

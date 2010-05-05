@@ -12,7 +12,7 @@ Syntax highlighting rules are inspired from idlelib
 import sys, re, keyword, __builtin__
 
 from PyQt4.QtGui import (QColor, QApplication, QFont, QSyntaxHighlighter,
-                         QCursor, QTextCharFormat)
+                         QCursor, QTextCharFormat, QTextBlockUserData)
 from PyQt4.QtCore import Qt
 
 # For debugging purpose:
@@ -50,6 +50,24 @@ def make_python_patterns():
            multiline_string + "|" + string + "|" + number + "|" + \
            any("SYNC", [r"\n"])
 
+#TODO: Use setCurrentBlockUserData for brace matching (see Qt documentation)
+class ClassBrowserData(object):
+    CLASS = 0
+    FUNCTION = 1
+    def __init__(self):
+        self.text = None
+        self.fold_level = None
+        self.def_type = None
+        self.def_name = None
+        
+    def get_class_name(self):
+        if self.def_type == self.CLASS:
+            return self.def_name
+        
+    def get_function_name(self):
+        if self.def_type == self.FUNCTION:
+            return self.def_name
+    
 class PythonSH(QSyntaxHighlighter):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
@@ -95,8 +113,11 @@ class PythonSH(QSyntaxHighlighter):
                ("INSTANCE",   "#000000", False, True),
                ),
               }
+    DEF_TYPES = {"def": ClassBrowserData.FUNCTION, "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
         super(PythonSH, self).__init__(parent)
+        
+        self.classbrowser_data = {}
         
         if color_scheme is None:
             color_scheme = 'Pydev'
@@ -132,7 +153,9 @@ class PythonSH(QSyntaxHighlighter):
         else:
             last_state = None
         self.setFormat(0, text_length, current_format)
-            
+        
+        cb_data = None
+        
         chars = text
         m = self.PROG.search(chars)
         index = 0
@@ -148,9 +171,14 @@ class PythonSH(QSyntaxHighlighter):
                         if value in ("def", "class"):
                             m1 = self.IDPROG.match(chars, b)
                             if m1:
-                                a, b = m1.span(1)
-                                self.setFormat(a, b-a,
+                                a1, b1 = m1.span(1)
+                                self.setFormat(a1, b1-a1,
                                                self.formats["DEFINITION"])
+                                cb_data = ClassBrowserData()
+                                cb_data.text = unicode(text)
+                                cb_data.fold_level = a
+                                cb_data.def_type = self.DEF_TYPES[unicode(value)]
+                                cb_data.def_name = chars[a1:b1]
                         elif value == "import":
                             # color all the "as" words on same line, except
                             # if in a comment; cheap approximation to the
@@ -179,6 +207,22 @@ class PythonSH(QSyntaxHighlighter):
         if last_state is None:
             last_state = self.NORMAL
         self.setCurrentBlockState(last_state)
+        
+        if cb_data is not None:
+            self.classbrowser_data[self.currentBlock()] = cb_data
+            
+    def get_classbrowser_data_iterator(self):
+        """
+        Return class browser data iterator
+        The iterator yields block number and associated data
+        """
+        block_dict = {}
+        for block, data in self.classbrowser_data.iteritems():
+            block_dict[block.blockNumber()] = data
+        def iterator():
+            for block_nb in sorted(block_dict.keys()):
+                yield block_nb, block_dict[block_nb]
+        return iterator
 
     def rehighlight(self):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))

@@ -16,8 +16,8 @@ from math import log
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
                          QApplication, QTreeWidgetItem, QSplitter, QFont,
-                         QHBoxLayout, QVBoxLayout)
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer
+                         QHBoxLayout, QVBoxLayout, QPainter, QBrush)
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch, QsciPrinter)
@@ -37,7 +37,7 @@ from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate, create_toolbutton,
                                        set_item_user_text)
-from spyderlib.utils import sourcecode
+from spyderlib.utils import sourcecode, is_builtin, is_keyword
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
 
@@ -73,7 +73,7 @@ def check(filename):
         return results
 
 if __name__ == '__main__':
-    check_results = check(osp.abspath("../spyder.py"))
+    check_results = check(osp.abspath("../../spyder.py"))
     for message, line, error in check_results:
         print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
 
@@ -413,6 +413,19 @@ class CythonLexer(QsciLexerPython):
         return "Cython"
 
 #TODO: Show/hide TODOs, FIXMEs and XXXs (the same way as code analysis results)
+class ScrollFlagArea(QWidget):
+    WIDTH = 12
+    def __init__(self, editor):
+        super(ScrollFlagArea, self).__init__(editor)
+        self.code_editor = editor
+        self.resize(self.WIDTH, 0)
+        
+    def paintEvent(self, event):
+        self.code_editor.scrollflagarea_paint_event(event)
+        
+    def mousePressEvent(self, event):
+        self.code_editor.scrollflagarea_mousepress_event(event)
+
 class QsciEditor(TextEditBaseWidget):
     """
     QScintilla Base Editor Widget
@@ -439,6 +452,26 @@ class QsciEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+
+        # Code analysis markers: errors, warnings
+        self.ca_markers = []
+        self.ca_marker_lines = {}
+        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
+                                               'png'))
+        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
+                                                 'png'))
+        
+        # Mark occurences timer
+        self.occurence_highlighting = None
+        self.occurence_timer = QTimer(self)
+        self.occurence_timer.setSingleShot(True)
+        self.occurence_timer.setInterval(1500)
+        self.connect(self.occurence_timer, SIGNAL("timeout()"), 
+                     self.__mark_occurences)
+        self.occurences = []
+        
+        # Scrollbar flag area
+        self.scrollflagarea = None
         
         self.setup_editor_args = None
         
@@ -455,7 +488,7 @@ class QsciEditor(TextEditBaseWidget):
                            QsciScintilla.INDIC_BOX)
         self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
                            self.OCCURENCE_INDICATOR,
-                           0x4400FF)
+                           0x10A000)
         self.SendScintilla(QsciScintilla.SCI_INDICSETSTYLE,
                            self.CA_REFERENCE_INDICATOR,
                            QsciScintilla.INDIC_SQUIGGLE)
@@ -467,14 +500,6 @@ class QsciEditor(TextEditBaseWidget):
         self.classfunc_match = None
         self.__tree_cache = None
         self.comment_string = None
-
-        # Code analysis markers: errors, warnings
-        self.ca_markers = []
-        self.ca_marker_lines = {}
-        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
-                                               'png'))
-        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
-                                                 'png'))
         
         # Current line and find markers
         self.currentline_marker = None
@@ -489,21 +514,67 @@ class QsciEditor(TextEditBaseWidget):
         # Scintilla Python API
         self.api = None
         
-        # Mark occurences timer
-        self.occurence_highlighting = None
-        self.occurence_timer = QTimer(self)
-        self.occurence_timer.setSingleShot(True)
-        self.occurence_timer.setInterval(1500)
-        self.connect(self.occurence_timer, SIGNAL("timeout()"), 
-                     self.__mark_occurences)
-        
         # Context menu
         self.setup_context_menu()
         
         # Tab key behavior
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
+
+
+    #===========================================================================
+    # Scrollbar flag area management
+    #===========================================================================
+    def set_scrollflagarea_enabled(self, state):
+        if state:
+            self.scrollflagarea = ScrollFlagArea(self)
+            self.setViewportMargins(0, 0, 10, 0)
+        else:
+            self.scrollflagarea = None
+            self.setViewportMargins(0, 0, 0, 0)
+            
+    def scrollflagarea_paint_event(self, event):
+        painter = QPainter(self.scrollflagarea)
+        painter.fillRect(event.rect(), QColor("#EFEFEF"))
         
+        cr = self.contentsRect()
+        top = cr.top()+18
+        bottom = cr.bottom()-self.horizontalScrollBar().contentsRect().height()-22
+        count = self.lines()
+        make_flag = lambda nb: QRect(2, top+nb*(bottom-top)/count,
+                                     self.scrollflagarea.WIDTH-4, 4)
+        
+        # Warnings
+        painter.setPen(QColor("#F6D357"))
+        painter.setBrush(QBrush(QColor("#FCF1CA")))
+        for line in self.ca_marker_lines:
+            painter.drawRect(make_flag(line))
+        # Occurences
+        painter.setPen(QColor("#00A010"))
+        painter.setBrush(QBrush(QColor("#7FE289")))
+        for line in self.occurences:
+            painter.drawRect(make_flag(line))
+        
+    def scrollflagarea_mousepress_event(self, event):
+        y = event.pos().y()
+        cr = self.contentsRect()
+        top = cr.top()+18
+        bottom = cr.bottom()-self.horizontalScrollBar().contentsRect().height()-22
+        count = self.lines()
+        nb = (y-1-top)*count/(bottom-top)
+        self.highlight_line(nb)
+            
+    def resizeEvent(self, event):
+        """Reimplemented Qt method to handle line number area resizing"""
+        super(QsciEditor, self).resizeEvent(event)
+        if self.scrollflagarea is not None:
+            cr = self.contentsRect()
+            vsbw = self.verticalScrollBar().contentsRect().width()
+            self.scrollflagarea.setGeometry(\
+                        QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
+                              self.scrollflagarea.WIDTH, cr.height()))
+                
+                
     def get_document_id(self):
         return self.document_id
         
@@ -517,13 +588,17 @@ class QsciEditor(TextEditBaseWidget):
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
                      font=None, wrap=False, tab_mode=True,
-                     occurence_highlighting=True):
+                     occurence_highlighting=True, scrollflagarea=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
                 show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
                 font=font, wrap=wrap, tab_mode=tab_mode,
-                occurence_highlighting=occurence_highlighting)
+                occurence_highlighting=occurence_highlighting,
+                scrollflagarea=scrollflagarea)
+        
+        # Scrollbar flag area
+        self.set_scrollflagarea_enabled(scrollflagarea)
         
         # Lexer
         self.set_language(language)
@@ -900,6 +975,9 @@ class QsciEditor(TextEditBaseWidget):
                            self.OCCURENCE_INDICATOR)
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
+        self.occurences = []
+        if self.scrollflagarea is not None:
+            self.scrollflagarea.repaint()
         
     def __mark_occurences(self):
         """Marking occurences of the currently selected word"""
@@ -911,15 +989,23 @@ class QsciEditor(TextEditBaseWidget):
         text = self.get_current_word()
         if text.isEmpty():
             return
+        if self.is_python() and \
+           (is_builtin(unicode(text)) or is_keyword(unicode(text))):
+            return
 
         # Highlighting all occurences of word *text*
         ok = self.__find_first(text)
+        self.occurences = []
         while ok:
             spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
             epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
             self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
                                spos, epos-spos)
             ok = self.__find_next(text)
+            line, _index = self.lineindex_from_position(spos)
+            self.occurences.append(line)
+        if self.scrollflagarea is not None:
+            self.scrollflagarea.repaint()
         
     def __lines_changed(self):
         """Update margin"""
@@ -958,10 +1044,6 @@ class QsciEditor(TextEditBaseWidget):
         if self.supported_language:
             self.colourise_all()
 
-    def get_text(self):
-        """Return editor text"""
-        return self.text()
-    
     def paste(self):
         """
         Reimplement QsciScintilla's method to fix the following issue:
@@ -1534,4 +1616,5 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
+        fname = r"d:\Python\sandbox.pyw"
     test(fname)

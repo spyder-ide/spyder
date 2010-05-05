@@ -133,6 +133,8 @@ class TextEditBaseWidget(QPlainTextEdit):
     """
     Text edit base widget
     """
+    BRACE_MATCHING_SCOPE = ('sof', 'eof')
+    
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
         # Undo/Redo
@@ -163,14 +165,15 @@ class TextEditBaseWidget(QPlainTextEdit):
 
 
     def __find_brace_match(self, position, brace, forward):
+        start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
             bracemap = {'(': ')', '[': ']', '{': '}'}
-            text = self.get_text(position, 'eol')
+            text = self.get_text(position, end_pos)
             i_start_open = 1
             i_start_close = 1
         else:
             bracemap = {')': '(', ']': '[', '}': '{'}
-            text = self.get_text('sol', position)
+            text = self.get_text(start_pos, position)
             i_start_open = len(text)-1
             i_start_close = len(text)-1
 
@@ -759,6 +762,7 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
 
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
+    BRACE_MATCHING_SCOPE = ('sol', 'eol')
     COLOR_PATTERN = re.compile('\x01?\x1b\[(.*?)m\x02?')
     
     def __init__(self, parent=None):

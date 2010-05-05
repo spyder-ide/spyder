@@ -345,7 +345,7 @@ class TextEditBaseWidget(QsciScintilla):
         if end == -1:
             end = text.length()
         if end > start:
-            word = text.mid(start, end - start)
+            word = text.mid(start, end-start)
         else:
             word = QString('')
         return word

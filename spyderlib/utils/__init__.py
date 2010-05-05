@@ -101,3 +101,13 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
         files += dfiles
         lines += dlines
     return files, lines
+
+
+def is_builtin(text):
+    import __builtin__
+    return text in [str(name) for name in dir(__builtin__)
+                    if not name.startswith('_')]
+
+def is_keyword(text):
+    import keyword
+    return text in keyword.kwlist
