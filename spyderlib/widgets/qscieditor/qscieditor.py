@@ -17,7 +17,7 @@ from math import log
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
                          QApplication, QTreeWidgetItem, QSplitter, QFont,
                          QHBoxLayout, QVBoxLayout, QPainter, QBrush)
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
+from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect, QSize
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch, QsciPrinter)
@@ -418,7 +418,9 @@ class ScrollFlagArea(QWidget):
     def __init__(self, editor):
         super(ScrollFlagArea, self).__init__(editor)
         self.code_editor = editor
-        self.resize(self.WIDTH, 0)
+        
+    def sizeHint(self):
+        return QSize(self.WIDTH, 0)
         
     def paintEvent(self, event):
         self.code_editor.scrollflagarea_paint_event(event)
@@ -529,7 +531,7 @@ class QsciEditor(TextEditBaseWidget):
     def set_scrollflagarea_enabled(self, state):
         if state:
             self.scrollflagarea.show()
-            self.setViewportMargins(0, 0, 10, 0)
+            self.setViewportMargins(0, 0, ScrollFlagArea.WIDTH, 0)
         else:
             self.scrollflagarea.hide()
             self.setViewportMargins(0, 0, 0, 0)
@@ -977,8 +979,7 @@ class QsciEditor(TextEditBaseWidget):
         self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
                            0, self.length())
         self.occurences = []
-        if self.scrollflagarea.isVisible():
-            self.scrollflagarea.repaint()
+        self.scrollflagarea.update()
         
     def __mark_occurences(self):
         """Marking occurences of the currently selected word"""
@@ -1005,8 +1006,7 @@ class QsciEditor(TextEditBaseWidget):
             ok = self.__find_next(text)
             line, _index = self.lineindex_from_position(spos)
             self.occurences.append(line)
-        if self.scrollflagarea.isVisible():
-            self.scrollflagarea.repaint()
+        self.scrollflagarea.update()
         
     def __lines_changed(self):
         """Update margin"""
@@ -1617,5 +1617,4 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
-        fname = r"d:\Python\sandbox.pyw"
     test(fname)

@@ -1610,6 +1610,7 @@ def test():
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
+    test.load("qscieditor/qscieditor.py")
     test.show()
     sys.exit(app.exec_())
     
