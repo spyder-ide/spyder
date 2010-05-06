@@ -463,6 +463,12 @@ class QsciEditor(TextEditBaseWidget):
         self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
                                                  'png'))
         
+        # Todo finder
+        self.todo_lines = {}
+        self.todo_markers = []
+        self.todo = self.markerDefine(QPixmap(get_image_path('todo.png'),
+                                              'png'))
+        
         # Mark occurences timer
         self.occurence_highlighting = None
         self.occurence_timer = QTimer(self)
@@ -537,16 +543,16 @@ class QsciEditor(TextEditBaseWidget):
             self.setViewportMargins(0, 0, 0, 0)
             
     def scrollflagarea_paint_event(self, event):
-        painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), QColor("#EFEFEF"))
-        
         cr = self.contentsRect()
         top = cr.top()+18
-        bottom = cr.bottom()-self.horizontalScrollBar().contentsRect().height()-22
+        hsbh = self.horizontalScrollBar().contentsRect().height()
+        bottom = cr.bottom()-hsbh-22
         count = self.lines()
         make_flag = lambda nb: QRect(2, top+nb*(bottom-top)/count,
                                      self.scrollflagarea.WIDTH-4, 4)
         
+        painter = QPainter(self.scrollflagarea)
+        painter.fillRect(event.rect(), QColor("#EFEFEF"))
         # Warnings
         painter.setPen(QColor("#F6D357"))
         painter.setBrush(QBrush(QColor("#FCF1CA")))
@@ -557,15 +563,18 @@ class QsciEditor(TextEditBaseWidget):
         painter.setBrush(QBrush(QColor("#7FE289")))
         for line in self.occurences:
             painter.drawRect(make_flag(line))
+        # TODOs
+        painter.setPen(QColor("#3096FC"))
+        painter.setBrush(QBrush(QColor("#B4D4F3")))
+        for line in self.todo_lines:
+            painter.drawRect(make_flag(line))
         
     def scrollflagarea_mousepress_event(self, event):
         y = event.pos().y()
-        cr = self.contentsRect()
-        top = cr.top()+18
-        bottom = cr.bottom()-self.horizontalScrollBar().contentsRect().height()-22
-        count = self.lines()
-        nb = (y-1-top)*count/(bottom-top)
-        self.highlight_line(nb)
+        vsb = self.verticalScrollBar()
+        vsbcr = vsb.contentsRect()
+        range = vsb.maximum()-vsb.minimum()
+        vsb.setValue(vsb.minimum()+range*(y-vsbcr.top()-20)/(vsbcr.height()-55))
             
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
@@ -590,14 +599,15 @@ class QsciEditor(TextEditBaseWidget):
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
                      font=None, wrap=False, tab_mode=True,
-                     occurence_highlighting=True, scrollflagarea=True):
+                     occurence_highlighting=True, scrollflagarea=True,
+                     todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
                 show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
-                scrollflagarea=scrollflagarea)
+                scrollflagarea=scrollflagarea, todo_list=todo_list)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -617,7 +627,7 @@ class QsciEditor(TextEditBaseWidget):
         
         if linenumbers:
             self.connect(self, SIGNAL('linesChanged()'), self.__lines_changed)
-        self.setup_margins(linenumbers, code_analysis, code_folding)
+        self.setup_margins(linenumbers, code_analysis, code_folding, todo_list)
         
         # Re-enable brace matching (already enabled in TextEditBaseWidget.setup
         # but for an unknown reason, changing the 'set_font' call above reset
@@ -793,8 +803,8 @@ class QsciEditor(TextEditBaseWidget):
         # Auto-completion
         self.setAutoCompletionSource(QsciScintilla.AcsAll)
 
-    def setup_margins(self, linenumbers=True,
-                      code_analysis=False, code_folding=False):
+    def setup_margins(self, linenumbers=True, code_analysis=False,
+                      code_folding=False, todo_list=True):
         """
         Setup margin settings
         (except font, now set in self.set_font)
@@ -809,9 +819,9 @@ class QsciEditor(TextEditBaseWidget):
             # 1: Line numbers margin
             self.setMarginLineNumbers(1, True)
             self.update_line_numbers_margin()
-            if code_analysis:
+            if code_analysis or todo_list:
                 # 2: Errors/warnings margin
-                mask = (1 << self.error) | (1 << self.warning)
+                mask = (1 << self.error)|(1 << self.warning)|(1 << self.todo)
                 self.setMarginSensitivity(0, True)
                 self.setMarginMarkerMask(0, mask)
                 self.setMarginWidth(0, 14)
@@ -1188,6 +1198,42 @@ class QsciEditor(TextEditBaseWidget):
 #        line = self.get_line_number_at(event.pos())
 #        self.__show_code_analysis_results(line)
 #        QsciScintilla.mouseMoveEvent(self, event)
+
+    def __show_todo(self, line):
+        """Show todo message"""
+        if line in self.todo_lines:
+            self.show_calltip(self.tr("To do"), self.todo_lines[line],
+                              color='#3096FC', at_line=line)
+
+    def __highlight_todo(self, line):
+        self.highlight_line(line+1)
+        self.__show_todo(line)
+
+    def go_to_next_todo(self):
+        """Go to next todo"""
+        cline, _ = self.getCursorPosition()
+        lines = sorted(self.todo_lines.keys())
+        for line in lines:
+            if line > cline:
+                self.__highlight_todo(line)
+                return
+        else:
+            self.__highlight_todo(lines[0])
+        
+    def cleanup_todo_list(self):
+        for marker in self.todo_markers:
+            self.markerDeleteHandle(marker)
+        self.todo_markers = []
+        self.todo_lines = {}
+        
+    def process_todo(self, todo_results):
+        """Process todo finder results"""
+        self.cleanup_todo_list()
+        for message, line in todo_results:
+            marker = self.markerAdd(line, self.todo)
+            self.todo_markers.append(marker)
+            self.todo_lines[line] = message
+        self.scrollflagarea.update()
         
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""        

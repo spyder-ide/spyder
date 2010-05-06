@@ -347,6 +347,15 @@ class Editor(SpyderPluginWidget):
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
         
+        self.todo_list_action = create_action(self,
+            self.tr("Show todo list"), icon='todo_list.png',
+            tip=self.tr("Show TODO/FIXME/XXX comments list"),
+            triggered=self.go_to_next_todo)
+        self.todo_menu = QMenu(self)
+        self.todo_list_action.setMenu(self.todo_menu)
+        self.connect(self.todo_menu, SIGNAL("aboutToShow()"),
+                     self.update_todo_menu)
+        
         self.warning_list_action = create_action(self,
             self.tr("Show warning/error list"), icon='wng_list.png',
             tip=self.tr("Show code analysis warnings/errors"),
@@ -435,6 +444,10 @@ class Editor(SpyderPluginWidget):
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set text and margin font style"),
             triggered=self.change_font)
+        todo_action = create_action(self,
+            self.tr("Tasks (TODO, FIXME, XXX)"),
+            toggled=self.toggle_todo_list)
+        todo_action.setChecked( CONF.get(self.ID, 'todo_list', True) )
         analyze_action = create_action(self,
             self.tr("Code analysis (pyflakes)"),
             toggled=self.toggle_code_analysis,
@@ -517,7 +530,7 @@ class Editor(SpyderPluginWidget):
                                   wrap_action, tab_action, occurence_action,
                                   None, fold_action, self.foldonopen_action,
                                   checkeol_action, showeol_action,
-                                  showws_action, None,
+                                  showws_action, None, todo_action,
                                   analyze_action, self.classbrowser_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -535,8 +548,8 @@ class Editor(SpyderPluginWidget):
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.classbrowser_action,
-                self.warning_list_action, self.previous_warning_action,
-                self.next_warning_action]
+                self.todo_list_action, self.warning_list_action,
+                self.previous_warning_action, self.next_warning_action]
         self.run_toolbar_actions = [run_action, run_interact_action,
                 run_selected_action, None, run_process_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
@@ -610,6 +623,7 @@ class Editor(SpyderPluginWidget):
         editorstack.set_filetype_filters(self.get_filetype_filters())
         editorstack.set_valid_types(self.get_valid_types())
         settings = (('set_codeanalysis_enabled',   'code_analysis'),
+                    ('set_todolist_enabled',       'todo_list'),
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codefolding_enabled',    'code_folding'),
                     ('set_showeolchars_enabled',   'show_eol_chars'),
@@ -658,8 +672,12 @@ class Editor(SpyderPluginWidget):
                      self.opened_files_list_changed)
         self.connect(editorstack, SIGNAL('analysis_results_changed()'),
                      self.analysis_results_changed)
+        self.connect(editorstack, SIGNAL('todo_results_changed()'),
+                     self.todo_results_changed)
         self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
                      self.update_code_analysis_actions)
+        self.connect(editorstack, SIGNAL('update_code_analysis_actions()'),
+                     self.update_todo_actions)
         self.connect(editorstack,
                      SIGNAL('refresh_file_dependent_actions()'),
                      self.refresh_file_dependent_actions)
@@ -823,15 +841,33 @@ class Editor(SpyderPluginWidget):
         """Refresh analysis navigation buttons"""
         editorstack = self.get_current_editorstack()
         results = editorstack.get_analysis_results()
-        
-        # Synchronize all editorstack analysis results
         index = editorstack.get_stack_index()
         if index != -1:
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
                     other_editorstack.set_analysis_results(index, results)
-                    
         self.update_code_analysis_actions()
+            
+    def update_todo_menu(self):
+        """Update todo list menu"""
+        editorstack = self.get_current_editorstack()
+        results = editorstack.get_todo_results()
+        self.todo_menu.clear()
+        for text, line0 in results:
+            icon = get_icon('todo.png')
+            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l+1)
+            action = create_action(self, text=text, icon=icon, triggered=slot)
+            self.todo_menu.addAction(action)
+            
+    def todo_results_changed(self):
+        """Synchronize todo results between editorstacks"""
+        editorstack = self.get_current_editorstack()
+        results = editorstack.get_todo_results()
+        index = editorstack.get_stack_index()
+        if index != -1:
+            for other_editorstack in self.editorstacks:
+                if other_editorstack is not editorstack:
+                    other_editorstack.set_todo_results(index, results)
             
     def refresh_eol_mode(self, os_name):
         os_name = unicode(os_name)
@@ -870,6 +906,13 @@ class Editor(SpyderPluginWidget):
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             action.setEnabled(state)
+            
+    def update_todo_actions(self):
+        editorstack = self.get_current_editorstack()
+        results = editorstack.get_todo_results()
+        state = CONF.get(self.ID, 'todo_list') \
+                and results is not None and len(results)
+        self.todo_list_action.setEnabled(state)
         
                 
     #------ File I/O
@@ -1178,6 +1221,10 @@ class Editor(SpyderPluginWidget):
         if editor is not None:
             editor.unblockcomment()
     
+    def go_to_next_todo(self):
+        editor = self.get_current_editor()
+        editor.go_to_next_todo()
+    
     def go_to_next_warning(self):
         editor = self.get_current_editor()
         editor.go_to_next_warning()
@@ -1330,7 +1377,8 @@ class Editor(SpyderPluginWidget):
                 for finfo in editorstack.data:
                     finfo.editor.setup_margins(linenumbers=True,
                               code_folding=checked,
-                              code_analysis=CONF.get(self.ID, 'code_analysis'))
+                              code_analysis=CONF.get(self.ID, 'code_analysis'),
+                              todo_list=CONF.get(self.ID, 'todo_list'))
                     if not checked:
                         finfo.editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
@@ -1357,26 +1405,40 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.set_showwhitespace_enabled(checked)
             
+            
+    def __update_code_analysis_and_todo_list(self):
+        current_editorstack = self.get_current_editorstack()
+        current_index = current_editorstack.get_stack_index()
+        for editorstack in self.editorstacks:
+            for index, finfo in enumerate(editorstack.data):
+                finfo.editor.setup_margins(linenumbers=True,
+                          code_analysis=CONF.get(self.ID, 'code_analysis'),
+                          code_folding=CONF.get(self.ID, 'code_folding'),
+                          todo_list=CONF.get(self.ID, 'todo_list'))
+                finfo.editor.cleanup_code_analysis()
+                finfo.editor.cleanup_todo_list()
+                if index != current_index:
+                    editorstack.analyze_script(index)
+        # We must update the current editor after the others:
+        # (otherwise, code analysis buttons state would correspond to the
+        #  last editor instead of showing the one of the current editor)
+        current_editorstack.analyze_script()
+            
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
         if self.editorstacks is not None:
             CONF.set(self.ID, 'code_analysis', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codeanalysis_enabled(checked)
-            current_editorstack = self.get_current_editorstack()
-            current_index = current_editorstack.get_stack_index()
+            self.__update_code_analysis_and_todo_list()
+            
+    def toggle_todo_list(self, checked):
+        """Toggle todo list"""
+        if self.editorstacks is not None:
+            CONF.set(self.ID, 'todo_list', checked)
             for editorstack in self.editorstacks:
-                for index, finfo in enumerate(editorstack.data):
-                    finfo.editor.setup_margins(linenumbers=True,
-                              code_analysis=checked,
-                              code_folding=CONF.get(self.ID, 'code_folding'))
-                    finfo.editor.cleanup_code_analysis()
-                    if index != current_index:
-                        editorstack.analyze_script(index)
-            # We must update the current editor after the others:
-            # (otherwise, code analysis buttons state would correspond to the
-            #  last editor instead of showing the one of the current editor)
-            current_editorstack.analyze_script()
+                editorstack.set_todolist_enabled(checked)
+            self.__update_code_analysis_and_todo_list()
 
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""

@@ -21,7 +21,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR, QSize, QPoint)
 
-import os, sys
+import os, sys, re
 import os.path as osp
 
 # For debugging purpose:
@@ -56,6 +56,27 @@ class CodeAnalysisThread(QThread):
         return self.analysis_results
 
 
+class ToDoFinderThread(QThread):
+    """TODO finder thread"""
+    PATTERN = r"# ?TODO ?:[^#]*|# ?FIXME ?:[^#]*|# ?XXX ?:?[^#]*"
+    def __init__(self, parent):
+        QThread.__init__(self, parent)
+        self.text = None
+        
+    def set_text(self, text):
+        self.text = unicode(text)
+        
+    def run(self):
+        todo_results = []
+        for line, text in enumerate(self.text.splitlines()):
+            for todo in re.findall(self.PATTERN, text):
+                todo_results.append( (todo, line) )
+        self.todo_results = todo_results
+        
+    def get_results(self):
+        return self.todo_results
+
+
 class TabInfo(QObject):
     """File properties"""
     def __init__(self, filename, encoding, editor, new):
@@ -66,11 +87,16 @@ class TabInfo(QObject):
         self.editor = editor
         self.classes = (filename, None, None)
         self.analysis_results = []
+        self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
             
         self.analysis_thread = CodeAnalysisThread(self)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
                      self.code_analysis_finished)
+        
+        self.todo_thread = ToDoFinderThread(self)
+        self.connect(self.todo_thread, SIGNAL('finished()'),
+                     self.todo_finished)
     
     def run_code_analysis(self):
         if self.editor.is_python():
@@ -86,6 +112,21 @@ class TabInfo(QObject):
         """Set analysis results and update warning markers in editor"""
         self.analysis_results = analysis_results
         self.editor.process_code_analysis(analysis_results)
+            
+    def run_todo_finder(self):
+        if self.editor.is_python():
+            self.todo_thread.set_text(self.editor.get_text())
+            self.todo_thread.start()
+        
+    def todo_finished(self):
+        """Code analysis thread has finished"""
+        self.set_todo_results( self.todo_thread.get_results() )
+        self.emit(SIGNAL('todo_results_changed()'))
+        
+    def set_todo_results(self, todo_results):
+        """Set TODO results and update markers in editor"""
+        self.todo_results = todo_results
+        self.editor.process_todo(todo_results)
 
 
 class EditorStack(QWidget):
@@ -185,6 +226,7 @@ class EditorStack(QWidget):
         self.filetype_filters = None
         self.valid_types = None
         self.codeanalysis_enabled = True
+        self.todolist_enabled = True
         self.classbrowser_enabled = True
         self.codefolding_enabled = True
         self.showeolchars_enabled = False
@@ -220,6 +262,7 @@ class EditorStack(QWidget):
             finfo = self.create_new_editor(fname, enc, "", set_current=True)
             finfo.editor.set_as_clone(other_finfo.editor)
             finfo.set_analysis_results(other_finfo.analysis_results)
+            finfo.set_todo_results(other_finfo.todo_results)
         self.set_stack_index(other.get_stack_index())
         
     #------ Editor Widget Settings
@@ -254,6 +297,10 @@ class EditorStack(QWidget):
     def set_codeanalysis_enabled(self, state):
         # CONF.get(self.ID, 'code_analysis')
         self.codeanalysis_enabled = state
+    
+    def set_todolist_enabled(self, state):
+        # CONF.get(self.ID, 'todo_list')
+        self.todolist_enabled = state
         
     def set_classbrowser_enabled(self, state):
         # CONF.get(self.ID, 'class_browser')
@@ -619,13 +666,15 @@ class EditorStack(QWidget):
     
     #------ Update UI
     def analyze_script(self, index=None):
-        """Analyze current script with pyflakes"""
+        """Analyze current script with pyflakes + find todos"""
         if index is None:
             index = self.get_stack_index()
         if self.data:
+            finfo = self.data[index]
             if self.codeanalysis_enabled:
-                finfo = self.data[index]
                 finfo.run_code_analysis()
+            if self.todolist_enabled:
+                finfo.run_todo_finder()
                 
     def set_analysis_results(self, index, analysis_results):
         """Synchronize analysis results between editorstacks"""
@@ -634,6 +683,14 @@ class EditorStack(QWidget):
     def get_analysis_results(self):
         if self.data:
             return self.data[self.get_stack_index()].analysis_results
+                
+    def set_todo_results(self, index, todo_results):
+        """Synchronize todo results between editorstacks"""
+        self.data[index].set_todo_results(todo_results)
+        
+    def get_todo_results(self):
+        if self.data:
+            return self.data[self.get_stack_index()].todo_results
         
     def current_changed(self, index):
         """Stack index has changed"""
@@ -914,10 +971,13 @@ class EditorStack(QWidget):
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
+        self.connect(finfo, SIGNAL('todo_results_changed()'),
+                     lambda: self.emit(SIGNAL('todo_results_changed()')))
         editor.set_text(txt)
         editor.setup_editor(linenumbers=True, language=language,
                             code_analysis=self.codeanalysis_enabled,
                             code_folding=self.codefolding_enabled,
+                            todo_list=self.todolist_enabled,
                             show_eol_chars=self.showeolchars_enabled,
                             show_whitespace=self.showwhitespace_enabled,
                             font=self.default_font,
