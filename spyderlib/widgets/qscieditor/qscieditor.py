@@ -570,10 +570,9 @@ class QsciEditor(TextEditBaseWidget):
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
         super(QsciEditor, self).resizeEvent(event)
-        if self.scrollflagarea.isVisible():
-            cr = self.contentsRect()
-            vsbw = self.verticalScrollBar().contentsRect().width()
-            self.scrollflagarea.setGeometry(\
+        cr = self.contentsRect()
+        vsbw = self.verticalScrollBar().contentsRect().width()
+        self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
                 
