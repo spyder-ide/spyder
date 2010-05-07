@@ -414,7 +414,7 @@ class CythonLexer(QsciLexerPython):
 
 #TODO: Show/hide TODOs, FIXMEs and XXXs (the same way as code analysis results)
 class ScrollFlagArea(QWidget):
-    WIDTH = 12
+    WIDTH = 10
     def __init__(self, editor):
         super(ScrollFlagArea, self).__init__(editor)
         self.code_editor = editor
@@ -554,8 +554,8 @@ class QsciEditor(TextEditBaseWidget):
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), QColor("#EFEFEF"))
         # Warnings
-        painter.setPen(QColor("#F6D357"))
-        painter.setBrush(QBrush(QColor("#FCF1CA")))
+        painter.setPen(QColor("#C38633"))
+        painter.setBrush(QBrush(QColor("#F5DA58")))
         errors = []
         for line, item in self.ca_marker_lines.iteritems():
             for message, error in item:
@@ -566,8 +566,8 @@ class QsciEditor(TextEditBaseWidget):
                 continue
             painter.drawRect(make_flag(line))
         # Errors
-        painter.setPen(QColor("#FC3096"))
-        painter.setBrush(QBrush(QColor("#F3B4D4")))
+        painter.setPen(QColor("#E46154"))
+        painter.setBrush(QBrush(QColor("#ED9A91")))
         for line in errors:
             painter.drawRect(make_flag(line))
         # Occurences
