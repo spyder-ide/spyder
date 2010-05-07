@@ -793,6 +793,11 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             return editorstack.get_current_editor()
         
+    def get_current_finfo(self):
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            return editorstack.get_current_finfo()
+        
     def get_current_filename(self):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
@@ -838,7 +843,10 @@ class Editor(SpyderPluginWidget):
             self.warning_menu.addAction(action)
             
     def analysis_results_changed(self):
-        """Refresh analysis navigation buttons"""
+        """
+        Synchronize analysis results between editorstacks
+        Refresh analysis navigation buttons
+        """
         editorstack = self.get_current_editorstack()
         results = editorstack.get_analysis_results()
         index = editorstack.get_stack_index()
@@ -860,7 +868,10 @@ class Editor(SpyderPluginWidget):
             self.todo_menu.addAction(action)
             
     def todo_results_changed(self):
-        """Synchronize todo results between editorstacks"""
+        """
+        Synchronize todo results between editorstacks
+        Refresh todo list navigation buttons
+        """
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
         index = editorstack.get_stack_index()
@@ -1331,16 +1342,11 @@ class Editor(SpyderPluginWidget):
         if valid:
             for editorstack in self.editorstacks:
                 editorstack.set_default_font(font)
-                for finfo in editorstack.data:
-                    finfo.editor.set_font(font)
             set_font(font, self.ID)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.toggle_wrap_mode(checked)
             CONF.set(self.ID, 'wrap', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_wrap_enabled(checked)
@@ -1352,9 +1358,6 @@ class Editor(SpyderPluginWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.set_tab_mode(checked)
             CONF.set(self.ID, 'tab_always_indent', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_tabmode_enabled(checked)
@@ -1362,9 +1365,6 @@ class Editor(SpyderPluginWidget):
     def toggle_occurence_highlighting(self, checked):
         """Toggle occurence highlighting"""
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.set_occurence_highlighting(checked)
             CONF.set(self.ID, 'occurence_highlighting', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_occurence_highlighting_enabled(checked)
@@ -1373,14 +1373,6 @@ class Editor(SpyderPluginWidget):
         """Toggle code folding"""
         self.foldonopen_action.setEnabled(checked)
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.setup_margins(linenumbers=True,
-                              code_folding=checked,
-                              code_analysis=CONF.get(self.ID, 'code_analysis'),
-                              todo_list=CONF.get(self.ID, 'todo_list'))
-                    if not checked:
-                        finfo.editor.unfold_all()
             CONF.set(self.ID, 'code_folding', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codefolding_enabled(checked)
@@ -1388,9 +1380,6 @@ class Editor(SpyderPluginWidget):
     def toggle_show_eol_chars(self, checked):
         """Toggle show EOL characters"""
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.set_eol_chars_visible(checked)
             CONF.set(self.ID, 'show_eol_chars', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_showeolchars_enabled(checked)
@@ -1398,47 +1387,38 @@ class Editor(SpyderPluginWidget):
     def toggle_show_whitespace(self, checked):
         """Toggle show whitespace"""
         if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                for finfo in editorstack.data:
-                    finfo.editor.set_whitespace_visible(checked)
             CONF.set(self.ID, 'show_whitespace', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_showwhitespace_enabled(checked)
             
             
-    def __update_code_analysis_and_todo_list(self):
-        current_editorstack = self.get_current_editorstack()
-        current_index = current_editorstack.get_stack_index()
-        for editorstack in self.editorstacks:
-            for index, finfo in enumerate(editorstack.data):
-                finfo.editor.setup_margins(linenumbers=True,
-                          code_analysis=CONF.get(self.ID, 'code_analysis'),
-                          code_folding=CONF.get(self.ID, 'code_folding'),
-                          todo_list=CONF.get(self.ID, 'todo_list'))
-                finfo.editor.cleanup_code_analysis()
-                finfo.editor.cleanup_todo_list()
-                if index != current_index:
-                    editorstack.analyze_script(index)
-        # We must update the current editor after the others:
-        # (otherwise, code analysis buttons state would correspond to the
-        #  last editor instead of showing the one of the current editor)
-        current_editorstack.analyze_script()
-            
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
         if self.editorstacks is not None:
             CONF.set(self.ID, 'code_analysis', checked)
+            finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
-                editorstack.set_codeanalysis_enabled(checked)
-            self.__update_code_analysis_and_todo_list()
+                editorstack.set_codeanalysis_enabled(checked,
+                                                     current_finfo=finfo)
+            # We must update the current editor after the others:
+            # (otherwise, code analysis buttons state would correspond to the
+            #  last editor instead of showing the one of the current editor)
+            if checked:
+                finfo.run_code_analysis()
             
     def toggle_todo_list(self, checked):
         """Toggle todo list"""
         if self.editorstacks is not None:
             CONF.set(self.ID, 'todo_list', checked)
+            finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
-                editorstack.set_todolist_enabled(checked)
-            self.__update_code_analysis_and_todo_list()
+                editorstack.set_todolist_enabled(checked,
+                                                 current_finfo=finfo)
+            # We must update the current editor after the others:
+            # (otherwise, code analysis buttons state would correspond to the
+            #  last editor instead of showing the one of the current editor)
+            if checked:
+                finfo.run_todo_finder()
 
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""

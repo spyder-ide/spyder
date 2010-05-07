@@ -1155,6 +1155,7 @@ class QsciEditor(TextEditBaseWidget):
                     self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
                                        spos, epos-spos)
                     ok = self.__find_next(text)
+        self.scrollflagarea.update()
 
     def __highlight_warning(self, line):
         self.highlight_line(line+1)

@@ -112,6 +112,10 @@ class TabInfo(QObject):
         """Set analysis results and update warning markers in editor"""
         self.analysis_results = analysis_results
         self.editor.process_code_analysis(analysis_results)
+        
+    def cleanup_analysis_results(self):
+        self.analysis_results = []
+        self.editor.cleanup_code_analysis()
             
     def run_todo_finder(self):
         if self.editor.is_python():
@@ -127,6 +131,10 @@ class TabInfo(QObject):
         """Set TODO results and update markers in editor"""
         self.todo_results = todo_results
         self.editor.process_todo(todo_results)
+        
+    def cleanup_todo_results(self):
+        self.todo_results = []
+        self.editor.cleanup_todo_list()
 
 
 class EditorStack(QWidget):
@@ -294,46 +302,89 @@ class EditorStack(QWidget):
     def set_valid_types(self, valid_types):
         self.valid_types = valid_types
         
-    def set_codeanalysis_enabled(self, state):
+    def __update_editor_margins(self, editor):
+        editor.setup_margins(linenumbers=True,
+                             code_folding=self.codefolding_enabled,
+                             code_analysis=self.codeanalysis_enabled,
+                             todo_list=self.todolist_enabled)
+        
+    def set_codeanalysis_enabled(self, state, current_finfo=None):
         # CONF.get(self.ID, 'code_analysis')
         self.codeanalysis_enabled = state
+        if self.data:
+            for finfo in self.data:
+                self.__update_editor_margins(finfo.editor)
+                finfo.cleanup_analysis_results()
+                if state and current_finfo is not None:
+                    if current_finfo is not finfo:
+                        finfo.run_code_analysis()                    
     
-    def set_todolist_enabled(self, state):
+    def set_todolist_enabled(self, state, current_finfo=None):
         # CONF.get(self.ID, 'todo_list')
         self.todolist_enabled = state
+        if self.data:
+            for finfo in self.data:
+                self.__update_editor_margins(finfo.editor)
+                finfo.cleanup_todo_results()
+                if state and current_finfo is not None:
+                    if current_finfo is not finfo:
+                        finfo.run_todo_finder()
+        
+    def set_codefolding_enabled(self, state):
+        # CONF.get(self.ID, 'code_folding')
+        self.codefolding_enabled = state
+        if self.data:
+            for finfo in self.data:
+                self.__update_editor_margins(finfo.editor)
+                if not state:
+                    finfo.editor.unfold_all()
         
     def set_classbrowser_enabled(self, state):
         # CONF.get(self.ID, 'class_browser')
         self.classbrowser_enabled = state
         
-    def set_codefolding_enabled(self, state):
-        # CONF.get(self.ID, 'code_folding')
-        self.codefolding_enabled = state
-        
     def set_showeolchars_enabled(self, state):
         # CONF.get(self.ID, 'show_eol_chars')
         self.showeolchars_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_eol_chars_visible(state)
         
     def set_showwhitespace_enabled(self, state):
         # CONF.get(self.ID, 'show_whitespace')
         self.showwhitespace_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_whitespace_visible(state)
         
     def set_default_font(self, font):
         # get_font(self.ID)
         self.default_font = font
         self.__update_combobox()
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_font(font)
         
     def set_wrap_enabled(self, state):
         # CONF.get(self.ID, 'wrap')
         self.wrap_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_wrap_mode(state)
         
     def set_tabmode_enabled(self, state):
         # CONF.get(self.ID, 'tab_always_indent'))
         self.tabmode_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_tab_mode(state)
         
     def set_occurence_highlighting_enabled(self, state):
         # CONF.get(self.ID, 'occurence_highlighting'))
         self.occurence_highlighting_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_occurence_highlighting(state)
         
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.ID, 'check_eol_chars')
@@ -364,6 +415,9 @@ class EditorStack(QWidget):
     #------ Stacked widget management
     def get_stack_index(self):
         return self.tabs.currentIndex()
+    
+    def get_current_finfo(self):
+        return self.data[self.get_stack_index()]
     
     def get_current_editor(self):
         return self.tabs.currentWidget()
