@@ -2086,7 +2086,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindInFiles</name>
     <message>
-        <location filename="widgets/findinfiles.py" line="640"/>
+        <location filename="widgets/findinfiles.py" line="635"/>
         <source>Find in files</source>
         <translation>Recherche dans des fichiers</translation>
     </message>
@@ -2098,70 +2098,70 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/findinfiles.py" line="303"/>
         <source>Search text:</source>
-        <translation>Texte recherché :</translation>
+        <translation type="obsolete">Texte recherché :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="340"/>
+        <location filename="widgets/findinfiles.py" line="338"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="310"/>
+        <location filename="widgets/findinfiles.py" line="308"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="313"/>
+        <location filename="widgets/findinfiles.py" line="311"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="319"/>
+        <location filename="widgets/findinfiles.py" line="317"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="328"/>
+        <location filename="widgets/findinfiles.py" line="326"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="334"/>
+        <location filename="widgets/findinfiles.py" line="332"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="337"/>
+        <location filename="widgets/findinfiles.py" line="335"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="343"/>
+        <location filename="widgets/findinfiles.py" line="341"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
     <message>
         <location filename="widgets/findinfiles.py" line="353"/>
         <source>Search in:</source>
-        <translation>Rechercher dans :</translation>
+        <translation type="obsolete">Rechercher dans :</translation>
     </message>
     <message>
         <location filename="widgets/findinfiles.py" line="366"/>
         <source>Directory:</source>
-        <translation>Répertoire :</translation>
+        <translation type="obsolete">Répertoire :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="371"/>
+        <location filename="widgets/findinfiles.py" line="366"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="380"/>
+        <location filename="widgets/findinfiles.py" line="375"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="470"/>
+        <location filename="widgets/findinfiles.py" line="465"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -2176,12 +2176,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="360"/>
+        <location filename="widgets/findinfiles.py" line="357"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="363"/>
+        <location filename="widgets/findinfiles.py" line="360"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
@@ -2191,27 +2191,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Restaurer l&apos;organisation initiale de l&apos;arbre</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="539"/>
+        <location filename="widgets/findinfiles.py" line="534"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="540"/>
+        <location filename="widgets/findinfiles.py" line="535"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="537"/>
+        <location filename="widgets/findinfiles.py" line="532"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="355"/>
+        <location filename="widgets/findinfiles.py" line="352"/>
         <source>PYTHONPATH</source>
         <translation>PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="358"/>
+        <location filename="widgets/findinfiles.py" line="355"/>
         <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
         <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
     </message>
@@ -2221,17 +2221,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="316"/>
+        <location filename="widgets/findinfiles.py" line="314"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="533"/>
+        <location filename="widgets/findinfiles.py" line="528"/>
         <source>Search canceled</source>
         <translation>Recherche annulée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="547"/>
+        <location filename="widgets/findinfiles.py" line="542"/>
         <source>interrupted</source>
         <translation>interrompu</translation>
     </message>
@@ -2239,6 +2239,11 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <location filename="widgets/findinfiles.py" line="270"/>
         <source>invalid regular expression</source>
         <translation>expression régulière incorrecte</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="361"/>
+        <source>Here:</source>
+        <translation>Ici :</translation>
     </message>
 </context>
 <context>
@@ -3102,12 +3107,12 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>ObjectComboBox</name>
     <message>
-        <location filename="plugins/inspector.py" line="32"/>
+        <location filename="plugins/inspector.py" line="33"/>
         <source>Press enter to validate this object name</source>
         <translation>Appuyer sur Entrée pour valider ce nom d&apos;objet</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="35"/>
+        <location filename="plugins/inspector.py" line="36"/>
         <source>This object name is incorrect</source>
         <translation>Ce nom d&apos;objet n&apos;est pas valide</translation>
     </message>
@@ -3115,17 +3120,17 @@ Souhaitez-vous continuer ?</translation>
 <context>
     <name>ObjectInspector</name>
     <message>
-        <location filename="plugins/inspector.py" line="67"/>
+        <location filename="plugins/inspector.py" line="68"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="76"/>
+        <location filename="plugins/inspector.py" line="77"/>
         <source>Show source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="84"/>
+        <location filename="plugins/inspector.py" line="83"/>
         <source>Automatic import</source>
         <translation>Import automatique</translation>
     </message>
@@ -3135,29 +3140,34 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Aide</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="186"/>
+        <location filename="plugins/inspector.py" line="193"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="187"/>
+        <location filename="plugins/inspector.py" line="194"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="222"/>
+        <location filename="plugins/inspector.py" line="229"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="228"/>
+        <location filename="plugins/inspector.py" line="235"/>
         <source>No source code available.</source>
         <translation>Aucun code source disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="108"/>
+        <location filename="plugins/inspector.py" line="115"/>
         <source>Object inspector</source>
         <translation>Inspecteur d&apos;objets</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="95"/>
+        <source>Options</source>
+        <translation>Options</translation>
     </message>
 </context>
 <context>

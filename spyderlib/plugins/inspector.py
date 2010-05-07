@@ -6,9 +6,9 @@
 
 """Object Inspector Plugin"""
 
-from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
-                         QCheckBox)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
+                         QToolButton)
+from PyQt4.QtCore import SIGNAL
 
 import sys, re, os.path as osp
 
@@ -17,7 +17,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_conf_path, get_icon
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
+                                       create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor
 from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
@@ -73,26 +74,32 @@ class ObjectInspector(ReadOnlyEditor):
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
         
-        # Doc/source checkbox
-        help_or_doc = QCheckBox(self.tr("Show source"))
-        self.connect(help_or_doc, SIGNAL("stateChanged(int)"), self.toggle_help)
-        layout_edit.addWidget(help_or_doc)
-        self.docstring = None
-        self.autosource = False
-        self.toggle_help(Qt.Unchecked)
+        # Doc/source option
+        help_or_doc = create_action(self, self.tr("Show source"),
+                                    toggled=self.toggle_help)
+        help_or_doc.setChecked(False)
+        self.docstring = True
         
-        # Automatic import checkbox
-        auto_import = QCheckBox(self.tr("Automatic import"))
-        self.connect(auto_import, SIGNAL("stateChanged(int)"),
-                     self.toggle_auto_import)
-        auto_import.setChecked(CONF.get('inspector', 'automatic_import'))
-        layout_edit.addWidget(auto_import)
+        # Automatic import option
+        auto_import = create_action(self, self.tr("Automatic import"),
+                                    toggled=self.toggle_auto_import)
+        auto_import_state = CONF.get('inspector', 'automatic_import')
+        auto_import.setChecked(auto_import_state)
         
         # Lock checkbox
         self.locked_button = create_toolbutton(self,
                                                triggered=self.toggle_locked)
         layout_edit.addWidget(self.locked_button)
         self._update_lock_icon()
+        
+        # Option menu
+        options_button = create_toolbutton(self, text=self.tr("Options"),
+                                           icon=get_icon('tooloptions.png'))
+        options_button.setPopupMode(QToolButton.InstantPopup)
+        menu = QMenu(self)
+        add_actions(menu, [help_or_doc, auto_import])
+        options_button.setMenu(menu)
+        layout_edit.addWidget(options_button)
 
         # Main layout
         layout = QVBoxLayout()
@@ -161,16 +168,16 @@ class ObjectInspector(ReadOnlyEditor):
             [ unicode( self.combo.itemText(index) )
                 for index in range(self.combo.count()) ] ))
         
-    def toggle_help(self, state):
+    def toggle_help(self, checked):
         """Toggle between docstring and help()"""
-        self.docstring = (state == Qt.Unchecked)
+        self.docstring = not checked
         self.force_refresh()
         
-    def toggle_auto_import(self, state):
+    def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
-        CONF.set('inspector', 'automatic_import', state == Qt.Checked)
         self.force_refresh()
         self.combo.validate_current_text()
+        CONF.set('inspector', 'automatic_import', checked)
         
     def toggle_locked(self):
         """

@@ -301,8 +301,6 @@ class FindOptions(QWidget):
         hlayout1 = QHBoxLayout()
         self.search_text = PatternComboBox(self, search_text,
                                     translate('FindInFiles', "Search pattern"))
-        search_label = QLabel(translate('FindInFiles', "Search text:"))
-        search_label.setBuddy(self.search_text)
         self.edit_regexp = create_toolbutton(self, get_icon("advanced.png"),
                          tip=translate('FindInFiles', "Regular expression"))
         self.edit_regexp.setCheckable(True)
@@ -319,7 +317,7 @@ class FindOptions(QWidget):
                                 icon=get_icon("terminate.png"),
                                 tip=translate('FindInFiles', "Stop search"))
         self.stop_button.setEnabled(False)
-        for widget in [search_label, self.search_text, self.edit_regexp,
+        for widget in [self.search_text, self.edit_regexp,
                        self.ok_button, self.stop_button]:
             hlayout1.addWidget(widget)
 
@@ -351,7 +349,6 @@ class FindOptions(QWidget):
 
         # Layout 3
         hlayout3 = QHBoxLayout()
-        searchin_label = QLabel(translate('FindInFiles', "Search in:"))
         self.python_path = QRadioButton(translate('FindInFiles',
                                         "PYTHONPATH"), self)
         self.python_path.setToolTip(translate('FindInFiles',
@@ -362,9 +359,7 @@ class FindOptions(QWidget):
         self.detect_hg_repository()
         self.hg_manifest.setToolTip(translate('FindInFiles',
                               "Search in current directory hg repository"))
-        searchin_label.setBuddy(self.hg_manifest)
-        self.custom_dir = QRadioButton(translate('FindInFiles',
-                                                 "Directory:"), self)
+        self.custom_dir = QRadioButton(translate('FindInFiles', "Here:"), self)
         self.custom_dir.setChecked(True)
         self.dir_combo = PathComboBox(self)
         self.dir_combo.addItems(search_path)
@@ -380,8 +375,8 @@ class FindOptions(QWidget):
                                    tip=translate('FindInFiles',
                                                  'Browse a search directory'),
                                    triggered=self.select_directory)
-        for widget in [searchin_label, self.python_path, self.hg_manifest,
-                       self.custom_dir, self.dir_combo, browse]:
+        for widget in [self.python_path, self.hg_manifest, self.custom_dir,
+                       self.dir_combo, browse]:
             hlayout3.addWidget(widget)
             
         self.connect(self.search_text, SIGNAL("valid(bool)"),
@@ -659,17 +654,17 @@ class FindInFilesWidget(QWidget):
         expand_btn.setDefaultAction(self.result_browser.expand_all_action)
         restore_btn = create_toolbutton(self, text_beside_icon=False)
         restore_btn.setDefaultAction(self.result_browser.restore_action)
-        collapse_sel_btn = create_toolbutton(self, text_beside_icon=False)
-        collapse_sel_btn.setDefaultAction(
-                                self.result_browser.collapse_selection_action)
-        expand_sel_btn = create_toolbutton(self, text_beside_icon=False)
-        expand_sel_btn.setDefaultAction(
-                                self.result_browser.expand_selection_action)
+#        collapse_sel_btn = create_toolbutton(self, text_beside_icon=False)
+#        collapse_sel_btn.setDefaultAction(
+#                                self.result_browser.collapse_selection_action)
+#        expand_sel_btn = create_toolbutton(self, text_beside_icon=False)
+#        expand_sel_btn.setDefaultAction(
+#                                self.result_browser.expand_selection_action)
         
         btn_layout = QVBoxLayout()
         btn_layout.setAlignment(Qt.AlignTop)
-        for widget in [collapse_btn, expand_btn, restore_btn,
-                       collapse_sel_btn, expand_sel_btn]:
+        for widget in [collapse_btn, expand_btn, restore_btn]:
+#                       collapse_sel_btn, expand_sel_btn]:
             btn_layout.addWidget(widget)
         
         hlayout = QHBoxLayout()
