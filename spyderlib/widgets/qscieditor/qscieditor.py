@@ -556,7 +556,19 @@ class QsciEditor(TextEditBaseWidget):
         # Warnings
         painter.setPen(QColor("#F6D357"))
         painter.setBrush(QBrush(QColor("#FCF1CA")))
-        for line in self.ca_marker_lines:
+        errors = []
+        for line, item in self.ca_marker_lines.iteritems():
+            for message, error in item:
+                if error:
+                    errors.append(line)
+                    break
+            if error:
+                continue
+            painter.drawRect(make_flag(line))
+        # Errors
+        painter.setPen(QColor("#FC3096"))
+        painter.setBrush(QBrush(QColor("#F3B4D4")))
+        for line in errors:
             painter.drawRect(make_flag(line))
         # Occurences
         painter.setPen(QColor("#00A010"))
