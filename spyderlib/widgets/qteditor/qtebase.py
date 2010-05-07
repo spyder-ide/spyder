@@ -770,6 +770,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
 
+        self.setMaximumBlockCount(300)
+
         # ANSI escape code handler
         self.ansi_handler = QtANSIEscapeCodeHandler()
                 

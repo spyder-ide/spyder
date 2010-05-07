@@ -11,7 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QVBoxLayout, QFileDialog, QFontDialog, QMessageBox
+from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QMessageBox,
+                         QInputDialog)
 from PyQt4.QtCore import SIGNAL, QString, Qt
 
 import sys, os
@@ -153,6 +154,7 @@ class ExternalConsole(SpyderPluginWidget):
                                         interact, debug, path=pythonpath)
         else:
             shell = ExternalSystemShell(self, wdir, path=pythonpath)
+        shell.shell.setMaximumBlockCount( CONF.get(self.ID, 'max_line_count') )
         shell.shell.set_font( get_font(self.ID) )
         shell.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell.shell.set_calltips( CONF.get(self.ID, 'calltips') )
@@ -253,6 +255,10 @@ class ExternalConsole(SpyderPluginWidget):
                             self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
+        buffer_action = create_action(self,
+                            self.tr("Buffer..."), None,
+                            tip=self.tr("Set maximum line count"),
+                            triggered=self.change_max_line_count)
         font_action = create_action(self,
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
@@ -281,9 +287,10 @@ class ExternalConsole(SpyderPluginWidget):
                                         toggled=self.toggle_icontext)
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         self.menu_actions = [interpreter_action, run_action, None,
-                             font_action, wrap_action, calltips_action,
-                             codecompletion_action, codecompenter_action,
-                             singletab_action, icontext_action]
+                             buffer_action, font_action, wrap_action,
+                             calltips_action, codecompletion_action,
+                             codecompenter_action, singletab_action,
+                             icontext_action]
         if console_action:
             self.menu_actions.insert(1, console_action)
         return (self.menu_actions, None)
@@ -330,6 +337,17 @@ class ExternalConsole(SpyderPluginWidget):
             for index in range(self.tabwidget.count()):
                 self.tabwidget.widget(index).shell.set_font(font)
             set_font(font, self.ID)
+        
+    def change_max_line_count(self):
+        "Change maximum line count"""
+        mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
+                                           self.tr('Maximum line count'),
+                                           CONF.get(self.ID, 'max_line_count'),
+                                           10, 1000000)
+        if valid:
+            for index in range(self.tabwidget.count()):
+                self.tabwidget.widget(index).shell.setMaximumBlockCount(mlc)
+            CONF.set(self.ID, 'max_line_count', mlc)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

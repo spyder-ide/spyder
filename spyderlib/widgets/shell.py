@@ -51,7 +51,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
-        
+                
         # Prompt position: tuple (line, index)
         self.current_prompt_pos = None
         self.new_input_line = True
@@ -320,6 +320,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         
         # Is cursor on the last line? and after prompt?
         if len(text):
+            #XXX: Shouldn't it be: `if len(unicode(text).strip(os.linesep))` ?
             if self.hasSelectedText():
                 self.check_selection()
             self.restrict_cursor_position(self.current_prompt_pos, 'eof')
@@ -462,8 +463,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 
     #------ Key handlers
     def _key_enter(self):
-        self.insert_text('\n', at_end=True)
         command = self.input_buffer
+        self.insert_text('\n', at_end=True)
         self.on_enter(command)
         self.flush()
     def _key_other(self, text):

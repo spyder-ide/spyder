@@ -588,6 +588,9 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.setMarginWidth(1, 0)
         self.setMarginWidth(2, 0)
 
+    def setMaximumBlockCount(self, count):
+        """Fake QPlainTextEdit method"""
+        pass
 
     def truncate_selection(self, position_from):
         """Unselect read-only parts in shell, like prompt"""

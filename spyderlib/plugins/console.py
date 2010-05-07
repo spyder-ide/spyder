@@ -49,6 +49,7 @@ class Console(SpyderPluginWidget):
                  debug=False, exitfunc=None, profile=False):
         # Shell
         self.shell = InteractiveShell(parent, namespace, commands, message,
+                                      CONF.get(self.ID, 'max_line_count'),
                                       get_font(self.ID),
                                       debug, exitfunc, profile)
         self.connect(self.shell, SIGNAL('status(QString)'),
@@ -141,6 +142,10 @@ class Console(SpyderPluginWidget):
                             icon = 'syspath.png',
                             tip=self.tr("Show (read-only) sys.path"),
                             triggered=show_syspath)
+        buffer_action = create_action(self,
+                            self.tr("Buffer..."), None,
+                            tip=self.tr("Set maximum line count"),
+                            triggered=self.change_max_line_count)
         font_action = create_action(self,
                             self.tr("&Font..."), None,
                             'font.png', self.tr("Set shell font style"),
@@ -175,9 +180,10 @@ class Console(SpyderPluginWidget):
         
         option_menu = QMenu(self.tr("Interactive console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
-        add_actions(option_menu, (font_action, wrap_action, calltips_action,
-                                  codecompletion_action, codecompenter_action,
-                                  rollbackimporter_action, exteditor_action))
+        add_actions(option_menu, (buffer_action, font_action, wrap_action,
+                                  calltips_action, codecompletion_action,
+                                  codecompenter_action, rollbackimporter_action,
+                                  exteditor_action))
         
         if is_module_installed('matplotlib'):
             dockablefigures_action = create_action(self,
@@ -272,6 +278,16 @@ class Console(SpyderPluginWidget):
         if valid:
             self.shell.set_font(font)
             set_font(font, self.ID)
+        
+    def change_max_line_count(self):
+        "Change maximum line count"""
+        mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
+                                           self.tr('Maximum line count'),
+                                           CONF.get(self.ID, 'max_line_count'),
+                                           10, 1000000)
+        if valid:
+            self.shell.setMaximumBlockCount(mlc)
+            CONF.set(self.ID, 'max_line_count', mlc)
 
     def change_exteditor(self):
         """Change external editor path"""

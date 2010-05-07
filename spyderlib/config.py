@@ -132,6 +132,7 @@ DEFAULTS = [
             ('shell',
              {
               'shortcut': "Ctrl+Shift+C",
+              'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
               'font/family': MONOSPACE,
@@ -153,6 +154,7 @@ DEFAULTS = [
             ('external_shell',
              {
               'shortcut': "Ctrl+Shift+X",
+              'max_line_count': 300,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,

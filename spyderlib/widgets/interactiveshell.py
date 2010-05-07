@@ -106,10 +106,13 @@ class InteractiveShell(PythonShellWidget):
     p1 = ">>> "
     p2 = "... "
     def __init__(self, parent=None, namespace=None, commands=None, message="",
-                 font=None, debug=False, exitfunc=None, profile=False):
+                 max_line_count=300, font=None, debug=False, exitfunc=None,
+                 profile=False):
         PythonShellWidget.__init__(self, parent,
                                    get_conf_path('.history_ic.py'),
                                    debug, profile)
+        
+        self.setMaximumBlockCount(max_line_count)
         
         if font is not None:
             self.set_font(font)
