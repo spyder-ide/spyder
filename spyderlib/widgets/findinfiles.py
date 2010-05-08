@@ -305,6 +305,12 @@ class FindOptions(QWidget):
                          tip=translate('FindInFiles', "Regular expression"))
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
+        self.more_widgets = ()
+        self.more_options = create_toolbutton(self,
+                                              toggled=self.toggle_more_options)
+        self.more_options.setCheckable(True)
+        self.more_options.setChecked(True)
+        
         self.ok_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Search"),
                                 triggered=lambda: self.emit(SIGNAL('find()')),
@@ -318,7 +324,7 @@ class FindOptions(QWidget):
                                 tip=translate('FindInFiles', "Stop search"))
         self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp,
-                       self.ok_button, self.stop_button]:
+                       self.ok_button, self.stop_button, self.more_options]:
             hlayout1.addWidget(widget)
 
         # Layout 2
@@ -392,9 +398,23 @@ class FindOptions(QWidget):
         vlayout.addLayout(hlayout1)
         vlayout.addLayout(hlayout2)
         vlayout.addLayout(hlayout3)
+        self.more_widgets = (hlayout2, hlayout3)
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
+        
+    def toggle_more_options(self, state):
+        for layout in self.more_widgets:
+            for index in range(layout.count()):
+                layout.itemAt(index).widget().setVisible(state)
+        if state:
+            icon_name = 'options_less.png'
+            tip = translate('FindInFiles', 'Hide advanced options')
+        else:
+            icon_name = 'options_more.png'
+            tip = translate('FindInFiles', 'Show advanced options')
+        self.more_options.setIcon(get_icon(icon_name))
+        self.more_options.setToolTip(tip)
         
     def update_combos(self):
         self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
