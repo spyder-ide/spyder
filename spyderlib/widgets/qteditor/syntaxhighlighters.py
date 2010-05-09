@@ -38,8 +38,8 @@ def make_python_patterns():
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
-    ml_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')[^\n]*"
-    ml_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")[^\n]*'
+    ml_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*"
+    ml_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*'
     multiline_string = any("ML_STRING", [ml_sq3string, ml_dq3string])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
@@ -138,78 +138,62 @@ class PythonSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-            if name == "STRING":
-                self.formats["ML_STRING"] = format
 
     def highlightBlock(self, text):
-        text_length = text.length()
-        previous_state = self.previousBlockState()
-
-        current_format = self.formats["NORMAL"]
-        inside_string = previous_state == self.INSIDE_STRING
-        if inside_string:
-            current_format = self.formats["STRING"]
-            last_state = self.INSIDE_STRING
-        else:
-            last_state = None
-        self.setFormat(0, text_length, current_format)
+        inside_string = self.previousBlockState() == self.INSIDE_STRING
+        self.setFormat(0, text.length(),
+                       self.formats["STRING" if inside_string else "NORMAL"])
         
-        cb_data = None
+        cbdata = None
         
-        chars = text
-        m = self.PROG.search(chars)
+        match = self.PROG.search(text)
         index = 0
-        while m:
-            for key, value in m.groupdict().items():
+        while match:
+            for key, value in match.groupdict().items():
                 if value:
-                    a, b = m.span(key)
-                    index += b-a
-                    if inside_string:
-                        self.setFormat(a, b-a, self.formats["STRING"])
+                    start, end = match.span(key)
+                    index += end-start
+                    if key == "ML_STRING":
+                        self.setFormat(start, end-start, self.formats["STRING"])
+                        inside_string = not inside_string
+                    elif inside_string:
+                        self.setFormat(start, end-start, self.formats["STRING"])
                     else:
-                        self.setFormat(a, b-a, self.formats[key])
+                        self.setFormat(start, end-start, self.formats[key])
                         if value in ("def", "class"):
-                            m1 = self.IDPROG.match(chars, b)
-                            if m1:
-                                a1, b1 = m1.span(1)
-                                self.setFormat(a1, b1-a1,
+                            match1 = self.IDPROG.match(text, end)
+                            if match1:
+                                start1, end1 = match1.span(1)
+                                self.setFormat(start1, end1-start1,
                                                self.formats["DEFINITION"])
-                                cb_data = ClassBrowserData()
-                                cb_data.text = unicode(text)
-                                cb_data.fold_level = a
-                                cb_data.def_type = self.DEF_TYPES[unicode(value)]
-                                cb_data.def_name = chars[a1:b1]
+                                cbdata = ClassBrowserData()
+                                cbdata.text = unicode(text)
+                                cbdata.fold_level = start
+                                cbdata.def_type = self.DEF_TYPES[unicode(value)]
+                                cbdata.def_name = text[start1:end1]
                         elif value == "import":
                             # color all the "as" words on same line, except
                             # if in a comment; cheap approximation to the
                             # truth
-                            if '#' in chars:
-                                endpos = chars.index('#')
+                            if '#' in text:
+                                endpos = text.index('#')
                             else:
-                                endpos = len(chars)
+                                endpos = len(text)
                             while True:
-                                m1 = self.ASPROG.match(chars, b, endpos)
-                                if not m1:
+                                match1 = self.ASPROG.match(text, end, endpos)
+                                if not match1:
                                     break
-                                a, b = m1.span(1)
-                                self.setFormat(a, b-a, self.formats["KEYWORD"])
-                    if key == "ML_STRING":
-                        inside_string = not inside_string
-                        if inside_string:
-                            current_format = self.formats["STRING"]
-                            last_state = self.INSIDE_STRING
-                        else:
-                            current_format = self.formats["NORMAL"]
-                            last_state = self.NORMAL
+                                start, end = match1.span(1)
+                                self.setFormat(start, end-start,
+                                               self.formats["KEYWORD"])
                     
-            m = self.PROG.search(chars, m.end())
+            match = self.PROG.search(text, match.end())
 
-        if last_state is None:
-            last_state = self.NORMAL
+        last_state = self.INSIDE_STRING if inside_string else self.NORMAL
         self.setCurrentBlockState(last_state)
         
-        if cb_data is not None:
-            self.classbrowser_data[self.currentBlock()] = cb_data
+        if cbdata is not None:
+            self.classbrowser_data[self.currentBlock()] = cbdata
             
     def get_classbrowser_data_iterator(self):
         """

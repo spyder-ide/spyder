@@ -26,7 +26,8 @@ import sys, os, re, os.path as osp
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter, QWidget,
                          QApplication, QTreeWidgetItem, QSplitter, QFont,
                          QHBoxLayout, QVBoxLayout, QTextEdit, QTextFormat,
-                         QPainter, QPlainTextEdit, QBrush, QTextCursor)
+                         QPainter, QPlainTextEdit, QBrush, QTextCursor,
+                         QTextDocument, QTextCharFormat)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QSize,
                           QRect)
 
@@ -41,7 +42,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.widgets import OneColumnTree
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
 from spyderlib.widgets.qteditor.syntaxhighlighters import PythonSH
-from spyderlib.utils import sourcecode
+from spyderlib.utils import sourcecode, is_builtin, is_keyword
 
 
 #===============================================================================
@@ -458,8 +459,6 @@ class QtEditor(TextEditBaseWidget):
 #                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
                  }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
-#    OCCURENCE_INDICATOR = QsciScintilla.INDIC_CONTAINER
-#    CA_REFERENCE_INDICATOR = QsciScintilla.INDIC_BOX
 #    EOL_MODES = {"\r\n": QsciScintilla.EolWindows,
 #                 "\n":   QsciScintilla.EolUnix,
 #                 "\r":   QsciScintilla.EolMac}
@@ -476,12 +475,20 @@ class QtEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
-        self.connect(self, SIGNAL("cursorPositionChanged()"),
-                     self.highlight_current_line)
         self.update_linenumberarea_width(0)
+        
+        self.extra_selections_dict = {}
+        
+        # Highlight current line
+        bcol = CONF.get('editor', 'currentline/backgroundcolor')
+        bcol = QColor("#FFFF99") # IDLE color scheme
+        bcol = QColor("#E8F2FE") # Pydev color scheme
+        self.currentline_color = QColor(bcol)
+        self.highlight_current_line()
         
         # Scrollbar flag area
         self.scrollflagarea = ScrollFlagArea(self)
+        self.scrollflagarea.hide()
         
         self.highlighter_class = None
         self.highlighter = None
@@ -493,21 +500,8 @@ class QtEditor(TextEditBaseWidget):
         # Indicate occurences of the selected word
         self.connect(self, SIGNAL('cursorPositionChanged()'),
                      self.__cursor_position_changed)
-        self.__find_start = None
-        self.__find_end = None
+        self.__find_first_pos = None
         self.__find_flags = None
-#        self.SendScintilla(QsciScintilla.SCI_INDICSETSTYLE,
-#                           self.OCCURENCE_INDICATOR,
-#                           QsciScintilla.INDIC_BOX)
-#        self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
-#                           self.OCCURENCE_INDICATOR,
-#                           0x4400FF)
-#        self.SendScintilla(QsciScintilla.SCI_INDICSETSTYLE,
-#                           self.CA_REFERENCE_INDICATOR,
-#                           QsciScintilla.INDIC_SQUIGGLE)
-#        self.SendScintilla(QsciScintilla.SCI_INDICSETFORE,
-#                           self.CA_REFERENCE_INDICATOR,
-#                           0x39A2F1)
 
         self.supported_language = None
         self.classfunc_match = None
@@ -517,17 +511,14 @@ class QtEditor(TextEditBaseWidget):
         # Code analysis markers: errors, warnings
         self.ca_markers = []
         self.ca_marker_lines = {}
+        self.codeanalysis_color = QColor("#F1A239")
 #        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
 #                                               'png'))
 #        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
 #                                                 'png'))
         
-        # Highlight current line
-        bcol = CONF.get('editor', 'currentline/backgroundcolor')
-        bcol = QColor("#FFFF99") # IDLE color scheme
-        bcol = QColor("#E8F2FE") # Pydev color scheme
-        self.currentline_color = QColor(bcol)
-        self.highlight_current_line()
+        # Todo finder
+        self.todo_lines = {}
         
         self.foundline_markers = []
 #        self.foundline = self.markerDefine(QsciScintilla.Background)
@@ -538,14 +529,16 @@ class QtEditor(TextEditBaseWidget):
         self.api = None
         
         # Mark occurences timer
-        self.occurence_highlighting_color = QColor("#E8F2FE") # IDLE color scheme
-        self.occurence_highlighting_color = QColor("#FFFF99") # Pydev color scheme
         self.occurence_highlighting = None
         self.occurence_timer = QTimer(self)
         self.occurence_timer.setSingleShot(True)
         self.occurence_timer.setInterval(1500)
         self.connect(self.occurence_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
+        self.occurences = []
+        bcol = QColor("#E8F2FE") # IDLE color scheme
+        bcol = QColor("#FFFF99") # Pydev color scheme
+        self.occurence_color = QColor(bcol)
         
         # Context menu
         self.setup_context_menu()
@@ -567,19 +560,24 @@ class QtEditor(TextEditBaseWidget):
                      code_analysis=False, code_folding=False,
                      show_eol_chars=False, show_whitespace=False,
                      font=None, wrap=False, tab_mode=True,
-                     occurence_highlighting=True):
+                     occurence_highlighting=True, scrollflagarea=True,
+                     todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
                 show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
                 font=font, wrap=wrap, tab_mode=tab_mode,
-                occurence_highlighting=occurence_highlighting)
+                occurence_highlighting=occurence_highlighting,
+                scrollflagarea=scrollflagarea, todo_list=todo_list)
+        
+        # Scrollbar flag area
+        self.set_scrollflagarea_enabled(scrollflagarea)
         
         # Lexer
         self.set_language(language)
                 
         # Occurence highlighting
-#        self.set_occurence_highlighting(occurence_highlighting)
+        self.set_occurence_highlighting(occurence_highlighting)
                 
         # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
@@ -621,7 +619,7 @@ class QtEditor(TextEditBaseWidget):
         """Enable/disable occurence highlighting"""
         self.occurence_highlighting = enable
         if not enable:
-            self.__clear_occurence_markers()
+            self.__clear_occurences()
 
     def set_language(self, language):
         self.supported_language = False
@@ -748,17 +746,6 @@ class QtEditor(TextEditBaseWidget):
     def setup(self):
         """Reimplement TextEditBaseWidget method"""
         TextEditBaseWidget.setup(self)
-        
-#        # Wrapping
-#        if CONF.get('editor', 'wrapflag'):
-#            self.setWrapVisualFlags(QsciScintilla.WrapFlagByBorder)
-        
-#        # 80-columns edge
-#        self.setEdgeColumn(80)
-#        self.setEdgeMode(QsciScintilla.EdgeLine)
-        
-#        # Auto-completion
-#        self.setAutoCompletionSource(QsciScintilla.AcsAll)
 
     def setup_margins(self, linenumbers=True,
                       code_analysis=False, code_folding=False):
@@ -801,40 +788,9 @@ class QtEditor(TextEditBaseWidget):
         if fcol and bcol:
             self.setFoldMarginColors(QColor(fcol), QColor(bcol))
         
-    def setup_api(self):
-        """Load and prepare Python API"""
-        if self.lexer() is None:
-            return
-        self.api = QsciAPIs(self.lexer())
-        is_api_ready = False
-        api_path = CONF.get('editor', 'api')
-        if not osp.isfile(api_path):
-            from spyderlib.config import DATA_PATH
-            api_path = osp.join(DATA_PATH, 'python.api')
-            if osp.isfile(api_path):
-                CONF.set('editor', 'api', api_path)
-            else:
-                return False
-        api_size = CONF.get('editor', 'api_size', None)
-        current_api_size = os.stat(api_path).st_size
-        if api_size is not None and api_size == current_api_size:
-            if self.api.isPrepared():
-                is_api_ready = self.api.loadPrepared()
-        else:
-            CONF.set('editor', 'api_size', current_api_size)
-        if not is_api_ready:
-            if self.api.load(api_path):
-                self.api.prepare()
-                self.connect(self.api, SIGNAL("apiPreparationFinished()"),
-                             self.api.savePrepared)
-        return is_api_ready
-    
     def set_whitespace_visible(self, state):
         """Show/hide whitespace"""
-        if state:
-            self.setWhitespaceVisibility(QsciScintilla.WsVisible)
-        else:
-            self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
+        raise NotImplementedError
     
     def set_eol_chars_visible(self, state):
         """Show/hide EOL characters"""
@@ -877,95 +833,81 @@ class QtEditor(TextEditBaseWidget):
         else:
             return ''
     
-    def __find_first(self, text, line=None):
-        """
-        Find first occurence
-        line is None: scan whole document
-        *or*
-        line is not None: scan only line number *line*
-        """
-        self.__find_flags = QsciScintilla.SCFIND_MATCHCASE | \
-                            QsciScintilla.SCFIND_WHOLEWORD
-        if line is None:
-            # Scanning whole document
-            self.__find_start = 0
-            line = self.lines()-1
-        else:
-            # Scanning line number *line* and following lines if continued
-            self.__find_start = self.position_from_lineindex(line, 0)
-            def is_line_splitted(line_no):
-                stripped = unicode(self.text(line_no)).strip()
-                return stripped.endswith('\\') or stripped.endswith(',') \
-                       or len(stripped) == 0
-            while line < self.lines()-1 and is_line_splitted(line):
-                line += 1
-        self.__find_end = self.position_from_lineindex(line,
-                                               self.text(line).length())
-        return self.__find_next(text)
+    def __find_first(self, text):
+        """Find first occurence: scan whole document"""
+        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
+        cursor = self.textCursor()
+        # Scanning whole document
+        cursor.movePosition(QTextCursor.Start)
+        cursor = self.document().find(text, cursor, flags)
+        self.__find_first_pos = cursor.position()
+        return cursor
     
-    def __find_next(self, text):
+    def __find_next(self, text, cursor):
         """Find next occurence"""
-        if self.__find_start == self.__find_end:
-            return False
-        
-        self.SendScintilla(QsciScintilla.SCI_SETTARGETSTART,
-                           self.__find_start)
-        self.SendScintilla(QsciScintilla.SCI_SETTARGETEND,
-                           self.__find_end)
-        self.SendScintilla(QsciScintilla.SCI_SETSEARCHFLAGS,
-                           self.__find_flags)
-        pos = self.SendScintilla(QsciScintilla.SCI_SEARCHINTARGET, 
-                                 len(text), text)
-        
-        if pos == -1:
-            return False
-        self.__find_start = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-        return True
-        
-    def __get_found_occurence(self):
-        """Return found occurence"""
-        spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
-        epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-        return (spos, epos - spos)
+        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
+        cursor = self.document().find(text, cursor, flags)
+        if cursor.position() != self.__find_first_pos:
+            return cursor
         
     def __cursor_position_changed(self):
         """Cursor position has changed"""
-        return
-        if self.currentline_marker is not None:
-            self.markerDeleteHandle(self.currentline_marker)
-        line, _index = self.getCursorPosition()
-        self.currentline_marker = self.markerAdd(line, self.currentline)
+        self.highlight_current_line()
         if self.occurence_highlighting:
             self.occurence_timer.stop()
             self.occurence_timer.start()
         
-    def __clear_occurence_markers(self):
+    def __clear_occurences(self):
         """Clear occurence markers"""
-        self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
-                           self.OCCURENCE_INDICATOR)
-        self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
-                           0, self.length())
+        self.occurences = []
+        self.clear_extra_selections('occurences')
+        self.scrollflagarea.update()
+
+    def __highlight_selection(self, key, cursor, background_color=None,
+                              underline_color=None, update=False):
+        extra_selections = self.extra_selections_dict.get(key, [])
+        selection = QTextEdit.ExtraSelection()
+        if background_color is not None:
+            selection.format.setBackground(background_color)
+        if underline_color is not None:
+            selection.format.setProperty(QTextFormat.TextUnderlineStyle,
+                                         QTextCharFormat.SpellCheckUnderline)
+            selection.format.setProperty(QTextFormat.TextUnderlineColor,
+                                         underline_color)
+        selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+        selection.cursor = cursor
+        extra_selections.append(selection)
+        self.extra_selections_dict[key] = extra_selections
+        if update:
+            self.update_extra_selections()
         
     def __mark_occurences(self):
         """Marking occurences of the currently selected word"""
-        self.__clear_occurence_markers()
+        self.__clear_occurences()
 
         if not self.supported_language or self.hasSelectedText():
             return
             
         text = self.get_current_word()
-        if text.isEmpty():
+        if text is None:
+            return
+        if self.is_python() and \
+           (is_builtin(unicode(text)) or is_keyword(unicode(text))):
             return
 
         # Highlighting all occurences of word *text*
-        ok = self.__find_first(text)
-        while ok:
-            spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
-            epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-            self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
-                               spos, epos-spos)
-            ok = self.__find_next(text)
+        cursor = self.__find_first(text)
+        self.occurences = []
+        while cursor:
+            self.occurences.append(cursor.block().blockNumber())
+            self.__highlight_selection('occurences', cursor,
+                                       background_color=self.occurence_color)
+            cursor = self.__find_next(text, cursor)
+        self.update_extra_selections()
+        self.occurences.pop(-1)
+        self.scrollflagarea.update()
         
+    #-----linenumberarea
     def get_linenumberarea_width(self):
         """Return line number area width"""
         digits = 1
@@ -1012,44 +954,65 @@ class QtEditor(TextEditBaseWidget):
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
-            
+
+    #-----scrollflagarea
+    def set_scrollflagarea_enabled(self, state):
+        if state:
+            self.scrollflagarea.show()
+            self.setViewportMargins(0, 0, ScrollFlagArea.WIDTH, 0)
+        else:
+            self.scrollflagarea.hide()
+            self.setViewportMargins(0, 0, 0, 0)
+                        
     def scrollflagarea_paint_event(self, event):
-        vmargin = 20
-        painter = QPainter(self.scrollflagarea)
-        painter.setPen(QColor("#F6D357"))
-        painter.setBrush(QBrush(QColor("#FCF1CA")))
-        painter.fillRect(event.rect(), QColor("#EFEFEF"))
-        
-        block = self.firstVisibleBlock()
-        top = vmargin+self.blockBoundingGeometry(block).translated(
-                                                    self.contentOffset()).top()
-        bottom = top+self.contentsRect().height()-2*vmargin
-        
+        cr = self.contentsRect()
+        top = cr.top()+18
+        hsbh = self.horizontalScrollBar().contentsRect().height()
+        bottom = cr.bottom()-hsbh-22
         count = self.blockCount()
         
         make_flag = lambda nb: QRect(2, top+nb*(bottom-top)/count,
                                      self.scrollflagarea.WIDTH-4, 4)
         
-        painter.drawRect(make_flag(0))
-        painter.drawRect(make_flag(200))
-        painter.drawRect(make_flag(800))
+        painter = QPainter(self.scrollflagarea)
+        painter.fillRect(event.rect(), QColor("#EFEFEF"))
+        
+        painter.setPen(QColor("#F6D357"))
+        painter.setBrush(QBrush(QColor("#FCF1CA")))
+        # Warnings
+        painter.setPen(QColor("#C38633"))
+        painter.setBrush(QBrush(QColor("#F5DA58")))
+        errors = []
+        for line, item in self.ca_marker_lines.iteritems():
+            for message, error in item:
+                if error:
+                    errors.append(line)
+                    break
+            if error:
+                continue
+            painter.drawRect(make_flag(line))
+        # Errors
+        painter.setPen(QColor("#E46154"))
+        painter.setBrush(QBrush(QColor("#ED9A91")))
+        for line in errors:
+            painter.drawRect(make_flag(line))
+        # Occurences
+        painter.setPen(QColor("#00A010"))
+        painter.setBrush(QBrush(QColor("#7FE289")))
+        for line in self.occurences:
+            painter.drawRect(make_flag(line))
+        # TODOs
+        painter.setPen(QColor("#3096FC"))
+        painter.setBrush(QBrush(QColor("#B4D4F3")))
+        for line in self.todo_lines:
+            painter.drawRect(make_flag(line))
         
     def scrollflagarea_mousepress_event(self, event):
         y = event.pos().y()
-        vmargin = 20
-        block = self.firstVisibleBlock()
-        top = vmargin+self.blockBoundingGeometry(block).translated(
-                                                    self.contentOffset()).top()
-        bottom = top+self.contentsRect().height()-2*vmargin
-        count = self.blockCount()
-        nb = (y-top)*count/(bottom-top)
-        self.go_to_line(nb)
-        
-    def edgeline_paint_event(self, event):
-        painter = QPainter(self.edge_line)
-        color = QColor(Qt.darkGray)
-        color.setAlphaF(.5)
-        painter.fillRect(event.rect(), color)
+        vsb = self.verticalScrollBar()
+        vsbcr = vsb.contentsRect()
+        range = vsb.maximum()-vsb.minimum()
+        vsb.setValue(vsb.minimum()+range*(y-vsbcr.top()-20)/(vsbcr.height()-55))
             
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
@@ -1062,6 +1025,13 @@ class QtEditor(TextEditBaseWidget):
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
+
+    #-----edgeline
+    def edgeline_paint_event(self, event):
+        painter = QPainter(self.edge_line)
+        color = QColor(Qt.darkGray)
+        color.setAlphaF(.5)
+        painter.fillRect(event.rect(), color)
     
     def viewportEvent(self, event):
         # 80-column edge line
@@ -1073,20 +1043,30 @@ class QtEditor(TextEditBaseWidget):
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         return super(QtEditor, self).viewportEvent(event)
-    
+
+    #-----highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        extra_selections = []
-        
         if not self.isReadOnly():
             selection = QTextEdit.ExtraSelection()
-            selection.format.setBackground(self.currentline_color)
             selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+            selection.format.setBackground(self.currentline_color)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
-            extra_selections.append(selection)
-            
+            self.extra_selections_dict['current_line'] = [selection]
+            self.update_extra_selections()
+        
+        
+    def update_extra_selections(self):
+        extra_selections = []
+        for _key, extra in self.extra_selections_dict.iteritems():
+            extra_selections.extend(extra)
         self.setExtraSelections(extra_selections)
+        
+    def clear_extra_selections(self, key):
+        self.extra_selections_dict[key] = []
+        self.update_extra_selections()
+
 
     def delete(self):
         """Remove selected text"""
@@ -1138,20 +1118,18 @@ class QtEditor(TextEditBaseWidget):
         If not, return None"""
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
-#    
-#    def fold_expanded(self, line):
-#        """Is fold expanded?"""
-#        return self.SendScintilla(QsciScintilla.SCI_GETFOLDEXPANDED, line)
-#        
-#    def get_folded_lines(self):
-#        """Return the list of folded line numbers"""
-#        return [line for line in xrange(self.lines()) \
-#                if self.get_fold_level(line) and not self.fold_expanded(line)]
-#        
-#    def unfold_all(self):
-#        """Unfold all folded lines"""
-#        for line in self.get_folded_lines():
-#            self.foldLine(line)
+    
+    def fold_expanded(self, line):
+        """Is fold expanded?"""
+        raise NotImplementedError
+        
+    def get_folded_lines(self):
+        """Return the list of folded line numbers"""
+        raise NotImplementedError
+        
+    def unfold_all(self):
+        """Unfold all folded lines"""
+        raise NotImplementedError
         
         
 #===============================================================================
@@ -1182,14 +1160,8 @@ class QtEditor(TextEditBaseWidget):
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
-        for marker in self.ca_markers:
-            self.markerDeleteHandle(marker)
-        self.ca_markers = []
+        self.clear_extra_selections('code_analysis')
         self.ca_marker_lines = {}
-        self.SendScintilla(QsciScintilla.SCI_SETINDICATORCURRENT,
-                           self.CA_REFERENCE_INDICATOR)
-        self.SendScintilla(QsciScintilla.SCI_INDICATORCLEARRANGE,
-                           0, self.length())
         
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
@@ -1197,11 +1169,14 @@ class QtEditor(TextEditBaseWidget):
         if check_results is None:
             # Not able to compile module
             return
+        cursor = self.textCursor()
+        document = self.document()
+        flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         for message, line0, error in check_results:
             line1 = line0 - 1
-            marker = self.markerAdd(line1,
-                                    self.error if error else self.warning)
-            self.ca_markers.append(marker)
+#            marker = self.markerAdd(line1,
+#                                    self.error if error else self.warning)
+#            self.ca_markers.append(marker)
             if line1 not in self.ca_marker_lines:
                 self.ca_marker_lines[line1] = []
             self.ca_marker_lines[line1].append( (message, error) )
@@ -1209,13 +1184,26 @@ class QtEditor(TextEditBaseWidget):
             for ref in refs:
                 # Highlighting found references
                 text = ref[1:-1]
-                ok = self.__find_first(text, line=line1)
-                while ok:
-                    spos = self.SendScintilla(QsciScintilla.SCI_GETTARGETSTART)
-                    epos = self.SendScintilla(QsciScintilla.SCI_GETTARGETEND)
-                    self.SendScintilla(QsciScintilla.SCI_INDICATORFILLRANGE,
-                                       spos, epos-spos)
-                    ok = self.__find_next(text)
+                # Scanning line number *line* and following lines if continued
+                def is_line_splitted(line_no):
+                    text = unicode(document.findBlockByNumber(line_no).text())
+                    stripped = text.strip()
+                    return stripped.endswith('\\') or stripped.endswith(',') \
+                           or len(stripped) == 0
+                line2 = line1
+                while line2 < self.blockCount()-1 and is_line_splitted(line2):
+                    line2 += 1
+                cursor.setPosition(document.findBlockByNumber(line1).position())
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                cursor = document.find(text, cursor, flags)
+                self.__highlight_selection('code_analysis', cursor,
+                               underline_color=self.codeanalysis_color)
+#                old_pos = None
+#                if cursor:
+#                    while cursor.block().blockNumber() <= line2 and cursor.position() != old_pos:
+#                        self.__highlight_selection('code_analysis', cursor,
+#                                       underline_color=self.codeanalysis_color)
+#                        cursor = document.find(text, cursor, flags)
 
     def __highlight_warning(self, line):
         self.highlight_line(line+1)
@@ -1678,7 +1666,7 @@ def test(fname):
 #    win.editor.set_found_lines([6, 8, 10])
     
     analysis_results = check(fname)
-#    win.editor.process_code_analysis(analysis_results)
+    win.editor.process_code_analysis(analysis_results)
     
     sys.exit(app.exec_())
 
@@ -1687,5 +1675,5 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
-        fname = r"d:\Python\sandbox.pyw"
+#        fname = r"d:\Python\sandbox.pyw"
     test(fname)
