@@ -25,6 +25,7 @@ SOURCES      += widgets/classbrowser.py
 SOURCES      += widgets/comboboxes.py
 SOURCES	     += widgets/dicteditor.py
 SOURCES	     += widgets/editor.py
+SOURCES	     += widgets/editortools.py
 SOURCES	     += widgets/explorer.py
 SOURCES	     += widgets/externalshell/__init__.py
 SOURCES	     += widgets/externalshell/globalsexplorer.py

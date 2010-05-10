@@ -107,7 +107,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>ClassBrowser</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="210"/>
+        <location filename="widgets/editortools.py" line="185"/>
         <source>Classes and functions</source>
         <translation>Classes et fonctions</translation>
     </message>
@@ -127,27 +127,27 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Afficher la définition de cette fonction</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="151"/>
+        <location filename="widgets/editortools.py" line="126"/>
         <source>Class defined at line %1</source>
         <translation>Classe déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="167"/>
+        <location filename="widgets/editortools.py" line="142"/>
         <source>Method defined at line %1</source>
         <translation>Méthode déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="181"/>
+        <location filename="widgets/editortools.py" line="156"/>
         <source>Function defined at line %1</source>
         <translation>Fonction déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="379"/>
+        <location filename="widgets/editortools.py" line="354"/>
         <source>Go to cursor position</source>
         <translation>Aller à la position du curseur</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="220"/>
+        <location filename="widgets/editortools.py" line="195"/>
         <source>Show absolute path</source>
         <translation>Afficher les chemins complets</translation>
     </message>
@@ -680,7 +680,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Éditeur de Spyder</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="685"/>
+        <location filename="widgets/editor.py" line="687"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
@@ -740,7 +740,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="233"/>
+        <location filename="widgets/editor.py" line="234"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
@@ -1005,22 +1005,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Toujours indenter avec la touche Tab</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1374"/>
+        <location filename="widgets/editor.py" line="1379"/>
         <source>Permissions:</source>
         <translation>Droits d&apos;accès :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1404"/>
+        <location filename="widgets/editor.py" line="1409"/>
         <source>Encoding:</source>
         <translation>Encodage :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1418"/>
+        <location filename="widgets/editor.py" line="1423"/>
         <source>Line:</source>
         <translation>Ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1422"/>
+        <location filename="widgets/editor.py" line="1427"/>
         <source>Column:</source>
         <translation>Colonne :</translation>
     </message>
@@ -1274,77 +1274,77 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Afficher/masquer l&apos;explorateur de classes</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="157"/>
+        <location filename="widgets/editor.py" line="158"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="205"/>
+        <location filename="widgets/editor.py" line="206"/>
         <source>Close file</source>
         <translation>Fermer le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="514"/>
+        <location filename="widgets/editor.py" line="516"/>
         <source>Split vertically</source>
         <translation>Séparation verticale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="517"/>
+        <location filename="widgets/editor.py" line="519"/>
         <source>Split vertically this editor window</source>
         <translation>Séparer en deux verticalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="520"/>
+        <location filename="widgets/editor.py" line="522"/>
         <source>Split horizontally</source>
         <translation>Séparation horizontale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="523"/>
+        <location filename="widgets/editor.py" line="525"/>
         <source>Split horizontally this editor window</source>
         <translation>Séparer en deux horizontalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="526"/>
+        <location filename="widgets/editor.py" line="528"/>
         <source>Close this panel</source>
         <translation>Fermer ce panneau</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="636"/>
+        <location filename="widgets/editor.py" line="638"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified.&lt;br&gt;Do you want to save changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié.&lt;br&gt;Souhaitez-vous enregistrer ces changements ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="688"/>
+        <location filename="widgets/editor.py" line="690"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="695"/>
+        <location filename="widgets/editor.py" line="697"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="873"/>
+        <location filename="widgets/editor.py" line="875"/>
         <source>&lt;b&gt;%1&lt;/b&gt; is unavailable (this file may have been removed, moved or renamed outside Spyder).&lt;br&gt;Do you want to close it?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; n&apos;est pas accessible (ce fichier a peut-être été supprimé, déplacé ou renommé en dehors de Spyder).&lt;br&gt;Souhaitez-vous le fermer ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="887"/>
+        <location filename="widgets/editor.py" line="889"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified outside Spyder.&lt;br&gt;Do you want to reload it and loose all your changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié en dehors de Spyder.&lt;br&gt;Souhaitez-vous le recharger et perdre ainsi vos modifications ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="942"/>
+        <location filename="widgets/editor.py" line="944"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1076"/>
+        <location filename="widgets/editor.py" line="1081"/>
         <source>Loading %1...</source>
         <translation>Chargement de &quot;%1&quot; en cours...</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1089"/>
+        <location filename="widgets/editor.py" line="1094"/>
         <source>&lt;b&gt;%1&lt;/b&gt; contains mixed end-of-line characters.&lt;br&gt;Do you want to fix this automatically?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; contient des caractères de fin de ligne mélangés.&lt;br&gt;Souhaitez-vous corriger ceci automatiquement ?</translation>
     </message>
@@ -1379,12 +1379,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Déboguer avec winpdb</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="508"/>
+        <location filename="widgets/editor.py" line="510"/>
         <source>New window</source>
         <translation>Nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="510"/>
+        <location filename="widgets/editor.py" line="512"/>
         <source>Create a new editor window</source>
         <translation>Créer une nouvelle fenêtre d&apos;édition</translation>
     </message>
@@ -1444,12 +1444,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Ouvrir un fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1548"/>
+        <location filename="widgets/editor.py" line="1553"/>
         <source>Close window</source>
         <translation>Fermer la fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1550"/>
+        <location filename="widgets/editor.py" line="1555"/>
         <source>Close this window</source>
         <translation>Fermer cette fenêtre d&apos;édition</translation>
     </message>
@@ -1464,7 +1464,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Surligner les occurences</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1389"/>
+        <location filename="widgets/editor.py" line="1394"/>
         <source>End-of-lines:</source>
         <translation>Fins de ligne :</translation>
     </message>
@@ -1474,12 +1474,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Classer les fichiers suivant leur chemin complet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="186"/>
+        <location filename="widgets/editor.py" line="187"/>
         <source>Previous file (Ctrl+Tab)</source>
         <translation>Fichier précédent (Ctrl+Tab)</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="190"/>
+        <location filename="widgets/editor.py" line="191"/>
         <source>Next file (Ctrl+Shift+Tab)</source>
         <translation>Fichier suivant (Ctrl+Shift+Tab)</translation>
     </message>
@@ -2086,7 +2086,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindInFiles</name>
     <message>
-        <location filename="widgets/findinfiles.py" line="635"/>
+        <location filename="widgets/findinfiles.py" line="655"/>
         <source>Find in files</source>
         <translation>Recherche dans des fichiers</translation>
     </message>
@@ -2101,42 +2101,42 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Texte recherché :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="338"/>
+        <location filename="widgets/findinfiles.py" line="344"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="308"/>
+        <location filename="widgets/findinfiles.py" line="314"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="311"/>
+        <location filename="widgets/findinfiles.py" line="317"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="317"/>
+        <location filename="widgets/findinfiles.py" line="323"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="326"/>
+        <location filename="widgets/findinfiles.py" line="332"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="332"/>
+        <location filename="widgets/findinfiles.py" line="338"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="335"/>
+        <location filename="widgets/findinfiles.py" line="341"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="341"/>
+        <location filename="widgets/findinfiles.py" line="347"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
@@ -2151,17 +2151,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Répertoire :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="366"/>
+        <location filename="widgets/findinfiles.py" line="372"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="375"/>
+        <location filename="widgets/findinfiles.py" line="381"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="465"/>
+        <location filename="widgets/findinfiles.py" line="485"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -2176,12 +2176,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Déplier tout</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="357"/>
+        <location filename="widgets/findinfiles.py" line="363"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="360"/>
+        <location filename="widgets/findinfiles.py" line="366"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
@@ -2191,27 +2191,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Restaurer l&apos;organisation initiale de l&apos;arbre</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="534"/>
+        <location filename="widgets/findinfiles.py" line="554"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="535"/>
+        <location filename="widgets/findinfiles.py" line="555"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="532"/>
+        <location filename="widgets/findinfiles.py" line="552"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="352"/>
+        <location filename="widgets/findinfiles.py" line="358"/>
         <source>PYTHONPATH</source>
         <translation>PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="355"/>
+        <location filename="widgets/findinfiles.py" line="361"/>
         <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
         <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
     </message>
@@ -2221,17 +2221,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="314"/>
+        <location filename="widgets/findinfiles.py" line="320"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="528"/>
+        <location filename="widgets/findinfiles.py" line="548"/>
         <source>Search canceled</source>
         <translation>Recherche annulée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="542"/>
+        <location filename="widgets/findinfiles.py" line="562"/>
         <source>interrupted</source>
         <translation>interrompu</translation>
     </message>
@@ -2241,9 +2241,19 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>expression régulière incorrecte</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="361"/>
+        <location filename="widgets/findinfiles.py" line="367"/>
         <source>Here:</source>
         <translation>Ici :</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="412"/>
+        <source>Hide advanced options</source>
+        <translation>Masquer les options avancées</translation>
+    </message>
+    <message>
+        <location filename="widgets/findinfiles.py" line="415"/>
+        <source>Show advanced options</source>
+        <translation>Afficher les options avancées</translation>
     </message>
 </context>
 <context>
@@ -3898,12 +3908,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QsciEditor</name>
     <message>
-        <location filename="widgets/qscieditor/qscieditor.py" line="1201"/>
+        <location filename="widgets/qscieditor/qscieditor.py" line="824"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/qscieditor/qscieditor.py" line="1217"/>
+        <location filename="widgets/qscieditor/qscieditor.py" line="840"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -3911,7 +3921,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QtEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1249"/>
+        <location filename="widgets/qteditor/qteditor.py" line="859"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
@@ -3982,37 +3992,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1475"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1096"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1479"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1100"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1483"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1104"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1487"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1108"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1491"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1112"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1495"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1116"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1500"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1121"/>
         <source>Select all</source>
         <translation>Sélectionner tout</translation>
     </message>
