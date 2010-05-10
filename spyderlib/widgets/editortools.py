@@ -8,7 +8,8 @@
 
 import sys, re,  os.path as osp
 
-from PyQt4.QtGui import QWidget, QTreeWidgetItem,  QHBoxLayout, QVBoxLayout
+from PyQt4.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout, QVBoxLayout,
+                         QPainter, QColor)
 from PyQt4.QtCore import Qt, SIGNAL, QSize
 
 # For debugging purpose:
@@ -393,7 +394,7 @@ class LineNumberArea(QWidget):
         self.code_editor.linenumberarea_paint_event(event)
 
 class ScrollFlagArea(QWidget):
-    WIDTH = 10
+    WIDTH = 12
     def __init__(self, editor):
         super(ScrollFlagArea, self).__init__(editor)
         self.code_editor = editor
@@ -405,7 +406,11 @@ class ScrollFlagArea(QWidget):
         self.code_editor.scrollflagarea_paint_event(event)
         
     def mousePressEvent(self, event):
-        self.code_editor.scrollflagarea_mousepress_event(event)
+        y = event.pos().y()
+        vsb = self.code_editor.verticalScrollBar()
+        vsbcr = vsb.contentsRect()
+        range = vsb.maximum()-vsb.minimum()
+        vsb.setValue(vsb.minimum()+range*(y-vsbcr.top()-20)/(vsbcr.height()-55))
 
 class EdgeLine(QWidget):
     def __init__(self, editor):
@@ -414,5 +419,8 @@ class EdgeLine(QWidget):
         self.column = 80
         
     def paintEvent(self, event):
-        self.code_editor.edgeline_paint_event(event)
+        painter = QPainter(self)
+        color = QColor(Qt.darkGray)
+        color.setAlphaF(.5)
+        painter.fillRect(event.rect(), color)
 

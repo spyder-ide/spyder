@@ -25,14 +25,15 @@ import sys, os, re, os.path as osp
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
-                         QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat)
+                         QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
+                         QPixmap)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local import
-from spyderlib.config import CONF, get_icon
+from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
@@ -91,6 +92,13 @@ class QtEditor(TextEditBaseWidget):
         # 80-col edge line
         self.edge_line = EdgeLine(self)
         
+        # Markers
+        self.markers_margin = True
+        self.markers_margin_width = 15
+        self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
+        self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
+        self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
+        
         # Line number area management
         self.linenumberarea = LineNumberArea(self)
         self.connect(self, SIGNAL("blockCountChanged(int)"),
@@ -98,8 +106,6 @@ class QtEditor(TextEditBaseWidget):
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
         self.update_linenumberarea_width(0)
-        
-        self.extra_selections_dict = {}
         
         # Highlight current line
         bcol = CONF.get('editor', 'currentline/backgroundcolor')
@@ -111,6 +117,9 @@ class QtEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
+        self.warning_color = "#EFB870"
+        self.error_color = "#ED9A91"
+        self.todo_color = "#B4D4F3"
         
         self.highlighter_class = None
         self.highlighter = None
@@ -133,7 +142,6 @@ class QtEditor(TextEditBaseWidget):
         # Code analysis markers: errors, warnings
         self.ca_markers = []
         self.ca_marker_lines = {}
-        self.codeanalysis_color = QColor("#F1A239")
 #        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
 #                                               'png'))
 #        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
@@ -369,46 +377,15 @@ class QtEditor(TextEditBaseWidget):
         """Reimplement TextEditBaseWidget method"""
         TextEditBaseWidget.setup(self)
 
-    def setup_margins(self, linenumbers=True,
-                      code_analysis=False, code_folding=False):
+    def setup_margins(self, linenumbers=True, code_analysis=False,
+                      code_folding=False, todo_list=True):
         """
         Setup margin settings
         (except font, now set in self.set_font)
         """
-        for i_margin in range(5):
-            # Reset margin settings
-            self.setMarginWidth(i_margin, 0)
-            self.setMarginLineNumbers(i_margin, False)
-            self.setMarginMarkerMask(i_margin, 0)
-            self.setMarginSensitivity(i_margin, False)
-        if linenumbers:
-            # 1: Line numbers margin
-            self.setMarginLineNumbers(1, True)
-            self.update_line_numbers_margin()
-            if code_analysis:
-                # 2: Errors/warnings margin
-                mask = (1 << self.error) | (1 << self.warning)
-                self.setMarginSensitivity(0, True)
-                self.setMarginMarkerMask(0, mask)
-                self.setMarginWidth(0, 14)
-                self.connect(self,
-                     SIGNAL('marginClicked(int,int,Qt::KeyboardModifiers)'),
-                     self.__margin_clicked)
-        if code_folding:
-            # 0: Folding margin
-            self.setMarginWidth(2, 14)
-            self.setFolding(QsciScintilla.BoxedFoldStyle)
-        # Colors
-        fcol = CONF.get('scintilla', 'margins/foregroundcolor')
-        bcol = CONF.get('scintilla', 'margins/backgroundcolor')
-        if fcol:
-            self.setMarginsForegroundColor(QColor(fcol))
-        if bcol:
-            self.setMarginsBackgroundColor(QColor(bcol))
-        fcol = CONF.get('scintilla', 'foldmarginpattern/foregroundcolor')
-        bcol = CONF.get('scintilla', 'foldmarginpattern/backgroundcolor')
-        if fcol and bcol:
-            self.setFoldMarginColors(QColor(fcol), QColor(bcol))
+        # linenumbers argument is ignored
+        # code_folding argument is not supported
+        self.markers_margin =  code_analysis or todo_list
         
     def set_whitespace_visible(self, state):
         """Show/hide whitespace"""
@@ -486,7 +463,7 @@ class QtEditor(TextEditBaseWidget):
 
     def __highlight_selection(self, key, cursor, background_color=None,
                               underline_color=None, update=False):
-        extra_selections = self.extra_selections_dict.get(key, [])
+        extra_selections = self.get_extra_selections(key)
         selection = QTextEdit.ExtraSelection()
         if background_color is not None:
             selection.format.setBackground(background_color)
@@ -498,7 +475,7 @@ class QtEditor(TextEditBaseWidget):
         selection.format.setProperty(QTextFormat.FullWidthSelection, True)
         selection.cursor = cursor
         extra_selections.append(selection)
-        self.extra_selections_dict[key] = extra_selections
+        self.set_extra_selections(key, extra_selections)
         if update:
             self.update_extra_selections()
         
@@ -528,6 +505,13 @@ class QtEditor(TextEditBaseWidget):
         self.occurences.pop(-1)
         self.scrollflagarea.update()
         
+    #-----markers
+    def get_markers_margin(self):
+        if self.markers_margin:
+            return self.markers_margin_width
+        else:
+            return 0
+        
     #-----linenumberarea
     def get_linenumberarea_width(self):
         """Return line number area width"""
@@ -536,7 +520,7 @@ class QtEditor(TextEditBaseWidget):
         while maxb >= 10:
             maxb /= 10
             digits += 1
-        return 3+self.fontMetrics().width('9')*digits
+        return 3+self.fontMetrics().width('9')*digits+self.get_markers_margin()
         
     def update_linenumberarea_width(self, new_block_count):
         """Update line number area width"""
@@ -555,6 +539,7 @@ class QtEditor(TextEditBaseWidget):
             self.update_linenumberarea_width(0)
             
     def linenumberarea_paint_event(self, event):
+        font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), QColor("#EFEFEF"))
         
@@ -569,8 +554,22 @@ class QtEditor(TextEditBaseWidget):
                 number = QString.number(block_number+1)
                 painter.setPen(Qt.darkGray)
                 painter.drawText(0, top, self.linenumberarea.width(),
-                                 self.fontMetrics().height(),
-                                 Qt.AlignRight|Qt.AlignBottom, number)
+                                 font_height, Qt.AlignRight|Qt.AlignBottom,
+                                 number)
+                code_analysis = self.ca_marker_lines.get(block_number)
+                if code_analysis is not None:
+                    for _message, error in code_analysis:
+                        if error:
+                            break
+                    pixmap = self.error_pixmap if error else self.warning_pixmap
+                    painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
+                                       pixmap)
+                todo = self.todo_lines.get(block_number)
+                if todo is not None:
+                    pixmap = self.todo_pixmap
+                    painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
+                                       pixmap)
+                    
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
@@ -584,7 +583,11 @@ class QtEditor(TextEditBaseWidget):
         else:
             self.scrollflagarea.hide()
             self.setViewportMargins(0, 0, 0, 0)
-                        
+    
+    def __set_scrollflagarea_painter(self, painter, light_color):
+        painter.setPen(QColor(light_color).darker(120))
+        painter.setBrush(QBrush(QColor(light_color)))
+    
     def scrollflagarea_paint_event(self, event):
         cr = self.contentsRect()
         top = cr.top()+18
@@ -598,11 +601,8 @@ class QtEditor(TextEditBaseWidget):
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), QColor("#EFEFEF"))
         
-        painter.setPen(QColor("#F6D357"))
-        painter.setBrush(QBrush(QColor("#FCF1CA")))
         # Warnings
-        painter.setPen(QColor("#C38633"))
-        painter.setBrush(QBrush(QColor("#F5DA58")))
+        self.__set_scrollflagarea_painter(painter, self.warning_color)
         errors = []
         for line, item in self.ca_marker_lines.iteritems():
             for _message, error in item:
@@ -613,28 +613,18 @@ class QtEditor(TextEditBaseWidget):
                 continue
             painter.drawRect(make_flag(line))
         # Errors
-        painter.setPen(QColor("#E46154"))
-        painter.setBrush(QBrush(QColor("#ED9A91")))
+        self.__set_scrollflagarea_painter(painter, self.error_color)
         for line in errors:
             painter.drawRect(make_flag(line))
         # Occurences
-        painter.setPen(QColor("#00A010"))
-        painter.setBrush(QBrush(QColor("#7FE289")))
+        self.__set_scrollflagarea_painter(painter, self.occurence_color)
         for line in self.occurences:
             painter.drawRect(make_flag(line))
         # TODOs
-        painter.setPen(QColor("#3096FC"))
-        painter.setBrush(QBrush(QColor("#B4D4F3")))
+        self.__set_scrollflagarea_painter(painter, self.todo_color)
         for line in self.todo_lines:
             painter.drawRect(make_flag(line))
-        
-    def scrollflagarea_mousepress_event(self, event):
-        y = event.pos().y()
-        vsb = self.verticalScrollBar()
-        vsbcr = vsb.contentsRect()
-        range = vsb.maximum()-vsb.minimum()
-        vsb.setValue(vsb.minimum()+range*(y-vsbcr.top()-20)/(vsbcr.height()-55))
-            
+                    
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
         super(QtEditor, self).resizeEvent(event)
@@ -648,12 +638,6 @@ class QtEditor(TextEditBaseWidget):
                               self.scrollflagarea.WIDTH, cr.height()))
 
     #-----edgeline
-    def edgeline_paint_event(self, event):
-        painter = QPainter(self.edge_line)
-        color = QColor(Qt.darkGray)
-        color.setAlphaF(.5)
-        painter.fillRect(event.rect(), color)
-    
     def viewportEvent(self, event):
         # 80-column edge line
         cr = self.contentsRect()
@@ -674,21 +658,10 @@ class QtEditor(TextEditBaseWidget):
             selection.format.setBackground(self.currentline_color)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
-            self.extra_selections_dict['current_line'] = [selection]
+            self.set_extra_selections('current_line', [selection])
             self.update_extra_selections()
         
-        
-    def update_extra_selections(self):
-        extra_selections = []
-        for _key, extra in self.extra_selections_dict.iteritems():
-            extra_selections.extend(extra)
-        self.setExtraSelections(extra_selections)
-        
-    def clear_extra_selections(self, key):
-        self.extra_selections_dict[key] = []
-        self.update_extra_selections()
-
-
+    
     def delete(self):
         """Remove selected text"""
         # Used by global callbacks in Spyder -> delete_action
@@ -815,12 +788,12 @@ class QtEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor = document.find(text, cursor, flags)
                 self.__highlight_selection('code_analysis', cursor,
-                               underline_color=self.codeanalysis_color)
+                                   underline_color=QColor(self.warning_color))
 #                old_pos = None
 #                if cursor:
 #                    while cursor.blockNumber() <= line2 and cursor.position() != old_pos:
 #                        self.__highlight_selection('code_analysis', cursor,
-#                                       underline_color=self.codeanalysis_color)
+#                                       underline_color=self.warning_color)
 #                        cursor = document.find(text, cursor, flags)
         self.update_extra_selections()
 
@@ -895,7 +868,7 @@ class QtEditor(TextEditBaseWidget):
         for message, line in todo_results:
 #            marker = self.markerAdd(line, self.todo)
 #            self.todo_markers.append(marker)
-            self.todo_lines[line] = message
+            self.todo_lines[line-1] = message
         self.scrollflagarea.update()
                 
             

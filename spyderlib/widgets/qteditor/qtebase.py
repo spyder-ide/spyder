@@ -13,7 +13,7 @@
 
 import sys, re
 
-from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication,
+from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
                          QPen, QPlainTextEdit)
 from PyQt4.QtCore import QPoint, SIGNAL, Qt
@@ -137,6 +137,9 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
+        
+        self.extra_selections_dict = {}
+        
         # Undo/Redo
         self.undo_available = False
         self.redo_available = False
@@ -159,11 +162,31 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         self.setup()
         
+        
+    #------Extra selections
+    def get_extra_selections(self, key):
+        return self.extra_selections_dict.get(key, [])
+
+    def set_extra_selections(self, key, extra_selections):
+        self.extra_selections_dict[key] = extra_selections
+        
+    def update_extra_selections(self):
+        extra_selections = []
+        for _key, extra in self.extra_selections_dict.iteritems():
+            extra_selections.extend(extra)
+        self.setExtraSelections(extra_selections)
+        
+    def clear_extra_selections(self, key):
+        self.extra_selections_dict[key] = []
+        self.update_extra_selections()
+        
+        
     def changed(self):
         """Emit changed signal"""
         self.emit(SIGNAL('modificationChanged(bool)'), self.isModified())
 
 
+    #------Brace matching
     def __find_brace_match(self, position, brace, forward):
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
@@ -205,17 +228,24 @@ class TextEditBaseWidget(QPlainTextEdit):
                 return
     
     def __highlight(self, positions, color=None, cancel=False):
-        cursor = QTextCursor(self.document())
+        if cancel:
+            self.clear_extra_selections('brace_matching')
+            return
+        extra_selections = []
         for position in positions:
             if position > self.get_position('eof'):
                 return
-            cursor.setPosition(position)
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor)
-            charformat = cursor.charFormat()
-            pen = QPen(Qt.NoPen) if cancel else QPen(color)
-            charformat.setTextOutline(pen)
-            cursor.setCharFormat(charformat)
+            selection = QTextEdit.ExtraSelection()
+#            selection.format.setProperty(QTextFormat.OutlinePen, QPen(color))
+            selection.format.setBackground(color)
+            selection.cursor = self.textCursor()
+            selection.cursor.clearSelection()
+            selection.cursor.setPosition(position)
+            selection.cursor.movePosition(QTextCursor.NextCharacter,
+                                          QTextCursor.KeepAnchor)
+            extra_selections.append(selection)
+        self.set_extra_selections('brace_matching', extra_selections)
+        self.update_extra_selections()
 
     def cursor_position_changed(self):
         """Brace matching"""
@@ -237,10 +267,10 @@ class TextEditBaseWidget(QPlainTextEdit):
             return
         if pos2 is not None:
             self.bracepos = (pos1, pos2)
-            self.__highlight(self.bracepos, color=Qt.green)
+            self.__highlight(self.bracepos, color=QColor(Qt.green).lighter(160))
         else:
             self.bracepos = (pos1,)
-            self.__highlight(self.bracepos, color=Qt.red)
+            self.__highlight(self.bracepos, color=QColor(Qt.red).lighter(160))
         
         
     #------QsciScintilla API emulation
@@ -611,9 +641,11 @@ class TextEditBaseWidget(QPlainTextEdit):
         if at_line is not None:
             #TODO: this code has not yet been ported to QPlainTextEdit because it's
             # only used in editor widgets which are based on QsciScintilla
-            raise NotImplementedError
-#            cx = 5
-#            _, cy = self.__get_coordinates_from_lineindex(at_line, 0)
+            cx = 5
+            cursor = self.textCursor()
+            block = self.document().findBlockByNumber(at_line)
+            cursor.setPosition(block.position())
+            cy = self.cursorRect(cursor).top()
         QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
         # Saving cursor position:
         self.calltip_position = self.get_position('cursor')
