@@ -13,7 +13,7 @@ import sys, re, keyword, __builtin__
 
 from PyQt4.QtGui import (QColor, QApplication, QFont, QSyntaxHighlighter,
                          QCursor, QTextCharFormat)
-from PyQt4.QtCore import Qt
+from PyQt4.QtCore import Qt, SIGNAL
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -68,15 +68,12 @@ class ClassBrowserData(object):
         if self.def_type == self.FUNCTION:
             return self.def_name
     
-class PythonSH(QSyntaxHighlighter):
-    """Python Syntax Highlighter"""
+class BaseSH(QSyntaxHighlighter):
+    """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
-    PROG = re.compile(make_python_patterns(), re.S)
-    IDPROG = re.compile(r"\s+(\w+)", re.S)
-    ASPROG = re.compile(r".*?\b(as)\b")
+    PROG = None
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
-    INSIDE_STRING = 1
     # Syntax highlighting color schemes:
     COLORS = {
               'IDLE':
@@ -113,9 +110,8 @@ class PythonSH(QSyntaxHighlighter):
                ("INSTANCE",   "#000000", False, True),
                ),
               }
-    DEF_TYPES = {"def": ClassBrowserData.FUNCTION, "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
-        super(PythonSH, self).__init__(parent)
+        super(BaseSH, self).__init__(parent)
         
         self.classbrowser_data = {}
         
@@ -140,12 +136,51 @@ class PythonSH(QSyntaxHighlighter):
             self.formats[name] = format
 
     def highlightBlock(self, text):
+        raise NotImplementedError
+            
+    def get_classbrowser_data_iterator(self):
+        """
+        Return class browser data iterator
+        The iterator yields block number and associated data
+        """
+        block_dict = {}
+        for block, data in self.classbrowser_data.iteritems():
+            block_dict[block.blockNumber()] = data
+        def iterator():
+            for block_nb in sorted(block_dict.keys()):
+                yield block_nb, block_dict[block_nb]
+        return iterator
+
+    def rehighlight(self):
+        self.classbrowser_data = {}
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QSyntaxHighlighter.rehighlight(self)
+        QApplication.restoreOverrideCursor()
+
+
+class PythonSH(BaseSH):
+    """Python Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_python_patterns(), re.S)
+    IDPROG = re.compile(r"\s+(\w+)", re.S)
+    ASPROG = re.compile(r".*?\b(as)\b")
+    # Syntax highlighting states (from one text block to another):
+    NORMAL = 0
+    INSIDE_STRING = 1
+    DEF_TYPES = {"def": ClassBrowserData.FUNCTION, "class": ClassBrowserData.CLASS}
+    def __init__(self, parent, font=None, color_scheme=None):
+        super(PythonSH, self).__init__(parent)
+        self.import_statements = {}
+
+    def highlightBlock(self, text):
         inside_string = self.previousBlockState() == self.INSIDE_STRING
         self.setFormat(0, text.length(),
                        self.formats["STRING" if inside_string else "NORMAL"])
         
         cbdata = None
+        import_stmt = None
         
+        text = unicode(text)
         match = self.PROG.search(text)
         index = 0
         while match:
@@ -172,6 +207,7 @@ class PythonSH(QSyntaxHighlighter):
                                 cbdata.def_type = self.DEF_TYPES[unicode(value)]
                                 cbdata.def_name = text[start1:end1]
                         elif value == "import":
+                            import_stmt = text.strip()
                             # color all the "as" words on same line, except
                             # if in a comment; cheap approximation to the
                             # truth
@@ -194,22 +230,84 @@ class PythonSH(QSyntaxHighlighter):
         
         if cbdata is not None:
             self.classbrowser_data[self.currentBlock()] = cbdata
+        if import_stmt is not None:
+            self.import_statements[self.currentBlock()] = import_stmt
             
-    def get_classbrowser_data_iterator(self):
-        """
-        Return class browser data iterator
-        The iterator yields block number and associated data
-        """
-        block_dict = {}
-        for block, data in self.classbrowser_data.iteritems():
-            block_dict[block.blockNumber()] = data
-        def iterator():
-            for block_nb in sorted(block_dict.keys()):
-                yield block_nb, block_dict[block_nb]
-        return iterator
-
+    def get_import_statements(self):
+        return self.import_statements.values()
+            
     def rehighlight(self):
-        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-        QSyntaxHighlighter.rehighlight(self)
-        QApplication.restoreOverrideCursor()
+        self.import_statements = {}
+        super(PythonSH, self).rehighlight()
+
+
+#===============================================================================
+# Cython syntax highlighter
+#===============================================================================
+
+class CythonSH(PythonSH):
+    """Cython Syntax Highlighter"""
+    pass
+
+
+#===============================================================================
+# C/C++ syntax highlighter
+#===============================================================================
+
+def make_cpp_patterns():
+    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    comment = any("COMMENT", [r"//[^\n]*"])
+    comment_start = any("COMMENT_START", [r"\/\*"])
+    comment_end = any("COMMENT_END", [r"\*\/"])
+    instance = any("INSTANCE", [r"\bthis\b"])
+    number = any("NUMBER",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("STRING", [sqstring, dqstring])
+    return instance + "|" + comment + "|" + string + "|" + number + "|" + \
+           comment_start + "|" + comment_end + "|" + any("SYNC", [r"\n"])
+
+class CppSH(BaseSH):
+    """C/C++ Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_cpp_patterns(), re.S)
+    # Syntax highlighting states (from one text block to another):
+    NORMAL = 0
+    INSIDE_COMMENT = 1
+    def __init__(self, parent, font=None, color_scheme=None):
+        super(CppSH, self).__init__(parent)
+
+    def highlightBlock(self, text):
+        inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
+        self.setFormat(0, text.length(),
+                       self.formats["COMMENT" if inside_comment else "NORMAL"])
+        
+        match = self.PROG.search(text)
+        index = 0
+        while match:
+            for key, value in match.groupdict().items():
+                if value:
+                    start, end = match.span(key)
+                    index += end-start
+                    if key == "COMMENT_START":
+                        inside_comment = True
+                        self.setFormat(start, text.length()-start,
+                                       self.formats["COMMENT"])
+                    elif key == "COMMENT_END":
+                        inside_comment = False
+                        self.setFormat(start, end-start,
+                                       self.formats["COMMENT"])
+                    elif inside_comment:
+                        self.setFormat(start, end-start,
+                                       self.formats["COMMENT"])
+                    else:
+                        self.setFormat(start, end-start, self.formats[key])
+                    
+            match = self.PROG.search(text, match.end())
+
+        last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
+        self.setCurrentBlockState(last_state)
 
