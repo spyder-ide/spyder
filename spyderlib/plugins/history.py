@@ -22,7 +22,7 @@ from spyderlib.config import CONF, get_font, get_icon, set_font
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.qscieditor.qscieditor import QsciEditor
+from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget
 
@@ -128,7 +128,7 @@ class HistoryLog(SpyderPluginWidget):
         filename = encoding.to_unicode(filename)
         if filename in self.filenames:
             return
-        editor = QsciEditor(self)
+        editor = CodeEditor(self)
         if osp.splitext(filename)[1] == '.py':
             language = 'py'
             icon = get_icon('python.png')

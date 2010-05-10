@@ -31,7 +31,7 @@ STDOUT = sys.stdout
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import CONF, get_font, set_font, get_icon
-from spyderlib.widgets.qscieditor.qscieditor import QsciEditor
+from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
 
 
@@ -200,7 +200,7 @@ class ReadOnlyEditor(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         # Read-only editor
-        self.editor = QsciEditor(self)
+        self.editor = CodeEditor(self)
         self.editor.setup_editor(linenumbers=False, language='py',
                                  code_folding=True)
         self.connect(self.editor, SIGNAL("focus_changed()"),

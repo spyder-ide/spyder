@@ -381,6 +381,15 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.setPosition(position)
         point = self.cursorRect(cursor).center()
         return point.x(), point.y()
+    
+    def get_cursor_line_column(self):
+        """Return cursor (line, column) numbers"""
+        cursor = self.textCursor()
+        return cursor.blockNumber(), cursor.columnNumber()
+        
+    def get_cursor_line_number(self):
+        cursor = self.textCursor()
+        return cursor.blockNumber()
 
     def set_cursor_position(self, position):
         position = self.get_position(position)

@@ -31,14 +31,14 @@ from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon)
-from spyderlib.widgets.qscieditor.qscieditor import (QsciEditor, Printer,
-                                                     ClassBrowser)
+from spyderlib.widgets.qscieditor.qscieditor import Printer
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
+from spyderlib.widgets.editortools import ClassBrowser
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
-                                      EditorMainWindow)
+                                      EditorMainWindow, CodeEditor)
 from spyderlib.plugins import SpyderPluginWidget
 
 
@@ -391,7 +391,7 @@ class Editor(SpyderPluginWidget):
             triggered=self.unblockcomment)
                 
         # ----------------------------------------------------------------------
-        # The following action shortcuts are hard-coded in QsciEditor
+        # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self, self.tr("Indent"), "Tab",
@@ -580,7 +580,7 @@ class Editor(SpyderPluginWidget):
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
-        if isinstance(fwidget, QsciEditor):
+        if isinstance(fwidget, CodeEditor):
             for editorstack in self.editorstacks:
                 if fwidget is editorstack.get_current_editor():
                     return editorstack

@@ -36,8 +36,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.qscieditor.qscieditor import (QsciEditor, check,
-                                                     ClassBrowser)
+from spyderlib.widgets.editortools import check, ClassBrowser
+from spyderlib.widgets.qscieditor.qscieditor import QsciEditor as CodeEditor
+#from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
 
 
 class CodeAnalysisThread(QThread):
@@ -267,7 +268,8 @@ class EditorStack(QWidget):
         for other_finfo in other.data:
             fname = other_finfo.filename
             enc = other_finfo.encoding
-            finfo = self.create_new_editor(fname, enc, "", set_current=True)
+            finfo = self.create_new_editor(fname, enc, "", set_current=True,
+                                           clone=True)
             finfo.editor.set_as_clone(other_finfo.editor)
             finfo.set_analysis_results(other_finfo.analysis_results)
             finfo.set_todo_results(other_finfo.todo_results)
@@ -838,7 +840,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
         # Refresh cursor position status:
-        line, index = finfo.editor.getCursorPosition()
+        line, index = finfo.editor.get_cursor_line_column()
         self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
         
     def __refresh_readonly(self, index):
@@ -966,7 +968,7 @@ class EditorStack(QWidget):
         --> enable/disable save/save all actions
         """
         sender = self.sender()
-        if isinstance(sender, QsciEditor):
+        if isinstance(sender, CodeEditor):
             for index, finfo in enumerate(self.data):
                 if finfo.editor is sender:
                     break
@@ -997,12 +999,13 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         txt, finfo.encoding = encoding.read(finfo.filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-        line, index = finfo.editor.getCursorPosition()
+        position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
         finfo.editor.setModified(False)
-        finfo.editor.setCursorPosition(line, index)
+        finfo.editor.set_cursor_position(position)
         
-    def create_new_editor(self, fname, enc, txt, set_current, new=False):
+    def create_new_editor(self, fname, enc, txt,
+                          set_current, new=False, clone=False):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
@@ -1020,25 +1023,27 @@ class EditorStack(QWidget):
                         language = 'python'
                 else:
                     break
-        editor = QsciEditor(self)
+        editor = CodeEditor(self)
         finfo = TabInfo(fname, enc, editor, new)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
                      lambda: self.emit(SIGNAL('todo_results_changed()')))
-        editor.set_text(txt)
-        editor.setup_editor(linenumbers=True, language=language,
-                            code_analysis=self.codeanalysis_enabled,
-                            code_folding=self.codefolding_enabled,
-                            todo_list=self.todolist_enabled,
-                            show_eol_chars=self.showeolchars_enabled,
-                            show_whitespace=self.showwhitespace_enabled,
-                            font=self.default_font,
-                            wrap=self.wrap_enabled,
-                            tab_mode=self.tabmode_enabled,
-                            occurence_highlighting=\
-                            self.occurence_highlighting_enabled)
+        if not clone:
+            editor.setup_editor(linenumbers=True, language=language,
+                                code_analysis=self.codeanalysis_enabled,
+                                code_folding=self.codefolding_enabled,
+                                todo_list=self.todolist_enabled,
+                                show_eol_chars=self.showeolchars_enabled,
+                                show_whitespace=self.showwhitespace_enabled,
+                                font=self.default_font,
+                                wrap=self.wrap_enabled,
+                                tab_mode=self.tabmode_enabled,
+                                occurence_highlighting=\
+                                self.occurence_highlighting_enabled)
+            editor.set_text(txt)
+            editor.setModified(False)
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
@@ -1692,7 +1697,7 @@ class FakePlugin(QSplitter):
         window.show()
         self.register_editorwindow(window)
         self.connect(window, SIGNAL("destroyed()"),
-                     lambda obj, win=window: self.unregister_editorwindow(win))
+                     lambda win=window: self.unregister_editorwindow(win))
         
     def register_editorwindow(self, window):
         if DEBUG:
