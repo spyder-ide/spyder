@@ -798,7 +798,7 @@ class QsciEditor(TextEditBaseWidget):
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message"""
-        cline, _ = self.getCursorPosition()
+        cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys())
         for line in lines:
             if line > cline:
@@ -809,7 +809,7 @@ class QsciEditor(TextEditBaseWidget):
 
     def go_to_previous_warning(self):
         """Go to previous code analysis warning message"""
-        cline, _ = self.getCursorPosition()
+        cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys(), reverse=True)
         for line in lines:
             if line < cline:
@@ -847,7 +847,7 @@ class QsciEditor(TextEditBaseWidget):
 
     def go_to_next_todo(self):
         """Go to next todo"""
-        cline, _ = self.getCursorPosition()
+        cline = self.get_cursor_line_number()
         lines = sorted(self.todo_lines.keys())
         for line in lines:
             if line > cline:
@@ -866,9 +866,9 @@ class QsciEditor(TextEditBaseWidget):
         """Process todo finder results"""
         self.cleanup_todo_list()
         for message, line in todo_results:
-            marker = self.markerAdd(line, self.todo)
+            marker = self.markerAdd(line-1, self.todo)
             self.todo_markers.append(marker)
-            self.todo_lines[line] = message
+            self.todo_lines[line-1] = message
         self.scrollflagarea.update()
         
     def add_prefix(self, prefix):

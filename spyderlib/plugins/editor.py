@@ -863,9 +863,10 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.clear()
         for text, line0 in results:
             icon = get_icon('todo.png')
-            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l+1)
+            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
+        self.update_todo_actions()
             
     def todo_results_changed(self):
         """

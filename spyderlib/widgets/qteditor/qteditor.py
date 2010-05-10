@@ -758,7 +758,7 @@ class QtEditor(TextEditBaseWidget):
 #===============================================================================
     def highlight_line(self, line):
         """Highlight line number *line*"""
-        block = self.document().findBlockByNumber(line)
+        block = self.document().findBlockByNumber(line-1)
         cursor = self.textCursor()
         cursor.setPosition(block.position())
         cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
@@ -795,9 +795,6 @@ class QtEditor(TextEditBaseWidget):
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         for message, line0, error in check_results:
             line1 = line0 - 1
-#            marker = self.markerAdd(line1,
-#                                    self.error if error else self.warning)
-#            self.ca_markers.append(marker)
             if line1 not in self.ca_marker_lines:
                 self.ca_marker_lines[line1] = []
             self.ca_marker_lines[line1].append( (message, error) )
@@ -833,7 +830,7 @@ class QtEditor(TextEditBaseWidget):
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message"""
-        cline, _ = self.getCursorPosition()
+        cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys())
         for line in lines:
             if line > cline:
@@ -844,7 +841,7 @@ class QtEditor(TextEditBaseWidget):
 
     def go_to_previous_warning(self):
         """Go to previous code analysis warning message"""
-        cline, _ = self.getCursorPosition()
+        cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys(), reverse=True)
         for line in lines:
             if line < cline:
@@ -865,6 +862,27 @@ class QtEditor(TextEditBaseWidget):
         if margin == 0:
             self.__show_code_analysis_results(line)
 
+    def __show_todo(self, line):
+        """Show todo message"""
+        if line in self.todo_lines:
+            self.show_calltip(self.tr("To do"), self.todo_lines[line],
+                              color='#3096FC', at_line=line)
+
+    def __highlight_todo(self, line):
+        self.highlight_line(line+1)
+        self.__show_todo(line)
+
+    def go_to_next_todo(self):
+        """Go to next todo"""
+        cline = self.get_cursor_line_number()
+        lines = sorted(self.todo_lines.keys())
+        for line in lines:
+            if line > cline:
+                self.__highlight_todo(line)
+                return
+        else:
+            self.__highlight_todo(lines[0])
+            
     def cleanup_todo_list(self):
 #        for marker in self.todo_markers:
 #            self.markerDeleteHandle(marker)

@@ -71,7 +71,7 @@ class ToDoFinderThread(QThread):
         todo_results = []
         for line, text in enumerate(self.text.splitlines()):
             for todo in re.findall(self.PATTERN, text):
-                todo_results.append( (todo, line) )
+                todo_results.append( (todo, line+1) )
         self.todo_results = todo_results
         
     def get_results(self):
