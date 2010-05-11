@@ -105,7 +105,6 @@ class QtEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
-        self.update_linenumberarea_width(0)
         
         # Highlight current line
         bcol = CONF.get('editor', 'currentline/backgroundcolor')
@@ -119,6 +118,8 @@ class QtEditor(TextEditBaseWidget):
         self.warning_color = "#EFB870"
         self.error_color = "#ED9A91"
         self.todo_color = "#B4D4F3"
+
+        self.update_linenumberarea_width(0)
         
         self.highlighter_class = None
         self.highlighter = None
@@ -189,6 +190,9 @@ class QtEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
         
+        # Line numbers
+        self.set_linenumberarea_enabled(linenumbers)
+        
         # Lexer
         self.set_language(language)
                 
@@ -202,26 +206,10 @@ class QtEditor(TextEditBaseWidget):
         if font is not None:
             self.set_font(font)
         
-#        self.setup_margins(linenumbers, code_analysis, code_folding)
-        
-        # Re-enable brace matching (already enabled in TextEditBaseWidget.setup
-        # but for an unknown reason, changing the 'set_font' call above reset
-        # this setting to default, which is no brace matching):
-        # XXX: find out why
-#        self.setBraceMatching(QsciScintilla.SloppyBraceMatch)
-#        self.setMatchedBraceBackgroundColor(Qt.yellow)
-        
-        # Indentation (moved from QsciEditor.setup for the same reason as brace
-        # matching -- see comment above)
-#        self.setIndentationGuides(True)
-#        self.setIndentationGuidesForegroundColor(Qt.lightGray)
-        
 #        self.set_eol_chars_visible(show_eol_chars)
 #        self.set_whitespace_visible(show_whitespace)
         
         self.toggle_wrap_mode(wrap)
-#        if self.is_python():
-#            self.setup_api()
         self.setModified(False)
         
     def set_tab_mode(self, enable):
@@ -436,12 +424,14 @@ class QtEditor(TextEditBaseWidget):
         
     def __cursor_position_changed(self):
         """Cursor position has changed"""
+        line, column = self.get_cursor_line_column()
+        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
+        if self.isReadOnly():
+            return
         self.highlight_current_line()
         if self.occurence_highlighting:
             self.occurence_timer.stop()
             self.occurence_timer.start()
-        line, column = self.get_cursor_line_column()
-        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
         
     def __clear_occurences(self):
         """Clear occurence markers"""
@@ -501,8 +491,14 @@ class QtEditor(TextEditBaseWidget):
             return 0
         
     #-----linenumberarea
+    def set_linenumberarea_enabled(self, state):
+        self.linenumberarea.setVisible(state)
+        self.update_linenumberarea_width(0)
+    
     def get_linenumberarea_width(self):
         """Return line number area width"""
+        if not self.linenumberarea.isVisible():
+            return 0
         digits = 1
         maxb = max(1, self.blockCount())
         while maxb >= 10:
@@ -513,7 +509,7 @@ class QtEditor(TextEditBaseWidget):
     def update_linenumberarea_width(self, new_block_count):
         """Update line number area width"""
         self.setViewportMargins(self.get_linenumberarea_width(), 0,
-                                ScrollFlagArea.WIDTH, 0)
+                                self.get_scrollflagarea_width(), 0)
         
     def update_linenumberarea(self, qrect, dy):
         """Update line number area"""
@@ -565,12 +561,14 @@ class QtEditor(TextEditBaseWidget):
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
-        if state:
-            self.scrollflagarea.show()
-            self.setViewportMargins(0, 0, ScrollFlagArea.WIDTH, 0)
+        self.scrollflagarea.setVisible(state)
+        self.update_linenumberarea_width(0)
+            
+    def get_scrollflagarea_width(self):
+        if self.scrollflagarea.isVisible():
+            return ScrollFlagArea.WIDTH
         else:
-            self.scrollflagarea.hide()
-            self.setViewportMargins(0, 0, 0, 0)
+            return 0
     
     def __set_scrollflagarea_painter(self, painter, light_color):
         painter.setPen(QColor(light_color).darker(120))
@@ -643,14 +641,13 @@ class QtEditor(TextEditBaseWidget):
     #-----highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        if not self.isReadOnly():
-            selection = QTextEdit.ExtraSelection()
-            selection.format.setProperty(QTextFormat.FullWidthSelection, True)
-            selection.format.setBackground(self.currentline_color)
-            selection.cursor = self.textCursor()
-            selection.cursor.clearSelection()
-            self.set_extra_selections('current_line', [selection])
-            self.update_extra_selections()
+        selection = QTextEdit.ExtraSelection()
+        selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+        selection.format.setBackground(self.currentline_color)
+        selection.cursor = self.textCursor()
+        selection.cursor.clearSelection()
+        self.set_extra_selections('current_line', [selection])
+        self.update_extra_selections()
         
     
     def delete(self):
@@ -678,6 +675,12 @@ class QtEditor(TextEditBaseWidget):
         self.set_eol_mode(text)
 #        if self.supported_language:
 #            self.highlighter.rehighlight()
+
+    def append(self, text):
+        """Append text to the end of the text widget"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        cursor.insertText(text)
 
     def paste(self):
         """

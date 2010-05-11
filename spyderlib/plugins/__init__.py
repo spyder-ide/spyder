@@ -202,7 +202,7 @@ class ReadOnlyEditor(SpyderPluginWidget):
         # Read-only editor
         self.editor = CodeEditor(self)
         self.editor.setup_editor(linenumbers=False, language='py',
-                                 code_folding=True)
+                                 code_folding=True, scrollflagarea=False)
         self.connect(self.editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
