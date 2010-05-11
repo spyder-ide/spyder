@@ -31,14 +31,13 @@ from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_filetype_icon)
-from spyderlib.widgets.qscieditor.qscieditor import Printer
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editortools import ClassBrowser
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
-                                      EditorMainWindow, CodeEditor)
+                                      EditorMainWindow, CodeEditor, Printer)
 from spyderlib.plugins import SpyderPluginWidget
 
 
@@ -1113,13 +1112,18 @@ class Editor(SpyderPluginWidget):
         if answer == QDialog.Accepted:
             self.starting_long_process(self.tr("Printing..."))
             printer.setDocName(filename)
-            if printDialog.printRange() == QAbstractPrintDialog.Selection:
-                from_line, _index, to_line, to_index = editor.getSelection()
-                if to_index == 0:
-                    to_line -= 1
-                ok = printer.printRange(editor, from_line, to_line-1)
+            from PyQt4.QtGui import QPlainTextEdit
+            if isinstance(editor, QPlainTextEdit):
+                editor.print_(printer)
+                ok = True
             else:
-                ok = printer.printRange(editor)
+                if printDialog.printRange() == QAbstractPrintDialog.Selection:
+                    from_line, _index, to_line, to_index = editor.getSelection()
+                    if to_index == 0:
+                        to_line -= 1
+                    ok = printer.printRange(editor, from_line, to_line-1)
+                else:
+                    ok = printer.printRange(editor)
             self.ending_long_process()
             if not ok:
                 QMessageBox.critical(editor, self.tr("Print"),

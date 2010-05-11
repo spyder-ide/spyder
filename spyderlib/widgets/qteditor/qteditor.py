@@ -21,12 +21,12 @@ Editor widget based on PyQt4.QtGui.QPlainTextEdit
 
 from __future__ import division
 
-import sys, os, re, os.path as osp
+import sys, os, re, os.path as osp, time
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
-                         QPixmap)
+                         QPixmap, QPrinter)
 from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
 
 # For debugging purpose:
@@ -140,23 +140,10 @@ class QtEditor(TextEditBaseWidget):
         self.comment_string = None
 
         # Code analysis markers: errors, warnings
-        self.ca_markers = []
         self.ca_marker_lines = {}
-#        self.error = self.markerDefine(QPixmap(get_image_path('error.png'),
-#                                               'png'))
-#        self.warning = self.markerDefine(QPixmap(get_image_path('warning.png'),
-#                                                 'png'))
         
         # Todo finder
         self.todo_lines = {}
-        
-        self.foundline_markers = []
-#        self.foundline = self.markerDefine(QsciScintilla.Background)
-#        bcol = CONF.get('editor', 'foundline/backgroundcolor')
-#        self.setMarkerBackgroundColor(QColor(bcol), self.foundline)
-
-        # Scintilla Python API
-        self.api = None
         
         # Mark occurences timer
         self.occurence_highlighting = None
@@ -684,9 +671,9 @@ class QtEditor(TextEditBaseWidget):
     def set_text(self, text):
         """Set the text of the editor"""
         self.setPlainText(text)
-#        self.set_eol_mode(text)
+        self.set_eol_mode(text)
 #        if self.supported_language:
-#            self.colourise_all()
+#            self.highlighter.rehighlight()
 
     def paste(self):
         """
@@ -744,14 +731,6 @@ class QtEditor(TextEditBaseWidget):
         position = self.document().findBlockByNumber(line).position()
         self.set_cursor_position(position)
         
-    def set_found_lines(self, lines):
-        """Set found lines, i.e. lines corresponding to found results"""
-        for marker in self.foundline_markers:
-            self.markerDeleteHandle(marker)
-        self.foundline_markers = []
-        for line in lines:
-            self.foundline_markers.append(self.markerAdd(line, self.foundline))
-
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         self.clear_extra_selections('code_analysis')
@@ -835,6 +814,8 @@ class QtEditor(TextEditBaseWidget):
         if margin == 0:
             self.__show_code_analysis_results(line)
 
+    
+    #------Tasks management
     def __show_todo(self, line):
         """Show todo message"""
         if line in self.todo_lines:
@@ -856,79 +837,58 @@ class QtEditor(TextEditBaseWidget):
         else:
             self.__highlight_todo(lines[0])
             
-    def cleanup_todo_list(self):
-#        for marker in self.todo_markers:
-#            self.markerDeleteHandle(marker)
-#        self.todo_markers = []
-        self.todo_lines = {}
-        
     def process_todo(self, todo_results):
         """Process todo finder results"""
-        self.cleanup_todo_list()
+        self.todo_lines = {}
         for message, line in todo_results:
-#            marker = self.markerAdd(line, self.todo)
-#            self.todo_markers.append(marker)
             self.todo_lines[line-1] = message
         self.scrollflagarea.update()
                 
-            
+    
+    #------Comments/Indentation
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""        
+        cursor = self.textCursor()
         if self.hasSelectedText():
             # Add prefix to selected line(s)
-            line_from, index_from, line_to, index_to = self.getSelection()
-            if index_to == 0:
-                line_to -= 1
-            self.beginUndoAction()
-            for line in range(line_from, line_to+1):
-                self.insertAt(prefix, line, 0)
-            self.endUndoAction()
-            if index_to == 0:
-                line_to += 1
-            else:
-                index_to += len(prefix)
-            self.setSelection(line_from, index_from+len(prefix),
-                              line_to, index_to)
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.beginEditBlock()
+            cursor.setPosition(start_pos)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            while cursor.position() < end_pos:
+                cursor.insertText(prefix)
+                cursor.movePosition(QTextCursor.NextBlock)
+            cursor.endEditBlock()
         else:
             # Add prefix to current line
-            line, index = self.getCursorPosition()
-            self.beginUndoAction()
-            self.insertAt(prefix, line, 0)
-            self.endUndoAction()
-            self.setCursorPosition(line, index+len(prefix))
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.insertText(prefix)
     
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""        
+        cursor = self.textCursor()
         if self.hasSelectedText():
             # Remove prefix from selected line(s)
-            line_from, index_from, line_to, index_to = self.getSelection()
-            if index_to == 0:
-                line_to -= 1
-            self.beginUndoAction()
-            for line in range(line_from, line_to+1):
-                if not self.text(line).startsWith(prefix):
-                    continue
-                self.setSelection(line, 0, line, len(prefix))
-                self.removeSelectedText()
-                if line == line_from:
-                    index_from = max([0, index_from-len(prefix)])
-                if line == line_to and index_to != 0:
-                    index_to = max([0, index_to-len(prefix)])
-            if index_to == 0:
-                line_to += 1
-            self.setSelection(line_from, index_from, line_to, index_to)
-            self.endUndoAction()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.beginEditBlock()
+            cursor.setPosition(start_pos)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            while cursor.position() < end_pos:
+                cursor.setPosition(cursor.position()+len(prefix),
+                                   QTextCursor.KeepAnchor)
+                if unicode(cursor.selectedText()) != prefix:
+                    break
+                cursor.removeSelectedText()
+                cursor.movePosition(QTextCursor.NextBlock)
+            cursor.endEditBlock()
         else:
             # Remove prefix from current line
-            line, index = self.getCursorPosition()
-            if not self.text(line).startsWith(prefix):
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.setPosition(cursor.position()+len(prefix),
+                               QTextCursor.KeepAnchor)
+            if unicode(cursor.selectedText()) != prefix:
                 return
-            self.beginUndoAction()
-            self.setSelection(line, 0, line, len(prefix))
-            self.removeSelectedText()
-            self.setCursorPosition(line, index-len(prefix))
-            self.endUndoAction()
-            self.setCursorPosition(line, max([0, index-len(prefix)]))
+            cursor.removeSelectedText()
     
     def fix_indent(self, forward=True):
         """
@@ -939,18 +899,21 @@ class QtEditor(TextEditBaseWidget):
                        (otherwise force unindent)
         """
         if not self.is_python():
-            return        
-        line, index = self.getCursorPosition()
-        prevtext = unicode(self.text(line-1)).rstrip()
-        indent = self.indentation(line)
-        correct_indent = self.indentation(line-1)
+            return
+        cursor = self.textCursor()
+        block_nb = cursor.blockNumber()
+        cursor.movePosition(QTextCursor.PreviousBlock)
+        prevtext = unicode(cursor.block().text()).rstrip()
+        indent = self.get_indentation(block_nb)
+        correct_indent = self.get_indentation(block_nb-1)
         if prevtext.endswith(':'):
             # Indent            
             correct_indent += 4
         elif prevtext.endswith('continue') or prevtext.endswith('break'):
             # Unindent
             correct_indent -= 4
-        elif prevtext.endswith(','):
+        elif prevtext.endswith(',') \
+             and len(re.split(r'\(|\{|\[', prevtext)) > 1:
             rlmap = {")":"(", "]":"[", "}":"{"}
             for par in rlmap:
                 i_right = prevtext.rfind(par)
@@ -974,36 +937,31 @@ class QtEditor(TextEditBaseWidget):
             correct_indent = indent - 4
             
         if correct_indent >= 0:
-            self.beginUndoAction()
-            self.setSelection(line, 0, line, indent)
-            self.removeSelectedText()
-            if index > indent:
-                index -= indent-correct_indent
-            else:
-                index = correct_indent
-            self.insertAt(" "*correct_indent, line, 0)
-            self.setCursorPosition(line, index)
-            self.endUndoAction()
+            cursor = self.textCursor()
+            cursor.beginEditBlock()
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
+            cursor.removeSelectedText()
+            cursor.insertText(" "*correct_indent)
+            cursor.endEditBlock()
     
     def __no_char_before_cursor(self):
-        line, index = self.getCursorPosition()
-        self.setSelection(line, 0, line, index)
-        selected_text = unicode(self.selectedText())
-        self.clear_selection()
-        return len(selected_text.strip()) == 0
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.KeepAnchor)
+        return len(unicode(cursor.selectedText()).strip()) == 0
     
     def indent(self):
         """Indent current line or selection"""
         if self.hasSelectedText():
-            self.add_prefix( " "*4 )
+            self.add_prefix(" "*4)
         elif self.__no_char_before_cursor() or \
              (self.tab_indents and self.tab_mode):
             if self.is_python():
                 self.fix_indent(forward=True)
             else:
-                self.add_prefix( " "*4 )
+                self.add_prefix(" "*4)
         else:
-            self.SendScintilla(QsciScintilla.SCI_TAB)
+            self.insert_text(" "*4)
     
     def unindent(self):
         """Unindent current line or selection"""
@@ -1028,56 +986,59 @@ class QtEditor(TextEditBaseWidget):
         """Block comment current line or selection"""
         comline = self.comment_string + '='*(80-len(self.comment_string)) \
                   + self.get_line_separator()
+        cursor = self.textCursor()
         if self.hasSelectedText():
-            line_from, _index_from, line_to, _index_to = self.getSelection()
-            lines = range(line_from, line_to+1)
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start_pos)
         else:
-            line, _index = self.getCursorPosition()
-            lines = [line]
-        self.beginUndoAction()
-        self.insertAt( comline, lines[-1]+1, 0 )
-        self.insertAt( comline, lines[0], 0 )
-        for l in lines:
-            self.insertAt( '# ', l+1, 0 )
-        self.endUndoAction()
-        self.setCursorPosition(lines[-1]+2, 80)
+            start_pos = end_pos = cursor.position()
+        cursor.beginEditBlock()
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        while cursor.position() <= end_pos:
+            cursor.insertText("# ")
+            cursor.movePosition(QTextCursor.NextBlock)
+        cursor.setPosition(end_pos)
+        cursor.movePosition(QTextCursor.NextBlock)
+        cursor.insertText(comline)
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.insertText(comline)
+        cursor.endEditBlock()
 
-    def __is_comment_bar(self, line):
-        comline = '#' + '='*79 + self.get_line_separator()
-        self.setSelection(line, 0, line+1, 0)
-        return unicode(self.selectedText()) == comline            
+    def __is_comment_bar(self, cursor):
+        return cursor.block().text().startsWith('#' + '='*79)
     
     def unblockcomment(self):
         """Un-block comment current line or selection"""
-        line, index = self.getCursorPosition()
-        self.setSelection(line, 0, line, 1)
-        if unicode(self.selectedText()) != '#':
-            self.setCursorPosition(line, index)
-            return
         # Finding first comment bar
-        line1 = line-1
-        while line1 >= 0 and not self.__is_comment_bar(line1):
-            line1 -= 1
-        if not self.__is_comment_bar(line1):
-            self.setCursorPosition(line, index)
+        cursor1 = self.textCursor()
+        if self.__is_comment_bar(cursor1):
+            return
+        while cursor1.position() > 0 and not self.__is_comment_bar(cursor1):
+            cursor1.movePosition(QTextCursor.PreviousBlock)
+        if not self.__is_comment_bar(cursor1):
             return
         # Finding second comment bar
-        line2 = line+1
-        while line2 < self.lines() and not self.__is_comment_bar(line2):
-            line2 += 1
-        if not self.__is_comment_bar(line2) or line2 > self.lines()-2:
-            self.setCursorPosition(line, index)
+        cursor2 = self.textCursor()
+        while cursor2.position() > 0 and not self.__is_comment_bar(cursor2):
+            cursor2.movePosition(QTextCursor.NextBlock)
+        if not self.__is_comment_bar(cursor2):
             return
-        lines = range(line1+1, line2)
-        self.beginUndoAction()
-        self.setSelection(line2, 0, line2+1, 0)
-        self.removeSelectedText()
-        for l in lines:
-            self.setSelection(l, 0, l, 2)
-            self.removeSelectedText()
-        self.setSelection(line1, 0, line1+1, 0)
-        self.removeSelectedText()
-        self.endUndoAction()
+        # Removing block comment
+        cursor3 = self.textCursor()
+        cursor3.beginEditBlock()
+        cursor3.setPosition(cursor1.position())
+        cursor3.movePosition(QTextCursor.NextBlock)
+        while cursor3.position() < cursor2.position():
+            cursor3.setPosition(cursor3.position()+2, QTextCursor.KeepAnchor)
+            cursor3.removeSelectedText()
+            cursor3.movePosition(QTextCursor.NextBlock)
+        for cursor in (cursor2, cursor1):
+            cursor3.setPosition(cursor.position())
+            cursor3.select(QTextCursor.BlockUnderCursor)
+            cursor3.removeSelectedText()
+        cursor3.endEditBlock()
     
 #===============================================================================
 #    Qt Event handlers
@@ -1143,7 +1104,7 @@ class QtEditor(TextEditBaseWidget):
             event.accept()
         elif (key == Qt.Key_Tab):
             if self.is_completion_widget_visible():
-                self.SendScintilla(QsciScintilla.SCI_TAB)
+                self.select_completion_list()
             else:
                 self.indent()
             event.accept()
@@ -1165,14 +1126,6 @@ class QtEditor(TextEditBaseWidget):
 #            event.accept()
         else:
             QPlainTextEdit.keyPressEvent(self, event)
-            if CONF.get('main', 'workaround/gnome_qscintilla'):
-                # Workaround for QScintilla's completion with Gnome
-                from PyQt4.QtGui import QListWidget
-                if self.is_completion_widget_visible():
-                    for w in self.children():
-                        if isinstance(w, QListWidget):
-                            w.setWindowFlags(Qt.Dialog| Qt.FramelessWindowHint)
-                            w.show()
             
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -1219,34 +1172,31 @@ class QtEditor(TextEditBaseWidget):
 
 
 #===============================================================================
-# QsciEditor's Printer
+# QtEditor's Printer
 #===============================================================================
 
-#class Printer(QsciPrinter):
-#    def __init__(self, mode=QPrinter.ScreenResolution, header_font=None):
-#        QsciPrinter.__init__(self, mode)
-#        if True:
-#            self.setColorMode(QPrinter.Color)
-#        else:
-#            self.setColorMode(QPrinter.GrayScale)
-#        if True:
-#            self.setPageOrder(QPrinter.FirstPageFirst)
-#        else:
-#            self.setPageOrder(QPrinter.LastPageFirst)
-#        self.date = time.ctime()
-#        if header_font is not None:
-#            self.header_font = header_font
-#        
-#    def formatPage(self, painter, drawing, area, pagenr):
-#        header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
-#        painter.save()
-#        painter.setFont(self.header_font)
-#        painter.setPen(QColor(Qt.black))
-#        if drawing:
-#            painter.drawText(area.right()-painter.fontMetrics().width(header),
-#                             area.top()+painter.fontMetrics().ascent(), header)
-#        area.setTop(area.top()+painter.fontMetrics().height()+5)
-#        painter.restore()
+#TODO: Implement the header and footer support
+class Printer(QPrinter):
+    def __init__(self, mode=QPrinter.ScreenResolution, header_font=None):
+        QPrinter.__init__(self, mode)
+        self.setColorMode(QPrinter.Color)
+        self.setPageOrder(QPrinter.FirstPageFirst)
+        self.date = time.ctime()
+        if header_font is not None:
+            self.header_font = header_font
+        
+    # <!> The following method is simply ignored by QPlainTextEdit
+    #     (this is a copy from QsciEditor's Printer)
+    def formatPage(self, painter, drawing, area, pagenr):
+        header = '%s - %s - Page %s' % (self.docName(), self.date, pagenr)
+        painter.save()
+        painter.setFont(self.header_font)
+        painter.setPen(QColor(Qt.black))
+        if drawing:
+            painter.drawText(area.right()-painter.fontMetrics().width(header),
+                             area.top()+painter.fontMetrics().ascent(), header)
+        area.setTop(area.top()+painter.fontMetrics().height()+5)
+        painter.restore()
 
 
 #===============================================================================
@@ -1287,7 +1237,6 @@ def test(fname):
     win.show()
     win.load(fname)
     win.resize(800, 800)
-#    win.editor.set_found_lines([6, 8, 10])
     
     analysis_results = check(fname)
     win.editor.process_code_analysis(analysis_results)

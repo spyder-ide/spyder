@@ -553,7 +553,7 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def insert_text(self, text):
         """Insert text at cursor position"""
-        self.textCursor().insertText()
+        self.textCursor().insertText(text)
     
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
@@ -613,6 +613,11 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText()).replace(u'\u2029', '')
+    
+    def get_indentation(self, block_nb):
+        """Return line indentation (character number)"""
+        text = unicode(self.document().findBlockByNumber(block_nb).text())
+        return len(text)-len(text.lstrip())
         
 
     #------Code completion / Calltips

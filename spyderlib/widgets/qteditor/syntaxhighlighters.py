@@ -13,7 +13,7 @@ import sys, re, keyword, __builtin__
 
 from PyQt4.QtGui import (QColor, QApplication, QFont, QSyntaxHighlighter,
                          QCursor, QTextCharFormat)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtCore import Qt
 
 # For debugging purpose:
 STDOUT = sys.stdout
