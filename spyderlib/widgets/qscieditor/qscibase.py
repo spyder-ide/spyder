@@ -368,6 +368,10 @@ class TextEditBaseWidget(QsciScintilla):
     def get_line_at(self, coordinates):
         """Return line at *coordinates* (QPoint)"""
         return unicode( self.text( self.lineAt(coordinates) ) )
+    
+    def get_indentation(self, line_nb):
+        """Return line indentation (character number)"""
+        return self.indentation(line_nb)
 
 
     #----QScintilla: positions

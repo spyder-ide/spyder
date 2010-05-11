@@ -941,15 +941,16 @@ class QsciEditor(TextEditBaseWidget):
             return        
         line, index = self.getCursorPosition()
         prevtext = unicode(self.text(line-1)).rstrip()
-        indent = self.indentation(line)
-        correct_indent = self.indentation(line-1)
+        indent = self.get_indentation(line)
+        correct_indent = self.get_indentation(line-1)
         if prevtext.endswith(':'):
             # Indent            
             correct_indent += 4
         elif prevtext.endswith('continue') or prevtext.endswith('break'):
             # Unindent
             correct_indent -= 4
-        elif prevtext.endswith(','):
+        elif prevtext.endswith(',') \
+             and len(re.split(r'\(|\{|\[', prevtext)) > 1:
             rlmap = {")":"(", "]":"[", "}":"{"}
             for par in rlmap:
                 i_right = prevtext.rfind(par)
