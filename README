@@ -40,10 +40,12 @@ Licensed under the terms of the MIT License
         Requirements
             Python 2.x (x>=5)
             PyQt4 4.x (x>=3 ; recommended x>=4)
-            QScintilla2 2.x (x>=1) (PyQt4 extension)
             
         Optional modules
-	    pyflakes (real-time code analysis)
+            QScintilla2 2.x (x>=1) (PyQt4 additional module)
+            (QScintilla add support for autocompletion in Spyder's editor
+             until it's reimplemented in pure PyQt4)
+	    	pyflakes (real-time code analysis)
             pylint (powerful code analysis)
             numpy (N-dimensional arrays)
             scipy (signal/image processing)

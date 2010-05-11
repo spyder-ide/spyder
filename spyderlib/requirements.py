@@ -26,10 +26,8 @@ def check_requirement(package, module_name, version_attr, required_str):
         else:
             return ''
 
-def check_pyqt_qscintilla():
+def check_pyqt():
     wng = check_requirement("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
-    wng += check_requirement("QScintilla", "PyQt4.Qsci",
-                             "QSCINTILLA_VERSION_STR", "2.2")
     if wng:
         import os
         message = "Please check Spyder installation requirements:"+wng
@@ -49,4 +47,4 @@ QScintilla2 is distributed together with PyQt4
             pass
         raise ImportError, wng
 
-check_pyqt_qscintilla()
+check_pyqt()

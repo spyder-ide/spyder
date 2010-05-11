@@ -1055,8 +1055,10 @@ class MainWindow(QMainWindow):
         try:
             from PyQt4.Qsci import QSCINTILLA_VERSION_STR as qsci
             qsci = ", QScintilla "+ qsci
+            qsci_not_installed = ''
         except ImportError:
             qsci = ""
+            qsci_not_installed = self.tr(' (QScintilla is not installed)')
         try:
             from pyflakes import __version__ as pyflakes_version
         except ImportError:
@@ -1087,12 +1089,12 @@ class MainWindow(QMainWindow):
             <a href="http://groups.google.com/group/spyderlib">Google Group</a>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
-            <p>Python %3, Qt %4, PyQt %5%6 on %7""") \
+            <p>Python %3, Qt %4, PyQt %5%6 on %7%11""") \
             .arg("Spyder").arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
             .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()) \
             .arg("<span style=\'color: #444444\'><b>").arg("</b></span>") \
-            .arg(pyflakes_version))
+            .arg(pyflakes_version).arg(qsci_not_installed))
     
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
