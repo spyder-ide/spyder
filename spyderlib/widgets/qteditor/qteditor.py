@@ -112,7 +112,6 @@ class QtEditor(TextEditBaseWidget):
         bcol = QColor("#FFFF99") # IDLE color scheme
         bcol = QColor("#E8F2FE") # Pydev color scheme
         self.currentline_color = QColor(bcol)
-        self.highlight_current_line()
         
         # Scrollbar flag area
         self.scrollflagarea = ScrollFlagArea(self)
@@ -441,6 +440,8 @@ class QtEditor(TextEditBaseWidget):
         if self.occurence_highlighting:
             self.occurence_timer.stop()
             self.occurence_timer.start()
+        line, column = self.get_cursor_line_column()
+        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
         
     def __clear_occurences(self):
         """Clear occurence markers"""
@@ -619,7 +620,10 @@ class QtEditor(TextEditBaseWidget):
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
                               self.get_linenumberarea_width(), cr.height()))
-        vsbw = self.verticalScrollBar().contentsRect().width()
+        if self.verticalScrollBar().isVisible():
+            vsbw = self.verticalScrollBar().contentsRect().width()
+        else:
+            vsbw = 0
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
