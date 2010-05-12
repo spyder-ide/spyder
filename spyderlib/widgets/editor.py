@@ -245,7 +245,6 @@ class EditorStack(QWidget):
         self.classbrowser_enabled = True
         self.codefolding_enabled = True
         self.showeolchars_enabled = False
-        self.showwhitespace_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
@@ -357,13 +356,6 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_eol_chars_visible(state)
-        
-    def set_showwhitespace_enabled(self, state):
-        # CONF.get(self.ID, 'show_whitespace')
-        self.showwhitespace_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_whitespace_visible(state)
         
     def set_default_font(self, font):
         # get_font(self.ID)
@@ -1042,7 +1034,6 @@ class EditorStack(QWidget):
                                 code_folding=self.codefolding_enabled,
                                 todo_list=self.todolist_enabled,
                                 show_eol_chars=self.showeolchars_enabled,
-                                show_whitespace=self.showwhitespace_enabled,
                                 font=self.default_font,
                                 wrap=self.wrap_enabled,
                                 tab_mode=self.tabmode_enabled,

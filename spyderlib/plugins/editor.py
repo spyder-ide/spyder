@@ -473,9 +473,6 @@ class Editor(SpyderPluginWidget):
                                        self.tr("Show end-of-line characters"),
                                        toggled=self.toggle_show_eol_chars)
         showeol_action.setChecked( CONF.get(self.ID, 'show_eol_chars', False) )
-        showws_action = create_action(self, self.tr("Show whitespace"),
-                                      toggled=self.toggle_show_whitespace)
-        showws_action.setChecked( CONF.get(self.ID, 'show_whitespace', False) )
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
@@ -529,7 +526,7 @@ class Editor(SpyderPluginWidget):
                                   wrap_action, tab_action, occurence_action,
                                   None, fold_action, self.foldonopen_action,
                                   checkeol_action, showeol_action,
-                                  showws_action, None, todo_action,
+                                  None, todo_action,
                                   analyze_action, self.classbrowser_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -626,7 +623,6 @@ class Editor(SpyderPluginWidget):
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codefolding_enabled',    'code_folding'),
                     ('set_showeolchars_enabled',   'show_eol_chars'),
-                    ('set_showwhitespace_enabled', 'show_whitespace'),
                     ('set_wrap_enabled',           'wrap'),
                     ('set_tabmode_enabled',        'tab_always_indent'),
                     ('set_occurence_highlighting_enabled',
@@ -1381,14 +1377,6 @@ class Editor(SpyderPluginWidget):
             CONF.set(self.ID, 'show_eol_chars', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_showeolchars_enabled(checked)
-            
-    def toggle_show_whitespace(self, checked):
-        """Toggle show whitespace"""
-        if self.editorstacks is not None:
-            CONF.set(self.ID, 'show_whitespace', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_showwhitespace_enabled(checked)
-            
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""

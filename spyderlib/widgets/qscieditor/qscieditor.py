@@ -232,14 +232,14 @@ class QsciEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     show_eol_chars=False, show_whitespace=False,
+                     show_eol_chars=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
-                show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
+                show_eol_chars=show_eol_chars,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
                 scrollflagarea=scrollflagarea, todo_list=todo_list)
@@ -277,7 +277,6 @@ class QsciEditor(TextEditBaseWidget):
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
         
         self.set_eol_chars_visible(show_eol_chars)
-        self.set_whitespace_visible(show_whitespace)
         
         self.toggle_wrap_mode(wrap)
         if self.is_python():
@@ -506,13 +505,6 @@ class QsciEditor(TextEditBaseWidget):
                 self.connect(self.api, SIGNAL("apiPreparationFinished()"),
                              self.api.savePrepared)
         return is_api_ready
-    
-    def set_whitespace_visible(self, state):
-        """Show/hide whitespace"""
-        if state:
-            self.setWhitespaceVisibility(QsciScintilla.WsVisible)
-        else:
-            self.setWhitespaceVisibility(QsciScintilla.WsInvisible)
     
     def set_eol_chars_visible(self, state):
         """Show/hide EOL characters"""

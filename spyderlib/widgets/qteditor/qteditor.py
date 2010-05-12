@@ -178,14 +178,14 @@ class QtEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     show_eol_chars=False, show_whitespace=False,
+                     show_eol_chars=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
-                show_eol_chars=show_eol_chars, show_whitespace=show_whitespace,
+                show_eol_chars=show_eol_chars,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
                 scrollflagarea=scrollflagarea, todo_list=todo_list)
@@ -210,7 +210,6 @@ class QtEditor(TextEditBaseWidget):
             self.set_font(font)
         
 #        self.set_eol_chars_visible(show_eol_chars)
-#        self.set_whitespace_visible(show_whitespace)
         
         self.toggle_wrap_mode(wrap)
         self.setModified(False)
@@ -367,10 +366,6 @@ class QtEditor(TextEditBaseWidget):
         # linenumbers argument is ignored
         # code_folding argument is not supported
         self.markers_margin =  code_analysis or todo_list
-        
-    def set_whitespace_visible(self, state):
-        """Show/hide whitespace"""
-        raise NotImplementedError
     
     def convert_eol_chars(self):
         """Convert EOL characters to current mode"""
