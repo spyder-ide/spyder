@@ -563,6 +563,22 @@ class QtEditor(TextEditBaseWidget):
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
+            
+    def linenumberarea_mousepress_event(self, event):
+        block = self.firstVisibleBlock()
+        line_number = block.blockNumber()
+        top = self.blockBoundingGeometry(block).translated(
+                                                    self.contentOffset()).top()
+        bottom = top + self.blockBoundingRect(block).height()
+        
+        while block.isValid() and top < event.pos().y():
+            block = block.next()
+            top = bottom
+            bottom = top + self.blockBoundingRect(block).height()
+            line_number += 1
+        
+        self.__show_code_analysis_results(line_number)
+        
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
