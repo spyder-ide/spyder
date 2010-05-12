@@ -38,7 +38,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
 from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
-                                                           CppSH)
+                                                           CppSH, FortranSH)
 from spyderlib.widgets.editortools import (PythonCFM, ClassItem, FunctionItem,
                                            LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
@@ -64,7 +64,7 @@ class QtEditor(TextEditBaseWidget):
                  ('py', 'pyw', 'python'): (PythonSH, '#', PythonCFM),
                  ('pyx',): (CythonSH, '#', PythonCFM),
 #                 ('f', 'for'): (QsciLexerFortran77, 'c', None),
-#                 ('f90', 'f95', 'f2k'): (QsciLexerFortran, '!', None),
+                 ('f90', 'f95', 'f2k'): (FortranSH, '!', None),
 #                 ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),
 #                 'css': (QsciLexerCSS, '#', None),
 #                 ('htm', 'html'): (QsciLexerHTML, '', None),

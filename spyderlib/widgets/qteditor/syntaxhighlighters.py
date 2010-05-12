@@ -26,11 +26,11 @@ def any(name, alternates):
     "Return a named group pattern matching list of alternates."
     return "(?P<%s>" % name + "|".join(alternates) + ")"
 
-def make_python_patterns():
+def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kw = r"\b" + any("KEYWORD", keyword.kwlist) + r"\b"
+    kw = r"\b" + any("KEYWORD", keyword.kwlist+additional_keywords) + r"\b"
     builtinlist = [str(name) for name in dir(__builtin__)
-                                        if not name.startswith('_')]
+                   if not name.startswith('_')]+additional_builtins
     builtin = r"([^.'\"\\#]\b|^)" + any("BUILTIN", builtinlist) + r"\b"
     comment = any("COMMENT", [r"#[^\n]*"])
     instance = any("INSTANCE", [r"\bself\b"])
@@ -244,18 +244,27 @@ class PythonSH(BaseSH):
 #===============================================================================
 # Cython syntax highlighter
 #===============================================================================
+C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void'
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
-    pass
+    ADDITIONAL_KEYWORDS = ["cdef", "ctypedef"]
+    ADDITIONAL_BUILTINS = C_TYPES.split()
+    PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
+                                           ADDITIONAL_BUILTINS), re.S)
+    IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
 
 
 #===============================================================================
 # C/C++ syntax highlighter
 #===============================================================================
-
 def make_cpp_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    kwstr1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
+    kwstr1b = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ f[ f] file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
+    kwstr2 = 'asm auto class compl false true volatile wchar_t'
+    kw = r"\b" + any("BUILTIN", kwstr1.split()+kwstr1b.split()) + r"\b"
+    builtin = r"\b" + any("KEYWORD", kwstr2.split()+C_TYPES.split()) + r"\b"
     comment = any("COMMENT", [r"//[^\n]*"])
     comment_start = any("COMMENT_START", [r"\/\*"])
     comment_end = any("COMMENT_END", [r"\*\/"])
@@ -267,8 +276,9 @@ def make_cpp_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("STRING", [sqstring, dqstring])
-    return instance + "|" + comment + "|" + string + "|" + number + "|" + \
-           comment_start + "|" + comment_end + "|" + any("SYNC", [r"\n"])
+    return instance + "|" + kw + "|" + comment + "|" + string + "|" + \
+           number + "|" + comment_start + "|" + comment_end + "|" + \
+           builtin + "|" + any("SYNC", [r"\n"])
 
 class CppSH(BaseSH):
     """C/C++ Syntax Highlighter"""
@@ -310,4 +320,50 @@ class CppSH(BaseSH):
 
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
+
+
+#===============================================================================
+# Fortran Syntax Highlighter
+#===============================================================================
+
+def make_fortran_patterns():
+    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    kwstr1 = 'abs achar acos acosd adjustl adjustr aimag aimax0 aimin0 aint ajmax0 ajmin0 akmax0 akmin0 all allocated alog alog10 amax0 amax1 amin0 amin1 amod anint any asin asind associated atan atan2 atan2d atand bitest bitl bitlr bitrl bjtest bit_size bktest break btest cabs ccos cdabs cdcos cdexp cdlog cdsin cdsqrt ceiling cexp char clog cmplx conjg cos cosd cosh count cpu_time cshift csin csqrt dabs dacos dacosd dasin dasind datan datan2 datan2d datand date date_and_time dble dcmplx dconjg dcos dcosd dcosh dcotan ddim dexp dfloat dflotk dfloti dflotj digits dim dimag dint dlog dlog10 dmax1 dmin1 dmod dnint dot_product dprod dreal dsign dsin dsind dsinh dsqrt dtan dtand dtanh eoshift epsilon errsns exp exponent float floati floatj floatk floor fraction free huge iabs iachar iand ibclr ibits ibset ichar idate idim idint idnint ieor ifix iiabs iiand iibclr iibits iibset iidim iidint iidnnt iieor iifix iint iior iiqint iiqnnt iishft iishftc iisign ilen imax0 imax1 imin0 imin1 imod index inint inot int int1 int2 int4 int8 iqint iqnint ior ishft ishftc isign isnan izext jiand jibclr jibits jibset jidim jidint jidnnt jieor jifix jint jior jiqint jiqnnt jishft jishftc jisign jmax0 jmax1 jmin0 jmin1 jmod jnint jnot jzext kiabs kiand kibclr kibits kibset kidim kidint kidnnt kieor kifix kind kint kior kishft kishftc kisign kmax0 kmax1 kmin0 kmin1 kmod knint knot kzext lbound leadz len len_trim lenlge lge lgt lle llt log log10 logical lshift malloc matmul max max0 max1 maxexponent maxloc maxval merge min min0 min1 minexponent minloc minval mod modulo mvbits nearest nint not nworkers number_of_processors pack popcnt poppar precision present product radix random random_number random_seed range real repeat reshape rrspacing rshift scale scan secnds selected_int_kind selected_real_kind set_exponent shape sign sin sind sinh size sizeof sngl snglq spacing spread sqrt sum system_clock tan tand tanh tiny transfer transpose trim ubound unpack verify'
+    kwstr1b = 'cdabs cdcos cdexp cdlog cdsin cdsqrt cotan cotand dcmplx dconjg dcotan dcotand decode dimag dll_export dll_import doublecomplex dreal dvchk encode find flen flush getarg getcharqq getcl getdat getenv gettim hfix ibchng identifier imag int1 int2 int4 intc intrup invalop iostat_msg isha ishc ishl jfix lacfar locking locnear map nargs nbreak ndperr ndpexc offset ovefl peekcharqq precfill prompt qabs qacos qacosd qasin qasind qatan qatand qatan2 qcmplx qconjg qcos qcosd qcosh qdim qexp qext qextd qfloat qimag qlog qlog10 qmax1 qmin1 qmod qreal qsign qsin qsind qsinh qsqrt qtan qtand qtanh ran rand randu rewrite segment setdat settim system timer undfl unlock union val virtual volatile zabs zcos zexp zlog zsin zsqrt'
+    kwstr2 = 'access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata enddo endfile endforall endfunction endif endinterface endmodule endprogram endselect endsubroutine endtype endwhere entry eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream subroutine target then to type unformatted unit use value volatile wait where while write'
+    kw = r"\b" + any("BUILTIN", kwstr1.split()+kwstr1b.split()) + r"\b"
+    builtin = r"\b" + any("KEYWORD", kwstr2.split()) + r"\b"
+    comment = any("COMMENT", [r"\![^\n]*"])
+    number = any("NUMBER",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("STRING", [sqstring, dqstring])
+    return kw + "|" + comment + "|" + string + "|" + \
+           number + "|" + builtin + "|" + any("SYNC", [r"\n"])
+
+class FortranSH(BaseSH):
+    """Fortran Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_cpp_patterns(), re.S)
+    # Syntax highlighting states (from one text block to another):
+    NORMAL = 0
+    def __init__(self, parent, font=None, color_scheme=None):
+        super(FortranSH, self).__init__(parent)
+
+    def highlightBlock(self, text):
+        self.setFormat(0, text.length(), self.formats["NORMAL"])
+        
+        match = self.PROG.search(text)
+        index = 0
+        while match:
+            for key, value in match.groupdict().items():
+                if value:
+                    start, end = match.span(key)
+                    index += end-start
+                    self.setFormat(start, end-start, self.formats[key])
+                    
+            match = self.PROG.search(text, match.end())
 
