@@ -315,7 +315,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
         root_item = self.get_root_item(item)
         self.freeze = True
         self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
-                           root_item.path, line, True)
+                           root_item.path, line, False)
         self.freeze = False
         parent = self.current_editor.parent()
         for editor_id, i_item in self.editor_items.iteritems():

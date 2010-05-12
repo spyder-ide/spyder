@@ -837,7 +837,7 @@ class Editor(SpyderPluginWidget):
         for message, line0, error in check_results:
             text = message[:1].upper()+message[1:]
             icon = get_icon('error.png' if error else 'warning.png')
-            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l)
+            slot = lambda _l=line0: self.get_current_editor().go_to_line(_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -862,7 +862,7 @@ class Editor(SpyderPluginWidget):
         self.todo_menu.clear()
         for text, line0 in results:
             icon = get_icon('todo.png')
-            slot = lambda _l=line0: self.get_current_editor().highlight_line(_l)
+            slot = lambda _l=line0: self.get_current_editor().go_to_line(_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1084,10 +1084,7 @@ class Editor(SpyderPluginWidget):
                 current.analyze_script() # Analyze script only once (and update
                 # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
-            if highlight:
-                current_editor.highlight_line(goto[index])
-            else:
-                current_editor.go_to_line(goto[index])
+            current_editor.go_to_line(goto[index], highlight=highlight)
             for editor in new_editors:
                 if CONF.get(self.ID, 'fold_on_open') \
                    and CONF.get(self.ID, 'code_folding'):
@@ -1197,10 +1194,6 @@ class Editor(SpyderPluginWidget):
         
     
     #------ Source code
-    def go_to_line(self, lineno):
-        """Go to line lineno and highlight it"""
-        self.get_current_editor().highlight_line(lineno)
-    
     def indent(self):
         """Indent current line or selection"""
         editor = self.get_current_editor()

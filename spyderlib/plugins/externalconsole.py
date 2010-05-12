@@ -403,7 +403,7 @@ class ExternalConsole(SpyderPluginWidget):
         if match:
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int,bool)"),
-                      osp.abspath(fname), int(lnb), True)
+                      osp.abspath(fname), int(lnb), False)
             
     #----Drag and drop
     def __is_python_script(self, qstr):

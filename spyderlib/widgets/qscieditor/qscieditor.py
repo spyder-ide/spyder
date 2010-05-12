@@ -734,17 +734,15 @@ class QsciEditor(TextEditBaseWidget):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def highlight_line(self, line):
-        """Highlight line number *line*"""
-        text = unicode(self.text(line-1)).rstrip()
-        self.setSelection(line-1, len(text), line-1, 0)
+    def go_to_line(self, line, highlight=False):
+        """Go to line number *line* and eventually highlight it"""
+        if highlight:
+            text = unicode(self.text(line-1)).rstrip()
+            self.setSelection(line-1, len(text), line-1, 0)
+        else:
+            self.setCursorPosition(line-1, 0)
         self.ensureLineVisible(line-1)
         self.horizontalScrollBar().setValue(0)
-        
-    def go_to_line(self, line):
-        """Go to line number *line*"""
-        self.setCursorPosition(line-1, 0)
-        self.ensureLineVisible(line-1)
         
     def set_found_lines(self, lines):
         """Set found lines, i.e. lines corresponding to found results"""
@@ -776,9 +774,9 @@ class QsciEditor(TextEditBaseWidget):
             marker = self.markerAdd(line1,
                                     self.error if error else self.warning)
             self.ca_markers.append(marker)
-            if line1 not in self.ca_marker_lines:
-                self.ca_marker_lines[line1] = []
-            self.ca_marker_lines[line1].append( (message, error) )
+            if line0 not in self.ca_marker_lines:
+                self.ca_marker_lines[line0] = []
+            self.ca_marker_lines[line0].append( (message, error) )
             refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
             for ref in refs:
                 # Highlighting found references
@@ -793,7 +791,7 @@ class QsciEditor(TextEditBaseWidget):
         self.scrollflagarea.update()
 
     def __highlight_warning(self, line):
-        self.highlight_line(line+1)
+        self.go_to_line(line+1)
         self.__show_code_analysis_results(line)
 
     def go_to_next_warning(self):
@@ -842,7 +840,7 @@ class QsciEditor(TextEditBaseWidget):
                               color='#3096FC', at_line=line)
 
     def __highlight_todo(self, line):
-        self.highlight_line(line+1)
+        self.go_to_line(line+1)
         self.__show_todo(line)
 
     def go_to_next_todo(self):
@@ -868,7 +866,7 @@ class QsciEditor(TextEditBaseWidget):
         for message, line in todo_results:
             marker = self.markerAdd(line-1, self.todo)
             self.todo_markers.append(marker)
-            self.todo_lines[line-1] = message
+            self.todo_lines[line] = message
         self.scrollflagarea.update()
         
     def add_prefix(self, prefix):

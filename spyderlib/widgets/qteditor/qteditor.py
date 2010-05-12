@@ -243,6 +243,9 @@ class QtEditor(TextEditBaseWidget):
     def is_python(self):
         return self.highlighter_class is PythonSH
         
+    def is_cython(self):
+        return self.highlighter_class is CythonSH
+        
     def __remove_from_tree_cache(self, line=None, item=None):
         if line is None:
             for line, (_it, _level, _debug) in self.__tree_cache.iteritems():
@@ -277,17 +280,18 @@ class QtEditor(TextEditBaseWidget):
         
         iterator = self.highlighter.get_classbrowser_data_iterator()
         for block_nb, data in iterator():
+            line_nb = block_nb+1
             if data is None:
                 level = None
             else:
                 level = data.fold_level
-            citem, clevel, _d = self.__tree_cache.get(block_nb,
+            citem, clevel, _d = self.__tree_cache.get(line_nb,
                                                       (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
             if level is None:
                 if citem is not None:
-                    self.__remove_from_tree_cache(line=block_nb)
+                    self.__remove_from_tree_cache(line=line_nb)
                 continue
             
             # Searching for class/function statements
@@ -296,7 +300,7 @@ class QtEditor(TextEditBaseWidget):
                 func_name = data.get_function_name()
                 if func_name is None:
                     if citem is not None:
-                        self.__remove_from_tree_cache(line=block_nb)
+                        self.__remove_from_tree_cache(line=line_nb)
                     continue
                 
             if previous_level is not None:
@@ -321,8 +325,8 @@ class QtEditor(TextEditBaseWidget):
                         previous_item = citem
                         continue
                     else:
-                        self.__remove_from_tree_cache(line=block_nb)
-                item = ClassItem(class_name, block_nb, parent, preceding)
+                        self.__remove_from_tree_cache(line=line_nb)
+                item = ClassItem(class_name, line_nb, parent, preceding)
             else:
                 if citem is not None:
                     if func_name == cname and level == clevel:
@@ -330,16 +334,16 @@ class QtEditor(TextEditBaseWidget):
                         previous_item = citem
                         continue
                     else:
-                        self.__remove_from_tree_cache(line=block_nb)
-                item = FunctionItem(func_name, block_nb, parent, preceding)
-                if item.is_method() and block_nb > 0:
+                        self.__remove_from_tree_cache(line=line_nb)
+                item = FunctionItem(func_name, line_nb, parent, preceding)
+                if item.is_method() and line_nb > 1:
                     decorator = self.classfunc_match.get_decorator(data.text)
                     item.set_decorator(decorator)
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
                                      unicode(item.parent().text(0)),
                                      unicode(item.text(0)))
-            self.__tree_cache[block_nb] = (item, level, debug)
+            self.__tree_cache[line_nb] = (item, level, debug)
             previous_level = level
             previous_item = item
         
@@ -467,7 +471,7 @@ class QtEditor(TextEditBaseWidget):
         text = self.get_current_word()
         if text is None:
             return
-        if self.is_python() and \
+        if (self.is_python() or self.is_cython()) and \
            (is_builtin(unicode(text)) or is_keyword(unicode(text))):
             return
 
@@ -535,12 +539,13 @@ class QtEditor(TextEditBaseWidget):
         
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
-                number = QString.number(block_number+1)
+                line_number = block_number+1
+                number = QString.number(line_number)
                 painter.setPen(Qt.darkGray)
                 painter.drawText(0, top, self.linenumberarea.width(),
                                  font_height, Qt.AlignRight|Qt.AlignBottom,
                                  number)
-                code_analysis = self.ca_marker_lines.get(block_number)
+                code_analysis = self.ca_marker_lines.get(line_number)
                 if code_analysis is not None:
                     for _message, error in code_analysis:
                         if error:
@@ -548,7 +553,7 @@ class QtEditor(TextEditBaseWidget):
                     pixmap = self.error_pixmap if error else self.warning_pixmap
                     painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
                                        pixmap)
-                todo = self.todo_lines.get(block_number)
+                todo = self.todo_lines.get(line_number)
                 if todo is not None:
                     pixmap = self.todo_pixmap
                     painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
@@ -581,8 +586,8 @@ class QtEditor(TextEditBaseWidget):
         bottom = cr.bottom()-hsbh-22
         count = self.blockCount()
         
-        make_flag = lambda nb: QRect(2, top+nb*(bottom-top)/count,
-                                     self.scrollflagarea.WIDTH-4, 4)
+        make_flag = lambda line_nb: QRect(2, top+(line_nb-1)*(bottom-top)/count,
+                                          self.scrollflagarea.WIDTH-4, 4)
         
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), QColor("#EFEFEF"))
@@ -723,20 +728,16 @@ class QtEditor(TextEditBaseWidget):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def highlight_line(self, line):
-        """Highlight line number *line*"""
+    def go_to_line(self, line, highlight=False):
+        """Go to line number *line* and eventually highlight it"""
         block = self.document().findBlockByNumber(line-1)
         cursor = self.textCursor()
         cursor.setPosition(block.position())
-        cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
         self.centerCursor()
         self.horizontalScrollBar().setValue(0)
-        
-    def go_to_line(self, line):
-        """Go to line number *line*"""
-        position = self.document().findBlockByNumber(line).position()
-        self.set_cursor_position(position)
+        if highlight:
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
         
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
@@ -754,9 +755,9 @@ class QtEditor(TextEditBaseWidget):
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
         for message, line0, error in check_results:
             line1 = line0 - 1
-            if line1 not in self.ca_marker_lines:
-                self.ca_marker_lines[line1] = []
-            self.ca_marker_lines[line1].append( (message, error) )
+            if line0 not in self.ca_marker_lines:
+                self.ca_marker_lines[line0] = []
+            self.ca_marker_lines[line0].append( (message, error) )
             refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
             for ref in refs:
                 # Highlighting found references
@@ -784,7 +785,7 @@ class QtEditor(TextEditBaseWidget):
         self.update_extra_selections()
 
     def __highlight_warning(self, line):
-        self.highlight_line(line+1)
+        self.go_to_line(line)
         self.__show_code_analysis_results(line)
 
     def go_to_next_warning(self):
@@ -807,7 +808,7 @@ class QtEditor(TextEditBaseWidget):
                 self.__highlight_warning(line)
                 return
         else:
-            self.__highlight_warning(lines[0])
+            self.__highlight_warning(lines[-1])
 
     def __show_code_analysis_results(self, line):
         """Show warning/error messages"""
@@ -830,7 +831,7 @@ class QtEditor(TextEditBaseWidget):
                               color='#3096FC', at_line=line)
 
     def __highlight_todo(self, line):
-        self.highlight_line(line+1)
+        self.go_to_line(line)
         self.__show_todo(line)
 
     def go_to_next_todo(self):
@@ -848,7 +849,7 @@ class QtEditor(TextEditBaseWidget):
         """Process todo finder results"""
         self.todo_lines = {}
         for message, line in todo_results:
-            self.todo_lines[line-1] = message
+            self.todo_lines[line] = message
         self.scrollflagarea.update()
                 
     
@@ -905,7 +906,7 @@ class QtEditor(TextEditBaseWidget):
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
         """
-        if not self.is_python():
+        if not self.is_python() and not self.is_cython():
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
@@ -963,7 +964,7 @@ class QtEditor(TextEditBaseWidget):
             self.add_prefix(" "*4)
         elif self.__no_char_before_cursor() or \
              (self.tab_indents and self.tab_mode):
-            if self.is_python():
+            if self.is_python() or self.is_cython():
                 self.fix_indent(forward=True)
             else:
                 self.add_prefix(" "*4)
@@ -976,7 +977,7 @@ class QtEditor(TextEditBaseWidget):
             self.remove_prefix( " "*4 )
         elif self.__no_char_before_cursor() or \
              (self.tab_indents and self.tab_mode):
-            if self.is_python():
+            if self.is_python() or self.is_cython():
                 self.fix_indent(forward=False)
             else:
                 self.remove_prefix( " "*4 )
@@ -1229,7 +1230,7 @@ class TestWidget(QSplitter):
         self.classtree = ClassBrowser(self)
         self.addWidget(self.classtree)
         self.connect(self.classtree, SIGNAL("edit_goto(QString,int,bool)"),
-                     lambda _fn, line, _h: self.editor.highlight_line(line))
+                     lambda _fn, line, _h: self.editor.go_to_line(line))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         

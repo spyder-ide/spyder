@@ -648,7 +648,7 @@ class TextEditBaseWidget(QPlainTextEdit):
             # only used in editor widgets which are based on QsciScintilla
             cx = 5
             cursor = self.textCursor()
-            block = self.document().findBlockByNumber(at_line)
+            block = self.document().findBlockByNumber(at_line-1)
             cursor.setPosition(block.position())
             cy = self.cursorRect(cursor).top()
         QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)

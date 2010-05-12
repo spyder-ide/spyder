@@ -264,7 +264,7 @@ class Console(SpyderPluginWidget):
             return
         if filename is not None:
             self.emit(SIGNAL("edit_goto(QString,int,bool)"),
-                      osp.abspath(filename), goto, True)
+                      osp.abspath(filename), goto, False)
         
     def execute_lines(self, lines):
         """Execute lines and give focus to shell"""
