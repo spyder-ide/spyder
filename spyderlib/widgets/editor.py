@@ -1463,8 +1463,8 @@ class EditorWidget(QSplitter):
         self.find_widget.hide()
         self.classbrowser = ClassBrowser(self, show_fullpath=show_fullpath,
                                          fullpath_sorting=fullpath_sorting)
-        self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
-                     plugin.load)
+        self.connect(self.classbrowser,
+                     SIGNAL("edit_goto(QString,int,QString)"), plugin.load)
         
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()

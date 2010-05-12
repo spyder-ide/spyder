@@ -512,6 +512,7 @@ class FindOptions(QWidget):
 class ResultsBrowser(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
+        self.search_text = None
         self.results = None
         self.nb = None
         self.error_flag = None
@@ -524,8 +525,8 @@ class ResultsBrowser(OneColumnTree):
         itemdata = self.data.get(self.currentItem())
         if itemdata is not None:
             filename, lineno = itemdata
-            self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
-                               filename, lineno, False)
+            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
+                               filename, lineno, self.search_text)
         
     def set_results(self, search_text, results, pathlist, nb,
                     error_flag, completed):

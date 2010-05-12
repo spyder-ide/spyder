@@ -59,8 +59,8 @@ class ResultsTree(OneColumnTree):
         data = self.data.get(self.currentItem())
         if data is not None:
             fname, lineno = data
-            self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
-                               fname, lineno, False)
+            self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
+                               fname, lineno, '')
         
     def set_results(self, filename, results):
         self.filename = filename

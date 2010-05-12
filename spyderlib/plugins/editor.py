@@ -116,8 +116,8 @@ class Editor(SpyderPluginWidget):
              show_fullpath=CONF.get(self.ID, 'class_browser_fullpath', False),
              fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True))
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
-        self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
-                     self.load)
+        self.connect(self.classbrowser,
+                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
         
         self.editorstacks = []
         self.editorwindows = []
@@ -1022,7 +1022,7 @@ class Editor(SpyderPluginWidget):
         if valid:
             CONF.set(self.ID, 'max_recent_files', mrf)
         
-    def load(self, filenames=None, goto=None, highlight=False):
+    def load(self, filenames=None, goto=None, word=''):
         """Load a text file"""
         if not filenames:
             # Recent files action
@@ -1084,7 +1084,7 @@ class Editor(SpyderPluginWidget):
                 current.analyze_script() # Analyze script only once (and update
                 # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
-            current_editor.go_to_line(goto[index], highlight=highlight)
+            current_editor.go_to_line(goto[index], word=word)
             for editor in new_editors:
                 if CONF.get(self.ID, 'fold_on_open') \
                    and CONF.get(self.ID, 'code_folding'):

@@ -744,7 +744,7 @@ class QtEditor(TextEditBaseWidget):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def go_to_line(self, line, highlight=False):
+    def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
         block = self.document().findBlockByNumber(line-1)
         cursor = self.textCursor()
@@ -752,8 +752,8 @@ class QtEditor(TextEditBaseWidget):
         self.setTextCursor(cursor)
         self.centerCursor()
         self.horizontalScrollBar().setValue(0)
-        if highlight:
-            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+        if word and word in unicode(block.text()):
+            self.find(word, QTextDocument.FindCaseSensitively)
         
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
@@ -1245,8 +1245,8 @@ class TestWidget(QSplitter):
         self.addWidget(self.editor)
         self.classtree = ClassBrowser(self)
         self.addWidget(self.classtree)
-        self.connect(self.classtree, SIGNAL("edit_goto(QString,int,bool)"),
-                     lambda _fn, line, _h: self.editor.go_to_line(line))
+        self.connect(self.classtree, SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         

@@ -734,11 +734,15 @@ class QsciEditor(TextEditBaseWidget):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def go_to_line(self, line, highlight=False):
-        """Go to line number *line* and eventually highlight it"""
-        if highlight:
+    def go_to_line(self, line, word=''):
+        """Go to line number *line* and eventually highlight *word*"""
+        if word:
             text = unicode(self.text(line-1)).rstrip()
-            self.setSelection(line-1, len(text), line-1, 0)
+            index = text.find(word)
+            if index != -1:
+                self.setSelection(line-1, index+len(word), line-1, index)
+            else:
+                self.setSelection(line-1, len(text), line-1, 0)
         else:
             self.setCursorPosition(line-1, 0)
         self.ensureLineVisible(line-1)
@@ -1269,8 +1273,8 @@ class TestWidget(QSplitter):
         self.addWidget(self.editor)
         self.classtree = ClassBrowser(self)
         self.addWidget(self.classtree)
-        self.connect(self.classtree, SIGNAL("edit_goto(QString,int,bool)"),
-                     lambda _fn, line, _h: self.editor.highlight_line(line))
+        self.connect(self.classtree, SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
         

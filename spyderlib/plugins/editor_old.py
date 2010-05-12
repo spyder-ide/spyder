@@ -956,8 +956,8 @@ class Editor(SpyderPluginWidget):
         self.classbrowser = ClassBrowser(self,
                  fullpath=CONF.get(self.ID, 'class_browser_fullpath', False))
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
-        self.connect(self.classbrowser, SIGNAL("edit_goto(QString,int,bool)"),
-                     self.load)
+        self.connect(self.classbrowser,
+                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
         
         self.editortabwidgets = []
         
@@ -1691,7 +1691,7 @@ class Editor(SpyderPluginWidget):
         if valid:
             CONF.set(self.ID, 'max_recent_files', mrf)
         
-    def load(self, filenames=None, goto=None, highlight=False):
+    def load(self, filenames=None, goto=None, word=''):
         """Load a text file"""
         if not filenames:
             # Recent files action
@@ -1745,10 +1745,7 @@ class Editor(SpyderPluginWidget):
                 editortabwidget = self.get_current_editortabwidget()
                 editor = editortabwidget.load(filename)
                 self.__add_recent_file(filename)
-            if highlight:
-                editor.highlight_line(goto[index])
-            else:
-                editor.go_to_line(goto[index])
+            editor.go_to_line(goto[index], word=word)
             QApplication.processEvents()
 
     def print_file(self):

@@ -314,8 +314,8 @@ class ClassBrowserTreeWidget(OneColumnTree):
             line = item.line
         root_item = self.get_root_item(item)
         self.freeze = True
-        self.parent().emit(SIGNAL("edit_goto(QString,int,bool)"),
-                           root_item.path, line, False)
+        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
+                           root_item.path, line, item.text(0))
         self.freeze = False
         parent = self.current_editor.parent()
         for editor_id, i_item in self.editor_items.iteritems():
@@ -333,7 +333,7 @@ class ClassBrowser(QWidget):
     Class browser
     
     Signals:
-        SIGNAL("edit_goto(QString,int,bool)")
+        SIGNAL("edit_goto(QString,int,QString)")
     """
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True):
         QWidget.__init__(self, parent)
