@@ -77,6 +77,8 @@ class QsciEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        self.eol_mode = None
 
         # Code analysis markers: errors, warnings
         self.ca_markers = []
@@ -232,14 +234,12 @@ class QsciEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     show_eol_chars=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
-                show_eol_chars=show_eol_chars,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
                 scrollflagarea=scrollflagarea, todo_list=todo_list)
@@ -275,8 +275,6 @@ class QsciEditor(TextEditBaseWidget):
         # matching -- see comment above)
         self.setIndentationGuides(True)
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
-        
-        self.set_eol_chars_visible(show_eol_chars)
         
         self.toggle_wrap_mode(wrap)
         if self.is_python():
@@ -510,10 +508,6 @@ class QsciEditor(TextEditBaseWidget):
         """Show/hide EOL characters"""
         self.setEolVisibility(state)
     
-    def convert_eol_chars(self):
-        """Convert EOL characters to current mode"""
-        self.convertEols(self.eolMode())
-        
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
         text_before = unicode(self.text())
@@ -536,7 +530,11 @@ class QsciEditor(TextEditBaseWidget):
             text = unicode(text)
         eol_chars = sourcecode.get_eol_chars(text)
         if eol_chars is not None:
-            self.setEolMode(self.EOL_MODES[eol_chars])
+            if self.eol_mode is not None:
+                self.setModified(True)
+            self.eol_mode = self.EOL_MODES[eol_chars]
+            self.setEolMode(self.eol_mode)
+            self.convertEols(self.eolMode())
         
     def get_line_separator(self):
         """Return line separator based on current EOL mode"""

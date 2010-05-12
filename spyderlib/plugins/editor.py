@@ -56,6 +56,8 @@ class Editor(SpyderPluginWidget):
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):
+        self.__set_eol_mode = True
+        
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
             header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
@@ -410,9 +412,6 @@ class Editor(SpyderPluginWidget):
                                            "F8", triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(is_winpdb_installed())
         
-        convert_eol_action = create_action(self,
-                           self.tr("Convert end-of-line characters"),
-                           triggered=self.convert_eol_chars)
         self.win_eol_action = create_action(self,
                            self.tr("Carriage return and line feed (Windows)"),
                            toggled=lambda: self.toggle_eol_chars('nt'))
@@ -426,7 +425,7 @@ class Editor(SpyderPluginWidget):
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
-        eol_menu = QMenu(self.tr("End-of-line characters"), self)
+        eol_menu = QMenu(self.tr("Convert end-of-line characters"), self)
         add_actions(eol_menu, eol_actions)
         
         trailingspaces_action = create_action(self,
@@ -465,14 +464,10 @@ class Editor(SpyderPluginWidget):
                                     toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
         checkeol_action = create_action(self,
-            self.tr("Always check end-of-line characters"),
-            toggled=lambda checked: self.emit(SIGNAL('option_changed'),
-                                              'check_eol_chars', checked))
+                self.tr("Show warning when fixing newline chars"),
+                toggled=lambda checked: self.emit(SIGNAL('option_changed'),
+                                                  'check_eol_chars', checked))
         checkeol_action.setChecked( CONF.get(self.ID, 'check_eol_chars', True) )
-        showeol_action = create_action(self,
-                                       self.tr("Show end-of-line characters"),
-                                       toggled=self.toggle_show_eol_chars)
-        showeol_action.setChecked( CONF.get(self.ID, 'show_eol_chars', False) )
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
@@ -525,8 +520,7 @@ class Editor(SpyderPluginWidget):
                                   fpsorting_action, showtabbar_action, None,
                                   wrap_action, tab_action, occurence_action,
                                   None, fold_action, self.foldonopen_action,
-                                  checkeol_action, showeol_action,
-                                  None, todo_action,
+                                  checkeol_action, None, todo_action,
                                   analyze_action, self.classbrowser_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -539,8 +533,8 @@ class Editor(SpyderPluginWidget):
                 run_process_args_actionn,
                 run_process_debug_action, None,
                 pylint_action, self.winpdb_action, None,
-                convert_eol_action, eol_menu, trailingspaces_action,
-                fixindentation_action, None, option_menu)
+                eol_menu, trailingspaces_action, fixindentation_action, None,
+                option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.classbrowser_action,
@@ -622,7 +616,6 @@ class Editor(SpyderPluginWidget):
                     ('set_todolist_enabled',       'todo_list'),
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codefolding_enabled',    'code_folding'),
-                    ('set_showeolchars_enabled',   'show_eol_chars'),
                     ('set_wrap_enabled',           'wrap'),
                     ('set_tabmode_enabled',        'tab_always_indent'),
                     ('set_occurence_highlighting_enabled',
@@ -878,12 +871,14 @@ class Editor(SpyderPluginWidget):
             
     def refresh_eol_mode(self, os_name):
         os_name = unicode(os_name)
+        self.__set_eol_mode = False
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
         elif os_name == 'posix':
             self.linux_eol_action.setChecked(True)
         else:
             self.mac_eol_action.setChecked(True)
+        self.__set_eol_mode = True
     
     
     #------ Slots
@@ -1249,13 +1244,10 @@ class Editor(SpyderPluginWidget):
             fname = self.get_current_filename()
             programs.run_program(WINPDB_PATH, fname)
         
-    def convert_eol_chars(self):
-        editorstack = self.get_current_editorstack()
-        editorstack.convert_eol_chars()
-    
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
-        editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os_name))
+        if self.__set_eol_mode:
+            editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os_name))
         
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
@@ -1370,13 +1362,6 @@ class Editor(SpyderPluginWidget):
             CONF.set(self.ID, 'code_folding', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codefolding_enabled(checked)
-            
-    def toggle_show_eol_chars(self, checked):
-        """Toggle show EOL characters"""
-        if self.editorstacks is not None:
-            CONF.set(self.ID, 'show_eol_chars', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_showeolchars_enabled(checked)
             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""

@@ -197,7 +197,6 @@ DEFAULTS = [
               'toolbox_panel': True,
               'code_folding': True,
               'check_eol_chars': True,
-              'show_eol_chars': False,
               'tab_always_indent': True,
               'fullpath_sorting': True,
               'api': osp.join(DATA_PATH, 'python.api'),

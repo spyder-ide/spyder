@@ -244,7 +244,6 @@ class EditorStack(QWidget):
         self.todolist_enabled = True
         self.classbrowser_enabled = True
         self.codefolding_enabled = True
-        self.showeolchars_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
@@ -349,13 +348,6 @@ class EditorStack(QWidget):
     def set_classbrowser_enabled(self, state):
         # CONF.get(self.ID, 'class_browser')
         self.classbrowser_enabled = state
-        
-    def set_showeolchars_enabled(self, state):
-        # CONF.get(self.ID, 'show_eol_chars')
-        self.showeolchars_enabled = state
-        if self.data:
-            for finfo in self.data:
-                finfo.editor.set_eol_chars_visible(state)
         
     def set_default_font(self, font):
         # get_font(self.ID)
@@ -1033,7 +1025,6 @@ class EditorStack(QWidget):
                                 code_analysis=self.codeanalysis_enabled,
                                 code_folding=self.codefolding_enabled,
                                 todo_list=self.todolist_enabled,
-                                show_eol_chars=self.showeolchars_enabled,
                                 font=self.default_font,
                                 wrap=self.wrap_enabled,
                                 tab_mode=self.tabmode_enabled,
@@ -1085,15 +1076,13 @@ class EditorStack(QWidget):
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
-            answer = QMessageBox.warning(self, self.title,
+            QMessageBox.warning(self, self.title,
                             translate("Editor",
                                       "<b>%1</b> contains mixed end-of-line "
-                                      "characters.<br>Do you want to fix this "
-                                      "automatically?").arg(name),
-                            QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.Yes:
-                self.set_os_eol_chars(index)
-                self.convert_eol_chars(index)
+                                      "characters.<br>Spyder will fix this "
+                                      "automatically.").arg(name),
+                            QMessageBox.Ok)
+            self.set_os_eol_chars(index)
         return finfo.editor
     
     def set_os_eol_chars(self, index=None):
@@ -1102,13 +1091,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         eol_mode = sourcecode.get_eol_chars_from_os_name(os.name)
         finfo.editor.set_eol_mode(eol_mode)
-    
-    def convert_eol_chars(self, index=None):
-        """Convert end-of-line characters"""
-        if index is None:
-            index = self.get_stack_index()
-        finfo = self.data[index]
-        finfo.editor.convert_eol_chars()
+        finfo.editor.setModified(True)
         
     def remove_trailing_spaces(self, index=None):
         """Remove trailing spaces"""

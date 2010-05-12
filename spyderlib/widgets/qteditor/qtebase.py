@@ -15,7 +15,7 @@ import sys, re
 
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
-                         QPen, QPlainTextEdit)
+                         QPlainTextEdit)
 from PyQt4.QtCore import QPoint, SIGNAL, Qt
 
 # Local imports
@@ -326,9 +326,11 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.endEditBlock()
     
     def text(self):
+        """Reimplements QScintilla method"""
         return self.toPlainText()
     
     def setText(self, text):
+        """Reimplements QScintilla method"""
         self.setPlainText(text)
 
         

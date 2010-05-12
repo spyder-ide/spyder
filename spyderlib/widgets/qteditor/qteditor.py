@@ -82,12 +82,7 @@ class QtEditor(TextEditBaseWidget):
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
         
-        if os.name == 'nt':
-            self.eol_mode = self.EOL_WINDOWS
-        elif os.name == 'posix':
-            self.eol_mode = self.EOL_UNIX
-        else:
-            self.eol_mode = self.EOL_MAC
+        self.eol_mode = None
         
         # Side areas background color
         self.area_background_color = "#EFEFEF"
@@ -178,14 +173,12 @@ class QtEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
-                     show_eol_chars=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
-                show_eol_chars=show_eol_chars,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
                 scrollflagarea=scrollflagarea, todo_list=todo_list)
@@ -208,8 +201,6 @@ class QtEditor(TextEditBaseWidget):
 
         if font is not None:
             self.set_font(font)
-        
-#        self.set_eol_chars_visible(show_eol_chars)
         
         self.toggle_wrap_mode(wrap)
         self.setModified(False)
@@ -367,11 +358,6 @@ class QtEditor(TextEditBaseWidget):
         # code_folding argument is not supported
         self.markers_margin =  code_analysis or todo_list
     
-    def convert_eol_chars(self):
-        """Convert EOL characters to current mode"""
-        raise NotImplementedError
-        self.convertEols(self.eolMode())
-        
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
         text_before = unicode(self.text())
@@ -386,6 +372,7 @@ class QtEditor(TextEditBaseWidget):
         if text_before != text_after:
             self.setText(text_after)
     
+    #------EOL characters
     def set_eol_mode(self, text):
         """
         Set widget EOL mode based on *text* EOL characters
@@ -394,6 +381,8 @@ class QtEditor(TextEditBaseWidget):
             text = unicode(text)
         eol_chars = sourcecode.get_eol_chars(text)
         if eol_chars is not None:
+            if self.eol_mode is not None:
+                self.setModified(True)
             self.eol_mode = self.EOL_MODES[eol_chars]
         
     def get_line_separator(self):
@@ -402,8 +391,20 @@ class QtEditor(TextEditBaseWidget):
             if self.eol_mode == mode:
                 return eol_chars
         else:
-            return ''
+            return os.linesep
+
+    def copy(self):
+        """Copy text to clipboard with correct EOL chars"""
+        text = unicode(self.selectedText()).replace(u"\u2029",
+                                                    self.get_line_separator())
+        QApplication.clipboard().setText(text)
+
+    def text(self):
+        """Reimplements TextEditBaseWidget method"""
+        linesep = self.get_line_separator()
+        return linesep.join(unicode(self.toPlainText()).splitlines())
     
+    #------Find occurences
     def __find_first(self, text):
         """Find first occurence: scan whole document"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
