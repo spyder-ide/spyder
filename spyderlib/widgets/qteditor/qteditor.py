@@ -1118,7 +1118,18 @@ class QtEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         # Zoom in/out
-        if ((key == Qt.Key_Plus) and ctrl) \
+        if key in (Qt.Key_Enter, Qt.Key_Return) and not shift and not ctrl:
+            QPlainTextEdit.keyPressEvent(self, event)
+            self.fix_indent()
+        elif key == Qt.Key_Backspace and not shift and not ctrl:
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.StartOfBlock,
+                                QTextCursor.KeepAnchor)
+            if not unicode(cursor.selectedText()).strip():
+                self.unindent()
+            else:
+                QPlainTextEdit.keyPressEvent(self, event)
+        elif ((key == Qt.Key_Plus) and ctrl) \
              or ((key == Qt.Key_Equal) and shift and ctrl):
             self.zoomIn()
             event.accept()
