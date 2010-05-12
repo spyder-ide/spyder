@@ -89,6 +89,9 @@ class QtEditor(TextEditBaseWidget):
         else:
             self.eol_mode = self.EOL_MAC
         
+        # Side areas background color
+        self.area_background_color = "#EFEFEF"
+        
         # 80-col edge line
         self.edge_line = EdgeLine(self)
         
@@ -369,12 +372,9 @@ class QtEditor(TextEditBaseWidget):
         """Show/hide whitespace"""
         raise NotImplementedError
     
-    def set_eol_chars_visible(self, state):
-        """Show/hide EOL characters"""
-        self.setEolVisibility(state)
-    
     def convert_eol_chars(self):
         """Convert EOL characters to current mode"""
+        raise NotImplementedError
         self.convertEols(self.eolMode())
         
     def remove_trailing_spaces(self):
@@ -529,7 +529,7 @@ class QtEditor(TextEditBaseWidget):
     def linenumberarea_paint_event(self, event):
         font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), QColor("#EFEFEF"))
+        painter.fillRect(event.rect(), QColor(self.area_background_color))
         
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
@@ -537,11 +537,11 @@ class QtEditor(TextEditBaseWidget):
                                                     self.contentOffset()).top()
         bottom = top + self.blockBoundingRect(block).height()
         
+        painter.setPen(Qt.darkGray)
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
                 number = QString.number(line_number)
-                painter.setPen(Qt.darkGray)
                 painter.drawText(0, top, self.linenumberarea.width(),
                                  font_height, Qt.AlignRight|Qt.AlignBottom,
                                  number)
@@ -606,7 +606,7 @@ class QtEditor(TextEditBaseWidget):
                                           self.scrollflagarea.WIDTH-4, 4)
         
         painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), QColor("#EFEFEF"))
+        painter.fillRect(event.rect(), QColor(self.area_background_color))
         
         # Warnings
         self.__set_scrollflagarea_painter(painter, self.warning_color)
