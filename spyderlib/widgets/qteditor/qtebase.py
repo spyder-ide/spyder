@@ -593,7 +593,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor = self.textCursor()
         cursor.select(QTextCursor.WordUnderCursor)
         text = unicode(cursor.selectedText())
-        match = re.findall(r'([a-zA-Z_][0-9a-zA-Z_]*)', text)
+        match = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_]*)', text)
         if match:
             return match[0]
     
