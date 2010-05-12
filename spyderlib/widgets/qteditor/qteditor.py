@@ -399,10 +399,13 @@ class QtEditor(TextEditBaseWidget):
                                                     self.get_line_separator())
         QApplication.clipboard().setText(text)
 
-    def text(self):
+    def text(self, line_nb=None):
         """Reimplements TextEditBaseWidget method"""
-        linesep = self.get_line_separator()
-        return linesep.join(unicode(self.toPlainText()).splitlines())
+        lines = unicode(self.toPlainText()).splitlines()
+        if line_nb is None:
+            return self.get_line_separator().join(lines)
+        else:
+            return lines[line_nb-1]
     
     #------Find occurences
     def __find_first(self, text):

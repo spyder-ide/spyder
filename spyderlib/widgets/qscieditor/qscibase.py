@@ -372,6 +372,11 @@ class TextEditBaseWidget(QsciScintilla):
     def get_indentation(self, line_nb):
         """Return line indentation (character number)"""
         return self.indentation(line_nb)
+    
+    def get_selection_bounds(self):
+        """Return selection bounds (line numbers)"""
+        line_from, _index_from, line_to, _index_to = self.getSelection()
+        return line_from, line_to
 
 
     #----QScintilla: positions

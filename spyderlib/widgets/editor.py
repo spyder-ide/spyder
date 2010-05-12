@@ -1114,7 +1114,7 @@ class EditorStack(QWidget):
         
         _indent = lambda line: len(line)-len(line.lstrip())
         
-        line_from, _index_from, line_to, _index_to = editor.getSelection()
+        line_from, line_to = editor.get_selection_bounds()
         text = unicode(editor.selectedText())
 
         lines = text.split(ls)

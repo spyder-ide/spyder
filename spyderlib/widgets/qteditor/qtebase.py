@@ -325,9 +325,12 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.insertText(text)
         cursor.endEditBlock()
     
-    def text(self):
+    def text(self, line_nb=None):
         """Reimplements QScintilla method"""
-        return self.toPlainText()
+        if line_nb is None:
+            return self.toPlainText()
+        else:
+            return unicode(self.toPlainText()).splitlines()[line_nb-1]
     
     def setText(self, text):
         """Reimplements QScintilla method"""
@@ -620,6 +623,14 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Return line indentation (character number)"""
         text = unicode(self.document().findBlockByNumber(block_nb).text())
         return len(text)-len(text.lstrip())
+    
+    def get_selection_bounds(self):
+        """Return selection bounds (block numbers)"""
+        cursor = self.textCursor()
+        start, end = cursor.selectionStart(), cursor.selectionEnd()
+        block_start = self.document().findBlock(start)
+        block_end = self.document().findBlock(end)
+        return block_start.blockNumber(), block_end.blockNumber()
         
 
     #------Code completion / Calltips
