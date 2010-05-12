@@ -98,6 +98,7 @@ class QtEditor(TextEditBaseWidget):
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
         
         # Line number area management
+        self.linenumberarea_enabled = None
         self.linenumberarea = LineNumberArea(self)
         self.connect(self, SIGNAL("blockCountChanged(int)"),
                      self.update_linenumberarea_width)
@@ -111,6 +112,7 @@ class QtEditor(TextEditBaseWidget):
         self.currentline_color = QColor(bcol)
         
         # Scrollbar flag area
+        self.scrollflagarea_enabled = None
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
         self.warning_color = "#EFB870"
@@ -495,12 +497,13 @@ class QtEditor(TextEditBaseWidget):
         
     #-----linenumberarea
     def set_linenumberarea_enabled(self, state):
+        self.linenumberarea_enabled = state
         self.linenumberarea.setVisible(state)
         self.update_linenumberarea_width(0)
     
     def get_linenumberarea_width(self):
         """Return line number area width"""
-        if not self.linenumberarea.isVisible():
+        if not self.linenumberarea_enabled:
             return 0
         digits = 1
         maxb = max(1, self.blockCount())
@@ -581,11 +584,12 @@ class QtEditor(TextEditBaseWidget):
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
+        self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
         self.update_linenumberarea_width(0)
             
     def get_scrollflagarea_width(self):
-        if self.scrollflagarea.isVisible():
+        if self.scrollflagarea_enabled:
             return ScrollFlagArea.WIDTH
         else:
             return 0

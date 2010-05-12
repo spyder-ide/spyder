@@ -104,6 +104,7 @@ class QsciEditor(TextEditBaseWidget):
         self.occurences = []
         
         # Scrollbar flag area
+        self.scrollflagarea_enabled = None
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
         
@@ -160,11 +161,11 @@ class QsciEditor(TextEditBaseWidget):
     # Scrollbar flag area management
     #===========================================================================
     def set_scrollflagarea_enabled(self, state):
+        self.scrollflagarea_enabled = state
+        self.scrollflagarea.setVisible(state)
         if state:
-            self.scrollflagarea.show()
             self.setViewportMargins(0, 0, ScrollFlagArea.WIDTH, 0)
         else:
-            self.scrollflagarea.hide()
             self.setViewportMargins(0, 0, 0, 0)
             
     def scrollflagarea_paint_event(self, event):
