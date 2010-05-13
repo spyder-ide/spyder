@@ -174,6 +174,21 @@ def item_at_line(root_item, line):
         previous_item = item
 
 
+def remove_from_tree_cache(tree_cache, line=None, item=None):
+    if line is None:
+        for line, (_it, _level, _debug) in tree_cache.iteritems():
+            if _it is item:
+                break
+    item, _level, debug = tree_cache.pop(line)
+    try:
+        for child in [item.child(_i) for _i in range(item.childCount())]:
+            remove_from_tree_cache(item=child)
+        item.parent().removeChild(item)
+    except RuntimeError:
+        # Item has already been deleted
+        #XXX: remove this debug-related fragment of code
+        print >>STDOUT, "unable to remove tree item: ", debug
+
 class ClassBrowserTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, fullpath_sorting=True):
         self.show_fullpath = show_fullpath
@@ -181,6 +196,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
+        self.editor_tree_cache = {}
         self.editor_ids = {}
         self.current_editor = None
         title = translate("ClassBrowser", "Classes and functions")
@@ -235,10 +251,20 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 self.root_item_selected(item)
             if update:
                 self.save_expanded_state()
-                editor.populate_classbrowser(item)
+                tree_cache = self.editor_tree_cache[editor_id]
+                self.populate_branch(editor, item, tree_cache)
                 self.restore_expanded_state()
         else:
-            self.editor_items[editor_id] = self.populate(editor, fname)
+    #        import time
+    #        t0 = time.time()
+            root_item = FileRootItem(fname, self)
+            root_item.set_text(fullpath=self.show_fullpath)
+            tree_cache = self.populate_branch(editor, root_item)
+            self.__sort_toplevel_items()
+            self.root_item_selected(root_item)
+    #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
+            self.editor_items[editor_id] = root_item
+            self.editor_tree_cache[editor_id] = tree_cache
             self.resizeColumnToContents(0)
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
@@ -248,7 +274,8 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.save_expanded_state()
         for editor, editor_id in self.editor_ids.iteritems():
             item = self.editor_items[editor_id]
-            editor.populate_classbrowser(item)
+            tree_cache = self.editor_tree_cache[editor_id]
+            self.populate_branch(editor, item, tree_cache)
         self.restore_expanded_state()
         
     def remove_editor(self, editor):
@@ -258,6 +285,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
             editor_id = self.editor_ids.pop(editor)
             if editor_id not in self.editor_ids.values():
                 root_item = self.editor_items.pop(editor_id)
+                self.editor_tree_cache.pop(editor_id)
                 self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
         
     def __sort_toplevel_items(self):
@@ -266,18 +294,117 @@ class ClassBrowserTreeWidget(OneColumnTree):
         else:
             sort_func = lambda item: osp.basename(item.path.lower())
         self.sort_top_level_items(key=sort_func)
+            
+    def populate_branch(self, editor, root_item, tree_cache=None):
+        if tree_cache is None:
+            tree_cache = {}
         
-    def populate(self, editor, fname):
-        """Populate tree"""
-#        import time
-#        t0 = time.time()
-        root_item = FileRootItem(fname, self)
-        root_item.set_text(fullpath=self.show_fullpath)
-        editor.populate_classbrowser(root_item)
-        self.__sort_toplevel_items()
-        self.root_item_selected(root_item)
-#        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
-        return root_item
+        # Removing cached items for which line is > total line nb
+        for _l in tree_cache.keys():
+            if _l >= editor.get_line_count():
+                # Checking if key is still in tree cache in case one of its 
+                # ancestors was deleted in the meantime (deleting all children):
+                if _l in tree_cache:
+                    remove_from_tree_cache(tree_cache, line=_l)
+                    
+        ancestors = [(root_item, 0)]
+        previous_item = None
+        previous_level = None
+        
+        if editor.highlighter is not None:
+            # QtEditor
+            cb_data = editor.highlighter.get_classbrowser_data()
+        else:
+            # QsciEditor
+            cb_data = None
+        for block_nb in range(editor.get_line_count()):
+            line_nb = block_nb+1
+            if cb_data is not None:
+                data = cb_data.get(block_nb)
+            else:
+                from spyderlib.widgets.qteditor.syntaxhighlighters import ClassBrowserData
+                data = ClassBrowserData()
+                text = unicode(editor.text(block_nb))
+                data.text = text
+                data.fold_level = editor.get_fold_level(block_nb)
+                class_name = editor.classfunc_match.get_class_name(text)
+                if class_name is not None:
+                    data.def_type = ClassBrowserData.CLASS
+                    data.def_name = class_name
+                else:
+                    func_name = editor.classfunc_match.get_function_name(text)
+                    if func_name is not None:
+                        data.def_type = ClassBrowserData.FUNCTION
+                        data.def_name = func_name
+            
+            if data is None:
+                level = None
+            else:
+                level = data.fold_level
+            citem, clevel, _d = tree_cache.get(line_nb,
+                                                      (None, None, ""))
+            
+            # Skip iteration if line is not the first line of a foldable block
+            if level is None:
+                if citem is not None:
+                    remove_from_tree_cache(tree_cache, line=line_nb)
+                continue
+            
+            # Searching for class/function statements
+            class_name = data.get_class_name()
+            if class_name is None:
+                func_name = data.get_function_name()
+                if func_name is None:
+                    if citem is not None:
+                        remove_from_tree_cache(tree_cache, line=line_nb)
+                    continue
+                
+            if previous_level is not None:
+                if level == previous_level:
+                    pass
+                elif level > previous_level:
+                    ancestors.append((previous_item, previous_level))
+                else:
+                    while len(ancestors) > 1 and level <= previous_level:
+                        ancestors.pop(-1)
+                        _item, previous_level = ancestors[-1]
+            parent, _level = ancestors[-1]
+            
+            if citem is not None:
+                cname = unicode(citem.text(0))
+                
+            preceding = root_item if previous_item is None else previous_item
+            if class_name is not None:
+                if citem is not None:
+                    if class_name == cname and level == clevel:
+                        previous_level = clevel
+                        previous_item = citem
+                        continue
+                    else:
+                        remove_from_tree_cache(tree_cache, line=line_nb)
+                item = ClassItem(class_name, line_nb, parent, preceding)
+            else:
+                if citem is not None:
+                    if func_name == cname and level == clevel:
+                        previous_level = clevel
+                        previous_item = citem
+                        continue
+                    else:
+                        remove_from_tree_cache(tree_cache, line=line_nb)
+                item = FunctionItem(func_name, line_nb, parent, preceding)
+                if item.is_method() and line_nb > 1:
+                    text = unicode(editor.text(block_nb-1))
+                    decorator = editor.classfunc_match.get_decorator(text)
+                    item.set_decorator(decorator)
+            item.setup()
+            debug = "%s -- %s/%s" % (str(item.line).rjust(6),
+                                     unicode(item.parent().text(0)),
+                                     unicode(item.text(0)))
+            tree_cache[line_nb] = (item, level, debug)
+            previous_level = level
+            previous_item = item
+            
+        return tree_cache
 
     def root_item_selected(self, item):
         """Root item has been selected: expanding it and collapsing others"""

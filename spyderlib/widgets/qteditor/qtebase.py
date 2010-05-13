@@ -632,6 +632,10 @@ class TextEditBaseWidget(QPlainTextEdit):
         block_end = self.document().findBlock(end)
         return block_start.blockNumber(), block_end.blockNumber()
         
+    def get_line_count(self):
+        """Return document total line number"""
+        return self.blockCount()
+        
 
     #------Code completion / Calltips
     def show_calltip(self, title, text, color='#2D62FF', at_line=None):

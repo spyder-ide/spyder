@@ -377,6 +377,10 @@ class TextEditBaseWidget(QsciScintilla):
         """Return selection bounds (line numbers)"""
         line_from, _index_from, line_to, _index_to = self.getSelection()
         return line_from, line_to
+        
+    def get_line_count(self):
+        """Return document total line number"""
+        return self.lines()
 
 
     #----QScintilla: positions
