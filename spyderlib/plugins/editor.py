@@ -1147,8 +1147,7 @@ class Editor(SpyderPluginWidget):
             
     def close_all_files(self):
         """Close all opened scripts"""
-        for editorstack in self.editorstacks:
-            editorstack.close_all_files()
+        self.editorstacks[0].close_all_files()
                 
     def save(self, index=None, force=False):
         """Save file"""
@@ -1168,29 +1167,30 @@ class Editor(SpyderPluginWidget):
     
     
     #------ Explorer widget
-    def __close_and_reload(self, filename, new_filename=None):
+    def __close(self, filename):
         filename = osp.abspath(unicode(filename))
-        for editorstack in self.editorstacks:
-            index = editorstack.has_filename(filename)
-            if index is not None:
-                editorstack.close_file(index)
-                if new_filename is not None:
-                    self.load(unicode(new_filename))
+        index = self.editorstacks[0].has_filename(filename)
+        if index is not None:
+            self.editorstacks[0].close_file(index)
                 
     def removed(self, filename):
-        """File was removed in explorer/project explorer widget"""
-        self.__close_and_reload(filename)
+        """File was removed in file explorer widget or in project explorer"""
+        self.__close(filename)
     
     def removed_tree(self, dirname):
         """Directory was removed in project explorer widget"""
         dirname = osp.abspath(unicode(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
-                self.__close_and_reload(fname)
+                self.__close(fname)
     
     def renamed(self, source, dest):
-        """File was renamed in explorer widget"""
-        self.__close_and_reload(source, new_filename=dest)
+        """File was renamed in file explorer widget or in project explorer"""
+        filename = osp.abspath(unicode(source))
+        index = self.editorstacks[0].has_filename(filename)
+        if index is not None:
+            for editorstack in self.editorstacks:
+                editorstack.rename_in_data(index, new_filename=unicode(dest))
         
     
     #------ Source code

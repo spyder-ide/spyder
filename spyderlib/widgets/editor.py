@@ -402,7 +402,8 @@ class EditorStack(QWidget):
             finfo = self.data[self.get_stack_index()]
             self.data.sort(key=self.__get_sorting_func())
             new_index = self.data.index(finfo)
-            self.__repopulate_stack(new_index)
+            self.__repopulate_stack()
+            self.set_stack_index(new_index)
     
     #------ Stacked widget management
     def get_stack_index(self):
@@ -444,7 +445,7 @@ class EditorStack(QWidget):
         fname, editor = finfo.filename, finfo.editor
         self.combo.blockSignals(True)
         self.tabs.insertTab(index, editor, get_filetype_icon(fname),
-                             self.get_tab_title(fname))
+                            self.get_tab_title(fname))
         self.combo.insertItem(index, get_filetype_icon(fname),
                               self.get_combo_title(fname))
         if set_current:
@@ -454,7 +455,7 @@ class EditorStack(QWidget):
             self.current_changed(index)
         self.update_actions()
         
-    def __repopulate_stack(self, new_index):
+    def __repopulate_stack(self):
         self.combo.blockSignals(True)
         for _i in range(self.tabs.count()):
             self.tabs.removeTab(_i)
@@ -462,18 +463,22 @@ class EditorStack(QWidget):
         for _i, _fi in enumerate(self.data):
             fname, editor = _fi.filename, _fi.editor
             self.tabs.insertTab(_i, editor, get_filetype_icon(fname),
-                                 self.get_tab_title(fname))
+                                self.get_tab_title(fname))
             self.combo.insertItem(_i, get_filetype_icon(fname),
                                   self.get_combo_title(fname))
         self.combo.blockSignals(False)
-        self.set_stack_index(new_index)
         
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
+        set_new_index = index == self.get_stack_index()
         finfo.filename = new_filename
         self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
-        self.__repopulate_stack(new_index)
+        self.__repopulate_stack()
+        if set_new_index:
+            self.set_stack_index(new_index)
+        if self.classbrowser is not None:
+            self.classbrowser.file_renamed(finfo.editor, finfo.filename)
         return new_index
         
     def set_stack_title(self, index, combo_title, tab_title):
@@ -1089,7 +1094,7 @@ class EditorStack(QWidget):
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
         index = self.get_stack_index()
-        self._refresh_classbrowser(index)
+        self._refresh_classbrowser(index, update=True)
         self.emit(SIGNAL('ending_long_process(QString)'), "")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
@@ -1334,6 +1339,7 @@ class EditorSplitter(QSplitter):
         if splitsettings is None:
             return
         splitter = self
+        editor = None
         for index, (is_vertical, cfname, clines) in enumerate(splitsettings):
             if index > 0:
                 splitter.split(Qt.Vertical if is_vertical else Qt.Horizontal)
@@ -1349,8 +1355,9 @@ class EditorSplitter(QSplitter):
         sizes = settings.get('sizes')
         if sizes is not None:
             self.setSizes(sizes)
-        editor.clearFocus()
-        editor.setFocus()
+        if editor is not None:
+            editor.clearFocus()
+            editor.setFocus()
 
 
 #===============================================================================

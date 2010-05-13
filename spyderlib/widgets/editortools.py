@@ -94,6 +94,10 @@ class FileRootItem(QTreeWidgetItem):
         self.setToolTip(0, path)
         set_item_user_text(self, path)
         
+    def set_path(self, path, fullpath):
+        self.path = path
+        self.set_text(fullpath)
+        
     def set_text(self, fullpath):
         self.setText(0, self.path if fullpath else osp.basename(self.path))
         
@@ -269,6 +273,13 @@ class ClassBrowserTreeWidget(OneColumnTree):
         if editor not in self.editor_ids:
             self.editor_ids[editor] = editor_id
         self.current_editor = editor
+        
+    def file_renamed(self, editor, new_filename):
+        """File was renamed, updating class browser tree"""
+        editor_id = editor.get_document_id()
+        if editor_id in self.editor_ids.values():
+            root_item = self.editor_items[editor_id]
+            root_item.set_path(new_filename, fullpath=self.show_fullpath)
         
     def update_all(self):
         self.save_expanded_state()
@@ -504,6 +515,9 @@ class ClassBrowser(QWidget):
 
     def set_fullpath_sorting(self, state):
         self.treewidget.set_fullpath_sorting(state)
+
+    def file_renamed(self, editor, new_filename):
+        self.treewidget.file_renamed(editor, new_filename)
 
 
 #===============================================================================
