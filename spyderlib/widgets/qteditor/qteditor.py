@@ -981,16 +981,11 @@ class QtEditor(TextEditBaseWidget):
             cursor.insertText(" "*correct_indent)
             cursor.endEditBlock()
     
-    def __no_char_before_cursor(self):
-        cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock, QTextCursor.KeepAnchor)
-        return len(unicode(cursor.selectedText()).strip()) == 0
-    
     def indent(self):
         """Indent current line or selection"""
         if self.hasSelectedText():
             self.add_prefix(" "*4)
-        elif self.__no_char_before_cursor() or \
+        elif not self.get_text('sol', 'cursor').strip() or \
              (self.tab_indents and self.tab_mode):
             if self.is_python() or self.is_cython():
                 self.fix_indent(forward=True)
@@ -1002,13 +997,16 @@ class QtEditor(TextEditBaseWidget):
     def unindent(self):
         """Unindent current line or selection"""
         if self.hasSelectedText():
-            self.remove_prefix( " "*4 )
-        elif self.__no_char_before_cursor() or \
-             (self.tab_indents and self.tab_mode):
-            if self.is_python() or self.is_cython():
-                self.fix_indent(forward=False)
-            else:
-                self.remove_prefix( " "*4 )
+            self.remove_prefix(" "*4)
+        else:
+            leading_text = self.get_text('sol', 'cursor')
+            if not leading_text.strip() or (self.tab_indents and self.tab_mode):
+                if self.is_python() or self.is_cython():
+                    self.fix_indent(forward=False)
+                elif leading_text.endswith('\t'):
+                    self.remove_prefix('\t')
+                else:
+                    self.remove_prefix(" "*4)
             
     def comment(self):
         """Comment current line or selection"""
@@ -1131,10 +1129,8 @@ class QtEditor(TextEditBaseWidget):
             QPlainTextEdit.keyPressEvent(self, event)
             self.fix_indent()
         elif key == Qt.Key_Backspace and not shift and not ctrl:
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.StartOfBlock,
-                                QTextCursor.KeepAnchor)
-            if not unicode(cursor.selectedText()).strip():
+            leading_text = self.get_text('sol', 'cursor')
+            if leading_text and not leading_text.strip():
                 self.unindent()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
