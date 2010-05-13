@@ -256,6 +256,13 @@ class QtEditor(TextEditBaseWidget):
             #XXX: remove this debug-related fragment of code
             print >>STDOUT, "unable to remove tree item: ", debug
         
+    def rehighlight(self):
+        """
+        Rehighlight the whole document to rebuild class browser data
+        and import statements data from scratch
+        """
+        self.highlighter.rehighlight()
+        
     def populate_classbrowser(self, root_item):
         """Populate classes and functions browser (tree widget)"""
         if self.__tree_cache is None:
@@ -273,8 +280,10 @@ class QtEditor(TextEditBaseWidget):
         previous_item = None
         previous_level = None
         
-        iterator = self.highlighter.get_classbrowser_data_iterator()
-        for block_nb, data in iterator():
+        cb_data = self.highlighter.get_classbrowser_data()
+        for block_nb in range(self.blockCount()):
+            data = cb_data.get(block_nb)
+            
             line_nb = block_nb+1
             if data is None:
                 level = None
@@ -1286,6 +1295,6 @@ if __name__ == '__main__':
         fname = sys.argv[1]
     else:
         fname = __file__
-#        fname = r"C:\Documents and Settings\Famille Baudrier\Bureau\scintilla\src\LexCPP.cxx"
+        fname = r"d:\Python\scintilla\src\LexCPP.cxx"
 #        fname = r"d:\Python\sandbox.pyw"
     test(fname)

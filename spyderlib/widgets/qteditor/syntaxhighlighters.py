@@ -138,18 +138,8 @@ class BaseSH(QSyntaxHighlighter):
     def highlightBlock(self, text):
         raise NotImplementedError
             
-    def get_classbrowser_data_iterator(self):
-        """
-        Return class browser data iterator
-        The iterator yields block number and associated data
-        """
-        block_dict = {}
-        for block, data in self.classbrowser_data.iteritems():
-            block_dict[block.blockNumber()] = data
-        def iterator():
-            for block_nb in sorted(block_dict.keys()):
-                yield block_nb, block_dict[block_nb]
-        return iterator
+    def get_classbrowser_data(self):
+        return self.classbrowser_data
 
     def rehighlight(self):
         self.classbrowser_data = {}
@@ -229,9 +219,11 @@ class PythonSH(BaseSH):
         self.setCurrentBlockState(last_state)
         
         if cbdata is not None:
-            self.classbrowser_data[self.currentBlock()] = cbdata
+            block_nb = self.currentBlock().blockNumber()
+            self.classbrowser_data[block_nb] = cbdata
         if import_stmt is not None:
-            self.import_statements[self.currentBlock()] = import_stmt
+            block_nb = self.currentBlock().blockNumber()
+            self.import_statements[block_nb] = import_stmt
             
     def get_import_statements(self):
         return self.import_statements.values()

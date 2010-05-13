@@ -334,6 +334,13 @@ class QsciEditor(TextEditBaseWidget):
             #XXX: remove this debug-related fragment of code
             print >>STDOUT, "unable to remove tree item: ", debug
         
+    def rehighlight(self):
+        """
+        Compatibility with QtEditor interface
+        Do not remove this method.
+        """
+        pass
+        
     def populate_classbrowser(self, root_item):
         """Populate classes and functions browser (tree widget)"""
         if self.__tree_cache is None:

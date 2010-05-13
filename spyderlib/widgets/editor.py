@@ -668,6 +668,14 @@ class EditorStack(QWidget):
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.modification_changed(index=index)
             self.analyze_script(index)
+            
+            #XXX QtEditor-only: re-scan the whole text to rebuild class browser 
+            #    data from scratch (could be optimized because rehighlighting
+            #    text means searching for all syntax coloring patterns instead 
+            #    of only searching for class/def patterns which would be 
+            #    sufficient for class browser data.
+            finfo.editor.rehighlight()
+            
             self._refresh_classbrowser(index)
             if refresh_explorer:
                 # Refresh the explorer widget if it exists:
