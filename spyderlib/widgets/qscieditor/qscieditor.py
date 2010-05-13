@@ -985,18 +985,11 @@ class QsciEditor(TextEditBaseWidget):
             self.setCursorPosition(line, index)
             self.endUndoAction()
     
-    def __no_char_before_cursor(self):
-        line, index = self.getCursorPosition()
-        self.setSelection(line, 0, line, index)
-        selected_text = unicode(self.selectedText())
-        self.clear_selection()
-        return len(selected_text.strip()) == 0
-    
     def indent(self):
         """Indent current line or selection"""
         if self.hasSelectedText():
             self.add_prefix( " "*4 )
-        elif self.__no_char_before_cursor() or \
+        elif not self.get_text('sol', 'cursor').strip() or \
              (self.tab_indents and self.tab_mode):
             if self.is_python():
                 self.fix_indent(forward=True)
@@ -1007,14 +1000,18 @@ class QsciEditor(TextEditBaseWidget):
     
     def unindent(self):
         """Unindent current line or selection"""
+        self.get_text()
         if self.hasSelectedText():
             self.remove_prefix( " "*4 )
-        elif self.__no_char_before_cursor() or \
-             (self.tab_indents and self.tab_mode):
-            if self.is_python():
-                self.fix_indent(forward=False)
-            else:
-                self.remove_prefix( " "*4 )
+        else:
+            leading_text = self.get_text('sol', 'cursor')
+            if not leading_text.strip() or (self.tab_indents and self.tab_mode):
+                if self.is_python() or self.is_cython():
+                    self.fix_indent(forward=False)
+                elif leading_text.endswith('\t'):
+                    self.remove_prefix('\t')
+                else:
+                    self.remove_prefix(" "*4)
             
     def comment(self):
         """Comment current line or selection"""
