@@ -651,6 +651,8 @@ class Editor(SpyderPluginWidget):
         
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
+        self.connect(editorstack, SIGNAL('file_saved(int)'),
+                     self.file_saved_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -703,6 +705,13 @@ class Editor(SpyderPluginWidget):
                 editorstack.blockSignals(True)
                 editorstack.close_file(index)
                 editorstack.blockSignals(False)
+                
+    def file_saved_in_editorstack(self, index):
+        """A file was saved in editorstack, this notifies others"""
+        sender = self.sender()
+        for editorstack in self.editorstacks:
+            if editorstack is not sender:
+                editorstack.file_saved_in_other_editorstack(index)
         
         
     #------ Handling editor windows    
@@ -812,10 +821,10 @@ class Editor(SpyderPluginWidget):
                 
     def refresh_save_all_action(self):
         state = False
-        for editorstack in self.editorstacks:
-            if editorstack.get_stack_count() > 1:
-                state = state or any([finfo.editor.isModified() for finfo \
-                                      in editorstack.data])
+        editorstack = self.editorstacks[0]
+        if editorstack.get_stack_count() > 1:
+            state = state or any([finfo.editor.isModified()
+                                  for finfo in editorstack.data])
         self.save_all_action.setEnabled(state)
             
     def update_warning_menu(self):

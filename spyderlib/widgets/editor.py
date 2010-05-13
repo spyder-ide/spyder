@@ -664,8 +664,9 @@ class EditorStack(QWidget):
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
-            finfo.editor.setModified(False)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
+            self.emit(SIGNAL('file_saved(int)'), index)
+            finfo.editor.setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
             
@@ -689,6 +690,15 @@ class EditorStack(QWidget):
                                       "<br><br>Error message:<br>%2").arg(
                             osp.basename(finfo.filename)).arg(str(error)))
             return False
+        
+    def file_saved_in_other_editorstack(self, index):
+        """
+        File was just saved in another editorstack, let's synchronize!
+        This avoid file to be automatically reloaded
+        """
+        finfo = self.data[index]
+        finfo.newly_created = False
+        finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
     
     def select_savename(self, original_filename):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
