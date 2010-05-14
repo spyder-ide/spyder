@@ -1162,8 +1162,7 @@ class Editor(SpyderPluginWidget):
         
     def save_all(self):
         """Save all opened files"""
-        for editorstack in self.editorstacks:
-            editorstack.save_all()
+        self.editorstacks[0].save_all()
     
     
     #------ Explorer widget
