@@ -733,8 +733,8 @@ class MainWindow(QMainWindow):
             # appearance possible
             splitting = (
                          (self.projectexplorer, self.editor, Qt.Horizontal),
-                         (self.editor, self.onlinehelp, Qt.Horizontal),
-                         (self.onlinehelp, self.console, Qt.Vertical),
+                         (self.editor, self.inspector, Qt.Horizontal),
+                         (self.inspector, self.console, Qt.Vertical),
                          )
             for first, second, orientation in splitting:
                 if first is not None and second is not None:
@@ -742,18 +742,18 @@ class MainWindow(QMainWindow):
                                          orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
-                                  (self.onlinehelp, self.inspector),
-                                  (self.inspector, self.workspace),
+                                  (self.inspector, self.onlinehelp),
+                                  (self.onlinehelp, self.workspace),
                                   (self.workspace, self.explorer),
                                   (self.explorer, self.findinfiles),
                                   (self.findinfiles, self.pylint),
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-            for plugin in (self.pylint, self.findinfiles):
+            for plugin in (self.pylint, self.findinfiles, self.onlinehelp):
                 if plugin is not None:
                     plugin.dockwidget.close()
-            for plugin in (self.onlinehelp, self.console):
+            for plugin in (self.inspector, self.console):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             for toolbar in (run_toolbar, edit_toolbar):

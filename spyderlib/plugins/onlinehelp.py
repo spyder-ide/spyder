@@ -47,7 +47,14 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
             [ unicode( self.url_combo.itemText(index) )
                 for index in range(self.url_combo.count()) ] ))
 
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def visibility_changed(self, enable):
+        """DockWidget visibility has changed"""
+        SpyderPluginMixin.visibility_changed(self, enable)
+        if enable and not self.is_server_running():
+            self.initialize()
+    
+    #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Online help')

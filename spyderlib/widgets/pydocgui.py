@@ -6,7 +6,8 @@
 
 """pydoc widget"""
 
-from PyQt4.QtCore import QThread, QUrl
+from PyQt4.QtGui import QApplication, QCursor
+from PyQt4.QtCore import QThread, QUrl, Qt
 
 import sys, os.path as osp
 
@@ -50,8 +51,18 @@ class PydocBrowser(WebBrowser):
         super(PydocBrowser, self).__init__(parent)
         self.server = None
         self.port = None
+        
+    def initialize(self):
+        """Start pydoc server and load home page"""
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
         self.start_server()
         self.go_home()
+        QApplication.restoreOverrideCursor()
+        
+    def is_server_running(self):
+        """Return True if pydoc server is already running"""
+        return self.server is not None
         
     def closeEvent(self, event):
         self.server.quit_server()
@@ -97,6 +108,7 @@ def main():
     app = qapplication()
     widget = PydocBrowser(None)
     widget.show()
+    widget.initialize()
     sys.exit(app.exec_())
 
 if __name__ == '__main__':
