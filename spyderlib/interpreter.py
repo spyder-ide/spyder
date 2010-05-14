@@ -79,6 +79,7 @@ class Interpreter(InteractiveConsole):
         self.namespace = self.locals
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
+        self.namespace['runfile'] = self.runfile
         if rawinputfunc is not None:
             self.namespace['raw_input'] = rawinputfunc
             self.namespace['input'] = lambda text='': eval(rawinputfunc(text))
@@ -112,6 +113,22 @@ class Interpreter(InteractiveConsole):
             InteractiveConsole.showsyntaxerror(self, filename)
         else:
             self.runcode(code)
+        
+    def runfile(self, filename, args=None):
+        """
+        Run filename
+        args: command line arguments (string)
+        """
+        if args is not None and not isinstance(args, basestring):
+            raise TypeError("expected a character buffer object")
+        self.namespace['__file__'] = filename
+        sys.argv = [filename]
+        if args is not None:
+            for arg in args.split():
+                sys.argv.append(arg)
+        self.execfile(filename)
+        sys.argv = ['']
+        self.namespace.pop('__file__')
         
     def eval(self, text):
         """

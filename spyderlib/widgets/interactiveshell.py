@@ -441,7 +441,7 @@ has the same effect as typing a particular string at the help> prompt.
         # run command
         elif run_match:
             filename = guess_filename(run_match.groups()[0])
-            cmd = 'execfile(r"%s")' % filename
+            cmd = 'runfile(r"%s", args=None)' % filename
         # !cd system command
         elif cd_match:
             cmd = 'import os; os.chdir(r"%s")' % cd_match.groups()[0].strip()

@@ -238,7 +238,7 @@ class Console(SpyderPluginWidget):
                 self.emit(SIGNAL("refresh()"))
             else:
                 return
-        command = "execfile(%s)" % repr(osp.abspath(filename))
+        command = "runfile(%s, args=None)" % repr(osp.abspath(filename))
         if set_focus:
             self.shell.setFocus()
         if self.dockwidget and not self.ismaximized:

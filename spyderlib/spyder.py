@@ -1438,6 +1438,9 @@ def initialize(debug):
         pass
     sys.exit = fake_sys_exit
     
+    # Removing arguments from sys.argv as in standard Python interpreter
+    sys.argv = ['']
+    
     # Selecting Qt4 backend for Enthought Tool Suite (if installed)
     try:
         from enthought.etsconfig.api import ETSConfig
