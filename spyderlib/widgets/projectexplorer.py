@@ -1028,6 +1028,7 @@ class ExplorerTreeWidget(OneColumnTree):
                                       "<b>Unable to rename file <i>%1</i></b>"
                                       "<br><br>Error message:<br>%2") \
                             .arg(osp.basename(fname)).arg(str(error)))
+                project.refresh(self, self.include, self.exclude, self.show_all)
         
     def delete(self, items):
         # Don't forget to change PYTHONPATH accordingly
@@ -1396,7 +1397,7 @@ class Test(QDialog):
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
 #        self.treewidget.close_project(p1)
-#        p2 = self.explorer.add_project(r"D:\Python\ipythonext")        
+#        _p2 = self.explorer.add_project(r"D:\Python\test_project")
         
         vlayout.addWidget(self.explorer)
         
