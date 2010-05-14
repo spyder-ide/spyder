@@ -16,7 +16,7 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
-                         QFontDialog, QAbstractPrintDialog)
+                         QFontDialog, QAbstractPrintDialog, QLineEdit)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -310,6 +310,11 @@ class Editor(SpyderPluginWidget):
                     "(or run current block of lines and go to next block "
                     "if there is no selection)"),
             triggered=lambda: self.run_selection_or_block(external=False))
+        run_args_action = create_action(self,
+            self.tr("Run with arguments"), "Alt+F9", 'run.png',
+            tip=self.tr("Run current script in interactive console specifying "
+                        "command line arguments"),
+            triggered=lambda: self.run_script(ask_for_arguments=True))
         run_process_action = create_action(self,
             self.tr("Run in e&xternal console"), "F5", 'run_external.png',
             self.tr("Run current script in external console"
@@ -333,7 +338,7 @@ class Editor(SpyderPluginWidget):
                     "(or run current block of lines and go to next block "
                     "if there is no selection)"),
             triggered=lambda: self.run_selection_or_block(external=True))
-        run_process_args_actionn = create_action(self,
+        run_process_args_action = create_action(self,
             self.tr("Run with arguments"), "Alt+F5", 'run_external.png',
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
@@ -524,10 +529,10 @@ class Editor(SpyderPluginWidget):
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
                 None, run_action, re_run_action, run_interact_action,
-                run_selected_action, None, run_process_action,
+                run_selected_action, run_args_action, None, run_process_action,
                 re_run_process_action, run_process_interact_action,
                 run_selected_extconsole_action,
-                run_process_args_actionn,
+                run_process_args_action,
                 run_process_debug_action, None,
                 pylint_action, self.winpdb_action, None,
                 eol_menu, trailingspaces_action, fixindentation_action, None,
@@ -546,9 +551,10 @@ class Editor(SpyderPluginWidget):
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
         self.pythonfile_dependent_actions = (run_action, re_run_action,
-                run_interact_action, run_selected_action, run_process_action,
-                re_run_process_action, run_process_interact_action,
-                run_process_args_actionn, run_process_debug_action,
+                run_interact_action, run_selected_action, run_args_action,
+                run_process_action, re_run_process_action,
+                run_process_interact_action, run_selected_extconsole_action,
+                run_process_args_action, run_process_debug_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
                 self.winpdb_action)
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
@@ -1298,14 +1304,26 @@ class Editor(SpyderPluginWidget):
          interact, debug, python) = self.__last_ec_exec
         self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool,bool)'),
                   fname, wdir, ask_for_arguments, interact, debug, python)
-    
-    def run_script(self, set_focus=False):
+
+    def run_script(self, set_focus=False, ask_for_arguments=False):
         """Run current script"""
         editorstack = self.get_current_editorstack()
         if editorstack.save():
             filename = self.get_current_filename()
             editor = self.get_current_editor()
-            self.__last_ic_exec = (filename, set_focus)
+            if self.__last_ic_exec is None:
+                args = ''
+            else:
+                _filename, _set_focus, args = self.__last_ic_exec
+            if ask_for_arguments:
+                arguments, valid = QInputDialog.getText(self,
+                                            self.tr('Arguments'),
+                                            self.tr('Command line arguments:'),
+                                            QLineEdit.Normal, args)
+                if not valid:
+                    return
+                args = unicode(arguments)
+            self.__last_ic_exec = (filename, set_focus, args)
             self.re_run_intconsole()
             if not set_focus:
                 # If interactive console dockwidget is hidden, it will be
@@ -1318,8 +1336,9 @@ class Editor(SpyderPluginWidget):
         """Re-run script in interactive console"""
         if self.__last_ic_exec is None:
             return
-        filename, set_focus = self.__last_ic_exec
-        self.main.console.run_script(filename, silent=True, set_focus=set_focus)
+        filename, set_focus, args = self.__last_ic_exec
+        self.main.console.run_script(filename, silent=True, set_focus=set_focus,
+                                     args=args)
         
     def run_script_and_interact(self):
         """Run current script and set focus to shell"""

@@ -223,7 +223,8 @@ class Console(SpyderPluginWidget):
         dlg = EnvDialog()
         dlg.exec_()
         
-    def run_script(self, filename=None, silent=False, set_focus=False):
+    def run_script(self, filename=None, silent=False, set_focus=False,
+                   args=None):
         """Run a Python script"""
         if filename is None:
             self.shell.restore_stds()
@@ -238,7 +239,8 @@ class Console(SpyderPluginWidget):
                 self.emit(SIGNAL("refresh()"))
             else:
                 return
-        command = "runfile(%s, args=None)" % repr(osp.abspath(filename))
+        command = "runfile(%s, args=%s)" % (repr(osp.abspath(filename)),
+                                            repr(args))
         if set_focus:
             self.shell.setFocus()
         if self.dockwidget and not self.ismaximized:
