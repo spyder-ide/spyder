@@ -424,7 +424,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         
     def get_cursor_line_number(self):
         cursor = self.textCursor()
-        return cursor.blockNumber()
+        return cursor.blockNumber()+1
 
     def set_cursor_position(self, position):
         position = self.get_position(position)
