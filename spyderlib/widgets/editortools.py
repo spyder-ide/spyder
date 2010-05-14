@@ -498,17 +498,17 @@ class ClassBrowser(QWidget):
                  show_all_files=True):
         QWidget.__init__(self, parent)
 
-        self.visibility_action = create_action(self,
-                                           self.tr("Show/hide class browser"),
-                                           icon='class_browser_vis.png',
-                                           toggled=self.setVisible)
-        self.visibility_action.setChecked(True)
-        
         self.treewidget = ClassBrowserTreeWidget(self,
                                             show_fullpath=show_fullpath,
                                             fullpath_sorting=fullpath_sorting,
                                             show_all_files=show_all_files)
 
+        self.visibility_action = create_action(self,
+                                           self.tr("Show/hide class browser"),
+                                           icon='class_browser_vis.png',
+                                           toggled=self.toggle_visibility)
+        self.visibility_action.setChecked(True)
+        
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignRight)
         for btn in self.setup_buttons():
@@ -518,6 +518,13 @@ class ClassBrowser(QWidget):
         layout.addWidget(self.treewidget)
         layout.addLayout(btn_layout)
         self.setLayout(layout)
+        
+    def toggle_visibility(self, state):
+        self.setVisible(state)
+        current_editor = self.treewidget.current_editor
+        if current_editor is not None:
+            current_editor.clearFocus()
+            current_editor.setFocus()
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
