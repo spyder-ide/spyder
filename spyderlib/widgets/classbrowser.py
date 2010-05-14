@@ -27,7 +27,7 @@ from PyQt4.QtCore import SIGNAL
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import translate
 from spyderlib.widgets import OneColumnTree
-from spyderlib.widgets.qteditor.classparser import get_classes
+from spyderlib.utils.classparser import get_classes
 
 
 class ClassBrowser(OneColumnTree):

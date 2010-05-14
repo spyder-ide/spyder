@@ -1510,6 +1510,9 @@ class EditorWidget(QSplitter):
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
+        cb_btn = create_toolbutton(self, text_beside_icon=False)
+        cb_btn.setDefaultAction(self.classbrowser.visibility_action)
+        editorstack.tabs.setCornerWidget(cb_btn)
         
     def __print_editorstacks(self):
         print >>STDOUT, "%d editorstack(s) in editorwidget:" \

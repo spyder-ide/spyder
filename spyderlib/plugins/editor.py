@@ -603,6 +603,9 @@ class Editor(SpyderPluginWidget):
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                          self.eol_status.eol_changed)
+            cb_btn = create_toolbutton(self, text_beside_icon=False)
+            cb_btn.setDefaultAction(self.classbrowser.visibility_action)
+            editorstack.tabs.setCornerWidget(cb_btn)
             
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
@@ -674,10 +677,6 @@ class Editor(SpyderPluginWidget):
                      self.refresh_eol_mode)
         
         self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
-        
-        classbrowser_btn = create_toolbutton(self, text_beside_icon=False)
-        classbrowser_btn.setDefaultAction(self.classbrowser.visibility_action)
-        editorstack.tabs.setCornerWidget(classbrowser_btn)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
