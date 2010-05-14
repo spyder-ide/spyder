@@ -883,6 +883,7 @@ class Editor(SpyderPluginWidget):
             for other_editorstack in self.editorstacks:
                 if other_editorstack is not editorstack:
                     other_editorstack.set_todo_results(index, results)
+        self.update_todo_actions()
             
     def refresh_eol_mode(self, os_name):
         os_name = unicode(os_name)
