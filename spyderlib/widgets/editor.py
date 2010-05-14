@@ -1444,7 +1444,7 @@ class CursorPositionStatus(StatusBarWidget):
 
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, fullpath_sorting):
+                 show_fullpath, fullpath_sorting, show_all_files):
         super(EditorWidget, self).__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
@@ -1461,7 +1461,8 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
         self.classbrowser = ClassBrowser(self, show_fullpath=show_fullpath,
-                                         fullpath_sorting=fullpath_sorting)
+                                         fullpath_sorting=fullpath_sorting,
+                                         show_all_files=show_all_files)
         self.connect(self.classbrowser,
                      SIGNAL("edit_goto(QString,int,QString)"), plugin.load)
         
@@ -1527,7 +1528,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, fullpath_sorting):
+                 show_fullpath, fullpath_sorting, show_all_files):
         super(EditorMainWindow, self).__init__()
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -1535,7 +1536,8 @@ class EditorMainWindow(QMainWindow):
         
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          toolbar_list, menu_list,
-                                         show_fullpath, fullpath_sorting)
+                                         show_fullpath, fullpath_sorting,
+                                         show_all_files)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
@@ -1627,7 +1629,8 @@ class FakePlugin(QSplitter):
         self.editorwindows = []
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.classbrowser = ClassBrowser(self, show_fullpath=False)
+        self.classbrowser = ClassBrowser(self, show_fullpath=False,
+                                         show_all_files=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -1697,7 +1700,8 @@ class FakePlugin(QSplitter):
     def create_new_window(self):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
-                                  show_fullpath=False, fullpath_sorting=True)
+                                  show_fullpath=False, fullpath_sorting=True,
+                                  show_all_files=False)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

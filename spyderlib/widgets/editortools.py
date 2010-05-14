@@ -194,9 +194,11 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
         print >>STDOUT, "unable to remove tree item: ", debug
 
 class ClassBrowserTreeWidget(OneColumnTree):
-    def __init__(self, parent, show_fullpath=False, fullpath_sorting=True):
+    def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
+                 show_all_files=True):
         self.show_fullpath = show_fullpath
         self.fullpath_sorting = fullpath_sorting
+        self.show_all_files = show_all_files
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -217,7 +219,11 @@ class ClassBrowserTreeWidget(OneColumnTree):
                         text=translate('ClassBrowser', 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
         fullpath_act.setChecked(self.show_fullpath)
-        actions = [fullpath_act, fromcursor_act]
+        allfiles_act = create_action(self,
+                        text=translate('ClassBrowser', 'Show all files'),
+                        toggled=self.toggle_show_all_files)
+        allfiles_act.setChecked(self.show_all_files)
+        actions = [fullpath_act, allfiles_act, fromcursor_act]
         return actions
     
     def toggle_fullpath_mode(self, state):
@@ -226,19 +232,33 @@ class ClassBrowserTreeWidget(OneColumnTree):
         for index in range(self.topLevelItemCount()):
             self.topLevelItem(index).set_text(fullpath=self.show_fullpath)
             
+    def __hide_or_show_root_items(self, item):
+        """
+        show_all_files option is disabled: hide all root items except *item*
+        show_all_files option is enabled: do nothing
+        """
+        for _it in self.get_top_level_items():
+            _it.setHidden(_it is not item and not self.show_all_files)
+            
+    def toggle_show_all_files(self, state):
+        self.show_all_files = state
+        if self.current_editor is not None:
+            editor_id = self.editor_ids[self.current_editor]
+            item = self.editor_items[editor_id]
+            self.__hide_or_show_root_items(item)
+            
     def set_fullpath_sorting(self, state):
         self.fullpath_sorting = state
         self.__sort_toplevel_items()
         
     def go_to_cursor_position(self):
-        if self.current_editor is None:
-            return
-        line = self.current_editor.get_cursor_line_number()
-        editor_id = self.editor_ids[self.current_editor]
-        root_item = self.editor_items[editor_id]
-        item = item_at_line(root_item, line)
-        self.setCurrentItem(item)
-        self.scrollToItem(item)
+        if self.current_editor is not None:
+            line = self.current_editor.get_cursor_line_number()
+            editor_id = self.editor_ids[self.current_editor]
+            root_item = self.editor_items[editor_id]
+            item = item_at_line(root_item, line)
+            self.setCurrentItem(item)
+            self.scrollToItem(item)
                 
     def clear(self):
         """Reimplemented Qt method"""
@@ -253,6 +273,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
             if not self.freeze:
                 self.scrollToItem(item)
                 self.root_item_selected(item)
+                self.__hide_or_show_root_items(item)
             if update:
                 self.save_expanded_state()
                 tree_cache = self.editor_tree_cache[editor_id]
@@ -473,11 +494,14 @@ class ClassBrowser(QWidget):
     Signals:
         SIGNAL("edit_goto(QString,int,QString)")
     """
-    def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True):
+    def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
+                 show_all_files=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ClassBrowserTreeWidget(self,
-                show_fullpath=show_fullpath, fullpath_sorting=fullpath_sorting)
+                                            show_fullpath=show_fullpath,
+                                            fullpath_sorting=fullpath_sorting,
+                                            show_all_files=show_all_files)
 
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignRight)
@@ -507,8 +531,13 @@ class ClassBrowser(QWidget):
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)
         
-    def get_show_fullpath_state(self):
-        return self.treewidget.show_fullpath
+    def get_options(self):
+        """
+        Return class browser options
+        except for fullpath sorting option which is more global
+        """
+        return dict(show_fullpath=self.treewidget.show_fullpath,
+                    show_all_files=self.treewidget.show_all_files)
     
     def update(self):
         self.treewidget.update_all()

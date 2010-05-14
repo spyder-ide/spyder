@@ -115,8 +115,11 @@ class Editor(SpyderPluginWidget):
         
         # Class browser
         self.classbrowser = ClassBrowser(self,
-             show_fullpath=CONF.get(self.ID, 'class_browser_fullpath', False),
-             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True))
+             show_fullpath=CONF.get(self.ID,
+                                    'class_browser/show_fullpath', False),
+             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True),
+             show_all_files=CONF.get(self.ID,
+                                     'class_browser/show_all_files', True))
         self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
         self.connect(self.classbrowser,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
@@ -237,8 +240,8 @@ class Editor(SpyderPluginWidget):
                  self.classbrowser.treewidget.get_expanded_state())
         CONF.set(self.ID, 'class_browser_scrollbar_position',
                  self.classbrowser.treewidget.get_scrollbar_position())
-        CONF.set(self.ID, 'class_browser_fullpath',
-                 self.classbrowser.get_show_fullpath_state())
+        for option, value in self.classbrowser.get_options().items():
+            CONF.set(self.ID, 'class_browser/%s' % option, value)
         state = self.splitter.saveState()
         CONF.set(self.ID, 'splitter_state', str(state.toHex()))
         filenames = []
@@ -740,8 +743,11 @@ class Editor(SpyderPluginWidget):
     def create_new_window(self):
         window = EditorMainWindow(self, self.stack_menu_actions,
              self.toolbar_list, self.menu_list,
-             show_fullpath=CONF.get(self.ID, 'class_browser_fullpath', False),
-             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True))
+             show_fullpath=CONF.get(self.ID,
+                                    'class_browser/show_fullpath', False),
+             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True),
+             show_all_files=CONF.get(self.ID,
+                                     'class_browser/show_all_files', True))
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
