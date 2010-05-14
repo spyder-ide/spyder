@@ -30,7 +30,7 @@ from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
-                                       get_filetype_icon)
+                                       get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editortools import ClassBrowser
@@ -120,9 +120,15 @@ class Editor(SpyderPluginWidget):
              fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True),
              show_all_files=CONF.get(self.ID,
                                      'class_browser/show_all_files', True))
-        self.classbrowser.setVisible( CONF.get(self.ID, 'class_browser') )
         self.connect(self.classbrowser,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
+        cb_enabled = CONF.get(self.ID, 'class_browser')
+        if cb_enabled:
+            cb_state = CONF.get(self.ID, 'class_browser/visibility', False)
+        else:
+            cb_state = False
+        self.classbrowser.visibility_action.setChecked(cb_state)
+        self.classbrowser.visibility_action.setEnabled(cb_enabled)
         
         self.editorstacks = []
         self.editorwindows = []
@@ -162,10 +168,6 @@ class Editor(SpyderPluginWidget):
         if state is not None:
             self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
-        _state = CONF.get(self.ID, 'classbrowser_visibility', False)
-        self.classbrowser_action.setChecked(_state)
-        self.classbrowser.setVisible(_state)
-        
         self.recent_files = CONF.get(self.ID, 'recent_files', [])
         
         self.untitled_num = 0
@@ -194,7 +196,7 @@ class Editor(SpyderPluginWidget):
         self.__last_ec_exec = None # external console
         
         # Restoring class browser state
-        expanded_state = CONF.get(self.ID, 'class_browser_expanded_state', None)
+        expanded_state = CONF.get(self.ID, 'class_browser/expanded_state', None)
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
         
@@ -202,7 +204,7 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = CONF.get(self.ID,
-                                 'class_browser_scrollbar_position', None)
+                                 'class_browser/scrollbar_position', None)
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
             
@@ -236,10 +238,6 @@ class Editor(SpyderPluginWidget):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        CONF.set(self.ID, 'class_browser_expanded_state',
-                 self.classbrowser.treewidget.get_expanded_state())
-        CONF.set(self.ID, 'class_browser_scrollbar_position',
-                 self.classbrowser.treewidget.get_scrollbar_position())
         for option, value in self.classbrowser.get_options().items():
             CONF.set(self.ID, 'class_browser/%s' % option, value)
         state = self.splitter.saveState()
@@ -495,10 +493,6 @@ class Editor(SpyderPluginWidget):
             tip=self.tr("Change working directory to current script directory"),
             triggered=self.__set_workdir)
 
-        self.classbrowser_action = create_action(self,
-            self.tr("Show/hide class browser"), None, 'class_browser_vis.png',
-            toggled=self.toggle_classbrowser_visibility)
-                
         self.max_recent_action = create_action(self,
             self.tr("Maximum number of recent files..."),
             triggered=self.change_max_recent_files)
@@ -524,7 +518,7 @@ class Editor(SpyderPluginWidget):
                                   wrap_action, tab_action, occurence_action,
                                   None, fold_action, self.foldonopen_action,
                                   checkeol_action, None, todo_action,
-                                  analyze_action, self.classbrowser_action))
+                                  analyze_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
@@ -540,9 +534,9 @@ class Editor(SpyderPluginWidget):
                 option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
-        self.analysis_toolbar_actions = [self.classbrowser_action,
-                self.todo_list_action, self.warning_list_action,
-                self.previous_warning_action, self.next_warning_action]
+        self.analysis_toolbar_actions = [self.todo_list_action,
+                self.warning_list_action, self.previous_warning_action,
+                self.next_warning_action]
         self.run_toolbar_actions = [run_action, run_interact_action,
                 run_selected_action, None, run_process_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
@@ -564,9 +558,9 @@ class Editor(SpyderPluginWidget):
                  self.close_all_action,
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action)
-        self.stack_menu_actions = (self.save_action, save_as_action, print_action,
-                             run_action, run_process_action,
-                             workdir_action, self.close_action)
+        self.stack_menu_actions = (self.save_action, save_as_action,
+                                   print_action, run_action, run_process_action,
+                                   workdir_action, self.close_action)
         return (self.source_menu_actions, self.dock_toolbar_actions)        
     
         
@@ -680,6 +674,10 @@ class Editor(SpyderPluginWidget):
                      self.refresh_eol_mode)
         
         self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
+        
+        classbrowser_btn = create_toolbutton(self, text_beside_icon=False)
+        classbrowser_btn.setDefaultAction(self.classbrowser.visibility_action)
+        editorstack.tabs.setCornerWidget(classbrowser_btn)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1409,7 +1407,7 @@ class Editor(SpyderPluginWidget):
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""
         self.classbrowser.setVisible(checked)
-        CONF.set(self.ID, 'classbrowser_visibility', checked)
+        CONF.set(self.ID, 'class_browser/visibility', checked)
         if checked:
             self.classbrowser.update()
             editorstack = self.get_current_editorstack()

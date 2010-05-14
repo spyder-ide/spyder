@@ -497,6 +497,12 @@ class ClassBrowser(QWidget):
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
                  show_all_files=True):
         QWidget.__init__(self, parent)
+
+        self.visibility_action = create_action(self,
+                                           self.tr("Show/hide class browser"),
+                                           icon='class_browser_vis.png',
+                                           toggled=self.setVisible)
+        self.visibility_action.setChecked(True)
         
         self.treewidget = ClassBrowserTreeWidget(self,
                                             show_fullpath=show_fullpath,
@@ -537,7 +543,10 @@ class ClassBrowser(QWidget):
         except for fullpath sorting option which is more global
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,
-                    show_all_files=self.treewidget.show_all_files)
+                    show_all_files=self.treewidget.show_all_files,
+                    expanded_state=self.treewidget.get_expanded_state(),
+                    scrollbar_position=self.treewidget.get_scrollbar_position(),
+                    visibility=self.isVisible())
     
     def update(self):
         self.treewidget.update_all()

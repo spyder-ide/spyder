@@ -1684,6 +1684,10 @@ class FakePlugin(QSplitter):
                      self.create_new_window)
         self.connect(editorstack, SIGNAL('plugin_load(QString)'),
                      self.load)
+        
+        classbrowser_btn = create_toolbutton(self, text_beside_icon=False)
+        classbrowser_btn.setDefaultAction(self.classbrowser.visibility_action)
+        editorstack.tabs.setCornerWidget(classbrowser_btn)
             
     def unregister_editorstack(self, editorstack):
         if DEBUG:
