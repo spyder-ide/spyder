@@ -153,26 +153,36 @@ class ExternalConsole(SpyderPluginWidget):
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
-            shell = ExternalPythonShell(self, fname, wdir, self.commands,
-                                        interact, debug, path=pythonpath)
+            shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
+                                               interact, debug, path=pythonpath)
         else:
-            shell = ExternalSystemShell(self, wdir, path=pythonpath)
-        shell.shell.setMaximumBlockCount( CONF.get(self.ID, 'max_line_count') )
-        shell.shell.set_font( get_font(self.ID) )
-        shell.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
-        shell.shell.set_calltips( CONF.get(self.ID, 'calltips') )
-        shell.shell.set_codecompletion( CONF.get(self.ID,
-                                                 'autocompletion/enabled') )
-        shell.shell.set_codecompletion_enter(CONF.get(self.ID,
+            shell_widget = ExternalSystemShell(self, wdir, path=pythonpath)
+        
+        # Code completion / calltips
+        case_sensitive = CONF.get(self.ID, 'autocompletion/case-sensitivity')
+        show_single = CONF.get(self.ID, 'autocompletion/select-single')
+        from_document = CONF.get(self.ID, 'autocompletion/from-document')
+        shell_widget.shell.setup_code_completion(case_sensitive, show_single,
+                                                 from_document)
+        
+        shell_widget.shell.setMaximumBlockCount( CONF.get(self.ID,
+                                                          'max_line_count') )
+        shell_widget.shell.set_font( get_font(self.ID) )
+        shell_widget.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shell_widget.shell.set_calltips( CONF.get(self.ID, 'calltips') )
+        shell_widget.shell.set_codecompletion( CONF.get(self.ID,
+                                                  'autocompletion/enabled') )
+        shell_widget.shell.set_codecompletion_enter(CONF.get(self.ID,
                                                  'autocompletion/enter-key'))
         if python:
-            shell.shell.set_inspector(self.inspector)
-        self.historylog.add_history(shell.shell.history_filename)
-        self.connect(shell.shell, SIGNAL('append_to_history(QString,QString)'),
+            shell_widget.shell.set_inspector(self.inspector)
+        self.historylog.add_history(shell_widget.shell.history_filename)
+        self.connect(shell_widget.shell,
+                     SIGNAL('append_to_history(QString,QString)'),
                      self.historylog.append_to_history)
-        self.connect(shell.shell, SIGNAL("go_to_error(QString)"),
+        self.connect(shell_widget.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
-        self.connect(shell.shell, SIGNAL("focus_changed()"),
+        self.connect(shell_widget.shell, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
@@ -183,7 +193,7 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = osp.basename(fname)
                 tab_icon = get_icon('run.png')
         else:
-            fname = id(shell)
+            fname = id(shell_widget)
             if os.name == 'nt':
                 tab_name = self.tr("Command Window")
             else:
@@ -191,19 +201,19 @@ class ExternalConsole(SpyderPluginWidget):
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
             tab_icon = get_icon('cmdprompt.png')
-        self.shells.insert(index, shell)
+        self.shells.insert(index, shell_widget)
         self.filenames.insert(index, fname)
         self.icons.insert(index, tab_icon)
         if index is None:
-            index = self.tabwidget.addTab(shell, tab_name)
+            index = self.tabwidget.addTab(shell_widget, tab_name)
         else:
-            self.tabwidget.insertTab(index, shell, tab_name)
+            self.tabwidget.insertTab(index, shell_widget, tab_name)
         
-        self.connect(shell, SIGNAL("started()"),
-                     lambda sid=id(shell): self.process_started(sid))
-        self.connect(shell, SIGNAL("finished()"),
-                     lambda sid=id(shell): self.process_finished(sid))
-        self.find_widget.set_editor(shell.shell)
+        self.connect(shell_widget, SIGNAL("started()"),
+                     lambda sid=id(shell_widget): self.process_started(sid))
+        self.connect(shell_widget, SIGNAL("finished()"),
+                     lambda sid=id(shell_widget): self.process_finished(sid))
+        self.find_widget.set_editor(shell_widget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
@@ -213,8 +223,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.toggle_icontext(CONF.get(self.ID, 'show_icontext'))
         
         # Start process and give focus to console
-        shell.start(ask_for_arguments)
-        shell.shell.setFocus()
+        shell_widget.start(ask_for_arguments)
+        shell_widget.shell.setFocus()
         
     #------ Private API --------------------------------------------------------
     def process_started(self, shell_id):

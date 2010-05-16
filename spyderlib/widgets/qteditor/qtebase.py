@@ -34,8 +34,8 @@ class CompletionWidget(QListWidget):
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
-        self.case_sensitive = None
-        self.show_single = None
+        self.case_sensitive = False
+        self.show_single = None # see note in method 'setup'
         self.enter_select = None
         srect = QApplication.desktop().availableGeometry(self)
         self.screen_size = (srect.width(), srect.height())
@@ -43,10 +43,12 @@ class CompletionWidget(QListWidget):
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
                      self.item_selected)
         
-    def setup(self, case_sensitive, show_single, size, font):
+    def setup_options(self, case_sensitive, show_single):
         self.case_sensitive = case_sensitive
         self.show_single = show_single # not implemented yet because it would
         # require to know if the completion has been triggered manually or not
+        
+    def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
         
@@ -344,8 +346,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.calltip_size = CONF.get('shell_appearance', 'calltips/size')
         self.calltip_font = get_font('shell_appearance', 'calltips')
         # Completion
-        self.completion_size = CONF.get('shell_appearance', 'completion/size')
-        self.completion_font = get_font('shell_appearance', 'completion')
+        size = CONF.get('shell_appearance', 'completion/size')
+        font = get_font('shell_appearance', 'completion')
+        self.completion_widget.setup_appearance(size, font)
 
     def set_codecompletion(self, state):
         """Set code completion state"""
@@ -685,8 +688,11 @@ class TextEditBaseWidget(QPlainTextEdit):
             QToolTip.hideText()
 
     def setup_code_completion(self, case_sensitive, show_single, from_document):
-        self.completion_widget.setup(case_sensitive, show_single,
-                                     self.completion_size, self.completion_font)
+        """
+        Setup code completion feature
+        Argument 'from_document' is ignored: compat. with QScintilla's API
+        """
+        self.completion_widget.setup_options(case_sensitive, show_single)
     
     def show_completion_widget(self, textlist):
         """Show completion widget"""

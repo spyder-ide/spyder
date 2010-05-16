@@ -18,7 +18,7 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
 from spyderlib.utils.qthelpers import create_toolbutton, create_action
-from spyderlib.config import CONF, get_icon
+from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.globalsexplorer import GlobalsExplorer
@@ -31,17 +31,10 @@ class ExtPyQsciShell(PythonShellWidget):
     def __init__(self, parent, history_filename, debug=False, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename,
                                    debug, profile)
-        # Code completion / calltips
-        getcfg = lambda option: CONF.get('external_shell', option)
-        case_sensitive = getcfg('autocompletion/case-sensitivity')
-        show_single = getcfg('autocompletion/select-single')
-        from_document = getcfg('autocompletion/from-document')
-        self.setup_code_completion(case_sensitive, show_single, from_document)
     
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
         self.externalshell = externalshell
-
         
     def clear_terminal(self):
         """Reimplement ShellBaseWidget method"""

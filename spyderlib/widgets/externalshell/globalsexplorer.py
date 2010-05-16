@@ -24,7 +24,14 @@ from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
-from spyderlib.config import get_icon, CONF
+from spyderlib.config import get_icon
+#TODO: remove the following line and make it work anyway
+# In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
+# which should not contain anything directly related to Spyder's main app
+# (including its preferences which are stored in CONF).
+# So, one should be able to get rid of this object and set options through
+# methods like 'set_options(kw1=..., kw2=..., ...)
+from spyderlib.config import CONF
 
 
 def get_settings():
