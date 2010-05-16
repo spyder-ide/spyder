@@ -280,7 +280,7 @@ class QsciEditor(TextEditBaseWidget):
         self.setIndentationGuidesForegroundColor(Qt.lightGray)
         
         self.toggle_wrap_mode(wrap)
-        if self.is_python():
+        if self.is_python() or self.is_cython():
             self.setup_api()
         self.setModified(False)
         
@@ -320,6 +320,12 @@ class QsciEditor(TextEditBaseWidget):
                 
     def is_python(self):
         return isinstance(self.lexer(), PythonLexer)
+                
+    def is_cython(self):
+        #XXX Actually this is not necessary here... because
+        # is_python will return True for Cython files as well
+        # but it's just here for consistency with QtEditor interface
+        return isinstance(self.lexer(), CythonLexer)
         
     def rehighlight(self):
         """
@@ -537,7 +543,7 @@ class QsciEditor(TextEditBaseWidget):
         text = self.get_current_word()
         if text.isEmpty():
             return
-        if self.is_python() and \
+        if (self.is_python() or self.is_cython()) and \
            (is_builtin(unicode(text)) or is_keyword(unicode(text))):
             return
 
@@ -841,7 +847,7 @@ class QsciEditor(TextEditBaseWidget):
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
         """
-        if not self.is_python():
+        if not self.is_python() and not self.is_cython():
             return        
         line, index = self.getCursorPosition()
         prevtext = unicode(self.text(line-1)).rstrip()
@@ -869,13 +875,11 @@ class QsciEditor(TextEditBaseWidget):
             else:
                 prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
                 correct_indent = len(prevtext)-len(prevexpr)
-        if forward:
-            if indent == correct_indent or indent > correct_indent:
-                # Force indent
-                correct_indent = indent + 4
-        elif indent == correct_indent or indent < correct_indent:
-            # Force unindent
-            correct_indent = indent - 4
+                
+        if (forward and indent >= correct_indent) or \
+           (not forward and indent <= correct_indent):
+            # No indentation fix is necessary
+            return False
             
         if correct_indent >= 0:
             self.beginUndoAction()
@@ -888,6 +892,7 @@ class QsciEditor(TextEditBaseWidget):
             self.insertAt(" "*correct_indent, line, 0)
             self.setCursorPosition(line, index)
             self.endUndoAction()
+            return True
     
     def indent(self):
         """Indent current line or selection"""
@@ -895,8 +900,9 @@ class QsciEditor(TextEditBaseWidget):
             self.add_prefix( " "*4 )
         elif not self.get_text('sol', 'cursor').strip() or \
              (self.tab_indents and self.tab_mode):
-            if self.is_python():
-                self.fix_indent(forward=True)
+            if self.is_python() or self.is_cython():
+                if not self.fix_indent(forward=True):
+                    self.add_prefix(" "*4)
             else:
                 self.add_prefix( " "*4 )
         else:
@@ -911,7 +917,8 @@ class QsciEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             if not leading_text.strip() or (self.tab_indents and self.tab_mode):
                 if self.is_python() or self.is_cython():
-                    self.fix_indent(forward=False)
+                    if not self.fix_indent(forward=False):
+                        self.remove_prefix(" "*4)
                 elif leading_text.endswith('\t'):
                     self.remove_prefix('\t')
                 else:
@@ -1031,7 +1038,10 @@ class QsciEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         # Zoom in/out
-        if ((key == Qt.Key_Plus) and ctrl) \
+        if key in (Qt.Key_Enter, Qt.Key_Return) and not shift and not ctrl:
+            QsciScintilla.keyPressEvent(self, event)
+            self.fix_indent()
+        elif ((key == Qt.Key_Plus) and ctrl) \
              or ((key == Qt.Key_Equal) and shift and ctrl):
             self.zoomIn()
             event.accept()
