@@ -37,10 +37,10 @@ if __name__ == "__main__":
         __run_pythonstartup_script()
     __remove_sys_argv__()
 
-    for name in ('__run_pythonstartup_script', '__run_init_commands', 'name',
-                 '__create_banner', '__commands__', 'command', '__file__',
-                 '__remove_sys_argv__'):
-        locals().pop(name)
+    for _name in ['__run_pythonstartup_script', '__run_init_commands',
+                  '__create_banner', '__commands__', 'command', '__file__',
+                  '__remove_sys_argv__']+['_name']:
+        locals().pop(_name)
 
     __doc__ = ''
     __name__ = '__main__'
