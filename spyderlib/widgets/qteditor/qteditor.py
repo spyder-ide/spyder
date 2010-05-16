@@ -829,6 +829,8 @@ class QtEditor(TextEditBaseWidget):
                       (otherwise force indent)
         forward=False: fix indent only if text is too much indented
                        (otherwise force unindent)
+                       
+        Returns True if indent needed to be fixed
         """
         if not self.is_python() and not self.is_cython():
             return
@@ -860,13 +862,11 @@ class QtEditor(TextEditBaseWidget):
             else:
                 prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
                 correct_indent = len(prevtext)-len(prevexpr)
-        if forward:
-            if indent == correct_indent or indent > correct_indent:
-                # Force indent
-                correct_indent = indent + 4
-        elif indent == correct_indent or indent < correct_indent:
-            # Force unindent
-            correct_indent = indent - 4
+                
+        if (forward and indent >= correct_indent) or \
+           (not forward and indent <= correct_indent):
+            # No indentation fix is necessary
+            return False
             
         if correct_indent >= 0:
             cursor = self.textCursor()
@@ -876,6 +876,7 @@ class QtEditor(TextEditBaseWidget):
             cursor.removeSelectedText()
             cursor.insertText(" "*correct_indent)
             cursor.endEditBlock()
+            return True
     
     def indent(self):
         """Indent current line or selection"""
@@ -884,7 +885,8 @@ class QtEditor(TextEditBaseWidget):
         elif not self.get_text('sol', 'cursor').strip() or \
              (self.tab_indents and self.tab_mode):
             if self.is_python() or self.is_cython():
-                self.fix_indent(forward=True)
+                if not self.fix_indent(forward=True):
+                    self.add_prefix(" "*4)
             else:
                 self.add_prefix(" "*4)
         else:
@@ -898,7 +900,8 @@ class QtEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             if not leading_text.strip() or (self.tab_indents and self.tab_mode):
                 if self.is_python() or self.is_cython():
-                    self.fix_indent(forward=False)
+                    if not self.fix_indent(forward=False):
+                        self.remove_prefix(" "*4)
                 elif leading_text.endswith('\t'):
                     self.remove_prefix('\t')
                 else:
