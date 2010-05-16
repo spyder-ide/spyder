@@ -71,31 +71,23 @@ class GlobalsExplorer(QWidget):
         self.connect(self.editor, SIGNAL('option_changed'), self.option_changed)
         
         # Setup layout
-        vlayout = QVBoxLayout()
         hlayout = QHBoxLayout()
-        self.setup_toolbar(hlayout)
-        vlayout.addLayout(hlayout)
-        vlayout.addWidget(self.editor)
-        self.setLayout(vlayout)
+        vlayout = QVBoxLayout()
+        self.setup_toolbar(vlayout)
+        hlayout.addWidget(self.editor)
+        hlayout.addLayout(vlayout)
+        self.setLayout(hlayout)
+        hlayout.setContentsMargins(0, 0, 0, 0)
 
         self.connect(self, SIGNAL('option_changed'), self.option_changed)
         
     def setup_toolbar(self, layout):
         toolbar = []
 
-        explorer_label = QLabel(self.tr("<span style=\'color: #444444\'>"
-                                        "<b>Global variables explorer</b>"
-                                        "</span>"))
-        toolbar.append(explorer_label)
-        
-        hide_button = create_toolbutton(self, text=self.tr("Hide"),
-                                        icon=get_icon('hide.png'),
-                                        triggered=self.collapse)
-        toolbar.append(hide_button)
-        
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
                                            icon=get_icon('reload.png'),
-                                           triggered=self.refresh_table)
+                                           triggered=self.refresh_table,
+                                           text_beside_icon=False)
         toolbar.append(refresh_button)
         
         exclude_private_action = create_action(self,
@@ -124,7 +116,8 @@ class GlobalsExplorer(QWidget):
                                               'exclude_unsupported'))
         
         options_button = create_toolbutton(self, text=self.tr("Options"),
-                                           icon=get_icon('tooloptions.png'))
+                                           icon=get_icon('tooloptions.png'),
+                                           text_beside_icon=False)
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
@@ -137,10 +130,9 @@ class GlobalsExplorer(QWidget):
         add_actions(menu, actions)
         options_button.setMenu(menu)
 
-        layout.setAlignment(Qt.AlignLeft)
+        layout.setAlignment(Qt.AlignTop)
         for widget in toolbar:
             layout.addWidget(widget)
-        layout.insertStretch(1, 1)
 
     def option_changed(self, option, value):
         CONF.set(self.ID, option, value)
