@@ -1912,12 +1912,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
     <message>
         <location filename="plugins/externalconsole.py" line="247"/>
         <source>Open &amp;command prompt</source>
-        <translation>Ouvrir un invité de &amp;commandes</translation>
+        <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
         <location filename="plugins/externalconsole.py" line="248"/>
         <source>Open a Windows command prompt</source>
-        <translation>Ouvrir un invité de commandes Windows</translation>
+        <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
     <message>
         <location filename="plugins/externalconsole.py" line="240"/>
@@ -4190,7 +4190,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="utils/environ.py" line="108"/>
         <source>If you accept changes, this will modify the current user environment variables directly &lt;b&gt;in Windows registry&lt;/b&gt;. Use it with precautions, at your own risks.&lt;br&gt;&lt;br&gt;Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like &lt;i&gt;Python(x,y) Home&lt;/i&gt; for example)</source>
-        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Spyder si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Spyder : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invité de commandes par exemple).</translation>
+        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Spyder si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Spyder : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invite de commandes par exemple).</translation>
     </message>
 </context>
 <context>

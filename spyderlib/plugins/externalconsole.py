@@ -44,6 +44,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.inspector = None
         self.historylog = None
         
+        self.python_count = 0
+        self.terminal_count = 0
+        
         self.shells = []
         self.filenames = []
         self.icons = []
@@ -173,25 +176,28 @@ class ExternalConsole(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
-                name = "Python"
-                icon = get_icon('python.png')
+                self.python_count += 1
+                tab_name = "Python %d" % self.python_count
+                tab_icon = get_icon('python.png')
             else:
-                name = osp.basename(fname)
-                icon = get_icon('run.png')
+                tab_name = osp.basename(fname)
+                tab_icon = get_icon('run.png')
         else:
             fname = id(shell)
             if os.name == 'nt':
-                name = self.tr("Command Window")
+                tab_name = self.tr("Command Window")
             else:
-                name = self.tr("Terminal")
-            icon = get_icon('cmdprompt.png')
+                tab_name = self.tr("Terminal")
+            self.terminal_count += 1
+            tab_name += (" %d" % self.terminal_count)
+            tab_icon = get_icon('cmdprompt.png')
         self.shells.insert(index, shell)
         self.filenames.insert(index, fname)
-        self.icons.insert(index, icon)
+        self.icons.insert(index, tab_icon)
         if index is None:
-            index = self.tabwidget.addTab(shell, name)
+            index = self.tabwidget.addTab(shell, tab_name)
         else:
-            self.tabwidget.insertTab(index, shell, name)
+            self.tabwidget.insertTab(index, shell, tab_name)
         
         self.connect(shell, SIGNAL("started()"),
                      lambda sid=id(shell): self.process_started(sid))
@@ -311,13 +317,13 @@ class ExternalConsole(SpyderPluginWidget):
     #------ Public API ---------------------------------------------------------
     def open_interpreter(self):
         """Open interpreter"""
-        self.start(None, os.getcwdu(), False,
-                   True, False, python=True)
+        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+                   interact=True, debug=False, python=True)
         
     def open_terminal(self):
         """Open terminal"""
-        self.start(None, os.getcwdu(), False,
-                   True, False, python=False)
+        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+                   interact=True, debug=False, python=False)
         
     def run_script(self):
         """Run a Python script"""
@@ -327,7 +333,8 @@ class ExternalConsole(SpyderPluginWidget):
                       self.tr("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.start(unicode(filename), None, False, False, False)
+            self.start(fname=unicode(filename), wdir=None,
+                       ask_for_arguments=False, interact=False, debug=False)
         
     def change_font(self):
         """Change console font"""
