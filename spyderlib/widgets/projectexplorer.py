@@ -819,6 +819,7 @@ class ExplorerTreeWidget(OneColumnTree):
                 return folder
         
     def new_project(self):
+        """Return True if project was created"""
         folder = self.__select_project_root_path()
         if folder is None:
             return
@@ -837,7 +838,7 @@ class ExplorerTreeWidget(OneColumnTree):
                     continue
                 project = self.add_project(folder)
                 project.set_name(name)
-                break
+                return True
     
     def __select_existing_project(self, typename, configname):
         title = translate('ProjectExplorer', 'Import existing project')

@@ -451,7 +451,6 @@ class MainWindow(QMainWindow):
                     triggered=self.win_env)
                 file_actions.append(winenv_action)
             file_actions += (None, self.quit_action)
-            add_actions(self.file_menu, file_actions)
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
@@ -567,6 +566,7 @@ class MainWindow(QMainWindow):
             # Project explorer widget
             if CONF.get('project_explorer', 'enable'):
                 self.projectexplorer = ProjectExplorer(self)
+                file_actions.insert(1, self.projectexplorer.new_project_action)
                 self.pythonpath_changed()
                 valid_types = self.editor.get_valid_types()
                 self.projectexplorer.set_editor_valid_types(valid_types)
@@ -597,6 +597,7 @@ class MainWindow(QMainWindow):
                              SIGNAL("open_interpreter(QString)"),
                              self.open_interpreter)
                 self.add_dockwidget(self.projectexplorer)
+            add_actions(self.file_menu, file_actions)
                 
             # Pylint widget
             if CONF.get('pylint', 'enable'):

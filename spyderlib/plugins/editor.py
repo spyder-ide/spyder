@@ -263,7 +263,7 @@ class Editor(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Setup actions"""
-        self.new_action = create_action(self, self.tr("New..."), "Ctrl+N",
+        self.new_action = create_action(self, self.tr("New file..."), "Ctrl+N",
             'filenew.png', self.tr("Create a new Python script"),
             triggered = self.new)
         self.open_action = create_action(self, self.tr("Open..."), "Ctrl+O",

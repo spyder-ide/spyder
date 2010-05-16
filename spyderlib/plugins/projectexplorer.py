@@ -15,7 +15,7 @@ import sys, cPickle, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font, get_conf_path, CONF
+from spyderlib.config import get_font, set_font, get_conf_path, CONF, get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -26,6 +26,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     ID = 'project_explorer'
     DATAPATH = get_conf_path('.projects')
     def __init__(self, parent=None):
+        self.new_project_action = None
         include = CONF.get(self.ID, 'include', '.')
         exclude = CONF.get(self.ID, 'exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
         show_all = CONF.get(self.ID, 'show_all', False)
@@ -56,6 +57,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """Setup actions"""
+        self.new_project_action = create_action(self,
+                                        text=self.tr('New project...'),
+                                        icon=get_icon('project_expanded.png'),
+                                        triggered=self.create_new_project)
+
         font_action = create_action(self, self.tr("&Font..."),
                                     None, 'font.png', self.tr("Set font style"),
                                     triggered=self.change_font)
@@ -72,6 +78,15 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         return True
         
     #------ Public API ---------------------------------------------------------
+    def create_new_project(self):
+        """Create new project"""
+        if self.dockwidget.isHidden():
+            self.dockwidget.show()
+        self.dockwidget.raise_()
+        if not self.treewidget.new_project():
+            # Notify dockwidget to schedule a repaint
+            self.dockwidget.update()
+        
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,
