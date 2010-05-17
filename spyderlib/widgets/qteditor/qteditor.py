@@ -244,7 +244,8 @@ class QtEditor(TextEditBaseWidget):
         Rehighlight the whole document to rebuild class browser data
         and import statements data from scratch
         """
-        self.highlighter.rehighlight()
+        if self.highlighter is not None:
+            self.highlighter.rehighlight()
         
         
 #===============================================================================
