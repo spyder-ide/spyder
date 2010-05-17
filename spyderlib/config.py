@@ -6,6 +6,11 @@
 
 """
 Spyder configuration management
+
+Important note regarding shortcuts:
+    For compatibility with QWERTZ keyboards, one must avoid using the following
+    shortcuts:
+        Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
 import os, sys
@@ -290,7 +295,6 @@ DEFAULTS = [
               }),
             ('explorer',
              {
-              'shortcut': "Ctrl+Shift+F",
               'enable': True,
               'wrap': True,
               'name_filters': ['*.py', '*.pyw', '*.pth',

@@ -306,7 +306,7 @@ class MainWindow(QMainWindow):
                                                 triggered=self.replace)
             self.findinfiles_action = create_action(self,
                                 self.tr("&Find in files"),
-                                "Ctrl+Alt+F", 'findf.png',
+                                "Ctrl+Shift+F", 'findf.png',
                                 triggered=self.findinfiles_callback,
                                 tip=self.tr("Search text in multiple files"))        
             def create_edit_action(text, icon_name):

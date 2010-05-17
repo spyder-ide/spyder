@@ -11,9 +11,17 @@ The default Spyder global shortcuts are the following:
   
   Ctrl+Shift+E
   
+- Go to :doc:`findinfiles`:
+  
+  Ctrl+Shift+F
+  
 - Go to :doc:`console`:
 
   Ctrl+Shift+C
+  
+- Go to :doc:`extconsole`:
+
+  Ctrl+Shift+X
   
 - Go to Workspace:
 
@@ -30,7 +38,3 @@ The default Spyder global shortcuts are the following:
 - Go to :doc:`onlinehelp`:
 
   Ctrl+Shift+D
-  
-- Go to :doc:`extconsole`:
-
-  Ctrl+Shift+X

@@ -287,7 +287,7 @@ class Editor(SpyderPluginWidget):
             'fileclose.png', self.tr("Close current file"),
             triggered = self.close_file)
         self.close_all_action = create_action(self, self.tr("Close all"),
-            "Ctrl+Alt+W", 'filecloseall.png',
+            "Ctrl+Shift+W", 'filecloseall.png',
             self.tr("Close all opened files"),
             triggered = self.close_all_files)
         run_action = create_action(self,
