@@ -39,8 +39,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
 from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
                                                            CppSH, FortranSH)
-from spyderlib.widgets.editortools import (PythonCFM, ClassItem, FunctionItem,
-                                           LineNumberArea, EdgeLine,
+from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
 from spyderlib.utils import sourcecode, is_builtin, is_keyword
 
@@ -1033,25 +1032,28 @@ class QtEditor(TextEditBaseWidget):
                 self.unindent()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
-        elif ((key == Qt.Key_Plus) and ctrl) \
-             or ((key == Qt.Key_Equal) and shift and ctrl):
+        elif (key == Qt.Key_Plus and ctrl) \
+             or (key == Qt.Key_Equal and shift and ctrl):
             self.zoomIn()
             event.accept()
-        elif (key == Qt.Key_Minus) and ctrl:
+        elif key == Qt.Key_Minus and ctrl:
             self.zoomOut()
             event.accept()
         # Indent/unindent
         elif key == Qt.Key_Backtab:
             self.unindent()
             event.accept()
-        elif (key == Qt.Key_Tab):
+        elif key == Qt.Key_Tab:
             if self.is_completion_widget_visible():
                 self.select_completion_list()
             else:
                 self.indent()
             event.accept()
-        elif (key == Qt.Key_V) and ctrl:
+        elif key == Qt.Key_V and ctrl:
             self.paste()
+            event.accept()
+        elif key == Qt.Key_D and ctrl:
+            self.duplicate_line()
             event.accept()
 #TODO: find other shortcuts...
 #        elif (key == Qt.Key_3) and ctrl:

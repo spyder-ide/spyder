@@ -639,6 +639,15 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Return document total line number"""
         return self.blockCount()
         
+    def duplicate_line(self):
+        """Duplicate current line"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+        text = cursor.selectedText()
+        cursor.clearSelection()
+        cursor.insertText(text)
+        
 
     #------Code completion / Calltips
     def show_calltip(self, title, text, color='#2D62FF', at_line=None):
