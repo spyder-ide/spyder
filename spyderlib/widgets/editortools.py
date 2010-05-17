@@ -186,7 +186,7 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
     item, _level, debug = tree_cache.pop(line)
     try:
         for child in [item.child(_i) for _i in range(item.childCount())]:
-            remove_from_tree_cache(item=child)
+            remove_from_tree_cache(tree_cache, item=child)
         item.parent().removeChild(item)
     except RuntimeError:
         # Item has already been deleted
@@ -612,4 +612,3 @@ class EdgeLine(QWidget):
         color = QColor(Qt.darkGray)
         color.setAlphaF(.5)
         painter.fillRect(event.rect(), color)
-
