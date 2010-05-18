@@ -246,7 +246,7 @@ DEFAULTS = [
               }),
             ('workspace',
              {
-              'shortcut': "Ctrl+Shift+W",
+              'shortcut': "Ctrl+Shift+K",
               'enable': True,
               'autorefresh': True,
               'filters': type2str(FILTERS),
