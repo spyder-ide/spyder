@@ -38,16 +38,17 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
-    ml_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*"
-    ml_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*'
-    multiline_string = any("ML_STRING", [ml_sq3string, ml_dq3string])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
     dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
-    string = any("STRING", [sq3string, dq3string, sqstring, dqstring])
+    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')$"
+    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")$'
+    string = any("STRING", [sqstring, dqstring, sq3string, dq3string])
+    ufstring1 = any("UF_SQ3STRING", [uf_sq3string])
+    ufstring2 = any("UF_DQ3STRING", [uf_dq3string])
     return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
-           multiline_string + "|" + string + "|" + number + "|" + \
+           ufstring1 + "|" + ufstring2 + "|" + string + "|" + number + "|" + \
            any("SYNC", [r"\n"])
 
 #TODO: Use setCurrentBlockUserData for brace matching (see Qt documentation)
@@ -155,36 +156,56 @@ class PythonSH(BaseSH):
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
-    NORMAL = 0
-    INSIDE_STRING = 1
-    DEF_TYPES = {"def": ClassBrowserData.FUNCTION, "class": ClassBrowserData.CLASS}
+    NORMAL, INSIDE_SQSTRING, INSIDE_DQSTRING = range(3)
+    DEF_TYPES = {"def": ClassBrowserData.FUNCTION,
+                 "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
         super(PythonSH, self).__init__(parent)
         self.import_statements = {}
 
     def highlightBlock(self, text):
-        inside_string = self.previousBlockState() == self.INSIDE_STRING
-        self.setFormat(0, text.length(),
-                       self.formats["STRING" if inside_string else "NORMAL"])
+        text = unicode(text)
+        prev_state = self.previousBlockState()
+        if prev_state == self.INSIDE_DQSTRING:
+            offset = -4
+            text = r'""" '+text
+        elif prev_state == self.INSIDE_SQSTRING:
+            offset = -4
+            text = r"''' "+text
+        else:
+            offset = 0
+            prev_state = self.NORMAL
         
         cbdata = None
         import_stmt = None
         
-        text = unicode(text)
+        last_state = None
+        state = self.NORMAL
         match = self.PROG.search(text)
-        index = 0
         while match:
             for key, value in match.groupdict().items():
                 if value:
                     start, end = match.span(key)
-                    index += end-start
-                    if key == "ML_STRING":
+                    start = max([0, start+offset])
+                    end = max([0, end+offset])
+                    if key == "UF_SQ3STRING":
                         self.setFormat(start, end-start, self.formats["STRING"])
-                        inside_string = not inside_string
-                    elif inside_string:
+                        if prev_state in (self.NORMAL, self.INSIDE_SQSTRING):
+                            state = self.INSIDE_SQSTRING
+                        else:
+                            state = prev_state
+                    elif key == "UF_DQ3STRING":
                         self.setFormat(start, end-start, self.formats["STRING"])
+                        if prev_state in (self.NORMAL, self.INSIDE_DQSTRING):
+                            state = self.INSIDE_DQSTRING
+                        else:
+                            state = prev_state
                     else:
                         self.setFormat(start, end-start, self.formats[key])
+                        if key != "STRING":
+                            last_state = self.NORMAL
+                        else:
+                            last_state = None
                         if value in ("def", "class"):
                             match1 = self.IDPROG.match(text, end)
                             if match1:
@@ -215,8 +236,9 @@ class PythonSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
 
-        last_state = self.INSIDE_STRING if inside_string else self.NORMAL
-        self.setCurrentBlockState(last_state)
+        if last_state is not None:
+            state = last_state
+        self.setCurrentBlockState(state)
         
         if cbdata is not None:
             block_nb = self.currentBlock().blockNumber()
