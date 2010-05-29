@@ -551,6 +551,9 @@ class QtEditor(TextEditBaseWidget):
             vsbw = self.verticalScrollBar().contentsRect().width()
         else:
             vsbw = 0
+        _left, _top, right, _bottom = self.getContentsMargins()
+        if right > vsbw:
+            vsbw = 0
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
