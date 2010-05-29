@@ -739,11 +739,6 @@ class QtEditor(TextEditBaseWidget):
             msglist = [ msg for msg, _error in self.ca_marker_lines[line] ]
             self.show_calltip(self.tr("Code analysis"), msglist,
                               color='#129625', at_line=line)
-    
-    def __margin_clicked(self, margin, line, modifier):
-        """Margin was clicked, that's for sure!"""
-        if margin == 0:
-            self.__show_code_analysis_results(line)
 
     
     #------Tasks management

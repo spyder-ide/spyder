@@ -461,7 +461,7 @@ class TextEditBaseWidget(QsciScintilla):
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
             cx = 5
-            _, cy = self.__get_coordinates_from_lineindex(at_line, 0)
+            _, cy = self.__get_coordinates_from_lineindex(at_line-1, 0)
         QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
         # Saving cursor position:
         self.calltip_position = self.get_position('cursor')

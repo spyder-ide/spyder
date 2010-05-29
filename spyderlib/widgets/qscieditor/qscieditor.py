@@ -737,7 +737,7 @@ class QsciEditor(TextEditBaseWidget):
     def __margin_clicked(self, margin, line, modifier):
         """Margin was clicked, that's for sure!"""
         if margin == 0:
-            self.__show_code_analysis_results(line)
+            self.__show_code_analysis_results(line+1)
 
 #    def mouseMoveEvent(self, event):
 #        line = self.get_line_number_at(event.pos())
