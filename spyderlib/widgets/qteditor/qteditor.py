@@ -553,6 +553,9 @@ class QtEditor(TextEditBaseWidget):
             vsbw = 0
         _left, _top, right, _bottom = self.getContentsMargins()
         if right > vsbw:
+            # Depending on the platform (e.g. on Ubuntu), the scrollbar sizes 
+            # may be taken into account in the contents margins whereas it is 
+            # not on Windows for example
             vsbw = 0
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
