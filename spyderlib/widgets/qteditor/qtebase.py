@@ -638,19 +638,31 @@ class TextEditBaseWidget(QPlainTextEdit):
     def get_line_count(self):
         """Return document total line number"""
         return self.blockCount()
-        
+    
     def duplicate_line(self):
         """Duplicate current line"""
         cursor = self.textCursor()
-        if cursor.selectedText().isEmpty():
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
-            text = cursor.selectedText()
-            cursor.clearSelection()
-            cursor.insertText(text)
-        else:
-            #TODO: Implement multiline version of 'duplicate_line'
-            pass
+        cursor.beginEditBlock()
+        start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+        if not cursor.selectedText().isEmpty():
+            cursor.setPosition(end_pos)
+            # Check if end_pos is at the start of a block: if so, starting
+            # changes from the previous block
+            cursor.movePosition(QTextCursor.StartOfBlock,
+                                QTextCursor.KeepAnchor)
+            if cursor.selectedText().isEmpty():
+                cursor.movePosition(QTextCursor.PreviousBlock)
+                end_pos = cursor.position()
+            
+        cursor.setPosition(start_pos)
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)            
+        text = cursor.selectedText()
+        cursor.clearSelection()
+        cursor.insertText(text)
+        cursor.endEditBlock()
         
 
     #------Code completion / Calltips

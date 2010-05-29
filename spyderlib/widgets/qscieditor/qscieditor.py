@@ -220,7 +220,16 @@ class QsciEditor(TextEditBaseWidget):
         """Reimplemented Qt method to handle line number area resizing"""
         super(QsciEditor, self).resizeEvent(event)
         cr = self.contentsRect()
-        vsbw = self.verticalScrollBar().contentsRect().width()
+        if self.verticalScrollBar().isVisible():
+            vsbw = self.verticalScrollBar().contentsRect().width()
+        else:
+            vsbw = 0
+        _left, _top, right, _bottom = self.getContentsMargins()
+        if right > vsbw:
+            # Depending on the platform (e.g. on Ubuntu), the scrollbar sizes 
+            # may be taken into account in the contents margins whereas it is 
+            # not on Windows for example
+            vsbw = 0
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))

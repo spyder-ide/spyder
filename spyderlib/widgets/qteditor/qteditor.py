@@ -550,6 +550,12 @@ class QtEditor(TextEditBaseWidget):
             vsbw = self.verticalScrollBar().contentsRect().width()
         else:
             vsbw = 0
+        _left, _top, right, _bottom = self.getContentsMargins()
+        if right > vsbw:
+            # Depending on the platform (e.g. on Ubuntu), the scrollbar sizes 
+            # may be taken into account in the contents margins whereas it is 
+            # not on Windows for example
+            vsbw = 0
         self.scrollflagarea.setGeometry(\
                         QRect(cr.right()-ScrollFlagArea.WIDTH-vsbw, cr.top(),
                               self.scrollflagarea.WIDTH, cr.height()))
@@ -779,16 +785,28 @@ class QtEditor(TextEditBaseWidget):
             # Add prefix to selected line(s)
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.beginEditBlock()
-            cursor.setPosition(start_pos)
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            while cursor.position() < end_pos:
+            cursor.setPosition(end_pos)
+            # Check if end_pos is at the start of a block: if so, starting
+            # changes from the previous block
+            cursor.movePosition(QTextCursor.StartOfBlock,
+                                QTextCursor.KeepAnchor)
+            if cursor.selectedText().isEmpty():
+                cursor.movePosition(QTextCursor.PreviousBlock)
+ 
+            while cursor.position() >= start_pos:
+                cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor.insertText(prefix)
-                cursor.movePosition(QTextCursor.NextBlock)
+                cursor.movePosition(QTextCursor.PreviousBlock)
+                cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
         else:
             # Add prefix to current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.insertText(prefix)
+    
+    def __is_cursor_at_start_of_block(self, cursor):
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        
     
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""        
@@ -797,24 +815,30 @@ class QtEditor(TextEditBaseWidget):
             # Remove prefix from selected line(s)
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.beginEditBlock()
-            cursor.setPosition(start_pos)
-            cursor.movePosition(QTextCursor.StartOfBlock)
-            while cursor.position() < end_pos:
+            cursor.setPosition(end_pos)
+            # Check if end_pos is at the start of a block: if so, starting
+            # changes from the previous block
+            cursor.movePosition(QTextCursor.StartOfBlock,
+                                QTextCursor.KeepAnchor)
+            if cursor.selectedText().isEmpty():
+                cursor.movePosition(QTextCursor.PreviousBlock)
+ 
+            while cursor.position() >= start_pos:
+                cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor.setPosition(cursor.position()+len(prefix),
                                    QTextCursor.KeepAnchor)
-                if unicode(cursor.selectedText()) != prefix:
-                    break
-                cursor.removeSelectedText()
-                cursor.movePosition(QTextCursor.NextBlock)
+                if unicode(cursor.selectedText()) == prefix:
+                    cursor.removeSelectedText()
+                cursor.movePosition(QTextCursor.PreviousBlock)
+                cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+len(prefix),
                                QTextCursor.KeepAnchor)
-            if unicode(cursor.selectedText()) != prefix:
-                return
-            cursor.removeSelectedText()
+            if unicode(cursor.selectedText()) == prefix:
+                cursor.removeSelectedText()
     
     def fix_indent(self, forward=True):
         """
