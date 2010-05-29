@@ -543,8 +543,7 @@ class QsciEditor(TextEditBaseWidget):
         text = self.get_current_word()
         if text.isEmpty():
             return
-        if (self.is_python() or self.is_cython()) and \
-           (is_builtin(unicode(text)) or is_keyword(unicode(text))):
+        if (self.is_python() or self.is_cython()) and is_keyword(unicode(text)):
             return
 
         # Highlighting all occurences of word *text*
