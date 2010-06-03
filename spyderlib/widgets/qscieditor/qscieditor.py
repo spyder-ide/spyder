@@ -717,7 +717,7 @@ class QsciEditor(TextEditBaseWidget):
         self.scrollflagarea.update()
 
     def __highlight_warning(self, line):
-        self.go_to_line(line+1)
+        self.go_to_line(line)
         self.__show_code_analysis_results(line)
 
     def go_to_next_warning(self):
