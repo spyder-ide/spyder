@@ -153,7 +153,7 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         # Code completion / calltips
         self.completion_widget = CompletionWidget(self, parent)
-        self.codecompletion = True
+        self.codecompletion_auto = False
         self.codecompletion_enter = False
         self.calltips = True
         self.completion_text = ""
@@ -350,9 +350,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         font = get_font('shell_appearance', 'completion')
         self.completion_widget.setup_appearance(size, font)
 
-    def set_codecompletion(self, state):
+    def set_codecompletion_auto(self, state):
         """Set code completion state"""
-        self.codecompletion = state
+        self.codecompletion_auto = state
         
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""

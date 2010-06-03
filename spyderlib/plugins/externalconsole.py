@@ -159,9 +159,9 @@ class ExternalConsole(SpyderPluginWidget):
             shell_widget = ExternalSystemShell(self, wdir, path=pythonpath)
         
         # Code completion / calltips
-        case_sensitive = CONF.get(self.ID, 'autocompletion/case-sensitivity')
-        show_single = CONF.get(self.ID, 'autocompletion/select-single')
-        from_document = CONF.get(self.ID, 'autocompletion/from-document')
+        case_sensitive = CONF.get(self.ID, 'codecompletion/case-sensitivity')
+        show_single = CONF.get(self.ID, 'codecompletion/select-single')
+        from_document = CONF.get(self.ID, 'codecompletion/from-document')
         shell_widget.shell.setup_code_completion(case_sensitive, show_single,
                                                  from_document)
         
@@ -170,10 +170,10 @@ class ExternalConsole(SpyderPluginWidget):
         shell_widget.shell.set_font( get_font(self.ID) )
         shell_widget.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
         shell_widget.shell.set_calltips( CONF.get(self.ID, 'calltips') )
-        shell_widget.shell.set_codecompletion( CONF.get(self.ID,
-                                                  'autocompletion/enabled') )
+        shell_widget.shell.set_codecompletion_auto( CONF.get(self.ID,
+                                                 'codecompletion/auto') )
         shell_widget.shell.set_codecompletion_enter(CONF.get(self.ID,
-                                                 'autocompletion/enter-key'))
+                                                 'codecompletion/enter-key'))
         if python:
             shell_widget.shell.set_inspector(self.inspector)
         self.historylog.add_history(shell_widget.shell.history_filename)
@@ -286,15 +286,16 @@ class ExternalConsole(SpyderPluginWidget):
         calltips_action = create_action(self, self.tr("Balloon tips"),
                             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
-        codecompletion_action = create_action(self, self.tr("Code completion"),
-                            toggled=self.toggle_codecompletion)
+        codecompletion_action = create_action(self,
+                                          self.tr("Automatic code completion"),
+                                          toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
-                                                   'autocompletion/enabled') )
+                                                   'codecompletion/auto') )
         codecompenter_action = create_action(self,
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked( CONF.get(self.ID,
-                                                  'autocompletion/enter-key') )
+                                                  'codecompletion/enter-key') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
@@ -383,12 +384,12 @@ class ExternalConsole(SpyderPluginWidget):
         CONF.set(self.ID, 'calltips', checked)
             
     def toggle_codecompletion(self, checked):
-        """Toggle code completion"""
+        """Toggle automatic code completion"""
         if self.tabwidget is None:
             return
         for shell in self.shells:
-            shell.shell.set_codecompletion(checked)
-        CONF.set(self.ID, 'autocompletion/enabled', checked)
+            shell.shell.set_codecompletion_auto(checked)
+        CONF.set(self.ID, 'codecompletion/auto', checked)
             
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
@@ -396,7 +397,7 @@ class ExternalConsole(SpyderPluginWidget):
             return
         for shell in self.shells:
             shell.shell.set_codecompletion_enter(checked)
-        CONF.set(self.ID, 'autocompletion/enter-key', checked)
+        CONF.set(self.ID, 'codecompletion/enter-key', checked)
         
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""

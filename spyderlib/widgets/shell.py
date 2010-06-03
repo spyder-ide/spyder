@@ -870,10 +870,11 @@ class PythonShellWidget(ShellBaseWidget):
         
     def _key_period(self, text):
         """Action for '.'"""
-        # Enable auto-completion only if last token isn't a float
-        last_obj = self.get_last_obj()
-        if last_obj and not last_obj.isdigit():
-            self.show_code_completion(last_obj)
+        if self.codecompletion_auto:
+            # Enable auto-completion only if last token isn't a float
+            last_obj = self.get_last_obj()
+            if last_obj and not last_obj.isdigit():
+                self.show_code_completion(last_obj)
         self.insert_text(text)
 
 
@@ -932,8 +933,6 @@ class PythonShellWidget(ShellBaseWidget):
         
     def show_code_completion(self, text):
         """Display a completion list based on the last token"""
-        if not self.codecompletion:
-            return
         text = unicode(text) # Useful only for ExternalShellBase
         objdir = self.get_dir(text)
         if objdir:

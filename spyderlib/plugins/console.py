@@ -161,15 +161,16 @@ class Console(SpyderPluginWidget):
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
-        codecompletion_action = create_action(self, self.tr("Code completion"),
-            toggled=self.toggle_codecompletion)
+        codecompletion_action = create_action(self,
+                                          self.tr("Automatic code completion"),
+                                          toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked( CONF.get(self.ID,
-                                                   'autocompletion/enabled') )
+                                                   'codecompletion/auto') )
         codecompenter_action = create_action(self,
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked( CONF.get(self.ID,
-                                                   'autocompletion/enter-key') )
+                                                   'codecompletion/enter-key') )
         rollbackimporter_action = create_action(self,
                 self.tr("Force modules to be completely reloaded"),
                 tip=self.tr("Force Python to reload modules imported when "
@@ -320,14 +321,14 @@ class Console(SpyderPluginWidget):
         CONF.set(self.ID, 'calltips', checked)
             
     def toggle_codecompletion(self, checked):
-        """Toggle code completion"""
-        self.shell.set_codecompletion(checked)
-        CONF.set(self.ID, 'autocompletion/enabled', checked)
+        """Toggle automatic code completion"""
+        self.shell.set_codecompletion_auto(checked)
+        CONF.set(self.ID, 'codecompletion/auto', checked)
             
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)
-        CONF.set(self.ID, 'autocompletion/enter-key', checked)
+        CONF.set(self.ID, 'codecompletion/enter-key', checked)
         
     def toggle_rollbackimporter(self, checked):
         """Toggle rollback importer"""

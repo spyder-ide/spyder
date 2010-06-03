@@ -138,9 +138,9 @@ class InteractiveShell(PythonShellWidget):
         
         # Code completion / calltips
         getcfg = lambda option: CONF.get('shell', option)
-        case_sensitive = getcfg('autocompletion/case-sensitivity')
-        show_single = getcfg('autocompletion/select-single')
-        from_document = getcfg('autocompletion/from-document')
+        case_sensitive = getcfg('codecompletion/case-sensitivity')
+        show_single = getcfg('codecompletion/select-single')
+        from_document = getcfg('codecompletion/from-document')
         self.setup_code_completion(case_sensitive, show_single, from_document)
         
         # keyboard events management

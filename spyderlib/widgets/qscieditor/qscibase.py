@@ -37,7 +37,7 @@ class TextEditBaseWidget(QsciScintilla):
         self.setup()
         
         # Code completion / calltips
-        self.codecompletion = True
+        self.codecompletion_auto = False
         self.codecompletion_enter = False
         self.calltips = True
         self.completion_text = ""
@@ -67,9 +67,9 @@ class TextEditBaseWidget(QsciScintilla):
         self.calltip_size = CONF.get('shell_appearance', 'calltips/size')
         self.calltip_font = get_font('shell_appearance', 'calltips')
 
-    def set_codecompletion(self, state):
+    def set_codecompletion_auto(self, state):
         """Set code completion state"""
-        self.codecompletion = state        
+        self.codecompletion_auto = state        
         
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""
