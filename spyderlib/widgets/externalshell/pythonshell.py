@@ -65,6 +65,10 @@ class ExtPyQsciShell(PythonShellWidget):
     def get_dir(self, objtxt):
         """Return dir(object)"""
         return self.ask_monitor("getobjdir(%s)" % objtxt)
+    
+    def get_cdlistdir(self):
+        """Return shell current directory list dir"""
+        return self.ask_monitor("getcdlistdir()")
             
     def iscallable(self, objtxt):
         """Is object callable?"""

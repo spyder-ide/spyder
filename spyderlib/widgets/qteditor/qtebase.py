@@ -58,7 +58,7 @@ class CompletionWidget(QListWidget):
     def show_list(self, completion_list):
         self.completion_list = completion_list
         self.clear()
-        self.addItems(sorted(completion_list))
+        self.addItems(completion_list)
         self.setCurrentRow(0)
         self.show()
         self.raise_()
@@ -74,6 +74,11 @@ class CompletionWidget(QListWidget):
             # Useful only if we set parent to 'ancestor' in __init__
             point = self.parent().mapFromGlobal(point)
         self.move(point)
+        
+        if unicode(self.textedit.completion_text):
+            # When initialized, if completion text is not empty, we need 
+            # to update the displayed list:
+            self.update_current()
         
     def hide(self):
         QListWidget.hide(self)

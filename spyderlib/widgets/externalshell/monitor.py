@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread
-import StringIO, pickle, struct
+import threading, socket, traceback, thread, StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
@@ -94,6 +93,12 @@ def monitor_copy_global(sock, orig_name, new_name):
     read_packet(sock)
 
 
+def getcdlistdir():
+    """Return current directory list dir"""
+    import os
+    return os.listdir(os.getcwdu())
+
+
 class Monitor(threading.Thread):
     """Monitor server"""
     def __init__(self, host, port, shell_id):
@@ -105,6 +110,7 @@ class Monitor(threading.Thread):
         from __main__ import __dict__ as glbs
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
+                       "getcdlistdir": getcdlistdir,
                        "getargtxt": getargtxt,
                        "getdoc": getdoc,
                        "getsource": getsource,

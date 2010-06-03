@@ -812,14 +812,11 @@ class PythonShellWidget(ShellBaseWidget):
         if self.is_completion_widget_visible():
             self.stdkey_tab()
         elif self.is_cursor_on_last_line():
-            buf = self.get_current_line_to_cursor()
-            empty_line = not buf.strip()
+            empty_line = not self.get_current_line_to_cursor().strip()
             if empty_line:
                 self.stdkey_tab()
-            elif buf.endswith('.'):
-                self.show_code_completion(self.get_last_obj())
-            elif buf[-1] in ['"', "'"]:
-                self.show_file_completion()
+            else:
+                self.show_code_completion()
                 
     def _key_home(self, shift):
         """Action for Home key"""
@@ -870,12 +867,12 @@ class PythonShellWidget(ShellBaseWidget):
         
     def _key_period(self, text):
         """Action for '.'"""
+        self.insert_text(text)
         if self.codecompletion_auto:
             # Enable auto-completion only if last token isn't a float
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_code_completion(last_obj)
-        self.insert_text(text)
+                self.show_code_completion()
 
 
     #------ Paste
@@ -896,21 +893,24 @@ class PythonShellWidget(ShellBaseWidget):
     
   
     #------ Code Completion / Calltips        
-    def show_completion_list(self, completions):
+    def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
-        if len(completions) == 0:
+        if len(completions) == 0 or completion_text in completions:
             return
-        self.show_completion_widget(sorted(completions))
-        self.completion_text = ""
-
-    def show_file_completion(self):
-        """Display a completion list for files and directories"""
-        self.show_completion_list(os.listdir(os.getcwdu()))
+        self.completion_text = completion_text
+        if isinstance(completions[0], unicode):
+            key = unicode.lower
+        else:
+            key = str.lower
+        self.show_completion_widget(sorted(completions, key=key))
 
     # Methods implemented in child class:
     # (e.g. InteractiveShell)
     def get_dir(self, objtxt):
         """Return dir(object)"""
+        raise NotImplementedError
+    def get_cdlistdir(self):
+        """Return shell current directory list dir"""
         raise NotImplementedError
     def iscallable(self, objtxt):
         """Is object callable?"""
@@ -931,12 +931,48 @@ class PythonShellWidget(ShellBaseWidget):
         """Return True if object is defined"""
         raise NotImplementedError
         
-    def show_code_completion(self, text):
-        """Display a completion list based on the last token"""
-        text = unicode(text) # Useful only for ExternalShellBase
-        objdir = self.get_dir(text)
-        if objdir:
-            self.show_completion_list(objdir) 
+    def show_code_completion(self):
+        """Display a completion list based on the current line"""
+        # Note: unicode conversion is needed only for ExternalShellBase
+        text = unicode(self.get_current_line_to_cursor())
+        last_obj = self.get_last_obj()
+        obj_dir = self.get_dir(last_obj)
+        if last_obj and obj_dir:
+            if not text.endswith('.'):
+                return
+            self.show_completion_list(obj_dir)
+            return
+        
+        # Builtins and globals
+        import re, __builtin__, keyword
+        if last_obj and re.match(r'[a-zA-Z_0-9]*$', last_obj):
+            b_k_g = dir(__builtin__)+globals().keys()+keyword.kwlist
+            if last_obj in b_k_g:
+                return
+            for objname in b_k_g:
+                if objname.startswith(last_obj):
+                    self.show_completion_list(b_k_g, completion_text=last_obj)
+        
+        # Looking for an incomplete completion
+        if last_obj is None:
+            last_obj = text
+        dot_pos = last_obj.rfind('.')
+        if dot_pos != -1:
+            if dot_pos == len(last_obj)-1:
+                completion_text = ""
+            else:
+                completion_text = last_obj[dot_pos+1:]
+                last_obj = last_obj[:dot_pos]
+            self.show_completion_list(self.get_dir(last_obj),
+                                      completion_text=completion_text)
+            return
+        
+        # Looking for ' or ": filename completion
+        q_pos = max([text.rfind("'"), text.rfind('"')])
+        if q_pos != -1:
+            self.show_completion_list(self.get_cdlistdir(),
+                                      completion_text=text[q_pos+1:])
+            return
     
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""

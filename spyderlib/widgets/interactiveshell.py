@@ -516,6 +516,10 @@ has the same effect as typing a particular string at the help> prompt.
         obj, valid = self._eval(objtxt)
         if valid:
             return getobjdir(obj)
+        
+    def get_cdlistdir(self):
+        """Return shell current directory list dir"""
+        return os.listdir(os.getcwdu())
                 
     def iscallable(self, objtxt):
         """Is object callable?"""
