@@ -16,7 +16,8 @@ from math import log
 
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QPixmap, QPrinter,
                          QApplication, QSplitter, QFont, QPainter, QBrush)
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
+from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
+                          PYQT_VERSION_STR)
 from PyQt4.Qsci import (QsciScintilla, QsciAPIs, QsciLexerCPP, QsciLexerCSS,
                         QsciLexerDiff, QsciLexerHTML, QsciLexerPython,
                         QsciLexerProperties, QsciLexerBatch, QsciPrinter)
@@ -157,6 +158,11 @@ class QsciEditor(TextEditBaseWidget):
         # Tab key behavior
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
+
+    def closeEvent(self, event):
+        super(QsciEditor, self).closeEvent(event)
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))
 
 
     #===========================================================================

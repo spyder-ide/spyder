@@ -1062,6 +1062,11 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
                      self.focus_changed_callback)
+        if self.classbrowser is not None:
+            # Removing editor reference from class browser settings:
+            self.connect(editor, SIGNAL("destroyed()"),
+                         lambda obj=editor:
+                         self.classbrowser.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
        

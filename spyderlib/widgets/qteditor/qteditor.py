@@ -27,7 +27,8 @@ from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
                          QPixmap, QPrinter)
-from PyQt4.QtCore import Qt, SIGNAL, QString, QEvent, QTimer, QRect
+from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
+                          PYQT_VERSION_STR)
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -161,6 +162,12 @@ class QtEditor(TextEditBaseWidget):
         # Tab key behavior
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
+
+    def closeEvent(self, event):
+        super(QtEditor, self).closeEvent(event)
+        if PYQT_VERSION_STR.startswith('4.6'):
+            self.emit(SIGNAL('destroyed()'))
+            
         
     def get_document_id(self):
         return self.document_id
