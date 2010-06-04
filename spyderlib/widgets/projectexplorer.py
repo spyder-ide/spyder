@@ -17,6 +17,7 @@ import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
+STDERR = sys.stderr
 
 # Local imports
 from spyderlib.utils import count_lines, rename_file, remove_file, move_file
@@ -93,11 +94,11 @@ def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
 class Project(object):
     """Spyder project"""
     CONFIG_NAME = '.spyderproject'
-    CONFIG_ATTR = ('name', 'related_projects', 'pythonpath', 'opened')
+    CONFIG_ATTR = ('name', 'related_projects', 'relative_pythonpath', 'opened')
     def __init__(self, root_path):
         self.name = osp.basename(root_path)
         self.related_projects = [] # storing project path, not project objects
-        self.root_path = root_path
+        self.root_path = unicode(root_path)
         self.items = {}
         self.icon_provider = QFileIconProvider()
         self.namesets = {}
@@ -108,14 +109,35 @@ class Project(object):
         config_path = self.__get_project_config_path()
         if not osp.exists(config_path):
             self.save()
+            
+    @property
+    def relative_pythonpath(self):
+        # Workaround to replace os.path.relpath (new in Python v2.6):
+        offset = len(self.root_path)+len(os.pathsep)
+        return [path[offset:] for path in self.pythonpath]
+
+    @relative_pythonpath.setter
+    def relative_pythonpath(self, value):
+        self.pythonpath = [osp.abspath(osp.join(self.root_path, path))
+                           for path in value]
         
     def __get_project_config_path(self):
         return osp.join(self.root_path, self.CONFIG_NAME)
         
     def load(self):
         data = cPickle.load(file(self.__get_project_config_path()))
+        save = False
+        # Compatibilty with old project explorer file format:
+        if 'relative_pythonpath' not in data:
+            save = True
+            print >>STDERR, "Warning: converting old configuration file " \
+                            "for project '%s'" % data['name']
+            self.pythonpath = data['pythonpath']
+            data['relative_pythonpath'] = self.relative_pythonpath
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
+        if save:
+            self.save()
     
     def save(self):
         data = {}
