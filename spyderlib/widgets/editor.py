@@ -720,9 +720,16 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         filename = self.select_savename(finfo.filename)
         if filename:
-            new_index =self.rename_in_data(index, new_filename=filename)
+            ao_index = self.has_filename(filename)
+            if ao_index:
+                if not self.close_file(ao_index):
+                    return
+                if ao_index < index:
+                    index -= 1
+            new_index = self.rename_in_data(index, new_filename=filename)
             self.save(index=new_index, force=True)
             self.refresh(new_index)
+            self.set_stack_index(new_index)
         
     def save_all(self):
         """Save all opened files"""

@@ -968,7 +968,12 @@ class Editor(SpyderPluginWidget):
                 self.recent_files.pop(-1)
     
     def new(self, fname=None, editorstack=None):
-        """Create a new file - Untitled"""
+        """
+        Create a new file - Untitled
+        
+        fname=None --> fname will be 'untitledXX.py' but do not create file
+        fname=<basestring> --> create file
+        """
         # Creating template
         text, enc = encoding.read(self.TEMPLATE_PATH)
         encoding_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
@@ -980,18 +985,24 @@ class Editor(SpyderPluginWidget):
         except:
             pass
         create_fname = lambda n: unicode(self.tr("untitled")) + ("%d.py" % n)
+        # Creating editor widget
+        if editorstack is None:
+            editorstack = self.get_current_editorstack()
         if fname is None:
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
+            editorstack.new(fname, enc, text)
         else:
-            fname = unicode(fname) # QString when triggered by a Qt signal
-        # Creating editor widget
-        if editorstack is None:
-            editorstack = self.get_current_editorstack()
-        editorstack.new(fname, enc, text)
+            # QString when triggered by a Qt signal
+            fname = osp.abspath(unicode(fname))
+            index = editorstack.has_filename(fname)
+            if index and not editorstack.close_file(index):
+                return
+            editorstack.new(osp.abspath(fname), enc, text)
+            editorstack.save(force=True)
                 
     def edit_template(self):
         """Edit new file template"""
