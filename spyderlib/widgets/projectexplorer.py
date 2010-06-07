@@ -126,24 +126,22 @@ class Project(object):
         
     def load(self):
         data = cPickle.load(file(self.__get_project_config_path()))
-        save = False
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
-            save = True
             print >>STDERR, "Warning: converting old configuration file " \
                             "for project '%s'" % data['name']
             self.pythonpath = data['pythonpath']
             data['relative_pythonpath'] = self.relative_pythonpath
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
-        if save:
-            self.save()
+        self.save()
     
     def save(self):
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
-        cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
+        cPickle.dump(data, file(self.__get_project_config_path(), 'w'),
+                     cPickle.HIGHEST_PROTOCOL)
         
     def delete(self):
         os.remove(self.__get_project_config_path())
