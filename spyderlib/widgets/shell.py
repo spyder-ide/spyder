@@ -619,10 +619,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         Insert text at the current cursor position
         or at the end of the command line
         """
-        if error and text.startswith('  File "<'):
-            # Avoid printing 'File <console> [...]' which is related to the
-            # code.InteractiveConsole Python interpreter emulation
-            return
         if at_end:
             # Insert text at the end of the command line
             self.append_text_to_shell(text, error, prompt)
