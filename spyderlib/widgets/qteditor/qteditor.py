@@ -42,7 +42,7 @@ from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
                                                            CppSH, FortranSH)
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
-from spyderlib.utils import sourcecode, is_builtin, is_keyword
+from spyderlib.utils import sourcecode, is_keyword
 
 
 #===============================================================================
@@ -829,8 +829,14 @@ class QtEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
             if cursor.selectedText().isEmpty():
                 cursor.movePosition(QTextCursor.PreviousBlock)
- 
+                
+            old_pos = None
             while cursor.position() >= start_pos:
+                new_pos = cursor.position()
+                if old_pos == new_pos:
+                    break
+                else:
+                    old_pos = new_pos
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor.setPosition(cursor.position()+len(prefix),
                                    QTextCursor.KeepAnchor)
