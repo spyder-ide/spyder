@@ -36,7 +36,7 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
-from spyderlib.utils import sourcecode, is_builtin, is_keyword
+from spyderlib.utils import sourcecode, is_keyword
 from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget
 from spyderlib.widgets.editortools import (PythonCFM, ScrollFlagArea, check,
                                            ClassBrowser)

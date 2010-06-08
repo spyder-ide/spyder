@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread, StringIO, pickle, struct
+import threading, socket, traceback, thread, StringIO, pickle, struct, sys
+STDOUT = sys.stdout
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
@@ -12,17 +13,20 @@ from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
                                           value_to_display, globalsfilter)
 
 
-def make_remote_view(data, settings):
+def make_remote_view(data, settings, more_excluded_names=None):
     """
     Make a remote view of dictionary *data*
     -> globals explorer
     """
+    excluded_names = settings['excluded_names']
+    if more_excluded_names is not None:
+        excluded_names += more_excluded_names
     data = globalsfilter(data, itermax=settings['itermax'],
                          filters=tuple(str2type(settings['filters'])),
                          exclude_private=settings['exclude_private'],
                          exclude_upper=settings['exclude_upper'],
                          exclude_unsupported=settings['exclude_unsupported'],
-                         excluded_names=settings['excluded_names'])
+                         excluded_names=excluded_names)
     remote = {}
     for key, value in data.iteritems():
         view = value_to_display(value, truncate=settings['truncate'],
@@ -70,54 +74,53 @@ def monitor_get_remote_view(sock, settings):
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
-    return communicate(sock, name, pickle_try=True)
+#    return communicate(sock, name, pickle_try=True)
+    write_packet(sock, '__get_global__(globals(), "%s")' % name)
+    return pickle.loads( read_packet(sock) )
 
 def monitor_set_global(sock, name, value):
     """Set global variable *name* value to *value*"""
-    write_packet(sock, '__set_global__()')
-    write_packet(sock, name)
+    write_packet(sock, '__set_global__(globals(), "%s")' % name)
     write_packet(sock, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
     read_packet(sock)
 
 def monitor_del_global(sock, name):
     """Del global variable *name*"""
-    write_packet(sock, '__del_global__()')
-    write_packet(sock, name)
+    write_packet(sock, '__del_global__(globals(), "%s")' % name)
     read_packet(sock)
 
 def monitor_copy_global(sock, orig_name, new_name):
     """Copy global variable *orig_name* to *new_name*"""
-    write_packet(sock, '__copy_global__()')
-    write_packet(sock, orig_name)
-    write_packet(sock, new_name)
+    write_packet(sock, '__copy_global__(globals(), "%s", "%s")' % (orig_name,
+                                                                   new_name))
     read_packet(sock)
 
 
-def getcdlistdir():
+def _getcdlistdir():
     """Return current directory list dir"""
     import os
     return os.listdir(os.getcwdu())
-
 
 class Monitor(threading.Thread):
     """Monitor server"""
     def __init__(self, host, port, shell_id):
         threading.Thread.__init__(self)
+        self.ipython_shell = None
         self.setDaemon(True)
         self.request = socket.socket( socket.AF_INET )
         self.request.connect( (host, port) )
         write_packet(self.request, shell_id)
-        from __main__ import __dict__ as glbs
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
-                       "getcdlistdir": getcdlistdir,
+                       "getcdlistdir": _getcdlistdir,
                        "getargtxt": getargtxt,
                        "getdoc": getdoc,
                        "getsource": getsource,
-                       "isdefined": lambda objtxt, force_import: \
-                                    isdefined(objtxt, force_import, glbs),
+                       "isdefined": isdefined,
+                       "iscallable": callable,
                        "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
+                       "__get_global__": self.getglobal,
                        "__set_global__": self.setglobal,
                        "__del_global__": self.delglobal,
                        "__copy_global__": self.copyglobal,
@@ -141,37 +144,41 @@ class Monitor(threading.Thread):
         Return remote view of globals()
         """
         settings = pickle.loads( read_packet(self.request) )
-        return make_remote_view(glbs, settings)
+        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
+        return make_remote_view(glbs, settings, more_excluded_names)
         
-    def setglobal(self):
+    def getglobal(self, glbs, name):
+        """
+        Get global reference value
+        """
+        return glbs[name]
+        
+    def setglobal(self, glbs, name):
         """
         Set global reference value
         """
-        from __main__ import __dict__ as glbs
-        name = read_packet(self.request)
         value = pickle.loads( read_packet(self.request) )
         glbs[name] = value
         
-    def delglobal(self):
+    def delglobal(self, glbs, name):
         """
         Del global reference
         """
-        from __main__ import __dict__ as glbs
-        name = read_packet(self.request)
         glbs.pop(name)
         
-    def copyglobal(self):
+    def copyglobal(self, glbs, orig_name, new_name):
         """
         Copy global reference
         """
-        from __main__ import __dict__ as glbs
-        orig_name = read_packet(self.request)
-        new_name = read_packet(self.request)
         glbs[new_name] = glbs[orig_name]
         
     def run(self):
+        self.ipython_shell = False
         from __main__ import __dict__ as glbs
         while True:
+            if not self.ipython_shell and '__ipythonshell__' in glbs:
+                glbs = glbs['__ipythonshell__'].IP.user_ns
+                self.ipython_shell = True
             try:
                 command = read_packet(self.request)
                 result = eval(command, glbs, self.locals)

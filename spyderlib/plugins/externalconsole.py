@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QMessageBox,
-                         QInputDialog)
+                         QInputDialog, QLineEdit)
 from PyQt4.QtCore import SIGNAL, QString, Qt
 
 import sys, os
@@ -24,6 +24,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.config import CONF, get_font, get_icon, set_font
 from spyderlib.utils.qthelpers import create_action, mimedata2url
+from spyderlib.utils.programs import is_module_installed
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
@@ -44,8 +45,15 @@ class ExternalConsole(SpyderPluginWidget):
         self.inspector = None
         self.historylog = None
         
+        self.ipython_count = 0
         self.python_count = 0
         self.terminal_count = 0
+        
+        if CONF.get(self.ID, 'ipython_args', None) is None:
+            default_args = "-q4thread"
+            if is_module_installed('matplotlib'):
+                default_args += " -pylab"
+            CONF.set(self.ID, 'ipython_args', default_args)
         
         self.shells = []
         self.filenames = []
@@ -125,7 +133,8 @@ class ExternalConsole(SpyderPluginWidget):
                 execute(index)
         
     def start(self, fname, wdir=None, ask_for_arguments=False,
-              interact=False, debug=False, python=True):
+              interact=False, debug=False, python=True,
+              ipython=False, arguments=None):
         """Start new console"""
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
@@ -154,7 +163,9 @@ class ExternalConsole(SpyderPluginWidget):
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
             shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
-                                               interact, debug, path=pythonpath)
+                                               interact, debug, path=pythonpath,
+                                               ipython=ipython,
+                                               arguments=arguments)
         else:
             shell_widget = ExternalSystemShell(self, wdir, path=pythonpath)
         
@@ -186,9 +197,14 @@ class ExternalConsole(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
-                self.python_count += 1
-                tab_name = "Python %d" % self.python_count
-                tab_icon = get_icon('python.png')
+                if ipython:
+                    self.ipython_count += 1
+                    tab_name = "IPython %d" % self.ipython_count
+                    tab_icon = get_icon('ipython.png')
+                else:
+                    self.python_count += 1
+                    tab_name = "Python %d" % self.python_count
+                    tab_icon = get_icon('python.png')
             else:
                 tab_name = osp.basename(fname)
                 tab_icon = get_icon('run.png')
@@ -303,13 +319,27 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_action = create_action(self, self.tr("Show icons and text"),
                                         toggled=self.toggle_icontext)
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
-        self.menu_actions = [interpreter_action, run_action, None,
-                             buffer_action, font_action, wrap_action,
+        
+        self.menu_actions = [interpreter_action, console_action, run_action,
+                             None, buffer_action, font_action, wrap_action,
                              calltips_action, codecompletion_action,
                              codecompenter_action, singletab_action,
                              icontext_action]
-        if console_action:
-            self.menu_actions.insert(1, console_action)
+        
+        ipython_action = create_action(self,
+                            self.tr("Open IPython interpreter"), None,
+                            'python.png',
+                            self.tr("Open an IPython interpreter"),
+                            triggered=self.open_ipython)
+        ipython_args_action = create_action(self,
+                            self.tr("IPython interpreter options..."), None,
+                            tip=self.tr("Set IPython interpreter "
+                                        "command line arguments"),
+                            triggered=self.set_ipython_args)
+        if is_module_installed("IPython"):
+            self.menu_actions.insert(5, ipython_args_action)
+            self.menu_actions.insert(1, ipython_action)
+        
         return (self.menu_actions, None)
         
     def closing_plugin(self, cancelable=False):
@@ -330,6 +360,12 @@ class ExternalConsole(SpyderPluginWidget):
         """Open interpreter"""
         self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
                    interact=True, debug=False, python=True)
+        
+    def open_ipython(self):
+        """Open IPython"""
+        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+                   interact=True, debug=False, python=True, ipython=True,
+                   arguments=CONF.get(self.ID, 'ipython_args', ""))
         
     def open_terminal(self):
         """Open terminal"""
@@ -366,6 +402,17 @@ class ExternalConsole(SpyderPluginWidget):
             for index in range(self.tabwidget.count()):
                 self.tabwidget.widget(index).shell.setMaximumBlockCount(mlc)
             CONF.set(self.ID, 'max_line_count', mlc)
+            
+    def set_ipython_args(self):
+        """Set IPython interpreter arguments"""
+        arguments, valid = QInputDialog.getText(self,
+                      self.tr('IPython'),
+                      self.tr('IPython command line options:\n'
+                              '(Qt4 support: -q4thread)\n'
+                              '(Qt4 and matplotlib support: -q4thread -pylab)'),
+                      QLineEdit.Normal, CONF.get(self.ID, 'ipython_args'))
+        if valid:
+            CONF.set(self.ID, 'ipython_args', unicode(arguments))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

@@ -64,35 +64,39 @@ class ExtPyQsciShell(PythonShellWidget):
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
-        return self.ask_monitor("getobjdir(%s)" % objtxt)
+        return self.ask_monitor("getobjdir(globals()['%s'])" % objtxt)
     
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         return self.ask_monitor("getcdlistdir()")
+
+    def get_globals_keys(self):
+        """Return shell globals() keys"""
+        return self.ask_monitor("globals().keys()")
             
     def iscallable(self, objtxt):
         """Is object callable?"""
-        return self.ask_monitor("callable(%s)" % objtxt)
+        return self.ask_monitor("iscallable(globals()['%s'])" % objtxt)
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
-        return self.ask_monitor("getargtxt(%s)" % objtxt)
+        return self.ask_monitor("getargtxt(globals()['%s'])" % objtxt)
             
     def get__doc__(self, objtxt):
         """Get object __doc__"""
-        return self.ask_monitor("%s.__doc__" % objtxt)
+        return self.ask_monitor("globals()['%s'].__doc__" % objtxt)
     
     def get_doc(self, objtxt):
         """Get object documentation"""
-        return self.ask_monitor("getdoc(%s)" % objtxt)
+        return self.ask_monitor("getdoc(globals()['%s'])" % objtxt)
     
     def get_source(self, objtxt):
         """Get object source"""
-        return self.ask_monitor("getsource(%s)" % objtxt)
+        return self.ask_monitor("getsource(globals()['%s'])" % objtxt)
     
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
-        return self.ask_monitor("isdefined('%s', force_import=%s)"
+        return self.ask_monitor("isdefined('%s', force_import=%s, globals())"
                                 % (objtxt, force_import))
 
 
@@ -100,7 +104,8 @@ class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPyQsciShell
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
-                 interact=False, debug=False, path=[]):
+                 interact=False, debug=False, path=[],
+                 ipython=False, arguments=None):
         self.fname = startup.__file__ if fname is None else fname
         
         self.globalsexplorer_button = None
@@ -108,6 +113,14 @@ class ExternalPythonShell(ExternalShellBase):
         
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec.py')
+        
+        if arguments is not None:
+            assert isinstance(arguments, basestring)
+            self.arguments = arguments
+        
+        self.ipython = ipython
+        if self.ipython:
+            interact = False
         
         self.shell.set_externalshell(self)
 
@@ -119,7 +132,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.interpreter = fname is None
         
         if self.interpreter:
-            self.options_button.hide()
             self.terminate_button.hide()
         
         self.commands = ["import sys", "sys.path.insert(0, '')"] + commands
@@ -176,8 +188,10 @@ class ExternalPythonShell(ExternalShellBase):
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)
-        for act in (self.interact_action, self.debug_action, self.args_action):
-            act.setEnabled(not state)
+        self.interact_action.setEnabled(not state and not self.interpreter)
+        self.debug_action.setEnabled(not state and not self.interpreter)
+        self.args_action.setEnabled(not state and
+                                    (not self.interpreter or self.ipython))
         if state:
             if self.arguments:
                 argstr = self.tr("Arguments: %1").arg(self.arguments)
@@ -195,7 +209,10 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.clear()
             
         self.process = QProcess(self)
-        self.process.setProcessChannelMode(QProcess.SeparateChannels)
+        if self.ipython:
+            self.process.setProcessChannelMode(QProcess.MergedChannels)
+        else:
+            self.process.setProcessChannelMode(QProcess.SeparateChannels)
         self.connect(self.shell, SIGNAL("wait_for_ready_read()"),
                      lambda: self.process.waitForReadyRead(250))
         
@@ -233,6 +250,8 @@ class ExternalPythonShell(ExternalShellBase):
         if self.commands and self.interpreter:
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
+        if self.ipython:
+            env.append('IPYTHON=True')
             
         pathlist = []
 

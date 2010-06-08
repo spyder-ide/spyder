@@ -905,6 +905,9 @@ class PythonShellWidget(ShellBaseWidget):
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
+    def get_globals_keys(self):
+        """Return shell globals() keys"""
+        raise NotImplementedError
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         raise NotImplementedError
@@ -941,8 +944,9 @@ class PythonShellWidget(ShellBaseWidget):
         
         # Builtins and globals
         import re, __builtin__, keyword
-        if last_obj and re.match(r'[a-zA-Z_0-9]*$', last_obj):
-            b_k_g = dir(__builtin__)+globals().keys()+keyword.kwlist
+        if not text.endswith('.') and last_obj \
+           and re.match(r'[a-zA-Z_0-9]*$', last_obj):
+            b_k_g = dir(__builtin__)+self.get_globals_keys()+keyword.kwlist
             if last_obj in b_k_g:
                 return
             for objname in b_k_g:

@@ -16,6 +16,10 @@ def __run_init_commands():
     import os
     return os.environ.get('PYTHONINITCOMMANDS')
 
+def __is_ipython():
+    import os
+    return os.environ.get('IPYTHON')
+
 def __create_banner():
     """Create shell banner"""
     import sys
@@ -28,14 +32,15 @@ def __remove_sys_argv__():
     sys.argv = ['']
 
 if __name__ == "__main__":
-    __create_banner()
+    if not __is_ipython():
+        __remove_sys_argv__()
+        __create_banner()
     __commands__ = __run_init_commands()
     if __commands__:
         for command in __commands__.split(';'):
             exec command
     else:
         __run_pythonstartup_script()
-    __remove_sys_argv__()
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
@@ -44,3 +49,18 @@ if __name__ == "__main__":
 
     __doc__ = ''
     __name__ = '__main__'
+
+    if __is_ipython():
+        import sys
+        __real_platform__ = sys.platform
+        if sys.platform == 'win32':
+            # Patching readline to avoid any error
+            from pyreadline import unicode_helper
+            unicode_helper.pyreadline_codepage = "ascii"
+            # Faking non-win32 to avoid any IPython error
+            sys.platform = 'fake'
+        import IPython.Shell
+        sys.platform = __real_platform__
+        del __real_platform__, __is_ipython
+        __ipythonshell__ = IPython.Shell.start(user_ns=dict(dh=sys.displayhook))
+        __ipythonshell__.mainloop()

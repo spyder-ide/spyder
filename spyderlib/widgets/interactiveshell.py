@@ -517,6 +517,10 @@ has the same effect as typing a particular string at the help> prompt.
         if valid:
             return getobjdir(obj)
         
+    def get_globals_keys(self):
+        """Return shell globals() keys"""
+        return self.interpreter.namespace.keys()
+        
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         return os.listdir(os.getcwdu())

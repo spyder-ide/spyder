@@ -12,8 +12,7 @@ import sys
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QMenu,
-                         QToolButton)
+from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
