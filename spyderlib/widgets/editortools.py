@@ -318,7 +318,11 @@ class ClassBrowserTreeWidget(OneColumnTree):
             if editor_id not in self.editor_ids.values():
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
-                self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
+                try:
+                    self.takeTopLevelItem(self.indexOfTopLevelItem(root_item))
+                except RuntimeError:
+                    # item has already been removed
+                    pass
         
     def __sort_toplevel_items(self):
         if self.fullpath_sorting:
