@@ -113,28 +113,38 @@ class ExternalConsole(SpyderPluginWidget):
         """Bind inspector instance to this console"""
         self.inspector = inspector
         
-    def execute_python_code(self, lines):
-        """Execute Python code in an already opened Python interpreter"""
-        from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
-        def execute(index):
-            shell = self.tabwidget.widget(index).shell
-            if isinstance(shell, ExtPyQsciShell):
-                self.tabwidget.setCurrentIndex(index)
-                shell.execute_lines(unicode(lines))
-                shell.setFocus()
-                return True
-        # Find the Python shell, starting with current widget:
+    def __find_python_shell(self):
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
-            # No shell!
             return
-        if not execute(current_index):
-            for index in self.tabwidget.count():
-                execute(index)
+        from spyderlib.widgets.externalshell import pythonshell
+        for index in [current_index]+range(self.tabwidget.count()):
+            shellwidget = self.tabwidget.widget(index)
+            if isinstance(shellwidget, pythonshell.ExternalPythonShell):
+                self.tabwidget.setCurrentIndex(index)
+                return shellwidget
+        
+    def run_script_in_current_shell(self, filename):
+        """Run script in current shell, if any"""
+        shellwidget = self.__find_python_shell()
+        if shellwidget is not None:
+            if shellwidget.ipython:
+                line = "run '%s'" % unicode(filename)
+            else:
+                line = "execfile('%s')" % unicode(filename)
+            shellwidget.shell.execute_lines(line)
+            shellwidget.shell.setFocus()
+        
+    def execute_python_code(self, lines):
+        """Execute Python code in an already opened Python interpreter"""
+        shellwidget = self.__find_python_shell()
+        if shellwidget is not None:
+            shellwidget.shell.execute_lines(unicode(lines))
+            shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, ask_for_arguments=False,
               interact=False, debug=False, python=True,
-              ipython=False, arguments=None):
+              ipython=False, arguments=None, current=False):
         """Start new console"""
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
@@ -328,7 +338,7 @@ class ExternalConsole(SpyderPluginWidget):
         
         ipython_action = create_action(self,
                             self.tr("Open IPython interpreter"), None,
-                            'python.png',
+                            'ipython.png',
                             self.tr("Open an IPython interpreter"),
                             triggered=self.open_ipython)
         ipython_args_action = create_action(self,
