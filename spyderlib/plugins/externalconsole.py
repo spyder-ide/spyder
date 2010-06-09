@@ -49,11 +49,12 @@ class ExternalConsole(SpyderPluginWidget):
         self.python_count = 0
         self.terminal_count = 0
         
-        if CONF.get(self.ID, 'ipython_args', None) is None:
-            default_args = "-q4thread"
+        if CONF.get(self.ID, 'ipython_options', None) is None:
+            default_options = ["-q4thread"]
             if is_module_installed('matplotlib'):
-                default_args += " -pylab"
-            CONF.set(self.ID, 'ipython_args', default_args)
+                default_options.append("-pylab")
+            default_options.append("-colors LightBG")
+            CONF.set(self.ID, 'ipython_options', " ".join(default_options))
         
         self.shells = []
         self.filenames = []
@@ -341,13 +342,13 @@ class ExternalConsole(SpyderPluginWidget):
                             'ipython.png',
                             self.tr("Open an IPython interpreter"),
                             triggered=self.open_ipython)
-        ipython_args_action = create_action(self,
+        ipython_options_action = create_action(self,
                             self.tr("IPython interpreter options..."), None,
                             tip=self.tr("Set IPython interpreter "
                                         "command line arguments"),
-                            triggered=self.set_ipython_args)
+                            triggered=self.set_ipython_options)
         if is_module_installed("IPython"):
-            self.menu_actions.insert(5, ipython_args_action)
+            self.menu_actions.insert(5, ipython_options_action)
             self.menu_actions.insert(1, ipython_action)
         
         return (self.menu_actions, None)
@@ -375,7 +376,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open IPython"""
         self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
                    interact=True, debug=False, python=True, ipython=True,
-                   arguments=CONF.get(self.ID, 'ipython_args', ""))
+                   arguments=CONF.get(self.ID, 'ipython_options', ""))
         
     def open_terminal(self):
         """Open terminal"""
@@ -413,16 +414,16 @@ class ExternalConsole(SpyderPluginWidget):
                 self.tabwidget.widget(index).shell.setMaximumBlockCount(mlc)
             CONF.set(self.ID, 'max_line_count', mlc)
             
-    def set_ipython_args(self):
+    def set_ipython_options(self):
         """Set IPython interpreter arguments"""
         arguments, valid = QInputDialog.getText(self,
                       self.tr('IPython'),
                       self.tr('IPython command line options:\n'
                               '(Qt4 support: -q4thread)\n'
                               '(Qt4 and matplotlib support: -q4thread -pylab)'),
-                      QLineEdit.Normal, CONF.get(self.ID, 'ipython_args'))
+                      QLineEdit.Normal, CONF.get(self.ID, 'ipython_options'))
         if valid:
-            CONF.set(self.ID, 'ipython_args', unicode(arguments))
+            CONF.set(self.ID, 'ipython_options', unicode(arguments))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
