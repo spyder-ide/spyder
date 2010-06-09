@@ -27,10 +27,9 @@ sys.path.insert(0, '')
 STDOUT = sys.stdout
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QIcon, QLabel, QCursor, QColor,
-                         QFileDialog, QInputDialog)
+                         QMessageBox, QMenu, QLabel, QColor, QFileDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
-                          QSize, QByteArray, QObject)
+                          QSize, QByteArray)
 
 # Local imports
 from spyderlib import __version__
@@ -1521,6 +1520,14 @@ def main():
         reset_session()
 #        CONF.reset_to_defaults(save=True)
         return
+
+    if CONF.get('main', 'crash', False):
+        QMessageBox.information(None, "Spyder",
+                                u"Spyder crashed during last session.<br><br>"
+                                u"If Spyder does not start at all, please try "
+                                u"to run Spyder with the command line option "
+                                u"<b>--reset</b> before submitting a bug "
+                                u"report.")
         
     next_session_name = options.startup_session
     while isinstance(next_session_name, basestring):
@@ -1537,7 +1544,9 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                       % (osp.basename(next_session_name),
                                          error_message))
+        CONF.set('main', 'crash', True)
         mainwindow = run_spyder(app, commands, intitle, message, options)
+        CONF.set('main', 'crash', False)
         if mainwindow is None:
             return
         next_session_name = mainwindow.next_session_name
