@@ -15,7 +15,7 @@ import sys, os, time
 import os.path as osp
 
 from PyQt4.QtGui import (QMenu, QApplication, QCursor, QToolTip, QKeySequence,
-                         QFileDialog, QMessageBox)
+                         QFileDialog, QMessageBox, QMouseEvent)
 from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
 
 # For debugging purpose:
@@ -642,8 +642,14 @@ class ShellBaseWidget(ConsoleBaseWidget):
         event: the mouse press event (QMouseEvent)
         """
         if event.button() == Qt.MidButton:
-            self.setFocus()
-            self.paste()
+            text = self.selectedText()
+            # Simulating left mouse button:
+            event = QMouseEvent(QMouseEvent.MouseButtonPress, event.pos(),
+                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            ConsoleBaseWidget.mousePressEvent(self, event)
+            if self.new_input_line:
+                self.on_new_line()
+            self.insert_text(text)
             event.accept()
         else:
             ConsoleBaseWidget.mousePressEvent(self, event)
