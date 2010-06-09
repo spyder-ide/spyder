@@ -45,7 +45,8 @@ if __name__ == "__main__":
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
                   '__remove_sys_argv__']+['_name']:
-        locals().pop(_name)
+        if _name in locals():
+            locals().pop(_name)
 
     __doc__ = ''
     __name__ = '__main__'
@@ -62,5 +63,5 @@ if __name__ == "__main__":
         import IPython.Shell
         sys.platform = __real_platform__
         del __real_platform__, __is_ipython
-        __ipythonshell__ = IPython.Shell.start(user_ns=dict(dh=sys.displayhook))
+        __ipythonshell__ = IPython.Shell.start()
         __ipythonshell__.mainloop()

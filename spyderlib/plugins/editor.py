@@ -332,7 +332,7 @@ class Editor(SpyderPluginWidget):
             self.tr("Run last script in external console"),
             triggered=self.re_run_extconsole)
         run_process_interact_action = create_action(self,
-            self.tr("Run and interact"), "Shift+F5", 'run_external.png',
+            self.tr("Run and interact"), "Shift+F5", 'run_new_external.png',
             tip=self.tr("Run current script in external console and interact "
                         "\nwith Python interpreter when program has finished"
                         "\n(external console is executed in a "
@@ -346,7 +346,7 @@ class Editor(SpyderPluginWidget):
                     "if there is no selection)"),
             triggered=lambda: self.run_selection_or_block(external=True))
         run_process_args_action = create_action(self,
-            self.tr("Run with arguments"), "Alt+F5", 'run_external.png',
+            self.tr("Run with arguments"), "Alt+F5", 'run_new_external.png',
             tip=self.tr("Run current script in external console specifying "
                         "command line arguments"
                         "\n(external console is executed in a "
@@ -354,7 +354,7 @@ class Editor(SpyderPluginWidget):
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True))
         run_process_debug_action = create_action(self,
-            self.tr("Debug"), "Ctrl+Shift+F5", 'run_external.png',
+            self.tr("Debug"), "Ctrl+Shift+F5", 'run_new_external.png',
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a "
                         "separate process)"),

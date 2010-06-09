@@ -253,7 +253,9 @@ def test():
     app = qapplication()
     import spyderlib
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                interact=True)
+                                ipython=True, arguments="-colors LightBG")
+#    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
+#                                interact=True)
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
     shell.shell.toggle_wrap_mode(True)
     shell.start(False)

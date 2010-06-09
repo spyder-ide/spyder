@@ -113,6 +113,8 @@ class Monitor(threading.Thread):
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
                        "getcdlistdir": _getcdlistdir,
+                       "getcwd": self.getcwd,
+                       "setcwd": self.setcwd,
                        "getargtxt": getargtxt,
                        "getdoc": getdoc,
                        "getsource": getsource,
@@ -125,6 +127,22 @@ class Monitor(threading.Thread):
                        "__del_global__": self.delglobal,
                        "__copy_global__": self.copyglobal,
                        "_" : None}
+
+    def getcwd(self):
+        """Return current working directory"""
+        if self.ipython_shell:
+            return self.ipython_shell.magic_pwd()
+        else:
+            import os
+            return os.getcwdu()
+    
+    def setcwd(self, dirname):
+        """Set current working directory"""
+        if self.ipython_shell:
+            self.ipython_shell.magic_cd("-q "+dirname)
+        else:
+            import os
+            return os.chdir(dirname)
         
     def setlocal(self, name, value):
         """
@@ -173,12 +191,12 @@ class Monitor(threading.Thread):
         glbs[new_name] = glbs[orig_name]
         
     def run(self):
-        self.ipython_shell = False
+        self.ipython_shell = None
         from __main__ import __dict__ as glbs
         while True:
-            if not self.ipython_shell and '__ipythonshell__' in glbs:
-                glbs = glbs['__ipythonshell__'].IP.user_ns
-                self.ipython_shell = True
+            if self.ipython_shell is None and '__ipythonshell__' in glbs:
+                self.ipython_shell = glbs['__ipythonshell__'].IP
+                glbs = self.ipython_shell.user_ns
             try:
                 command = read_packet(self.request)
                 result = eval(command, glbs, self.locals)

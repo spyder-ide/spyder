@@ -1867,79 +1867,79 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Fermer la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="274"/>
+        <location filename="plugins/externalconsole.py" line="275"/>
         <source>External console</source>
         <translation>Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="284"/>
+        <location filename="plugins/externalconsole.py" line="285"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="285"/>
+        <location filename="plugins/externalconsole.py" line="286"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="296"/>
+        <location filename="plugins/externalconsole.py" line="297"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="297"/>
+        <location filename="plugins/externalconsole.py" line="298"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="304"/>
+        <location filename="plugins/externalconsole.py" line="305"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="305"/>
+        <location filename="plugins/externalconsole.py" line="306"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="308"/>
+        <location filename="plugins/externalconsole.py" line="309"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="388"/>
+        <location filename="plugins/externalconsole.py" line="389"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="389"/>
+        <location filename="plugins/externalconsole.py" line="390"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="398"/>
+        <location filename="plugins/externalconsole.py" line="399"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="325"/>
+        <location filename="plugins/externalconsole.py" line="326"/>
         <source>One tab per script</source>
         <translation>Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="160"/>
+        <location filename="plugins/externalconsole.py" line="161"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="289"/>
+        <location filename="plugins/externalconsole.py" line="290"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="290"/>
+        <location filename="plugins/externalconsole.py" line="291"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
@@ -1954,7 +1954,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="311"/>
+        <location filename="plugins/externalconsole.py" line="312"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
@@ -1964,82 +1964,82 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="320"/>
+        <location filename="plugins/externalconsole.py" line="321"/>
         <source>Enter key selects completion</source>
         <translation>Entrée valide la complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="224"/>
+        <location filename="plugins/externalconsole.py" line="225"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="226"/>
+        <location filename="plugins/externalconsole.py" line="227"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="292"/>
+        <location filename="plugins/externalconsole.py" line="293"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="293"/>
+        <location filename="plugins/externalconsole.py" line="294"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="328"/>
+        <location filename="plugins/externalconsole.py" line="329"/>
         <source>Show icons and text</source>
         <translation>Afficher icônes et textes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="300"/>
+        <location filename="plugins/externalconsole.py" line="301"/>
         <source>Buffer...</source>
         <translation>Tampon...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="301"/>
+        <location filename="plugins/externalconsole.py" line="302"/>
         <source>Set maximum line count</source>
         <translation>Modifier le nombre maximum de lignes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="406"/>
+        <location filename="plugins/externalconsole.py" line="407"/>
         <source>Buffer</source>
         <translation>Tampon</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="407"/>
+        <location filename="plugins/externalconsole.py" line="408"/>
         <source>Maximum line count</source>
         <translation>Nombre maximum de lignes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="315"/>
+        <location filename="plugins/externalconsole.py" line="316"/>
         <source>Automatic code completion</source>
         <translation>Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="339"/>
+        <location filename="plugins/externalconsole.py" line="340"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="341"/>
+        <location filename="plugins/externalconsole.py" line="342"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="346"/>
+        <location filename="plugins/externalconsole.py" line="347"/>
         <source>Set IPython interpreter command line arguments</source>
         <translation>Modifier les arguments en ligne de commande de l&apos;interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="418"/>
+        <location filename="plugins/externalconsole.py" line="419"/>
         <source>IPython</source>
         <translation>IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="421"/>
+        <location filename="plugins/externalconsole.py" line="422"/>
         <source>IPython command line options:
 (Qt4 support: -q4thread)
 (Qt4 and matplotlib support: -q4thread -pylab)</source>
@@ -2048,7 +2048,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 (support Qt4 et matplotlib : -q4thread -pylab)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="344"/>
+        <location filename="plugins/externalconsole.py" line="345"/>
         <source>IPython interpreter options...</source>
         <translation>Options de l&apos;interpréteur IPython...</translation>
     </message>
@@ -2056,22 +2056,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="145"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="155"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="146"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="156"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="150"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="165"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="155"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="170"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -2080,27 +2080,27 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="160"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="175"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="162"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="177"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="292"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="308"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="293"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="309"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="201"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="216"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
@@ -2110,14 +2110,29 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="196"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="211"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="199"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="214"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/pythonshell.py" line="160"/>
+        <source>Working directory</source>
+        <translation>Répertoire de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/pythonshell.py" line="161"/>
+        <source>Set current working directory</source>
+        <translation>Changer le répertoire de travail</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/pythonshell.py" line="364"/>
+        <source>Select directory</source>
+        <translation>Sélectionner un répertoire</translation>
     </message>
 </context>
 <context>

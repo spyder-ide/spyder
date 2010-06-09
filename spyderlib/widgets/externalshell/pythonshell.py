@@ -13,11 +13,12 @@ import os.path as osp
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QApplication, QMessageBox, QSplitter
+from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QFileDialog
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton, create_action
+from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
+                                       get_std_icon)
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
@@ -66,6 +67,14 @@ class ExtPyQsciShell(PythonShellWidget):
         """Return dir(object)"""
         return self.ask_monitor("getobjdir(globals()['%s'])" % objtxt)
     
+    def get_cwd(self):
+        """Return shell current working directory"""
+        return self.ask_monitor("getcwd()")
+    
+    def set_cwd(self, dirname):
+        """Set shell current working directory"""
+        return self.ask_monitor("setcwd(r'%s')" % dirname)
+    
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
         return self.ask_monitor("getcdlistdir()")
@@ -109,6 +118,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.fname = startup.__file__ if fname is None else fname
         
         self.globalsexplorer_button = None
+        self.cwd_button = None
         self.terminate_button = None
         
         ExternalShellBase.__init__(self, parent, wdir,
@@ -146,6 +156,11 @@ class ExternalPythonShell(ExternalShellBase):
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer)
+        if self.cwd_button is None:
+            self.cwd_button = create_toolbutton(self,
+                          get_std_icon('DirOpenIcon'), self.tr("Working directory"),
+                          tip=self.tr("Set current working directory"),
+                          triggered=self.set_current_working_directory)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
                           get_icon('terminate.png'), self.tr("Terminate"),
@@ -154,7 +169,7 @@ class ExternalPythonShell(ExternalShellBase):
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
                                       "the user for any unsaved files, etc)."))        
-        return [self.globalsexplorer_button, self.run_button,
+        return [self.cwd_button, self.globalsexplorer_button, self.run_button,
                 self.options_button, self.terminate_button, self.kill_button]
 
     def get_options_menu(self):
@@ -203,7 +218,8 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button.setEnabled(state)
         if not state:
             self.toggle_globals_explorer(False)
-        self.globalsexplorer_button.setEnabled(state)
+        for btn in (self.cwd_button, self.globalsexplorer_button):
+            btn.setEnabled(state)
     
     def create_process(self):
         self.shell.clear()
@@ -338,3 +354,15 @@ class ExternalPythonShell(ExternalShellBase):
         
     def splitter_moved(self, pos, index):
         self.globalsexplorer_button.setChecked( self.splitter.sizes()[1] )
+
+#===============================================================================
+#    Current working directory
+#===============================================================================
+    def set_current_working_directory(self):
+        cwd = self.shell.get_cwd()
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        directory = QFileDialog.getExistingDirectory(self,
+                                             self.tr("Select directory"), cwd)
+        if not directory.isEmpty():
+            self.shell.set_cwd(unicode(directory))
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
