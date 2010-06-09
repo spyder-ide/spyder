@@ -268,6 +268,8 @@ class ExternalPythonShell(ExternalShellBase):
             self.process.setEnvironment(env)
         if self.ipython:
             env.append('IPYTHON=True')
+            # Do not call msvcrt.getch in IPython.genutils.page_more:
+            env.append('TERM=emacs')
             
         pathlist = []
 
