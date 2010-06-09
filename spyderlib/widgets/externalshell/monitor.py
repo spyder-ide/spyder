@@ -112,6 +112,7 @@ class Monitor(threading.Thread):
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
+                       "getcomplist": self.getcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
                        "setcwd": self.setcwd,
@@ -127,6 +128,12 @@ class Monitor(threading.Thread):
                        "__del_global__": self.delglobal,
                        "__copy_global__": self.copyglobal,
                        "_" : None}
+
+    def getcomplist(self, name):
+        """Return completion list for object named *name*
+        IPython only"""
+        if self.ipython_shell:
+            return self.ipython_shell.complete(name)
 
     def getcwd(self):
         """Return current working directory"""

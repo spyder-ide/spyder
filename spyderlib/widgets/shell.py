@@ -905,6 +905,9 @@ class PythonShellWidget(ShellBaseWidget):
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
+    def get_completion(self, objtxt):
+        """Return completion list associated to object name"""
+        pass
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
@@ -935,6 +938,21 @@ class PythonShellWidget(ShellBaseWidget):
         # Note: unicode conversion is needed only for ExternalShellBase
         text = unicode(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
+        
+        #-- IPython only -------------------------------------------------------
+        # Using IPython code completion feature: __IP.complete
+        if ' ' in text and not text.endswith(' '):
+            try1 = text.split(' ')[-1]
+            obj_list = self.get_completion(try1)
+            if obj_list:
+                self.show_completion_list(obj_list, completion_text=try1)
+            return
+        obj_list = self.get_completion(last_obj)
+        if not text.endswith('.') and last_obj and obj_list:
+            self.show_completion_list(obj_list, completion_text=last_obj)
+            return
+        #-----------------------------------------------------------------------
+        
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir:
             if not text.endswith('.'):

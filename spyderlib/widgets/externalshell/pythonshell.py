@@ -66,6 +66,10 @@ class ExtPyQsciShell(PythonShellWidget):
     def get_dir(self, objtxt):
         """Return dir(object)"""
         return self.ask_monitor("getobjdir(globals()['%s'])" % objtxt)
+
+    def get_completion(self, objtxt):
+        """Return completion list associated to object name"""
+        return self.ask_monitor("getcomplist('%s')" % objtxt)
     
     def get_cwd(self):
         """Return shell current working directory"""
