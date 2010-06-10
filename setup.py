@@ -35,7 +35,7 @@ google_url = 'http://%s.googlecode.com' % libname
 download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
                                 '.widgets.qteditor', '.widgets.qscieditor',
-                                '.plugins', '.utils']]
+                                '.plugins', '.utils']]+['spyderplugins']
 extensions = ('.qm', '.api', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
 package_data={libname: get_package_data(libname, extensions)}

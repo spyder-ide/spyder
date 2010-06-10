@@ -41,15 +41,18 @@ Licensed under the terms of the MIT License
             Python 2.x (x>=5)
             PyQt4 4.x (x>=3 ; recommended x>=4)
             
+	Recommended modules
+	    pyflakes >v0.3.0 (real-time code analysis)
+            numpy (N-dimensional arrays)
+            scipy (signal/image processing)
+            matplotlib (2D/3D plotting)
+	    IPython (enhanced Python interpreter)
+	    
         Optional modules
             QScintilla2 2.x (x>=1) (PyQt4 additional module)
             (QScintilla add support for autocompletion in Spyder's editor
              until it's reimplemented in pure PyQt4)
-	    	pyflakes (real-time code analysis)
             pylint (powerful code analysis)
-            numpy (N-dimensional arrays)
-            scipy (signal/image processing)
-            matplotlib (2D/3D plotting)
 
     Installation
     
