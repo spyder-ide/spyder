@@ -1,6 +1,7 @@
 SOURCES	     += spyder.py
 
 SOURCES	     += utils/environ.py
+SOURCES	     += utils/iofuncs.py
 SOURCES	     += utils/qthelpers.py
 
 SOURCES	     += plugins/__init__.py

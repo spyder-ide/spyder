@@ -711,11 +711,13 @@ class BaseTableView(QTableView):
         for index in indexes:
             if not index.isValid():
                 return
+        one = translate("DictEditor", "Do you want to remove selected item?")
+        more = translate("DictEditor",
+                         "Do you want to remove all selected items?")
         answer = QMessageBox.question(self,
-            translate("DictEditor", "Remove"),
-            translate("DictEditor", "Do you want to remove selected item%1?") \
-            .arg('s' if len(indexes)>1 else ''),
-            QMessageBox.Yes | QMessageBox.No)
+                                      translate("DictEditor", "Remove"),
+                                      one if len(indexes) == 1 else more,
+                                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
             keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]

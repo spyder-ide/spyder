@@ -6,23 +6,28 @@
 
 """Globals explorer widget"""
 
-import sys
+import sys, os, os.path as osp
 
 # Debug
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton
+from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton,
+                         QMessageBox)
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
-                                    monitor_set_global, monitor_get_global,
-                                    monitor_del_global, monitor_copy_global)
+                monitor_set_global, monitor_get_global, monitor_del_global,
+                monitor_copy_global, monitor_save_globals, monitor_load_globals,
+                monitor_get_globals_keys)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
+from spyderlib.utils import encoding
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
+from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.config import get_icon
 #TODO: remove the following line and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
@@ -80,6 +85,8 @@ class GlobalsExplorer(QWidget):
 
         self.connect(self, SIGNAL('option_changed'), self.option_changed)
         
+        self.filename = None
+        
     def setup_toolbar(self, layout):
         toolbar = []
 
@@ -87,7 +94,22 @@ class GlobalsExplorer(QWidget):
                                            icon=get_icon('reload.png'),
                                            triggered=self.refresh_table,
                                            text_beside_icon=False)
-        toolbar.append(refresh_button)
+        load_button = create_toolbutton(self, text=self.tr("Import data"),
+                                        icon=get_icon('fileimport.png'),
+                                        triggered=self.import_data,
+                                        text_beside_icon=False)
+        self.save_button = create_toolbutton(self, text=self.tr("Save data"),
+                                icon=get_icon('filesave.png'),
+                                triggered=lambda: self.save_data(self.filename),
+                                text_beside_icon=False)
+        self.save_button.setEnabled(False)
+        save_as_button = create_toolbutton(self,
+                                           text=self.tr("Save data as..."),
+                                           icon=get_icon('filesaveas.png'),
+                                           triggered=self.save_data,
+                                           text_beside_icon=False)
+        toolbar += [refresh_button, load_button,
+                    self.save_button, save_as_button]
         
         exclude_private_action = create_action(self,
                 self.tr("Exclude private references"),
@@ -169,4 +191,88 @@ class GlobalsExplorer(QWidget):
         
     def collapse(self):
         self.emit(SIGNAL('collapse()'))
+        
+    def import_data(self):
+        sock = self.shell.monitor_socket
+        
+        title = self.tr("Import data")
+        if self.filename is None:
+            basedir = os.getcwdu()
+        else:
+            basedir = osp.dirname(self.filename)
+        filename = iofunctions.get_open_filename(self, basedir, title)
+        if filename:
+            filename = unicode(filename)
+        else:
+            return
+        self.filename = filename
+        ext = osp.splitext(self.filename)[1]
+        
+        if ext not in iofunctions.load_funcs:
+            buttons = QMessageBox.Yes | QMessageBox.Cancel
+            answer = QMessageBox.question(self, title,
+                       self.tr("<b>Unsupported file type '%1'</b><br><br>"
+                               "Would you like to import it as a text file?") \
+                       .arg(ext), buttons)
+            if answer == QMessageBox.Cancel:
+                return
+            else:
+                load_func = 'import_wizard'
+        else:
+            load_func = iofunctions.load_funcs[ext]
+            
+        if isinstance(load_func, basestring): # 'import_wizard' (self.setup_io)
+            # Import data with import wizard
+            error_message = None
+            try:
+                text, _encoding = encoding.read(self.filename)
+                varname_base = self.tr("new")
+                try:
+                    varname_base = str(varname_base)
+                except UnicodeEncodeError:
+                    varname_base = unicode(varname_base)
+                get_varname = lambda index: varname_base + ("%03d" % index)
+                index = 0
+                names = monitor_get_globals_keys(sock)
+                while get_varname(index) in names:
+                    index += 1
+                editor = ImportWizard(self, text, title=self.filename,
+                                      varname=get_varname(index))
+                if editor.exec_():
+                    var_name, clip_data = editor.get_data()
+                    monitor_set_global(sock, var_name, clip_data)
+            except Exception, error:
+                error_message = str(error)
+        else:
+            error_message = monitor_load_globals(sock, self.filename)
+
+        if error_message is not None:
+            QMessageBox.critical(self, title,
+                                 self.tr("<b>Unable to load '%1'</b>"
+                                         "<br><br>Error message:<br>%2") \
+                                         .arg(self.filename).arg(error_message))
+        self.refresh_table()
+    
+    def save_data(self, filename=None):
+        """Save data"""
+        if filename is None:
+            filename = self.filename
+            if filename is None:
+                filename = os.getcwdu()
+            filename = iofunctions.get_save_filename(self, filename,
+                                                     self.tr("Save data"))
+            if filename:
+                filename = unicode(filename)
+                self.filename = filename
+            else:
+                return False
+        sock = self.shell.monitor_socket
+        settings = get_settings()
+        error_message = monitor_save_globals(sock, settings, filename)
+        if error_message is not None:
+            QMessageBox.critical(self, self.tr("Save data"),
+                            self.tr("<b>Unable to save current workspace</b>"
+                                    "<br><br>Error message:<br>%1") \
+                            .arg(error_message))
+        self.save_button.setEnabled(self.filename is not None)
         

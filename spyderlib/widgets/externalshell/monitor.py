@@ -1,32 +1,37 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread, StringIO, pickle, struct, sys
-STDOUT = sys.stdout
+import threading, socket, traceback, thread, StringIO, pickle, struct
+
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
 from spyderlib.utils import select_port
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
+from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
                                           value_to_display, globalsfilter)
 
+
+def get_remote_data(data, settings, more_excluded_names=None):
+    """Return globals according to filter described in *settings*"""
+    excluded_names = settings['excluded_names']
+    if more_excluded_names is not None:
+        excluded_names += more_excluded_names
+    return globalsfilter(data, itermax=settings['itermax'],
+                         filters=tuple(str2type(settings['filters'])),
+                         exclude_private=settings['exclude_private'],
+                         exclude_upper=settings['exclude_upper'],
+                         exclude_unsupported=settings['exclude_unsupported'],
+                         excluded_names=excluded_names)
 
 def make_remote_view(data, settings, more_excluded_names=None):
     """
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    excluded_names = settings['excluded_names']
-    if more_excluded_names is not None:
-        excluded_names += more_excluded_names
-    data = globalsfilter(data, itermax=settings['itermax'],
-                         filters=tuple(str2type(settings['filters'])),
-                         exclude_private=settings['exclude_private'],
-                         exclude_upper=settings['exclude_upper'],
-                         exclude_unsupported=settings['exclude_unsupported'],
-                         excluded_names=excluded_names)
+    data = get_remote_data(data, settings, more_excluded_names)
     remote = {}
     for key, value in data.iteritems():
         view = value_to_display(value, truncate=settings['truncate'],
@@ -72,9 +77,25 @@ def monitor_get_remote_view(sock, settings):
     write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
     return pickle.loads( read_packet(sock) )
 
+def monitor_get_globals_keys(sock):
+    """Get globals().keys()"""
+    return communicate(sock, "globals().keys()", pickle_try=True)
+
+def monitor_save_globals(sock, settings, filename):
+    """Save globals(), i.e. the equivalent of interactive console's workspace"""
+    write_packet(sock, '__save_globals__(globals())')
+    write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
+    write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
+    return pickle.loads( read_packet(sock) )
+
+def monitor_load_globals(sock, filename):
+    """Load globals(), i.e. the equivalent of interactive console's workspace"""
+    write_packet(sock, '__load_globals__(globals())')
+    write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
+    return pickle.loads( read_packet(sock) )
+
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
-#    return communicate(sock, name, pickle_try=True)
     write_packet(sock, '__get_global__(globals(), "%s")' % name)
     return pickle.loads( read_packet(sock) )
 
@@ -127,6 +148,8 @@ class Monitor(threading.Thread):
                        "__set_global__": self.setglobal,
                        "__del_global__": self.delglobal,
                        "__copy_global__": self.copyglobal,
+                       "__save_globals__": self.saveglobals,
+                       "__load_globals__": self.loadglobals,
                        "_" : None}
 
     def getcomplist(self, name):
@@ -171,6 +194,25 @@ class Monitor(threading.Thread):
         settings = pickle.loads( read_packet(self.request) )
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         return make_remote_view(glbs, settings, more_excluded_names)
+        
+    def saveglobals(self, glbs):
+        """Save globals() into filename"""
+        settings = pickle.loads( read_packet(self.request) )
+        filename = pickle.loads( read_packet(self.request) )
+        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
+        data = get_remote_data(glbs, settings, more_excluded_names).copy()
+        return iofunctions.save(data, filename)
+        
+    def loadglobals(self, glbs):
+        """Load globals() from filename"""
+        filename = pickle.loads( read_packet(self.request) )
+        data, error_message = iofunctions.load(filename)
+        if error_message:
+            return error_message
+        try:
+            glbs.update(data)
+        except Exception, error:
+            return str(error)
         
     def getglobal(self, glbs, name):
         """

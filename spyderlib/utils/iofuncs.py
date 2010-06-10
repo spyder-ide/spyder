@@ -281,6 +281,89 @@ def load_session(filename):
     return error_message
 
 
+from PyQt4.QtGui import QFileDialog
+from PyQt4.QtCore import QObject
+
+class IOFunctions(QObject):
+    def __init__(self):
+        QObject.__init__(self)
+        self.load_filters = None
+        self.save_filters = None
+        self.load_funcs = None
+        self.save_funcs = None
+        
+    def setup(self):
+        iofuncs = self.get_internal_funcs()+self.get_3rd_party_funcs()
+        load_funcs = {}
+        save_funcs = {}
+        load_filters = []
+        save_filters = []
+        load_ext = []
+        for ext, name, loadfunc, savefunc in iofuncs:
+            filter_str = unicode(name + " (*%s)" % ext)
+            if loadfunc is not None:
+                load_filters.append(filter_str)
+                load_funcs[ext] = loadfunc
+                load_ext.append(ext)
+            if savefunc is not None:
+                save_filters.append(filter_str)
+                save_funcs[ext] = savefunc
+        load_filters.insert(0, unicode(self.tr("Supported files")+" (*"+\
+                                       " *".join(load_ext)+")"))
+        self.load_filters = "\n".join(load_filters)
+        self.save_filters = "\n".join(save_filters)
+        self.load_funcs = load_funcs
+        self.save_funcs = save_funcs
+        
+    def get_internal_funcs(self):
+        return [
+                ('.spydata', self.tr("Spyder data files"),
+                             load_dictionary, save_dictionary),
+                ('.npy', self.tr("NumPy arrays"), load_array, None),
+                ('.mat', self.tr("Matlab files"), load_matlab, save_matlab),
+                ('.csv', self.tr("CSV text files"), 'import_wizard', None),
+                ('.txt', self.tr("Text files"), 'import_wizard', None),
+                ('.jpg', self.tr("JPEG images"), load_image, None),
+                ('.png', self.tr("PNG images"), load_image, None),
+                ('.gif', self.tr("GIF images"), load_image, None),
+                ('.tif', self.tr("TIFF images"), load_image, None),
+                ('.dcm', self.tr("DICOM images"), load_dicom, None),
+                ]
+        
+    def get_3rd_party_funcs(self):
+        return []
+    
+    def get_open_filename(self, parent, filename, title):
+        return QFileDialog.getOpenFileName(parent, title, filename,
+                                           self.load_filters)
+    
+    def get_save_filename(self, parent, filename, title):
+        return QFileDialog.getSaveFileName(parent, title, filename,
+                                           self.save_filters)
+        
+    def save(self, data, filename):
+        ext = osp.splitext(filename)[1]
+        if ext in self.save_funcs:
+            return self.save_funcs[ext](data, filename)
+        else:
+            return self.tr("<b>Unsupported file type '%1'</b>").arg(ext)
+    
+    def load(self, filename):
+        ext = osp.splitext(filename)[1]
+        if ext in self.load_funcs:
+            return self.load_funcs[ext](filename)
+        else:
+            return None, self.tr("<b>Unsupported file type '%1'</b>").arg(ext)
+
+iofunctions = IOFunctions()
+iofunctions.setup()
+
+
+def save_auto(data, filename):
+    """Save data into filename, depending on file extension"""
+    pass
+
+
 if __name__ == "__main__":
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}

@@ -247,10 +247,10 @@ class ExternalShellBase(QWidget):
 
 
 def test():
-    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-    from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
+    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
+    from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     import spyderlib
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
                                 ipython=True, arguments="-colors LightBG")
