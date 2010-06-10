@@ -333,7 +333,7 @@ class IOFunctions(QObject):
                                             mod.FORMAT_LOAD, mod.FORMAT_SAVE))
                     except AttributeError, error:
                         print >>STDERR, "%s: %s" % (mod, str(error))
-            return other_funcs
+        return other_funcs
     
     def get_open_filename(self, parent, filename, title):
         return QFileDialog.getOpenFileName(parent, title, filename,
