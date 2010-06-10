@@ -1075,6 +1075,9 @@ class QsciEditor(TextEditBaseWidget):
         elif (key == Qt.Key_V) and ctrl:
             self.paste()
             event.accept()
+        elif os.name == 'posix' and key == Qt.Key_Z and shift and ctrl:
+            self.redo()
+            event.accept()
 #TODO: find other shortcuts...
 #        elif (key == Qt.Key_3) and ctrl:
 #            self.comment()
