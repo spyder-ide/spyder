@@ -27,5 +27,5 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.1.0beta9'
+__version__ = '1.1.0rc1'
 __license__ = __doc__

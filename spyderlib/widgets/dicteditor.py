@@ -783,8 +783,8 @@ class BaseTableView(QTableView):
             
     def __prepare_plot(self):
         try:
-            from matplotlib import rcParams
-            rcParams['backend'] = 'Qt4agg'
+            from spyderlib import mpl_patch
+            mpl_patch.apply()
             return True
         except ImportError:
             QMessageBox.warning(self, translate("DictEditor", "Import error"),

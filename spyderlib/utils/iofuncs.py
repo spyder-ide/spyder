@@ -102,18 +102,6 @@ except ImportError:
     load_image = None
 
 
-try:
-    import dicom
-    def load_dicom(filename):
-        try:
-            name = osp.splitext(osp.basename(filename))[0]
-            return {name: dicom.ReadFile(filename).PixelArray}, None
-        except Exception, error:
-            return None, str(error)
-except ImportError:
-    load_dicom = None
-
-
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
     filename = osp.abspath(filename)
@@ -327,11 +315,25 @@ class IOFunctions(QObject):
                 ('.png', self.tr("PNG images"), load_image, None),
                 ('.gif', self.tr("GIF images"), load_image, None),
                 ('.tif', self.tr("TIFF images"), load_image, None),
-                ('.dcm', self.tr("DICOM images"), load_dicom, None),
                 ]
         
     def get_3rd_party_funcs(self):
-        return []
+        other_funcs = []
+        from spyderlib.utils import programs
+        if programs.is_module_installed("spyderplugins"):
+            import spyderplugins
+            path = spyderplugins.__path__[0]
+            for name in os.listdir(path):
+                modname, ext = osp.splitext(name)
+                if name.startswith('io_') and ext == '.py':
+                    mod = getattr(__import__('spyderplugins.%s' % modname),
+                                  modname)
+                    try:
+                        other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
+                                            mod.FORMAT_LOAD, mod.FORMAT_SAVE))
+                    except AttributeError, error:
+                        print >>STDERR, "%s: %s" % (mod, str(error))
+            return other_funcs
     
     def get_open_filename(self, parent, filename, title):
         return QFileDialog.getOpenFileName(parent, title, filename,
@@ -342,14 +344,14 @@ class IOFunctions(QObject):
                                            self.save_filters)
         
     def save(self, data, filename):
-        ext = osp.splitext(filename)[1]
+        ext = osp.splitext(filename)[1].lower()
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
             return self.tr("<b>Unsupported file type '%1'</b>").arg(ext)
     
     def load(self, filename):
-        ext = osp.splitext(filename)[1]
+        ext = osp.splitext(filename)[1].lower()
         if ext in self.load_funcs:
             return self.load_funcs[ext](filename)
         else:

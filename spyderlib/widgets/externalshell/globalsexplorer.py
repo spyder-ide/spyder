@@ -206,7 +206,7 @@ class GlobalsExplorer(QWidget):
         else:
             return
         self.filename = filename
-        ext = osp.splitext(self.filename)[1]
+        ext = osp.splitext(self.filename)[1].lower()
         
         if ext not in iofunctions.load_funcs:
             buttons = QMessageBox.Yes | QMessageBox.Cancel

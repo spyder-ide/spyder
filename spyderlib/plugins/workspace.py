@@ -271,7 +271,7 @@ class Workspace(DictEditorTableView, SpyderPluginMixin):
             else:
                 return
         self.filename = unicode(filename)
-        ext = osp.splitext(self.filename)[1]
+        ext = osp.splitext(self.filename)[1].lower()
         
         if ext not in iofunctions.load_funcs:
             buttons = QMessageBox.Yes | QMessageBox.Cancel
