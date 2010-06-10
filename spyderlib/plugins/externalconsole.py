@@ -196,12 +196,13 @@ class ExternalConsole(SpyderPluginWidget):
                                                  'codecompletion/auto') )
         shell_widget.shell.set_codecompletion_enter(CONF.get(self.ID,
                                                  'codecompletion/enter-key'))
-        if python:
+        if python and self.inspector is not None:
             shell_widget.shell.set_inspector(self.inspector)
-        self.historylog.add_history(shell_widget.shell.history_filename)
-        self.connect(shell_widget.shell,
-                     SIGNAL('append_to_history(QString,QString)'),
-                     self.historylog.append_to_history)
+        if self.historylog is not None:
+            self.historylog.add_history(shell_widget.shell.history_filename)
+            self.connect(shell_widget.shell,
+                         SIGNAL('append_to_history(QString,QString)'),
+                         self.historylog.append_to_history)
         self.connect(shell_widget.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
         self.connect(shell_widget.shell, SIGNAL("focus_changed()"),
@@ -258,15 +259,17 @@ class ExternalConsole(SpyderPluginWidget):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
                 self.tabwidget.setTabIcon(index, self.icons[index])
-                self.inspector.set_shell(shell.shell)
+                if self.inspector is not None:
+                    self.inspector.set_shell(shell.shell)
         
     def process_finished(self, shell_id):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
                 self.tabwidget.setTabIcon(index, get_icon('terminated.png'))
-                if self.inspector.get_shell() is shell.shell:
-                    # Switch back to interactive shell:
-                    self.inspector.set_shell(self.main.console.shell)
+                if self.inspector is not None:
+                    if self.inspector.get_shell() is shell.shell:
+                        # Switch back to interactive shell:
+                        self.inspector.set_shell(self.main.console.shell)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -352,6 +355,13 @@ class ExternalConsole(SpyderPluginWidget):
             self.menu_actions.insert(1, ipython_action)
         
         return (self.menu_actions, None)
+    
+    def open_interpreter_at_startup(self):
+        """Open an interpreter at startup, IPython if module is available"""
+        if is_module_installed("IPython"):
+            self.open_ipython()
+        else:
+            self.open_interpreter()
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""

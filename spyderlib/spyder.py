@@ -376,28 +376,23 @@ class MainWindow(QMainWindow):
                              self.redirect_interactiveshell_stdio)
                 namespace = self.workspace.namespace
                 
-        # Console widget: window's central widget
-        self.console = Console(self, namespace, self.commands, self.message,
-                               self.debug, self.closing, self.profile)
-        if self.light:
-            self.setCentralWidget(self.console)
-            self.widgetlist.append(self.console)
-        else:
+            # Internal console widget
+            self.console = Console(self, namespace, self.commands, self.message,
+                                   self.debug, self.closing, self.profile)
             self.connect(self.console, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.add_dockwidget(self.console)
             self.quit_action = create_action(self, self.tr("&Quit"),
                              self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
                              triggered=self.console.quit)
-                                
-        # Working directory changer widget
-        self.workdir = WorkingDirectory(self, self.init_workdir)
-        self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
-                     self.redirect_interactiveshell_stdio)
-        self.connect(self.console.shell, SIGNAL("refresh()"),
-                     self.workdir.refresh_plugin)
+                                    
+            # Working directory changer widget
+            self.workdir = WorkingDirectory(self, self.init_workdir)
+            self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
+                         self.redirect_interactiveshell_stdio)
+            self.connect(self.console.shell, SIGNAL("refresh()"),
+                         self.workdir.refresh_plugin)
         
-        if not self.light:
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
             self.editor = Editor(self)
@@ -611,7 +606,6 @@ class MainWindow(QMainWindow):
                              self.redirect_interactiveshell_stdio)
                 self.add_dockwidget(self.pylint)
         
-        if not self.light:
             self.set_splash(self.tr("Setting up main window..."))
             # Console menu
             self.console.menu_actions = self.console.menu_actions[:-2]
@@ -626,23 +620,27 @@ class MainWindow(QMainWindow):
             # Workspace menu
             self.add_to_menubar(self.workspace, existing_menu=console_menu)
             
-            # External console menu
-            self.extconsole = ExternalConsole(self, self.commands)
+        # External console menu
+        self.extconsole = ExternalConsole(self, self.commands)
+        if self.light:
+            self.setCentralWidget(self.extconsole)
+        else:
             self.extconsole.set_inspector(self.inspector)
             self.extconsole.set_historylog(self.historylog)
             self.connect(self.extconsole,
                          SIGNAL("edit_goto(QString,int,QString)"),
                          self.editor.load)
-            self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_interactiveshell_stdio)
-            self.connect(self.extconsole, SIGNAL('focus_changed()'),
-                         self.plugin_focus_changed)
             self.connect(self.editor,
                          SIGNAL('run_script_in_external_console(QString)'),
                          self.extconsole.run_script_in_current_shell)
             self.add_dockwidget(self.extconsole)
             self.add_to_menubar(self.extconsole)
+            self.connect(self.extconsole, SIGNAL('focus_changed()'),
+                         self.plugin_focus_changed)
+            self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
+                         self.redirect_interactiveshell_stdio)
             
+        if not self.light:
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
@@ -716,9 +714,9 @@ class MainWindow(QMainWindow):
             self.help_menu_actions += create_module_bookmark_actions(self,
                                                                 self.BOOKMARKS)
             add_actions(help_menu, self.help_menu_actions)
-                
-        # Adding Working directory toolbar in last position
-        self.addToolBar(self.workdir)
+                    
+            # Adding Working directory toolbar in last position
+            self.addToolBar(self.workdir)
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -1495,7 +1493,10 @@ def run_spyder(app, commands, intitle, message, options):
         
     main.setup()
     main.show()
-    main.give_focus_to_interactive_console()
+    if options.light:
+        main.extconsole.open_interpreter_at_startup()
+    else:
+        main.give_focus_to_interactive_console()
     main.emit(SIGNAL('restore_scrollbar_position()'))
     app.exec_()
     return main
