@@ -21,10 +21,13 @@ def __is_ipython():
     return os.environ.get('IPYTHON')
 
 def __patching_matplotlib__():
-    from spyderlib.utils import programs
-    if programs.is_module_installed('matplotlib'):
-        from spyderlib import mpl_patch
-        mpl_patch.apply()
+    import imp
+    try:
+        imp.find_module('matplotlib')
+    except ImportError:
+        return
+    from spyderlib import mpl_patch
+    mpl_patch.apply()
 
 def __create_banner():
     """Create shell banner"""
