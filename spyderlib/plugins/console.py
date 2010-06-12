@@ -45,7 +45,7 @@ class Console(SpyderPluginWidget):
     Console widget
     """
     ID = 'shell'
-    def __init__(self, parent=None, namespace=None, commands=None, message="",
+    def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False):
         # Shell
         self.shell = InteractiveShell(parent, namespace, commands, message,
@@ -79,9 +79,6 @@ class Console(SpyderPluginWidget):
         
         # Parameters
         self.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
-        
-        self.connect(self, SIGNAL("executing_command(bool)"),
-                     self.change_cursor)
             
         # Accepting drops
         self.setAcceptDrops(True)
@@ -96,13 +93,6 @@ class Console(SpyderPluginWidget):
     def set_inspector(self, inspector):
         """Bind inspector instance to this console"""
         self.shell.inspector = inspector
-        
-    def change_cursor(self, state):
-        """Change widget cursor"""
-        if state:
-            QApplication.setOverrideCursor(QCursor(Qt.BusyCursor))
-        else:
-            QApplication.restoreOverrideCursor()
 
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
@@ -118,6 +108,7 @@ class Console(SpyderPluginWidget):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        self.shell.exit_interpreter()
         return True
         
     def refresh_plugin(self):
@@ -228,11 +219,11 @@ class Console(SpyderPluginWidget):
                    args=None):
         """Run a Python script"""
         if filename is None:
-            self.shell.restore_stds()
+            self.shell.interpreter.restore_stds()
             filename = QFileDialog.getOpenFileName(self,
                           self.tr("Run Python script"), os.getcwdu(),
                           self.tr("Python scripts")+" (*.py ; *.pyw)")
-            self.shell.redirect_stds()
+            self.shell.interpreter.redirect_stds()
             if filename:
                 filename = unicode(filename)
                 os.chdir( os.path.dirname(filename) )

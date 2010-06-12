@@ -1173,30 +1173,23 @@ class EditorStack(QWidget):
         
         return text
     
-    def __run_in_interactive_console(self, lines):
-        self.emit(SIGNAL('interactive_console_execute_lines(QString)'), lines)
-
     def __run_in_external_console(self, lines):
         self.emit(SIGNAL('external_console_execute_lines(QString)'), lines)
     
-    def run_selection_or_block(self, external=False):
+    def run_selection_or_block(self):
         """
         Run selected text in console and set focus to console
         *or*, if there is no selection,
         Run current block of lines in console and go to next block
         """
-        if external:
-            run_callback = self.__run_in_external_console
-        else:
-            run_callback = self.__run_in_interactive_console
         editor = self.get_current_editor()
         if editor.hasSelectedText():
             # Run selected text in interactive console and set focus to console
-            run_callback( self.__process_lines() )
+            self.__run_in_external_console( self.__process_lines() )
         else:
             # Run current block in interactive console and go to next block
             editor.select_current_block()
-            run_callback( self.__process_lines() )
+            self.__run_in_external_console( self.__process_lines() )
             editor.setFocus()
             editor.move_cursor_to_next('block', 'down')
             

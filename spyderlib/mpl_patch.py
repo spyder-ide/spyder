@@ -15,11 +15,8 @@ from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import qapplication
 
-def apply(main=None, is_dockable=None, font_size=None, facecolor=None):
+def apply(font_size=None, facecolor=None):
     _app = qapplication()
-    
-    if is_dockable is None:
-        is_dockable = lambda: False
     
     # Customizing matplotlib's parameters
     from matplotlib import rcParams
@@ -32,7 +29,6 @@ def apply(main=None, is_dockable=None, font_size=None, facecolor=None):
     
     # Monkey patching matplotlib's figure manager for better integration
     from matplotlib.backends import backend_qt4
-    from spyderlib.plugins.figure import MatplotlibFigure
     import matplotlib
     
     # Class added to matplotlib to fix a bug with PyQt4 v4.6+
@@ -57,11 +53,8 @@ def apply(main=None, is_dockable=None, font_size=None, facecolor=None):
             backend_qt4.FigureManagerBase.__init__(self, canvas, num)
             self.canvas = canvas
             
-            if is_dockable():
-                self.window = MatplotlibFigure(main, canvas, num)
-            else:
-                self.window = FigureWindow()
-                self.window.setWindowTitle("Figure %d" % num)
+            self.window = FigureWindow()
+            self.window.setWindowTitle("Figure %d" % num)
             self.window.setAttribute(Qt.WA_DeleteOnClose)
     
             image = osp.join(matplotlib.rcParams['datapath'],
@@ -81,15 +74,8 @@ def apply(main=None, is_dockable=None, font_size=None, facecolor=None):
             QObject.connect(self.toolbar, SIGNAL("message"),
                     self.window.statusBar().showMessage)
     
-            if not is_dockable():
-                self.window.setCentralWidget(self.canvas)
-    
             if matplotlib.is_interactive():
-                if is_dockable():
-                    main.add_dockwidget(self.window)
-                    main.console.shell.setFocus()
-                else:
-                    self.window.show()
+                self.window.show()
     
             # attach a show method to the figure for pylab ease of use
             self.canvas.figure.show = lambda *args: self.window.show()
@@ -151,11 +137,7 @@ def apply(main=None, is_dockable=None, font_size=None, facecolor=None):
             else:
                 super(NavigationToolbar2QT, self).edit_parameters()
         def save_figure(self):
-            if main is not None:
-                main.console.shell.restore_stds()
             super(NavigationToolbar2QT, self).save_figure()
-            if main is not None:
-                main.console.shell.redirect_stds()
         def set_cursor(self, cursor):
             if backend_qt4.DEBUG: print 'Set cursor' , cursor
             self.parent().setCursor(QCursor(backend_qt4.cursord[cursor]))

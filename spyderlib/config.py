@@ -327,8 +327,10 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
+from spyderlib import __version__
+_subfolder = '.spyder%s' % __version__.split('.')[0]
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
-                  version='1.0.6', subfolder='.spyder')
+                  version='1.0.6', subfolder=_subfolder)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
@@ -336,7 +338,7 @@ if osp.isfile(old_location):
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
-    conf_dir = osp.join(get_home_dir(), '.spyder')
+    conf_dir = osp.join(get_home_dir(), _subfolder)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:

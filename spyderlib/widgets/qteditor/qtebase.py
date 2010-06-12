@@ -950,7 +950,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.End)
         if error:
             for text in text.splitlines(True):
-                if text.startswith('  File'):
+                if text.startswith('  File') \
+                and not text.startswith('  File "<'):
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_format)
                     cursor.insertText(text[2:], self.traceback_link_format)

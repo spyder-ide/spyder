@@ -27,5 +27,24 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.1.0rc1'
+__version__ = '2.0alpha1'
 __license__ = __doc__
+
+#TODO: workdir is gone: "Set as working directory" editor's feature -> reimplement to 
+# support current external console
+#            self.connect(self.editor, SIGNAL("open_dir(QString)"),
+#                         self.workdir.chdir)
+#TODO: add the same feature in the file explorer plugin
+
+#TODO: workdir is gone: file explorer must handle directory history on its own
+
+#TODO: Workspace is gone: find a way to implement the save on exit with the 
+#      external console
+#TODO: Workspace is gone: reimplement the import_data from file explorer:
+#                self.connect(self.explorer, SIGNAL("import_data(QString)"),
+#                             self.workspace.import_data)
+#      and from project explorer:
+#                self.connect(self.projectexplorer,
+#                             SIGNAL("import_data(QString)"),
+#                             self.workspace.import_data)
+

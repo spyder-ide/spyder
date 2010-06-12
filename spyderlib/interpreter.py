@@ -6,12 +6,14 @@
 
 """Shell Interpreter"""
 
-import __builtin__, sys, atexit
+import __builtin__, sys, atexit, threading, os, re, os.path as osp, pydoc
+from subprocess import Popen, PIPE
 from code import InteractiveConsole
 
 # Local imports:
 from spyderlib.config import CONF
 from spyderlib.utils.dochelpers import isdefined
+from spyderlib.utils import encoding
 
 # For debugging purpose
 STDOUT, STDERR = sys.stdout, sys.stderr
@@ -61,15 +63,42 @@ class RollbackImporter:
         __builtin__.__import__ = self.builtin_import
     
 
-class Interpreter(InteractiveConsole):
-    """Interpreter"""
+def guess_filename(filename):
+    """Guess filename"""
+    if osp.isfile(filename):
+        return filename
+    pathlist = sys.path
+    pathlist[0] = os.getcwdu()
+    if not filename.endswith('.py'):
+        filename += '.py'
+    for path in pathlist:
+        fname = osp.join(path, filename)
+        if osp.isfile(fname):
+            return fname
+        elif osp.isfile(fname+'.py'):
+            return fname+'.py'
+        elif osp.isfile(fname+'.pyw'):
+            return fname+'.pyw'
+    return filename
+
+class Interpreter(InteractiveConsole, threading.Thread):
+    """Interpreter, executed in a separate thread"""
+    p1 = ">>> "
+    p2 = "... "
     def __init__(self, namespace=None, exitfunc=None,
-                 rawinputfunc=None, helpfunc=None):
+                 Output=None, WidgetProxy=None, debug=False):
         """
         namespace: locals send to InteractiveConsole object
         commands: list of commands executed at startup
         """
         InteractiveConsole.__init__(self, namespace)
+        threading.Thread.__init__(self)
+        
+        self.exit_flag = False
+        self.debug = debug
+        
+        # Execution Status
+        self.more = False
         
         if exitfunc is not None:
             atexit.register(exitfunc)
@@ -80,12 +109,161 @@ class Interpreter(InteractiveConsole):
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
         self.namespace['runfile'] = self.runfile
-        if rawinputfunc is not None:
-            self.namespace['raw_input'] = rawinputfunc
-            self.namespace['input'] = lambda text='': eval(rawinputfunc(text))
-        if helpfunc is not None:
-            self.namespace['help'] = helpfunc
+        self.namespace['help'] = self.help_replacement
+                    
+        # Capture all interactive input/output 
+        self.initial_stdout = sys.stdout
+        self.initial_stderr = sys.stderr
+        self.initial_stdin = sys.stdin
         
+        # Create communication pipes
+        pr, pw = os.pipe()
+        self.stdin_read = os.fdopen(pr, "r")
+        self.stdin_write = os.fdopen(pw, "w", 0)
+        self.stdout_write = Output()
+        self.stderr_write = Output()
+        
+        self.widget_proxy = WidgetProxy()
+        
+        self.redirect_stds()
+
+    #------ Standard input/output
+    def redirect_stds(self):
+        """Redirects stds"""
+        if not self.debug:
+            sys.stdout = self.stdout_write
+            sys.stderr = self.stderr_write
+            sys.stdin = self.stdin_read
+        
+    def restore_stds(self):
+        """Restore stds"""
+        if not self.debug:
+            sys.stdout = self.initial_stdout
+            sys.stderr = self.initial_stderr
+            sys.stdin = self.initial_stdin
+
+    def help_replacement(self, text=None, interactive=False):
+        """For help() support"""
+        if text is not None and not interactive:
+            return pydoc.help(text)
+        elif text is None:
+            pyver = "%d.%d" % (sys.version_info[0], sys.version_info[1])
+            self.write("""
+Welcome to Python %s!  This is the online help utility.
+
+If this is your first time using Python, you should definitely check out
+the tutorial on the Internet at http://www.python.org/doc/tut/.
+
+Enter the name of any module, keyword, or topic to get help on writing
+Python programs and using Python modules.  To quit this help utility and
+return to the interpreter, just type "quit".
+
+To get a list of available modules, keywords, or topics, type "modules",
+"keywords", or "topics".  Each module also comes with a one-line summary
+of what it does; to list the modules whose summaries contain a given word
+such as "spam", type "modules spam".
+""" % pyver)
+        else:
+            text = text.strip()
+            try:
+                eval("pydoc.help(%s)" % text)
+            except (NameError, SyntaxError):
+                print "no Python documentation found for '%r'" % text
+        self.write(os.linesep)
+        self.widget_proxy.new_prompt("help> ")
+        inp = self.raw_input()
+        if inp.strip():
+            self.help_replacement(inp, interactive=True)
+        else:
+            self.write("""
+You are now leaving help and returning to the Python interpreter.
+If you want to ask for help on a particular object directly from the
+interpreter, you can type "help(object)".  Executing "help('string')"
+has the same effect as typing a particular string at the help> prompt.
+""")
+
+    def run_command(self, cmd, new_prompt=True):
+        """Run command in interpreter"""
+        if cmd == 'exit()':
+            self.exit_flag = True
+            self.write('\n')
+            return
+        # -- Special commands type I
+        #    (transformed into commands executed in the interpreter)
+        # ? command
+        special_pattern = r"^%s (?:r\')?(?:u\')?\"?\'?([a-zA-Z0-9_\.]+)"
+        run_match = re.match(special_pattern % 'run', cmd)
+        help_match = re.match(r'^([a-zA-Z0-9_\.]+)\?$', cmd)
+        cd_match = re.match(r"^\!cd \"?\'?([a-zA-Z0-9_ \.]+)", cmd)
+        if help_match:
+            cmd = 'help(%s)' % help_match.group(1)
+        # run command
+        elif run_match:
+            filename = guess_filename(run_match.groups()[0])
+            cmd = 'runfile(r"%s", args=None)' % filename
+        # !cd system command
+        elif cd_match:
+            cmd = 'import os; os.chdir(r"%s")' % cd_match.groups()[0].strip()
+        # -- End of Special commands type I
+            
+        # -- Special commands type II
+        #    (don't need code execution in interpreter)
+        xedit_match = re.match(special_pattern % 'xedit', cmd)
+        edit_match = re.match(special_pattern % 'edit', cmd)
+        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", cmd)
+        # (external) edit command
+        if xedit_match:
+            filename = guess_filename(xedit_match.groups()[0])
+            self.widget_proxy.edit(filename, external_editor=True)
+        # local edit command
+        elif edit_match:
+            filename = guess_filename(edit_match.groups()[0])
+            if osp.isfile(filename):
+                self.widget_proxy.edit(filename)
+            else:
+                self.stderr_write.write(
+                                "No such file or directory: %s\n" % filename)
+        # remove reference (equivalent to MATLAB's clear command)
+        elif clear_match:
+            varnames = clear_match.groups()[0].replace(' ', '').split(',')
+            for varname in varnames:
+                try:
+                    self.namespace.pop(varname)
+                except KeyError:
+                    pass
+        # Execute command
+        elif cmd.startswith('!'):
+            # System ! command
+            pipe = Popen(cmd[1:], shell=True,
+                         stdin=PIPE, stderr=PIPE, stdout=PIPE)
+            txt_out = encoding.transcode( pipe.stdout.read() )
+            txt_err = encoding.transcode( pipe.stderr.read().rstrip() )
+            if txt_err:
+                self.stderr_write.write(txt_err)
+            if txt_out:
+                self.stdout_write.write(txt_out)
+            self.stdout_write.write('\n')
+            self.more = False
+        # -- End of Special commands type II
+        else:
+            # Command executed in the interpreter
+#            self.widget_proxy.set_readonly(True)
+            self.more = self.push(cmd)
+#            self.widget_proxy.set_readonly(False)
+        
+        if new_prompt:
+            self.widget_proxy.new_prompt(self.p2 if self.more else self.p1)
+        if not self.more:
+            self.resetbuffer()
+        
+    def run(self):
+        """Wait for input and run it"""
+        while not self.exit_flag:
+            line = self.stdin_read.readline()
+            # Remove last character which is always '\n':
+            self.run_command(line[:-1])
+            
+            
     def closing(self):
         """Actions to be done before restarting this interpreter"""
         if self.rollback_importer is not None:

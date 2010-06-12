@@ -637,7 +637,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                            len(unicode(self.text()).encode('utf-8')), 0xFF)
         if error:
             for text in text.splitlines(True):
-                if text.startswith('  File'):
+                if text.startswith('  File') \
+                and not text.startswith('  File "<'):
                     # Show error links in blue underlined text
                     self.append('  ')
                     self.SendScintilla(QsciScintilla.SCI_SETSTYLING,

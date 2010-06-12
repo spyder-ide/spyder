@@ -19,15 +19,17 @@ Licensed under the terms of the MIT License
 import spyderlib.requirements #@UnusedImport
 
 import sys, os, platform, re, webbrowser, os.path as osp
+original_sys_exit = sys.exit
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
 
 # For debugging purpose only
 STDOUT = sys.stdout
+STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QLabel, QColor, QFileDialog)
+                         QMessageBox, QMenu, QColor, QFileDialog)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QSize, QByteArray)
 
@@ -40,7 +42,6 @@ except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.plugins.console import Console
-from spyderlib.plugins.workdir import WorkingDirectory
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
 from spyderlib.plugins.inspector import ObjectInspector
@@ -50,7 +51,6 @@ try:
 except ImportError:
     # Qt < v4.4
     OnlineHelp = None
-from spyderlib.plugins.workspace import Workspace
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.findinfiles import FindInFiles
@@ -158,12 +158,9 @@ class MainWindow(QMainWindow):
           "matplotlib.png"),
                 )
     
-    def __init__(self, commands=None, intitle="", message="", options=None):
+    def __init__(self, options=None):
         super(MainWindow, self).__init__()
         
-        self.commands = commands
-        self.message = message
-        self.init_workdir = options.working_directory
         self.debug = options.debug
         self.profile = options.profile
         self.light = options.light
@@ -208,7 +205,6 @@ class MainWindow(QMainWindow):
         # Widgets
         self.console = None
         self.editor = None
-        self.workspace = None
         self.explorer = None
         self.inspector = None
         self.onlinehelp = None
@@ -246,8 +242,8 @@ class MainWindow(QMainWindow):
         
         # Set Window title and icon
         title = "Spyder"
-        if intitle:
-            title += " (%s)" % intitle
+        if self.debug:
+            title += " (DEBUG MODE)"
         self.setWindowTitle(title)
         self.setWindowIcon(get_icon('spyder.svg'))
         
@@ -366,19 +362,9 @@ class MainWindow(QMainWindow):
             status.setObjectName("StatusBar")
             status.showMessage(self.tr("Welcome to Spyder!"), 5000)
             
-            # Workspace init
-            if CONF.get('workspace', 'enable'):
-                self.set_splash(self.tr("Loading workspace..."))
-                self.workspace = Workspace(self)
-                self.connect(self.workspace, SIGNAL('focus_changed()'),
-                             self.plugin_focus_changed)
-                self.connect(self.workspace, SIGNAL('redirect_stdio(bool)'),
-                             self.redirect_interactiveshell_stdio)
-                namespace = self.workspace.namespace
-                
             # Internal console widget
-            self.console = Console(self, namespace, self.commands, self.message,
-                                   self.debug, self.closing, self.profile)
+            self.console = Console(self, namespace, debug=self.debug,
+                                   exitfunc=self.closing, profile=self.profile)
             self.connect(self.console, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.add_dockwidget(self.console)
@@ -386,13 +372,6 @@ class MainWindow(QMainWindow):
                              self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
                              triggered=self.console.quit)
                                     
-            # Working directory changer widget
-            self.workdir = WorkingDirectory(self, self.init_workdir)
-            self.connect(self.workdir, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_interactiveshell_stdio)
-            self.connect(self.console.shell, SIGNAL("refresh()"),
-                         self.workdir.refresh_plugin)
-        
             # Editor widget
             self.set_splash(self.tr("Loading editor plugin..."))
             self.editor = Editor(self)
@@ -402,8 +381,8 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.console, SIGNAL("edit_goto(QString,int,QString)"),
                          self.editor.load)
-            self.connect(self.editor, SIGNAL("open_dir(QString)"),
-                         self.workdir.chdir)
+#            self.connect(self.editor, SIGNAL("open_dir(QString)"),
+#                         self.workdir.chdir)
             self.connect(self.editor,
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
                          self.open_external_console)
@@ -459,8 +438,6 @@ class MainWindow(QMainWindow):
                              self.redirect_interactiveshell_stdio)
                 self.connect(self, SIGNAL('find_files(QString)'),
                              self.findinfiles.set_search_text)
-                self.connect(self.workdir, SIGNAL("refresh_findinfiles()"),
-                             self.findinfiles.refreshdir)
                 self.search_menu_actions += [None, self.findinfiles_action]
                 
             # Populating search menu and toolbar
@@ -469,43 +446,20 @@ class MainWindow(QMainWindow):
                                                  "search_toolbar")
             add_actions(search_toolbar, self.search_menu_actions)
             
-            # Workspace
-            if self.workspace is not None:
-                self.set_splash(self.tr("Loading workspace plugin..."))
-                self.add_dockwidget(self.workspace)
-                ws_toolbar = self.create_toolbar(self.tr("Workspace toolbar"),
-                                                 "ws_toolbar")
-                self.add_to_toolbar(ws_toolbar, self.workspace)
-                self.workspace.set_interpreter(self.console.shell.interpreter)
-                self.connect(self.console.shell, SIGNAL("refresh()"),
-                             self.workspace.refresh_plugin)
-
             # Explorer
             if CONF.get('explorer', 'enable'):
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
                 valid_types = self.editor.get_valid_types()
                 self.explorer.set_editor_valid_types(valid_types)
-                self.connect(self.workdir, SIGNAL("set_previous_enabled(bool)"),
-                             self.explorer.previous_action.setEnabled)
-                self.connect(self.workdir, SIGNAL("set_next_enabled(bool)"),
-                             self.explorer.next_action.setEnabled)
-                self.connect(self.explorer, SIGNAL("open_dir(QString)"),
-                             self.workdir.chdir)
-                self.connect(self.explorer, SIGNAL("open_previous_dir()"),
-                             self.workdir.previous_directory)
-                self.connect(self.explorer, SIGNAL("open_next_dir()"),
-                             self.workdir.next_directory)
-                self.connect(self.explorer, SIGNAL("open_parent_dir()"),
-                             self.workdir.parent_directory)
                 self.connect(self.explorer, SIGNAL("edit(QString)"),
                              self.editor.load)
                 self.connect(self.explorer, SIGNAL("removed(QString)"),
                              self.editor.removed)
                 self.connect(self.explorer, SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
-                self.connect(self.explorer, SIGNAL("import_data(QString)"),
-                             self.workspace.import_data)
+#                self.connect(self.explorer, SIGNAL("import_data(QString)"),
+#                             self.workspace.import_data)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
                              lambda fname:
                              self.open_external_console(unicode(fname),
@@ -525,9 +479,6 @@ class MainWindow(QMainWindow):
                 self.connect(self.console.shell,
                              SIGNAL("refresh_explorer(QString)"),
                              self.explorer.refresh_folder)
-                self.connect(self.workdir, SIGNAL("refresh_explorer()"),
-                             lambda:
-                             self.explorer.refresh_plugin(force_current=True))
                 self.connect(self.editor, SIGNAL("refresh_explorer(QString)"),
                              self.explorer.refresh_folder)
 
@@ -581,9 +532,9 @@ class MainWindow(QMainWindow):
                 self.connect(self.projectexplorer,
                              SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
-                self.connect(self.projectexplorer,
-                             SIGNAL("import_data(QString)"),
-                             self.workspace.import_data)
+#                self.connect(self.projectexplorer,
+#                             SIGNAL("import_data(QString)"),
+#                             self.workspace.import_data)
                 self.connect(self.projectexplorer,
                              SIGNAL("open_terminal(QString)"),
                              self.open_terminal)
@@ -607,21 +558,9 @@ class MainWindow(QMainWindow):
                 self.add_dockwidget(self.pylint)
         
             self.set_splash(self.tr("Setting up main window..."))
-            # Console menu
-            self.console.menu_actions = self.console.menu_actions[:-2]
-            restart_action = create_action(self,
-               self.tr("Restart Python interpreter"),
-               tip=self.tr("Start a new Python shell: this will remove all current session objects, except for the workspace data which may be transferred from one session to another"),
-               icon=get_icon('restart.png'),
-               triggered=self.restart_interpreter)
-            self.console.menu_actions += [None, restart_action]
-            console_menu = self.add_to_menubar(self.console)
-            
-            # Workspace menu
-            self.add_to_menubar(self.workspace, existing_menu=console_menu)
             
         # External console menu
-        self.extconsole = ExternalConsole(self, self.commands)
+        self.extconsole = ExternalConsole(self)
         if self.light:
             self.setCentralWidget(self.extconsole)
         else:
@@ -639,6 +578,7 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_interactiveshell_stdio)
+        self.extconsole.open_interpreter_at_startup()
             
         if not self.light:
             # View menu
@@ -714,9 +654,6 @@ class MainWindow(QMainWindow):
             self.help_menu_actions += create_module_bookmark_actions(self,
                                                                 self.BOOKMARKS)
             add_actions(help_menu, self.help_menu_actions)
-                    
-            # Adding Working directory toolbar in last position
-            self.addToolBar(self.workdir)
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -744,17 +681,17 @@ class MainWindow(QMainWindow):
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
                                   (self.inspector, self.onlinehelp),
-                                  (self.onlinehelp, self.workspace),
-                                  (self.workspace, self.explorer),
+                                  (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
                                   (self.findinfiles, self.pylint),
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-            for plugin in (self.pylint, self.findinfiles, self.onlinehelp):
+            for plugin in (self.pylint, self.findinfiles, self.onlinehelp,
+                           self.console):
                 if plugin is not None:
                     plugin.dockwidget.close()
-            for plugin in (self.inspector, self.console):
+            for plugin in (self.inspector, self.extconsole):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             for toolbar in (run_toolbar, edit_toolbar):
@@ -839,10 +776,7 @@ class MainWindow(QMainWindow):
             child.setEnabled(False)        
         
         widget, textedit_properties = self.__focus_widget_properties()
-        if isinstance(widget, Workspace):
-            self.paste_action.setEnabled(True)
-            return
-        elif textedit_properties is None: # widget is not an editor/console
+        if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QsciScintilla
         #    or QPlainTextEdit instance
@@ -1166,34 +1100,12 @@ class MainWindow(QMainWindow):
         from spyderlib.widgets.editor import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
-        elif isinstance(widget, Workspace):
-            if hasattr(self.workspace, callback):
-                getattr(self.workspace, callback)()
-                
-    def restart_interpreter(self):
-        """Restart Python interpreter"""
-        answer = QMessageBox.warning(self, self.tr("Restart Python interpreter"),
-                    self.tr("Python interpreter will be restarted: all the objects created during this session will be lost (that includes imported modules which will have to be imported again).\n\nDo you want to continue?"),
-                    QMessageBox.Yes | QMessageBox.No)
-        if answer == QMessageBox.No:
-            return
-        namespace = self.workspace.get_namespace()
-        if namespace:
-            answer = QMessageBox.question(self, self.tr("Workspace"),
-                        self.tr("Do you want to keep workspace data available?"),
-                        QMessageBox.Yes | QMessageBox.No)
-            if answer == QMessageBox.No:
-                namespace = None
-        interpreter = self.console.shell.start_interpreter(namespace)
-        self.workspace.set_interpreter(interpreter)
-        if not self.console.ismaximized:
-            self.console.dockwidget.raise_()
         
     def redirect_interactiveshell_stdio(self, state):
         if state:
-            self.console.shell.redirect_stds()
+            self.console.shell.interpreter.redirect_stds()
         else:
-            self.console.shell.restore_stds()
+            self.console.shell.interpreter.restore_stds()
         
     def open_external_console(self, fname, wdir,
                               ask_for_arguments, interact, debug, python):
@@ -1300,28 +1212,6 @@ def get_options():
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Reset to default session")
-    parser.add_option('-w', '--workdir', dest="working_directory", default=None,
-                      help="Default working directory")
-    parser.add_option('-s', '--startup', dest="startup", default=None,
-                      help="Startup script (overrides PYTHONSTARTUP)")
-    parser.add_option('-m', '--modules', dest="module_list", default='',
-                      help="Modules to import (comma separated)")
-    parser.add_option('-b', '--basics', dest="basics",
-                      action='store_true', default=False,
-                      help="Import numpy, scipy and matplotlib following "
-                           "official coding guidelines")
-    parser.add_option('-a', '--all', dest="all", action='store_true',
-                      default=False,
-                      help="Option 'basics', 'pylab' and import os, sys, re, "
-                           "time, os.path as osp")
-    parser.add_option('-p', '--pylab', dest="pylab", action='store_true',
-                      default=False,
-                      help="Import pylab in interactive mode"
-                           " and add option --numpy")
-    parser.add_option('--mlab', dest="mlab", action='store_true',
-                      default=False,
-                      help="Import mlab (MayaVi's interactive "
-                           "3D-plotting interface)")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
@@ -1330,91 +1220,7 @@ def get_options():
                       help="Profile mode (internal test, "
                            "not related with Python profiling)")
     options, _args = parser.parse_args()
-    
-    messagelist = []
-    intitlelist = []
-    commands = []
-    
-    # Option --debug
-    if options.debug:
-        intitlelist.append('DEBUG MODE')
-    
-    # Option --all
-    if options.all:
-        intitlelist.append('all')
-        messagelist += ['import (sys, time, re, os, os.path as osp)']
-        commands.append('import sys, time, re, os, os.path as osp')
-        if not options.all:
-            messagelist.append('os')
-        options.basics = True
-        options.pylab = True
-    
-    # Option --basics
-    if options.basics:
-        if not options.all:
-            intitlelist.append('basics')
-        messagelist += ['import numpy as np',
-                        'import scipy as sp',
-                        'import matplotlib as mpl',
-                        'import matplotlib.pyplot as plt']
-        commands.extend(['import numpy as np, scipy as sp',
-                         'import matplotlib as mpl, matplotlib.pyplot as plt'])
-
-    # Option --pylab
-    if options.pylab:
-        if not options.all:
-            intitlelist.append('pylab')
-            messagelist += ['import numpy as np',
-                            'import matplotlib as mpl',
-                            'import matplotlib.pyplot as plt']
-        messagelist += ['from pylab import *']
-        commands.extend(['import matplotlib as mpl, matplotlib.pyplot as plt',
-                         'import numpy as np', 'from pylab import *'])
-    
-    # Option --modules (import modules)
-    if options.module_list:
-        for mod in options.module_list.split(','):
-            mod = mod.strip()
-            try:
-                __import__(mod)
-                messagelist.append(mod)
-                commands.append('import '+mod)
-            except ImportError:
-                print "Warning: module '%s' was not found" % mod
-                continue
-    
-    def addoption(name, command):
-        commands.append(command)
-        messagelist.append('%s (%s)' % (name, command))
-        intitlelist.append(name)
-
-    # Option --mlab
-    if options.mlab:
-        addoption('mlab', 'from enthought.mayavi import mlab')
-        
-    # Adding PYTHONSTARTUP file to initial commands
-    if options.startup is not None:
-        filename = options.startup
-        msg = 'Startup script'
-    else:
-        filename = os.environ.get('PYTHONSTARTUP')
-        msg = 'PYTHONSTARTUP'
-    if filename and osp.isfile(filename):
-        commands.append('execfile(r"%s")' % filename)
-        messagelist.append(msg+' (%s)' % osp.basename(filename))
-        
-    # Options shown in console
-    message = ""
-    if messagelist:
-        message = 'Option%s: ' % ('s' if len(messagelist)>1 else '')
-        message += ", ".join(messagelist)
-        
-    # Options shown in Spyder's application title bar
-    intitle = ""
-    if intitlelist:
-        intitle = ", ".join(intitlelist)
-
-    return commands, intitle, message, options
+    return options
 
 
 def initialize(debug):
@@ -1452,51 +1258,24 @@ def initialize(debug):
     return app
 
 
-def run_spyder(app, commands, intitle, message, options):
+def run_spyder(app, options):
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration
     Start QApplication event loop
     """
     # Main window
-    main = MainWindow(commands, intitle, message, options)
-    
-    # Checking if required modules are installed
-    required_modules = {'pylab':  ('numpy', 'matplotlib'),
-                        'basics': ('numpy', 'scipy', 'matplotlib'),
-                        'all':    ('numpy', 'scipy', 'matplotlib')}
-    error = False
-    for optname, modnames in required_modules.items():
-        if getattr(options, optname):
-            for modname in modnames:
-                if not is_module_installed(modname):
-                    main.splash.hide()
-                    QMessageBox.critical(main,
-                        translate("MainWindow", "Import error"),
-                        translate("MainWindow", "Please install <b>%1</b> and "
-                                  "restart Spyder.<br><br>Running Spyder with "
-                                  "option <b>%2</b> require the <b>%1</b> "
-                                  "Python module.").arg(modname).arg(optname))
-                    error = True
-    if error:
-        return
-    
-    #----Patching matplotlib's FigureManager
-    if is_module_installed('matplotlib'):
-        from spyderlib import mpl_patch
-        bgcolor = QLabel().palette().color(QLabel().backgroundRole()).name()
-        is_dockable = lambda: CONF.get('figure', 'dockable', True)
-        mpl_patch.apply(main, is_dockable=is_dockable,
-                        font_size=CONF.get('figure', 'font/size'),
-                        facecolor=CONF.get('figure', 'facecolor',
-                                           unicode(bgcolor)))
-        
-    main.setup()
+    main = MainWindow(options)
+    try:
+        main.setup()
+    except BaseException:
+        if main.console is not None:
+            try:
+                main.console.shell.exit_interpreter()
+            except BaseException:
+                pass
+        raise
     main.show()
-    if options.light:
-        main.extconsole.open_interpreter_at_startup()
-    else:
-        main.give_focus_to_interactive_console()
     main.emit(SIGNAL('restore_scrollbar_position()'))
     app.exec_()
     return main
@@ -1514,7 +1293,7 @@ def main():
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
-    commands, intitle, message, options = get_options()
+    options = get_options()
     
     app = initialize(debug=options.debug)
     if options.reset_session:
@@ -1523,6 +1302,7 @@ def main():
         return
 
     if CONF.get('main', 'crash', False):
+        CONF.set('main', 'crash', False)
         QMessageBox.information(None, "Spyder",
                                 u"Spyder crashed during last session.<br><br>"
                                 u"If Spyder does not start at all, please try "
@@ -1545,9 +1325,13 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                       % (osp.basename(next_session_name),
                                          error_message))
-        CONF.set('main', 'crash', True)
-        mainwindow = run_spyder(app, commands, intitle, message, options)
-        CONF.set('main', 'crash', False)
+        try:
+            mainwindow = run_spyder(app, options)
+        except BaseException:
+            CONF.set('main', 'crash', True)
+            import traceback
+            traceback.print_exc(file=STDERR)
+            traceback.print_exc(file=open('spyder_crash.log', 'wb'))            
         if mainwindow is None:
             return
         next_session_name = mainwindow.next_session_name
@@ -1567,6 +1351,7 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                        % (osp.basename(save_session_name),
                                           error_message))
+    original_sys_exit()
 
 if __name__ == "__main__":
     main()

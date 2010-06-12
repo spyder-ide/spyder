@@ -38,7 +38,7 @@ class ExternalConsole(SpyderPluginWidget):
     Console widget
     """
     ID = 'external_shell'
-    def __init__(self, parent, commands=None):
+    def __init__(self, parent, commands=[]):
         self.commands = commands
         self.tabwidget = None
         self.menu_actions = None
