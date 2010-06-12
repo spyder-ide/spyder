@@ -16,8 +16,6 @@ SOURCES	     += plugins/inspector.py
 SOURCES	     += plugins/onlinehelp.py
 SOURCES	     += plugins/projectexplorer.py
 SOURCES	     += plugins/pylintgui.py
-SOURCES	     += plugins/workdir.py
-SOURCES	     += plugins/workspace.py
 
 SOURCES      += widgets/__init__.py
 SOURCES      += widgets/arrayeditor.py
