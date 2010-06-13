@@ -21,7 +21,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor
-from spyderlib.widgets.externalshell.pythonshell import ExtPyQsciShell
+from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 
 class ObjectComboBox(EditableComboBox):
@@ -206,7 +206,7 @@ class ObjectInspector(ReadOnlyEditor):
         """Show help"""
         if self.shell is None:
             return
-        if isinstance(self.shell, ExtPyQsciShell):
+        if isinstance(self.shell, ExtPythonShellWidget):
             if not self.shell.externalshell.is_running():
                 # Binded external shell was stopped:
                 # binding ObjectInspector to interactive console instead

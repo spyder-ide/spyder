@@ -48,4 +48,6 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
-#TODO: add a plugin "Variables explorer"
+#TODO: add a plugin "Namespace browser"
+
+#FIXME: Ctrl+F does not work with --light option

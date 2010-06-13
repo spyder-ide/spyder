@@ -28,7 +28,7 @@ from spyderlib.widgets.externalshell import (ExternalShellBase,
                                              add_pathlist_to_PYTHONPATH)
 
 
-class ExtPyQsciShell(PythonShellWidget):
+class ExtPythonShellWidget(PythonShellWidget):
     def __init__(self, parent, history_filename, debug=False, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename,
                                    debug, profile)
@@ -115,7 +115,7 @@ class ExtPyQsciShell(PythonShellWidget):
 
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
-    SHELL_CLASS = ExtPyQsciShell
+    SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[],
                  ipython=False, arguments=None):
