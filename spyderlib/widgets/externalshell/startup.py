@@ -21,13 +21,11 @@ def __is_ipython():
     return os.environ.get('IPYTHON')
 
 def __patching_matplotlib__():
-    import imp
     try:
-        imp.find_module('matplotlib')
+        from spyderlib import mpl_patch
+        mpl_patch.apply()
     except ImportError:
         return
-    from spyderlib import mpl_patch
-    mpl_patch.apply()
 
 def __create_banner():
     """Create shell banner"""
@@ -52,7 +50,7 @@ if __name__ == "__main__":
         __run_pythonstartup_script()
 
     __patching_matplotlib__()
-
+    
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
                   '__remove_sys_argv__', '__patching_matplotlib__']+['_name']:
