@@ -11,10 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QApplication, QCursor, QVBoxLayout, QFileDialog,
-                         QFontDialog, QInputDialog, QLineEdit, QMenu,
-                         QMessageBox)
-from PyQt4.QtCore import Qt, SIGNAL
+from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QInputDialog,
+                         QLineEdit, QMenu, QMessageBox)
+from PyQt4.QtCore import SIGNAL
 
 import os, sys
 import os.path as osp
@@ -97,7 +96,7 @@ class Console(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Interactive console')
+        return self.tr('Internal console')
     
     def get_focus_widget(self):
         """

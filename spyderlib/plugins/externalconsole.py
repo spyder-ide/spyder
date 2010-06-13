@@ -274,7 +274,7 @@ class ExternalConsole(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('External console')
+        return self.tr('Console')
     
     def get_focus_widget(self):
         """

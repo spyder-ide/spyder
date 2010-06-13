@@ -153,7 +153,7 @@ class InteractiveShell(PythonShellWidget):
             self.run_command(cmd, history=False, new_prompt=False)
                 
         # First prompt
-#        self.new_prompt(self.interpreter.p1)
+        self.new_prompt(self.interpreter.p1)
         self.emit(SIGNAL("refresh()"))
         
         # Installing (if enabled) Rollback Importer

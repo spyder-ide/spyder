@@ -39,7 +39,7 @@ __license__ = __doc__
 #TODO: workdir is gone: file explorer must handle directory history on its own
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
-#      external console
+#      external console --> see the external console's closing method
 #TODO: Workspace is gone: reimplement the import_data from file explorer:
 #                self.connect(self.explorer, SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
@@ -48,5 +48,4 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
-#TODO: rename "Interactive console" to "Internal console"
-#TODO: rename "External console" to "Console"
+#TODO: add a plugin "Variables explorer"
