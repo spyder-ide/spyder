@@ -48,3 +48,5 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
+#TODO: rename "Interactive console" to "Internal console"
+#TODO: rename "External console" to "Console"

@@ -251,8 +251,7 @@ class MainWindow(QMainWindow):
         pixmap = QPixmap(get_image_path('splash.png'), 'png')
         self.splash = QSplashScreen(pixmap)
         font = self.splash.font()
-        font.setPixelSize(12)
-        font.setBold(True)
+        font.setPixelSize(11)
         self.splash.setFont(font)
         if not self.light:
             self.splash.show()
