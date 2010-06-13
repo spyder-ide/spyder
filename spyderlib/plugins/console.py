@@ -84,7 +84,8 @@ class Console(SpyderPluginWidget):
         
     #------ Private API --------------------------------------------------------
     def set_historylog(self, historylog):
-        """Bind historylog instance to this console"""
+        """Bind historylog instance to this console
+        Not used anymore since v2.0"""
         historylog.add_history(self.shell.history_filename)
         self.connect(self.shell, SIGNAL('append_to_history(QString,QString)'),
                      historylog.append_to_history)

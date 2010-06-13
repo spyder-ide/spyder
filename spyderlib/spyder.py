@@ -488,7 +488,6 @@ class MainWindow(QMainWindow):
                 self.connect(self.historylog, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
                 self.add_dockwidget(self.historylog)
-                self.console.set_historylog(self.historylog)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh_plugin)
         
@@ -1044,7 +1043,7 @@ class MainWindow(QMainWindow):
             plugin = self.console
         elif widget is self.inspector.editor:
             plugin = self.inspector
-        elif widget in self.historylog.editors:
+        elif widget is self.historylog.editor:
             plugin = self.historylog
         elif isinstance(widget, ShellBaseWidget):
             plugin = self.extconsole

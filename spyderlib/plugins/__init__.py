@@ -197,6 +197,8 @@ class ReadOnlyEditor(SpyderPluginWidget):
     (see example of child class in inspector.py)
     """
     def __init__(self, parent):
+        self.editor = None
+        
         SpyderPluginWidget.__init__(self, parent)
 
         # Read-only editor
