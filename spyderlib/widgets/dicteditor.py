@@ -1164,7 +1164,7 @@ def test():
     
 def remote_editor_test():
     """Remote dictionary editor test"""
-    from spyderlib.widgets.externalshell.globalsexplorer import get_settings
+    from spyderlib.widgets.externalshell.namespacebrowser import get_settings
     from spyderlib.widgets.externalshell.monitor import make_remote_view
     remote = make_remote_view(get_test_data(), get_settings())
     from pprint import pprint

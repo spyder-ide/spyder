@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Globals explorer widget"""
+"""Namespace browser widget"""
 
 import sys, os, os.path as osp
 
@@ -40,7 +40,7 @@ from spyderlib.config import CONF
 
 def get_settings():
     """
-    Return Globals Browser settings
+    Return namespace browser settings
     according to Spyder's configuration file
     """
     settings = {}
@@ -51,7 +51,7 @@ def get_settings():
     return settings
 
 
-class GlobalsExplorer(QWidget):
+class NamespaceBrowser(QWidget):
     ID = 'external_shell'
     
     def __init__(self, parent):

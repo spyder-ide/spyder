@@ -22,7 +22,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
-from spyderlib.widgets.externalshell.globalsexplorer import GlobalsExplorer
+from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate
 from spyderlib.widgets.externalshell import (ExternalShellBase,
                                              add_pathlist_to_PYTHONPATH)
@@ -121,7 +121,7 @@ class ExternalPythonShell(ExternalShellBase):
                  ipython=False, arguments=None):
         self.fname = startup.__file__ if fname is None else fname
         
-        self.globalsexplorer_button = None
+        self.namespacebrowser_button = None
         self.cwd_button = None
         self.terminate_button = None
         
@@ -155,8 +155,8 @@ class ExternalPythonShell(ExternalShellBase):
         
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
-        if self.globalsexplorer_button is None:
-            self.globalsexplorer_button = create_toolbutton(self,
+        if self.namespacebrowser_button is None:
+            self.namespacebrowser_button = create_toolbutton(self,
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer)
@@ -173,7 +173,7 @@ class ExternalPythonShell(ExternalShellBase):
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
                                       "the user for any unsaved files, etc)."))        
-        return [self.cwd_button, self.globalsexplorer_button, self.run_button,
+        return [self.cwd_button, self.namespacebrowser_button, self.run_button,
                 self.options_button, self.terminate_button, self.kill_button]
 
     def get_options_menu(self):
@@ -187,8 +187,8 @@ class ExternalPythonShell(ExternalShellBase):
         
     def get_shell_widget(self):
         # Globals explorer
-        self.globalsexplorer = GlobalsExplorer(self)
-        self.connect(self.globalsexplorer, SIGNAL('collapse()'),
+        self.namespacebrowser = NamespaceBrowser(self)
+        self.connect(self.namespacebrowser, SIGNAL('collapse()'),
                      lambda: self.toggle_globals_explorer(False))
         
         # Shell splitter
@@ -197,7 +197,7 @@ class ExternalPythonShell(ExternalShellBase):
                      self.splitter_moved)
         splitter.addWidget(self.shell)
         splitter.setCollapsible(0, False)
-        splitter.addWidget(self.globalsexplorer)
+        splitter.addWidget(self.namespacebrowser)
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 1)
         return splitter
@@ -222,7 +222,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button.setEnabled(state)
         if not state:
             self.toggle_globals_explorer(False)
-        for btn in (self.cwd_button, self.globalsexplorer_button):
+        for btn in (self.cwd_button, self.namespacebrowser_button):
             btn.setEnabled(state)
     
     def create_process(self):
@@ -263,7 +263,7 @@ class ExternalPythonShell(ExternalShellBase):
         server, port = start_server()
         self.notification_thread = server.register(str(id(self)), self)
         self.connect(self.notification_thread, SIGNAL('refresh()'),
-                     self.globalsexplorer.refresh_table)
+                     self.namespacebrowser.refresh_table)
         env.append('SPYDER_PORT=%d' % port)
         
         # Python init commands (interpreter only)
@@ -354,12 +354,12 @@ class ExternalPythonShell(ExternalShellBase):
 #===============================================================================
     def toggle_globals_explorer(self, state):
         self.splitter.setSizes([1, 1 if state else 0])
-        self.globalsexplorer_button.setChecked(state)
+        self.namespacebrowser_button.setChecked(state)
         if state:
-            self.globalsexplorer.refresh_table()
+            self.namespacebrowser.refresh_table()
         
     def splitter_moved(self, pos, index):
-        self.globalsexplorer_button.setChecked( self.splitter.sizes()[1] )
+        self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )
 
 #===============================================================================
 #    Current working directory
