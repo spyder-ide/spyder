@@ -331,8 +331,12 @@ class NotificationThread(QThread):
     def run(self):
         while True:
             try:
-                _d = self.shell.monitor_socket.recv(1, socket.MSG_OOB)
-                self.emit(SIGNAL('refresh()'))
-            except socket.error:
-                # Connection closed
+                try:
+                    _d = self.shell.monitor_socket.recv(1, socket.MSG_OOB)
+                    self.emit(SIGNAL('refresh()'))
+                except socket.error:
+                    # Connection closed: socket error during recv()
+                    break
+            except AttributeError:
+                # Socket has been closed before recv()
                 break

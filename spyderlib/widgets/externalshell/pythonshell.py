@@ -154,13 +154,6 @@ class ExternalPythonShell(ExternalShellBase):
         # Additional python path list
         self.path = path
         
-    def exit(self):
-        """Exit properly the shell widget"""
-        if self.ipython:
-            self.notification_thread.terminate()
-            self.notification_thread.wait()
-        self.process.kill()
-        
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
         if self.namespacebrowser_button is None:
