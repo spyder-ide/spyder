@@ -54,14 +54,17 @@ def getdoc(obj):
 def getsource(obj):
     """Wrapper around inspect.getsource"""
     try:
-        src = encoding.to_unicode( inspect.getsource(obj) )
-    except TypeError:
-        if hasattr(obj, '__class__'):
-            src = encoding.to_unicode( inspect.getsource(obj.__class__) )
-        else:
-            # Bindings like VTK or ITK require this case
-            src = getdoc(obj)
-    return src
+        try:
+            src = encoding.to_unicode( inspect.getsource(obj) )
+        except TypeError:
+            if hasattr(obj, '__class__'):
+                src = encoding.to_unicode( inspect.getsource(obj.__class__) )
+            else:
+                # Bindings like VTK or ITK require this case
+                src = getdoc(obj)
+        return src
+    except (TypeError, IOError):
+        return
 
 def getargfromdoc(obj):
     """Get arguments from object doc"""

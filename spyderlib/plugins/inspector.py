@@ -216,10 +216,11 @@ class ObjectInspector(ReadOnlyEditor):
         if CONF.get('inspector', 'automatic_import'):
             self.shell.is_defined(obj_text, force_import=True) # force import
         
-        doc_text = self.shell.get_doc(obj_text)
-        try:
+        if self.shell.is_defined(obj_text):
+            doc_text = self.shell.get_doc(obj_text)
             source_text = self.shell.get_source(obj_text)
-        except (TypeError, IOError):
+        else:
+            doc_text = None
             source_text = None
         if self.docstring:
             hlp_text = doc_text
