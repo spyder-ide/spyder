@@ -60,11 +60,11 @@ SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
 SANS_SERIF.insert(0, unicode(QFont().family()))
 
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Courier New',
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Courier New',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
              'Monaco', 'Courier', 'monospace', 'Fixed', 'Terminal']
-MEDIUM = 9
-SMALL = 8
+MEDIUM = 10
+SMALL = 9
 
 # Note: These default hexstates are no longer used --> too much bugs
 #       Now, the default window layout is done programmatically (see spyder.py)

@@ -74,6 +74,8 @@ def apply(font_size=None, facecolor=None):
             QObject.connect(self.toolbar, SIGNAL("message"),
                     self.window.statusBar().showMessage)
     
+            self.window.setCentralWidget(self.canvas)
+    
             if matplotlib.is_interactive():
                 self.window.show()
     
