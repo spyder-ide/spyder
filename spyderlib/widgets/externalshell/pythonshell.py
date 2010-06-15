@@ -65,7 +65,7 @@ class ExtPythonShellWidget(PythonShellWidget):
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
-        return self.ask_monitor("getobjdir(globals()['%s'])" % objtxt)
+        return self.ask_monitor("getobjdir(%s)" % objtxt)
 
     def get_completion(self, objtxt):
         """Return completion list associated to object name"""
@@ -89,28 +89,29 @@ class ExtPythonShellWidget(PythonShellWidget):
             
     def iscallable(self, objtxt):
         """Is object callable?"""
-        return self.ask_monitor("iscallable(globals()['%s'])" % objtxt)
+        return self.ask_monitor("iscallable(%s)" % objtxt)
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
-        return self.ask_monitor("getargtxt(globals()['%s'])" % objtxt)
+        return self.ask_monitor("getargtxt(%s)" % objtxt)
             
     def get__doc__(self, objtxt):
         """Get object __doc__"""
-        return self.ask_monitor("globals()['%s'].__doc__" % objtxt)
+        return self.ask_monitor("%s.__doc__" % objtxt)
     
     def get_doc(self, objtxt):
         """Get object documentation"""
-        return self.ask_monitor("getdoc(globals()['%s'])" % objtxt)
+        return self.ask_monitor("getdoc(%s)" % objtxt)
     
     def get_source(self, objtxt):
         """Get object source"""
-        return self.ask_monitor("getsource(globals()['%s'])" % objtxt)
+        return self.ask_monitor("getsource(%s)" % objtxt)
     
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
-        return self.ask_monitor("isdefined('%s', force_import=%s, globals())"
-                                % (objtxt, force_import))
+        return self.ask_monitor(
+                        "isdefined('%s', force_import=%s, namespace=globals())"
+                        % (objtxt, force_import))
 
 
 class ExternalPythonShell(ExternalShellBase):
