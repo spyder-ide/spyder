@@ -268,7 +268,7 @@ class ExternalConsole(SpyderPluginWidget):
                 self.tabwidget.setTabIcon(index, get_icon('terminated.png'))
                 if self.inspector is not None:
                     if self.inspector.get_shell() is shell.shell:
-                        # Switch back to interactive shell:
+                        # Switch back to internal shell:
                         self.inspector.set_shell(self.main.console.shell)
         
     #------ SpyderPluginWidget API ---------------------------------------------    

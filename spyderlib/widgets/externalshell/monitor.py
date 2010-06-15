@@ -84,14 +84,14 @@ def monitor_get_globals_keys(sock):
     return communicate(sock, "globals().keys()", pickle_try=True)
 
 def monitor_save_globals(sock, settings, filename):
-    """Save globals(), i.e. the equivalent of interactive console's workspace"""
+    """Save globals() to file"""
     write_packet(sock, '__save_globals__(globals())')
     write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
     write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
     return pickle.loads( read_packet(sock) )
 
 def monitor_load_globals(sock, filename):
-    """Load globals(), i.e. the equivalent of interactive console's workspace"""
+    """Load globals() from file"""
     write_packet(sock, '__load_globals__(globals())')
     write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
     return pickle.loads( read_packet(sock) )

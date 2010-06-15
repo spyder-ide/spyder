@@ -288,7 +288,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """
         Reimplement Qt Method
         Basic keypress event handler
-        (reimplemented in InteractiveShell to add more sophisticated features)
+        (reimplemented in InternalShell to add more sophisticated features)
         """
         if self.preprocess_keyevent(event):
             # Event was accepted in self.preprocess_keyevent
@@ -315,7 +315,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         
     def postprocess_keyevent(self, event):
         """Post-process keypress event:
-        in InteractiveShell, this is method is called when shell is ready"""
+        in InternalShell, this is method is called when shell is ready"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
         # Is cursor on the last line? and after prompt?
@@ -907,7 +907,7 @@ class PythonShellWidget(ShellBaseWidget):
         self.show_completion_widget(sorted(completions, key=key))
 
     # Methods implemented in child class:
-    # (e.g. InteractiveShell)
+    # (e.g. InternalShell)
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError

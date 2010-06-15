@@ -192,7 +192,7 @@ class Editor(SpyderPluginWidget):
                      self.save_focus_editorstack)
         
         # Parameters of last file execution:
-        self.__last_ic_exec = None # interactive console
+        self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
         
         # Restoring class browser state
@@ -629,10 +629,6 @@ class Editor(SpyderPluginWidget):
                      SIGNAL('external_console_execute_lines(QString)'),
                      lambda text:
                      self.emit(SIGNAL('external_console_execute_lines(QString)'), text))
-        self.connect(editorstack,
-                     SIGNAL('interactive_console_execute_lines(QString)'),
-                     lambda text:
-                     self.emit(SIGNAL('interactive_console_execute_lines(QString)'), text))
         
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
@@ -1300,7 +1296,7 @@ class Editor(SpyderPluginWidget):
                       fname, wdir, ask_for_arguments, interact, debug, python)
 
     def run_selection_or_block(self):
-        """Run selection or current line in interactive or external console"""
+        """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection_or_block()
         

@@ -1184,10 +1184,10 @@ class EditorStack(QWidget):
         """
         editor = self.get_current_editor()
         if editor.hasSelectedText():
-            # Run selected text in interactive console and set focus to console
+            # Run selected text in external console and set focus to console
             self.__run_in_external_console( self.__process_lines() )
         else:
-            # Run current block in interactive console and go to next block
+            # Run current block in external console and go to next block
             editor.select_current_block()
             self.__run_in_external_console( self.__process_lines() )
             editor.setFocus()

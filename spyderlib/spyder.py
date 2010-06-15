@@ -391,13 +391,10 @@ class MainWindow(QMainWindow):
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
                          self.open_external_console)
             self.connect(self.editor,
-                         SIGNAL('interactive_console_execute_lines(QString)'),
-                         self.console.execute_lines)
-            self.connect(self.editor,
                          SIGNAL('external_console_execute_lines(QString)'),
                          self.execute_python_code_in_external_console)
             self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_interactiveshell_stdio)
+                         self.redirect_internalshell_stdio)
             self.add_dockwidget(self.editor)
             self.add_to_menubar(self.editor, self.tr("&Source"))
             file_toolbar = self.create_toolbar(self.tr("File toolbar"),
@@ -439,7 +436,7 @@ class MainWindow(QMainWindow):
                              SIGNAL("edit_goto(QString,int,QString)"),
                              self.editor.load)
                 self.connect(self.findinfiles, SIGNAL('redirect_stdio(bool)'),
-                             self.redirect_interactiveshell_stdio)
+                             self.redirect_internalshell_stdio)
                 self.connect(self, SIGNAL('find_files(QString)'),
                              self.findinfiles.set_search_text)
                 self.search_menu_actions += [None, self.findinfiles_action]
@@ -557,7 +554,7 @@ class MainWindow(QMainWindow):
                              SIGNAL("edit_goto(QString,int,QString)"),
                              self.editor.load)
                 self.connect(self.pylint, SIGNAL('redirect_stdio(bool)'),
-                             self.redirect_interactiveshell_stdio)
+                             self.redirect_internalshell_stdio)
                 self.add_dockwidget(self.pylint)
         
             self.set_splash(self.tr("Setting up main window..."))
@@ -581,7 +578,7 @@ class MainWindow(QMainWindow):
             self.connect(self.extconsole, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_interactiveshell_stdio)
+                         self.redirect_internalshell_stdio)
         self.extconsole.open_interpreter_at_startup()
             
         if not self.light:
@@ -733,10 +730,6 @@ class MainWindow(QMainWindow):
         
         self.debug_print("*** End of MainWindow setup ***")
 
-    def give_focus_to_interactive_console(self):
-        """Give focus to interactive shell widget"""
-        self.console.shell.setFocus()
-        
     def __focus_shell(self):
         """Return Python shell widget which has focus, if any"""
         widget = QApplication.focusWidget()
@@ -1107,7 +1100,7 @@ class MainWindow(QMainWindow):
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
         
-    def redirect_interactiveshell_stdio(self, state):
+    def redirect_internalshell_stdio(self, state):
         if state:
             self.console.shell.interpreter.redirect_stds()
         else:
@@ -1160,7 +1153,7 @@ class MainWindow(QMainWindow):
         project_pathlist = self.projectexplorer.get_pythonpath()
         dialog = PathManager(self, self.path, project_pathlist, sync=True)
         self.connect(dialog, SIGNAL('redirect_stdio(bool)'),
-                     self.redirect_interactiveshell_stdio)
+                     self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
@@ -1179,11 +1172,11 @@ class MainWindow(QMainWindow):
     def load_session(self, filename=None):
         """Load session"""
         if filename is None:
-            self.redirect_interactiveshell_stdio(False)
+            self.redirect_internalshell_stdio(False)
             filename = QFileDialog.getOpenFileName(self,
                                   self.tr("Open session"), os.getcwdu(),
                                   self.tr("Spyder sessions")+" (*.session.tar)")
-            self.redirect_interactiveshell_stdio(True)
+            self.redirect_internalshell_stdio(True)
             if filename:
                 filename = unicode(filename)
             else:
@@ -1193,11 +1186,11 @@ class MainWindow(QMainWindow):
     
     def save_session(self):
         """Save session and quit application"""
-        self.redirect_interactiveshell_stdio(False)
+        self.redirect_internalshell_stdio(False)
         filename = QFileDialog.getSaveFileName(self,
                                   self.tr("Save session"), os.getcwdu(),
                                   self.tr("Spyder sessions")+" (*.session.tar)")
-        self.redirect_interactiveshell_stdio(True)
+        self.redirect_internalshell_stdio(True)
         if filename:
             if self.close():
                 self.save_session_name = unicode(filename)

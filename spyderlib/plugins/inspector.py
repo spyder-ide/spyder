@@ -209,7 +209,7 @@ class ObjectInspector(ReadOnlyEditor):
         if isinstance(self.shell, ExtPythonShellWidget):
             if not self.shell.externalshell.is_running():
                 # Binded external shell was stopped:
-                # binding ObjectInspector to interactive console instead
+                # binding ObjectInspector to internal console instead
                 self.shell = self.main.console.shell
         obj_text = unicode(obj_text)
 

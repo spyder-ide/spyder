@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Interactive Console Plugin"""
+"""Internal Console Plugin"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -26,7 +26,7 @@ from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.utils.programs import is_module_installed
-from spyderlib.widgets.interactiveshell import InteractiveShell
+from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.dicteditor import DictEditor
@@ -47,7 +47,7 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell
-        self.shell = InteractiveShell(parent, namespace, commands, message,
+        self.shell = InternalShell(parent, namespace, commands, message,
                                       CONF.get(self.ID, 'max_line_count'),
                                       get_font(self.ID),
                                       debug, exitfunc, profile, multithreaded)
@@ -165,12 +165,13 @@ class Console(SpyderPluginWidget):
         rollbackimporter_action = create_action(self,
                 self.tr("Force modules to be completely reloaded"),
                 tip=self.tr("Force Python to reload modules imported when "
-                            "executing a script in the interactive console"),
+                            "executing a script in the internal console "
+                            "with the 'runfile' function"),
                 toggled=self.toggle_rollbackimporter)
         rollbackimporter_action.setChecked( CONF.get(self.ID,
                                                      'rollback_importer') )
         
-        option_menu = QMenu(self.tr("Interactive console settings"), self)
+        option_menu = QMenu(self.tr("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
@@ -251,7 +252,7 @@ class Console(SpyderPluginWidget):
             
     def edit_script(self, filename=None, goto=-1):
         """Edit script"""
-        # Called from InteractiveShell
+        # Called from InternalShell
         if not hasattr(self, 'main') \
            or not hasattr(self.main, 'editor'):
             self.shell.external_editor(filename, goto)

@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Interactive shell widget : PythonShellWidget + Interpreter"""
+"""Internal shell widget : PythonShellWidget + Interpreter"""
 
 # pylint: disable-msg=C0103
 # pylint: disable-msg=R0903
@@ -83,14 +83,16 @@ class WidgetProxy(QObject):
         self.emit(SIGNAL("edit(QString,bool)"), filename, external_editor)
 
 
-class InteractiveShell(PythonShellWidget):
+class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  max_line_count=300, font=None, debug=False, exitfunc=None,
-                 profile=False):
+                 profile=False, multithreaded=True):
         PythonShellWidget.__init__(self, parent,
                                    get_conf_path('.history_ic.py'),
                                    debug, profile)
+        
+        self.multithreaded = multithreaded
         
         self.setMaximumBlockCount(max_line_count)
         
@@ -98,7 +100,7 @@ class InteractiveShell(PythonShellWidget):
             self.set_font(font)
         
         # KeyboardInterrupt support
-        self.interrupted = False
+        self.interrupted = False # used only for not-multithreaded mode
         self.connect(self, SIGNAL("keyboard_interrupt()"),
                      self.keyboard_interrupt)
         
@@ -142,7 +144,8 @@ class InteractiveShell(PythonShellWidget):
                      SIGNAL("new_prompt(QString)"), self.new_prompt)
         self.connect(self.interpreter.widget_proxy,
                      SIGNAL("edit(QString,bool)"), self.edit_script)
-        self.interpreter.start()
+        if self.multithreaded:
+            self.interpreter.start()
         
         # interpreter banner
         banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
@@ -164,7 +167,8 @@ class InteractiveShell(PythonShellWidget):
     def exit_interpreter(self):
         """Exit interpreter"""
         self.interpreter.exit_flag = True
-        self.interpreter.stdin_write.write('\n')
+        if self.multithreaded:
+            self.interpreter.stdin_write.write('\n')
         
     def edit_script(self, filename, external_editor):
         filename = unicode(filename)
@@ -194,7 +198,7 @@ class InteractiveShell(PythonShellWidget):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
         self.help_action = create_action(self,
-                           translate("InteractiveShell", "Help..."),
+                           translate("InternalShell", "Help..."),
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
         self.menu.addAction(self.help_action)
@@ -202,7 +206,7 @@ class InteractiveShell(PythonShellWidget):
     def help(self):
         """Help on Spyder console"""
         QMessageBox.about(self,
-            translate("InteractiveShell", "Help"),
+            translate("InternalShell", "Help"),
             self.tr("""<b>%1</b>
             <p><i>%2</i><br>    edit foobar.py
             <p><i>%3</i><br>    xedit foobar.py
@@ -212,14 +216,14 @@ class InteractiveShell(PythonShellWidget):
             <p><i>%7</i><br>    object?
             <p><i>%8</i><br>    result = oedit(object)
             """) \
-            .arg(translate("InteractiveShell", 'Shell special commands:')) \
-            .arg(translate("InteractiveShell", 'Internal editor:')) \
-            .arg(translate("InteractiveShell", 'External editor:')) \
-            .arg(translate("InteractiveShell", 'Run script:')) \
-            .arg(translate("InteractiveShell", 'Remove references:')) \
-            .arg(translate("InteractiveShell", 'System commands:')) \
-            .arg(translate("InteractiveShell", 'Python help:')) \
-            .arg(translate("InteractiveShell", 'GUI-based editor:')) )
+            .arg(translate("InternalShell", 'Shell special commands:')) \
+            .arg(translate("InternalShell", 'Internal editor:')) \
+            .arg(translate("InternalShell", 'External editor:')) \
+            .arg(translate("InternalShell", 'Run script:')) \
+            .arg(translate("InternalShell", 'Remove references:')) \
+            .arg(translate("InternalShell", 'System commands:')) \
+            .arg(translate("InternalShell", 'Python help:')) \
+            .arg(translate("InternalShell", 'GUI-based editor:')) )
                 
                 
     #------ External editing
@@ -288,13 +292,16 @@ class InteractiveShell(PythonShellWidget):
     #------ Command execution
     def keyboard_interrupt(self):
         """Simulate keyboard interrupt"""
-        if self.interpreter.more:
-            self.write_error("\nKeyboardInterrupt\n")
-            self.interpreter.more = False
-            self.new_prompt(self.interpreter.p1)
-            self.interpreter.resetbuffer()
+        if self.multithreaded:
+            self.interpreter.raise_keyboard_interrupt()
         else:
-            self.interrupted = True
+            if self.interpreter.more:
+                self.write_error("\nKeyboardInterrupt\n")
+                self.interpreter.more = False
+                self.new_prompt(self.interpreter.p1)
+                self.interpreter.resetbuffer()
+            else:
+                self.interrupted = True
 
     def execute_lines(self, lines):
         """
@@ -330,6 +337,8 @@ class InteractiveShell(PythonShellWidget):
             if history:
                 self.add_to_history(cmd)
         self.interpreter.stdin_write.write(cmd + '\n')
+        if not self.multithreaded:
+            self.interpreter.run_line()
     
     
     #------ Code completion / Calltips
