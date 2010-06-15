@@ -22,7 +22,7 @@ from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
                 monitor_get_globals_keys)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
-from spyderlib.utils import encoding
+from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
@@ -226,18 +226,8 @@ class NamespaceBrowser(QWidget):
             error_message = None
             try:
                 text, _encoding = encoding.read(self.filename)
-                varname_base = self.tr("new")
-                try:
-                    varname_base = str(varname_base)
-                except UnicodeEncodeError:
-                    varname_base = unicode(varname_base)
-                get_varname = lambda index: varname_base + ("%03d" % index)
-                index = 0
-                names = monitor_get_globals_keys(sock)
-                while get_varname(index) in names:
-                    index += 1
                 editor = ImportWizard(self, text, title=self.filename,
-                                      varname=get_varname(index))
+                                      varname=fix_reference_name(self.filename))
                 if editor.exec_():
                     var_name, clip_data = editor.get_data()
                     monitor_set_global(sock, var_name, clip_data)

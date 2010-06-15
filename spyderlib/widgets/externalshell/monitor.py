@@ -6,7 +6,7 @@ import threading, socket, traceback, thread, StringIO, pickle, struct
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type
-from spyderlib.utils import select_port
+from spyderlib.utils import select_port, fix_reference_name
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
 from spyderlib.utils.iofuncs import iofunctions
@@ -209,6 +209,10 @@ class Monitor(threading.Thread):
         data, error_message = iofunctions.load(filename)
         if error_message:
             return error_message
+        for key in data.keys():
+            new_key = fix_reference_name(key, blacklist=glbs.keys())
+            if new_key != key:
+                data[new_key] = data.pop(key)
         try:
             glbs.update(data)
         except Exception, error:

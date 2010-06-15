@@ -26,6 +26,7 @@ from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 
 # Local import
 from spyderlib.config import get_icon, get_font
+from spyderlib.utils import fix_reference_name
 from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
                                        qapplication)
 from spyderlib.widgets.texteditor import TextEditor
@@ -935,22 +936,12 @@ class DictEditorTableView(BaseTableView):
     
     def import_from_string(self, text, title=None):
         """Import data from string"""
-#        if isinstance(text, basestring):
-#            text = QString(text)
         data = self.model.get_data()
-        varname_base = translate("DictEditor", "new")
-        try:
-            varname_base = str(varname_base)
-        except UnicodeEncodeError:
-            varname_base = unicode(varname_base)
-        get_varname = lambda index: varname_base + ("%03d" % index)
-        index = 0
-        while get_varname(index) in data:
-            index += 1
         editor = ImportWizard(self, text, title=title,
                               contents_title=translate("DictEditor",
                                                        "Clipboard contents"),
-                              varname=get_varname(index))
+                              varname=fix_reference_name("data",
+                                                         blacklist=data.keys()))
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             data[var_name] = clip_data
