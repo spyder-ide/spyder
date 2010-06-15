@@ -164,6 +164,7 @@ class MainWindow(QMainWindow):
         
         self.debug = options.debug
         self.profile = options.profile
+        self.multithreaded = options.multithreaded
         self.light = options.light
         
         self.debug_print("Start of MainWindow constructor")
@@ -366,7 +367,8 @@ class MainWindow(QMainWindow):
             
             # Internal console widget
             self.console = Console(self, namespace, debug=self.debug,
-                                   exitfunc=self.closing, profile=self.profile)
+                                   exitfunc=self.closing, profile=self.profile,
+                                   multithreaded=self.multithreaded)
             self.connect(self.console, SIGNAL('focus_changed()'),
                          self.plugin_focus_changed)
             self.add_dockwidget(self.console)
@@ -1219,6 +1221,10 @@ def get_options():
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
+    parser.add_option('--onethread', dest="multithreaded",
+                      action='store_false', default=True,
+                      help="Internal console run in the same thread as main "
+                           "application")
     parser.add_option('--profile', dest="profile", action='store_true',
                       default=False,
                       help="Profile mode (internal test, "

@@ -6,7 +6,8 @@
 
 """Shell Interpreter"""
 
-import __builtin__, sys, atexit, threading, os, re, os.path as osp, pydoc
+import __builtin__, sys, atexit, threading, ctypes
+import os, re, os.path as osp, pydoc
 from subprocess import Popen, PIPE
 from code import InteractiveConsole
 
@@ -93,6 +94,8 @@ class Interpreter(InteractiveConsole, threading.Thread):
         """
         InteractiveConsole.__init__(self, namespace)
         threading.Thread.__init__(self)
+        
+        self._id = None
         
         self.exit_flag = False
         self.debug = debug
@@ -259,9 +262,28 @@ has the same effect as typing a particular string at the help> prompt.
     def run(self):
         """Wait for input and run it"""
         while not self.exit_flag:
-            line = self.stdin_read.readline()
-            # Remove last character which is always '\n':
-            self.run_command(line[:-1])
+            self.run_line()
+            
+    def run_line(self):
+        line = self.stdin_read.readline()
+        # Remove last character which is always '\n':
+        self.run_command(line[:-1])
+        
+    def get_thread_id(self):
+        """Return thread id"""
+        if self._id is None:
+            for thread_id, obj in threading._active.items():
+                if obj is self:
+                    self._id = thread_id
+        return self._id
+        
+    def raise_keyboard_interrupt(self):
+        if self.isAlive():
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(self.get_thread_id(),
+                                           ctypes.py_object(KeyboardInterrupt))
+            return True
+        else:
+            return False
             
             
     def closing(self):

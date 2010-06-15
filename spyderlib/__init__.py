@@ -50,4 +50,8 @@ __license__ = __doc__
 
 #TODO: add a plugin "Namespace browser"
 
-#FIXME: Ctrl+F does not work with --light option
+#TODO: Add an option to switch threading in Internal console
+
+#FIXME: Namespace Browser: right click on an empty namespace browser: bug!
+
+#FIXME: Internal console MT: for i in range(100000): print i -> bug

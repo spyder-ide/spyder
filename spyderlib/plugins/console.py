@@ -45,12 +45,12 @@ class Console(SpyderPluginWidget):
     """
     ID = 'shell'
     def __init__(self, parent=None, namespace=None, commands=[], message="",
-                 debug=False, exitfunc=None, profile=False):
+                 debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell
         self.shell = InteractiveShell(parent, namespace, commands, message,
                                       CONF.get(self.ID, 'max_line_count'),
                                       get_font(self.ID),
-                                      debug, exitfunc, profile)
+                                      debug, exitfunc, profile, multithreaded)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:
                      self.emit(SIGNAL('show_message(QString,int)'), msg, 0))
