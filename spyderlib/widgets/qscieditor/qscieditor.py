@@ -1103,8 +1103,8 @@ class QsciEditor(TextEditBaseWidget):
                             w.show()
             
     def mousePressEvent(self, event):
-        """Reimplement Qt method"""
-        if event.button() == Qt.MidButton:
+        """Reimplement Qt method only on non-linux platforms"""
+        if os.name != 'posix' and event.button() == Qt.MidButton:
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
