@@ -14,6 +14,7 @@ from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
                                           value_to_display, globalsfilter)
 
+DEBUG = False
 
 def get_remote_data(data, settings, more_excluded_names=None):
     """Return globals according to filter described in *settings*"""
@@ -271,6 +272,15 @@ class Monitor(threading.Thread):
             except StandardError:
                 out = StringIO.StringIO()
                 traceback.print_exc(file=out)
+                if DEBUG:
+                    from spyderlib.config import get_conf_path
+                    import time
+                    errors = open(get_conf_path('monitor_errors.txt'), 'a')
+                    print >>errors, "*"*5, time.ctime(time.time()), "*"*49
+                    print >>errors, "command:", command
+                    print >>errors, "error:"
+                    traceback.print_exc(file=errors)
+                    print >>errors, " "
                 data = out.getvalue()
                 write_packet(self.request, data)
 
