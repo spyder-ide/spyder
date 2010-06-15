@@ -29,7 +29,8 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QColor, QFileDialog)
+                         QMessageBox, QMenu, QColor, QFileDialog, QShortcut,
+                         QKeySequence)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QSize, QByteArray)
 
@@ -288,9 +289,11 @@ class MainWindow(QMainWindow):
     def setup(self):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
-        if not self.light:
+        if self.light:
+            QShortcut(QKeySequence("Ctrl+F"), self, self.find)
+        else:
             _text = translate("FindReplace", "Find text")
-            self.find_action = create_action(self, _text,"Ctrl+F", 'find.png',
+            self.find_action = create_action(self, _text, "Ctrl+F", 'find.png',
                                              _text, triggered=self.find)
             self.find_next_action = create_action(self, translate("FindReplace",
                   "Find next"), "F3", 'findnext.png', triggered=self.find_next)
@@ -561,6 +564,7 @@ class MainWindow(QMainWindow):
         self.extconsole = ExternalConsole(self)
         if self.light:
             self.setCentralWidget(self.extconsole)
+            self.widgetlist.append(self.extconsole)
         else:
             self.extconsole.set_inspector(self.inspector)
             self.extconsole.set_historylog(self.historylog)
@@ -1034,6 +1038,8 @@ class MainWindow(QMainWindow):
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
         console, extconsole, editor, inspector or historylog"""
+        if self.light:
+            return self.extconsole
         widget = QApplication.focusWidget()
         from spyderlib.widgets.editor import TextEditBaseWidget
         from spyderlib.widgets.shell import ShellBaseWidget
