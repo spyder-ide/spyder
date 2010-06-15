@@ -279,8 +279,9 @@ class NamespaceBrowser(QWidget):
             error_message = None
             try:
                 text, _encoding = encoding.read(self.filename)
-                editor = ImportWizard(self, text, title=self.filename,
-                                      varname=fix_reference_name(self.filename))
+                base_name = osp.basename(self.filename)
+                editor = ImportWizard(self, text, title=base_name,
+                                      varname=fix_reference_name(base_name))
                 if editor.exec_():
                     var_name, clip_data = editor.get_data()
                     monitor_set_global(sock, var_name, clip_data)
