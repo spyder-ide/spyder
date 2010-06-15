@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread, StringIO, pickle, struct
+import threading, socket, traceback, thread, StringIO, struct
+import cPickle as pickle
 
 from PyQt4.QtCore import QThread, SIGNAL
 
@@ -116,6 +117,11 @@ def monitor_copy_global(sock, orig_name, new_name):
                                                                    new_name))
     read_packet(sock)
 
+def monitor_is_array(sock, name):
+    """Return True if object is an instance of class numpy.ndarray"""
+    return communicate(sock, 'is_array(globals(), "%s")' % name,
+                       pickle_try=True)
+
 
 def _getcdlistdir():
     """Return current directory list dir"""
@@ -133,6 +139,7 @@ class Monitor(threading.Thread):
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
                        "getobjdir": getobjdir,
+                       "is_array": self.is_array,
                        "getcomplist": self.getcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
@@ -152,6 +159,11 @@ class Monitor(threading.Thread):
                        "__load_globals__": self.loadglobals,
                        "_" : None}
 
+    def is_array(self, glbs, name):
+        """Return True if object is an instance of class numpy.ndarray"""
+        import numpy
+        return isinstance(glbs[name], numpy.ndarray)
+    
     def getcomplist(self, name):
         """Return completion list for object named *name*
         IPython only"""

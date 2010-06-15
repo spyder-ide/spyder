@@ -20,7 +20,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_get_globals_keys)
+                monitor_get_globals_keys, monitor_is_array, communicate)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
 from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
@@ -65,13 +65,17 @@ class NamespaceBrowser(QWidget):
         minmax = CONF.get(self.ID, 'minmax')
         collvalue = CONF.get(self.ID, 'collvalue')
         self.editor = RemoteDictEditorTableView(parent, None,
-                                        truncate=truncate, inplace=inplace,
-                                        minmax=minmax, collvalue=collvalue,
-                                        get_value_func=self.get_value,
-                                        set_value_func=self.set_value,
-                                        new_value_func=self.set_value,
-                                        remove_values_func=self.remove_values,
-                                        copy_value_func=self.copy_value)
+                truncate=truncate, inplace=inplace, minmax=minmax,
+                collvalue=collvalue, get_value_func=self.get_value,
+                set_value_func=self.set_value, new_value_func=self.set_value,
+                remove_values_func=self.remove_values,
+                copy_value_func=self.copy_value,
+                is_list_func=self.is_list, get_len_func=self.get_len,
+                is_array_func=self.is_array, is_dict_func=self.is_dict,
+                get_array_shape_func=self.get_array_shape,
+                get_array_ndim_func=self.get_array_ndim,
+                oedit_func=self.oedit,
+                plot_func=self.plot, imshow_func=self.imshow)
         self.connect(self.editor, SIGNAL('option_changed'), self.option_changed)
         
         # Setup layout
@@ -184,6 +188,55 @@ class NamespaceBrowser(QWidget):
         sock = self.shell.monitor_socket
         monitor_copy_global(sock, orig_name, new_name)
         self.refresh_table()
+        
+    def is_list(self, name):
+        """Return True if variable is a list or a tuple"""
+        return communicate(self.shell.monitor_socket,
+                           "isinstance(globals()['%s'], (tuple, list))" % name,
+                           pickle_try=True)
+        
+    def is_dict(self, name):
+        """Return True if variable is a dictionary"""
+        return communicate(self.shell.monitor_socket,
+                           "isinstance(globals()['%s'], dict)" % name,
+                           pickle_try=True)
+        
+    def get_len(self, name):
+        """Return sequence length"""
+        return communicate(self.shell.monitor_socket,
+                           "len(globals()['%s'])" % name,
+                           pickle_try=True)
+        
+    def is_array(self, name):
+        """Return True if variable is a NumPy array"""
+        return monitor_is_array(self.shell.monitor_socket, name)
+        
+    def get_array_shape(self, name):
+        """Return array's shape"""
+        return communicate(self.shell.monitor_socket,
+                           "globals()['%s'].shape" % name,
+                           pickle_try=True)
+        
+    def get_array_ndim(self, name):
+        """Return array's ndim"""
+        return communicate(self.shell.monitor_socket,
+                           "globals()['%s'].ndim" % name,
+                           pickle_try=True)
+        
+    def plot(self, name):
+        command = "import spyderlib.pyplot as plt; " \
+                  "plt.figure(); plt.plot(%s); plt.show();" % name
+        self.shell.send_to_process(command)
+        
+    def imshow(self, name):
+        command = "import spyderlib.pyplot as plt; " \
+                  "plt.figure(); plt.imshow(%s); plt.show();" % name
+        self.shell.send_to_process(command)
+        
+    def oedit(self, name):
+        command = "from spyderlib.widgets.objecteditor import oedit; " \
+                  "oedit(%s);" % name
+        self.shell.send_to_process(command)
         
     def set_data(self, data):
         self.editor.set_data(data)

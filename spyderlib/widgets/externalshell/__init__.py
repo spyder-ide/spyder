@@ -253,7 +253,7 @@ def test():
     from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     import spyderlib
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                ipython=True, arguments="-colors LightBG")
+                                ipython=True, arguments="-q4thread -pylab -colors LightBG")
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
 #                                interact=True)
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))

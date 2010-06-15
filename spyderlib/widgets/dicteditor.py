@@ -605,6 +605,56 @@ class BaseTableView(QTableView):
         add_actions(menu, menu_actions)
         return menu
     
+    #------ Remote/local API ---------------------------------------------------
+    def remove_values(self, keys):
+        """Remove values from data"""
+        raise NotImplementedError
+
+    def copy_value(self, orig_key, new_key):
+        """Copy value"""
+        raise NotImplementedError
+    
+    def new_value(self, key, value):
+        """Create new value in data"""
+        raise NotImplementedError
+        
+    def is_list(self, key):
+        """Return True if variable is a list or a tuple"""
+        raise NotImplementedError
+        
+    def get_len(self, key):
+        """Return sequence length"""
+        raise NotImplementedError
+        
+    def is_array(self, key):
+        """Return True if variable is a numpy array"""
+        raise NotImplementedError
+    
+    def is_dict(self, key):
+        """Return True if variable is a dictionary"""
+        raise NotImplementedError
+        
+    def get_array_shape(self, key):
+        """Return array's shape"""
+        raise NotImplementedError
+        
+    def get_array_ndim(self, key):
+        """Return array's ndim"""
+        raise NotImplementedError
+    
+    def oedit(self, key):
+        """Edit item"""
+        raise NotImplementedError
+    
+    def plot(self, key):
+        """Plot item"""
+        raise NotImplementedError
+    
+    def imshow(self, key):
+        """Show item's image"""
+        raise NotImplementedError
+    #---------------------------------------------------------------------------
+            
     def refresh_menu(self):
         """Refresh context menu"""
         index = self.currentIndex()
@@ -615,11 +665,11 @@ class BaseTableView(QTableView):
         
     def refresh_plot_entries(self, index):
         if index.isValid():
-            value = self.delegate.get_value(index)
-            is_list = isinstance(value, (tuple, list))
-            is_array = isinstance(value, ndarray) and len(value) != 0
-            condition_plot = (is_array and len(value.shape) <= 2)
-            condition_imshow = condition_plot and value.ndim == 2
+            key = self.model.get_key(index)
+            is_list = self.is_list(key)
+            is_array = self.is_array(key) and self.get_len(key) != 0
+            condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
+            condition_imshow = condition_plot and self.get_array_ndim(key) == 2
         else:
             is_array = condition_plot = condition_imshow = False
         self.plot_action.setVisible(condition_plot or is_list)
@@ -651,6 +701,14 @@ class BaseTableView(QTableView):
                 QTableView.mousePressEvent(self, event)
         else:
             self.clearSelection()
+            event.accept()
+    
+    def mouseDoubleClickEvent(self, event):
+        """Reimplement Qt method"""
+        index_clicked = self.indexAt(event.pos())
+        if index_clicked.isValid():
+            self.edit_item()
+        else:
             event.accept()
     
     def keyPressEvent(self, event):
@@ -702,7 +760,11 @@ class BaseTableView(QTableView):
         index = self.currentIndex()
         if not index.isValid():
             return
-        self.edit(index)
+        key = self.model.get_key(index)
+        if self.is_list(key) or self.is_dict(key) or self.is_array(key):
+            self.oedit(key)
+        else:
+            self.edit(index)
     
     def remove_item(self):
         """Remove item"""
@@ -796,11 +858,9 @@ class BaseTableView(QTableView):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            from pylab import plot, show
-            data = self.delegate.get_value(index)
+            key = self.model.get_key(index)
             try:
-                plot(data)
-                show()
+                self.plot(key)
             except ValueError, error:
                 QMessageBox.critical(self, translate("DictEditor", "Plot"),
                     translate("DictEditor", "<b>Unable to plot data.</b>"
@@ -810,11 +870,9 @@ class BaseTableView(QTableView):
         """Imshow item"""
         index = self.currentIndex()
         if self.__prepare_plot():
-            from pylab import imshow, show
-            data = self.delegate.get_value(index)
+            key = self.model.get_key(index)
             try:
-                imshow(data)
-                show()
+                self.imshow(key)
             except ValueError, error:
                 QMessageBox.critical(self, translate("DictEditor", "Plot"),
                     translate("DictEditor", "<b>Unable to show image.</b>"
@@ -875,34 +933,79 @@ class DictEditorTableView(BaseTableView):
         self.empty_ws_menu = QMenu(self)
         self.empty_ws_menu.addAction(self.paste_action)
     
+    #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
-        """
-        Remove values from data
-        (implemented differently for remote table view)
-        """
+        """Remove values from data"""
         data = self.model.get_data()
         for key in sorted(keys,reverse=True):
             data.pop(key)
             self.set_data(data)
 
     def copy_value(self, orig_key, new_key):
-        """
-        Copy value
-        (implemented differently for remote table view)
-        """
+        """Copy value"""
         data = self.model.get_data()
         data[new_key] = data[orig_key]
         self.set_data(data)
     
     def new_value(self, key, value):
-        """
-        Create new value in data
-        (implemented differently for remote table view)
-        """
+        """Create new value in data"""
         data = self.model.get_data()
         data[key] = value
         self.set_data(data)
-            
+        
+    def is_list(self, key):
+        """Return True if variable is a list or a tuple"""
+        data = self.model.get_data()
+        return isinstance(data[key], (tuple, list))
+        
+    def get_len(self, key):
+        """Return sequence length"""
+        data = self.model.get_data()
+        return len(data[key])
+        
+    def is_array(self, key):
+        """Return True if variable is a numpy array"""
+        data = self.model.get_data()
+        return isinstance(data[key], ndarray)
+    
+    def is_dict(self, key):
+        """Return True if variable is a dictionary"""
+        data = self.model.get_data()
+        return isinstance(data[key], dict)
+        
+    def get_array_shape(self, key):
+        """Return array's shape"""
+        data = self.model.get_data()
+        return data[key].shape
+        
+    def get_array_ndim(self, key):
+        """Return array's ndim"""
+        data = self.model.get_data()
+        return data[key].ndim
+    
+    def oedit(self, key):
+        """Edit item"""
+        data = self.model.get_data()
+        from spyderlib.widgets.objecteditor import oedit
+        oedit(data[key])
+    
+    def plot(self, key):
+        """Plot item"""
+        data = self.model.get_data()
+        import spyderlib.pyplot as plt
+        plt.figure()
+        plt.plot(data[key])
+        plt.show()
+    
+    def imshow(self, key):
+        """Show item's image"""
+        data = self.model.get_data()
+        import spyderlib.pyplot as plt
+        plt.figure()
+        plt.imshow(data[key])
+        plt.show()
+    #---------------------------------------------------------------------------
+        
     def refresh_menu(self):
         """Refresh context menu"""
         data = self.model.get_data()
@@ -1070,12 +1173,25 @@ class RemoteDictEditorTableView(BaseTableView):
                  truncate=True, minmax=False, inplace=False, collvalue=True,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
-                 copy_value_func=None):
+                 copy_value_func=None, is_list_func=None,
+                 get_len_func=None, is_array_func=None, is_dict_func=None,
+                 get_array_shape_func=None, get_array_ndim_func=None,
+                 oedit_func=None, plot_func=None, imshow_func=None):
         BaseTableView.__init__(self, parent)
         
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
         self.new_value = new_value_func
+        
+        self.is_list = is_list_func
+        self.get_len = get_len_func
+        self.is_array = is_array_func
+        self.is_dict = is_dict_func
+        self.get_array_shape = get_array_shape_func
+        self.get_array_ndim = get_array_ndim_func
+        self.oedit = oedit_func
+        self.plot = plot_func
+        self.imshow = imshow_func
         
         self.dictfilter = None
         self.model = None
