@@ -523,6 +523,8 @@ class BaseTableView(QTableView):
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
+        self.menu = None
+        self.empty_ws_menu = None
         
     def setup_table(self):
         """Setup table"""
@@ -534,6 +536,17 @@ class BaseTableView(QTableView):
     
     def setup_menu(self, truncate, minmax, inplace, collvalue):
         """Setup context menu"""
+        self.empty_ws_menu = QMenu(self)
+        self.paste_action = create_action(self,
+                                      translate("DictEditor", "Paste"),
+                                      icon=get_icon('editpaste.png'),
+                                      triggered=self.paste)
+        self.empty_ws_menu.addAction(self.paste_action)
+        
+        self.copy_action = create_action(self,
+                                      translate("DictEditor", "Copy"),
+                                      icon=get_icon('editcopy.png'),
+                                      triggered=self.copy)                                      
         self.edit_action = create_action(self, 
                                       translate("DictEditor", "Edit"),
                                       icon=get_icon('edit.png'),
@@ -595,10 +608,10 @@ class BaseTableView(QTableView):
                                     triggered=self.duplicate_item)
         menu = QMenu(self)
         menu_actions = [self.edit_action, self.plot_action, self.imshow_action,
-                        self.save_array_action,
-                        self.insert_action, self.remove_action, None,
-                        self.rename_action,self.duplicate_action, None,
-                        self.truncate_action, self.inplace_action,
+                        self.save_array_action, self.insert_action,
+                        self.remove_action, self.copy_action, self.paste_action,
+                        None, self.rename_action,self.duplicate_action,
+                        None, self.truncate_action, self.inplace_action,
                         self.collvalue_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
@@ -671,7 +684,7 @@ class BaseTableView(QTableView):
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
         else:
-            is_array = condition_plot = condition_imshow = False
+            is_array = condition_plot = condition_imshow = is_list = False
         self.plot_action.setVisible(condition_plot or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
@@ -718,6 +731,9 @@ class BaseTableView(QTableView):
             event.accept()
         elif event.key() == Qt.Key_F2:
             self.rename_item()
+            event.accept()
+        elif event == QKeySequence.Copy:
+            self.copy()
             event.accept()
         elif event == QKeySequence.Paste:
             self.paste()
@@ -897,6 +913,43 @@ class BaseTableView(QTableView):
                 QMessageBox.critical(self, title,
                      translate('DictEditor', "<b>Unable to save array</b>"
                                "<br><br>Error message:<br>%1").arg(str(error)))
+    def copy(self):
+        """Copy text to clipboard"""
+        clipboard = QApplication.clipboard()
+        clipl = []
+        for idx in self.selectedIndexes():
+            if not idx.isValid:
+                continue
+            clipl.append(unicode(self.delegate.get_value(idx)))
+        clipboard.setText(u'\n'.join(clipl))
+    
+    def import_from_string(self, text, title=None):
+        """Import data from string"""
+        data = self.model.get_data()
+        editor = ImportWizard(self, text, title=title,
+                              contents_title=translate("DictEditor",
+                                                       "Clipboard contents"),
+                              varname=fix_reference_name("data",
+                                                         blacklist=data.keys()))
+        if editor.exec_():
+            var_name, clip_data = editor.get_data()
+            self.new_value(var_name, clip_data)
+    
+    def paste(self):
+        """Import text/data/code from clipboard"""
+        clipboard = QApplication.clipboard()
+        cliptext = u""
+        if clipboard.mimeData().hasText():
+            cliptext = unicode(clipboard.text())
+        if cliptext.strip():
+            self.import_from_string(cliptext,
+                                    title=translate("DictEditor",
+                                                    "Import from clipboard"))
+        else:
+            QMessageBox.warning(self,
+                                translate("DictEditor", "Empty clipboard"),
+                                translate("DictEditor", "Nothing to be imported"
+                                          " from clipboard."))
         
 
 class DictEditorTableView(BaseTableView):
@@ -919,19 +972,6 @@ class DictEditorTableView(BaseTableView):
 
         self.setup_table()
         self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
-        self.copy_action = create_action(self,
-                                      translate("DictEditor", "Copy"),
-                                      icon=get_icon('editcopy.png'),
-                                      triggered=self.copy)                                      
-        self.paste_action = create_action(self,
-                                      translate("DictEditor", "Paste"),
-                                      icon=get_icon('editpaste.png'),
-                                      triggered=self.paste)
-        self.menu.insertAction(self.remove_action, self.copy_action)
-        self.menu.insertAction(self.remove_action, self.paste_action)
-        
-        self.empty_ws_menu = QMenu(self)
-        self.empty_ws_menu.addAction(self.paste_action)
     
     #------ Remote/local API ---------------------------------------------------
     def remove_values(self, keys):
@@ -1020,51 +1060,6 @@ class DictEditorTableView(BaseTableView):
     def set_filter(self, dictfilter=None):
         """Set table dict filter"""
         self.dictfilter = dictfilter
-
-    def copy(self):
-        """Copy text to clipboard"""
-        clipboard = QApplication.clipboard()
-        data = self.model.get_data()
-        clipl = []
-        for idx in self.selectedIndexes():
-            if not idx.isValid:
-                continue
-            _txt = u''
-            if isinstance(data,dict):
-                _txt = unicode(data.get(self.model.keys[idx.row()]))
-            else:
-                _txt = unicode(data[idx.row()])
-            clipl.append(_txt)
-        clipboard.setText(u'\n'.join(clipl))
-    
-    def import_from_string(self, text, title=None):
-        """Import data from string"""
-        data = self.model.get_data()
-        editor = ImportWizard(self, text, title=title,
-                              contents_title=translate("DictEditor",
-                                                       "Clipboard contents"),
-                              varname=fix_reference_name("data",
-                                                         blacklist=data.keys()))
-        if editor.exec_():
-            var_name, clip_data = editor.get_data()
-            data[var_name] = clip_data
-            self.set_data(data)
-    
-    def paste(self):
-        """Import text/data/code from clipboard"""
-        clipboard = QApplication.clipboard()
-        cliptext = u""
-        if clipboard.mimeData().hasText():
-            cliptext = unicode(clipboard.text())
-        if cliptext.strip():
-            self.import_from_string(cliptext,
-                                    title=translate("DictEditor",
-                                                    "Import from clipboard"))
-        else:
-            QMessageBox.warning(self,
-                                translate("DictEditor", "Empty clipboard"),
-                                translate("DictEditor", "Nothing to be imported"
-                                          " from clipboard."))
 
 
 class DictEditorWidget(QWidget):
