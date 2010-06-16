@@ -48,7 +48,7 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
-#FIXME: Namespace Browser: right click on an empty namespace browser: bug!
+#FIXME: IPython // Big bug with PyQt file dialogs: open/save/...
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 

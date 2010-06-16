@@ -3603,7 +3603,7 @@ Souhaitez-vous continuer ?</translation>
     <message>
         <location filename="plugins/namespacebrowser.py" line="62"/>
         <source>Namespace browser</source>
-        <translation>Espaces de noms</translation>
+        <translation type="obsolete">Espaces de noms</translation>
     </message>
 </context>
 <context>
@@ -4543,6 +4543,14 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <location filename="widgets/texteditor.py" line="49"/>
         <source>Text editor</source>
         <translation>Éditeur de texte</translation>
+    </message>
+</context>
+<context>
+    <name>VariableExplorer</name>
+    <message>
+        <location filename="plugins/variableexplorer.py" line="62"/>
+        <source>Variable explorer</source>
+        <translation>Explorateur de variables</translation>
     </message>
 </context>
 <context>

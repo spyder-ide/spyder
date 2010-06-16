@@ -16,14 +16,14 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.config import CONF
 from spyderlib.plugins import SpyderPluginMixin
-from spyderlib.widgets.externalshell import namespacebrowser
+from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 
 
-class NamespaceBrowser(QStackedWidget, SpyderPluginMixin):
+class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     """
-    Namespace Browser Plugin
+    Variable Explorer Plugin
     """
-    ID = 'namespace_browser'
+    ID = 'variable_explorer'
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
@@ -32,7 +32,7 @@ class NamespaceBrowser(QStackedWidget, SpyderPluginMixin):
     #------ Public API ---------------------------------------------------------
     def add_shell(self, shell):
         shell_id = id(shell)
-        nsb = namespacebrowser.NamespaceBrowser(self)
+        nsb = NamespaceBrowser(self)
         nsb.set_shell(shell)
         self.addWidget(nsb)
         self.shells[shell_id] = nsb
@@ -58,7 +58,7 @@ class NamespaceBrowser(QStackedWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Namespace browser')
+        return self.tr('Variable explorer')
     
     def get_focus_widget(self):
         """

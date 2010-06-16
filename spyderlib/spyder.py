@@ -54,7 +54,7 @@ except ImportError:
     OnlineHelp = None
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
-from spyderlib.plugins.namespacebrowser import NamespaceBrowser
+from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.pylintgui import Pylint
@@ -214,7 +214,7 @@ class MainWindow(QMainWindow):
         self.projectexplorer = None
         self.historylog = None
         self.extconsole = None
-        self.namespacebrowser = None
+        self.variableexplorer = None
         self.findinfiles = None
         self.pylint = None
         
@@ -587,9 +587,9 @@ class MainWindow(QMainWindow):
 
             # Namespace browser
             self.set_splash(self.tr("Loading namespace browser..."))
-            self.namespacebrowser = NamespaceBrowser(self)
-            self.extconsole.set_namespacebrowser(self.namespacebrowser)
-            self.add_dockwidget(self.namespacebrowser)
+            self.variableexplorer = VariableExplorer(self)
+            self.extconsole.set_variableexplorer(self.variableexplorer)
+            self.add_dockwidget(self.variableexplorer)
 
         self.extconsole.open_interpreter_at_startup()
             
@@ -694,8 +694,8 @@ class MainWindow(QMainWindow):
                                          orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
-                                  (self.inspector, self.namespacebrowser),
-                                  (self.namespacebrowser, self.onlinehelp),
+                                  (self.inspector, self.variableexplorer),
+                                  (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
                                   (self.findinfiles, self.pylint),
@@ -761,7 +761,7 @@ class MainWindow(QMainWindow):
         shell = self.__focus_shell()
         if shell is not None and self.inspector is not None:
             self.inspector.set_shell(shell)
-            self.namespacebrowser.set_shell(shell.parent())
+            self.variableexplorer.set_shell(shell.parent())
         
     def update_file_menu(self):
         """Update file menu"""
