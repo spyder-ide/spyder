@@ -38,8 +38,9 @@ class ExternalConsole(SpyderPluginWidget):
     Console widget
     """
     ID = 'external_shell'
-    def __init__(self, parent, commands=[]):
-        self.commands = commands
+    def __init__(self, parent, light_mode):
+        self.light_mode = light_mode
+        self.commands = []
         self.tabwidget = None
         self.menu_actions = None
         self.inspector = None
@@ -180,7 +181,7 @@ class ExternalConsole(SpyderPluginWidget):
         if python:
             shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
-                           arguments=arguments, stand_alone=False)
+                           arguments=arguments, stand_alone=self.light_mode)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shell(shell_widget)
         else:

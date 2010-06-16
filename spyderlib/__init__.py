@@ -30,6 +30,9 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '2.0alpha1'
 __license__ = __doc__
 
+#TODO: Find in files: remember include/exclude regexp and radio btn selection
+#      --> is "hg repository" choice still necessary???
+
 #TODO: workdir is gone: "Set as working directory" editor's feature -> reimplement to 
 # support current external console
 #            self.connect(self.editor, SIGNAL("open_dir(QString)"),

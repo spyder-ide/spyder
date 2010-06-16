@@ -565,7 +565,7 @@ class MainWindow(QMainWindow):
         # External console menu
         if not self.light:
             self.set_splash(self.tr("Loading external console..."))
-        self.extconsole = ExternalConsole(self)
+        self.extconsole = ExternalConsole(self, light_mode=self.light)
         if self.light:
             self.setCentralWidget(self.extconsole)
             self.widgetlist.append(self.extconsole)
