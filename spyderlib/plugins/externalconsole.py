@@ -136,9 +136,9 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget = self.__find_python_shell()
         if shellwidget is not None:
             if shellwidget.ipython:
-                line = "run '%s'" % unicode(filename)
+                line = "run r'%s'" % unicode(filename)
             else:
-                line = "execfile('%s')" % unicode(filename)
+                line = "runfile(r'%s')" % unicode(filename)
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()
         

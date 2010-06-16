@@ -38,6 +38,30 @@ def __remove_sys_argv__():
     import sys
     sys.argv = ['']
 
+#from spyderlib.interpreter import RollbackImporter
+#__rollback_importer__ = None
+
+def runfile(filename, args=None):
+    """
+    Run filename
+    args: command line arguments (string)
+    """
+#    global __rollback_importer__
+#    if __rollback_importer__ is not None:
+#        __rollback_importer__.uninstall()
+#    __rollback_importer__ = RollbackImporter()
+    if args is not None and not isinstance(args, basestring):
+        raise TypeError("expected a character buffer object")
+    glbs = globals()
+    glbs['__file__'] = filename
+    sys.argv = [filename]
+    if args is not None:
+        for arg in args.split():
+            sys.argv.append(arg)
+    execfile(filename, glbs)
+    sys.argv = ['']
+    glbs.pop('__file__')
+
 if __name__ == "__main__":
     if not __is_ipython():
         __remove_sys_argv__()

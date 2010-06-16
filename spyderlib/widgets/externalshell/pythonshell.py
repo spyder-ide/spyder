@@ -219,8 +219,10 @@ class ExternalPythonShell(ExternalShellBase):
             splitter.addWidget(self.shell)
             splitter.setCollapsible(0, False)
             splitter.addWidget(self.namespacebrowser)
-            splitter.setStretchFactor(0, 2)
-            splitter.setStretchFactor(1, 1)
+            splitter.setStretchFactor(0, 1)
+            splitter.setStretchFactor(1, 0)
+            splitter.setHandleWidth(5)
+            splitter.setSizes([2, 1])
             return splitter
         else:
             return self.shell
