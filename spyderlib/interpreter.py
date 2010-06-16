@@ -20,7 +20,7 @@ from spyderlib.utils import encoding
 STDOUT, STDERR = sys.stdout, sys.stderr
 
 
-def is_module_blacklisted(module, pathlist):
+def is_module_blacklisted(module, pathlist=[]):
     """Return True if module path starts with one of the path in pathlist"""
     modpath = getattr(module, '__file__', None)
     if modpath is None:
@@ -33,7 +33,7 @@ def is_module_blacklisted(module, pathlist):
     else:
         return False
 
-class RollbackImporter:
+class RollbackImporter(object):
     """
     Rollback importer is derived from:
         PyUnit (Steve Purcell)
@@ -55,7 +55,8 @@ class RollbackImporter:
         blacklist = CONF.get('shell', 'rollback_importer/blacklist')
         for name in self.new_modules:
             if name not in self.previous_modules and name in sys.modules \
-               and not is_module_blacklisted(sys.modules[name], blacklist):
+               and not is_module_blacklisted(sys.modules[name]) \
+               and not name.split('.')[0] in blacklist:
                 try:
                     # Force reload when modname next imported
                     del sys.modules[name]
