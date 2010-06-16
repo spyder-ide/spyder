@@ -14,7 +14,7 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QFileDialog
-from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
+from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt, QTimer
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
@@ -119,8 +119,12 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[],
-                 ipython=False, arguments=None):
+                 ipython=False, arguments=None, stand_alone=True):
+        self.namespacebrowser = None # namespace browser widget!
+        
         self.fname = startup.__file__ if fname is None else fname
+        
+        self.stand_alone = stand_alone
         
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -128,6 +132,9 @@ class ExternalPythonShell(ExternalShellBase):
         
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history_ec.py')
+
+        self.nsb_timer = QTimer(self) # Namespace browser auto-refresh timer
+        self.nsb_timer.setInterval(3000)
         
         if arguments is not None:
             assert isinstance(arguments, basestring)
@@ -154,9 +161,14 @@ class ExternalPythonShell(ExternalShellBase):
         # Additional python path list
         self.path = path
         
+    def closeEvent(self, event):
+        ExternalShellBase.closeEvent(self, event)
+        self.disconnect(self.nsb_timer, SIGNAL("timeout()"),
+                        self.namespacebrowser.refresh_table)
+        
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
-        if self.namespacebrowser_button is None:
+        if self.namespacebrowser_button is None and self.stand_alone:
             self.namespacebrowser_button = create_toolbutton(self,
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
@@ -174,8 +186,12 @@ class ExternalPythonShell(ExternalShellBase):
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
                                       "the user for any unsaved files, etc)."))        
-        return [self.cwd_button, self.namespacebrowser_button, self.run_button,
-                self.options_button, self.terminate_button, self.kill_button]
+        buttons = [self.cwd_button]
+        if self.namespacebrowser_button is not None:
+            buttons.append(self.namespacebrowser_button)
+        buttons += [self.run_button, self.options_button,
+                    self.terminate_button, self.kill_button]
+        return buttons
 
     def get_options_menu(self):
         self.interact_action = create_action(self, self.tr("Interact"))
@@ -186,22 +202,28 @@ class ExternalPythonShell(ExternalShellBase):
                                          triggered=self.get_arguments)
         return [self.interact_action, self.debug_action, self.args_action]
         
-    def get_shell_widget(self):
-        # Globals explorer
-        self.namespacebrowser = NamespaceBrowser(self)
-        self.connect(self.namespacebrowser, SIGNAL('collapse()'),
-                     lambda: self.toggle_globals_explorer(False))
+    def set_namespacebrowser(self, namespacebrowser):
+        """Set namespace browser *widget*"""
+        self.namespacebrowser = namespacebrowser
         
-        # Shell splitter
-        self.splitter = splitter = QSplitter(Qt.Vertical, self)
-        self.connect(self.splitter, SIGNAL('splitterMoved(int, int)'),
-                     self.splitter_moved)
-        splitter.addWidget(self.shell)
-        splitter.setCollapsible(0, False)
-        splitter.addWidget(self.namespacebrowser)
-        splitter.setStretchFactor(0, 2)
-        splitter.setStretchFactor(1, 1)
-        return splitter
+    def get_shell_widget(self):
+        if self.stand_alone:
+            self.namespacebrowser = NamespaceBrowser(self)
+            self.namespacebrowser.set_shell(self)
+            self.connect(self.namespacebrowser, SIGNAL('collapse()'),
+                         lambda: self.toggle_globals_explorer(False))
+            # Shell splitter
+            self.splitter = splitter = QSplitter(Qt.Vertical, self)
+            self.connect(self.splitter, SIGNAL('splitterMoved(int, int)'),
+                         self.splitter_moved)
+            splitter.addWidget(self.shell)
+            splitter.setCollapsible(0, False)
+            splitter.addWidget(self.namespacebrowser)
+            splitter.setStretchFactor(0, 2)
+            splitter.setStretchFactor(1, 1)
+            return splitter
+        else:
+            return self.shell
     
     def get_icon(self):
         return get_icon('python.png')
@@ -223,8 +245,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button.setEnabled(state)
         if not state:
             self.toggle_globals_explorer(False)
-        for btn in (self.cwd_button, self.namespacebrowser_button):
-            btn.setEnabled(state)
+        self.cwd_button.setEnabled(state)
+        if self.namespacebrowser_button is not None:
+            self.namespacebrowser_button.setEnabled(state)
     
     def create_process(self):
         self.shell.clear()
@@ -318,6 +341,9 @@ class ExternalPythonShell(ExternalShellBase):
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
+            self.connect(self.nsb_timer, SIGNAL("timeout()"),
+                         self.namespacebrowser.auto_refresh)
+            self.nsb_timer.start()
             
         return self.process
     
@@ -354,10 +380,11 @@ class ExternalPythonShell(ExternalShellBase):
 #    Globals explorer
 #===============================================================================
     def toggle_globals_explorer(self, state):
-        self.splitter.setSizes([1, 1 if state else 0])
-        self.namespacebrowser_button.setChecked(state)
-        if state:
-            self.namespacebrowser.refresh_table()
+        if self.stand_alone:
+            self.splitter.setSizes([1, 1 if state else 0])
+            self.namespacebrowser_button.setChecked(state)
+            if state:
+                self.namespacebrowser.refresh_table()
         
     def splitter_moved(self, pos, index):
         self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )

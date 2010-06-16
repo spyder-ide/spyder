@@ -20,7 +20,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_get_globals_keys, monitor_is_array, communicate)
+                monitor_is_array, communicate)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
 from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
@@ -57,7 +57,9 @@ class NamespaceBrowser(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
-        self.shell = parent
+        self.shell = None
+        self.is_visible = True
+        self.auto_refresh_enabled = True
 
         # Dict editor:
         truncate = CONF.get(self.ID, 'truncate')
@@ -91,12 +93,22 @@ class NamespaceBrowser(QWidget):
         
         self.filename = None
         
+        self.toggle_auto_refresh(self.auto_refresh_enabled)
+        
+    def set_shell(self, shell):
+        self.shell = shell
+        
     def setup_toolbar(self, layout):
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
                                            icon=get_icon('reload.png'),
                                            triggered=self.refresh_table,
+                                           text_beside_icon=False)
+        self.auto_refresh_button = create_toolbutton(self,
+                                           text=self.tr("Refresh periodically"),
+                                           icon=get_icon('auto_reload.png'),
+                                           toggled=self.toggle_auto_refresh,
                                            text_beside_icon=False)
         load_button = create_toolbutton(self, text=self.tr("Import data"),
                                         icon=get_icon('fileimport.png'),
@@ -112,7 +124,7 @@ class NamespaceBrowser(QWidget):
                                            icon=get_icon('filesaveas.png'),
                                            triggered=self.save_data,
                                            text_beside_icon=False)
-        toolbar += [refresh_button, load_button,
+        toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
         
         exclude_private_action = create_action(self,
@@ -163,12 +175,27 @@ class NamespaceBrowser(QWidget):
         CONF.set(self.ID, option, value)
         self.refresh_table()
         
+    def visibility_changed(self, enable):
+        """Notify the widget whether its container (the namespace browser 
+        plugin is visible or not"""
+        self.is_visible = enable
+        
+    def toggle_auto_refresh(self, state):
+        self.auto_refresh_button.setChecked(state)
+        self.auto_refresh_enabled = state
+        
+    def auto_refresh(self):
+        if self.auto_refresh_enabled:
+            self.refresh_table()
+        
     def refresh_table(self):
-        sock = self.shell.monitor_socket
-        if sock is None:
-            return
-        settings = get_settings()
-        self.set_data( monitor_get_remote_view(sock, settings) )
+        if self.is_visible and self.isVisible():
+#            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
+            sock = self.shell.monitor_socket
+            if sock is None:
+                return
+            settings = get_settings()
+            self.set_data( monitor_get_remote_view(sock, settings) )
         
     def get_value(self, name):
         return monitor_get_global(self.shell.monitor_socket, name)
@@ -239,8 +266,9 @@ class NamespaceBrowser(QWidget):
         self.shell.send_to_process(command)
         
     def set_data(self, data):
-        self.editor.set_data(data)
-        self.editor.adjust_columns()
+        if data != self.editor.model.get_data():
+            self.editor.set_data(data)
+            self.editor.adjust_columns()
         
     def collapse(self):
         self.emit(SIGNAL('collapse()'))

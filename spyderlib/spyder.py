@@ -54,6 +54,7 @@ except ImportError:
     OnlineHelp = None
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
+from spyderlib.plugins.namespacebrowser import NamespaceBrowser
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.pylintgui import Pylint
@@ -213,6 +214,7 @@ class MainWindow(QMainWindow):
         self.projectexplorer = None
         self.historylog = None
         self.extconsole = None
+        self.namespacebrowser = None
         self.findinfiles = None
         self.pylint = None
         
@@ -377,7 +379,7 @@ class MainWindow(QMainWindow):
                              triggered=self.console.quit)
                                     
             # Editor widget
-            self.set_splash(self.tr("Loading editor plugin..."))
+            self.set_splash(self.tr("Loading editor..."))
             self.editor = Editor(self)
             self.connect(self, SIGNAL('restore_scrollbar_position()'),
                          self.editor.restore_scrollbar_position)
@@ -428,6 +430,7 @@ class MainWindow(QMainWindow):
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
+                self.set_splash(self.tr("Loading find in files plugin..."))
                 self.findinfiles = FindInFiles(self)
                 self.findinfiles.set_pythonpath_callback( \
                                                   self.get_spyder_pythonpath)
@@ -449,6 +452,7 @@ class MainWindow(QMainWindow):
             
             # Explorer
             if CONF.get('explorer', 'enable'):
+                self.set_splash(self.tr("Loading file explorer..."))
                 self.explorer = Explorer(self)
                 self.add_dockwidget(self.explorer)
                 valid_types = self.editor.get_valid_types()
@@ -495,7 +499,7 @@ class MainWindow(QMainWindow):
         
             # Object inspector widget
             if CONF.get('inspector', 'enable'):
-                self.set_splash(self.tr("Loading inspector plugin..."))
+                self.set_splash(self.tr("Loading object inspector..."))
                 self.inspector = ObjectInspector(self)
                 self.connect(self.inspector, SIGNAL('focus_changed()'),
                              self.plugin_focus_changed)
@@ -504,12 +508,13 @@ class MainWindow(QMainWindow):
                 
             # Online help widget
             if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
-                self.set_splash(self.tr("Loading online help plugin..."))
+                self.set_splash(self.tr("Loading online help..."))
                 self.onlinehelp = OnlineHelp(self)
                 self.add_dockwidget(self.onlinehelp)
                 
             # Project explorer widget
             if CONF.get('project_explorer', 'enable'):
+                self.set_splash(self.tr("Loading project explorer..."))
                 self.projectexplorer = ProjectExplorer(self)
                 file_actions.insert(1, self.projectexplorer.new_project_action)
                 self.pythonpath_changed()
@@ -556,10 +561,10 @@ class MainWindow(QMainWindow):
                 self.connect(self.pylint, SIGNAL('redirect_stdio(bool)'),
                              self.redirect_internalshell_stdio)
                 self.add_dockwidget(self.pylint)
-        
-            self.set_splash(self.tr("Setting up main window..."))
             
         # External console menu
+        if not self.light:
+            self.set_splash(self.tr("Loading external console..."))
         self.extconsole = ExternalConsole(self)
         if self.light:
             self.setCentralWidget(self.extconsole)
@@ -579,9 +584,17 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_internalshell_stdio)
+
+            # Namespace browser
+            self.set_splash(self.tr("Loading namespace browser..."))
+            self.namespacebrowser = NamespaceBrowser(self)
+            self.extconsole.set_namespacebrowser(self.namespacebrowser)
+            self.add_dockwidget(self.namespacebrowser)
+
         self.extconsole.open_interpreter_at_startup()
             
         if not self.light:
+            self.set_splash(self.tr("Setting up main window..."))
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
@@ -681,7 +694,8 @@ class MainWindow(QMainWindow):
                                          orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
-                                  (self.inspector, self.onlinehelp),
+                                  (self.inspector, self.namespacebrowser),
+                                  (self.namespacebrowser, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
                                   (self.findinfiles, self.pylint),
@@ -747,6 +761,7 @@ class MainWindow(QMainWindow):
         shell = self.__focus_shell()
         if shell is not None and self.inspector is not None:
             self.inspector.set_shell(shell)
+            self.namespacebrowser.set_shell(shell.parent())
         
     def update_file_menu(self):
         """Update file menu"""

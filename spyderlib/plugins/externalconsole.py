@@ -44,6 +44,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.menu_actions = None
         self.inspector = None
         self.historylog = None
+        self.namespacebrowser = None # namespace browser plugin!
         
         self.ipython_count = 0
         self.python_count = 0
@@ -114,6 +115,10 @@ class ExternalConsole(SpyderPluginWidget):
         """Bind inspector instance to this console"""
         self.inspector = inspector
         
+    def set_namespacebrowser(self, namespacebrowser):
+        """Set namespace browser *plugin*"""
+        self.namespacebrowser = namespacebrowser
+        
     def __find_python_shell(self):
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
@@ -174,9 +179,10 @@ class ExternalConsole(SpyderPluginWidget):
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
             shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
-                                               interact, debug, path=pythonpath,
-                                               ipython=ipython,
-                                               arguments=arguments)
+                           interact, debug, path=pythonpath, ipython=ipython,
+                           arguments=arguments, stand_alone=False)
+            if self.namespacebrowser is not None:
+                self.namespacebrowser.add_shell(shell_widget)
         else:
             shell_widget = ExternalSystemShell(self, wdir, path=pythonpath)
         
@@ -270,6 +276,8 @@ class ExternalConsole(SpyderPluginWidget):
                     if self.inspector.get_shell() is shell.shell:
                         # Switch back to internal shell:
                         self.inspector.set_shell(self.main.console.shell)
+        if self.namespacebrowser is not None:
+            self.namespacebrowser.remove_shell(shell_id)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):

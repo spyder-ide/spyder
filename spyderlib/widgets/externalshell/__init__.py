@@ -201,11 +201,11 @@ class ExternalShellBase(QWidget):
     
     def finished(self, exit_code, exit_status):
         self.shell.flush()
+        self.emit(SIGNAL('finished()'))
         if self.is_closing:
             return
         self.set_running_state(False)
         self.show_time(end=True)
-        self.emit(SIGNAL('finished()'))
     
 #===============================================================================
 #    Input/Output
@@ -253,7 +253,8 @@ def test():
     from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     import spyderlib
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                ipython=True, arguments="-q4thread -pylab -colors LightBG")
+                                ipython=True, stand_alone=True,
+                                arguments="-q4thread -pylab -colors LightBG")
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
 #                                interact=True)
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))

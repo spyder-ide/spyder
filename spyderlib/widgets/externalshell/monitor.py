@@ -79,10 +79,6 @@ def monitor_get_remote_view(sock, settings):
     write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
     return pickle.loads( read_packet(sock) )
 
-def monitor_get_globals_keys(sock):
-    """Get globals().keys()"""
-    return communicate(sock, "globals().keys()", pickle_try=True)
-
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
     write_packet(sock, '__save_globals__(globals())')

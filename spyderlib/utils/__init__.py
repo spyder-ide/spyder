@@ -70,7 +70,6 @@ def count_lines(path, extensions=None, excluded_dirnames=None):
     """Return number of source code lines for all filenames in subdirectories
     of *path* with names ending with *extensions*
     Directory names *excluded_dirnames* will be ignored"""
-    import os, os.path as osp
     if extensions is None:
         extensions = ['.py', '.pyw', '.c', '.h', '.cpp', '.hpp', '.inc',
                       '.f', '.for', '.f90', '.f77']

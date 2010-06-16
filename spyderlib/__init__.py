@@ -48,8 +48,10 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
-#TODO: add a plugin "Namespace browser"
-
 #FIXME: Namespace Browser: right click on an empty namespace browser: bug!
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
+
+#FIXME: drag n drop from projectexplorer to external console does not work
+
+#TODO: add an option to customize namespace browser refresh time out
