@@ -329,6 +329,26 @@ class ExternalConsole(SpyderPluginWidget):
                             "Deleter)"),
                 toggled=self.toggle_umd)
         umd_action.setChecked( CONF.get(self.ID, 'umd/enabled') )
+        
+        python_startup = CONF.get(self.ID, 'open_python_at_startup', None)
+        ipython_startup = CONF.get(self.ID, 'open_ipython_at_startup', None)
+        if ipython_startup is None:
+            ipython_startup = is_module_installed("IPython")
+            CONF.set(self.ID, 'open_ipython_at_startup', ipython_startup)
+        if python_startup is None:
+            python_startup = not ipython_startup
+            CONF.set(self.ID, 'open_python_at_startup', python_startup)
+        python_startup_action = create_action(self,
+                self.tr("Open a Python interpreter at startup"),
+                toggled=lambda checked:
+                CONF.set(self.ID, 'open_python_at_startup', checked))
+        python_startup_action.setChecked(python_startup)
+        ipython_startup_action = create_action(self,
+                self.tr("Open a IPython interpreter at startup"),
+                toggled=lambda checked:
+                CONF.set(self.ID, 'open_ipython_at_startup', checked))
+        ipython_startup_action.setChecked(ipython_startup)
+        
         buffer_action = create_action(self,
                             self.tr("Buffer..."), None,
                             tip=self.tr("Set maximum line count"),
@@ -363,7 +383,8 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         
         self.menu_actions = [interpreter_action, console_action, run_action,
-                             umd_action, None,
+                             umd_action, python_startup_action,
+                             ipython_startup_action, None,
                              buffer_action, font_action, wrap_action,
                              calltips_action, codecompletion_action,
                              codecompenter_action, singletab_action,
@@ -380,16 +401,17 @@ class ExternalConsole(SpyderPluginWidget):
                                         "command line arguments"),
                             triggered=self.set_ipython_options)
         if is_module_installed("IPython"):
-            self.menu_actions.insert(5, ipython_options_action)
+            self.menu_actions.insert(3, ipython_options_action)
             self.menu_actions.insert(1, ipython_action)
         
         return (self.menu_actions, None)
     
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
-        if is_module_installed("IPython"):
+        if CONF.get(self.ID, 'open_ipython_at_startup') \
+           and is_module_installed("IPython"):
             self.open_ipython()
-        else:
+        if CONF.get(self.ID, 'open_python_at_startup'):
             self.open_interpreter()
         
     def closing_plugin(self, cancelable=False):
