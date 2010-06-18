@@ -91,11 +91,11 @@ class ExternalConsole(SpyderPluginWidget):
         """
         filename = self.filenames.pop(index_from)
         shell = self.shells.pop(index_from)
-        icon = self.icons.pop(index_from)
+        icons = self.icons.pop(index_from)
         
         self.filenames.insert(index_to, filename)
         self.shells.insert(index_to, shell)
-        self.icons.insert(index_to, icon)
+        self.icons.insert(index_to, icons)
 
     def close_console(self, index=None):
         if not self.tabwidget.count():
@@ -219,14 +219,17 @@ class ExternalConsole(SpyderPluginWidget):
                 if ipython:
                     self.ipython_count += 1
                     tab_name = "IPython %d" % self.ipython_count
-                    tab_icon = get_icon('ipython.png')
+                    tab_icon1 = get_icon('ipython.png')
+                    tab_icon2 = get_icon('ipython_t.png')
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
-                    tab_icon = get_icon('python.png')
+                    tab_icon1 = get_icon('python.png')
+                    tab_icon2 = get_icon('python_t.png')
             else:
                 tab_name = osp.basename(fname)
-                tab_icon = get_icon('run.png')
+                tab_icon1 = get_icon('run.png')
+                tab_icon2 = get_icon('terminated.png')
         else:
             fname = id(shell_widget)
             if os.name == 'nt':
@@ -235,10 +238,11 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_name = self.tr("Terminal")
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
-            tab_icon = get_icon('cmdprompt.png')
+            tab_icon1 = get_icon('cmdprompt.png')
+            tab_icon2 = get_icon('cmdprompt_t.png')
         self.shells.insert(index, shell_widget)
         self.filenames.insert(index, fname)
-        self.icons.insert(index, tab_icon)
+        self.icons.insert(index, (tab_icon1, tab_icon2))
         if index is None:
             index = self.tabwidget.addTab(shell_widget, tab_name)
         else:
@@ -265,14 +269,16 @@ class ExternalConsole(SpyderPluginWidget):
     def process_started(self, shell_id):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
-                self.tabwidget.setTabIcon(index, self.icons[index])
+                icon, _icon = self.icons[index]
+                self.tabwidget.setTabIcon(index, icon)
                 if self.inspector is not None:
                     self.inspector.set_shell(shell.shell)
         
     def process_finished(self, shell_id):
         for index, shell in enumerate(self.shells):
             if id(shell) == shell_id:
-                self.tabwidget.setTabIcon(index, get_icon('terminated.png'))
+                _icon, icon = self.icons[index]
+                self.tabwidget.setTabIcon(index, icon)
                 if self.inspector is not None:
                     if self.inspector.get_shell() is shell.shell:
                         # Switch back to internal shell:
