@@ -153,8 +153,6 @@ DEFAULTS = [
               'codecompletion/from-document': False,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
-              'rollback_importer': True,
-              'rollback_importer/blacklist': ['guidata', 'guiqwt'],
               }),
             ('external_shell',
              {
@@ -183,6 +181,9 @@ DEFAULTS = [
               'minmax': True,
               'collvalue': False,
               'show_icontext': False,
+              'umd/enabled': True,
+              'umd/verbose': True,
+              'umd/namelist': ['guidata', 'guiqwt'],
               }),
             ('editor',
              {

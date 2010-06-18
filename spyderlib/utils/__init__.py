@@ -12,9 +12,9 @@ Spyder's utilities
 """
 
 from __future__ import with_statement
+import os, os.path as osp, shutil, sys
+STDERR = sys.stderr
 
-
-import os, os.path as osp, shutil
 
 def __remove_pyc_pyo(fname):
     if osp.splitext(fname)[1] == '.py':
@@ -65,6 +65,7 @@ def select_port(default_port=20128):
             sock.close()
             sock = None
     return default_port
+
 
 def count_lines(path, extensions=None, excluded_dirnames=None):
     """Return number of source code lines for all filenames in subdirectories
@@ -129,3 +130,53 @@ def fix_reference_name(name, blacklist=None):
             index += 1
         name = get_new_name(index)
     return name
+
+
+class UserModuleDeleter(object):
+    """
+    User Module Deleter (UMD) aims at deleting user modules 
+    to force Python to deeply reload them during import
+    
+    pathlist [list]: blacklist in terms of module path
+    namelist [list]: blacklist in terms of module name
+    """
+    def __init__(self, namelist=None, pathlist=None):
+        if namelist is None:
+            namelist = []
+        self.namelist = namelist+['sitecustomize', 'spyderlib', 'spyderplugins']
+        if pathlist is None:
+            pathlist = []
+        self.pathlist = pathlist
+        self.previous_modules = sys.modules.keys()
+
+    def is_module_blacklisted(self, modname, modpath):
+        for path in [sys.prefix]+self.pathlist:
+            if modpath.startswith(path):
+                return True
+        else:
+            return set(modname.split('.')) & set(self.namelist)
+        
+    def run(self, verbose=False):
+        """
+        Del user modules to force Python to deeply reload them
+        
+        Do not del modules which are considered as system modules, i.e. 
+        modules installed in subdirectories of Python interpreter's binary
+        Do not del C modules
+        """
+        log = []
+        for modname, module in sys.modules.items():
+            if modname not in self.previous_modules:
+                modpath = getattr(module, '__file__', None)
+                if modpath is None:
+                    # *module* is a C module that is statically linked into the 
+                    # interpreter. There is no way to know its path, so we 
+                    # choose to ignore it.
+                    continue
+                if not self.is_module_blacklisted(modname, modpath):
+                    log.append(modname)
+                    del sys.modules[modname]
+        if verbose and log:
+            print "\x1b[4;33m%s\x1b[24m%s\x1b[0m" % ("UMD has deleted",
+                                                     ": "+", ".join(log))
+

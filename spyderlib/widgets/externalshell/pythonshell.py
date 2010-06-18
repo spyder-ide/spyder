@@ -119,12 +119,17 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[],
-                 ipython=False, arguments=None, stand_alone=True):
+                 ipython=False, arguments=None, stand_alone=True,
+                 umd_enabled=True, umd_namelist=[], umd_verbose=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.fname = startup.__file__ if fname is None else fname
         
         self.stand_alone = stand_alone
+        
+        self.umd_enabled = umd_enabled
+        self.umd_namelist = umd_namelist
+        self.umd_verbose = umd_verbose
         
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -296,6 +301,14 @@ class ExternalPythonShell(ExternalShellBase):
         if self.commands and self.interpreter:
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
+        
+        # User Module Deleter
+        if self.interpreter:
+            env.append('UMD_ENABLED=%r' % self.umd_enabled)
+            env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
+            env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+        
+        # IPython related configuration
         if self.ipython:
             env.append('IPYTHON=True')
             # Do not call msvcrt.getch in IPython.genutils.page_more:

@@ -18,7 +18,7 @@ def __run_init_commands():
 
 def __is_ipython():
     import os
-    return os.environ.get('IPYTHON')
+    return os.environ.get('IPYTHON', False)
 
 def __patching_matplotlib__():
     try:
@@ -38,18 +38,25 @@ def __remove_sys_argv__():
     import sys
     sys.argv = ['']
 
-#from spyderlib.interpreter import RollbackImporter
-#__rollback_importer__ = None
+__umd__ = None
 
 def runfile(filename, args=None):
     """
     Run filename
     args: command line arguments (string)
     """
-#    global __rollback_importer__
-#    if __rollback_importer__ is not None:
-#        __rollback_importer__.uninstall()
-#    __rollback_importer__ = RollbackImporter()
+    global __umd__
+    import os
+    if os.environ.get("UMD_ENABLED", "").lower() == "true":
+        if __umd__ is None:
+            namelist = os.environ.get("UMD_NAMELIST", None)
+            if namelist is not None:
+                namelist = namelist.split(',')
+            from spyderlib.utils import UserModuleDeleter
+            __umd__ = UserModuleDeleter(namelist=namelist)
+        else:
+            verbose = os.environ.get("UMD_VERBOSE", "").lower() == "true"
+            __umd__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     glbs = globals()

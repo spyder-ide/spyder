@@ -179,9 +179,14 @@ class ExternalConsole(SpyderPluginWidget):
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
+            umd_enabled = CONF.get(self.ID, 'umd/enabled')
+            umd_namelist = CONF.get(self.ID, 'umd/namelist')
+            umd_verbose = CONF.get(self.ID, 'umd/verbose')
             shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
-                           arguments=arguments, stand_alone=self.light_mode)
+                           arguments=arguments, stand_alone=self.light_mode,
+                           umd_enabled=umd_enabled, umd_namelist=umd_namelist,
+                           umd_verbose=umd_verbose)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shell(shell_widget)
         else:
@@ -316,6 +321,14 @@ class ExternalConsole(SpyderPluginWidget):
                             self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
+        umd_action = create_action(self,
+                self.tr("Force modules to be completely reloaded"),
+                tip=self.tr("Force Python to reload modules imported when "
+                            "executing a script in the external console "
+                            "with the 'runfile' function (UMD: User Module "
+                            "Deleter)"),
+                toggled=self.toggle_umd)
+        umd_action.setChecked( CONF.get(self.ID, 'umd/enabled') )
         buffer_action = create_action(self,
                             self.tr("Buffer..."), None,
                             tip=self.tr("Set maximum line count"),
@@ -350,7 +363,8 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         
         self.menu_actions = [interpreter_action, console_action, run_action,
-                             None, buffer_action, font_action, wrap_action,
+                             umd_action, None,
+                             buffer_action, font_action, wrap_action,
                              calltips_action, codecompletion_action,
                              codecompenter_action, singletab_action,
                              icontext_action]
@@ -451,6 +465,25 @@ class ExternalConsole(SpyderPluginWidget):
                       QLineEdit.Normal, CONF.get(self.ID, 'ipython_options'))
         if valid:
             CONF.set(self.ID, 'ipython_options', unicode(arguments))
+        
+    def toggle_umd(self, checked):
+        """Toggle UMD"""
+        CONF.set(self.ID, 'umd/enabled', checked)
+        if checked and self.isVisible():
+            QMessageBox.warning(self, self.get_plugin_title(),
+                self.tr("This option will enable the User Module Deleter (UMD) "
+                        "in Python interpreters "
+                        "(<i>IPython</i> is currently not supported)."
+                        "<br><br><i>1.</i> UMD may require to restart the "
+                        "Python interpreter in which it will be called "
+                        "(otherwise only newly imported modules will be "
+                        "reloaded when executing scripts)."
+                        "<br><br><i>2.</i> If errors occur when re-running a "
+                        "PyQt-based program, please check that the Qt objects "
+                        "are properly destroyed (e.g. you may have to use the "
+                        "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
+                        "window, using the <b>setAttribute</b> method)"),
+                QMessageBox.Ok)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
