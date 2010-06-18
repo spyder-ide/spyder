@@ -28,7 +28,7 @@ class ExternalSystemShell(ExternalShellBase):
     SHELL_CLASS = TerminalWidget
     def __init__(self, parent=None, wdir=None, path=[]):
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename='.history_ec')
+                                   history_filename='.history')
         
         # Additional python path list
         self.path = path

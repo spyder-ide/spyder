@@ -48,9 +48,9 @@ class Console(SpyderPluginWidget):
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell
         self.shell = InternalShell(parent, namespace, commands, message,
-                                      CONF.get(self.ID, 'max_line_count'),
-                                      get_font(self.ID),
-                                      debug, exitfunc, profile, multithreaded)
+                                   CONF.get(self.ID, 'max_line_count'),
+                                   get_font(self.ID),
+                                   debug, exitfunc, profile, multithreaded)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:
                      self.emit(SIGNAL('show_message(QString,int)'), msg, 0))

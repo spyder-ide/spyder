@@ -131,7 +131,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button = None
         
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename='.history_ec.py')
+                                   history_filename='.history.py')
 
         self.nsb_timer = QTimer(self) # Namespace browser auto-refresh timer
         self.nsb_timer.setInterval(3000)

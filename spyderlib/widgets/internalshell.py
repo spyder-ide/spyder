@@ -89,7 +89,7 @@ class InternalShell(PythonShellWidget):
                  max_line_count=300, font=None, debug=False, exitfunc=None,
                  profile=False, multithreaded=True):
         PythonShellWidget.__init__(self, parent,
-                                   get_conf_path('.history_ic.py'),
+                                   get_conf_path('.history_internal.py'),
                                    debug, profile)
         
         self.multithreaded = multithreaded
