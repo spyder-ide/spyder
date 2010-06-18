@@ -134,7 +134,7 @@ class ExternalConsole(SpyderPluginWidget):
     def run_script_in_current_shell(self, filename):
         """Run script in current shell, if any"""
         shellwidget = self.__find_python_shell()
-        if shellwidget is not None:
+        if shellwidget is not None and shellwidget.is_running():
             if shellwidget.ipython:
                 line = "run r'%s'" % unicode(filename)
             else:
