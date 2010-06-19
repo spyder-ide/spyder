@@ -6,64 +6,18 @@
 
 """Shell Interpreter"""
 
-import __builtin__, sys, atexit, threading, ctypes
+import sys, atexit, threading, ctypes
 import os, re, os.path as osp, pydoc
 from subprocess import Popen, PIPE
 from code import InteractiveConsole
 
 # Local imports:
-from spyderlib.config import CONF
 from spyderlib.utils.dochelpers import isdefined
 from spyderlib.utils import encoding
 
 # For debugging purpose
 STDOUT, STDERR = sys.stdout, sys.stderr
 
-
-def is_module_blacklisted(module, pathlist=[]):
-    """Return True if module path starts with one of the path in pathlist"""
-    modpath = getattr(module, '__file__', None)
-    if modpath is None:
-        # *module* is a C module that is statically linked into the interpreter
-        # There is no way to know its path, so we choose to blacklist it
-        return True
-    for path in [sys.prefix]+pathlist:
-        if modpath.startswith(path):
-            return True
-    else:
-        return False
-
-class RollbackImporter(object):
-    """
-    Rollback importer is derived from:
-        PyUnit (Steve Purcell)
-        http://pyunit.sourceforge.net
-    """
-    def __init__(self):
-        "Creates an instance and installs as the global importer"
-        self.previous_modules = sys.modules.copy()
-        self.builtin_import = __builtin__.__import__
-        __builtin__.__import__ = self._import
-        self.new_modules = set()
-        
-    def _import(self, name, globals=None, locals=None, fromlist=[], level=-1):
-        result = self.builtin_import(name, globals, locals, fromlist, level)
-        self.new_modules.add(name)
-        return result
-        
-    def uninstall(self):
-        blacklist = CONF.get('shell', 'rollback_importer/blacklist')
-        for name in self.new_modules:
-            if name not in self.previous_modules and name in sys.modules \
-               and not is_module_blacklisted(sys.modules[name]) \
-               and not name.split('.')[0] in blacklist:
-                try:
-                    # Force reload when modname next imported
-                    del sys.modules[name]
-                except KeyError:
-                    pass
-        __builtin__.__import__ = self.builtin_import
-    
 
 def guess_filename(filename):
     """Guess filename"""
@@ -292,14 +246,6 @@ has the same effect as typing a particular string at the help> prompt.
         if self.rollback_importer is not None:
             self.rollback_importer.uninstall()
         
-    def install_rollback_importer(self):
-        if self.rollback_importer is not None:
-            self.rollback_importer.uninstall()
-        if CONF.get('shell', 'rollback_importer'):
-            self.rollback_importer = RollbackImporter()
-        else:
-            self.rollback_importer = None
-        
     def execfile(self, filename):
         """Exec filename"""
         source = open(filename, 'r').read()
@@ -308,7 +254,6 @@ has the same effect as typing a particular string at the help> prompt.
                 name = filename.encode('ascii')
             except UnicodeEncodeError:
                 name = '<executed_script>'
-            self.install_rollback_importer()
             code = compile(source, name, "exec")
         except (OverflowError, SyntaxError):
             InteractiveConsole.showsyntaxerror(self, filename)

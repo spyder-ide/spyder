@@ -55,6 +55,6 @@ __license__ = __doc__
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
-#FIXME: drag n drop from projectexplorer to external console does not work
+#FIXME: drag n drop from projectexplorer to external console does not work as expected
 
 #TODO: add an option to customize namespace browser refresh time out
