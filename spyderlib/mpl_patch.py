@@ -113,7 +113,7 @@ def apply(font_size=None, facecolor=None):
                 allaxes = self.canvas.figure.get_axes()
                 if len(allaxes) == 1:
                     axes = allaxes[0]
-                else:
+                elif len(allaxes) > 1:
                     titles = []
                     for axes in allaxes:
                         title = axes.get_title()
@@ -135,6 +135,8 @@ def apply(font_size=None, facecolor=None):
                         axes = allaxes[titles.index(unicode(item))]
                     else:
                         return
+                else:
+                    return
                 figure_edit(axes, self)
             else:
                 super(NavigationToolbar2QT, self).edit_parameters()
