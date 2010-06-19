@@ -162,21 +162,12 @@ class Console(SpyderPluginWidget):
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked( CONF.get(self.ID,
                                                    'codecompletion/enter-key') )
-        rollbackimporter_action = create_action(self,
-                self.tr("Force modules to be completely reloaded"),
-                tip=self.tr("Force Python to reload modules imported when "
-                            "executing a script in the internal console "
-                            "with the 'runfile' function"),
-                toggled=self.toggle_rollbackimporter)
-        rollbackimporter_action.setChecked( CONF.get(self.ID,
-                                                     'rollback_importer') )
         
         option_menu = QMenu(self.tr("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
-                                  codecompenter_action, rollbackimporter_action,
-                                  exteditor_action))
+                                  codecompenter_action, exteditor_action))
         
         if is_module_installed('matplotlib'):
             dockablefigures_action = create_action(self,
@@ -321,17 +312,6 @@ class Console(SpyderPluginWidget):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)
         CONF.set(self.ID, 'codecompletion/enter-key', checked)
-        
-    def toggle_rollbackimporter(self, checked):
-        """Toggle rollback importer"""
-        CONF.set(self.ID, 'rollback_importer', checked)
-        if checked and self.isVisible():
-            QMessageBox.warning(self, self.get_plugin_title(),
-                        self.tr("The rollback importer requires a restart "
-                                "of Spyder to be fully functionnal "
-                                "(otherwise only newly imported modules "
-                                "will be reloaded when executing scripts)."),
-                        QMessageBox.Ok)
                 
     #----Drag and drop                    
     def dragEnterEvent(self, event):

@@ -158,9 +158,6 @@ class InternalShell(PythonShellWidget):
         # First prompt
         self.new_prompt(self.interpreter.p1)
         self.emit(SIGNAL("refresh()"))
-        
-        # Installing (if enabled) Rollback Importer
-        self.interpreter.install_rollback_importer()
 
         return self.interpreter
 

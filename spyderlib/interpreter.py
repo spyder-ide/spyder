@@ -61,8 +61,6 @@ class Interpreter(InteractiveConsole, threading.Thread):
         if exitfunc is not None:
             atexit.register(exitfunc)
         
-        self.rollback_importer = None
-        
         self.namespace = self.locals
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
@@ -243,8 +241,7 @@ has the same effect as typing a particular string at the help> prompt.
             
     def closing(self):
         """Actions to be done before restarting this interpreter"""
-        if self.rollback_importer is not None:
-            self.rollback_importer.uninstall()
+        pass
         
     def execfile(self, filename):
         """Exec filename"""
