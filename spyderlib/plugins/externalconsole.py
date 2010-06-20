@@ -141,6 +141,12 @@ class ExternalConsole(SpyderPluginWidget):
                 line = "runfile(r'%s')" % unicode(filename)
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()
+            
+    def set_current_shell_working_directory(self, directory):
+        """Set current shell working directory"""
+        shellwidget = self.__find_python_shell()
+        if shellwidget is not None and shellwidget.is_running():
+            shellwidget.shell.set_cwd(unicode(directory))
         
     def execute_python_code(self, lines):
         """Execute Python code in an already opened Python interpreter"""

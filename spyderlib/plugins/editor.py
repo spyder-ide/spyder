@@ -29,7 +29,7 @@ STDOUT = sys.stdout
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.pylintgui import is_pylint_installed
@@ -474,9 +474,12 @@ class Editor(SpyderPluginWidget):
         showtabbar_action = create_action(self, self.tr("Show tab bar"),
                                  toggled=self.toggle_tabbar_visibility)
         showtabbar_action.setChecked( CONF.get(self.ID, 'show_tab_bar', True) )
-        workdir_action = create_action(self, self.tr("Set working directory"),
-            tip=self.tr("Change working directory to current script directory"),
-            triggered=self.__set_workdir)
+        workdir_action = create_action(self,
+                self.tr("Set console working directory"),
+                icon=get_std_icon('DirOpenIcon'),
+                tip=self.tr("Set current console (and file explorer) working "
+                            "directory to current script directory"),
+                triggered=self.__set_workdir)
 
         self.max_recent_action = create_action(self,
             self.tr("Maximum number of recent files..."),
@@ -1037,8 +1040,6 @@ class Editor(SpyderPluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
             if len(filenames):
-#                directory = osp.dirname(unicode(filenames[-1]))
-#                self.emit(SIGNAL("open_dir(QString)"), directory)
                 filenames = [osp.normpath(unicode(fname)) \
                              for fname in filenames]
             else:

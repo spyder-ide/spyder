@@ -86,6 +86,10 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         """Refresh only *folder*"""
         self.treewidget.refresh_folder(folder)
         
+    def chdir(self, directory):
+        """Set working directory"""
+        self.treewidget.chdir(directory)
+        
     def open_file(self, fname):
         """
         Open filename with the appropriate application

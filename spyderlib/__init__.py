@@ -30,11 +30,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '2.0alpha1'
 __license__ = __doc__
 
-#TODO: workdir is gone: "Set as working directory" editor's feature -> reimplement to 
-# support current external console
-#            self.connect(self.editor, SIGNAL("open_dir(QString)"),
-#                         self.workdir.chdir)
-#TODO: add the same feature in the file explorer plugin
+#TODO: add the "Set as working directory" feature in the file explorer plugin
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
 #      external console --> see the external console's closing method

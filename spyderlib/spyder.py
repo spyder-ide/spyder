@@ -387,8 +387,6 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.console, SIGNAL("edit_goto(QString,int,QString)"),
                          self.editor.load)
-#            self.connect(self.editor, SIGNAL("open_dir(QString)"),
-#                         self.workdir.chdir)
             self.connect(self.editor,
                          SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
                          self.open_external_console)
@@ -463,6 +461,8 @@ class MainWindow(QMainWindow):
                              self.editor.removed)
                 self.connect(self.explorer, SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
+                self.connect(self.editor, SIGNAL("open_dir(QString)"),
+                             self.explorer.chdir)
 #                self.connect(self.explorer, SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
@@ -579,6 +579,8 @@ class MainWindow(QMainWindow):
             self.connect(self.editor,
                          SIGNAL('run_script_in_external_console(QString)'),
                          self.extconsole.run_script_in_current_shell)
+            self.connect(self.editor, SIGNAL("open_dir(QString)"),
+                     self.extconsole.set_current_shell_working_directory)
             self.add_dockwidget(self.extconsole)
             self.add_to_menubar(self.extconsole)
             self.connect(self.extconsole, SIGNAL('focus_changed()'),
