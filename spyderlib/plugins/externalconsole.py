@@ -599,10 +599,10 @@ class ExternalConsole(SpyderPluginWidget):
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasText():
-            self.start(source.text())
+            self.start(source.text(), ask_for_arguments=True)
         elif source.hasUrls():
             files = mimedata2url(source)
             for fname in files:
                 if self.__is_python_script(fname):
-                    self.start(fname)
+                    self.start(fname, ask_for_arguments=True)
         event.acceptProposedAction()

@@ -30,8 +30,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '2.0alpha1'
 __license__ = __doc__
 
-#TODO: add the "Set as working directory" feature in the file explorer plugin
-
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
 #      external console --> see the external console's closing method
 #TODO: Workspace is gone: reimplement the import_data from file explorer:
@@ -45,7 +43,5 @@ __license__ = __doc__
 #FIXME: IPython // Big bug with PyQt file dialogs: open/save/...
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
-
-#FIXME: drag n drop from projectexplorer to external console does not work as expected
 
 #TODO: add an option to customize namespace browser refresh time out
