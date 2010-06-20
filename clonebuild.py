@@ -23,7 +23,8 @@ os.chdir(parentdir)
 if osp.isdir(version):
     ## Removing temporary directory if it already exists
     shutil.rmtree(version)
-os.system('hg clone %s %s' % (name, version))
+basename = osp.basename(osp.dirname(__file__))
+os.system('hg clone %s %s' % (basename, version))
 
 ## Creating source distribution archive
 tar = tarfile.open("%s.tar.gz" % version, "w|gz")
