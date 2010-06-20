@@ -189,7 +189,7 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
         
     def refresh_table(self):
-        if self.is_visible and self.isVisible():
+        if self.is_visible and self.isVisible() and self.shell.is_running():
 #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
             sock = self.shell.monitor_socket
             if sock is None:
