@@ -120,7 +120,7 @@ class DirView(QTreeView):
         return index
         
     def set_folder(self, folder, force_current=False):
-        if not force_current or self.is_in_current_folder(folder):
+        if not force_current:
             return
         index = self.refresh_folder(folder)
         self.expand(index)
@@ -140,6 +140,8 @@ class DirView(QTreeView):
 class ExplorerTreeWidget(DirView):
     def __init__(self, parent=None):
         DirView.__init__(self, parent)
+        self.history = []
+        self.histindex = None
         
     def setup(self, path=None, name_filters=['*.py', '*.pyw'],
               valid_types= ('.py', '.pyw'), show_all=False):
@@ -147,7 +149,9 @@ class ExplorerTreeWidget(DirView):
         self.valid_types = valid_types
         self.show_all = show_all
         
-        self.refresh(path)
+        if path is None:
+            path = os.getcwdu()
+        self.chdir(path)
         
         # Enable drag events
         self.setDragEnabled(True)
@@ -281,7 +285,12 @@ class ExplorerTreeWidget(DirView):
         if new_path is None:
             new_path = os.getcwdu()
         self.set_folder(new_path, force_current=force_current)
-        
+        self.emit(SIGNAL("set_previous_enabled(bool)"),
+                  self.histindex is not None and self.histindex > 0)
+        self.emit(SIGNAL("set_next_enabled(bool)"),
+                  self.histindex is not None and \
+                  self.histindex < len(self.history)-1)
+    
         
     #---- Events
     def contextMenuEvent(self, event):
@@ -351,10 +360,41 @@ class ExplorerTreeWidget(DirView):
         fname = self.get_filename()
         if fname:
             if osp.isdir(fname):
-                self.parent_widget.emit(SIGNAL("open_dir(QString)"), fname)
-                self.refresh()
+                self.chdir(directory=unicode(fname))
             else:
                 self.open(fname)
+        
+    def go_to_parent_directory(self):
+        self.chdir( osp.abspath(osp.join(os.getcwdu(), os.pardir)) )
+        
+    def go_to_previous_directory(self):
+        """Back to previous directory"""
+        self.histindex -= 1
+        self.chdir(browsing_history=True)
+        
+    def go_to_next_directory(self):
+        """Return to next directory"""
+        self.histindex += 1
+        self.chdir(browsing_history=True)
+        
+    def chdir(self, directory=None, browsing_history=False):
+        """Set directory as working directory"""
+        if browsing_history:
+            directory = self.history[self.histindex]
+        else:
+            if self.histindex is None:
+                self.history = []
+            else:
+                self.history = self.history[:self.histindex+1]
+            value = osp.abspath((unicode(directory)))
+            if len(self.history) == 0 or \
+               (self.history and self.history[-1] != value):
+                self.history.append(value)
+            self.histindex = len(self.history)-1
+        directory = unicode(directory)
+        os.chdir(directory)
+        self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
+        self.refresh(new_path=directory, force_current=True)
         
     def open(self, fname):
         """Open filename with the appropriate application"""
@@ -514,23 +554,27 @@ class ExplorerWidget(QWidget):
         self.toolbar.setIconSize(QSize(16, 16))
         
         self.previous_action = create_action(self,
-                    text=translate('Explorer', "Previous"),
-                    icon=get_icon('previous.png'),
-                    triggered=lambda: self.emit(SIGNAL("open_previous_dir()")))
+                            text=translate('Explorer', "Previous"),
+                            icon=get_icon('previous.png'),
+                            triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
         self.previous_action.setEnabled(False)
+        self.connect(self.treewidget, SIGNAL("set_previous_enabled(bool)"),
+                     self.previous_action.setEnabled)
         
         self.next_action = create_action(self,
-                    text=translate('Explorer', "Next"),
-                    icon=get_icon('next.png'),
-                    triggered=lambda: self.emit(SIGNAL("open_next_dir()")))
+                            text=translate('Explorer', "Next"),
+                            icon=get_icon('next.png'),
+                            triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
         self.next_action.setEnabled(False)
+        self.connect(self.treewidget, SIGNAL("set_next_enabled(bool)"),
+                     self.next_action.setEnabled)
         
         parent_action = create_action(self,
-                    text=translate('Explorer', "Parent"),
-                    icon=get_icon('up.png'),
-                    triggered=lambda: self.emit(SIGNAL("open_parent_dir()")))
+                            text=translate('Explorer', "Parent"),
+                            icon=get_icon('up.png'),
+                            triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
                 
         refresh_action = create_action(self,
@@ -603,8 +647,6 @@ class Test(QDialog):
         hlayout2.addWidget(self.label2)
         self.connect(self.explorer, SIGNAL("open_dir(QString)"),
                      self.label2.setText)
-        self.connect(self.explorer, SIGNAL("open_dir(QString)"),
-                     lambda path: os.chdir(unicode(path)))
         
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)

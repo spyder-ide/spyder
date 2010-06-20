@@ -14,8 +14,7 @@
 from PyQt4.QtGui import QFontDialog
 from PyQt4.QtCore import SIGNAL
 
-import sys
-import os.path as osp
+import sys, os, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -30,8 +29,9 @@ from spyderlib.plugins import SpyderPluginMixin
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     ID = 'explorer'
-    def __init__(self, parent=None, path=None):
-        ExplorerWidget.__init__(self, parent=parent, path=path,
+    def __init__(self, parent=None):
+        ExplorerWidget.__init__(self, parent=parent,
+                            path=CONF.get(self.ID, 'path', None),
                             name_filters=CONF.get(self.ID, 'name_filters'),
                             valid_types=CONF.get(self.ID, 'valid_filetypes'),
                             show_all=CONF.get(self.ID, 'show_all'),
@@ -78,6 +78,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        CONF.set(self.ID, 'path', os.getcwdu())
         return True
         
     #------ Public API ---------------------------------------------------------        
