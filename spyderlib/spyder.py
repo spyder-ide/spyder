@@ -470,10 +470,6 @@ class MainWindow(QMainWindow):
                              self.open_external_console(unicode(fname),
                                                 osp.dirname(unicode(fname)),
                                                 False, False, False, True))
-                self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
-                             self.open_terminal)
-                self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
-                             self.open_interpreter)
                 # Signal "refresh_explorer()" will eventually force the
                 # explorer to change the opened directory:
                 self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
@@ -541,12 +537,6 @@ class MainWindow(QMainWindow):
 #                self.connect(self.projectexplorer,
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
-                self.connect(self.projectexplorer,
-                             SIGNAL("open_terminal(QString)"),
-                             self.open_terminal)
-                self.connect(self.projectexplorer,
-                             SIGNAL("open_interpreter(QString)"),
-                             self.open_interpreter)
                 self.add_dockwidget(self.projectexplorer)
             add_actions(self.file_menu, file_actions)
                 
@@ -587,6 +577,19 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_internalshell_stdio)
+            self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
+                         self.extconsole.open_terminal)
+            self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
+                         self.extconsole.open_interpreter)
+            self.connect(self.explorer, SIGNAL("open_ipython(QString)"),
+                         self.extconsole.open_ipython)
+            self.connect(self.projectexplorer, SIGNAL("open_terminal(QString)"),
+                         self.extconsole.open_terminal)
+            self.connect(self.projectexplorer,
+                         SIGNAL("open_interpreter(QString)"),
+                         self.extconsole.open_interpreter)
+            self.connect(self.projectexplorer, SIGNAL("open_ipython(QString)"),
+                         self.extconsole.open_ipython)
 
             # Namespace browser
             self.set_splash(self.tr("Loading namespace browser..."))
@@ -1133,16 +1136,6 @@ class MainWindow(QMainWindow):
             fname = unicode(fname)
         self.extconsole.start(fname, wdir,
                               ask_for_arguments, interact, debug, python)
-        
-    def open_terminal(self, path):
-        """Open terminal in external console"""
-        self.open_external_console(None, unicode(path),
-                                   False, False, False, False)
-        
-    def open_interpreter(self, path):
-        """Open interpreter in external console"""
-        self.open_external_console(None, unicode(path),
-                                   False, True, False, True)
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external console"""

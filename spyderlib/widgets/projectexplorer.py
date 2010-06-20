@@ -20,7 +20,8 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 # Local imports
-from spyderlib.utils import count_lines, rename_file, remove_file, move_file
+from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
+                             programs)
 from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
@@ -618,6 +619,12 @@ class ExplorerTreeWidget(OneColumnTree):
             if any_folder_in_path:
                 actions += [remove_from_path_act]
             actions += [None, winexp_act, terminal_act, interpreter_act]
+            if programs.is_module_installed("IPython"):
+                ipython_act = create_action(self,
+                        text=translate('ProjectExplorer', "Open IPython here"),
+                        icon="ipython.png",
+                        triggered=lambda: self.open_ipython(items))
+                actions.append(ipython_act)
         actions += [None, properties_act]
         
         return actions
@@ -1200,6 +1207,10 @@ class ExplorerTreeWidget(OneColumnTree):
     def open_interpreter(self, items):
         for path in sorted([get_item_path(_it) for _it in items]):
             self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
+            
+    def open_ipython(self, items):
+        for path in sorted([get_item_path(_it) for _it in items]):
+            self.parent_widget.emit(SIGNAL("open_ipython(QString)"), path)
         
     def refresh(self, clear=True):
 #        if clear:

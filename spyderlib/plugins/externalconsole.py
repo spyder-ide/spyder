@@ -436,20 +436,26 @@ class ExternalConsole(SpyderPluginWidget):
         self.find_widget.set_editor(editor)
     
     #------ Public API ---------------------------------------------------------
-    def open_interpreter(self):
+    def open_interpreter(self, wdir=None):
         """Open interpreter"""
-        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+        if wdir is None:
+            wdir = os.getcwdu()
+        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
                    interact=True, debug=False, python=True)
         
-    def open_ipython(self):
+    def open_ipython(self, wdir=None):
         """Open IPython"""
-        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+        if wdir is None:
+            wdir = os.getcwdu()
+        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
                    interact=True, debug=False, python=True, ipython=True,
                    arguments=CONF.get(self.ID, 'ipython_options', ""))
         
-    def open_terminal(self):
+    def open_terminal(self, wdir=None):
         """Open terminal"""
-        self.start(fname=None, wdir=os.getcwdu(), ask_for_arguments=False,
+        if wdir is None:
+            wdir = os.getcwdu()
+        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
                    interact=True, debug=False, python=False)
         
     def run_script(self):

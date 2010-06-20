@@ -37,7 +37,7 @@ STDOUT = sys.stdout
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.utils.qthelpers import (get_std_icon, create_action, add_actions,
                                        translate)
-from spyderlib.utils import encoding, rename_file, remove_file
+from spyderlib.utils import encoding, rename_file, remove_file, programs
 from spyderlib.config import get_icon
 
 
@@ -270,6 +270,13 @@ class ExplorerTreeWidget(DirView):
                                    self.parent_widget.emit(
                                    SIGNAL("open_interpreter(QString)"), _fn))
                 actions.append(action)
+                if programs.is_module_installed("IPython"):
+                    _title = translate('Explorer', "Open IPython here")
+                    action = create_action(self, _title, icon="ipython.png",
+                                       triggered=lambda _fn=fname:
+                                       self.parent_widget.emit(
+                                       SIGNAL("open_ipython(QString)"), _fn))
+                    actions.append(action)
         if actions:
             actions.append(None)
         actions += self.common_actions
