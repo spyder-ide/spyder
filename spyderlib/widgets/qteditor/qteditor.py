@@ -1060,7 +1060,9 @@ class QtEditor(TextEditBaseWidget):
             self.fix_indent()
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
-            if leading_text and not leading_text.strip():
+            if not self.hasSelectedText() \
+               and leading_text and not leading_text.strip() \
+               and len(leading_text) > 4:
                 self.unindent()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
