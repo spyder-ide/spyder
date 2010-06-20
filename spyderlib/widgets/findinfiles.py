@@ -198,13 +198,18 @@ class SearchThread(QThread):
                 if self.stopped:
                     return False
             dirname = osp.dirname(path)
-            if re.search(self.exclude, dirname+os.sep):
-                continue
-            filename = osp.basename(path)
-            if re.search(self.exclude, filename):
-                continue
-            if re.search(self.include, filename):
-                self.filenames.append(osp.join(hgroot, path))
+            try:
+                if re.search(self.exclude, dirname+os.sep):
+                    continue
+                filename = osp.basename(path)
+                if re.search(self.exclude, filename):
+                    continue
+                if re.search(self.include, filename):
+                    self.filenames.append(osp.join(hgroot, path))
+            except re.error:
+                self.error_flag = translate("FindInFiles",
+                                            "invalid regular expression")
+                return False
         return True
     
     def find_files_in_path(self, path):
@@ -215,16 +220,21 @@ class SearchThread(QThread):
             with QMutexLocker(self.mutex):
                 if self.stopped:
                     return False
-            for d in dirs[:]:
-                dirname = os.path.join(path, d)
-                if re.search(self.exclude, dirname+os.sep):
-                    dirs.remove(d)
-            for f in files:
-                filename = os.path.join(path, f)
-                if re.search(self.exclude, filename):
-                    continue
-                if re.search(self.include, filename):
-                    self.filenames.append(filename)
+            try:
+                for d in dirs[:]:
+                    dirname = os.path.join(path, d)
+                    if re.search(self.exclude, dirname+os.sep):
+                        dirs.remove(d)
+                for f in files:
+                    filename = os.path.join(path, f)
+                    if re.search(self.exclude, filename):
+                        continue
+                    if re.search(self.include, filename):
+                        self.filenames.append(filename)
+            except re.error:
+                self.error_flag = translate("FindInFiles",
+                                            "invalid regular expression")
+                return False
         return True
         
     def find_string_in_files(self):
@@ -267,7 +277,7 @@ class SearchThread(QThread):
                                   "permission denied errors were encountered")
             except re.error:
                 self.error_flag = translate("FindInFiles",
-                                  "invalid regular expression")
+                                            "invalid regular expression")
         self.completed = True
     
     def get_results(self):
@@ -279,8 +289,9 @@ class FindOptions(QWidget):
     Find widget with options
     """
     def __init__(self, parent, search_text, search_text_regexp, search_path,
-                 include, include_regexp, exclude, exclude_regexp,
-                 supported_encodings):
+                 include, include_idx, include_regexp,
+                 exclude, exclude_idx, exclude_regexp,
+                 supported_encodings, in_python_path, more_options):
         QWidget.__init__(self, parent)
         
         if search_path is None:
@@ -309,7 +320,7 @@ class FindOptions(QWidget):
         self.more_options = create_toolbutton(self,
                                               toggled=self.toggle_more_options)
         self.more_options.setCheckable(True)
-        self.more_options.setChecked(True)
+        self.more_options.setChecked(more_options)
         
         self.ok_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Search"),
@@ -331,6 +342,9 @@ class FindOptions(QWidget):
         hlayout2 = QHBoxLayout()
         self.include_pattern = PatternComboBox(self, include,
                         translate('FindInFiles', "Included filenames pattern"))
+        if include_idx is not None and include_idx >= 0 \
+           and include_idx < self.include_pattern.count():
+            self.include_pattern.setCurrentIndex(include_idx)
         self.include_regexp = create_toolbutton(self, get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
@@ -340,6 +354,9 @@ class FindOptions(QWidget):
         include_label.setBuddy(self.include_pattern)
         self.exclude_pattern = PatternComboBox(self, exclude,
                         translate('FindInFiles', "Excluded filenames pattern"))
+        if exclude_idx is not None and exclude_idx >= 0 \
+           and exclude_idx < self.exclude_pattern.count():
+            self.exclude_pattern.setCurrentIndex(exclude_idx)
         self.exclude_regexp = create_toolbutton(self, get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
@@ -357,6 +374,7 @@ class FindOptions(QWidget):
         hlayout3 = QHBoxLayout()
         self.python_path = QRadioButton(translate('FindInFiles',
                                         "PYTHONPATH"), self)
+        self.python_path.setChecked(in_python_path)
         self.python_path.setToolTip(translate('FindInFiles',
                           "Search in all directories listed in sys.path which"
                           " are outside the Python installation directory"))        
@@ -366,7 +384,7 @@ class FindOptions(QWidget):
         self.hg_manifest.setToolTip(translate('FindInFiles',
                               "Search in current directory hg repository"))
         self.custom_dir = QRadioButton(translate('FindInFiles', "Here:"), self)
-        self.custom_dir.setChecked(True)
+        self.custom_dir.setChecked(not in_python_path)
         self.dir_combo = PathComboBox(self)
         self.dir_combo.addItems(search_path)
         self.dir_combo.setToolTip(translate('FindInFiles',
@@ -399,6 +417,7 @@ class FindOptions(QWidget):
         vlayout.addLayout(hlayout2)
         vlayout.addLayout(hlayout3)
         self.more_widgets = (hlayout2, hlayout3)
+        self.toggle_more_options(more_options)
         self.setLayout(vlayout)
                 
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -470,11 +489,15 @@ class FindOptions(QWidget):
                            for index in range(self.dir_combo.count())]
             include = [unicode(self.include_pattern.itemText(index)) \
                        for index in range(self.include_pattern.count())]
+            include_idx = self.include_pattern.currentIndex()
             exclude = [unicode(self.exclude_pattern.itemText(index)) \
                        for index in range(self.exclude_pattern.count())]
+            exclude_idx = self.exclude_pattern.currentIndex()
+            more_options = self.more_options.isChecked()
             return (search_text, text_re, search_path,
-                    include, include_re,
-                    exclude, exclude_re)
+                    include, include_idx, include_re,
+                    exclude, exclude_idx, exclude_re,
+                    python_path, more_options)
         else:
             return (path, python_path, hg_manifest,
                     include, exclude, texts, text_re)
@@ -558,10 +581,10 @@ class ResultsBrowser(OneColumnTree):
                     text_files += 's'
                 text = "%d %s %d %s" % (self.nb, text_matches,
                                         nb_files, text_files)
-            if self.error_flag:
-                text += ' (' + self.error_flag + ')'
-            if not self.completed:
-                text += ' (' + translate('FindInFiles', 'interrupted') + ')'
+        if self.error_flag:
+            text += ' (' + self.error_flag + ')'
+        elif self.results is not None and not self.completed:
+            text += ' (' + translate('FindInFiles', 'interrupted') + ')'
         self.set_title(title+text)
         self.clear()
         self.data = {}
@@ -649,9 +672,11 @@ class FindInFilesWidget(QWidget):
     def __init__(self, parent,
                  search_text = r"# ?TODO|# ?FIXME|# ?XXX",
                  search_text_regexp=True, search_path=None,
-                 include=".", include_regexp=True,
-                 exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_regexp=True,
-                 supported_encodings=("utf-8", "iso-8859-1", "cp1252")):
+                 include=[".", ".py"], include_idx=None, include_regexp=True,
+                 exclude=r"\.pyc$|\.orig$|\.hg|\.svn", exclude_idx=None,
+                 exclude_regexp=True,
+                 supported_encodings=("utf-8", "iso-8859-1", "cp1252"),
+                 in_python_path=False, more_options=False):
         QWidget.__init__(self, parent)
         
         self.setWindowTitle(translate('FindInFiles', 'Find in files'))
@@ -661,9 +686,11 @@ class FindInFilesWidget(QWidget):
                      self.search_complete)
         
         self.find_options = FindOptions(self, search_text, search_text_regexp,
-                                        search_path, include, include_regexp,
-                                        exclude, exclude_regexp,
-                                        supported_encodings)
+                                        search_path,
+                                        include, include_idx, include_regexp,
+                                        exclude, exclude_idx, exclude_regexp,
+                                        supported_encodings, in_python_path,
+                                        more_options)
         self.connect(self.find_options, SIGNAL('find()'), self.find)
         self.connect(self.find_options, SIGNAL('stop()'), self.stop)
         

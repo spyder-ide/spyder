@@ -39,13 +39,19 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         
         search_text_regexp = CONF.get(self.ID, 'search_text_regexp')
         include = CONF.get(self.ID, 'include')
+        include_idx = CONF.get(self.ID, 'include_idx', None)
         include_regexp = CONF.get(self.ID, 'include_regexp')
         exclude = CONF.get(self.ID, 'exclude')
+        exclude_idx = CONF.get(self.ID, 'exclude_idx', None)
         exclude_regexp = CONF.get(self.ID, 'exclude_regexp')
+        in_python_path = CONF.get(self.ID, 'in_python_path')
+        more_options = CONF.get(self.ID, 'more_options')
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp, search_path,
-                                   include, include_regexp,
-                                   exclude, exclude_regexp, supported_encodings)
+                                   include, include_idx, include_regexp,
+                                   exclude, exclude_idx, exclude_regexp,
+                                   supported_encodings,
+                                   in_python_path, more_options)
         SpyderPluginMixin.__init__(self, parent)
         
         self.connect(self, SIGNAL('toggle_visibility(bool)'), self.toggle)
@@ -83,8 +89,10 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         """Perform actions before parent main window is closed"""
         options = self.find_options.get_options(all=True)
         if options is not None:
-            search_text, text_re, search_path, include, \
-            include_re, exclude, exclude_re = options
+            search_text, text_re, search_path, \
+            include, include_idx, include_re, \
+            exclude, exclude_idx, exclude_re, \
+            in_python_path, more_options = options
             hist_limit = 15
             search_text = search_text[:hist_limit]
             search_path = search_path[:hist_limit]
@@ -94,8 +102,12 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             CONF.set(self.ID, 'search_text_regexp', text_re)
             CONF.set(self.ID, 'search_path', search_path)
             CONF.set(self.ID, 'include', include)
+            CONF.set(self.ID, 'include_idx', include_idx)
             CONF.set(self.ID, 'include_regexp', include_re)
             CONF.set(self.ID, 'exclude', exclude)
+            CONF.set(self.ID, 'exclude_idx', exclude_idx)
             CONF.set(self.ID, 'exclude_regexp', exclude_re)
+            CONF.set(self.ID, 'in_python_path', in_python_path)
+            CONF.set(self.ID, 'more_options', more_options)
         return True
 
