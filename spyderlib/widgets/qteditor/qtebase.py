@@ -580,6 +580,7 @@ class TextEditBaseWidget(QPlainTextEdit):
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False):
         """Find text"""
+        cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
@@ -587,19 +588,20 @@ class TextEditBaseWidget(QPlainTextEdit):
             findflag = findflag | QTextDocument.FindCaseSensitively
         if words:
             findflag = findflag | QTextDocument.FindWholeWords
+        moves = [QTextCursor.NoMove]
         if forward:
-            moves = [QTextCursor.NextWord, QTextCursor.Start]
+            moves += [QTextCursor.NextWord, QTextCursor.Start]
             if changed:
-                self.moveCursor(QTextCursor.PreviousWord)
+                cursor.movePosition(QTextCursor.PreviousWord)
         else:
-            moves = [QTextCursor.End]
-        found = self.find(text, findflag)
+            moves += [QTextCursor.End]
         for move in moves:
-            if found:
-                break
-            self.moveCursor(move)
-            found = self.find(text, findflag)
-        return found
+            cursor.movePosition(move)
+            found_cursor = self.document().find(text, cursor, findflag)
+            if not found_cursor.isNull():
+                self.setTextCursor(found_cursor)
+                return True
+        return False
     
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""

@@ -209,11 +209,11 @@ class FindReplace(QWidget):
         
     def find_next(self):
         """Find next occurence"""
-        self.find(changed=False, forward=True)
+        return self.find(changed=False, forward=True)
         
     def find_previous(self):
         """Find previous occurence"""
-        self.find(changed=False, forward=False)
+        return self.find(changed=False, forward=False)
         
     def text_has_changed(self, text):
         """Find text has changed"""
@@ -222,7 +222,7 @@ class FindReplace(QWidget):
     def find(self, changed=True, forward=True):
         """Call the find function"""
         text = self.search_text.currentText()
-        if len(text)==0:
+        if len(text) == 0:
             self.search_text.lineEdit().setStyleSheet("")
             return None
         else:
@@ -246,7 +246,8 @@ class FindReplace(QWidget):
                         # Text was already found, do nothing
                         pass
                     else:
-                        self.find(changed=False, forward=True)
+                        if not self.find(changed=False, forward=True):
+                            break
                     first = False
                     wrapped = False
                     position = self.editor.get_position('cursor')
@@ -267,7 +268,8 @@ class FindReplace(QWidget):
                     position0 = position1
                 
                 self.editor.replace(replace_text)
-                self.find_next()
+                if not self.find_next():
+                    break
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)
