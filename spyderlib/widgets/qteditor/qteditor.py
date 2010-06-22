@@ -104,12 +104,17 @@ class QtEditor(TextEditBaseWidget):
                      self.update_linenumberarea_width)
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
+
+        # Syntax highlighting
+        self.highlighter_class = None
+        self.highlighter = None
+        self.color_scheme = ('IDLE', 'Pydev', 'Scintilla')[1]
         
         # Highlight current line
-        bcol = CONF.get('editor', 'currentline/backgroundcolor')
-        bcol = QColor("#FFFF99") # IDLE color scheme
-        bcol = QColor("#E8F2FE") # Pydev color scheme
-        self.currentline_color = QColor(bcol)
+        bcol_dict = {'IDLE':      "#EEFFDD",
+                     'Pydev':     "#E8F2FE",
+                     'Scintilla': "#EEFFDD",}
+        self.currentline_color = QColor(bcol_dict[self.color_scheme])
         
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -120,10 +125,7 @@ class QtEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
 
         self.update_linenumberarea_width(0)
-        
-        self.highlighter_class = None
-        self.highlighter = None
-        
+                
         self.setup_editor_args = None
         
         self.document_id = id(self)
@@ -602,7 +604,8 @@ class QtEditor(TextEditBaseWidget):
         self.update_linenumberarea_width(0)
         if self.highlighter_class is not None:
             if not isinstance(self.highlighter, self.highlighter_class):
-                self.highlighter = self.highlighter_class(self.document(), font)
+                self.highlighter = self.highlighter_class(self.document(), font,
+                                                          self.color_scheme)
             else:
                 self.highlighter.setup_formats(font)
                 self.highlighter.rehighlight()

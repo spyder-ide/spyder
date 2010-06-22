@@ -160,7 +160,7 @@ class PythonSH(BaseSH):
     DEF_TYPES = {"def": ClassBrowserData.FUNCTION,
                  "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
-        super(PythonSH, self).__init__(parent)
+        super(PythonSH, self).__init__(parent, font, color_scheme)
         self.import_statements = {}
 
     def highlightBlock(self, text):
@@ -302,7 +302,7 @@ class CppSH(BaseSH):
     NORMAL = 0
     INSIDE_COMMENT = 1
     def __init__(self, parent, font=None, color_scheme=None):
-        super(CppSH, self).__init__(parent)
+        super(CppSH, self).__init__(parent, font, color_scheme)
 
     def highlightBlock(self, text):
         inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
@@ -365,7 +365,7 @@ class FortranSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
-        super(FortranSH, self).__init__(parent)
+        super(FortranSH, self).__init__(parent, font, color_scheme)
 
     def highlightBlock(self, text):
         self.setFormat(0, text.length(), self.formats["NORMAL"])
