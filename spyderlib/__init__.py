@@ -40,8 +40,12 @@ __license__ = __doc__
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
 
-#FIXME: IPython // Big bug with PyQt file dialogs: open/save/...
+#FIXME: IPython // Big bug with GUI file dialogs on win32: open/save/...
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
 #TODO: add an option to customize namespace browser refresh time out
+
+#TODO: regroup plugin settings in a new menu (or dlg box??) "Preferences"
+
+#TODO: IPython: add "configurations" management
