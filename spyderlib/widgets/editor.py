@@ -158,73 +158,20 @@ class EditorStack(QWidget):
         
         layout = QVBoxLayout()
         self.setLayout(layout)
-        
-        header_layout = QHBoxLayout()
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
-                                     tip=translate("Editor", "Options"))
-        self.menu = QMenu(self)
-        menu_btn.setMenu(self.menu)
-        menu_btn.setPopupMode(menu_btn.InstantPopup)
-        self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
-        header_layout.addWidget(menu_btn)
 
-        newwin_btn = create_toolbutton(self, text_beside_icon=False)
-        newwin_btn.setDefaultAction(self.newwindow_action)
-        header_layout.addWidget(newwin_btn)
-        
-        versplit_btn = create_toolbutton(self, text_beside_icon=False)
-        versplit_btn.setDefaultAction(self.versplit_action)
-        header_layout.addWidget(versplit_btn)
-        
-        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
-        horsplit_btn.setDefaultAction(self.horsplit_action)
-        header_layout.addWidget(horsplit_btn)
-        
-        self.combo = QComboBox(self)
-        self.default_combo_font = self.combo.font()
-        self.combo.setMaxVisibleItems(20)
-        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.current_changed)
-        header_layout.addWidget(self.combo)
-        
-        self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
-                         tip=translate("Editor", "Previous file (Ctrl+Tab)"),
-                         triggered=self.go_to_previous_file)
-        header_layout.addWidget(self.previous_btn)
-        self.next_btn = create_toolbutton(self, get_icon('next.png'),
-                         tip=translate("Editor", "Next file (Ctrl+Shift+Tab)"),
-                         triggered=self.go_to_next_file)
-        header_layout.addWidget(self.next_btn)
-
-        # Local shortcuts
-        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
-                          self.go_to_previous_file)
-        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
-                               self.go_to_next_file)
-        tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
-        
-        self.tabs = BaseTabs(self, menu=self.menu)
-        self.close_btn = create_toolbutton(self, triggered=self.close_file,
-                                       icon=get_icon("fileclose.png"),
-                                       tip=translate("Editor", "Close file"))
-        header_layout.addWidget(self.close_btn)
-        layout.addLayout(header_layout)
+        self.header_layout = None
+        self.menu = None
+        self.combo = None
+        self.default_combo_font = None
+        self.previous_btn = None
+        self.next_btn = None
+        self.tabs = None
+        self.close_btn = None
 
         self.stack_history = []
         
-        self.tabs.set_close_function(self.close_file)
-        if hasattr(self.tabs, 'setDocumentMode'):
-            self.tabs.setDocumentMode(True)
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.tabs.setCurrentIndex)
-        self.connect(self.tabs, SIGNAL('currentChanged(int)'),
-                     self.combo.setCurrentIndex)
-        layout.addWidget(self.tabs)
-        
+        self.setup_editorstack(parent, layout, actions)
+
         self.find_widget = None
 
         self.data = []
@@ -261,6 +208,83 @@ class EditorStack(QWidget):
         
         # Accepting drops
         self.setAcceptDrops(True)
+        
+    def setup_editorstack(self, parent, layout, actions):
+        """Setup editorstack's layout"""
+        self.header_layout = QHBoxLayout()
+        self.header_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Buttons to the left of file combo box
+        menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
+                                     tip=translate("Editor", "Options"))
+        self.menu = QMenu(self)
+        menu_btn.setMenu(self.menu)
+        menu_btn.setPopupMode(menu_btn.InstantPopup)
+        self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
+        self.add_widget_to_header(menu_btn)
+
+#        newwin_btn = create_toolbutton(self, text_beside_icon=False)
+#        newwin_btn.setDefaultAction(self.newwindow_action)
+#        self.add_widget_to_header(newwin_btn)
+        
+#        versplit_btn = create_toolbutton(self, text_beside_icon=False)
+#        versplit_btn.setDefaultAction(self.versplit_action)
+#        self.add_widget_to_header(versplit_btn)
+        
+#        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
+#        horsplit_btn.setDefaultAction(self.horsplit_action)
+#        self.add_widget_to_header(horsplit_btn)
+
+        self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
+                         tip=translate("Editor", "Previous file (Ctrl+Tab)"),
+                         triggered=self.go_to_previous_file)
+        self.add_widget_to_header(self.previous_btn, space_before=True)
+        
+        self.next_btn = create_toolbutton(self, get_icon('next.png'),
+                         tip=translate("Editor", "Next file (Ctrl+Shift+Tab)"),
+                         triggered=self.go_to_next_file)
+        self.add_widget_to_header(self.next_btn)
+                
+        # File combo box
+        self.combo = QComboBox(self)
+        self.default_combo_font = self.combo.font()
+        self.combo.setMaxVisibleItems(20)
+        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
+        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
+                     self.current_changed)
+        self.add_widget_to_header(self.combo)
+
+        # Buttons to the right of file combo box
+        self.close_btn = create_toolbutton(self, triggered=self.close_file,
+                                       icon=get_icon("fileclose.png"),
+                                       tip=translate("Editor", "Close file"))
+        self.add_widget_to_header(self.close_btn)
+        layout.addLayout(self.header_layout)
+
+        # Local shortcuts
+        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
+                          self.go_to_previous_file)
+        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
+                               self.go_to_next_file)
+        tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+        # Optional tabs
+        self.tabs = BaseTabs(self, menu=self.menu)
+        self.tabs.set_close_function(self.close_file)
+        if hasattr(self.tabs, 'setDocumentMode'):
+            self.tabs.setDocumentMode(True)
+        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
+                     self.tabs.setCurrentIndex)
+        self.connect(self.tabs, SIGNAL('currentChanged(int)'),
+                     self.combo.setCurrentIndex)
+        layout.addWidget(self.tabs)
+        
+    def add_widget_to_header(self, widget, space_before=False):
+        if space_before:
+            self.header_layout.addSpacing(7)
+        self.header_layout.addWidget(widget)
         
     def closeEvent(self, event):
         super(EditorStack, self).closeEvent(event)
@@ -1517,7 +1541,7 @@ class EditorWidget(QSplitter):
         self.plugin.register_editorstack(editorstack)
         cb_btn = create_toolbutton(self, text_beside_icon=False)
         cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-        editorstack.tabs.setCornerWidget(cb_btn)
+        editorstack.add_widget_to_header(cb_btn, space_before=True)
         
     def __print_editorstacks(self):
         print >>STDOUT, "%d editorstack(s) in editorwidget:" \
@@ -1693,9 +1717,9 @@ class FakePlugin(QSplitter):
         self.connect(editorstack, SIGNAL('plugin_load(QString)'),
                      self.load)
         
-        classbrowser_btn = create_toolbutton(self, text_beside_icon=False)
-        classbrowser_btn.setDefaultAction(self.classbrowser.visibility_action)
-        editorstack.tabs.setCornerWidget(classbrowser_btn)
+        cb_btn = create_toolbutton(self, text_beside_icon=False)
+        cb_btn.setDefaultAction(self.classbrowser.visibility_action)
+        editorstack.add_widget_to_header(cb_btn, space_before=True)
             
     def unregister_editorstack(self, editorstack):
         if DEBUG:

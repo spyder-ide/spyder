@@ -593,7 +593,7 @@ class Editor(SpyderPluginWidget):
                          self.eol_status.eol_changed)
             cb_btn = create_toolbutton(self, text_beside_icon=False)
             cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-            editorstack.tabs.setCornerWidget(cb_btn)
+            editorstack.add_widget_to_header(cb_btn, space_before=True)
             
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
