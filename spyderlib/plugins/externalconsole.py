@@ -448,6 +448,7 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             default_options.append("-q4thread")
         default_options.append("-colors LightBG")
+        default_options.append("-xmode Plain")
         for editor_name in ("scite", "gedit"):
             real_name = programs.get_nt_program_name(editor_name)
             if programs.is_program_installed(real_name):
