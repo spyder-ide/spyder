@@ -776,11 +776,12 @@ class TextEditBaseWidget(QPlainTextEdit):
     def stdkey_tab(self):
         self.insert_text(" "*4)
 
-    def stdkey_home(self, shift):
+    def stdkey_home(self, shift, prompt_pos=None):
         move_mode = self.__get_move_mode(shift)
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.StartOfBlock, move_mode)
-        cursor.movePosition(QTextCursor.Right, move_mode, len(self.prompt))
+        if prompt_pos is not None:
+            cursor.setPosition(prompt_pos, move_mode)
         self.setTextCursor(cursor)
 
     def stdkey_end(self, shift):

@@ -402,7 +402,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         elif key in (Qt.Key_PageUp, Qt.Key_PageDown):
             #XXX: Find a way to do this programmatically instead of calling
             # widget keyhandler (this won't work if the *event* is coming from
-            # the event queue - i.e. when the busy buffer will be implemented)
+            # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
 
         elif key == Qt.Key_Escape:
@@ -825,7 +825,7 @@ class PythonShellWidget(ShellBaseWidget):
         if self.is_completion_widget_visible():
             self.completion_widget_home()
         elif self.is_cursor_on_last_line():
-            self.set_cursor_position(self.current_prompt_pos)
+            self.stdkey_home(shift, self.current_prompt_pos)
                 
     def _key_end(self, shift):
         """Action for End key"""
@@ -1079,7 +1079,7 @@ class TerminalWidget(ShellBaseWidget):
     def _key_home(self, shift):
         """Action for Home key"""
         if self.is_cursor_on_last_line():
-            self.set_cursor_position(self.current_prompt_pos)
+            self.stdkey_home(shift, self.current_prompt_pos)
                 
     def _key_end(self, shift):
         """Action for End key"""
