@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 # Spyder's ExternalPythonShell sitecustomize
 
+try:
+    import locale
+    _t, _cp = locale.getdefaultlocale('LANG')
+    _cp = int(_cp[2:])
+    import win32console
+    win32console.SetConsoleCP(_cp)
+    win32console.SetConsoleOutputCP(_cp)
+except ImportError, ValueError:
+    # Pywin32 is not installed
+    pass
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
