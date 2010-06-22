@@ -319,6 +319,8 @@ class EditorStack(QWidget):
     def set_classbrowser(self, classbrowser):
         self.classbrowser = classbrowser
         self.classbrowser_enabled = True
+        self.connect(self.classbrowser, SIGNAL("classbrowser_is_visible()"),
+                     self._refresh_classbrowser)
         
     def set_tempfile_path(self, path):
         self.tempfile_path = path

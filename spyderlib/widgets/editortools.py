@@ -529,6 +529,8 @@ class ClassBrowser(QWidget):
         if current_editor is not None:
             current_editor.clearFocus()
             current_editor.setFocus()
+            if state:
+                self.emit(SIGNAL("classbrowser_is_visible()"))
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
