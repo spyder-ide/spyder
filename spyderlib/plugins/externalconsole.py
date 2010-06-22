@@ -23,8 +23,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import CONF, get_font, get_icon, set_font
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action, mimedata2url
-from spyderlib.utils.programs import is_module_installed
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
@@ -52,13 +52,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.terminal_count = 0
         
         if CONF.get(self.ID, 'ipython_options', None) is None:
-            default_options = []
-            if is_module_installed('matplotlib'):
-                default_options.append("-pylab")
-            else:
-                default_options.append("-q4thread")
-            default_options.append("-colors LightBG")
-            CONF.set(self.ID, 'ipython_options', " ".join(default_options))
+            CONF.set(self.ID, 'ipython_options',
+                     self.get_default_ipython_options())
         
         self.shells = []
         self.filenames = []
@@ -341,7 +336,7 @@ class ExternalConsole(SpyderPluginWidget):
         python_startup = CONF.get(self.ID, 'open_python_at_startup', None)
         ipython_startup = CONF.get(self.ID, 'open_ipython_at_startup', None)
         if ipython_startup is None:
-            ipython_startup = is_module_installed("IPython")
+            ipython_startup = programs.is_module_installed("IPython")
             CONF.set(self.ID, 'open_ipython_at_startup', ipython_startup)
         if python_startup is None:
             python_startup = not ipython_startup
@@ -408,7 +403,7 @@ class ExternalConsole(SpyderPluginWidget):
                             tip=self.tr("Set IPython interpreter "
                                         "command line arguments"),
                             triggered=self.set_ipython_options)
-        if is_module_installed("IPython"):
+        if programs.is_module_installed("IPython"):
             self.menu_actions.insert(3, ipython_options_action)
             self.menu_actions.insert(1, ipython_action)
         
@@ -417,7 +412,7 @@ class ExternalConsole(SpyderPluginWidget):
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
         if CONF.get(self.ID, 'open_ipython_at_startup') \
-           and is_module_installed("IPython"):
+           and programs.is_module_installed("IPython"):
             self.open_ipython()
         if CONF.get(self.ID, 'open_python_at_startup'):
             self.open_interpreter()
@@ -444,6 +439,21 @@ class ExternalConsole(SpyderPluginWidget):
             wdir = os.getcwdu()
         self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
                    interact=True, debug=False, python=True)
+        
+    def get_default_ipython_options(self):
+        """Return default ipython command line arguments"""
+        default_options = []
+        if programs.is_module_installed('matplotlib'):
+            default_options.append("-pylab")
+        else:
+            default_options.append("-q4thread")
+        default_options.append("-colors LightBG")
+        for editor_name in ("scite", "gedit"):
+            real_name = programs.get_nt_program_name(editor_name)
+            if programs.is_program_installed(real_name):
+                default_options.append("-editor "+real_name)
+                break
+        return " ".join(default_options)
         
     def open_ipython(self, wdir=None):
         """Open IPython"""
