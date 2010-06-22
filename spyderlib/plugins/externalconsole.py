@@ -52,9 +52,11 @@ class ExternalConsole(SpyderPluginWidget):
         self.terminal_count = 0
         
         if CONF.get(self.ID, 'ipython_options', None) is None:
-            default_options = ["-q4thread"]
+            default_options = []
             if is_module_installed('matplotlib'):
                 default_options.append("-pylab")
+            else:
+                default_options.append("-q4thread")
             default_options.append("-colors LightBG")
             CONF.set(self.ID, 'ipython_options', " ".join(default_options))
         

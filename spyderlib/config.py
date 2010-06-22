@@ -266,17 +266,6 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               }),
-            ('figure',
-             {
-              'dockable': True,
-              'tabified': True,
-              'size': MPL_SIZE,
-              'font/size': MEDIUM,
-              'statusbar/font/family': SANS_SERIF,
-              'statusbar/font/size': SMALL,
-              'statusbar/font/italic': False,
-              'statusbar/font/bold': False,
-              }),
             ('explorer',
              {
               'enable': True,

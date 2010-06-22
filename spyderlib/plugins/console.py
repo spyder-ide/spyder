@@ -168,25 +168,6 @@ class Console(SpyderPluginWidget):
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
-        
-        if is_module_installed('matplotlib'):
-            dockablefigures_action = create_action(self,
-                            self.tr("Dockable figures"),
-                            tip=self.tr("If enabled, matplotlib figures may "
-                                        "be docked to Spyder's main window "
-                                        "(will apply only for new figures)"),
-                            toggled=self.toggle_dockablefigures_mode)
-            self.tabifiedfigures_action = create_action(self,
-                            self.tr("Tabified figures"),
-                            tip = self.tr("If enabled, new matplotlib figures "
-                                          "will be tabified with last figure "
-                                          "(unless last figure is floating)"),
-                            toggled=self.toggle_tabifiedfigures_mode)
-            dockablefigures_action.setChecked( CONF.get('figure', 'dockable') )
-            self.tabifiedfigures_action.setChecked( CONF.get('figure',
-                                                             'tabified') )
-            add_actions(option_menu, (None, dockablefigures_action,
-                                      self.tabifiedfigures_action))
                     
         menu_actions = [None, run_action, environ_action, syspath_action,
                         option_menu, None, quit_action]
@@ -283,15 +264,6 @@ class Console(SpyderPluginWidget):
                           CONF.get(self.ID, 'external_editor/path'))
         if valid:
             CONF.set(self.ID, 'external_editor/path', unicode(path))
-            
-    def toggle_dockablefigures_mode(self, checked):
-        """Toggle dockable figures mode"""
-        CONF.set('figure', 'dockable', checked)
-        self.tabifiedfigures_action.setEnabled(checked)
-            
-    def toggle_tabifiedfigures_mode(self, checked):
-        """Toggle tabified figures mode"""
-        CONF.set('figure', 'tabified', checked)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

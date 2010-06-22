@@ -15,19 +15,15 @@ from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import qapplication
 
-def apply(font_size=None, facecolor=None):
+def set_backend(backend):
+    """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
+    from matplotlib import rcParams
+    rcParams["backend"] = backend
+
+def apply():
+    """Monkey patching matplotlib Qt4 backend figures"""
     _app = qapplication()
     
-    # Customizing matplotlib's parameters
-    from matplotlib import rcParams
-    if font_size is not None:
-        rcParams['font.size'] = font_size
-    rcParams["interactive"] = True # interactive mode
-    rcParams["backend"] = "Qt4Agg" # using Qt4 to render figures
-    if facecolor is not None:
-        rcParams['figure.facecolor'] = facecolor
-    
-    # Monkey patching matplotlib's figure manager for better integration
     from matplotlib.backends import backend_qt4
     import matplotlib
     

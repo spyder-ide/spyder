@@ -863,6 +863,7 @@ class BaseTableView(QTableView):
     def __prepare_plot(self):
         try:
             from spyderlib import mpl_patch
+            mpl_patch.set_backend("Qt4Agg")
             mpl_patch.apply()
             return True
         except ImportError:
