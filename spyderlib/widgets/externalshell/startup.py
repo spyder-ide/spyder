@@ -103,5 +103,5 @@ if __name__ == "__main__":
         import IPython.Shell
         sys.platform = __real_platform__
         del __real_platform__, __is_ipython
-        __ipythonshell__ = IPython.Shell.start()
+        __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile})
         __ipythonshell__.mainloop()

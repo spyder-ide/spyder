@@ -132,10 +132,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Run script in current shell, if any"""
         shellwidget = self.__find_python_shell()
         if shellwidget is not None and shellwidget.is_running():
-            if shellwidget.ipython:
-                line = "run '%s'" % unicode(filename)
-            else:
-                line = "runfile(r'%s')" % unicode(filename)
+            line = "runfile(r'%s')" % unicode(filename)
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()
             
@@ -519,13 +516,15 @@ class ExternalConsole(SpyderPluginWidget):
         if checked and self.isVisible():
             QMessageBox.warning(self, self.get_plugin_title(),
                 self.tr("This option will enable the User Module Deleter (UMD) "
-                        "in Python interpreters "
-                        "(<i>IPython</i> is currently not supported)."
-                        "<br><br><i>1.</i> UMD may require to restart the "
+                        "in Python/IPython interpreters. UMD forces Python to "
+                        "reload deeply modules during import when running a "
+                        "Python script using the Spyder's builtin function "
+                        "<b>runfile</b>."
+                        "<br><br><b>1.</b> UMD may require to restart the "
                         "Python interpreter in which it will be called "
                         "(otherwise only newly imported modules will be "
                         "reloaded when executing scripts)."
-                        "<br><br><i>2.</i> If errors occur when re-running a "
+                        "<br><br><b>2.</b> If errors occur when re-running a "
                         "PyQt-based program, please check that the Qt objects "
                         "are properly destroyed (e.g. you may have to use the "
                         "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
