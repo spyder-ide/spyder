@@ -603,18 +603,25 @@ class ExternalConsole(SpyderPluginWidget):
                 event.acceptProposedAction()
             else:
                 event.ignore()
-        elif source.hasText() and self.__is_python_script(source.text()):
+        elif source.hasText():
             event.acceptProposedAction()            
             
     def dropEvent(self, event):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         source = event.mimeData()
+        shell = self.tabwidget.currentWidget().shell
         if source.hasText():
-            self.start(source.text(), ask_for_arguments=True)
+            qstr = source.text()
+            if self.__is_python_script(qstr):
+                self.start(qstr, ask_for_arguments=True)
+            else:
+                shell.insert_text(qstr)
         elif source.hasUrls():
-            files = mimedata2url(source)
-            for fname in files:
-                if self.__is_python_script(fname):
+            pathlist = mimedata2url(source)
+            if all([self.__is_python_script(qstr) for qstr in pathlist]):
+                for fname in pathlist:
                     self.start(fname, ask_for_arguments=True)
+            else:
+                shell.drop_pathlist(pathlist)
         event.acceptProposedAction()

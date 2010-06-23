@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QInputDialog,
-                         QLineEdit, QMenu, QMessageBox)
+                         QLineEdit, QMenu)
 from PyQt4.QtCore import SIGNAL
 
 import os, sys
@@ -25,7 +25,6 @@ STDOUT = sys.stdout
 from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.utils.environ import EnvDialog
-from spyderlib.utils.programs import is_module_installed
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
@@ -303,14 +302,8 @@ class Console(SpyderPluginWidget):
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasUrls():
-            files = mimedata2url(source)
-            if files:
-                files = ["r'%s'" % path for path in files]
-                if len(files) == 1:
-                    text = files[0]
-                else:
-                    text = "[" + ", ".join(files) + "]"
-                self.shell.insert_text(text)
+            pathlist = mimedata2url(source)
+            self.shell.drop_pathlist(pathlist)
         elif source.hasText():
             lines = unicode(source.text())
             self.shell.set_cursor_position('eof')

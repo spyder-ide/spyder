@@ -49,3 +49,5 @@ __license__ = __doc__
 #TODO: regroup plugin settings in a new menu (or dlg box??) "Preferences"
 
 #TODO: IPython: add "configurations" management
+
+#TODO: File Explorer: add support for multiple selection

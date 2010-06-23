@@ -670,14 +670,29 @@ class ShellBaseWidget(ConsoleBaseWidget):
 
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
-        if(event.mimeData().hasFormat("text/plain")):
+        if (event.mimeData().hasFormat("text/plain")):
             text = event.mimeData().text()
+            if self.new_input_line:
+                self.on_new_line()
             self.insert_text(text, at_end=True)
             self.setFocus()
             event.setDropAction(Qt.MoveAction)
             event.accept()
         else:
             event.ignore()
+            
+    def drop_pathlist(self, pathlist):
+        """Drop path list"""
+        if pathlist:
+            files = ["r'%s'" % path for path in pathlist]
+            if len(files) == 1:
+                text = files[0]
+            else:
+                text = "[" + ", ".join(files) + "]"
+            if self.new_input_line:
+                self.on_new_line()
+            self.insert_text(text)
+            self.setFocus()
 
 
 class PythonShellWidget(ShellBaseWidget):
