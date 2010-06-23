@@ -683,16 +683,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
             
     def drop_pathlist(self, pathlist):
         """Drop path list"""
-        if pathlist:
-            files = ["r'%s'" % path for path in pathlist]
-            if len(files) == 1:
-                text = files[0]
-            else:
-                text = "[" + ", ".join(files) + "]"
-            if self.new_input_line:
-                self.on_new_line()
-            self.insert_text(text)
-            self.setFocus()
+        raise NotImplementedError
 
 
 class PythonShellWidget(ShellBaseWidget):
@@ -1056,6 +1047,21 @@ class PythonShellWidget(ShellBaseWidget):
         """Set ObjectInspector DockWidget reference"""
         self.inspector = inspector
         self.inspector.set_shell(self)
+            
+            
+    #------ Drag'n Drop
+    def drop_pathlist(self, pathlist):
+        """Drop path list"""
+        if pathlist:
+            files = ["r'%s'" % path for path in pathlist]
+            if len(files) == 1:
+                text = files[0]
+            else:
+                text = "[" + ", ".join(files) + "]"
+            if self.new_input_line:
+                self.on_new_line()
+            self.insert_text(text)
+            self.setFocus()
 
 
 class TerminalWidget(ShellBaseWidget):
@@ -1124,3 +1130,18 @@ class TerminalWidget(ShellBaseWidget):
     def _key_period(self, text):
         """Action for '.'"""
         self.insert_text(text)
+            
+            
+    #------ Drag'n Drop
+    def drop_pathlist(self, pathlist):
+        """Drop path list"""
+        if pathlist:
+            files = ['"%s"' % path for path in pathlist]
+            if len(files) == 1:
+                text = files[0]
+            else:
+                text = " ".join(files)
+            if self.new_input_line:
+                self.on_new_line()
+            self.insert_text(text)
+            self.setFocus()

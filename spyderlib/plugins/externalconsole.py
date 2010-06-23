@@ -600,7 +600,14 @@ class ExternalConsole(SpyderPluginWidget):
         source = event.mimeData()
         if source.hasUrls():
             if mimedata2url(source):
-                event.acceptProposedAction()
+                pathlist = mimedata2url(source)
+                shellwidget = self.tabwidget.currentWidget()
+                if all([self.__is_python_script(qstr) for qstr in pathlist]):
+                    event.acceptProposedAction()
+                elif shellwidget is None or not shellwidget.is_running():
+                    event.ignore()
+                else:
+                    event.acceptProposedAction()
             else:
                 event.ignore()
         elif source.hasText():
@@ -610,18 +617,18 @@ class ExternalConsole(SpyderPluginWidget):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         source = event.mimeData()
-        shell = self.tabwidget.currentWidget().shell
+        shellwidget = self.tabwidget.currentWidget()
         if source.hasText():
             qstr = source.text()
             if self.__is_python_script(qstr):
                 self.start(qstr, ask_for_arguments=True)
-            else:
-                shell.insert_text(qstr)
+            elif shellwidget:
+                shellwidget.shell.insert_text(qstr)
         elif source.hasUrls():
             pathlist = mimedata2url(source)
             if all([self.__is_python_script(qstr) for qstr in pathlist]):
                 for fname in pathlist:
                     self.start(fname, ask_for_arguments=True)
-            else:
-                shell.drop_pathlist(pathlist)
+            elif shellwidget:
+                shellwidget.shell.drop_pathlist(pathlist)
         event.acceptProposedAction()
