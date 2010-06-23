@@ -317,9 +317,14 @@ class QtEditor(TextEditBaseWidget):
 
     def text(self, line_nb=None):
         """Reimplements TextEditBaseWidget method"""
-        lines = unicode(self.toPlainText()).splitlines()
+        utext = unicode(self.toPlainText())
+        lines = utext.splitlines()
         if line_nb is None:
-            return self.get_line_separator().join(lines)
+            linesep = self.get_line_separator()
+            txt = linesep.join(lines)
+            if utext.endswith('\n'):
+                txt += linesep
+            return txt
         else:
             return lines[line_nb-1]
     
