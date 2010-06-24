@@ -181,6 +181,19 @@ class SearchThread(QThread):
         pathlist = os.environ['PYTHONPATH'].split(os.pathsep)
         if self.get_pythonpath_callback is not None:
             pathlist += self.get_pythonpath_callback()
+        if os.name == "nt":
+            # The following avoid doublons on Windows platforms:
+            # (e.g. "d:\Python" in PYTHONPATH environment variable,
+            #  and  "D:\Python" in Spyder's python path would lead 
+            #  to two different search folders)
+            winpathlist = []
+            lcpathlist = []
+            for path in pathlist:
+                lcpath = osp.normcase(path)
+                if lcpath not in lcpathlist:
+                    lcpathlist.append(lcpath)
+                    winpathlist.append(path)
+            pathlist = winpathlist
         for path in set(pathlist):
             if osp.isdir(path):
                 ok = self.find_files_in_path(path)
