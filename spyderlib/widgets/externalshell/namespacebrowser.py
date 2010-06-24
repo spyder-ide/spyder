@@ -6,7 +6,7 @@
 
 """Namespace browser widget"""
 
-import sys, os, os.path as osp
+import sys, os, os.path as osp, socket
 
 # Debug
 STDOUT = sys.stdout
@@ -195,7 +195,11 @@ class NamespaceBrowser(QWidget):
             if sock is None:
                 return
             settings = get_settings()
-            self.set_data( monitor_get_remote_view(sock, settings) )
+            try:
+                self.set_data( monitor_get_remote_view(sock, settings) )
+            except socket.error:
+                # Process was terminated before calling this methods
+                pass
         
     def get_value(self, name):
         return monitor_get_global(self.shell.monitor_socket, name)
