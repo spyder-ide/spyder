@@ -32,16 +32,22 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     #------ Public API ---------------------------------------------------------
     def add_shell(self, shell):
         shell_id = id(shell)
-        nsb = NamespaceBrowser(self)
-        nsb.set_shell(shell)
-        self.addWidget(nsb)
-        self.shells[shell_id] = nsb
-        shell.set_namespacebrowser(nsb)
+        # Add shell only once: this method may be called two times in a row 
+        # by the External console plugin (dev. convenience)
+        if shell_id not in self.shells:
+            nsb = NamespaceBrowser(self)
+            nsb.set_shell(shell)
+            self.addWidget(nsb)
+            self.shells[shell_id] = nsb
+            shell.set_namespacebrowser(nsb)
         
     def remove_shell(self, shell_id):
-        nsb = self.shells.pop(shell_id)
-        self.removeWidget(nsb)
-        nsb.close()
+        # If shell_id is not in self.shells, it simply means
+        # that shell was not a Python/IPython-based console (it was a terminal)
+        if shell_id in self.shells:
+            nsb = self.shells.pop(shell_id)
+            self.removeWidget(nsb)
+            nsb.close()
     
     def set_shell(self, shell):
         shell_id = id(shell)

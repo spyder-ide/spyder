@@ -278,6 +278,8 @@ class ExternalConsole(SpyderPluginWidget):
                 self.tabwidget.setTabIcon(index, icon)
                 if self.inspector is not None:
                     self.inspector.set_shell(shell.shell)
+                if self.variableexplorer is not None:
+                    self.variableexplorer.add_shell(shell)
         
     def process_finished(self, shell_id):
         for index, shell in enumerate(self.shells):
