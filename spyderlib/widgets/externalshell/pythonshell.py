@@ -206,6 +206,10 @@ class ExternalPythonShell(ExternalShellBase):
         self.args_action = create_action(self, self.tr("Arguments..."),
                                          triggered=self.get_arguments)
         return [self.interact_action, self.debug_action, self.args_action]
+
+    def is_interpreter(self):
+        """Return True if shellwidget is a Python/IPython interpreter"""
+        return self.interpreter
         
     def set_namespacebrowser(self, namespacebrowser):
         """Set namespace browser *widget*"""

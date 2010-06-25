@@ -30,6 +30,7 @@ class ObjectComboBox(EditableComboBox):
     """
     def __init__(self, parent):
         super(ObjectComboBox, self).__init__(parent)
+        self.object_inspector = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this object name"),
                      False: self.tr('This object name is incorrect')}
@@ -42,6 +43,7 @@ class ObjectComboBox(EditableComboBox):
             return False
         shell = self.parent().shell
         if shell is not None:
+            self.object_inspector._check_if_shell_is_running()
             force_import = CONF.get('inspector', 'automatic_import')
             return shell.is_defined(unicode(qstr), force_import=force_import)
         
@@ -59,6 +61,8 @@ class ObjectInspector(ReadOnlyEditor):
         ReadOnlyEditor.__init__(self, parent)
         
         self.shell = None
+        
+        self.external_console = None
         
         # locked = disable link with Console
         self.locked = False
@@ -126,6 +130,9 @@ class ObjectInspector(ReadOnlyEditor):
         self.set_object_text(None, force_refresh=False)
         
     #------ Public API ---------------------------------------------------------
+    def set_external_console(self, external_console):
+        self.external_console = external_console
+    
     def force_refresh(self):
         self.set_object_text(None, force_refresh=True)
     
@@ -197,20 +204,37 @@ class ObjectInspector(ReadOnlyEditor):
     def set_shell(self, shell):
         """Bind to shell"""
         self.shell = shell
+
+    def get_running_python_shell(self):
+        shell = None
+        if self.external_console is not None:
+            shell = self.external_console.get_running_python_shell()
+        if shell is None:
+            shell = self.main.console.shell
+        return shell
         
-    def get_shell(self):
-        """Return bound shell instance"""
-        return self.shell
+    def shell_terminated(self, shell):
+        """
+        External shall has terminated:
+        binding object inspector to another shell
+        """
+        if self.shell is shell:
+            self.shell = self.get_running_python_shell()
+        
+    def _check_if_shell_is_running(self):
+        """
+        Checks if bound external shell is still running.
+        Otherwise, switch to internal console
+        """
+        if isinstance(self.shell, ExtPythonShellWidget) \
+           and not self.shell.externalshell.is_running():
+            self.shell = self.get_running_python_shell()
         
     def show_help(self, obj_text):
         """Show help"""
         if self.shell is None:
             return
-        if isinstance(self.shell, ExtPythonShellWidget):
-            if not self.shell.externalshell.is_running():
-                # Binded external shell was stopped:
-                # binding ObjectInspector to internal console instead
-                self.shell = self.main.console.shell
+        self._check_if_shell_is_running()
         obj_text = unicode(obj_text)
 
         if CONF.get('inspector', 'automatic_import'):

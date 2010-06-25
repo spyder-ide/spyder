@@ -112,6 +112,7 @@ class ExternalConsole(SpyderPluginWidget):
     def set_inspector(self, inspector):
         """Bind inspector instance to this console"""
         self.inspector = inspector
+        inspector.set_external_console(self)
         
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -127,6 +128,27 @@ class ExternalConsole(SpyderPluginWidget):
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
                 self.tabwidget.setCurrentIndex(index)
                 return shellwidget
+                
+    def get_running_python_shell(self):
+        """
+        Called by object inspector to retrieve a running Python shell instance
+        """
+        current_index = self.tabwidget.currentIndex()
+        if current_index == -1:
+            return
+        from spyderlib.widgets.externalshell import pythonshell
+        shellwidgets = [self.tabwidget.widget(index)
+                        for index in range(self.tabwidget.count())]
+        shellwidgets = [_w for _w in shellwidgets
+                        if isinstance(_w, pythonshell.ExternalPythonShell) \
+                        and _w.is_running()]
+        if shellwidgets:
+            # First, iterate on interpreters only:
+            for shellwidget in shellwidgets:
+                if shellwidget.is_interpreter():
+                    return shellwidget.shell
+            else:
+                return shellwidgets[0].shell
         
     def run_script_in_current_shell(self, filename):
         """Run script in current shell, if any"""
@@ -287,9 +309,7 @@ class ExternalConsole(SpyderPluginWidget):
                 _icon, icon = self.icons[index]
                 self.tabwidget.setTabIcon(index, icon)
                 if self.inspector is not None:
-                    if self.inspector.get_shell() is shell.shell:
-                        # Switch back to internal shell:
-                        self.inspector.set_shell(self.main.console.shell)
+                    self.inspector.shell_terminated(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(shell_id)
         
