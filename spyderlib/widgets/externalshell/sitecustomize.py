@@ -2,14 +2,13 @@
 # Spyder's ExternalPythonShell sitecustomize
 
 try:
-    import locale
+    import locale, win32console, pywintypes
     _t, _cp = locale.getdefaultlocale('LANG')
     _cp = int(_cp[2:])
-    import win32console
     win32console.SetConsoleCP(_cp)
     win32console.SetConsoleOutputCP(_cp)
-except ImportError, ValueError:
-    # Pywin32 is not installed
+except (ImportError, ValueError, TypeError, pywintypes.error):
+    # Pywin32 is not installed or Code page number in locale is not valid
     pass
 
 # Set standard outputs encoding:
