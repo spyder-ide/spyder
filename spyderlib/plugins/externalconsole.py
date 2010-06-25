@@ -182,42 +182,42 @@ class ExternalConsole(SpyderPluginWidget):
             umd_enabled = CONF.get(self.ID, 'umd/enabled')
             umd_namelist = CONF.get(self.ID, 'umd/namelist')
             umd_verbose = CONF.get(self.ID, 'umd/verbose')
-            shell_widget = ExternalPythonShell(self, fname, wdir, self.commands,
+            shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
                            arguments=arguments, stand_alone=self.light_mode,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose)
             if self.variableexplorer is not None:
-                self.variableexplorer.add_shell(shell_widget)
+                self.variableexplorer.add_shellwidget(shellwidget)
         else:
-            shell_widget = ExternalSystemShell(self, wdir, path=pythonpath)
+            shellwidget = ExternalSystemShell(self, wdir, path=pythonpath)
         
         # Code completion / calltips
         case_sensitive = CONF.get(self.ID, 'codecompletion/case-sensitivity')
         show_single = CONF.get(self.ID, 'codecompletion/select-single')
         from_document = CONF.get(self.ID, 'codecompletion/from-document')
-        shell_widget.shell.setup_code_completion(case_sensitive, show_single,
+        shellwidget.shell.setup_code_completion(case_sensitive, show_single,
                                                  from_document)
         
-        shell_widget.shell.setMaximumBlockCount( CONF.get(self.ID,
+        shellwidget.shell.setMaximumBlockCount( CONF.get(self.ID,
                                                           'max_line_count') )
-        shell_widget.shell.set_font( get_font(self.ID) )
-        shell_widget.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
-        shell_widget.shell.set_calltips( CONF.get(self.ID, 'calltips') )
-        shell_widget.shell.set_codecompletion_auto( CONF.get(self.ID,
+        shellwidget.shell.set_font( get_font(self.ID) )
+        shellwidget.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        shellwidget.shell.set_calltips( CONF.get(self.ID, 'calltips') )
+        shellwidget.shell.set_codecompletion_auto( CONF.get(self.ID,
                                                  'codecompletion/auto') )
-        shell_widget.shell.set_codecompletion_enter(CONF.get(self.ID,
+        shellwidget.shell.set_codecompletion_enter(CONF.get(self.ID,
                                                  'codecompletion/enter-key'))
         if python and self.inspector is not None:
-            shell_widget.shell.set_inspector(self.inspector)
+            shellwidget.shell.set_inspector(self.inspector)
         if self.historylog is not None:
-            self.historylog.add_history(shell_widget.shell.history_filename)
-            self.connect(shell_widget.shell,
+            self.historylog.add_history(shellwidget.shell.history_filename)
+            self.connect(shellwidget.shell,
                          SIGNAL('append_to_history(QString,QString)'),
                          self.historylog.append_to_history)
-        self.connect(shell_widget.shell, SIGNAL("go_to_error(QString)"),
+        self.connect(shellwidget.shell, SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
-        self.connect(shell_widget.shell, SIGNAL("focus_changed()"),
+        self.connect(shellwidget.shell, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
@@ -236,7 +236,7 @@ class ExternalConsole(SpyderPluginWidget):
                 tab_icon1 = get_icon('run.png')
                 tab_icon2 = get_icon('terminated.png')
         else:
-            fname = id(shell_widget)
+            fname = id(shellwidget)
             if os.name == 'nt':
                 tab_name = self.tr("Command Window")
             else:
@@ -245,19 +245,19 @@ class ExternalConsole(SpyderPluginWidget):
             tab_name += (" %d" % self.terminal_count)
             tab_icon1 = get_icon('cmdprompt.png')
             tab_icon2 = get_icon('cmdprompt_t.png')
-        self.shells.insert(index, shell_widget)
+        self.shells.insert(index, shellwidget)
         self.filenames.insert(index, fname)
         self.icons.insert(index, (tab_icon1, tab_icon2))
         if index is None:
-            index = self.tabwidget.addTab(shell_widget, tab_name)
+            index = self.tabwidget.addTab(shellwidget, tab_name)
         else:
-            self.tabwidget.insertTab(index, shell_widget, tab_name)
+            self.tabwidget.insertTab(index, shellwidget, tab_name)
         
-        self.connect(shell_widget, SIGNAL("started()"),
-                     lambda sid=id(shell_widget): self.process_started(sid))
-        self.connect(shell_widget, SIGNAL("finished()"),
-                     lambda sid=id(shell_widget): self.process_finished(sid))
-        self.find_widget.set_editor(shell_widget.shell)
+        self.connect(shellwidget, SIGNAL("started()"),
+                     lambda sid=id(shellwidget): self.process_started(sid))
+        self.connect(shellwidget, SIGNAL("finished()"),
+                     lambda sid=id(shellwidget): self.process_finished(sid))
+        self.find_widget.set_editor(shellwidget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
@@ -267,8 +267,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.toggle_icontext(CONF.get(self.ID, 'show_icontext'))
         
         # Start process and give focus to console
-        shell_widget.start(ask_for_arguments)
-        shell_widget.shell.setFocus()
+        shellwidget.start(ask_for_arguments)
+        shellwidget.shell.setFocus()
         
     #------ Private API --------------------------------------------------------
     def process_started(self, shell_id):
@@ -279,7 +279,7 @@ class ExternalConsole(SpyderPluginWidget):
                 if self.inspector is not None:
                     self.inspector.set_shell(shell.shell)
                 if self.variableexplorer is not None:
-                    self.variableexplorer.add_shell(shell)
+                    self.variableexplorer.add_shellwidget(shell)
         
     def process_finished(self, shell_id):
         for index, shell in enumerate(self.shells):
@@ -291,7 +291,7 @@ class ExternalConsole(SpyderPluginWidget):
                         # Switch back to internal shell:
                         self.inspector.set_shell(self.main.console.shell)
         if self.variableexplorer is not None:
-            self.variableexplorer.remove_shell(shell_id)
+            self.variableexplorer.remove_shellwidget(shell_id)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):

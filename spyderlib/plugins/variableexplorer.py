@@ -27,38 +27,38 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
-        self.shells = {}
+        self.shellwidgets = {}
         
     #------ Public API ---------------------------------------------------------
-    def add_shell(self, shell):
-        shell_id = id(shell)
+    def add_shellwidget(self, shellwidget):
+        shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row 
         # by the External console plugin (dev. convenience)
-        if shell_id not in self.shells:
+        if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
-            nsb.set_shell(shell)
+            nsb.set_shellwidget(shellwidget)
             self.addWidget(nsb)
-            self.shells[shell_id] = nsb
-            shell.set_namespacebrowser(nsb)
+            self.shellwidgets[shellwidget_id] = nsb
+            shellwidget.set_namespacebrowser(nsb)
         
-    def remove_shell(self, shell_id):
-        # If shell_id is not in self.shells, it simply means
+    def remove_shellwidget(self, shellwidget_id):
+        # If shellwidget_id is not in self.shellwidgets, it simply means
         # that shell was not a Python/IPython-based console (it was a terminal)
-        if shell_id in self.shells:
-            nsb = self.shells.pop(shell_id)
+        if shellwidget_id in self.shellwidgets:
+            nsb = self.shellwidgets.pop(shellwidget_id)
             self.removeWidget(nsb)
             nsb.close()
     
-    def set_shell(self, shell):
-        shell_id = id(shell)
-        if shell_id in self.shells:
-            self.setCurrentWidget(self.shells[shell_id])
+    def set_shellwidget(self, shellwidget):
+        shellwidget_id = id(shellwidget)
+        if shellwidget_id in self.shellwidgets:
+            self.setCurrentWidget(self.shellwidgets[shellwidget_id])
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
         SpyderPluginMixin.visibility_changed(self, enable)
-        for nsb in self.shells.values():
+        for nsb in self.shellwidgets.values():
             nsb.visibility_changed(enable and nsb is self.currentWidget())
     
     #------ SpyderPluginWidget API ---------------------------------------------

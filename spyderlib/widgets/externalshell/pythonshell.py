@@ -214,7 +214,7 @@ class ExternalPythonShell(ExternalShellBase):
     def get_shell_widget(self):
         if self.stand_alone:
             self.namespacebrowser = NamespaceBrowser(self)
-            self.namespacebrowser.set_shell(self)
+            self.namespacebrowser.set_shellwidget(self)
             self.connect(self.namespacebrowser, SIGNAL('collapse()'),
                          lambda: self.toggle_globals_explorer(False))
             # Shell splitter

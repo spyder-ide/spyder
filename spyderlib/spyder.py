@@ -767,7 +767,7 @@ class MainWindow(QMainWindow):
         shell = self.__focus_shell()
         if shell is not None and self.inspector is not None:
             self.inspector.set_shell(shell)
-            self.variableexplorer.set_shell(shell.parent())
+            self.variableexplorer.set_shellwidget(shell.parent())
         
     def update_file_menu(self):
         """Update file menu"""

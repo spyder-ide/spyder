@@ -57,7 +57,7 @@ class NamespaceBrowser(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
-        self.shell = None
+        self.shellwidget = None
         self.is_visible = True
         self.auto_refresh_enabled = True
 
@@ -95,8 +95,8 @@ class NamespaceBrowser(QWidget):
         
         self.toggle_auto_refresh(self.auto_refresh_enabled)
         
-    def set_shell(self, shell):
-        self.shell = shell
+    def set_shellwidget(self, shellwidget):
+        self.shellwidget = shellwidget
         
     def setup_toolbar(self, layout):
         toolbar = []
@@ -189,9 +189,10 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
         
     def refresh_table(self):
-        if self.is_visible and self.isVisible() and self.shell.is_running():
+        if self.is_visible and self.isVisible() \
+           and self.shellwidget.is_running():
 #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
-            sock = self.shell.monitor_socket
+            sock = self.shellwidget.monitor_socket
             if sock is None:
                 return
             settings = get_settings()
@@ -202,72 +203,72 @@ class NamespaceBrowser(QWidget):
                 pass
         
     def get_value(self, name):
-        return monitor_get_global(self.shell.monitor_socket, name)
+        return monitor_get_global(self.shellwidget.monitor_socket, name)
         
     def set_value(self, name, value):
-        sock = self.shell.monitor_socket
+        sock = self.shellwidget.monitor_socket
         monitor_set_global(sock, name, value)
         self.refresh_table()
         
     def remove_values(self, names):
-        sock = self.shell.monitor_socket
+        sock = self.shellwidget.monitor_socket
         for name in names:
             monitor_del_global(sock, name)
         self.refresh_table()
         
     def copy_value(self, orig_name, new_name):
-        sock = self.shell.monitor_socket
+        sock = self.shellwidget.monitor_socket
         monitor_copy_global(sock, orig_name, new_name)
         self.refresh_table()
         
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
-        return communicate(self.shell.monitor_socket,
+        return communicate(self.shellwidget.monitor_socket,
                            "isinstance(globals()['%s'], (tuple, list))" % name,
                            pickle_try=True)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return communicate(self.shell.monitor_socket,
+        return communicate(self.shellwidget.monitor_socket,
                            "isinstance(globals()['%s'], dict)" % name,
                            pickle_try=True)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self.shell.monitor_socket,
+        return communicate(self.shellwidget.monitor_socket,
                            "len(globals()['%s'])" % name,
                            pickle_try=True)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return monitor_is_array(self.shell.monitor_socket, name)
+        return monitor_is_array(self.shellwidget.monitor_socket, name)
         
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self.shell.monitor_socket,
+        return communicate(self.shellwidget.monitor_socket,
                            "globals()['%s'].shape" % name,
                            pickle_try=True)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self.shell.monitor_socket,
+        return communicate(self.shellwidget.monitor_socket,
                            "globals()['%s'].ndim" % name,
                            pickle_try=True)
         
     def plot(self, name):
         command = "import spyderlib.pyplot as plt; " \
                   "plt.figure(); plt.plot(%s); plt.show();" % name
-        self.shell.send_to_process(command)
+        self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
         command = "import spyderlib.pyplot as plt; " \
                   "plt.figure(); plt.imshow(%s); plt.show();" % name
-        self.shell.send_to_process(command)
+        self.shellwidget.send_to_process(command)
         
     def oedit(self, name):
         command = "from spyderlib.widgets.objecteditor import oedit; " \
                   "oedit(%s);" % name
-        self.shell.send_to_process(command)
+        self.shellwidget.send_to_process(command)
         
     def set_data(self, data):
         if data != self.editor.model.get_data():
@@ -278,7 +279,7 @@ class NamespaceBrowser(QWidget):
         self.emit(SIGNAL('collapse()'))
         
     def import_data(self):
-        sock = self.shell.monitor_socket
+        sock = self.shellwidget.monitor_socket
         
         title = self.tr("Import data")
         if self.filename is None:
@@ -342,7 +343,7 @@ class NamespaceBrowser(QWidget):
                 self.filename = filename
             else:
                 return False
-        sock = self.shell.monitor_socket
+        sock = self.shellwidget.monitor_socket
         settings = get_settings()
         error_message = monitor_save_globals(sock, settings, filename)
         if error_message is not None:
