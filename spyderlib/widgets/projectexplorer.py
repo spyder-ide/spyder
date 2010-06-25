@@ -111,16 +111,17 @@ class Project(object):
         if not osp.exists(config_path):
             self.save()
             
-    @property
-    def relative_pythonpath(self):
+    def _get_relative_pythonpath(self):
         # Workaround to replace os.path.relpath (new in Python v2.6):
         offset = len(self.root_path)+len(os.pathsep)
         return [path[offset:] for path in self.pythonpath]
 
-    @relative_pythonpath.setter
-    def relative_pythonpath(self, value):
+    def _set_relative_pythonpath(self, value):
         self.pythonpath = [osp.abspath(osp.join(self.root_path, path))
                            for path in value]
+        
+    relative_pythonpath = property(_get_relative_pythonpath,
+                                   _set_relative_pythonpath)
         
     def __get_project_config_path(self):
         return osp.join(self.root_path, self.CONFIG_NAME)
