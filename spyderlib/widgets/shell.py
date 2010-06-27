@@ -993,9 +993,11 @@ class PythonShellWidget(ShellBaseWidget):
             else:
                 completion_text = last_obj[dot_pos+1:]
                 last_obj = last_obj[:dot_pos]
-            self.show_completion_list(self.get_dir(last_obj),
-                                      completion_text=completion_text)
-            return
+            completions = self.get_dir(last_obj)
+            if completions is not None:
+                self.show_completion_list(completions,
+                                          completion_text=completion_text)
+                return
         
         # Looking for ' or ": filename completion
         q_pos = max([text.rfind("'"), text.rfind('"')])
