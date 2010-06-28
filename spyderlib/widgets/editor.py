@@ -1707,6 +1707,10 @@ class FakePlugin(QSplitter):
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_classbrowser(self.classbrowser)
             editorstack.set_find_widget(self.find_widget)
+            cb_btn = create_toolbutton(self, text_beside_icon=False)
+            cb_btn.setDefaultAction(self.classbrowser.visibility_action)
+            editorstack.add_widget_to_header(cb_btn, space_before=True)
+            
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)
         font = QFont("Courier New")
@@ -1718,11 +1722,7 @@ class FakePlugin(QSplitter):
                      self.create_new_window)
         self.connect(editorstack, SIGNAL('plugin_load(QString)'),
                      self.load)
-        
-        cb_btn = create_toolbutton(self, text_beside_icon=False)
-        cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-        editorstack.add_widget_to_header(cb_btn, space_before=True)
-            
+                    
     def unregister_editorstack(self, editorstack):
         if DEBUG:
             print >>STDOUT, "FakePlugin.unregister_editorstack:", editorstack
