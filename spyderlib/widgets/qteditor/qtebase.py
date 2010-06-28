@@ -16,7 +16,7 @@ import sys, re
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
                          QPlainTextEdit)
-from PyQt4.QtCore import QPoint, SIGNAL, Qt
+from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp
 
 # Local imports
 from spyderlib.config import CONF, get_font
@@ -584,10 +584,6 @@ class TextEditBaseWidget(QPlainTextEdit):
         findflag = QTextDocument.FindFlag()
         if not forward:
             findflag = findflag | QTextDocument.FindBackward
-        if case:
-            findflag = findflag | QTextDocument.FindCaseSensitively
-        if words:
-            findflag = findflag | QTextDocument.FindWholeWords
         moves = [QTextCursor.NoMove]
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
@@ -595,9 +591,11 @@ class TextEditBaseWidget(QPlainTextEdit):
                 cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
+        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text) if words else text,
+                         Qt.CaseSensitive if case else Qt.CaseInsensitive)
         for move in moves:
             cursor.movePosition(move)
-            found_cursor = self.document().find(text, cursor, findflag)
+            found_cursor = self.document().find(regexp, cursor, findflag)
             if not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True

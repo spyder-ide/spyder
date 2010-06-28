@@ -27,7 +27,7 @@ from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
                          QPixmap, QPrinter)
-from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
+from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
                           PYQT_VERSION_STR)
 
 # For debugging purpose:
@@ -335,14 +335,16 @@ class QtEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         # Scanning whole document
         cursor.movePosition(QTextCursor.Start)
-        cursor = self.document().find(text, cursor, flags)
+        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        cursor = self.document().find(regexp, cursor, flags)
         self.__find_first_pos = cursor.position()
         return cursor
     
     def __find_next(self, text, cursor):
         """Find next occurence"""
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        cursor = self.document().find(text, cursor, flags)
+        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text), Qt.CaseSensitive)
+        cursor = self.document().find(regexp, cursor, flags)
         if cursor.position() != self.__find_first_pos:
             return cursor
         
@@ -717,7 +719,9 @@ class QtEditor(TextEditBaseWidget):
                     line2 += 1
                 cursor.setPosition(document.findBlockByNumber(line1).position())
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                cursor = document.find(text, cursor, flags)
+                regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
+                                 Qt.CaseSensitive)
+                cursor = document.find(regexp, cursor, flags)
                 self.__highlight_selection('code_analysis', cursor,
                                    underline_color=QColor(self.warning_color))
 #                old_pos = None
