@@ -1,20 +1,25 @@
 # -*- coding: utf-8 -*-
 # Spyder's ExternalPythonShell sitecustomize
 
-try:
-    import locale, win32console, pywintypes
-    _t, _cp = locale.getdefaultlocale('LANG')
-    _cp = int(_cp[2:])
-    win32console.SetConsoleCP(_cp)
-    win32console.SetConsoleOutputCP(_cp)
-except (ImportError, ValueError, TypeError, pywintypes.error):
-    # Pywin32 is not installed or Code page number in locale is not valid
-    pass
+import sys, os, os.path as osp
+
+if os.name == 'nt':
+    try:
+        import locale, win32console, pywintypes
+        _t, _cp = locale.getdefaultlocale('LANG')
+        try:
+            _cp = int(_cp[2:])
+            win32console.SetConsoleCP(_cp)
+            win32console.SetConsoleOutputCP(_cp)
+        except (ValueError, TypeError, pywintypes.error):
+            # Code page number in locale is not valid
+            pass
+    except ImportError:
+        # Pywin32 is not installed
+        pass
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
-import sys, os
-import os.path as osp
 encoding = None
 try:
     import locale
