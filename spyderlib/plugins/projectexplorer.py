@@ -31,7 +31,9 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         exclude = CONF.get(self.ID, 'exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
         show_all = CONF.get(self.ID, 'show_all', False)
         ProjectExplorerWidget.__init__(self, parent=parent, include=include,
-                                       exclude=exclude, show_all=show_all)
+                                       exclude=exclude, show_all=show_all,
+                                       valid_types=['.py', '.pyw'],
+                                       default_project_path=get_conf_path())
         SpyderPluginMixin.__init__(self, parent)
 
         self.editor_valid_types = None
@@ -75,6 +77,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_config()
+        self.closing_widget()
         return True
         
     #------ Public API ---------------------------------------------------------

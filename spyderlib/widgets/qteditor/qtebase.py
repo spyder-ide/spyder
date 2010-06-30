@@ -627,6 +627,12 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText()).replace(u'\u2029', '')
     
+    def get_word_at(self, coordinates):
+        """Return word at *coordinates* (QPoint)"""
+        cursor = self.cursorForPosition(coordinates)
+        cursor.select(QTextCursor.WordUnderCursor)
+        return unicode(cursor.selectedText())
+    
     def get_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = unicode(self.document().findBlockByNumber(block_nb).text())

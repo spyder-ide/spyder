@@ -26,7 +26,7 @@ import sys, os, re, os.path as osp, time
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
-                         QPixmap, QPrinter)
+                         QPixmap, QPrinter, QToolTip, QCursor)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
                           PYQT_VERSION_STR)
 
@@ -34,9 +34,10 @@ from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
 STDOUT = sys.stdout
 
 # Local import
-from spyderlib.config import CONF, get_icon, get_image_path
+from spyderlib.config import get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
+from spyderlib.utils.dochelpers import getobj
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
 from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
                                                            CppSH, FortranSH)
@@ -164,6 +165,11 @@ class QtEditor(TextEditBaseWidget):
         # Tab key behavior
         self.tab_indents = None
         self.tab_mode = True # see QsciEditor.set_tab_mode
+        
+        # Mouse tracking
+        self.setMouseTracking(True)
+        self.__cursor_changed = False
+        self.ctrl_click_color = QColor("#0000FF")
 
     def closeEvent(self, event):
         super(QtEditor, self).closeEvent(event)
@@ -184,13 +190,20 @@ class QtEditor(TextEditBaseWidget):
                      code_analysis=False, code_folding=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
-                     todo_list=True):
+                     todo_list=True, codecompletion_auto=False,
+                     codecompletion_enter=False):
         self.setup_editor_args = dict(
                 linenumbers=linenumbers, language=language,
                 code_analysis=code_analysis, code_folding=code_folding,
                 font=font, wrap=wrap, tab_mode=tab_mode,
                 occurence_highlighting=occurence_highlighting,
-                scrollflagarea=scrollflagarea, todo_list=todo_list)
+                scrollflagarea=scrollflagarea, todo_list=todo_list,
+                codecompletion_auto=codecompletion_auto,
+                codecompletion_enter=codecompletion_enter)
+        
+        # Code completion
+        self.set_codecompletion_auto(codecompletion_auto)
+        self.set_codecompletion_enter(codecompletion_enter)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -365,15 +378,19 @@ class QtEditor(TextEditBaseWidget):
         self.clear_extra_selections('occurences')
         self.scrollflagarea.update()
 
-    def __highlight_selection(self, key, cursor, background_color=None,
-                              underline_color=None, update=False):
+    def __highlight_selection(self, key, cursor, foreground_color=None,
+                        background_color=None, underline_color=None,
+                        underline_style=QTextCharFormat.SpellCheckUnderline,
+                        update=False):
         extra_selections = self.get_extra_selections(key)
         selection = QTextEdit.ExtraSelection()
+        if foreground_color is not None:
+            selection.format.setForeground(foreground_color)
         if background_color is not None:
             selection.format.setBackground(background_color)
         if underline_color is not None:
             selection.format.setProperty(QTextFormat.TextUnderlineStyle,
-                                         QTextCharFormat.SpellCheckUnderline)
+                                         underline_style)
             selection.format.setProperty(QTextFormat.TextUnderlineColor,
                                          underline_color)
         selection.format.setProperty(QTextFormat.FullWidthSelection, True)
@@ -1066,10 +1083,17 @@ class QtEditor(TextEditBaseWidget):
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
+        text = unicode(event.text())
+        if QToolTip.isVisible():
+            self.hide_tooltip_if_necessary(key)
         # Zoom in/out
         if key in (Qt.Key_Enter, Qt.Key_Return) and not shift and not ctrl:
-            QPlainTextEdit.keyPressEvent(self, event)
-            self.fix_indent()
+            if self.is_completion_widget_visible() \
+               and self.codecompletion_enter:
+                self.select_completion_list()
+            else:
+                QPlainTextEdit.keyPressEvent(self, event)
+                self.fix_indent()
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
@@ -1079,6 +1103,8 @@ class QtEditor(TextEditBaseWidget):
                 self.unindent()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
+                if self.is_completion_widget_visible():
+                    self.completion_text = self.completion_text[:-1]
         elif (key == Qt.Key_Plus and ctrl) \
              or (key == Qt.Key_Equal and shift and ctrl):
             self.zoomIn()
@@ -1094,7 +1120,42 @@ class QtEditor(TextEditBaseWidget):
             if self.is_completion_widget_visible():
                 self.select_completion_list()
             else:
-                self.indent()
+                empty_line = not self.get_text('sol', 'cursor').strip()
+                if empty_line:
+                    self.indent()
+                else:
+                    self.emit(SIGNAL('trigger_code_completion()'))
+            event.accept()
+        elif key == Qt.Key_Period:
+            self.insert_text(text)
+            if self.codecompletion_auto:
+                # Enable auto-completion only if last token isn't a float
+                last_obj = getobj(self.get_text('sol', 'cursor'))
+                if last_obj and not last_obj.isdigit():
+                    self.emit(SIGNAL('trigger_code_completion()'))
+#        elif key == Qt.Key_Home and not ctrl and not shift:
+#            if self.is_completion_widget_visible():
+#                self.completion_widget_home()
+#                event.accept()
+#            else:
+#                QPlainTextEdit.keyPressEvent(self, event)
+#        elif key == Qt.Key_PageUp and not ctrl and not shift:
+#            if self.is_completion_widget_visible():
+#                self.completion_widget_pageup()
+#                event.accept()
+#            else:
+#                QPlainTextEdit.keyPressEvent(self, event)
+#        elif key == Qt.Key_PageDown and not ctrl and not shift:
+#            if self.is_completion_widget_visible():
+#                self.completion_widget_pagedown()
+#                event.accept()
+#            else:
+#                QPlainTextEdit.keyPressEvent(self, event)
+        elif key == Qt.Key_ParenLeft and not self.hasSelectedText():
+            self.hide_completion_widget()
+            if self.get_text('sol', 'cursor'):
+                self.emit(SIGNAL('trigger_calltip()'))
+            self.insert_text(text)
             event.accept()
         elif key == Qt.Key_V and ctrl:
             self.paste()
@@ -1117,6 +1178,41 @@ class QtEditor(TextEditBaseWidget):
 #            event.accept()
         else:
             QPlainTextEdit.keyPressEvent(self, event)
+            if self.is_completion_widget_visible() and text:
+                self.completion_text += text
+
+    def mouseMoveEvent(self, event):
+        """Underline words when pressing <CONTROL>"""
+        if event.modifiers() & Qt.ControlModifier:
+            text = self.get_word_at(event.pos())
+            if text and (self.is_python() or self.is_cython()) \
+               and not is_keyword(unicode(text)):
+                if not self.__cursor_changed:
+                    QApplication.setOverrideCursor(
+                                                QCursor(Qt.PointingHandCursor))
+                    self.__cursor_changed = True
+                cursor = self.cursorForPosition(event.pos())
+                cursor.select(QTextCursor.WordUnderCursor)
+                self.clear_extra_selections('ctrl_click')
+                self.__highlight_selection('ctrl_click', cursor, update=True,
+                                foreground_color=self.ctrl_click_color,
+                                underline_color=self.ctrl_click_color,
+                                underline_style=QTextCharFormat.SingleUnderline)
+                event.accept()
+                return
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
+            self.clear_extra_selections('ctrl_click')
+        QPlainTextEdit.mouseMoveEvent(self, event)
+        
+    def leaveEvent(self, event):
+        """If cursor has not been restored yet, do it now"""
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
+            self.clear_extra_selections('ctrl_click')
+        QPlainTextEdit.leaveEvent(self, event)
             
     def mousePressEvent(self, event):
         """Reimplement Qt method only on non-linux platforms"""
@@ -1127,6 +1223,17 @@ class QtEditor(TextEditBaseWidget):
             QPlainTextEdit.mousePressEvent(self, event)
             QPlainTextEdit.mouseReleaseEvent(self, event)
             self.paste()
+        elif event.button() == Qt.LeftButton \
+             and (event.modifiers() & Qt.ControlModifier):
+            cursor = self.cursorForPosition(event.pos())
+            position = cursor.position()
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = unicode(cursor.selectedText())
+            if text is None or \
+               (self.is_python() or self.is_cython()) and is_keyword(text):
+                QPlainTextEdit.mousePressEvent(self, event)
+            else:
+                self.emit(SIGNAL("go_to_definition(int)"), position)
         else:
             QPlainTextEdit.mousePressEvent(self, event)
             

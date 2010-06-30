@@ -90,7 +90,20 @@ def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
             return get_icon(prefix+'folder_expanded.png')
         else:
             return get_icon(prefix+'folder_collapsed.png')
-            
+
+
+ROPE_PREFS = {'ignore_syntax_errors': True,
+              'ignore_bad_imports': True,
+              'soa_followed_calls': 2,
+              'extension_modules': [
+        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
+        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
+        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
+        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
+        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
+        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
+        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib",
+                    ]}            
 
 class Project(object):
     """Spyder project"""
@@ -106,6 +119,7 @@ class Project(object):
         self.pythonpath = []
         self.folders = set()
         self.opened = True
+        self.rope_project = None
 
         config_path = self.__get_project_config_path()
         if not osp.exists(config_path):
@@ -137,6 +151,7 @@ class Project(object):
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
+        self.create_rope_project()
     
     def save(self):
         data = {}
@@ -163,6 +178,76 @@ class Project(object):
     def get_root_item(self):
         return self.items[self.root_path]
         
+    #------rope integration
+    def create_rope_project(self):
+        try:
+            import rope.base.project
+            self.rope_project = rope.base.project.Project(self.root_path,
+                                                          **ROPE_PREFS)
+        except ImportError:
+            self.rope_project = None
+        #TODO: connect a signal emitted by editor when saving file,
+        #      to a method here which will do: self.rope_project.validate()
+        #TODO: *or* (?) implement SOA
+        
+    def close_rope_project(self):
+        if self.rope_project is not None:
+            self.rope_project.close()
+        
+    def get_completion_list(self, source_code, offset, filename):
+        if self.rope_project is None:
+            return []
+        self.rope_project.validate(self.rope_project.root)
+        import rope.base.libutils
+        resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                       filename)
+        try:
+            import rope.contrib.codeassist
+            proposals = rope.contrib.codeassist.code_assist(self.rope_project,
+                                                source_code, offset, resource)
+            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
+            return [proposal.name for proposal in proposals]
+        except Exception, _error:
+            return []
+
+    def get_calltip_text(self, source_code, offset, filename):
+        if self.rope_project is None:
+            return []
+        self.rope_project.validate(self.rope_project.root)
+        import rope.base.libutils
+        resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                       filename)
+        try:
+            import rope.contrib.codeassist
+            cts = rope.contrib.codeassist.get_calltip(self.rope_project,
+                                source_code, offset, resource, remove_self=True)
+            if cts is not None:
+                return [cts]
+            else:
+                return []
+        except Exception, _error:
+            return []
+    
+    def get_definition_location(self, source_code, offset, filename):
+        if self.rope_project is None:
+            return (None, None)
+        self.rope_project.validate(self.rope_project.root)
+        import rope.base.libutils
+        resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                       filename)
+        try:
+            import rope.contrib.codeassist
+            resource, lineno = rope.contrib.codeassist.get_definition_location(
+                            self.rope_project, source_code, offset, resource)
+            if resource is not None:
+                filename = resource.real_path
+            if lineno is None:
+                lineno = 0
+            return filename, lineno
+        except Exception, _error:
+            return (None, None)
+        
+    #------Misc.
     def get_related_projects(self):
         """Return related projects path list"""
         return self.related_projects
@@ -179,13 +264,28 @@ class Project(object):
         else:
             return get_icon(icon_path)
         
-    def set_opened(self, opened):
-        self.opened = opened
+    def open(self):
+        """Open project"""
+        self.opened = True
         self.save()
+        self.create_rope_project()
+        
+    def close(self):
+        """Close project"""
+        self.opened = False
+        self.save()
+        self.close_rope_project()
         
     def is_opened(self):
         return self.opened
+    
+    def is_file_in_project(self, fname):
+        """Return True if file *fname* is in one of the project subfolders"""
+        norm = osp.normcase if os.name == 'nt' else osp.normpath
+        fixpath = lambda path: norm(osp.abspath(path))
+        return fixpath(fname).startswith(fixpath(self.root_path))
         
+    #------Python Path
     def get_pythonpath(self):
         return self.pythonpath[:] # return a copy of pythonpath attribute
         
@@ -205,6 +305,7 @@ class Project(object):
         self.__update_pythonpath_icons()
         self.save()
         
+    #------Tree widget items
     def get_items(self):
         return self.items.values()
         
@@ -422,6 +523,8 @@ class ExplorerTreeWidget(OneColumnTree):
         OneColumnTree.__init__(self, parent)
         self.parent_widget = parent
         
+        self.default_project = None
+        
         self.projects = []
         self.__update_title()
         
@@ -451,6 +554,20 @@ class ExplorerTreeWidget(OneColumnTree):
         self.setAcceptDrops(True)
         self.setAutoExpandDelay(500)
         
+    def closing_widget(self):
+        """Perform actions before widget is closed"""
+        for project in self.projects+[self.default_project]:
+            if project.is_opened():
+                project.close_rope_project()
+
+    def get_source_project(self, fname):
+        """Return project which contains source *fname*"""
+        for project in self.projects:
+            if project.is_file_in_project(fname):
+                return project
+        else:
+            return self.default_project
+        
     def get_project_from_name(self, name):
         for project in self.projects:
             if project.get_name() == name:
@@ -464,11 +581,14 @@ class ExplorerTreeWidget(OneColumnTree):
         return pythonpath
         
     def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False,
-              valid_types=['.py', '.pyw']):
+              valid_types=['.py', '.pyw'], default_project_path=None):
         self.include = include
         self.exclude = exclude
         self.show_all = show_all
         self.valid_types = valid_types
+        assert default_project_path is not None
+        self.default_project = Project(default_project_path)
+        self.default_project.load()
         
     def __get_project_from_item(self, item):
         for project in self.projects:
@@ -762,7 +882,7 @@ class ExplorerTreeWidget(OneColumnTree):
         if not isinstance(projects, (tuple, list)):
             projects = [projects]
         for project in projects:
-            project.set_opened(True)
+            project.open()
             project.refresh(self, self.include, self.exclude, self.show_all)
             related_projects = project.get_related_projects()
             if open_related:
@@ -776,7 +896,7 @@ class ExplorerTreeWidget(OneColumnTree):
         if not isinstance(projects, (tuple, list)):
             projects = [projects]
         for project in projects:
-            project.set_opened(False)
+            project.close()
             project.refresh(self, self.include, self.exclude, self.show_all)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         
@@ -1331,12 +1451,14 @@ class ProjectExplorerWidget(QWidget):
         SIGNAL("removed(QString)")
     """
     def __init__(self, parent=None, include='.', exclude=r'\.pyc$|^\.',
-                 show_all=False, valid_types=['.py', '.pyw']):
+                 show_all=False, valid_types=['.py', '.pyw'],
+                 default_project_path=None):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(include=include, exclude=exclude,
-                              show_all=show_all, valid_types=valid_types)
+                              show_all=show_all, valid_types=valid_types,
+                              default_project_path=default_project_path)
 
         filters_action = create_toolbutton(self, get_icon('filter.png'),
                                            tip=translate('ProjectExplorer',
@@ -1372,6 +1494,10 @@ class ProjectExplorerWidget(QWidget):
         layout.addLayout(btn_layout)
         self.setLayout(layout)
         
+    def closing_widget(self):
+        """Perform actions before widget is closed"""
+        self.treewidget.closing_widget()
+        
     def add_project(self, project):
         return self.treewidget.add_project(project)
         
@@ -1388,6 +1514,10 @@ class ProjectExplorerWidget(QWidget):
 
     def get_pythonpath(self):
         return self.treewidget.get_pythonpath()
+    
+    def get_source_project(self, fname):
+        """Return project which contains source *fname*"""
+        return self.treewidget.get_source_project(fname)
 
     def edit_filter(self):
         """Edit include/exclude filter"""

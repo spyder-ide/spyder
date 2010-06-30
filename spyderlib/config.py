@@ -202,6 +202,8 @@ DEFAULTS = [
               'class_browser': True,
               'toolbox_panel': True,
               'code_folding': True,
+              'codecompletion/auto': False,
+              'codecompletion/enter-key': False,
               'check_eol_chars': True,
               'tab_always_indent': True,
               'fullpath_sorting': True,

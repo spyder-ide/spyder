@@ -187,10 +187,11 @@ def load_dictionary(filename):
 
 from spyderlib.config import get_conf_path
 
-SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.history_ec.py',
-                      '.history_ic.py', '.path', '.pylint.results',
-                      '.spyder.ini', '.temp.py', '.workingdir',
-                      '.temp.spydata', 'template.py', '.projects')
+SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
+                      '.spyder.ini', '.temp.py', '.workingdir', '.temp.spydata',
+                      'template.py', '.projects', '.history', '.history.py',
+                      '.history_ec', '.history_ec.py', '.history_internal.py',
+                      '.spyderproject', '.ropeproject')
 
 def reset_session():
     """Remove all config files"""
@@ -199,7 +200,11 @@ def reset_session():
         cfg_fname = get_conf_path(fname)
         if osp.isfile(cfg_fname):
             os.remove(cfg_fname)
-            print >>STDERR, "removing:", cfg_fname
+        elif osp.isdir(cfg_fname):
+            shutil.rmtree(cfg_fname)
+        else:
+            continue
+        print >>STDERR, "removing:", cfg_fname
 
 def save_session(filename):
     """Save Spyder session"""

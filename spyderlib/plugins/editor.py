@@ -63,7 +63,10 @@ class Editor(SpyderPluginWidget):
             header = ['# -*- coding: utf-8 -*-', '"""', 'Created on %(date)s',
                       '', '@author: %(username)s', '"""', '']
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
-        
+
+        self.projectexplorer = None
+        self.inspector = None
+
         self.editorstacks = None
         self.editorwindows = None
         self.editorwindows_to_be_created = None
@@ -199,6 +202,16 @@ class Editor(SpyderPluginWidget):
         expanded_state = CONF.get(self.ID, 'class_browser/expanded_state', None)
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
+        
+    def set_projectexplorer(self, projectexplorer):
+        self.projectexplorer = projectexplorer
+        for editorstack in self.editorstacks:
+            editorstack.set_projectexplorer(self.projectexplorer)
+        
+    def set_inspector(self, inspector):
+        self.inspector = inspector
+        for editorstack in self.editorstacks:
+            editorstack.set_inspector(self.inspector)
         
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
@@ -449,6 +462,16 @@ class Editor(SpyderPluginWidget):
         fold_action = create_action(self, self.tr("Code folding"),
                                     toggled=self.toggle_code_folding)
         fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
+        codecompletion_action = create_action(self,
+                                          self.tr("Automatic code completion"),
+                                          toggled=self.toggle_codecompletion)
+        codecompletion_action.setChecked( CONF.get(self.ID,
+                                                   'codecompletion/auto') )
+        codecompenter_action = create_action(self,
+                                    self.tr("Enter key selects completion"),
+                                    toggled=self.toggle_codecompletion_enter)
+        codecompenter_action.setChecked( CONF.get(self.ID,
+                                                   'codecompletion/enter-key') )
         checkeol_action = create_action(self,
                 self.tr("Show warning when fixing newline chars"),
                 toggled=lambda checked: self.emit(SIGNAL('option_changed'),
@@ -492,33 +515,30 @@ class Editor(SpyderPluginWidget):
                      self.update_recent_file_menu)
 
         self.file_menu_actions = [self.new_action, self.open_action,
-                                  self.recent_file_menu,
-                                  self.save_action, self.save_all_action,
-                                  save_as_action, None,
-                                  print_preview_action, print_action, None,
-                                  self.close_action,
-                                  self.close_all_action, None]
+                              self.recent_file_menu, self.save_action,
+                              self.save_all_action, save_as_action,
+                              None, print_preview_action, print_action,
+                              None, self.close_action, self.close_all_action,
+                              None]
         
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
-        add_actions(option_menu, (template_action, font_action,
-                                  fpsorting_action, showtabbar_action, None,
-                                  wrap_action, tab_action, occurence_action,
-                                  None, fold_action, self.foldonopen_action,
-                                  checkeol_action, None, todo_action,
-                                  analyze_action))
+        add_actions(option_menu, (
+              template_action, font_action, fpsorting_action, showtabbar_action,
+              None, wrap_action, tab_action, occurence_action,
+              None, codecompletion_action, codecompenter_action,
+              None, fold_action, self.foldonopen_action, checkeol_action,
+              None, todo_action, analyze_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
-                None, run_new_action, run_action,
-                re_run_action, run_interact_action,
-                run_selected_action,
-                run_args_action,
-                run_debug_action, None,
-                pylint_action, self.winpdb_action, None,
-                eol_menu, trailingspaces_action, fixindentation_action, None,
-                option_menu)
+                None, run_new_action, run_action, re_run_action,
+                run_interact_action, run_selected_action, run_args_action,
+                run_debug_action,
+                None, pylint_action, self.winpdb_action,
+                None, eol_menu, trailingspaces_action, fixindentation_action,
+                None, option_menu)
         self.file_toolbar_actions = [self.new_action, self.open_action,
                 self.save_action, self.save_all_action, print_action]
         self.analysis_toolbar_actions = [self.todo_list_action,
@@ -576,6 +596,8 @@ class Editor(SpyderPluginWidget):
             # editorstack is a child of the Editor plugin
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_classbrowser(self.classbrowser)
+            editorstack.set_projectexplorer(self.projectexplorer)
+            editorstack.set_inspector(self.inspector)
             editorstack.set_find_widget(self.find_widget)
             self.connect(editorstack, SIGNAL('reset_statusbar()'),
                          self.readwrite_status.hide)
@@ -604,6 +626,10 @@ class Editor(SpyderPluginWidget):
                     ('set_todolist_enabled',       'todo_list'),
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codefolding_enabled',    'code_folding'),
+                    ('set_codecompletion_auto_enabled',
+                                                    'codecompletion/auto'),
+                    ('set_codecompletion_enter_enabled',
+                                                    'codecompletion/enter-key'),
                     ('set_wrap_enabled',           'wrap'),
                     ('set_tabmode_enabled',        'tab_always_indent'),
                     ('set_occurence_highlighting_enabled',
@@ -661,6 +687,11 @@ class Editor(SpyderPluginWidget):
                      self.refresh_eol_mode)
         
         self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
+        self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
+                     self.load)
+        
+        self.connect(editorstack, SIGNAL("inspector_show_help(QString)"),
+                     self.main.inspector.show_help)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -1345,7 +1376,21 @@ class Editor(SpyderPluginWidget):
             CONF.set(self.ID, 'code_folding', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codefolding_enabled(checked)
+
+    def toggle_codecompletion(self, checked):
+        """Toggle automatic code completion"""
+        if self.editorstacks is not None:
+            CONF.set(self.ID, 'codecompletion/auto', checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_codecompletion_auto_enabled(checked)
             
+    def toggle_codecompletion_enter(self, checked):
+        """Toggle Enter key for code completion"""
+        if self.editorstacks is not None:
+            CONF.set(self.ID, 'codecompletion/enter-key', checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_codecompletion_enter_enabled(checked)
+                            
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
         if self.editorstacks is not None:

@@ -377,6 +377,15 @@ class MainWindow(QMainWindow):
             self.quit_action = create_action(self, self.tr("&Quit"),
                              self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
                              triggered=self.console.quit)
+        
+            # Object inspector widget
+            if CONF.get('inspector', 'enable'):
+                self.set_splash(self.tr("Loading object inspector..."))
+                self.inspector = ObjectInspector(self)
+                self.connect(self.inspector, SIGNAL('focus_changed()'),
+                             self.plugin_focus_changed)
+                self.add_dockwidget(self.inspector)
+                self.console.set_inspector(self.inspector)
                                     
             # Editor widget
             self.set_splash(self.tr("Loading editor..."))
@@ -493,15 +502,6 @@ class MainWindow(QMainWindow):
 #                self.console.set_historylog(self.historylog)
                 self.connect(self.console.shell, SIGNAL("refresh()"),
                              self.historylog.refresh_plugin)
-        
-            # Object inspector widget
-            if CONF.get('inspector', 'enable'):
-                self.set_splash(self.tr("Loading object inspector..."))
-                self.inspector = ObjectInspector(self)
-                self.connect(self.inspector, SIGNAL('focus_changed()'),
-                             self.plugin_focus_changed)
-                self.add_dockwidget(self.inspector)
-                self.console.set_inspector(self.inspector)
                 
             # Online help widget
             if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
@@ -537,6 +537,8 @@ class MainWindow(QMainWindow):
 #                self.connect(self.projectexplorer,
 #                             SIGNAL("import_data(QString)"),
 #                             self.workspace.import_data)
+                self.editor.set_projectexplorer(self.projectexplorer)
+                self.editor.set_inspector(self.inspector)
                 self.add_dockwidget(self.projectexplorer)
             add_actions(self.file_menu, file_actions)
                 

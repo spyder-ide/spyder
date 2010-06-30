@@ -84,10 +84,12 @@ class ToDoFinderThread(QThread):
         return self.todo_results
 
 
-class TabInfo(QObject):
+class FileInfo(QObject):
     """File properties"""
     def __init__(self, filename, encoding, editor, new):
         QObject.__init__(self)
+        self.project = None
+        self.inspector = None
         self.filename = filename
         self.newly_created = new
         self.encoding = encoding
@@ -96,6 +98,13 @@ class TabInfo(QObject):
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
+        
+        self.connect(editor, SIGNAL('trigger_code_completion()'),
+                     self.trigger_code_completion)
+        self.connect(editor, SIGNAL('trigger_calltip()'),
+                     self.trigger_calltip)
+        self.connect(editor, SIGNAL("go_to_definition(int)"),
+                     self.go_to_definition)
             
         self.analysis_thread = CodeAnalysisThread(self)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
@@ -104,6 +113,60 @@ class TabInfo(QObject):
         self.todo_thread = ToDoFinderThread(self)
         self.connect(self.todo_thread, SIGNAL('finished()'),
                      self.todo_finished)
+        
+    def set_project(self, project):
+        self.project = project
+        
+    def set_inspector(self, inspector):
+        self.inspector = inspector
+        
+    def trigger_code_completion(self):
+        if self.project is None:
+            return []
+        source_code = unicode(self.editor.text())
+        offset = self.editor.get_position('cursor')
+        line_nb = self.editor.get_cursor_line_number()
+        offset += line_nb-1
+        textlist = self.project.get_completion_list(source_code, offset,
+                                                    self.filename)
+        if textlist:
+            text = self.editor.get_text('sol', 'cursor')
+            self.editor.completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
+            self.editor.show_completion_widget(textlist)
+        
+    def trigger_calltip(self):
+        if self.project is None:
+            return
+        source_code = unicode(self.editor.text())
+        offset = self.editor.get_position('cursor')
+        line_nb = self.editor.get_cursor_line_number()
+        offset += line_nb-1
+        textlist = self.project.get_calltip_text(source_code, offset,
+                                                 self.filename)
+        if textlist:
+            self.editor.show_calltip("rope", textlist, at_line=line_nb)
+            text = textlist[0]
+            parpos = text.find('(')
+            if parpos:
+                text = text[:parpos]
+                if (self.inspector is not None) and \
+                   (self.inspector.dockwidget.isVisible()):
+                    # ObjectInspector widget exists and is visible
+                    self.inspector.set_object_text(text)
+                    self.editor.setFocus()
+                    
+    def go_to_definition(self, position):
+        if self.project is None:
+            return
+        source_code = unicode(self.editor.text())
+        offset = position
+        line_nb = self.editor.get_cursor_line_number()
+        offset += line_nb-1
+        fname, lineno = self.project.get_definition_location(source_code,
+                                                        offset, self.filename)
+        if fname is not None:
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                      fname, lineno, "")
     
     def run_code_analysis(self):
         if self.editor.is_python():
@@ -178,6 +241,7 @@ class EditorStack(QWidget):
         
         self.menu_actions = actions
         self.classbrowser = None
+        self.projectexplorer = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
@@ -191,6 +255,8 @@ class EditorStack(QWidget):
         self.todolist_enabled = True
         self.classbrowser_enabled = True
         self.codefolding_enabled = True
+        self.codecompletion_auto_enabled = False
+        self.codecompletion_enter_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
@@ -322,6 +388,17 @@ class EditorStack(QWidget):
         self.connect(self.classbrowser, SIGNAL("classbrowser_is_visible()"),
                      self._refresh_classbrowser)
         
+    def set_projectexplorer(self, projectexplorer):
+        self.projectexplorer = projectexplorer
+        for finfo in self.data:
+            project = self.projectexplorer.get_source_project(finfo.filename)
+            finfo.set_project(project)
+        
+    def set_inspector(self, inspector):
+        self.inspector = inspector
+        for finfo in self.data:
+            finfo.set_inspector(inspector)
+        
     def set_tempfile_path(self, path):
         self.tempfile_path = path
         
@@ -370,6 +447,20 @@ class EditorStack(QWidget):
                 self.__update_editor_margins(finfo.editor)
                 if not state:
                     finfo.editor.unfold_all()
+                    
+    def set_codecompletion_auto_enabled(self, state):
+        # CONF.get(self.ID, 'codecompletion_auto')
+        self.codecompletion_auto_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_auto(state)
+                    
+    def set_codecompletion_enter_enabled(self, state):
+        # CONF.get(self.ID, 'codecompletion_enter')
+        self.codecompletion_enter_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_enter(state)
         
     def set_classbrowser_enabled(self, state):
         # CONF.get(self.ID, 'class_browser')
@@ -1070,22 +1161,29 @@ class EditorStack(QWidget):
                 else:
                     break
         editor = CodeEditor(self)
-        finfo = TabInfo(fname, enc, editor, new)
+        finfo = FileInfo(fname, enc, editor, new)
+        if self.projectexplorer is not None:
+            finfo.set_project(self.projectexplorer.get_source_project(fname))
+        if self.inspector is not None:
+            finfo.set_inspector(self.inspector)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
                      lambda: self.emit(SIGNAL('todo_results_changed()')))
+        self.connect(finfo, SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda fname, lineno, name:
+                     self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                               fname, lineno, name))
         if not clone:
             editor.setup_editor(linenumbers=True, language=language,
-                                code_analysis=self.codeanalysis_enabled,
-                                code_folding=self.codefolding_enabled,
-                                todo_list=self.todolist_enabled,
-                                font=self.default_font,
-                                wrap=self.wrap_enabled,
-                                tab_mode=self.tabmode_enabled,
-                                occurence_highlighting=\
-                                self.occurence_highlighting_enabled)
+                    code_analysis=self.codeanalysis_enabled,
+                    code_folding=self.codefolding_enabled,
+                    todo_list=self.todolist_enabled, font=self.default_font,
+                    wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+                    occurence_highlighting=self.occurence_highlighting_enabled,
+                    codecompletion_auto=self.codecompletion_auto_enabled,
+                    codecompletion_enter=self.codecompletion_enter_enabled)
             editor.set_text(txt)
             editor.setModified(False)
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),

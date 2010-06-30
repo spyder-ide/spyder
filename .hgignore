@@ -1,6 +1,7 @@
 \.pyc$
 \.settings$
 \.spyderproject$
+\.ropeproject$
 \.orig$
 ^build/
 ^dist/
