@@ -86,6 +86,7 @@ class QtEditor(TextEditBaseWidget):
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
         
         # Line number area management
+        self.linenumbers_margin = True
         self.linenumberarea_enabled = None
         self.linenumberarea = LineNumberArea(self)
         self.connect(self, SIGNAL("blockCountChanged(int)"),
@@ -183,8 +184,8 @@ class QtEditor(TextEditBaseWidget):
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
         
-        # Line numbers
-        self.set_linenumberarea_enabled(linenumbers)
+        # Line number area
+        self.setup_margins(linenumbers, code_analysis, todo_list)
         
         # Lexer
         self.set_language(language)
@@ -256,8 +257,10 @@ class QtEditor(TextEditBaseWidget):
         Setup margin settings
         (except font, now set in self.set_font)
         """
-        # linenumbers argument is ignored
-        self.markers_margin =  code_analysis or todo_list
+        self.linenumbers_margin = linenumbers
+        self.markers_margin = code_analysis or todo_list
+        enabled = linenumbers or code_analysis or todo_list
+        self.set_linenumberarea_enabled(enabled)
     
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
@@ -423,7 +426,11 @@ class QtEditor(TextEditBaseWidget):
         while maxb >= 10:
             maxb /= 10
             digits += 1
-        return 3+self.fontMetrics().width('9')*digits+self.get_markers_margin()
+        if self.linenumbers_margin:
+            linenumbers_margin = 3+self.fontMetrics().width('9')*digits
+        else:
+            linenumbers_margin = 0
+        return linenumbers_margin+self.get_markers_margin()
         
     def update_linenumberarea_width(self, new_block_count):
         """Update line number area width"""
@@ -445,7 +452,7 @@ class QtEditor(TextEditBaseWidget):
         font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), QColor(self.area_background_color))
-        
+                
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
         top = self.blockBoundingGeometry(block).translated(
@@ -456,10 +463,13 @@ class QtEditor(TextEditBaseWidget):
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
-                number = QString.number(line_number)
-                painter.drawText(0, top, self.linenumberarea.width(),
-                                 font_height, Qt.AlignRight|Qt.AlignBottom,
-                                 number)
+                if self.linenumbers_margin:
+                    number = QString.number(line_number)
+                    painter.drawText(0, top, self.linenumberarea.width(),
+                                     font_height, Qt.AlignRight|Qt.AlignBottom,
+                                     number)
+                if not self.markers_margin:
+                    continue
                 code_analysis = self.ca_marker_lines.get(line_number)
                 if code_analysis is not None:
                     for _message, error in code_analysis:
@@ -1266,7 +1276,8 @@ class Printer(QPrinter):
 class TestEditor(QtEditor):
     def __init__(self, parent):
         super(TestEditor, self).__init__(parent)
-        self.setup_editor(linenumbers=False)
+        self.setup_editor(linenumbers=False, code_analysis=False,
+                          todo_list=False)
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])

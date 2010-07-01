@@ -192,6 +192,7 @@ DEFAULTS = [
               'wrapflag': True,
               'code_analysis': True,
               'class_browser': True,
+              'line_numbers': True,
               'toolbox_panel': True,
               'codecompletion/auto': False,
               'codecompletion/enter-key': False,

@@ -38,7 +38,6 @@ SOURCES	     += widgets/pathmanager.py
 SOURCES	     += widgets/projectexplorer.py
 SOURCES	     += widgets/pydocgui.py
 SOURCES	     += widgets/pylintgui.py
-SOURCES	     += widgets/qscieditor/qscieditor.py
 SOURCES	     += widgets/qteditor/qteditor.py
 SOURCES	     += widgets/shell.py
 SOURCES	     += widgets/tabs.py

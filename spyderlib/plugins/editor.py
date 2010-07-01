@@ -441,6 +441,9 @@ class Editor(SpyderPluginWidget):
         font_action = create_action(self, self.tr("&Font..."), None,
             'font.png', self.tr("Set text and margin font style"),
             triggered=self.change_font)
+        linenumbers_action = create_action(self, self.tr("Show line numbers"),
+                                           toggled=self.toggle_linenumbers)
+        linenumbers_action.setChecked( CONF.get(self.ID, 'line_numbers', True) )
         todo_action = create_action(self,
             self.tr("Tasks (TODO, FIXME, XXX)"),
             toggled=self.toggle_todo_list)
@@ -519,7 +522,7 @@ class Editor(SpyderPluginWidget):
               None, wrap_action, tab_action, occurence_action,
               None, codecompletion_action, codecompenter_action,
               None, checkeol_action,
-              None, todo_action, analyze_action))
+              None, linenumbers_action, todo_action, analyze_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
@@ -615,6 +618,7 @@ class Editor(SpyderPluginWidget):
         editorstack.set_valid_types(self.get_valid_types())
         settings = (('set_codeanalysis_enabled',   'code_analysis'),
                     ('set_todolist_enabled',       'todo_list'),
+                    ('set_linenumbers_enabled',    'line_numbers'),
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codecompletion_auto_enabled',
                                                     'codecompletion/auto'),
@@ -1395,6 +1399,15 @@ class Editor(SpyderPluginWidget):
             #  last editor instead of showing the one of the current editor)
             if checked:
                 finfo.run_todo_finder()
+
+    def toggle_linenumbers(self, checked):
+        """Toggle line numbers visibility"""
+        if self.editorstacks is not None:
+            CONF.set(self.ID, 'line_numbers', checked)
+            finfo = self.get_current_finfo()
+            for editorstack in self.editorstacks:
+                editorstack.set_linenumbers_enabled(checked,
+                                                    current_finfo=finfo)
 
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""

@@ -248,6 +248,7 @@ class EditorStack(QWidget):
         self.valid_types = None
         self.codeanalysis_enabled = True
         self.todolist_enabled = True
+        self.linenumbers_enabled = True
         self.classbrowser_enabled = True
         self.codecompletion_auto_enabled = False
         self.codecompletion_enter_enabled = False
@@ -405,7 +406,7 @@ class EditorStack(QWidget):
         self.valid_types = valid_types
         
     def __update_editor_margins(self, editor):
-        editor.setup_margins(linenumbers=True,
+        editor.setup_margins(linenumbers=self.linenumbers_enabled,
                              code_analysis=self.codeanalysis_enabled,
                              todo_list=self.todolist_enabled)
         
@@ -430,6 +431,13 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
+    
+    def set_linenumbers_enabled(self, state, current_finfo=None):
+        # CONF.get(self.ID, 'line_numbers')
+        self.linenumbers_enabled = state
+        if self.data:
+            for finfo in self.data:
+                self.__update_editor_margins(finfo.editor)
         
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.ID, 'codecompletion_auto')
@@ -1158,7 +1166,8 @@ class EditorStack(QWidget):
                      lambda fname, lineno, name:
                      self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, name))
-        editor.setup_editor(linenumbers=True, language=language,
+        editor.setup_editor(
+                linenumbers=self.linenumbers_enabled, language=language,
                 code_analysis=self.codeanalysis_enabled,
                 todo_list=self.todolist_enabled, font=self.default_font,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
