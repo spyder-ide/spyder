@@ -242,6 +242,7 @@ class EditorStack(QWidget):
         self.menu_actions = actions
         self.classbrowser = None
         self.projectexplorer = None
+        self.inspector = None
         self.unregister_callback = None
         self.is_closable = False
         self.new_action = None
