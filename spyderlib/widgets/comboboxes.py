@@ -81,6 +81,7 @@ class EditableComboBox(BaseComboBox):
     """
     def __init__(self, parent):
         super(EditableComboBox, self).__init__(parent)
+        self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.font = QFont()
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
         self.connect(self, SIGNAL("activated(QString)"),
