@@ -344,13 +344,21 @@ class ExternalConsole(SpyderPluginWidget):
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
         umd_action = create_action(self,
-                self.tr("Force modules to be completely reloaded"),
+                self.tr("UMD (force modules to be completely reloaded)"),
                 tip=self.tr("Force Python to reload modules imported when "
                             "executing a script in the external console "
                             "with the 'runfile' function (UMD: User Module "
                             "Deleter)"),
                 toggled=self.toggle_umd)
         umd_action.setChecked( CONF.get(self.ID, 'umd/enabled') )
+        umd_verbose_action = create_action(self,
+                self.tr("Show reloaded modules list"),
+                toggled=self.toggle_umd_verbose)
+        umd_verbose_action.setChecked( CONF.get(self.ID, 'umd/verbose') )
+        umd_namelist_action = create_action(self,
+                            self.tr("UMD excluded modules..."), None,
+                            tip=self.tr("Set UMD excluded modules name list"),
+                            triggered=self.set_umd_namelist)
         
         python_startup = CONF.get(self.ID, 'open_python_at_startup', None)
         ipython_startup = CONF.get(self.ID, 'open_ipython_at_startup', None)
@@ -405,12 +413,11 @@ class ExternalConsole(SpyderPluginWidget):
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         
         self.menu_actions = [interpreter_action, console_action, run_action,
-                             umd_action, python_startup_action,
-                             ipython_startup_action, None,
-                             buffer_action, font_action, wrap_action,
-                             calltips_action, codecompletion_action,
-                             codecompenter_action, singletab_action,
-                             icontext_action]
+             None, umd_action, umd_verbose_action, umd_namelist_action,
+             None, python_startup_action, ipython_startup_action,
+             None, buffer_action, font_action, wrap_action, calltips_action,
+             codecompletion_action, codecompenter_action, singletab_action,
+             icontext_action]
         
         ipython_action = create_action(self,
                             self.tr("Open IPython interpreter"), None,
@@ -553,6 +560,39 @@ class ExternalConsole(SpyderPluginWidget):
                         "window, using the <b>setAttribute</b> method)"),
                 QMessageBox.Ok)
             
+    def __umd_settings_info(self):
+        QMessageBox.information(self, self.tr('UMD'),
+                                self.tr("Please note that these changes will "
+                                        "be applied only to new Python/IPython "
+                                        "interpreters"),
+                                QMessageBox.Ok)
+            
+    def toggle_umd_verbose(self, checked):
+        """Toggle UMD"""
+        CONF.set(self.ID, 'umd/verbose', checked)
+        if self.isVisible():
+            self.__umd_settings_info()
+            
+    def set_umd_namelist(self):
+        """Set UMD excluded modules name list"""
+        arguments, valid = QInputDialog.getText(self, self.tr('UMD'),
+                                  self.tr('UMD excluded modules:\n'
+                                          '(example: guidata, guiqwt)'),
+                                  QLineEdit.Normal,
+                                  ", ".join(CONF.get(self.ID, 'umd/namelist')))
+        if valid:
+            namelist = unicode(arguments).replace(' ', '').split(',')
+            fixed_namelist = [module_name for module_name in namelist
+                              if programs.is_module_installed(module_name)]
+            invalid = ", ".join(set(namelist)-set(fixed_namelist))
+            if invalid:
+                QMessageBox.warning(self, self.tr('UMD'),
+                                    self.tr("The following modules are not "
+                                            "installed on your machine:\n%1"
+                                            ).arg(invalid), QMessageBox.Ok)
+            self.__umd_settings_info()
+            CONF.set(self.ID, 'umd/namelist', fixed_namelist)
+        
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if self.tabwidget is None:

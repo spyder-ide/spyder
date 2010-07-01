@@ -700,7 +700,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1340"/>
+        <location filename="plugins/editor.py" line="1339"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -1952,37 +1952,37 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="378"/>
+        <location filename="plugins/externalconsole.py" line="386"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="379"/>
+        <location filename="plugins/externalconsole.py" line="387"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="382"/>
+        <location filename="plugins/externalconsole.py" line="390"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="496"/>
+        <location filename="plugins/externalconsole.py" line="503"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="497"/>
+        <location filename="plugins/externalconsole.py" line="504"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="506"/>
+        <location filename="plugins/externalconsole.py" line="513"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="399"/>
+        <location filename="plugins/externalconsole.py" line="407"/>
         <source>One tab per script</source>
         <translation>Un onglet par script</translation>
     </message>
@@ -2014,7 +2014,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="385"/>
+        <location filename="plugins/externalconsole.py" line="393"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
@@ -2024,7 +2024,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="394"/>
+        <location filename="plugins/externalconsole.py" line="402"/>
         <source>Enter key selects completion</source>
         <translation>Entrée valide la complétion de code</translation>
     </message>
@@ -2049,57 +2049,57 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="402"/>
+        <location filename="plugins/externalconsole.py" line="410"/>
         <source>Show icons and text</source>
         <translation>Afficher icônes et textes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="374"/>
+        <location filename="plugins/externalconsole.py" line="382"/>
         <source>Buffer...</source>
         <translation>Tampon...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="375"/>
+        <location filename="plugins/externalconsole.py" line="383"/>
         <source>Set maximum line count</source>
         <translation>Modifier le nombre maximum de lignes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="514"/>
+        <location filename="plugins/externalconsole.py" line="521"/>
         <source>Buffer</source>
         <translation>Tampon</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="515"/>
+        <location filename="plugins/externalconsole.py" line="522"/>
         <source>Maximum line count</source>
         <translation>Nombre maximum de lignes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="389"/>
+        <location filename="plugins/externalconsole.py" line="397"/>
         <source>Automatic code completion</source>
         <translation>Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="415"/>
+        <location filename="plugins/externalconsole.py" line="422"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="417"/>
+        <location filename="plugins/externalconsole.py" line="424"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="422"/>
+        <location filename="plugins/externalconsole.py" line="429"/>
         <source>Set IPython interpreter command line arguments</source>
         <translation>Modifier les arguments en ligne de commande de l&apos;interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="526"/>
+        <location filename="plugins/externalconsole.py" line="533"/>
         <source>IPython</source>
         <translation>IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="529"/>
+        <location filename="plugins/externalconsole.py" line="536"/>
         <source>IPython command line options:
 (Qt4 support: -q4thread)
 (Qt4 and matplotlib support: -q4thread -pylab)</source>
@@ -2108,7 +2108,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 (support Qt4 et matplotlib : -q4thread -pylab)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="420"/>
+        <location filename="plugins/externalconsole.py" line="427"/>
         <source>IPython interpreter options...</source>
         <translation>Options de l&apos;interpréteur IPython...</translation>
     </message>
@@ -2120,7 +2120,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
     <message>
         <location filename="plugins/externalconsole.py" line="346"/>
         <source>Force modules to be completely reloaded</source>
-        <translation>Forcer le rechargement complet des modules</translation>
+        <translation type="obsolete">Forcer le rechargement complet des modules</translation>
     </message>
     <message>
         <location filename="plugins/externalconsole.py" line="350"/>
@@ -2133,12 +2133,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Cette option active le User Module Deleter (UMD) dans les interpréteurs Python (&lt;i&gt;IPython&lt;/i&gt; ne prend pas en charge cette option pour le moment).&lt;br&gt;&lt;br&gt;&lt;i&gt;1.&lt;/i&gt; UMD peut nécessiter le redémarrage de l&apos;interpréteur Python dans lequel il va être utilisé (dans le cas contraire, seuls les modules importés après activation de l&apos;UMD seront rechargés complètement lors de l&apos;exécution de scripts).&lt;br&gt;&lt;br&gt;&lt;i&gt;2.&lt;/i&gt; Si des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, veuillez vérifier que les objets Qt sont correctement détruits à la sortie du programme (par exemple, il sera probablement nécessaire d&apos;utiliser l&apos;attribut &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; sur votre objet fenêtre principale grâce à la méthode &lt;b&gt;setAttribute&lt;/b&gt;)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="363"/>
+        <location filename="plugins/externalconsole.py" line="371"/>
         <source>Open a Python interpreter at startup</source>
         <translation>Ouvrir un interpréteur Python au démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="368"/>
+        <location filename="plugins/externalconsole.py" line="376"/>
         <source>Open a IPython interpreter at startup</source>
         <translation>Ouvrir un interpréteur IPython au démarrage</translation>
     </message>
@@ -2148,9 +2148,58 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Cette option active le User Module Deleter (UMD) dans les interpréteurs Python/IPython.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD peut nécessiter le redémarrage de l&apos;interpréteur Python dans lequel il va être utilisé (dans le cas contraire, seuls les modules importés après activation de l&apos;UMD seront rechargés complètement lors de l&apos;exécution de scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; Si des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, veuillez vérifier que les objets Qt sont correctement détruits à la sortie du programme (par exemple, il sera probablement nécessaire d&apos;utiliser l&apos;attribut &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; sur votre objet fenêtre principale grâce à la méthode &lt;b&gt;setAttribute&lt;/b&gt;)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="552"/>
+        <location filename="plugins/externalconsole.py" line="559"/>
         <source>This option will enable the User Module Deleter (UMD) in Python/IPython interpreters. UMD forces Python to reload deeply modules during import when running a Python script using the Spyder&apos;s builtin function &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD may require to restart the Python interpreter in which it will be called (otherwise only newly imported modules will be reloaded when executing scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; on your main window, using the &lt;b&gt;setAttribute&lt;/b&gt; method)</source>
         <translation>Cette option active le User Module Deleter (UMD) dans les interpréteurs Python/IPython. L&apos;UMD force Python à recharger complètement les modules lors de leur importation, dans le cadre de l&apos;exécution d&apos;un script Python avec la fonction Spyder &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD peut nécessiter le redémarrage de l&apos;interpréteur Python dans lequel il va être utilisé (dans le cas contraire, seuls les modules importés après activation de l&apos;UMD seront rechargés complètement lors de l&apos;exécution de scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; Si des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, veuillez vérifier que les objets Qt sont correctement détruits à la sortie du programme (par exemple, il sera probablement nécessaire d&apos;utiliser l&apos;attribut &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; sur votre objet fenêtre principale grâce à la méthode &lt;b&gt;setAttribute&lt;/b&gt;)</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="346"/>
+        <source>UMD (force modules to be completely reloaded)</source>
+        <translation>UMD (forcer le rechargement complet des modules)</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="358"/>
+        <source>UMD excluded modules...</source>
+        <translation>Modules non rechargés par l&apos;UMD...</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="359"/>
+        <source>Set UMD excluded modules name list</source>
+        <translation>Modifie la liste des modules non rechargés par l&apos;User Module Deleter</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="588"/>
+        <source>UMD</source>
+        <translation>UMD</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="579"/>
+        <source>UMD excluded modules:
+(example: guidata, guiqwt)</source>
+        <translation>Modules non rechargés par l&apos;UMD :
+(exemple: guidata, guiqwt)</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="591"/>
+        <source>The following modules are not installed on your machine:
+%1</source>
+        <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
+%1</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="567"/>
+        <source>Please note that these new UMD settings will &lt;b&gt;not&lt;/b&gt; be applied to already running Python/IPython interpreters</source>
+        <translation type="obsolete">Veuillez noter que ces nouveaux réglages de l&apos;UMD ne seront &lt;b&gt;pas&lt;/b&gt; pris en compte par les interpréteurs Python/IPython exécutés avant ce changement</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="354"/>
+        <source>Show reloaded modules list</source>
+        <translation>Afficher les modules rechargés</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="566"/>
+        <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
+        <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
 </context>
 <context>
@@ -4442,7 +4491,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation>Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="1031"/>
+        <location filename="widgets/shell.py" line="1020"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
@@ -4457,7 +4506,7 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="1037"/>
+        <location filename="widgets/shell.py" line="1026"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
@@ -4478,12 +4527,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QtEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="781"/>
+        <location filename="widgets/qteditor/qteditor.py" line="785"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="789"/>
+        <location filename="widgets/qteditor/qteditor.py" line="793"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -4554,37 +4603,37 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1041"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1045"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1045"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1049"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1049"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1053"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1053"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1057"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1057"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1061"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1061"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1065"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1066"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1070"/>
         <source>Select all</source>
         <translation>Sélectionner tout</translation>
     </message>
