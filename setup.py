@@ -34,8 +34,8 @@ from spyderlib import __version__ as version
 google_url = 'http://%s.googlecode.com' % libname
 download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
-                                '.widgets.qteditor', '.widgets.qscieditor',
-                                '.plugins', '.utils']]+['spyderplugins']
+                                '.widgets.qteditor', '.plugins', '.utils']] \
+           +['spyderplugins']
 extensions = ('.qm', '.api', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
 package_data={libname: get_package_data(libname, extensions)}
@@ -43,8 +43,8 @@ if os.name == 'nt':
     scripts = ['spyder.pyw', 'spyder.py']
 else:
     scripts = ['spyder']
-description = 'Spyder development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, workspace (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
-long_description = 'spyderlib is intended to be an extension to PyQt4 providing a simple development environment named "Spyder" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: workspace (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
+description = 'Spyder development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, variable explorer (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
+long_description = 'spyderlib is intended to be an extension to PyQt4 providing a simple development environment named "Spyder" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: variable explorer (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
 keywords = 'PyQt4 shell console widgets IDE'
 classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: Scientific/Engineering',
@@ -58,14 +58,13 @@ setup(
       long_description = long_description,
       download_url = download_url,
       author = "Pierre Raybaut",
-      author_email = 'contact@pythonxy.com',
       url = google_url,
       license = 'MIT',
       keywords = keywords,
       platforms = ['any'],
       packages = packages,
       package_data = package_data,
-      requires=["pyflakes (>0.3.0)", "PyQt4 (>4.3)"],
+      requires=["pyflakes (>0.3.0)", "rope (>0.9.0)", "PyQt4 (>4.3)"],
       scripts = scripts,
       classifiers = classifiers + [
         'License :: OSI Approved :: MIT License',

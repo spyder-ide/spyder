@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Module checking Spyder requirements (PyQt4, QScintilla2)
+Module checking Spyder requirements (PyQt4)
 """
 
 def check_requirement(package, module_name, version_attr, required_str):
@@ -29,20 +29,13 @@ def check_requirement(package, module_name, version_attr, required_str):
 def check_pyqt():
     wng = check_requirement("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
     if wng:
-        import os
-        message = "Please check Spyder installation requirements:"+wng
-        if os.name == 'nt':
-            message += """
-    
-Windows XP/Vista/7 users:
-QScintilla2 is distributed together with PyQt4
-(Python(x,y) plugin or official PyQt4 Windows installer)"""
         try:
             # If Tkinter is installed (highly probable), showing an error pop-up
             import Tkinter, tkMessageBox
             root = Tkinter.Tk()
             root.withdraw()
-            tkMessageBox.showerror("Spyder", message)
+            tkMessageBox.showerror("Spyder",
+                           "Please check Spyder installation requirements:"+wng)
         except ImportError:
             pass
         raise ImportError, wng

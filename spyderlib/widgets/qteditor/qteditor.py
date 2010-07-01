@@ -6,12 +6,6 @@
 
 """
 Editor widget based on PyQt4.QtGui.QPlainTextEdit
-
-******************************** WARNING ***************************************
-    This module is currently not used in Spyder v1.x.
-    This is still experimental but this will replace in time the current
-    editor widget based on QScintilla
-********************************************************************************
 """
 
 # pylint: disable-msg=C0103
@@ -50,16 +44,9 @@ from spyderlib.utils import sourcecode, is_keyword
 # QtEditor widget
 #===============================================================================
 
-#TODO: Create an autocompletion handler (instance of a 'AutoCompletionHandler' 
-# class to be defined) and connect the 'import_statement' signal to a method of 
-# this object.
-# In this autocompletion handler, create an external shell by 
-# refactoring a lot of code from spyderlib.widgets.externalshell,
-# execute the import statements in this shell, and ask this shell 
-# about code completion thanks to already existing 'getobjdir', ...
 class QtEditor(TextEditBaseWidget):
     """
-    QScintilla Base Editor Widget
+    Source Code Editor Widget based exclusively on Qt
     """
     LANGUAGES = {
                  ('py', 'pyw', 'python'): (PythonSH, '#', PythonCFM),
@@ -162,7 +149,7 @@ class QtEditor(TextEditBaseWidget):
         
         # Tab key behavior
         self.tab_indents = None
-        self.tab_mode = True # see QsciEditor.set_tab_mode
+        self.tab_mode = True # see QtEditor.set_tab_mode
         
         # Mouse tracking
         self.setMouseTracking(True)
@@ -260,9 +247,6 @@ class QtEditor(TextEditBaseWidget):
             self.highlighter.rehighlight()
         
         
-#===============================================================================
-#    QScintilla
-#===============================================================================
     def setup(self):
         """Reimplement TextEditBaseWidget method"""
         TextEditBaseWidget.setup(self)
@@ -646,7 +630,7 @@ class QtEditor(TextEditBaseWidget):
 
     def paste(self):
         """
-        Reimplement QsciScintilla's method to fix the following issue:
+        Reimplement QPlainTextEdit's method to fix the following issue:
         on Windows, pasted text has only 'LF' EOL chars even if the original
         text has 'CRLF' EOL chars
         """

@@ -798,8 +798,7 @@ class MainWindow(QMainWindow):
         widget, textedit_properties = self.__focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QsciScintilla
-        #    or QPlainTextEdit instance
+        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
         console, not_readonly, readwrite_editor = textedit_properties
         
         # Editor has focus and there is no file opened in it
@@ -833,7 +832,7 @@ class MainWindow(QMainWindow):
         _, textedit_properties = self.__focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
-        #!!! Below this line, widget is expected to be a QsciScintilla instance
+        #!!! Below this line, widget is expected to be a QPlainTextEdit instance
         _, _, readwrite_editor = textedit_properties
         self.find_action.setEnabled(True)
         self.find_next_action.setEnabled(True)
@@ -979,35 +978,36 @@ class MainWindow(QMainWindow):
         
     def about(self):
         """About Spyder"""
-        try:
-            from PyQt4.Qsci import QSCINTILLA_VERSION_STR as qsci
-            qsci = ", QScintilla "+ qsci
-            qsci_not_installed = ''
-        except ImportError:
-            qsci = ""
-            qsci_not_installed = self.tr(' (QScintilla is not installed)')
+        not_installed = self.tr('(not installed)')
         try:
             from pyflakes import __version__ as pyflakes_version
         except ImportError:
-            pyflakes_version = self.tr('(not installed)')
+            pyflakes_version = not_installed
+        try:
+            from rope import VERSION as rope_version
+        except ImportError:
+            rope_version = not_installed
         QMessageBox.about(self,
             self.tr("About %1").arg("Spyder"),
             self.tr("""<b>%1 %2</b>
             <br>Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
-            <p>Developed and maintained by %8Pierre Raybaut%9
-            <p>Many thanks to %8Christopher Brown%9 (beta-tester from the 
+            <p>Developed and maintained by %7Pierre Raybaut%8
+            <p>Many thanks to %7Christopher Brown%8 (beta-tester from the 
             very beginning), 
-            %8Alexandre Radicchi%9 (especially for his contributions to the 
+            %7Alexandre Radicchi%8 (especially for his contributions to the 
             <i>Workspace</i> plugin and the <i>DictEditor</i> widget), 
-            %8Ludovic Aubry%9 (for his great ideas, suggestions and 
+            %7Ludovic Aubry%8 (for his great ideas, suggestions and 
             technical solutions - without him, the <i>external console</i> 
             wouldn't have so many features)
             and all the Spyder beta-testers and regular users.
-            <p>Integrated Python code analysis powered by %8pyflakes %10%9:
+            <p>Editor's Python code analysis powered by %7pyflakes %9%8:
             <br>Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
-            <p>Most of the icons are coming from the %8Crystal Project%9:
+            <p>Editor's Python code completion, tooltips and go-to-definition  
+            powered by %7rope %10%8:
+            <br>Copyright (C) 2006-2009 Ali Gholami Rudi
+            <p>Most of the icons are coming from the %7Crystal Project%8:
             <br>Copyright &copy; 2006-2007 Everaldo Coelho
             <p>Spyder is based on spyderlib module v%2
             <br>Bug reports and feature requests: 
@@ -1016,12 +1016,12 @@ class MainWindow(QMainWindow):
             <a href="http://groups.google.com/group/spyderlib">Google Group</a>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
-            <p>Python %3, Qt %4, PyQt %5%6 on %7%11""") \
+            <p>Python %3, Qt %4, PyQt %5 on %6""") \
             .arg("Spyder").arg(__version__) \
             .arg(platform.python_version()).arg(QT_VERSION_STR) \
-            .arg(PYQT_VERSION_STR).arg(qsci).arg(platform.system()) \
+            .arg(PYQT_VERSION_STR).arg(platform.system()) \
             .arg("<span style=\'color: #444444\'><b>").arg("</b></span>") \
-            .arg(pyflakes_version).arg(qsci_not_installed))
+            .arg(pyflakes_version).arg(rope_version))
     
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:

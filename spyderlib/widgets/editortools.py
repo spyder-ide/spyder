@@ -347,32 +347,11 @@ class ClassBrowserTreeWidget(OneColumnTree):
         previous_item = None
         previous_level = None
         
-        if editor.highlighter is not None:
-            # QtEditor
-            cb_data = editor.highlighter.get_classbrowser_data()
-        else:
-            # QsciEditor
-            cb_data = None
+        cb_data = editor.highlighter.get_classbrowser_data()
+        
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
-            if cb_data is not None:
-                data = cb_data.get(block_nb)
-            else:
-                from spyderlib.widgets.qteditor.syntaxhighlighters import ClassBrowserData
-                data = ClassBrowserData()
-                text = unicode(editor.text(block_nb))
-                data.text = text
-                data.fold_level = editor.get_fold_level(block_nb)
-                class_name = editor.classfunc_match.get_class_name(text)
-                if class_name is not None:
-                    data.def_type = ClassBrowserData.CLASS
-                    data.def_name = class_name
-                else:
-                    func_name = editor.classfunc_match.get_function_name(text)
-                    if func_name is not None:
-                        data.def_type = ClassBrowserData.FUNCTION
-                        data.def_name = func_name
-            
+            data = cb_data.get(block_nb)
             if data is None:
                 level = None
             else:

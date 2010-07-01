@@ -37,14 +37,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, ClassBrowser
-try:
-    from spyderlib.widgets.qscieditor.qscieditor import QsciEditor as CodeEditor
-    from spyderlib.widgets.qscieditor.qscieditor import Printer #@UnusedImport
-    from spyderlib.widgets.qscieditor.qscibase import TextEditBaseWidget #@UnusedImport
-except ImportError:
-    from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
-    from spyderlib.widgets.qteditor.qteditor import Printer #@UnusedImport
-    from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget #@UnusedImport
+from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
+from spyderlib.widgets.qteditor.qteditor import Printer #@UnusedImport
+from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget #@UnusedImport
 
 
 class CodeAnalysisThread(QThread):
@@ -992,7 +987,7 @@ class EditorStack(QWidget):
     def __check_file_status(self, index):
         if self.__file_status_flag:
             # Avoid infinite loop: when the QMessageBox.question pops, it
-            # gets focus and then give it back to the QsciEditor instance,
+            # gets focus and then give it back to the QtEditor instance,
             # triggering a refresh cycle which calls this method
             return
         
@@ -1875,7 +1870,7 @@ def test():
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
-    test.load("qscieditor/qscieditor.py")
+    test.load("qteditor/qteditor.py")
     test.show()
     sys.exit(app.exec_())
     

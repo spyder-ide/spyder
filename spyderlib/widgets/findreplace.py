@@ -198,7 +198,6 @@ class FindReplace(QWidget):
         """
         Set associated editor/web page:
             qtebase.TextEditBaseWidget
-            qscibase.TextEditBaseWidget
             browser.WebView
         """
         self.editor = editor

@@ -51,3 +51,18 @@ __license__ = __doc__
 #TODO: IPython: add "configurations" management
 
 #TODO: File Explorer: add support for multiple selection
+
+#TODO: Handling errors in project explorer I/O functions (i.e. find a way to 
+# allow loading a corrupted project to be able to launch Spyder anyway)
+
+#FIXME: When saving, collapsing corresponding class browser item
+#       -> was it introduced following last bugfix on class browser?
+
+#TODO: Implement code completion in code editor with rope:
+# 1. QtEditor -> add completion support
+# 3. Refactoring -> shell.py key press events --> in base class (shared with qteditor.py)
+# 4. Implement: zoomIn, zoomOut
+
+#TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
+
+#TODO: QtEditor: Backspace at the end of a line --> rstrip!
