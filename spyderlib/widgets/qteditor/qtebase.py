@@ -65,6 +65,7 @@ class CompletionWidget(QListWidget):
         self.setFocus()
         
         point = self.textedit.cursorRect().bottomRight()
+        point.setX(point.x()+self.textedit.get_linenumberarea_width())
         point = self.textedit.mapToGlobal(point)
         if self.screen_size[1]-point.y()-self.height() < 0:
             point = self.textedit.cursorRect().topRight()
@@ -169,6 +170,11 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         self.setup()
         
+    #------Line number area
+    def get_linenumberarea_width(self):
+        """Return line number area width"""
+        # Implemented in QtEditor, but needed here for completion widget
+        return 0
         
     #------Extra selections
     def get_extra_selections(self, key):
@@ -342,6 +348,22 @@ class TextEditBaseWidget(QPlainTextEdit):
     def setText(self, text):
         """Reimplements QScintilla method"""
         self.setPlainText(text)
+        
+    def zoomIn(self):
+        """Reimplements QScintilla method"""
+        #TODO: Implement Zoom In
+        pass
+    
+    def zoomOut(self):
+        """Reimplements QScintilla method"""
+        #TODO: Implement Zoom Out
+        pass
+    
+#    def wheelEvent(self, event):
+#        if event.modifiers() & Qt.ControlModifier:
+#            pass ---> implement zoom in/out ??
+#        else:
+#            QPlainTextEdit.wheelEvent(self, event)
 
         
     #-----Widget setup and options
@@ -707,7 +729,9 @@ class TextEditBaseWidget(QPlainTextEdit):
             block = self.document().findBlockByNumber(at_line-1)
             cursor.setPosition(block.position())
             cy = self.cursorRect(cursor).top()
-        QToolTip.showText(self.mapToGlobal(QPoint(cx, cy)), tiptext)
+        point = self.mapToGlobal(QPoint(cx, cy))
+        point.setX(point.x()+self.get_linenumberarea_width())
+        QToolTip.showText(point, tiptext)
         # Saving cursor position:
         self.calltip_position = self.get_position('cursor')
 
@@ -737,6 +761,17 @@ class TextEditBaseWidget(QPlainTextEdit):
     def hide_completion_widget(self):
         """Hide completion widget"""
         self.completion_widget.hide()
+
+    def show_completion_list(self, completions, completion_text=""):
+        """Display the possible completions"""
+        if len(completions) == 0 or completion_text in completions:
+            return
+        self.completion_text = completion_text
+        if isinstance(completions[0], unicode):
+            key = unicode.lower
+        else:
+            key = str.lower
+        self.show_completion_widget(sorted(completions, key=key))
         
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""

@@ -437,9 +437,13 @@ class QtEditor(TextEditBaseWidget):
         self.linenumberarea_enabled = state
         self.linenumberarea.setVisible(state)
         self.update_linenumberarea_width(0)
-    
+
     def get_linenumberarea_width(self):
-        """Return line number area width"""
+        """Return current line number area width"""
+        return self.linenumberarea.contentsRect().width()
+    
+    def compute_linenumberarea_width(self):
+        """Compute and return line number area width"""
         if not self.linenumberarea_enabled:
             return 0
         digits = 1
@@ -451,7 +455,7 @@ class QtEditor(TextEditBaseWidget):
         
     def update_linenumberarea_width(self, new_block_count):
         """Update line number area width"""
-        self.setViewportMargins(self.get_linenumberarea_width(), 0,
+        self.setViewportMargins(self.compute_linenumberarea_width(), 0,
                                 self.get_scrollflagarea_width(), 0)
         
     def update_linenumberarea(self, qrect, dy):
@@ -578,7 +582,7 @@ class QtEditor(TextEditBaseWidget):
         cr = self.contentsRect()
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
-                              self.get_linenumberarea_width(), cr.height()))
+                              self.compute_linenumberarea_width(), cr.height()))
         if self.verticalScrollBar().isVisible():
             vsbw = self.verticalScrollBar().contentsRect().width()
         else:
@@ -599,7 +603,7 @@ class QtEditor(TextEditBaseWidget):
         cr = self.contentsRect()
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(self.contentOffset()).left() \
-            +self.linenumberarea.contentsRect().width() \
+            +self.get_linenumberarea_width() \
             +self.fontMetrics().width('9')*self.edge_line.column+5
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))

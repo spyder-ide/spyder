@@ -131,8 +131,8 @@ class FileInfo(QObject):
                                                     self.filename)
         if textlist:
             text = self.editor.get_text('sol', 'cursor')
-            self.editor.completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-            self.editor.show_completion_widget(textlist)
+            completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
+            self.editor.show_completion_list(textlist, completion_text)
         
     def trigger_calltip(self):
         if self.project is None:
@@ -144,7 +144,6 @@ class FileInfo(QObject):
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
         if textlist:
-            self.editor.show_calltip("rope", textlist, at_line=line_nb)
             text = textlist[0]
             parpos = text.find('(')
             if parpos:
@@ -154,6 +153,7 @@ class FileInfo(QObject):
                     # ObjectInspector widget exists and is visible
                     self.inspector.set_object_text(text)
                     self.editor.setFocus()
+            self.editor.show_calltip("rope", textlist)
                     
     def go_to_definition(self, position):
         if self.project is None:

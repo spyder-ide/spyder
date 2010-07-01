@@ -489,6 +489,17 @@ class TextEditBaseWidget(QsciScintilla):
     def show_completion_widget(self, textlist):
         """Show completion widget"""
         self.showUserList(1, QStringList(textlist))
+
+    def show_completion_list(self, completions, completion_text=""):
+        """Display the possible completions"""
+        if len(completions) == 0 or completion_text in completions:
+            return
+        self.completion_text = completion_text
+        if isinstance(completions[0], unicode):
+            key = unicode.lower
+        else:
+            key = str.lower
+        self.show_completion_widget(sorted(completions, key=key))
         
     def completion_widget_home(self):
         self.stdkey_home()

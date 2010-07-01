@@ -580,7 +580,7 @@ class LineNumberArea(QWidget):
         self.code_editor = editor
         
     def sizeHint(self):
-        return QSize(self.code_editor.get_linenumberarea_width(), 0)
+        return QSize(self.code_editor.compute_linenumberarea_width(), 0)
         
     def paintEvent(self, event):
         self.code_editor.linenumberarea_paint_event(event)
