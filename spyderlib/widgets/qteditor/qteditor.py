@@ -182,6 +182,7 @@ class QtEditor(TextEditBaseWidget):
         """Set as clone editor"""
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
+        self.highlighter = editor.highlighter
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
@@ -657,8 +658,7 @@ class QtEditor(TextEditBaseWidget):
         # Standard paste
         TextEditBaseWidget.paste(self)
 
-    def get_block_data(self, block_nb):
-        block = self.document().findBlockByNumber(block_nb)
+    def get_block_data(self, block):
         return self.highlighter.block_data.get(block)
 
     def get_fold_level(self, block_nb):
