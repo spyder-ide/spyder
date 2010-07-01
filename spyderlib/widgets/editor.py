@@ -364,8 +364,7 @@ class EditorStack(QWidget):
             fname = other_finfo.filename
             enc = other_finfo.encoding
             finfo = self.create_new_editor(fname, enc, "", set_current=True,
-                                           clone=True)
-            finfo.editor.set_as_clone(other_finfo.editor)
+                                           cloned_from=other_finfo.editor)
             finfo.set_analysis_results(other_finfo.analysis_results)
             finfo.set_todo_results(other_finfo.todo_results)
         self.set_stack_index(other.get_stack_index())
@@ -1143,7 +1142,7 @@ class EditorStack(QWidget):
         finfo.editor.set_cursor_position(position)
         
     def create_new_editor(self, fname, enc, txt,
-                          set_current, new=False, clone=False):
+                          set_current, new=False, cloned_from=None):
         """
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
@@ -1176,15 +1175,16 @@ class EditorStack(QWidget):
                      lambda fname, lineno, name:
                      self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, name))
-        if not clone:
-            editor.setup_editor(linenumbers=True, language=language,
-                    code_analysis=self.codeanalysis_enabled,
-                    code_folding=self.codefolding_enabled,
-                    todo_list=self.todolist_enabled, font=self.default_font,
-                    wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
-                    occurence_highlighting=self.occurence_highlighting_enabled,
-                    codecompletion_auto=self.codecompletion_auto_enabled,
-                    codecompletion_enter=self.codecompletion_enter_enabled)
+        editor.setup_editor(linenumbers=True, language=language,
+                code_analysis=self.codeanalysis_enabled,
+                code_folding=self.codefolding_enabled,
+                todo_list=self.todolist_enabled, font=self.default_font,
+                wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+                occurence_highlighting=self.occurence_highlighting_enabled,
+                codecompletion_auto=self.codecompletion_auto_enabled,
+                codecompletion_enter=self.codecompletion_enter_enabled,
+                cloned_from=cloned_from)
+        if cloned_from is None:
             editor.set_text(txt)
             editor.setModified(False)
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),

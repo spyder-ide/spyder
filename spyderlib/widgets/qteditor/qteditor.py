@@ -127,8 +127,6 @@ class QtEditor(TextEditBaseWidget):
 
         self.update_linenumberarea_width(0)
                 
-        self.setup_editor_args = None
-        
         self.document_id = id(self)
                     
         # Indicate occurences of the selected word
@@ -184,23 +182,13 @@ class QtEditor(TextEditBaseWidget):
         """Set as clone editor"""
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
-        self.setup_editor(**editor.setup_editor_args)
         
     def setup_editor(self, linenumbers=True, language=None,
                      code_analysis=False, code_folding=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True, codecompletion_auto=False,
-                     codecompletion_enter=False):
-        self.setup_editor_args = dict(
-                linenumbers=linenumbers, language=language,
-                code_analysis=code_analysis, code_folding=code_folding,
-                font=font, wrap=wrap, tab_mode=tab_mode,
-                occurence_highlighting=occurence_highlighting,
-                scrollflagarea=scrollflagarea, todo_list=todo_list,
-                codecompletion_auto=codecompletion_auto,
-                codecompletion_enter=codecompletion_enter)
-        
+                     codecompletion_enter=False, cloned_from=None):
         # Code completion
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_enter(codecompletion_enter)
@@ -220,12 +208,13 @@ class QtEditor(TextEditBaseWidget):
         # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
 #        self.set_tab_mode(tab_mode)
-
-        if font is not None:
-            self.set_font(font)
         
+        if cloned_from is not None:
+            self.set_as_clone(cloned_from)
+        elif font is not None:
+            self.set_font(font)
+            
         self.toggle_wrap_mode(wrap)
-        self.setModified(False)
         
     def set_tab_mode(self, enable):
         """
