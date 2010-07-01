@@ -250,7 +250,6 @@ class EditorStack(QWidget):
         self.codeanalysis_enabled = True
         self.todolist_enabled = True
         self.classbrowser_enabled = True
-        self.codefolding_enabled = True
         self.codecompletion_auto_enabled = False
         self.codecompletion_enter_enabled = False
         self.default_font = None
@@ -408,7 +407,6 @@ class EditorStack(QWidget):
         
     def __update_editor_margins(self, editor):
         editor.setup_margins(linenumbers=True,
-                             code_folding=self.codefolding_enabled,
                              code_analysis=self.codeanalysis_enabled,
                              todo_list=self.todolist_enabled)
         
@@ -434,15 +432,6 @@ class EditorStack(QWidget):
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
         
-    def set_codefolding_enabled(self, state):
-        # CONF.get(self.ID, 'code_folding')
-        self.codefolding_enabled = state
-        if self.data:
-            for finfo in self.data:
-                self.__update_editor_margins(finfo.editor)
-                if not state:
-                    finfo.editor.unfold_all()
-                    
     def set_codecompletion_auto_enabled(self, state):
         # CONF.get(self.ID, 'codecompletion_auto')
         self.codecompletion_auto_enabled = state
@@ -1172,7 +1161,6 @@ class EditorStack(QWidget):
                                fname, lineno, name))
         editor.setup_editor(linenumbers=True, language=language,
                 code_analysis=self.codeanalysis_enabled,
-                code_folding=self.codefolding_enabled,
                 todo_list=self.todolist_enabled, font=self.default_font,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,

@@ -136,7 +136,7 @@ class HistoryLog(SpyderPluginWidget):
             language = 'bat'
             icon = get_icon('cmdprompt.png')
         editor.setup_editor(linenumbers=False, language=language,
-                            code_folding=True, scrollflagarea=False)
+                            scrollflagarea=False)
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)

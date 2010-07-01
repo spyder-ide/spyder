@@ -171,8 +171,7 @@ class QtEditor(TextEditBaseWidget):
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
         
-    def setup_editor(self, linenumbers=True, language=None,
-                     code_analysis=False, code_folding=False,
+    def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True, codecompletion_auto=False,
@@ -252,13 +251,12 @@ class QtEditor(TextEditBaseWidget):
         TextEditBaseWidget.setup(self)
 
     def setup_margins(self, linenumbers=True, code_analysis=False,
-                      code_folding=False, todo_list=True):
+                      todo_list=True):
         """
         Setup margin settings
         (except font, now set in self.set_font)
         """
         # linenumbers argument is ignored
-        # code_folding argument is not supported
         self.markers_margin =  code_analysis or todo_list
     
     def remove_trailing_spaces(self):
@@ -651,18 +649,6 @@ class QtEditor(TextEditBaseWidget):
         If not, return None"""
         block = self.document().findBlockByNumber(block_nb)
         return self.get_block_data(block).fold_level
-    
-    def fold_expanded(self, line):
-        """Is fold expanded?"""
-        raise NotImplementedError
-        
-    def get_folded_lines(self):
-        """Return the list of folded line numbers"""
-        raise NotImplementedError
-        
-    def unfold_all(self):
-        """Unfold all folded lines"""
-        raise NotImplementedError
         
         
 #===============================================================================
@@ -1280,7 +1266,7 @@ class Printer(QPrinter):
 class TestEditor(QtEditor):
     def __init__(self, parent):
         super(TestEditor, self).__init__(parent)
-        self.setup_editor(code_folding=True)
+        self.setup_editor(linenumbers=False)
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])

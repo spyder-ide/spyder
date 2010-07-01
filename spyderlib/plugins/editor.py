@@ -453,15 +453,6 @@ class Editor(SpyderPluginWidget):
                         "warnings will be highlighted"))
         analyze_action.setChecked( CONF.get(self.ID, 'code_analysis', True) )
         analyze_action.setEnabled(programs.is_module_installed('pyflakes'))
-        self.foldonopen_action = create_action(self, self.tr("Fold on open"),
-                                     toggled=lambda checked:
-                                     CONF.set(self.ID, 'fold_on_open', checked))
-        self.foldonopen_action.setChecked( CONF.get(self.ID,
-                                                    'fold_on_open', False) )
-        self.foldonopen_action.setEnabled( CONF.get(self.ID, 'code_folding') )
-        fold_action = create_action(self, self.tr("Code folding"),
-                                    toggled=self.toggle_code_folding)
-        fold_action.setChecked( CONF.get(self.ID, 'code_folding', True) )
         codecompletion_action = create_action(self,
                                           self.tr("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
@@ -527,7 +518,7 @@ class Editor(SpyderPluginWidget):
               template_action, font_action, fpsorting_action, showtabbar_action,
               None, wrap_action, tab_action, occurence_action,
               None, codecompletion_action, codecompenter_action,
-              None, fold_action, self.foldonopen_action, checkeol_action,
+              None, checkeol_action,
               None, todo_action, analyze_action))
         
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
@@ -625,7 +616,6 @@ class Editor(SpyderPluginWidget):
         settings = (('set_codeanalysis_enabled',   'code_analysis'),
                     ('set_todolist_enabled',       'todo_list'),
                     ('set_classbrowser_enabled',   'class_browser'),
-                    ('set_codefolding_enabled',    'code_folding'),
                     ('set_codecompletion_auto_enabled',
                                                     'codecompletion/auto'),
                     ('set_codecompletion_enter_enabled',
@@ -1113,10 +1103,6 @@ class Editor(SpyderPluginWidget):
                 # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
             current_editor.go_to_line(goto[index], word=word)
-            for editor in new_editors:
-                if CONF.get(self.ID, 'fold_on_open') \
-                   and CONF.get(self.ID, 'code_folding'):
-                    editor.foldAll()
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
@@ -1368,14 +1354,6 @@ class Editor(SpyderPluginWidget):
             for editorstack in self.editorstacks:
                 editorstack.set_occurence_highlighting_enabled(checked)
             
-    def toggle_code_folding(self, checked):
-        """Toggle code folding"""
-        self.foldonopen_action.setEnabled(checked)
-        if self.editorstacks is not None:
-            CONF.set(self.ID, 'code_folding', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_codefolding_enabled(checked)
-
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         if self.editorstacks is not None:

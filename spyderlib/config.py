@@ -92,13 +92,6 @@ DEFAULTS = [
               'lightwindow/size': (650, 400),
               'lightwindow/position': (30, 30),
               }),
-            ('scintilla',
-             {
-              'margins/backgroundcolor': 'white',
-              'margins/foregroundcolor': 'darkGray',
-              'foldmarginpattern/backgroundcolor': 0xEEEEEE,
-              'foldmarginpattern/foregroundcolor': 0xEEEEEE,
-              }),
             ('shell_appearance',
              {
               'default_style/foregroundcolor': 0x000000,
@@ -200,7 +193,6 @@ DEFAULTS = [
               'code_analysis': True,
               'class_browser': True,
               'toolbox_panel': True,
-              'code_folding': True,
               'codecompletion/auto': False,
               'codecompletion/enter-key': False,
               'check_eol_chars': True,
