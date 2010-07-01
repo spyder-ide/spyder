@@ -199,7 +199,6 @@ class FileInfo(QObject):
         
     def cleanup_todo_results(self):
         self.todo_results = []
-        self.editor.cleanup_todo_list()
 
 
 class EditorStack(QWidget):
