@@ -1321,8 +1321,7 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, ask_for_arguments,
          interact, debug, python, current) = self.__last_ec_exec
         if current:
-            self.emit(SIGNAL('run_script_in_external_console(QString)'),
-                      self.get_current_filename())
+            self.emit(SIGNAL('run_script_in_external_console(QString)'), fname)
         else:
             self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool,bool)'),
                       fname, wdir, ask_for_arguments, interact, debug, python)
