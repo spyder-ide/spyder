@@ -166,6 +166,7 @@ class QtEditor(TextEditBaseWidget):
         self.setDocument(editor.document())
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
+        self._apply_highlighter_color_scheme()
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, wrap=False, tab_mode=True,
@@ -606,6 +607,15 @@ class QtEditor(TextEditBaseWidget):
         """Remove selected text"""
         # Used by global callbacks in Spyder -> delete_action
         self.removeSelectedText()
+        
+    def _apply_highlighter_color_scheme(self):
+        hl = self.highlighter
+        self.set_background_color(hl.get_background_color())
+        self.currentline_color = hl.get_currentline_color()
+        self.occurence_color = hl.get_occurence_color()
+        self.ctrl_click_color = hl.get_ctrlclick_color()
+        self.area_background_color = hl.get_sideareas_color()
+        self.highlight_current_line()
 
     def set_font(self, font):
         """Set shell font"""
@@ -613,13 +623,9 @@ class QtEditor(TextEditBaseWidget):
         self.update_linenumberarea_width(0)
         if self.highlighter_class is not None:
             if not isinstance(self.highlighter, self.highlighter_class):
-                hl = self.highlighter = self.highlighter_class(self.document(),
-                                                        font, self.color_scheme)
-                self.set_background_color(hl.get_background_color())
-                self.currentline_color = hl.get_currentline_color()
-                self.occurence_color = hl.get_occurence_color()
-                self.ctrl_click_color = hl.get_ctrlclick_color()
-                self.area_background_color = hl.get_sideareas_color()
+                self.highlighter = self.highlighter_class(self.document(),
+                                                    font, self.color_scheme)
+                self._apply_highlighter_color_scheme()
             else:
                 self.highlighter.setup_formats(font)
                 self.highlighter.rehighlight()
