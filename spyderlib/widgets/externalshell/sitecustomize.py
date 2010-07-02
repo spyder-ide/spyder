@@ -4,6 +4,13 @@
 import sys, os, os.path as osp
 
 if os.name == 'nt':
+    # Windows platforms
+    
+    # Removing PyQt4 input hook which is not working well on Windows
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
+    
+    # Setting console encoding (otherwise Python does not recognize encoding)
     try:
         import locale, win32console, pywintypes
         _t, _cp = locale.getdefaultlocale('LANG')
@@ -58,10 +65,6 @@ def displayhook(obj):
     monitor.refresh()
 
 sys.displayhook = displayhook
-
-if os.name == 'nt':
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
 
 ## Restoring original PYTHONPATH
 #try:
