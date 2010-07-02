@@ -252,15 +252,15 @@ def test():
     from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
     from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
     import spyderlib
+#     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
+#                                 ipython=True, stand_alone=True,
+#                                 arguments="-q4thread -pylab -colors LightBG",
+#                                 mpl_patch_enabled=True)
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                ipython=True, stand_alone=True,
-                                arguments="-q4thread -pylab -colors LightBG",
-                                mpl_patch_enabled=True)
-#    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-#                                interact=True, umd_enabled=True,
-#                                umd_namelist=['guidata', 'guiqwt'],
-#                                umd_verbose=True)
-#    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
+                                interact=True, umd_enabled=True,
+                                umd_namelist=['guidata', 'guiqwt'],
+                                umd_verbose=True, mpl_patch_enabled=False)
+#     shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
     shell.shell.toggle_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont

@@ -347,7 +347,7 @@ class ExternalConsole(SpyderPluginWidget):
                             triggered=self.run_script)
 
         mpl_patch_action = create_action(self,
-                self.tr("Matplotlib figure options"),
+                self.tr("Patch Matplotlib figures (options button)"),
                 tip=self.tr("Patch the matplotlib library to add the "
                             "options button (plot parameters editing "
                             "dialog box)"),
