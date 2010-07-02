@@ -201,6 +201,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
+            mpl_patch_enabled = CONF.get(self.ID, 'mpl_patch/enabled')
             umd_enabled = CONF.get(self.ID, 'umd/enabled')
             umd_namelist = CONF.get(self.ID, 'umd/namelist')
             umd_verbose = CONF.get(self.ID, 'umd/verbose')
@@ -208,7 +209,8 @@ class ExternalConsole(SpyderPluginWidget):
                            interact, debug, path=pythonpath, ipython=ipython,
                            arguments=arguments, stand_alone=self.light_mode,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
-                           umd_verbose=umd_verbose)
+                           umd_verbose=umd_verbose,
+                           mpl_patch_enabled=mpl_patch_enabled)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shellwidget(shellwidget)
         else:
@@ -343,6 +345,16 @@ class ExternalConsole(SpyderPluginWidget):
                             self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
+
+        mpl_patch_action = create_action(self,
+                self.tr("Matplotlib figure options"),
+                tip=self.tr("Patch the matplotlib library to add the "
+                            "options button (plot parameters editing "
+                            "dialog box)"),
+                toggled=lambda checked:
+                CONF.set(self.ID, 'mpl_patch/enabled', checked))
+        mpl_patch_action.setChecked( CONF.get(self.ID, 'mpl_patch/enabled') )
+        
         umd_action = create_action(self,
                 self.tr("UMD (force modules to be completely reloaded)"),
                 tip=self.tr("Force Python to reload modules imported when "
@@ -412,7 +424,10 @@ class ExternalConsole(SpyderPluginWidget):
                                         toggled=self.toggle_icontext)
         icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
         
-        self.menu_actions = [interpreter_action, console_action, run_action,
+        self.menu_actions = [interpreter_action, console_action, run_action]
+        if programs.is_module_installed("matplotlib"):
+            self.menu_actions += [None, mpl_patch_action]
+        self.menu_actions += [
              None, umd_action, umd_verbose_action, umd_namelist_action,
              None, python_startup_action, ipython_startup_action,
              None, buffer_action, font_action, wrap_action, calltips_action,

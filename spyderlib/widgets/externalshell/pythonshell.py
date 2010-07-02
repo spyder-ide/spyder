@@ -120,13 +120,15 @@ class ExternalPythonShell(ExternalShellBase):
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[],
                  ipython=False, arguments=None, stand_alone=True,
-                 umd_enabled=True, umd_namelist=[], umd_verbose=True):
+                 umd_enabled=True, umd_namelist=[], umd_verbose=True,
+                 mpl_patch_enabled=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.fname = startup.__file__ if fname is None else fname
         
         self.stand_alone = stand_alone
         
+        self.mpl_patch_enabled = mpl_patch_enabled
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -308,6 +310,7 @@ class ExternalPythonShell(ExternalShellBase):
         
         # User Module Deleter
         if self.interpreter:
+            env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
