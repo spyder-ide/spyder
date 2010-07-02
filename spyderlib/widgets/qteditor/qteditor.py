@@ -817,6 +817,16 @@ class QtEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         
     
+    def remove_suffix(self, suffix):
+        """
+        Remove suffix from current line (there should not be any selection)
+        """
+        cursor = self.textCursor()
+        cursor.setPosition(cursor.position()-len(suffix),
+                           QTextCursor.KeepAnchor)
+        if unicode(cursor.selectedText()) == suffix:
+            cursor.removeSelectedText()
+        
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""        
         cursor = self.textCursor()
@@ -1070,10 +1080,15 @@ class QtEditor(TextEditBaseWidget):
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
-            if not self.hasSelectedText() \
-               and leading_text and not leading_text.strip() \
-               and leading_length > 4 and leading_length % 4 == 0:
-                self.unindent()
+            trailing_spaces = leading_length-len(leading_text.rstrip())
+            if not self.hasSelectedText() and leading_length > 4 \
+               and not leading_text.strip():
+                if leading_length % 4 == 0:
+                    self.unindent()
+                else:
+                    QPlainTextEdit.keyPressEvent(self, event)
+            elif trailing_spaces and not self.get_text('cursor', 'eol').strip():
+                self.remove_suffix(" "*trailing_spaces)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
                 if self.is_completion_widget_visible():

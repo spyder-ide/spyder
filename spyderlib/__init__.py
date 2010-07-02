@@ -65,4 +65,4 @@ __license__ = __doc__
 
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
 
-#TODO: QtEditor: Backspace at the end of a line --> rstrip!
+#FIXME: Editor/split: when closing a file in one panel, the current file on other panels changes!
