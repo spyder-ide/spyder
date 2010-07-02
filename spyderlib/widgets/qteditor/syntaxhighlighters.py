@@ -180,7 +180,7 @@ class BaseSH(QSyntaxHighlighter):
         if font is not None:
             base_format.setFont(font)
         self.formats = {}
-        colors = self.COLORS[self.color_scheme]
+        colors = self.COLORS[self.color_scheme].copy()
         self.background_color = colors.pop("BACKGROUND")
         self.currentline_color = colors.pop("CURRENTLINE")
         self.occurence_color = colors.pop("OCCURENCE")
