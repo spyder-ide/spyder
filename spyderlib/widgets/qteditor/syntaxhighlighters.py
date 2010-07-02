@@ -78,38 +78,69 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting color schemes:
     COLORS = {
               'IDLE':
-              (#  Name          Color    Bold   Italic
-               ("NORMAL",     "#000000", False, False),
-               ("KEYWORD",    "#ff7700", True,  False),
-               ("BUILTIN",    "#900090", False, False),
-               ("DEFINITION", "#0000ff", False, False),
-               ("COMMENT",    "#dd0000", False, True),
-               ("STRING",     "#00aa00", False, False),
-               ("NUMBER",     "#924900", False, False),
-               ("INSTANCE",   "#777777", True,  True),
-               ),
+              {#  Name          Color    Bold   Italic
+               "BACKGROUND":  "#FFFFFF",
+               "CURRENTLINE": "#EEFFDD",
+               "OCCURENCE":   "#E8F2FE",
+               "CTRLCLICK":   "#0000FF",
+               "SIDEAREAS":   "#EFEFEF",
+               "NORMAL":     ("#000000", False, False),
+               "KEYWORD":    ("#ff7700", True,  False),
+               "BUILTIN":    ("#900090", False, False),
+               "DEFINITION": ("#0000ff", False, False),
+               "COMMENT":    ("#dd0000", False, True),
+               "STRING":     ("#00aa00", False, False),
+               "NUMBER":     ("#924900", False, False),
+               "INSTANCE":   ("#777777", True,  True),
+               },
               'Pydev':
-              (#  Name          Color    Bold   Italic
-               ("NORMAL",     "#000000", False, False),
-               ("KEYWORD",    "#0000FF", False, False),
-               ("BUILTIN",    "#900090", False, False),
-               ("DEFINITION", "#000000", True,  False),
-               ("COMMENT",    "#C0C0C0", False, False),
-               ("STRING",     "#00AA00", False, True),
-               ("NUMBER",     "#800000", False, False),
-               ("INSTANCE",   "#000000", False, True),
-               ),
+              {#  Name          Color    Bold   Italic
+               "BACKGROUND":  "#FFFFFF",
+               "CURRENTLINE": "#E8F2FE",
+               "OCCURENCE":   "#FFFF99",
+               "CTRLCLICK":   "#0000FF",
+               "SIDEAREAS":   "#EFEFEF",
+               "NORMAL":     ("#000000", False, False),
+               "KEYWORD":    ("#0000FF", False, False),
+               "BUILTIN":    ("#900090", False, False),
+               "DEFINITION": ("#000000", True,  False),
+               "COMMENT":    ("#C0C0C0", False, False),
+               "STRING":     ("#00AA00", False, True),
+               "NUMBER":     ("#800000", False, False),
+               "INSTANCE":   ("#000000", False, True),
+               },
+              'Emacs':
+              {#  Name          Color    Bold   Italic
+               "BACKGROUND":  "#000000",
+               "CURRENTLINE": "#E8F2FE",
+               "OCCURENCE":   "#FFFF99",
+               "CTRLCLICK":   "#0000FF",
+               "SIDEAREAS":   "#555555",
+               "NORMAL":     ("#FFFFFF", False, False),
+               "KEYWORD":    ("#3C51E8", False, False),
+               "BUILTIN":    ("#900090", False, False),
+               "DEFINITION": ("#FF8040", True,  False),
+               "COMMENT":    ("#005100", False, False),
+               "STRING":     ("#00AA00", False, True),
+               "NUMBER":     ("#800000", False, False),
+               "INSTANCE":   ("#FFFFFF", False, True),
+               },
               'Scintilla':
-              (#  Name          Color    Bold   Italic
-               ("NORMAL",     "#000000", False, False),
-               ("KEYWORD",    "#00007F", True,  False),
-               ("BUILTIN",    "#000000", False, False),
-               ("DEFINITION", "#007F7F", True,  False),
-               ("COMMENT",    "#007F00", False, False),
-               ("STRING",     "#7F007F", False, False),
-               ("NUMBER",     "#007F7F", False, False),
-               ("INSTANCE",   "#000000", False, True),
-               ),
+              {#  Name          Color    Bold   Italic
+               "BACKGROUND":  "#FFFFFF",
+               "CURRENTLINE": "#EEFFDD",
+               "OCCURENCE":   "#FFFF99",
+               "CTRLCLICK":   "#0000FF",
+               "SIDEAREAS":   "#EFEFEF",
+               "NORMAL":     ("#000000", False, False),
+               "KEYWORD":    ("#00007F", True,  False),
+               "BUILTIN":    ("#000000", False, False),
+               "DEFINITION": ("#007F7F", True,  False),
+               "COMMENT":    ("#007F00", False, False),
+               "STRING":     ("#7F007F", False, False),
+               "NUMBER":     ("#007F7F", False, False),
+               "INSTANCE":   ("#000000", False, True),
+               },
               }
     def __init__(self, parent, font=None, color_scheme=None):
         super(BaseSH, self).__init__(parent)
@@ -119,18 +150,46 @@ class BaseSH(QSyntaxHighlighter):
         if color_scheme is None:
             color_scheme = 'Pydev'
         self.color_scheme = color_scheme
+        
+        self.background_color = None
+        self.currentline_color = None
+        self.occurence_color = None
+        self.ctrlclick_color = None
+        self.sideareas_color = None
 
         self.formats = None
         self.setup_formats(font)
+        
+    def get_background_color(self):
+        return QColor(self.background_color)
+        
+    def get_currentline_color(self):
+        return QColor(self.currentline_color)
+        
+    def get_occurence_color(self):
+        return QColor(self.occurence_color)
+    
+    def get_ctrlclick_color(self):
+        return QColor(self.ctrlclick_color)
+    
+    def get_sideareas_color(self):
+        return QColor(self.sideareas_color)
 
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
         if font is not None:
             base_format.setFont(font)
         self.formats = {}
-        for name, color, bold, italic in self.COLORS[self.color_scheme]:
+        colors = self.COLORS[self.color_scheme]
+        self.background_color = colors.pop("BACKGROUND")
+        self.currentline_color = colors.pop("CURRENTLINE")
+        self.occurence_color = colors.pop("OCCURENCE")
+        self.ctrlclick_color = colors.pop("CTRLCLICK")
+        self.sideareas_color = colors.pop("SIDEAREAS")
+        for name, (color, bold, italic) in colors.iteritems():
             format = QTextCharFormat(base_format)
             format.setForeground(QColor(color))
+            format.setBackground(QColor(self.background_color))
             if bold:
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
@@ -178,6 +237,8 @@ class PythonSH(BaseSH):
         
         cbdata = None
         import_stmt = None
+
+        self.setFormat(0, len(text), self.formats["NORMAL"])
         
         last_state = None
         state = self.NORMAL

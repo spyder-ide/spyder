@@ -15,7 +15,7 @@ import sys, re
 
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
-                         QPlainTextEdit)
+                         QPlainTextEdit, QPalette)
 from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp
 
 # Local imports
@@ -169,6 +169,10 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.bracepos = None
 
         self.setup()
+        
+    def set_background_color(self, color):
+        """Set text editor background color"""
+        self.setPalette(QPalette(color))
         
     #------Line number area
     def get_linenumberarea_width(self):

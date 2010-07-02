@@ -47,6 +47,7 @@ __license__ = __doc__
 #TODO: add an option to customize namespace browser refresh time out
 
 #TODO: regroup plugin settings in a new menu (or dlg box??) "Preferences"
+#      --> color schemes for editor
 
 #TODO: IPython: add "configurations" management
 
@@ -66,3 +67,5 @@ __license__ = __doc__
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
 
 #FIXME: Editor/split: when closing a file in one panel, the current file on other panels changes!
+
+#TODO: Option to inverse console colors

@@ -73,7 +73,7 @@ class QtEditor(TextEditBaseWidget):
         self.eol_mode = None
         
         # Side areas background color
-        self.area_background_color = "#EFEFEF"
+        self.area_background_color = QColor(Qt.white)
         
         # 80-col edge line
         self.edge_line = EdgeLine(self)
@@ -97,13 +97,10 @@ class QtEditor(TextEditBaseWidget):
         # Syntax highlighting
         self.highlighter_class = None
         self.highlighter = None
-        self.color_scheme = ('IDLE', 'Pydev', 'Scintilla')[1]
+        self.color_scheme = ('IDLE', 'Pydev', 'Emacs', 'Scintilla')[1]
         
-        # Highlight current line
-        bcol_dict = {'IDLE':      "#EEFFDD",
-                     'Pydev':     "#E8F2FE",
-                     'Scintilla': "#EEFFDD",}
-        self.currentline_color = QColor(bcol_dict[self.color_scheme])
+        #  Background colors: current line, occurences
+        self.currentline_color = QColor(Qt.lightGray)
         
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -141,9 +138,7 @@ class QtEditor(TextEditBaseWidget):
         self.connect(self.occurence_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
         self.occurences = []
-        bcol = QColor("#E8F2FE") # IDLE color scheme
-        bcol = QColor("#FFFF99") # Pydev color scheme
-        self.occurence_color = QColor(bcol)
+        self.occurence_color = QColor(Qt.yellow)
         
         # Context menu
         self.setup_context_menu()
@@ -155,7 +150,7 @@ class QtEditor(TextEditBaseWidget):
         # Mouse tracking
         self.setMouseTracking(True)
         self.__cursor_changed = False
-        self.ctrl_click_color = QColor("#0000FF")
+        self.ctrl_click_color = QColor(Qt.blue)
 
     def closeEvent(self, event):
         super(QtEditor, self).closeEvent(event)
@@ -451,7 +446,7 @@ class QtEditor(TextEditBaseWidget):
     def linenumberarea_paint_event(self, event):
         font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
-        painter.fillRect(event.rect(), QColor(self.area_background_color))
+        painter.fillRect(event.rect(), self.area_background_color)
                 
         block = self.firstVisibleBlock()
         block_number = block.blockNumber()
@@ -468,21 +463,25 @@ class QtEditor(TextEditBaseWidget):
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
                                      number)
-                if not self.markers_margin:
-                    continue
-                code_analysis = self.ca_marker_lines.get(line_number)
-                if code_analysis is not None:
-                    for _message, error in code_analysis:
+                if self.markers_margin:
+                    code_analysis = self.ca_marker_lines.get(line_number)
+                    if code_analysis is not None:
+                        for _message, error in code_analysis:
+                            if error:
+                                break
                         if error:
-                            break
-                    pixmap = self.error_pixmap if error else self.warning_pixmap
-                    painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
-                                       pixmap)
-                todo = self.todo_lines.get(line_number)
-                if todo is not None:
-                    pixmap = self.todo_pixmap
-                    painter.drawPixmap(0, top+(font_height-pixmap.height())/2,
-                                       pixmap)
+                            pixmap = self.error_pixmap
+                        else:
+                            pixmap = self.warning_pixmap
+                        painter.drawPixmap(0,
+                                           top+(font_height-pixmap.height())/2,
+                                           pixmap)
+                    todo = self.todo_lines.get(line_number)
+                    if todo is not None:
+                        pixmap = self.todo_pixmap
+                        painter.drawPixmap(0,
+                                           top+(font_height-pixmap.height())/2,
+                                           pixmap)
                     
             block = block.next()
             top = bottom
@@ -532,7 +531,7 @@ class QtEditor(TextEditBaseWidget):
                                           self.scrollflagarea.WIDTH-4, 4)
         
         painter = QPainter(self.scrollflagarea)
-        painter.fillRect(event.rect(), QColor(self.area_background_color))
+        painter.fillRect(event.rect(), self.area_background_color)
         
         # Warnings
         self.__set_scrollflagarea_painter(painter, self.warning_color)
@@ -614,8 +613,13 @@ class QtEditor(TextEditBaseWidget):
         self.update_linenumberarea_width(0)
         if self.highlighter_class is not None:
             if not isinstance(self.highlighter, self.highlighter_class):
-                self.highlighter = self.highlighter_class(self.document(), font,
-                                                          self.color_scheme)
+                hl = self.highlighter = self.highlighter_class(self.document(),
+                                                        font, self.color_scheme)
+                self.set_background_color(hl.get_background_color())
+                self.currentline_color = hl.get_currentline_color()
+                self.occurence_color = hl.get_occurence_color()
+                self.ctrl_click_color = hl.get_ctrlclick_color()
+                self.area_background_color = hl.get_sideareas_color()
             else:
                 self.highlighter.setup_formats(font)
                 self.highlighter.rehighlight()
@@ -1291,7 +1295,7 @@ class Printer(QPrinter):
 class TestEditor(QtEditor):
     def __init__(self, parent):
         super(TestEditor, self).__init__(parent)
-        self.setup_editor(linenumbers=False, code_analysis=False,
+        self.setup_editor(linenumbers=True, code_analysis=False,
                           todo_list=False)
         
     def load(self, filename):
