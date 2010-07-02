@@ -303,34 +303,16 @@ class Editor(SpyderPluginWidget):
             "Ctrl+Shift+W", 'filecloseall.png',
             self.tr("Close all opened files"),
             triggered = self.close_all_files)
+        
         run_new_action = create_action(self,
-            self.tr("Run in a new console"), "F5", 'run_new.png',
-            self.tr("Run current script in a new external console"
-                    "\n(external console is executed in a separate process)"),
+            self.tr("Run"), "F5", 'run_new.png',
+            self.tr("Run active script in a new external console"),
             triggered=lambda: self.run_script_extconsole(current=False))
-        run_action = create_action(self,
-            self.tr("Run in current console"), "F6", 'run.png',
-            self.tr("Run current script in current external console"
-                    "\n(external console is executed in a separate process)"),
-            triggered=lambda: self.run_script_extconsole(current=True))
-        re_run_action = create_action(self,
-            self.tr("Re-run last script"), "Ctrl+Alt+F5", 'run_again.png',
-            self.tr("Run last script in external console"),
-            triggered=self.re_run_extconsole)
         run_interact_action = create_action(self,
             self.tr("Run and interact"), "Shift+F5", 'run.png',
             tip=self.tr("Run current script in external console and interact "
-                        "\nwith Python interpreter when program has finished"
-                        "\n(external console is executed in a "
-                        "separate process)"),
+                        "\nwith Python interpreter when program has finished"),
             triggered=lambda: self.run_script_extconsole(interact=True))
-        run_selected_action = create_action(self,
-            self.tr("Run &selection or current block"), "Ctrl+F5",
-            'run_selection.png',
-            tip=self.tr("Run selected text in external console\n"
-                    "(or run current block of lines and go to next block "
-                    "if there is no selection)"),
-            triggered=lambda: self.run_selection_or_block(external=True))
         run_args_action = create_action(self,
             self.tr("Run with arguments"), "Alt+F5", 'run_args.png',
             tip=self.tr("Run current script in external console specifying "
@@ -346,6 +328,33 @@ class Editor(SpyderPluginWidget):
                         "separate process)"),
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True, debug=True))
+        re_run_action = create_action(self,
+            self.tr("Re-run last script"), "Ctrl+Alt+F5", 'run_again.png',
+            self.tr("Run again last script in external console with the "
+                    "same options"),
+            triggered=self.re_run_extconsole)
+        
+        run_inside_action = create_action(self,
+            self.tr("Run inside interpreter"), "F6", 'run.png',
+            self.tr("Run active script in current external console's "
+                    "interpreter"),
+            triggered=lambda: self.run_script_extconsole(current=True))
+        run_args_inside_action = create_action(self,
+            self.tr("Run inside interpreter with arguments"), "Alt+F6",
+            'run_args.png',
+            tip=self.tr("Run current script in external console specifying "
+                        "command line arguments"
+                        "\n(external console is executed in a "
+                        "separate process)"),
+            triggered=lambda: self.run_script_extconsole(current=True,
+                                                        ask_for_arguments=True))
+        
+        run_selected_action = create_action(self,
+            self.tr("Run &selection or current block"), "Ctrl+F5",
+            'run_selection.png',
+            tip=self.tr("Run selected text or current block of lines \n"
+                        "inside current external console's interpreter"),
+            triggered=lambda: self.run_selection_or_block(external=True))
         
         self.todo_list_action = create_action(self,
             self.tr("Show todo list"), icon='todo_list.png',
@@ -527,9 +536,10 @@ class Editor(SpyderPluginWidget):
         self.source_menu_actions = (self.comment_action, self.uncomment_action,
                 blockcomment_action, unblockcomment_action,
                 self.indent_action, self.unindent_action,
-                None, run_new_action, run_action, re_run_action,
-                run_interact_action, run_selected_action, run_args_action,
-                run_debug_action,
+                None, run_new_action, run_interact_action, run_args_action,
+                run_debug_action, re_run_action,
+                None, run_inside_action, run_args_inside_action,
+                run_selected_action,
                 None, pylint_action, self.winpdb_action,
                 None, eol_menu, trailingspaces_action, fixindentation_action,
                 None, option_menu)
@@ -538,7 +548,7 @@ class Editor(SpyderPluginWidget):
         self.analysis_toolbar_actions = [self.todo_list_action,
                 self.warning_list_action, self.previous_warning_action,
                 self.next_warning_action]
-        self.run_toolbar_actions = [run_new_action, run_action,
+        self.run_toolbar_actions = [run_new_action, run_inside_action,
                                     run_selected_action, re_run_action]
         self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
                 self.indent_action, self.unindent_action]
@@ -547,7 +557,7 @@ class Editor(SpyderPluginWidget):
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
         self.pythonfile_dependent_actions = (run_new_action,
-                run_action, re_run_action,
+                run_inside_action, run_args_inside_action, re_run_action,
                 run_interact_action, run_selected_action,
                 run_args_action, run_debug_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
@@ -561,7 +571,7 @@ class Editor(SpyderPluginWidget):
                  self.indent_action, self.unindent_action)
         self.stack_menu_actions = (self.save_action, save_as_action,
                                    print_action,
-                                   run_new_action, run_action,
+                                   run_new_action, run_inside_action,
                                    workdir_action, self.close_action)
         return (self.source_menu_actions, self.dock_toolbar_actions)        
     
@@ -1311,7 +1321,8 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, ask_for_arguments,
          interact, debug, python, current) = self.__last_ec_exec
         if current:
-            self.emit(SIGNAL('run_script_in_external_console(QString)'), fname)
+            self.emit(SIGNAL('run_script_in_external_console(QString,bool)'),
+                      fname, ask_for_arguments)
         else:
             self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool,bool)'),
                       fname, wdir, ask_for_arguments, interact, debug, python)

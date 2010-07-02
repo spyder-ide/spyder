@@ -569,7 +569,7 @@ class MainWindow(QMainWindow):
                          SIGNAL("edit_goto(QString,int,QString)"),
                          self.editor.load)
             self.connect(self.editor,
-                         SIGNAL('run_script_in_external_console(QString)'),
+                         SIGNAL('run_script_in_external_console(QString,bool)'),
                          self.extconsole.run_script_in_current_shell)
             self.connect(self.editor, SIGNAL("open_dir(QString)"),
                      self.extconsole.set_current_shell_working_directory)

@@ -58,6 +58,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.shells = []
         self.filenames = []
         self.icons = []
+        self.runfile_args = ""
         
         SpyderPluginWidget.__init__(self, parent)
         
@@ -150,11 +151,25 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename):
+    def get_runfile_args(self):
+        arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
+                                          self.tr('Command line arguments:'),
+                                          QLineEdit.Normal, self.runfile_args)
+        if valid:
+            self.runfile_args = unicode(arguments)
+        return valid
+        
+    def run_script_in_current_shell(self, filename, ask_for_arguments):
         """Run script in current shell, if any"""
         shellwidget = self.__find_python_shell()
         if shellwidget is not None and shellwidget.is_running():
-            line = "runfile(r'%s')" % unicode(filename)
+            if ask_for_arguments:
+                if not self.get_runfile_args():
+                    return
+                line = "runfile(r'%s', args='%s')" % (unicode(filename),
+                                                      self.runfile_args)
+            else:
+                line = "runfile(r'%s')" % unicode(filename)
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()
             
