@@ -13,7 +13,6 @@ from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import qapplication
 
 def set_backend(backend):
     """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
@@ -22,8 +21,6 @@ def set_backend(backend):
 
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
-    _app = qapplication()
-    
     from matplotlib.backends import backend_qt4
     import matplotlib
     
