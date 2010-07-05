@@ -1124,6 +1124,10 @@ class QtEditor(TextEditBaseWidget):
                 else:
                     self.emit(SIGNAL('trigger_code_completion()'))
             event.accept()
+        elif key == Qt.Key_Space and ctrl:
+            if not self.is_completion_widget_visible():
+                self.emit(SIGNAL('trigger_code_completion()'))
+                event.accept()
         elif key == Qt.Key_Period:
             self.insert_text(text)
             if self.codecompletion_auto:

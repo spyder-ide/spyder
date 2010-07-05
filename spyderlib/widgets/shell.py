@@ -348,6 +348,10 @@ class ShellBaseWidget(ConsoleBaseWidget):
         elif key == Qt.Key_Tab:
             self._key_tab()
             event.accept()
+            
+        elif key == Qt.Key_Space and ctrl:
+            self._key_ctrl_space()
+            event.accept()
 
         elif key == Qt.Key_Left:
             event.accept()
@@ -469,6 +473,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def _key_backspace(self, cursor_position):
         raise NotImplementedError
     def _key_tab(self):
+        raise NotImplementedError
+    def _key_ctrl_space(self):
         raise NotImplementedError
     def _key_home(self, shift):
         raise NotImplementedError
@@ -823,6 +829,11 @@ class PythonShellWidget(ShellBaseWidget):
             else:
                 self.show_code_completion()
                 
+    def _key_ctrl_space(self):
+        """Action for Ctrl+Space"""
+        if not self.is_completion_widget_visible():
+            self.show_code_completion()
+                
     def _key_home(self, shift):
         """Action for Home key"""
         if self.is_completion_widget_visible():
@@ -1084,6 +1095,10 @@ class TerminalWidget(ShellBaseWidget):
         """Action for TAB key"""
         if self.is_cursor_on_last_line():
             self.stdkey_tab()
+                
+    def _key_ctrl_space(self):
+        """Action for Ctrl+Space"""
+        pass
                 
     def _key_home(self, shift):
         """Action for Home key"""
