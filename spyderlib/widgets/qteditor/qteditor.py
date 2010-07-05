@@ -378,12 +378,22 @@ class QtEditor(TextEditBaseWidget):
         """Marking occurences of the currently selected word"""
         self.__clear_occurences()
 
-        if not self.supported_language or self.hasSelectedText():
+        if not self.supported_language:
             return
-            
-        text = self.get_current_word()
-        if text is None:
-            return
+        if self.hasSelectedText():
+            block1, block2 = self.get_selection_bounds()
+            if block1 != block2:
+                # Selection extends to more than one line
+                return
+            if not re.match(r'([a-zA-Z_]+[0-9a-zA-Z_]*)$',
+                            unicode(self.selectedText())):
+                # Selection is not a word
+                return
+            text = unicode(self.selectedText())
+        else:
+            text = self.get_current_word()
+            if text is None:
+                return
         if (self.is_python() or self.is_cython()) and is_keyword(unicode(text)):
             return
 
