@@ -614,7 +614,12 @@ class TextEditBaseWidget(QPlainTextEdit):
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
             if changed:
-                cursor.movePosition(QTextCursor.PreviousWord)
+                if cursor.selectedText().isEmpty():
+                    cursor.movePosition(QTextCursor.PreviousWord)
+                else:
+                    new_position = min([cursor.selectionStart(),
+                                        cursor.selectionEnd()])
+                    cursor.setPosition(new_position)
         else:
             moves += [QTextCursor.End]
         regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text) if words else text,
