@@ -181,6 +181,8 @@ class QtEditor(TextEditBaseWidget):
         self.set_scrollflagarea_enabled(scrollflagarea)
         
         # Line number area
+        if cloned_from:
+            self.setFont(font) # this is required for line numbers area
         self.setup_margins(linenumbers, code_analysis, todo_list)
         
         # Lexer
@@ -191,10 +193,11 @@ class QtEditor(TextEditBaseWidget):
                 
         # Tab always indents (even when cursor is not at the begin of line)
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
-#        self.set_tab_mode(tab_mode)
+        self.set_tab_mode(tab_mode)
         
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
+            self.update_linenumberarea_width(0)
         elif font is not None:
             self.set_font(font)
             
@@ -629,9 +632,6 @@ class QtEditor(TextEditBaseWidget):
             else:
                 self.highlighter.setup_formats(font)
                 self.highlighter.rehighlight()
-#        margin_font = QFont(font)
-#        margin_font.setPointSize(margin_font.pointSize()-1)
-#        self.setMarginsFont(margin_font)
         
     def set_text(self, text):
         """Set the text of the editor"""
