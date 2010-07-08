@@ -579,12 +579,13 @@ class MainWindow(QMainWindow):
                          self.plugin_focus_changed)
             self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_internalshell_stdio)
-            self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
-                         self.extconsole.open_terminal)
-            self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
-                         self.extconsole.open_interpreter)
-            self.connect(self.explorer, SIGNAL("open_ipython(QString)"),
-                         self.extconsole.open_ipython)
+            if self.explorer is not None:
+                self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
+                             self.extconsole.open_terminal)
+                self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
+                             self.extconsole.open_interpreter)
+                self.connect(self.explorer, SIGNAL("open_ipython(QString)"),
+                             self.extconsole.open_ipython)
             self.connect(self.projectexplorer, SIGNAL("open_terminal(QString)"),
                          self.extconsole.open_terminal)
             self.connect(self.projectexplorer,
