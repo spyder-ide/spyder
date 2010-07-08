@@ -12,17 +12,28 @@ if os.name == 'nt':
     
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:
-        import locale, win32console, pywintypes
+        import locale, ctypes
         _t, _cp = locale.getdefaultlocale('LANG')
         try:
             _cp = int(_cp[2:])
-            win32console.SetConsoleCP(_cp)
-            win32console.SetConsoleOutputCP(_cp)
-        except (ValueError, TypeError, pywintypes.error):
+            ctypes.windll.kernel32.SetConsoleCP(_cp)
+            ctypes.windll.kernel32.SetConsoleOutputCP(_cp)
+        except (ValueError, TypeError):
             # Code page number in locale is not valid
             pass
     except ImportError:
-        # Pywin32 is not installed
+        pass
+        
+    # Workaround for IPython thread issues with win32 comdlg32
+    try:
+        import win32gui, win32api
+        try:
+            win32gui.GetOpenFileNameW(File=win32api.GetSystemDirectory()[:2])
+        except win32gui.error:
+            # This error is triggered intentionally
+            pass
+    except ImportError:
+        # Unfortunately, pywin32 is not installed...
         pass
 
 # Set standard outputs encoding:
