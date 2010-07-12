@@ -110,6 +110,8 @@ def runfile(filename, args=None):
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     glbs = globals()
+    if '__ipythonshell__' in glbs:
+        glbs = glbs['__ipythonshell__'].IP.user_ns
     glbs['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
