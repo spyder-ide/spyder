@@ -32,7 +32,7 @@ __license__ = __doc__
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
 #      external console --> see the external console's closing method
-#      --> show a window with checkboxes and ...
+#      --> show a window with checkboxes and... quickview of namespace contents?
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
