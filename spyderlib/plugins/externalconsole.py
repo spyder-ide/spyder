@@ -119,7 +119,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Set variable explorer plugin"""
         self.variableexplorer = variableexplorer
         
-    def __find_python_shell(self):
+    def __find_python_shell(self, interpreter_only=False):
         current_index = self.tabwidget.currentIndex()
         if current_index == -1:
             return
@@ -127,8 +127,9 @@ class ExternalConsole(SpyderPluginWidget):
         for index in [current_index]+range(self.tabwidget.count()):
             shellwidget = self.tabwidget.widget(index)
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
-                self.tabwidget.setCurrentIndex(index)
-                return shellwidget
+                if not interpreter_only or shellwidget.is_interpreter():
+                    self.tabwidget.setCurrentIndex(index)
+                    return shellwidget
                 
     def get_running_python_shell(self):
         """
@@ -161,7 +162,7 @@ class ExternalConsole(SpyderPluginWidget):
         
     def run_script_in_current_shell(self, filename, ask_for_arguments):
         """Run script in current shell, if any"""
-        shellwidget = self.__find_python_shell()
+        shellwidget = self.__find_python_shell(interpreter_only=True)
         if shellwidget is not None and shellwidget.is_running():
             if ask_for_arguments:
                 if not self.get_runfile_args():
