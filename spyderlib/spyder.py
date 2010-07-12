@@ -472,8 +472,6 @@ class MainWindow(QMainWindow):
                              self.editor.renamed)
                 self.connect(self.editor, SIGNAL("open_dir(QString)"),
                              self.explorer.chdir)
-#                self.connect(self.explorer, SIGNAL("import_data(QString)"),
-#                             self.workspace.import_data)
                 self.connect(self.explorer, SIGNAL("run(QString)"),
                              lambda fname:
                              self.open_external_console(unicode(fname),
@@ -534,9 +532,6 @@ class MainWindow(QMainWindow):
                 self.connect(self.projectexplorer,
                              SIGNAL("renamed(QString,QString)"),
                              self.editor.renamed)
-#                self.connect(self.projectexplorer,
-#                             SIGNAL("import_data(QString)"),
-#                             self.workspace.import_data)
                 self.editor.set_projectexplorer(self.projectexplorer)
                 self.editor.set_inspector(self.inspector)
                 self.add_dockwidget(self.projectexplorer)
@@ -599,6 +594,13 @@ class MainWindow(QMainWindow):
             self.variableexplorer = VariableExplorer(self)
             self.extconsole.set_variableexplorer(self.variableexplorer)
             self.add_dockwidget(self.variableexplorer)
+            if self.explorer is not None:
+                self.connect(self.explorer, SIGNAL("import_data(QString)"),
+                             self.variableexplorer.import_data)
+            if self.projectexplorer is not None:
+                self.connect(self.projectexplorer,
+                             SIGNAL("import_data(QString)"),
+                             self.variableexplorer.import_data)
 
         self.extconsole.open_interpreter_at_startup()
             

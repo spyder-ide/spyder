@@ -32,15 +32,7 @@ __license__ = __doc__
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
 #      external console --> see the external console's closing method
-#TODO: Workspace is gone: reimplement the import_data from file explorer:
-#                self.connect(self.explorer, SIGNAL("import_data(QString)"),
-#                             self.workspace.import_data)
-#      and from project explorer:
-#                self.connect(self.projectexplorer,
-#                             SIGNAL("import_data(QString)"),
-#                             self.workspace.import_data)
-
-#FIXME: IPython // Big bug with GUI file dialogs on win32: open/save/...
+#      --> show a window with checkboxes and ...
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
@@ -67,7 +59,5 @@ __license__ = __doc__
 #TODO: QsciEditor was removed: remove (or rename) all the QScintilla-compat. methods (e.g. selectedText, hasSelectedText, etc.)
 
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
-
-#FIXME: Editor/split: when closing a file in one panel, the current file on other panels changes!
 
 #TODO: Option to inverse console colors

@@ -278,20 +278,19 @@ class NamespaceBrowser(QWidget):
     def collapse(self):
         self.emit(SIGNAL('collapse()'))
         
-    def import_data(self):
+    def import_data(self, filename=None):
         sock = self.shellwidget.monitor_socket
         
         title = self.tr("Import data")
-        if self.filename is None:
-            basedir = os.getcwdu()
-        else:
-            basedir = osp.dirname(self.filename)
-        filename = iofunctions.get_open_filename(self, basedir, title)
-        if filename:
-            filename = unicode(filename)
-        else:
-            return
-        self.filename = filename
+        if filename is None:
+            if self.filename is None:
+                basedir = os.getcwdu()
+            else:
+                basedir = osp.dirname(self.filename)
+            filename = iofunctions.get_open_filename(self, basedir, title)
+            if not filename:
+                return
+        self.filename = unicode(filename)
         ext = osp.splitext(self.filename)[1].lower()
         
         if ext not in iofunctions.load_funcs:

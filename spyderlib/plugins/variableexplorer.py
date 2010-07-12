@@ -56,6 +56,16 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self.shellwidgets:
             self.setCurrentWidget(self.shellwidgets[shellwidget_id])
+            
+    def import_data(self, fname):
+        """Import data in current namespace"""
+        if self.count():
+            nsb = self.currentWidget()
+            nsb.refresh_table()
+            nsb.import_data(fname)
+            if self.dockwidget and not self.ismaximized:
+                self.dockwidget.setVisible(True)
+                self.dockwidget.raise_()
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):
