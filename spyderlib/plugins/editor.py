@@ -1094,8 +1094,6 @@ class Editor(SpyderPluginWidget):
             goto = [goto]
         elif goto is not None and len(goto) != len(filenames):
             goto = None
-        if goto is None:
-            goto = [0]*len(filenames)
             
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
@@ -1116,7 +1114,8 @@ class Editor(SpyderPluginWidget):
                 current.analyze_script() # Analyze script only once (and update
                 # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
-            current_editor.go_to_line(goto[index], word=word)
+            if goto is not None: # 'word' is assumed to be None as well
+                current_editor.go_to_line(goto[index], word=word)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
