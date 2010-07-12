@@ -679,13 +679,24 @@ class EditorStack(QWidget):
         
     #------ Close file, tabwidget...
     def close_file(self, index=None):
-        """Close current file"""
+        """
+        Close file (index=None -> close current file)
+        Keep current file index unchanged (if current file that is being closed)
+        """
+        current_index = self.get_stack_index()
+        count = self.get_stack_count()
         if index is None:
-            if self.get_stack_count():
-                index = self.get_stack_index()
+            if count > 0:
+                index = current_index
             else:
                 self.find_widget.set_editor(None)
                 return
+        new_index = None
+        if count > 1:
+            if current_index == index:
+                new_index = self._get_previous_file_index()
+            else:
+                new_index = current_index
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             # Removing editor reference from class browser settings:
@@ -702,6 +713,11 @@ class EditorStack(QWidget):
             self.emit(SIGNAL('update_code_analysis_actions()'))
             self._refresh_classbrowser()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
+            
+            if new_index is not None:
+                if index < new_index:
+                    new_index -= 1
+                self.set_stack_index(new_index)
         return is_ok
     
     def close_all_files(self):
@@ -908,8 +924,7 @@ class EditorStack(QWidget):
             print >>STDOUT, "current_changed:", index, self.data[index].editor,
             print >>STDOUT, self.data[index].editor.get_document_id()
         
-    def go_to_previous_file(self):
-        """Ctrl+Tab"""
+    def _get_previous_file_index(self):
         if len(self.stack_history) > 1:
             last = len(self.stack_history)-1
             w_id = self.stack_history.pop(last)
@@ -917,8 +932,13 @@ class EditorStack(QWidget):
             last_id = self.stack_history[last]
             for _i in range(self.tabs.count()):
                 if id(self.tabs.widget(_i)) == last_id:
-                    self.set_stack_index(_i)
-                    break
+                    return _i
+        
+    def go_to_previous_file(self):
+        """Ctrl+Tab"""
+        prev_index = self._get_previous_file_index()
+        if prev_index is not None:
+            self.set_stack_index(prev_index)
         elif len(self.stack_history) == 0 and self.get_stack_count():
             self.stack_history = [id(self.tabs.currentWidget())]
     
