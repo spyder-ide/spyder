@@ -655,8 +655,9 @@ class EditorStack(QWidget):
             return self.data[self.get_stack_index()].filename
         
     def has_filename(self, filename):
+        fixpath = lambda path: osp.normcase(osp.realpath(path))
         for index, finfo in enumerate(self.data):
-            if osp.realpath(filename) == osp.realpath(finfo.filename):
+            if fixpath(filename) == fixpath(finfo.filename):
                 return index
         
     def set_current_filename(self, filename):
