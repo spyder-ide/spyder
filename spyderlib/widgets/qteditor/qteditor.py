@@ -684,10 +684,10 @@ class QtEditor(TextEditBaseWidget):
 #===============================================================================
 #    High-level editor features
 #===============================================================================
-    def __center_cursor(self):
+    def _center_cursor(self):
         """QPlainTextEdit's "centerCursor" requires the widget to be visible"""
         self.centerCursor()
-        self.disconnect(self, SIGNAL("focus_in()"), self.__center_cursor)
+        self.disconnect(self, SIGNAL("focus_in()"), self._center_cursor)
 
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
@@ -698,7 +698,7 @@ class QtEditor(TextEditBaseWidget):
         if self.isVisible():
             self.centerCursor()
         else:
-            self.connect(self, SIGNAL("focus_in()"), self.__center_cursor)
+            self.connect(self, SIGNAL("focus_in()"), self._center_cursor)
         self.horizontalScrollBar().setValue(0)
         if word and word in unicode(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)

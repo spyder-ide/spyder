@@ -220,6 +220,8 @@ class Editor(SpyderPluginWidget):
                                  'class_browser/scrollbar_position', None)
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
+        # Widget is now visible, we may center cursor on top level editor:
+        self.get_current_editor()._center_cursor()
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
