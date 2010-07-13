@@ -241,8 +241,6 @@ class Project(object):
                             self.rope_project, source_code, offset, resource)
             if resource is not None:
                 filename = resource.real_path
-            if lineno is None:
-                lineno = 0
             return filename, lineno
         except Exception, _error:
             return (None, None)

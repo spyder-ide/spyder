@@ -159,7 +159,7 @@ class FileInfo(QObject):
         offset += line_nb-1
         fname, lineno = self.project.get_definition_location(source_code,
                                                         offset, self.filename)
-        if fname is not None:
+        if fname is not None and lineno is not None:
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       fname, lineno, "")
     
