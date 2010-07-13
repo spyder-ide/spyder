@@ -118,10 +118,8 @@ class FileInfo(QObject):
     def trigger_code_completion(self):
         if self.project is None:
             return []
-        source_code = unicode(self.editor.text())
+        source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
-        line_nb = self.editor.get_cursor_line_number()
-        offset += line_nb-1
         textlist = self.project.get_completion_list(source_code, offset,
                                                     self.filename)
         if textlist:
@@ -132,10 +130,8 @@ class FileInfo(QObject):
     def trigger_calltip(self):
         if self.project is None:
             return
-        source_code = unicode(self.editor.text())
+        source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
-        line_nb = self.editor.get_cursor_line_number()
-        offset += line_nb-1
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
         if textlist:
@@ -153,10 +149,8 @@ class FileInfo(QObject):
     def go_to_definition(self, position):
         if self.project is None:
             return
-        source_code = unicode(self.editor.text())
+        source_code = unicode(self.editor.toPlainText())
         offset = position
-        line_nb = self.editor.get_cursor_line_number()
-        offset += line_nb-1
         fname, lineno = self.project.get_definition_location(source_code,
                                                         offset, self.filename)
         if fname is not None and lineno is not None:
