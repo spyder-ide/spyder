@@ -100,7 +100,7 @@ class QtEditor(TextEditBaseWidget):
         self.color_scheme = ('IDLE', 'Pydev', 'Emacs', 'Scintilla')[1]
         
         #  Background colors: current line, occurences
-        self.currentline_color = QColor(Qt.lightGray)
+        self.currentline_color = QColor(Qt.red).lighter(190)
         
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -138,7 +138,7 @@ class QtEditor(TextEditBaseWidget):
         self.connect(self.occurence_timer, SIGNAL("timeout()"), 
                      self.__mark_occurences)
         self.occurences = []
-        self.occurence_color = QColor(Qt.yellow)
+        self.occurence_color = QColor(Qt.yellow).lighter(160)
         
         # Context menu
         self.setup_context_menu()
