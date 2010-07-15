@@ -524,7 +524,8 @@ class ClassBrowser(QWidget):
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
     def set_current_editor(self, editor, fname, update):
-        self.treewidget.set_current_editor(editor, fname, update)
+        if editor.highlighter is not None:
+            self.treewidget.set_current_editor(editor, fname, update)
         
     def remove_editor(self, editor):
         self.treewidget.remove_editor(editor)

@@ -623,11 +623,12 @@ class QtEditor(TextEditBaseWidget):
         
     def _apply_highlighter_color_scheme(self):
         hl = self.highlighter
-        self.set_background_color(hl.get_background_color())
-        self.currentline_color = hl.get_currentline_color()
-        self.occurence_color = hl.get_occurence_color()
-        self.ctrl_click_color = hl.get_ctrlclick_color()
-        self.area_background_color = hl.get_sideareas_color()
+        if hl is not None:
+            self.set_background_color(hl.get_background_color())
+            self.currentline_color = hl.get_currentline_color()
+            self.occurence_color = hl.get_occurence_color()
+            self.ctrl_click_color = hl.get_ctrlclick_color()
+            self.area_background_color = hl.get_sideareas_color()
         self.highlight_current_line()
 
     def set_font(self, font):
