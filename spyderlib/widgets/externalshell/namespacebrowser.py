@@ -198,7 +198,7 @@ class NamespaceBrowser(QWidget):
             settings = get_settings()
             try:
                 self.set_data( monitor_get_remote_view(sock, settings) )
-            except socket.error:
+            except socket.error: #XXX EOFError?
                 # Process was terminated before calling this methods
                 pass
         

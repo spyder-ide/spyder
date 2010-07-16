@@ -11,13 +11,11 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-#TODO: Add a button "Opened files management" -> opens a qlistwidget with
-#      checkboxes + toolbar with "Save", "Close"
-
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
-                         QMainWindow, QLabel)
+                         QMainWindow, QLabel, QListWidget, QListWidgetItem,
+                         QDialog)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR, QSize, QPoint)
 
@@ -40,6 +38,65 @@ from spyderlib.widgets.editortools import check, ClassBrowser
 from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
 from spyderlib.widgets.qteditor.qteditor import Printer #@UnusedImport
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget #@UnusedImport
+
+
+class FileListDialog(QDialog):
+    def __init__(self, parent, combo, fullpath_sorting):
+        QDialog.__init__(self, parent)
+        
+        self.setWindowIcon(get_icon('filelist.png'))
+        self.setWindowTitle(translate("Editor", "File list management"))
+        
+        self.setModal(True)
+        
+        self.listwidget = QListWidget(self)
+        self.listwidget.setResizeMode(QListWidget.Adjust)
+        
+        hlayout = QHBoxLayout()
+        edit_btn = create_toolbutton(self, get_icon('edit.png'),
+             text=translate("Editor", "&Edit file"),
+             triggered=lambda: self.emit(SIGNAL("edit_file(int)"),
+                                         self.listwidget.currentRow()))
+        hlayout.addWidget(edit_btn)
+        hlayout.addSpacing(7)
+        close_btn = create_toolbutton(self,
+              text=translate("Editor", "&Close file"),
+              icon=get_icon("fileclose.png"),
+              triggered=lambda: self.emit(SIGNAL("close_file(int)"),
+                                          self.listwidget.currentRow()))
+        hlayout.addWidget(close_btn)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(self.listwidget)
+        vlayout.addLayout(hlayout)
+        self.setLayout(vlayout)
+        
+        self.combo = combo
+        self.fullpath_sorting = fullpath_sorting
+        
+    def synchronize(self, stack_index):
+        count = self.combo.count()
+        if count == 0:
+            self.accept()
+            return
+        self.listwidget.setTextElideMode(Qt.ElideMiddle if self.fullpath_sorting
+                                         else Qt.ElideRight)
+        current_row = self.listwidget.currentRow()
+        if current_row >= 0:
+            current_text = self.listwidget.currentItem().text()
+        else:
+            current_text = ""
+        self.listwidget.clear()
+        new_current_index = stack_index
+        for index in range(count):
+            text = self.combo.itemText(index)
+            if text == current_text:
+                new_current_index = index
+            item = QListWidgetItem(self.combo.itemIcon(index),
+                                   text, self.listwidget)
+            item.setSizeHint(QSize(0, 25))
+            self.listwidget.addItem(item)
+        self.listwidget.setCurrentRow(new_current_index)
 
 
 class CodeAnalysisThread(QThread):
@@ -214,6 +271,8 @@ class EditorStack(QWidget):
         self.menu = None
         self.combo = None
         self.default_combo_font = None
+        self.filelist_btn = None
+        self.filelist_dlg = None
         self.previous_btn = None
         self.next_btn = None
         self.tabs = None
@@ -290,6 +349,11 @@ class EditorStack(QWidget):
 #        horsplit_btn.setDefaultAction(self.horsplit_action)
 #        self.add_widget_to_header(horsplit_btn)
 
+        self.filelist_btn = create_toolbutton(self, get_icon('filelist.png'),
+                     tip=translate("Editor", "File list management (Ctrl+E)"),
+                     triggered=self.open_filelistdialog)
+        self.add_widget_to_header(self.filelist_btn, space_before=True)
+        
         self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
                          tip=translate("Editor", "Previous file (Ctrl+Tab)"),
                          triggered=self.go_to_previous_file)
@@ -324,6 +388,9 @@ class EditorStack(QWidget):
         layout.addLayout(self.header_layout)
 
         # Local shortcuts
+        filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
+                               self.open_filelistdialog)
+        filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
                           self.go_to_previous_file)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -362,6 +429,22 @@ class EditorStack(QWidget):
             finfo.set_analysis_results(other_finfo.analysis_results)
             finfo.set_todo_results(other_finfo.todo_results)
         self.set_stack_index(other.get_stack_index())
+        
+    def open_filelistdialog(self):
+        """Open file list management dialog box"""
+        self.filelist_dlg = dlg = FileListDialog(self, self.combo,
+                                                 self.fullpath_sorting_enabled)
+        self.connect(dlg, SIGNAL("edit_file(int)"), self.set_stack_index)
+        self.connect(dlg, SIGNAL("close_file(int)"), self.close_file)
+        dlg.synchronize(self.get_stack_index())
+        dlg.exec_()
+        self.filelist_dlg = None
+        
+    def update_filelistdialog(self):
+        """Synchronize file list dialog box with file selection combo box"""
+        if self.filelist_dlg is not None:
+            self.filelist_dlg.synchronize(self.get_stack_index())
+        
         
     #------ Editor Widget Settings
     def set_closable(self, state):
@@ -535,6 +618,7 @@ class EditorStack(QWidget):
         self.data.pop(index)
         self.combo.removeItem(index)
         self.update_actions()
+        self.update_filelistdialog()
     
     def __get_sorting_func(self):
         if self.fullpath_sorting_enabled:
@@ -559,6 +643,7 @@ class EditorStack(QWidget):
         if set_current:
             self.current_changed(index)
         self.update_actions()
+        self.update_filelistdialog()
         
     def __repopulate_stack(self):
         self.combo.blockSignals(True)
@@ -572,6 +657,7 @@ class EditorStack(QWidget):
             self.combo.insertItem(_i, get_filetype_icon(fname),
                                   self.get_combo_title(fname))
         self.combo.blockSignals(False)
+        self.update_filelistdialog()
         
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
@@ -895,7 +981,7 @@ class EditorStack(QWidget):
         count = self.get_stack_count()
         if self.close_btn is not None:
             self.close_btn.setEnabled(count > 0)
-        for btn in (self.previous_btn, self.next_btn):
+        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
             btn.setEnabled(count > 1)
         
         editor = self.get_current_editor()
@@ -1812,6 +1898,7 @@ class FakePlugin(QSplitter):
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
+            editorstack.set_fullpath_sorting_enabled(True)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_classbrowser(self.classbrowser)
             editorstack.set_find_widget(self.find_widget)
