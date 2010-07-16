@@ -543,7 +543,6 @@ class EditorStack(QWidget):
     def set_default_font(self, font):
         # get_font(self.ID)
         self.default_font = font
-        self.__update_combobox()
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_font(font)
@@ -573,19 +572,9 @@ class EditorStack(QWidget):
         # CONF.get(self.ID, 'check_eol_chars')
         self.checkeolchars_enabled = state
         
-    def __update_combobox(self):
-        if self.fullpath_sorting_enabled:
-            if self.default_font is not None:
-                combo_font = QFont(self.default_font)
-                combo_font.setPointSize(max([8, combo_font.pointSize()-1]))
-                self.combo.setFont(combo_font)
-        else:
-            self.combo.setFont(self.default_combo_font)
-        
     def set_fullpath_sorting_enabled(self, state):
         # CONF.get(self.ID, 'fullpath_sorting')
         self.fullpath_sorting_enabled = state
-        self.__update_combobox()
         if self.data:
             finfo = self.data[self.get_stack_index()]
             self.data.sort(key=self.__get_sorting_func())
