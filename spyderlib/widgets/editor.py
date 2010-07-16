@@ -15,7 +15,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel, QListWidget, QListWidgetItem,
-                         QDialog)
+                         QDialog, QLineEdit)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR, QSize, QPoint)
 
@@ -49,30 +49,65 @@ class FileListDialog(QDialog):
         
         self.setModal(True)
         
+        flabel = QLabel(translate("Editor", "Filter:"))
+        self.edit = QLineEdit(self)
+        self.connect(self.edit, SIGNAL("returnPressed()"), self.edit_file)
+        self.connect(self.edit, SIGNAL("textChanged(QString)"),
+                     lambda text: self.synchronize(0))
+        fhint = QLabel(translate("Editor", "(press <b>Enter</b> to edit file)"))
+        edit_layout = QHBoxLayout()
+        edit_layout.addWidget(flabel)
+        edit_layout.addWidget(self.edit)
+        edit_layout.addWidget(fhint)
+        
         self.listwidget = QListWidget(self)
         self.listwidget.setResizeMode(QListWidget.Adjust)
+        self.connect(self.listwidget, SIGNAL("itemSelectionChanged()"),
+                     self.item_selection_changed)
         
-        hlayout = QHBoxLayout()
+        btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, get_icon('edit.png'),
-             text=translate("Editor", "&Edit file"),
-             triggered=lambda: self.emit(SIGNAL("edit_file(int)"),
-                                         self.listwidget.currentRow()))
-        hlayout.addWidget(edit_btn)
-        hlayout.addSpacing(7)
+             text=translate("Editor", "&Edit file"), autoraise=False,
+             triggered=self.edit_file)
+        edit_btn.setMinimumHeight(28)
+        btn_layout.addWidget(edit_btn)
+        
+        btn_layout.addStretch()
+        btn_layout.addSpacing(150)
+        btn_layout.addStretch()
+        
         close_btn = create_toolbutton(self,
               text=translate("Editor", "&Close file"),
-              icon=get_icon("fileclose.png"),
+              icon=get_icon("fileclose.png"), autoraise=False,
               triggered=lambda: self.emit(SIGNAL("close_file(int)"),
                                           self.listwidget.currentRow()))
-        hlayout.addWidget(close_btn)
+        close_btn.setMinimumHeight(28)
+        btn_layout.addWidget(close_btn)
+
+        hint = QLabel(translate("Editor",
+                             "Hint: press <b>Alt</b> to show accelerators"))
+        hint.setAlignment(Qt.AlignCenter)
         
         vlayout = QVBoxLayout()
+        vlayout.addLayout(edit_layout)
         vlayout.addWidget(self.listwidget)
-        vlayout.addLayout(hlayout)
+        vlayout.addLayout(btn_layout)
+        vlayout.addWidget(hint)
         self.setLayout(vlayout)
         
         self.combo = combo
         self.fullpath_sorting = fullpath_sorting
+        self.buttons = (edit_btn, close_btn)
+        
+    def edit_file(self):
+        row = self.listwidget.currentRow()
+        if self.listwidget.count() > 0 and row >= 0:
+            self.emit(SIGNAL("edit_file(int)"), row)
+            self.accept()
+            
+    def item_selection_changed(self):
+        for btn in self.buttons:
+            btn.setEnabled(self.listwidget.currentRow() >= 0)
         
     def synchronize(self, stack_index):
         count = self.combo.count()
@@ -83,21 +118,28 @@ class FileListDialog(QDialog):
                                          else Qt.ElideRight)
         current_row = self.listwidget.currentRow()
         if current_row >= 0:
-            current_text = self.listwidget.currentItem().text()
+            current_text = unicode(self.listwidget.currentItem().text())
         else:
             current_text = ""
         self.listwidget.clear()
         new_current_index = stack_index
+        filter_text = unicode(self.edit.text())
+        lw_index = 0
         for index in range(count):
-            text = self.combo.itemText(index)
-            if text == current_text:
-                new_current_index = index
-            item = QListWidgetItem(self.combo.itemIcon(index),
-                                   text, self.listwidget)
-            item.setSizeHint(QSize(0, 25))
-            self.listwidget.addItem(item)
-        self.listwidget.setCurrentRow(new_current_index)
-
+            text = unicode(self.combo.itemText(index))
+            if len(filter_text) == 0 or filter_text in text:
+                if text == current_text:
+                    new_current_index = lw_index
+                lw_index += 1
+                item = QListWidgetItem(self.combo.itemIcon(index),
+                                       text, self.listwidget)
+                item.setSizeHint(QSize(0, 25))
+                self.listwidget.addItem(item)
+        if new_current_index < self.listwidget.count():
+            self.listwidget.setCurrentRow(new_current_index)
+        for btn in self.buttons:
+            btn.setEnabled(lw_index > 0)
+        
 
 class CodeAnalysisThread(QThread):
     """Pyflakes code analysis thread"""

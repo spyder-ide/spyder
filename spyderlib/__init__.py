@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.0.0alpha2'
+__version__ = '2.0.0alpha3'
 __license__ = __doc__
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
