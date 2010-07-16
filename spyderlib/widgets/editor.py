@@ -306,6 +306,12 @@ class EditorStack(QWidget):
         self.combo.setMaxVisibleItems(20)
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.combo.setContextMenuPolicy(Qt.ActionsContextMenu)
+        self.combo.addAction(create_action(self,
+                translate("Editor", "Copy path to clipboard"),
+                icon="editcopy.png",
+                triggered=lambda:
+                QApplication.clipboard().setText(self.get_current_filename())))
         self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
                      self.current_changed)
         self.add_widget_to_header(self.combo)
@@ -488,13 +494,10 @@ class EditorStack(QWidget):
         if self.fullpath_sorting_enabled:
             if self.default_font is not None:
                 combo_font = QFont(self.default_font)
-                combo_font.setPointSize(combo_font.pointSize()-1)
+                combo_font.setPointSize(max([8, combo_font.pointSize()-1]))
                 self.combo.setFont(combo_font)
-            self.combo.setEditable(True)
-            self.combo.lineEdit().setReadOnly(True)
         else:
             self.combo.setFont(self.default_combo_font)
-            self.combo.setEditable(False)
         
     def set_fullpath_sorting_enabled(self, state):
         # CONF.get(self.ID, 'fullpath_sorting')
