@@ -1076,7 +1076,7 @@ class QtEditor(TextEditBaseWidget):
                            icon=get_icon('editdelete.png'),
                            triggered=self.removeSelectedText)
         selectall_action = create_action(self,
-                           translate("SimpleEditor", "Select all"),
+                           translate("SimpleEditor", "Select All"),
                            shortcut=keybinding('SelectAll'),
                            icon=get_icon('selectall.png'),
                            triggered=self.selectAll)

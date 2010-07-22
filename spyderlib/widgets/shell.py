@@ -129,7 +129,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
                                     icon=get_icon('editdelete.png'),
                                     triggered=self.delete)
         selectall_action = create_action(self,
-                                    translate("ShellBaseWidget", "Select all"),
+                                    translate("ShellBaseWidget", "Select All"),
                                     shortcut=keybinding('SelectAll'),
                                     icon=get_icon('selectall.png'),
                                     triggered=self.selectAll)

@@ -720,7 +720,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Éditeur de Spyder</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="919"/>
+        <location filename="widgets/editor.py" line="930"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
@@ -780,7 +780,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="330"/>
+        <location filename="widgets/editor.py" line="341"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
@@ -1045,22 +1045,22 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Toujours indenter avec la touche Tab</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1629"/>
+        <location filename="widgets/editor.py" line="1640"/>
         <source>Permissions:</source>
         <translation>Droits d&apos;accès :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1659"/>
+        <location filename="widgets/editor.py" line="1670"/>
         <source>Encoding:</source>
         <translation>Encodage :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1673"/>
+        <location filename="widgets/editor.py" line="1684"/>
         <source>Line:</source>
         <translation>Ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1677"/>
+        <location filename="widgets/editor.py" line="1688"/>
         <source>Column:</source>
         <translation>Colonne :</translation>
     </message>
@@ -1314,72 +1314,72 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation type="obsolete">Afficher/masquer l&apos;explorateur de classes</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="363"/>
+        <location filename="widgets/editor.py" line="374"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="416"/>
+        <location filename="widgets/editor.py" line="427"/>
         <source>Close file</source>
         <translation>Fermer le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="722"/>
+        <location filename="widgets/editor.py" line="733"/>
         <source>Split vertically</source>
         <translation>Séparation verticale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="725"/>
+        <location filename="widgets/editor.py" line="736"/>
         <source>Split vertically this editor window</source>
         <translation>Séparer en deux verticalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="728"/>
+        <location filename="widgets/editor.py" line="739"/>
         <source>Split horizontally</source>
         <translation>Séparation horizontale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="731"/>
+        <location filename="widgets/editor.py" line="742"/>
         <source>Split horizontally this editor window</source>
         <translation>Séparer en deux horizontalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="734"/>
+        <location filename="widgets/editor.py" line="745"/>
         <source>Close this panel</source>
         <translation>Fermer ce panneau</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="861"/>
+        <location filename="widgets/editor.py" line="872"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified.&lt;br&gt;Do you want to save changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié.&lt;br&gt;Souhaitez-vous enregistrer ces changements ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="922"/>
+        <location filename="widgets/editor.py" line="933"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="938"/>
+        <location filename="widgets/editor.py" line="949"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1127"/>
+        <location filename="widgets/editor.py" line="1138"/>
         <source>&lt;b&gt;%1&lt;/b&gt; is unavailable (this file may have been removed, moved or renamed outside Spyder).&lt;br&gt;Do you want to close it?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; n&apos;est pas accessible (ce fichier a peut-être été supprimé, déplacé ou renommé en dehors de Spyder).&lt;br&gt;Souhaitez-vous le fermer ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1141"/>
+        <location filename="widgets/editor.py" line="1152"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified outside Spyder.&lt;br&gt;Do you want to reload it and loose all your changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié en dehors de Spyder.&lt;br&gt;Souhaitez-vous le recharger et perdre ainsi vos modifications ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1196"/>
+        <location filename="widgets/editor.py" line="1207"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1344"/>
+        <location filename="widgets/editor.py" line="1355"/>
         <source>Loading %1...</source>
         <translation>Chargement de &quot;%1&quot; en cours...</translation>
     </message>
@@ -1419,12 +1419,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Déboguer avec winpdb</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="716"/>
+        <location filename="widgets/editor.py" line="727"/>
         <source>New window</source>
         <translation>Nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="718"/>
+        <location filename="widgets/editor.py" line="729"/>
         <source>Create a new editor window</source>
         <translation>Créer une nouvelle fenêtre d&apos;édition</translation>
     </message>
@@ -1484,12 +1484,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Ouvrir un fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1808"/>
+        <location filename="widgets/editor.py" line="1819"/>
         <source>Close window</source>
         <translation>Fermer la fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1810"/>
+        <location filename="widgets/editor.py" line="1821"/>
         <source>Close this window</source>
         <translation>Fermer cette fenêtre d&apos;édition</translation>
     </message>
@@ -1504,7 +1504,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Surligner les occurences</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1644"/>
+        <location filename="widgets/editor.py" line="1655"/>
         <source>End-of-lines:</source>
         <translation>Fins de ligne :</translation>
     </message>
@@ -1514,12 +1514,12 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Classer les fichiers suivant leur chemin complet</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="388"/>
+        <location filename="widgets/editor.py" line="399"/>
         <source>Previous file (Ctrl+Tab)</source>
         <translation>Fichier précédent (Ctrl+Tab)</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="393"/>
+        <location filename="widgets/editor.py" line="404"/>
         <source>Next file (Ctrl+Shift+Tab)</source>
         <translation>Fichier suivant (Ctrl+Shift+Tab)</translation>
     </message>
@@ -1549,7 +1549,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Avertir en cas de correction des fins de ligne</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1357"/>
+        <location filename="widgets/editor.py" line="1368"/>
         <source>&lt;b&gt;%1&lt;/b&gt; contains mixed end-of-line characters.&lt;br&gt;Spyder will fix this automatically.</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; contient des caractères de fin de ligne mélangés.&lt;br&gt;Spyder va corriger ceci automatiquement.</translation>
     </message>
@@ -1672,7 +1672,7 @@ inside current external console&apos;s interpreter</source>
 dans l&apos;interpréteur de la console externe active</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="405"/>
+        <location filename="widgets/editor.py" line="416"/>
         <source>Copy path to clipboard</source>
         <translation>Copier le chemin d&apos;accès dans le presse-papier</translation>
     </message>
@@ -1682,22 +1682,22 @@ dans l&apos;interpréteur de la console externe active</translation>
         <translation>Gestionnaire de fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="67"/>
+        <location filename="widgets/editor.py" line="69"/>
         <source>&amp;Edit file</source>
         <translation>Modifi&amp;er le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="77"/>
+        <location filename="widgets/editor.py" line="79"/>
         <source>&amp;Close file</source>
         <translation>&amp;Fermer le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="383"/>
+        <location filename="widgets/editor.py" line="394"/>
         <source>File list management (Ctrl+E)</source>
         <translation>Gestionnaire de fichiers (Ctrl+E)</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="85"/>
+        <location filename="widgets/editor.py" line="87"/>
         <source>Hint: press &lt;b&gt;Alt&lt;/b&gt; to show accelerators</source>
         <translation>Astuce : la touche &lt;b&gt;Alt&lt;/b&gt; affiche les accélérateurs</translation>
     </message>
@@ -2854,52 +2854,52 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>IOFunctions</name>
     <message>
-        <location filename="utils/iofuncs.py" line="303"/>
+        <location filename="utils/iofuncs.py" line="302"/>
         <source>Supported files</source>
         <translation>Fichiers compatibles</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="312"/>
+        <location filename="utils/iofuncs.py" line="311"/>
         <source>Spyder data files</source>
         <translation>Fichiers Spyder</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="314"/>
+        <location filename="utils/iofuncs.py" line="313"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="315"/>
+        <location filename="utils/iofuncs.py" line="314"/>
         <source>Matlab files</source>
         <translation>Fichiers Matlab</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="316"/>
+        <location filename="utils/iofuncs.py" line="315"/>
         <source>CSV text files</source>
         <translation>Fichiers texte CSV</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="317"/>
+        <location filename="utils/iofuncs.py" line="316"/>
         <source>Text files</source>
         <translation>Fichiers texte</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="318"/>
+        <location filename="utils/iofuncs.py" line="317"/>
         <source>JPEG images</source>
         <translation>Images JPEG</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="319"/>
+        <location filename="utils/iofuncs.py" line="318"/>
         <source>PNG images</source>
         <translation>Images PNG</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="320"/>
+        <location filename="utils/iofuncs.py" line="319"/>
         <source>GIF images</source>
         <translation>Images GIF</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="321"/>
+        <location filename="utils/iofuncs.py" line="320"/>
         <source>TIFF images</source>
         <translation>Images TIFF</translation>
     </message>
@@ -2909,7 +2909,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Images DICOM</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="362"/>
+        <location filename="utils/iofuncs.py" line="361"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
@@ -4673,12 +4673,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>QtEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="783"/>
+        <location filename="widgets/qteditor/qteditor.py" line="788"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="791"/>
+        <location filename="widgets/qteditor/qteditor.py" line="796"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -4743,44 +4743,54 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets/shell.py" line="131"/>
         <source>Select all</source>
+        <translation type="obsolete">Sélectionner tout</translation>
+    </message>
+    <message>
+        <location filename="widgets/shell.py" line="131"/>
+        <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
 </context>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1053"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1058"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1057"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1062"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1061"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1066"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1065"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1070"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1069"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1074"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1073"/>
+        <location filename="widgets/qteditor/qteditor.py" line="1078"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
         <location filename="widgets/qteditor/qteditor.py" line="1078"/>
         <source>Select all</source>
+        <translation type="obsolete">Sélectionner tout</translation>
+    </message>
+    <message>
+        <location filename="widgets/qteditor/qteditor.py" line="1083"/>
+        <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
 </context>
