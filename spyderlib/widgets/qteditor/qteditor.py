@@ -578,6 +578,10 @@ class QtEditor(TextEditBaseWidget):
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
                               self.compute_linenumberarea_width(), cr.height()))
+        self.__set_scrollflagarea_geometry(cr)
+        
+    def __set_scrollflagarea_geometry(self, contentrect):
+        cr = contentrect
         if self.verticalScrollBar().isVisible():
             vsbw = self.verticalScrollBar().contentsRect().width()
         else:
@@ -602,6 +606,7 @@ class QtEditor(TextEditBaseWidget):
             +self.fontMetrics().width('9')*self.edge_line.column+5
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
+        self.__set_scrollflagarea_geometry(cr)
         return super(QtEditor, self).viewportEvent(event)
 
     #-----highlight current line
