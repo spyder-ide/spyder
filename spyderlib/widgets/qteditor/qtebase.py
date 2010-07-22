@@ -37,7 +37,8 @@ class CompletionWidget(QListWidget):
         self.case_sensitive = False
         self.show_single = None # see note in method 'setup'
         self.enter_select = None
-        srect = QApplication.desktop().availableGeometry(self)
+        desktop = QApplication.desktop()
+        srect = desktop.availableGeometry(desktop.screenNumber(self))
         self.screen_size = (srect.width(), srect.height())
         self.hide()
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
