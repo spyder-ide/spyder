@@ -113,7 +113,6 @@ DEFAULTS = [
               }),
             ('shell',
              {
-              'shortcut': "Ctrl+Shift+C",
               'max_line_count': 300,
               'working_dir_history': 30,
               'working_dir_adjusttocontents': False,
@@ -133,7 +132,7 @@ DEFAULTS = [
               }),
             ('external_shell',
              {
-              'shortcut': "Ctrl+Shift+X",
+              'shortcut': "Ctrl+Shift+C",
               'max_line_count': 300,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
@@ -165,11 +164,11 @@ DEFAULTS = [
               }),
             ('editor',
              {
+              'shortcut': "Ctrl+Shift+E",
               'printer_header/font/family': SANS_SERIF,
               'printer_header/font/size': MEDIUM,
               'printer_header/font/italic': False,
               'printer_header/font/bold': False,
-              'shortcut': "Ctrl+Shift+E",
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
@@ -185,10 +184,7 @@ DEFAULTS = [
               'check_eol_chars': True,
               'tab_always_indent': True,
               'fullpath_sorting': True,
-              'api': osp.join(DATA_PATH, 'python.api'),
               'max_recent_files': 20,
-              'currentline/backgroundcolor': "#EEFFDD",
-              'foundline/backgroundcolor': "#DDFFDD",
               }),
             ('historylog',
              {
