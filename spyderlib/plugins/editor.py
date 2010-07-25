@@ -27,7 +27,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import get_conf_path, get_icon, get_font, set_font
+from spyderlib.config import get_conf_path, get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
@@ -643,7 +643,7 @@ class Editor(SpyderPluginWidget):
                     ('set_tabbar_visible',         'show_tab_bar'))
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
-        editorstack.set_default_font(get_font(self.ID))
+        editorstack.set_default_font(self.get_plugin_font())
         
         self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
                      self.starting_long_process)
@@ -1124,7 +1124,7 @@ class Editor(SpyderPluginWidget):
         editor = self.get_current_editor()
         filename = self.get_current_filename()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=get_font(self.ID, 'printer_header'))
+                          header_font=self.get_plugin_font('printer_header'))
         printDialog = QPrintDialog(printer, editor)
         if editor.hasSelectedText():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
@@ -1157,7 +1157,7 @@ class Editor(SpyderPluginWidget):
         from PyQt4.QtGui import QPrintPreviewDialog
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
-                          header_font=get_font(self.ID, 'printer_header'))
+                          header_font=self.get_plugin_font('printer_header'))
         preview = QPrintPreviewDialog(printer, self)
         self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
                      lambda printer: printer.printRange(editor))
@@ -1334,12 +1334,12 @@ class Editor(SpyderPluginWidget):
     def change_font(self):
         """Change editor font"""
         editorstack = self.get_current_editorstack()
-        font, valid = QFontDialog.getFont(get_font(self.ID), editorstack,
+        font, valid = QFontDialog.getFont(self.get_plugin_font(), editorstack,
                                           self.tr("Select a new font"))
         if valid:
             for editorstack in self.editorstacks:
                 editorstack.set_default_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

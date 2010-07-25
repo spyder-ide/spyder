@@ -22,7 +22,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, get_icon, set_font
+from spyderlib.config import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
@@ -241,7 +241,7 @@ class ExternalConsole(SpyderPluginWidget):
         
         shellwidget.shell.setMaximumBlockCount( self.get_option(
                                                           'max_line_count') )
-        shellwidget.shell.set_font( get_font(self.ID) )
+        shellwidget.shell.set_font( self.get_plugin_font() )
         shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
         shellwidget.shell.set_calltips( self.get_option('calltips') )
         shellwidget.shell.set_codecompletion_auto( self.get_option(
@@ -541,12 +541,12 @@ class ExternalConsole(SpyderPluginWidget):
         
     def change_font(self):
         """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID),
+        font, valid = QFontDialog.getFont(self.get_plugin_font(),
                        self, self.tr("Select a new font"))
         if valid:
             for index in range(self.tabwidget.count()):
                 self.tabwidget.widget(index).shell.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
         
     def change_max_line_count(self):
         "Change maximum line count"""

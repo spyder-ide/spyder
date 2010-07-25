@@ -19,7 +19,6 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.pylintgui import PylintWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -33,7 +32,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                               max_entries=self.get_option('max_entries'))
         SpyderPluginMixin.__init__(self, parent)
 
-        self.set_font(get_font(self.ID))
+        self.set_font(self.get_plugin_font())
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -80,11 +79,11 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         
     def change_font(self):
         """Change font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
                                           self.tr("Select a new font"))
         if valid:
             self.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
             
     def set_font(self, font):
         """Set pylint widget font"""

@@ -15,7 +15,7 @@ import sys, cPickle, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font, get_conf_path, get_icon
+from spyderlib.config import get_conf_path, get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -38,7 +38,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
 
         self.editor_valid_types = None
 
-        self.set_font(get_font(self.ID))
+        self.set_font(self.get_plugin_font())
         
         if osp.isfile(self.DATAPATH):
             self.load_config()
@@ -92,11 +92,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         
     def change_font(self):
         """Change font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
                                           self.tr("Select a new font"))
         if valid:
             self.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
             
     def set_font(self, font):
         """Set project explorer widget font"""

@@ -126,6 +126,14 @@ class SpyderPluginMixin(object):
         """Get a plugin option from configuration file"""
         return CONF.get(self.ID, option, default)
     
+    def get_plugin_font(self, option=None):
+        """Return plugin font option"""
+        return get_font(self.ID, option)
+    
+    def set_plugin_font(self, font, option=None):
+        """Set plugin font option"""
+        set_font(font, self.ID, option)
+        
     def show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
@@ -220,7 +228,7 @@ class ReadOnlyEditor(SpyderPluginWidget):
         self.connect(self.editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
-        self.editor.set_font(self.get_font_option())
+        self.editor.set_font(self.get_plugin_font())
         self.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu

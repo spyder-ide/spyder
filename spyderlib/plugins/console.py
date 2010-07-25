@@ -22,7 +22,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font, get_icon
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
@@ -48,7 +48,7 @@ class Console(SpyderPluginWidget):
         # Shell
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
-                                   get_font(self.ID),
+                                   self.get_plugin_font(),
                                    debug, exitfunc, profile, multithreaded)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:
@@ -238,11 +238,11 @@ class Console(SpyderPluginWidget):
         
     def change_font(self):
         """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID),
+        font, valid = QFontDialog.getFont(self.get_plugin_font(),
                        self, self.tr("Select a new font"))
         if valid:
             self.shell.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
         
     def change_max_line_count(self):
         "Change maximum line count"""

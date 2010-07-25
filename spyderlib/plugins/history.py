@@ -18,7 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config import get_font, get_icon, set_font
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -140,7 +140,7 @@ class HistoryLog(SpyderPluginWidget):
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
-        editor.set_font( get_font(self.ID) )
+        editor.set_font( self.get_plugin_font() )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
@@ -179,12 +179,12 @@ class HistoryLog(SpyderPluginWidget):
         
     def change_font(self):
         """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID),
+        font, valid = QFontDialog.getFont(self.get_plugin_font(),
                        self, self.tr("Select a new font"))
         if valid:
             for editor in self.editors:
                 editor.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

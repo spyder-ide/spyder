@@ -20,7 +20,6 @@ import sys, os, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font
 from spyderlib.utils.qthelpers import create_action, translate
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -41,7 +40,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
 
         self.editor_valid_types = None
         
-        self.set_font(get_font(self.ID))
+        self.set_font(self.get_plugin_font())
         
         self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
         
@@ -106,11 +105,11 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         
     def change_font(self):
         """Change font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
                                   translate("Explorer", "Select a new font"))
         if valid:
             self.set_font(font)
-            set_font(font, self.ID)
+            self.set_plugin_font(font)
             
     def set_font(self, font):
         """Set explorer widget font"""
