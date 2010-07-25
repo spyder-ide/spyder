@@ -19,7 +19,7 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_font, set_font
+from spyderlib.config import get_font, set_font
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.pylintgui import PylintWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -30,7 +30,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     ID = 'pylint'
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
-                              max_entries=CONF.get(self.ID, 'max_entries'))
+                              max_entries=self.get_option('max_entries'))
         SpyderPluginMixin.__init__(self, parent)
 
         self.set_font(get_font(self.ID))
@@ -73,10 +73,10 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, self.tr('History'),
                                        self.tr('Maximum entries'),
-                                       CONF.get(self.ID, 'max_entries'),
+                                       self.get_option('max_entries'),
                                        10, 10000)
         if valid:
-            CONF.set(self.ID, 'max_entries', depth)
+            self.set_option('max_entries', depth)
         
     def change_font(self):
         """Change font"""

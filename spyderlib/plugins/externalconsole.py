@@ -22,7 +22,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_font, get_icon, set_font
+from spyderlib.config import get_font, get_icon, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
@@ -51,9 +51,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.python_count = 0
         self.terminal_count = 0
         
-        if CONF.get(self.ID, 'ipython_options', None) is None:
-            CONF.set(self.ID, 'ipython_options',
-                     self.get_default_ipython_options())
+        if self.get_option('ipython_options', None) is None:
+            self.set_option('ipython_options',
+                            self.get_default_ipython_options())
         
         self.shells = []
         self.filenames = []
@@ -197,7 +197,7 @@ class ExternalConsole(SpyderPluginWidget):
 
         if fname is not None and fname in self.filenames:
             index = self.filenames.index(fname)
-            if CONF.get(self.ID, 'single_tab'):
+            if self.get_option('single_tab'):
                 old_shell = self.shells[index]
                 if old_shell.is_running():
                     answer = QMessageBox.question(self, self.get_plugin_title(),
@@ -217,10 +217,10 @@ class ExternalConsole(SpyderPluginWidget):
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
         if python:
-            mpl_patch_enabled = CONF.get(self.ID, 'mpl_patch/enabled')
-            umd_enabled = CONF.get(self.ID, 'umd/enabled')
-            umd_namelist = CONF.get(self.ID, 'umd/namelist')
-            umd_verbose = CONF.get(self.ID, 'umd/verbose')
+            mpl_patch_enabled = self.get_option('mpl_patch/enabled')
+            umd_enabled = self.get_option('umd/enabled')
+            umd_namelist = self.get_option('umd/namelist')
+            umd_verbose = self.get_option('umd/verbose')
             shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
                            arguments=arguments, stand_alone=self.light_mode,
@@ -233,20 +233,20 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget = ExternalSystemShell(self, wdir, path=pythonpath)
         
         # Code completion / calltips
-        case_sensitive = CONF.get(self.ID, 'codecompletion/case-sensitivity')
-        show_single = CONF.get(self.ID, 'codecompletion/select-single')
-        from_document = CONF.get(self.ID, 'codecompletion/from-document')
+        case_sensitive = self.get_option('codecompletion/case-sensitivity')
+        show_single = self.get_option('codecompletion/select-single')
+        from_document = self.get_option('codecompletion/from-document')
         shellwidget.shell.setup_code_completion(case_sensitive, show_single,
                                                  from_document)
         
-        shellwidget.shell.setMaximumBlockCount( CONF.get(self.ID,
+        shellwidget.shell.setMaximumBlockCount( self.get_option(
                                                           'max_line_count') )
         shellwidget.shell.set_font( get_font(self.ID) )
-        shellwidget.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
-        shellwidget.shell.set_calltips( CONF.get(self.ID, 'calltips') )
-        shellwidget.shell.set_codecompletion_auto( CONF.get(self.ID,
+        shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
+        shellwidget.shell.set_calltips( self.get_option('calltips') )
+        shellwidget.shell.set_codecompletion_auto( self.get_option(
                                                  'codecompletion/auto') )
-        shellwidget.shell.set_codecompletion_enter(CONF.get(self.ID,
+        shellwidget.shell.set_codecompletion_enter(self.get_option(
                                                  'codecompletion/enter-key'))
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
@@ -304,7 +304,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         
-        self.toggle_icontext(CONF.get(self.ID, 'show_icontext'))
+        self.toggle_icontext(self.get_option('show_icontext'))
         
         # Start process and give focus to console
         shellwidget.start(ask_for_arguments)
@@ -368,8 +368,8 @@ class ExternalConsole(SpyderPluginWidget):
                             "options button (plot parameters editing "
                             "dialog box)"),
                 toggled=lambda checked:
-                CONF.set(self.ID, 'mpl_patch/enabled', checked))
-        mpl_patch_action.setChecked( CONF.get(self.ID, 'mpl_patch/enabled') )
+                self.set_option('mpl_patch/enabled', checked))
+        mpl_patch_action.setChecked( self.get_option('mpl_patch/enabled') )
         
         umd_action = create_action(self,
                 self.tr("UMD (force modules to be completely reloaded)"),
@@ -378,33 +378,33 @@ class ExternalConsole(SpyderPluginWidget):
                             "with the 'runfile' function (UMD: User Module "
                             "Deleter)"),
                 toggled=self.toggle_umd)
-        umd_action.setChecked( CONF.get(self.ID, 'umd/enabled') )
+        umd_action.setChecked( self.get_option('umd/enabled') )
         umd_verbose_action = create_action(self,
                 self.tr("Show reloaded modules list"),
                 toggled=self.toggle_umd_verbose)
-        umd_verbose_action.setChecked( CONF.get(self.ID, 'umd/verbose') )
+        umd_verbose_action.setChecked( self.get_option('umd/verbose') )
         umd_namelist_action = create_action(self,
                             self.tr("UMD excluded modules..."), None,
                             tip=self.tr("Set UMD excluded modules name list"),
                             triggered=self.set_umd_namelist)
         
-        python_startup = CONF.get(self.ID, 'open_python_at_startup', None)
-        ipython_startup = CONF.get(self.ID, 'open_ipython_at_startup', None)
+        python_startup = self.get_option('open_python_at_startup', None)
+        ipython_startup = self.get_option('open_ipython_at_startup', None)
         if ipython_startup is None:
             ipython_startup = programs.is_module_installed("IPython")
-            CONF.set(self.ID, 'open_ipython_at_startup', ipython_startup)
+            self.set_option('open_ipython_at_startup', ipython_startup)
         if python_startup is None:
             python_startup = not ipython_startup
-            CONF.set(self.ID, 'open_python_at_startup', python_startup)
+            self.set_option('open_python_at_startup', python_startup)
         python_startup_action = create_action(self,
                 self.tr("Open a Python interpreter at startup"),
                 toggled=lambda checked:
-                CONF.set(self.ID, 'open_python_at_startup', checked))
+                self.set_option('open_python_at_startup', checked))
         python_startup_action.setChecked(python_startup)
         ipython_startup_action = create_action(self,
                 self.tr("Open a IPython interpreter at startup"),
                 toggled=lambda checked:
-                CONF.set(self.ID, 'open_ipython_at_startup', checked))
+                self.set_option('open_ipython_at_startup', checked))
         ipython_startup_action.setChecked(ipython_startup)
         
         buffer_action = create_action(self,
@@ -418,27 +418,27 @@ class ExternalConsole(SpyderPluginWidget):
         wrap_action = create_action(self,
                             self.tr("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        wrap_action.setChecked( self.get_option('wrap') )
         calltips_action = create_action(self, self.tr("Balloon tips"),
                             toggled=self.toggle_calltips)
-        calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
+        calltips_action.setChecked( self.get_option('calltips') )
         codecompletion_action = create_action(self,
                                           self.tr("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked( CONF.get(self.ID,
+        codecompletion_action.setChecked( self.get_option(
                                                    'codecompletion/auto') )
         codecompenter_action = create_action(self,
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
-        codecompenter_action.setChecked( CONF.get(self.ID,
+        codecompenter_action.setChecked( self.get_option(
                                                   'codecompletion/enter-key') )
         singletab_action = create_action(self,
                             self.tr("One tab per script"),
                             toggled=self.toggle_singletab)
-        singletab_action.setChecked( CONF.get(self.ID, 'single_tab') )
+        singletab_action.setChecked( self.get_option('single_tab') )
         icontext_action = create_action(self, self.tr("Show icons and text"),
                                         toggled=self.toggle_icontext)
-        icontext_action.setChecked( CONF.get(self.ID, 'show_icontext') )
+        icontext_action.setChecked( self.get_option('show_icontext') )
         
         self.menu_actions = [interpreter_action, console_action, run_action]
         if programs.is_module_installed("matplotlib"):
@@ -468,10 +468,10 @@ class ExternalConsole(SpyderPluginWidget):
     
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
-        if CONF.get(self.ID, 'open_ipython_at_startup') \
+        if self.get_option('open_ipython_at_startup') \
            and programs.is_module_installed("IPython"):
             self.open_ipython()
-        if CONF.get(self.ID, 'open_python_at_startup'):
+        if self.get_option('open_python_at_startup'):
             self.open_interpreter()
         
     def closing_plugin(self, cancelable=False):
@@ -519,7 +519,7 @@ class ExternalConsole(SpyderPluginWidget):
             wdir = os.getcwdu()
         self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
                    interact=True, debug=False, python=True, ipython=True,
-                   arguments=CONF.get(self.ID, 'ipython_options', ""))
+                   arguments=self.get_option('ipython_options', ""))
         
     def open_terminal(self, wdir=None):
         """Open terminal"""
@@ -552,12 +552,12 @@ class ExternalConsole(SpyderPluginWidget):
         "Change maximum line count"""
         mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
                                            self.tr('Maximum line count'),
-                                           CONF.get(self.ID, 'max_line_count'),
+                                           self.get_option('max_line_count'),
                                            10, 1000000)
         if valid:
             for index in range(self.tabwidget.count()):
                 self.tabwidget.widget(index).shell.setMaximumBlockCount(mlc)
-            CONF.set(self.ID, 'max_line_count', mlc)
+            self.set_option('max_line_count', mlc)
             
     def set_ipython_options(self):
         """Set IPython interpreter arguments"""
@@ -566,13 +566,13 @@ class ExternalConsole(SpyderPluginWidget):
                       self.tr('IPython command line options:\n'
                               '(Qt4 support: -q4thread)\n'
                               '(Qt4 and matplotlib support: -q4thread -pylab)'),
-                      QLineEdit.Normal, CONF.get(self.ID, 'ipython_options'))
+                      QLineEdit.Normal, self.get_option('ipython_options'))
         if valid:
-            CONF.set(self.ID, 'ipython_options', unicode(arguments))
+            self.set_option('ipython_options', unicode(arguments))
         
     def toggle_umd(self, checked):
         """Toggle UMD"""
-        CONF.set(self.ID, 'umd/enabled', checked)
+        self.set_option('umd/enabled', checked)
         if checked and self.isVisible():
             QMessageBox.warning(self, self.get_plugin_title(),
                 self.tr("This option will enable the User Module Deleter (UMD) "
@@ -600,7 +600,7 @@ class ExternalConsole(SpyderPluginWidget):
             
     def toggle_umd_verbose(self, checked):
         """Toggle UMD"""
-        CONF.set(self.ID, 'umd/verbose', checked)
+        self.set_option('umd/verbose', checked)
         if self.isVisible():
             self.__umd_settings_info()
             
@@ -610,7 +610,7 @@ class ExternalConsole(SpyderPluginWidget):
                                   self.tr('UMD excluded modules:\n'
                                           '(example: guidata, guiqwt)'),
                                   QLineEdit.Normal,
-                                  ", ".join(CONF.get(self.ID, 'umd/namelist')))
+                                  ", ".join(self.get_option('umd/namelist')))
         if valid:
             namelist = unicode(arguments).replace(' ', '').split(',')
             fixed_namelist = [module_name for module_name in namelist
@@ -622,7 +622,7 @@ class ExternalConsole(SpyderPluginWidget):
                                             "installed on your machine:\n%1"
                                             ).arg(invalid), QMessageBox.Ok)
             self.__umd_settings_info()
-            CONF.set(self.ID, 'umd/namelist', fixed_namelist)
+            self.set_option('umd/namelist', fixed_namelist)
         
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
@@ -630,7 +630,7 @@ class ExternalConsole(SpyderPluginWidget):
             return
         for shell in self.shells:
             shell.shell.toggle_wrap_mode(checked)
-        CONF.set(self.ID, 'wrap', checked)
+        self.set_option('wrap', checked)
             
     def toggle_calltips(self, checked):
         """Toggle calltips"""
@@ -638,7 +638,7 @@ class ExternalConsole(SpyderPluginWidget):
             return
         for shell in self.shells:
             shell.shell.set_calltips(checked)
-        CONF.set(self.ID, 'calltips', checked)
+        self.set_option('calltips', checked)
             
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
@@ -646,7 +646,7 @@ class ExternalConsole(SpyderPluginWidget):
             return
         for shell in self.shells:
             shell.shell.set_codecompletion_auto(checked)
-        CONF.set(self.ID, 'codecompletion/auto', checked)
+        self.set_option('codecompletion/auto', checked)
             
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
@@ -654,15 +654,15 @@ class ExternalConsole(SpyderPluginWidget):
             return
         for shell in self.shells:
             shell.shell.set_codecompletion_enter(checked)
-        CONF.set(self.ID, 'codecompletion/enter-key', checked)
+        self.set_option('codecompletion/enter-key', checked)
         
     def toggle_singletab(self, checked):
         """Toggle single tab mode"""
-        CONF.set(self.ID, 'single_tab', checked)
+        self.set_option('single_tab', checked)
 
     def toggle_icontext(self, checked):
         """Toggle icon text"""
-        CONF.set(self.ID, 'show_icontext', checked)
+        self.set_option('show_icontext', checked)
         if self.tabwidget is None:
             return
         for index in range(self.tabwidget.count()):

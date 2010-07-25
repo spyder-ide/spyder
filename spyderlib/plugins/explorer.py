@@ -20,7 +20,7 @@ import sys, os, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_font, set_font
+from spyderlib.config import get_font, set_font
 from spyderlib.utils.qthelpers import create_action, translate
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -31,12 +31,12 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     ID = 'explorer'
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
-                            path=CONF.get(self.ID, 'path', None),
-                            name_filters=CONF.get(self.ID, 'name_filters'),
-                            valid_types=CONF.get(self.ID, 'valid_filetypes'),
-                            show_all=CONF.get(self.ID, 'show_all'),
-                            show_toolbar=CONF.get(self.ID, 'show_toolbar'),
-                            show_icontext=CONF.get(self.ID, 'show_icontext'))
+                            path=self.get_option('path', None),
+                            name_filters=self.get_option('name_filters'),
+                            valid_types=self.get_option('valid_filetypes'),
+                            show_all=self.get_option('show_all'),
+                            show_toolbar=self.get_option('show_toolbar'),
+                            show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
         self.editor_valid_types = None
@@ -78,7 +78,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        CONF.set(self.ID, 'path', os.getcwdu())
+        self.set_option('path', os.getcwdu())
         return True
         
     #------ Public API ---------------------------------------------------------        

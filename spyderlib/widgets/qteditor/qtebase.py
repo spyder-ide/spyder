@@ -19,6 +19,9 @@ from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
 from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp
 
 # Local imports
+#TODO: remove the CONF object and make it work anyway
+# In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
+# which should not contain anything directly related to Spyder's main app
 from spyderlib.config import CONF, get_font
 from spyderlib.widgets.shellhelpers import ANSIEscapeCodeHandler
 

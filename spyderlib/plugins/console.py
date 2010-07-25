@@ -22,7 +22,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_font, set_font, get_icon
+from spyderlib.config import get_font, set_font, get_icon
 from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
@@ -47,7 +47,7 @@ class Console(SpyderPluginWidget):
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell
         self.shell = InternalShell(parent, namespace, commands, message,
-                                   CONF.get(self.ID, 'max_line_count'),
+                                   self.get_option('max_line_count'),
                                    get_font(self.ID),
                                    debug, exitfunc, profile, multithreaded)
         self.connect(self.shell, SIGNAL('status(QString)'),
@@ -76,7 +76,7 @@ class Console(SpyderPluginWidget):
         self.setLayout(layout)
         
         # Parameters
-        self.shell.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        self.shell.toggle_wrap_mode(self.get_option('wrap'))
             
         # Accepting drops
         self.setAcceptDrops(True)
@@ -147,20 +147,19 @@ class Console(SpyderPluginWidget):
         wrap_action = create_action(self,
                             self.tr("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        wrap_action.setChecked(self.get_option('wrap'))
         calltips_action = create_action(self, self.tr("Balloon tips"),
             toggled=self.toggle_calltips)
-        calltips_action.setChecked( CONF.get(self.ID, 'calltips') )
+        calltips_action.setChecked(self.get_option('calltips'))
         codecompletion_action = create_action(self,
                                           self.tr("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked( CONF.get(self.ID,
-                                                   'codecompletion/auto') )
+        codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
         codecompenter_action = create_action(self,
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
-        codecompenter_action.setChecked( CONF.get(self.ID,
-                                                   'codecompletion/enter-key') )
+        codecompenter_action.setChecked(self.get_option(
+                                                    'codecompletion/enter-key'))
         
         option_menu = QMenu(self.tr("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
@@ -249,40 +248,40 @@ class Console(SpyderPluginWidget):
         "Change maximum line count"""
         mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
                                            self.tr('Maximum line count'),
-                                           CONF.get(self.ID, 'max_line_count'),
+                                           self.get_option('max_line_count'),
                                            10, 1000000)
         if valid:
             self.shell.setMaximumBlockCount(mlc)
-            CONF.set(self.ID, 'max_line_count', mlc)
+            self.set_option('max_line_count', mlc)
 
     def change_exteditor(self):
         """Change external editor path"""
         path, valid = QInputDialog.getText(self, self.tr('External editor'),
                           self.tr('External editor executable path:'),
                           QLineEdit.Normal,
-                          CONF.get(self.ID, 'external_editor/path'))
+                          self.get_option('external_editor/path'))
         if valid:
-            CONF.set(self.ID, 'external_editor/path', unicode(path))
+            self.set_option('external_editor/path', unicode(path))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.shell.toggle_wrap_mode(checked)
-        CONF.set(self.ID, 'wrap', checked)
+        self.set_option('wrap', checked)
             
     def toggle_calltips(self, checked):
         """Toggle calltips"""
         self.shell.set_calltips(checked)
-        CONF.set(self.ID, 'calltips', checked)
+        self.set_option('calltips', checked)
             
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         self.shell.set_codecompletion_auto(checked)
-        CONF.set(self.ID, 'codecompletion/auto', checked)
+        self.set_option('codecompletion/auto', checked)
             
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)
-        CONF.set(self.ID, 'codecompletion/enter-key', checked)
+        self.set_option('codecompletion/enter-key', checked)
                 
     #----Drag and drop                    
     def dragEnterEvent(self, event):

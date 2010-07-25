@@ -15,7 +15,7 @@ import sys, cPickle, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_font, set_font, get_conf_path, CONF, get_icon
+from spyderlib.config import get_font, set_font, get_conf_path, get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -27,9 +27,9 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     DATAPATH = get_conf_path('.projects')
     def __init__(self, parent=None):
         self.new_project_action = None
-        include = CONF.get(self.ID, 'include', '.')
-        exclude = CONF.get(self.ID, 'exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
-        show_all = CONF.get(self.ID, 'show_all', False)
+        include = self.get_option('include', '.')
+        exclude = self.get_option('exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
+        show_all = self.get_option('show_all', False)
         ProjectExplorerWidget.__init__(self, parent=parent, include=include,
                                        exclude=exclude, show_all=show_all,
                                        valid_types=['.py', '.pyw'],
@@ -106,22 +106,21 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         """Save configuration: opened projects & tree widget state"""
         data = self.get_project_config()
         cPickle.dump(data, file(self.DATAPATH, 'w'))
-        CONF.set(self.ID, 'expanded_state',
-                 self.treewidget.get_expanded_state())
-        CONF.set(self.ID, 'scrollbar_position',
-                 self.treewidget.get_scrollbar_position())
+        self.set_option('expanded_state', self.treewidget.get_expanded_state())
+        self.set_option('scrollbar_position',
+                        self.treewidget.get_scrollbar_position())
         
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
         data = cPickle.load(file(self.DATAPATH))
         self.set_project_config(data)
-        expanded_state = CONF.get(self.ID, 'expanded_state', None)
+        expanded_state = self.get_option('expanded_state', None)
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
         
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
-        scrollbar_pos = CONF.get(self.ID, 'scrollbar_position', None)
+        scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
             self.treewidget.set_scrollbar_position(scrollbar_pos)
         

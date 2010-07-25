@@ -14,7 +14,6 @@ from PyQt4.QtGui import QStackedWidget
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF
 from spyderlib.plugins import SpyderPluginMixin
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 

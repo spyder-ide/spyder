@@ -16,7 +16,7 @@ import sys, re, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_conf_path, get_icon
+from spyderlib.config import get_conf_path, get_icon
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
@@ -44,7 +44,7 @@ class ObjectComboBox(EditableComboBox):
         shell = self.parent().shell
         if shell is not None:
             self.object_inspector._check_if_shell_is_running()
-            force_import = CONF.get('inspector', 'automatic_import')
+            force_import = self.object_inspector.get_option('automatic_import')
             return shell.is_defined(unicode(qstr), force_import=force_import)
         
     def validate_current_text(self):
@@ -73,7 +73,7 @@ class ObjectInspector(ReadOnlyEditor):
         layout_edit.addWidget(QLabel(self.tr("Object")))
         self.combo = ObjectComboBox(self)
         layout_edit.addWidget(self.combo)
-        self.combo.setMaxCount(CONF.get(self.ID, 'max_history_entries'))
+        self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
@@ -87,7 +87,7 @@ class ObjectInspector(ReadOnlyEditor):
         # Automatic import option
         auto_import = create_action(self, self.tr("Automatic import"),
                                     toggled=self.toggle_auto_import)
-        auto_import_state = CONF.get('inspector', 'automatic_import')
+        auto_import_state = self.get_option('automatic_import')
         auto_import.setChecked(auto_import_state)
         
         # Lock checkbox
@@ -184,7 +184,7 @@ class ObjectInspector(ReadOnlyEditor):
         """Toggle automatic import feature"""
         self.force_refresh()
         self.combo.validate_current_text()
-        CONF.set('inspector', 'automatic_import', checked)
+        self.set_option('automatic_import', checked)
         
     def toggle_locked(self):
         """
@@ -237,7 +237,7 @@ class ObjectInspector(ReadOnlyEditor):
         self._check_if_shell_is_running()
         obj_text = unicode(obj_text)
 
-        if CONF.get('inspector', 'automatic_import'):
+        if self.get_option('automatic_import'):
             self.shell.is_defined(obj_text, force_import=True) # force import
         
         if self.shell.is_defined(obj_text):

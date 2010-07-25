@@ -31,6 +31,7 @@ STDOUT = sys.stdout
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import CONF, get_font, set_font, get_icon
+from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
 
@@ -39,7 +40,14 @@ class SpyderPluginMixin(object):
     """
     Useful methods to bind widgets to the main window
     See SpyderPluginWidget class for required widget interface
+    
+    Signals:
+        'option_changed'
+            Example:
+            self.emit(SIGNAL('option_changed'), 'show_all', checked)
+        'show_message(QString,int)'
     """
+    ID = None
     FLAGS = Qt.Window
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -50,11 +58,12 @@ class SpyderPluginMixin(object):
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
+        assert self.ID is not None
         self.main = main
         self.menu_actions, self.toolbar_actions = self.get_plugin_actions()
         self.dockwidget = None
         self.ismaximized = False
-        QObject.connect(self, SIGNAL('option_changed'), self.option_changed)
+        QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
         
@@ -69,7 +78,7 @@ class SpyderPluginMixin(object):
                      self.visibility_changed)
         self.dockwidget = dock
         self.refresh_plugin()
-        short = CONF.get(self.ID, "shortcut", None)
+        short = self.get_option("shortcut", None)
         if short is not None:
             QShortcut(QKeySequence(short), self.main,
                       lambda: self.visibility_changed(True))
@@ -105,14 +114,18 @@ class SpyderPluginMixin(object):
         if visible:
             self.refresh_plugin() #XXX Is it a good idea?
 
-    def option_changed(self, option, value):
+    def set_option(self, option, value):
         """
-        Change a plugin option in configuration file
+        Set a plugin option in configuration file
         Use a SIGNAL to call it, e.g.:
         self.emit(SIGNAL('option_changed'), 'show_all', checked)
         """
         CONF.set(self.ID, option, value)
-        
+
+    def get_option(self, option, default=NoDefault):
+        """Get a plugin option from configuration file"""
+        return CONF.get(self.ID, option, default)
+    
     def show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
         self.main.statusBar().showMessage(message, timeout)
@@ -141,11 +154,9 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder base widget class
     Spyder's widgets either inherit this class or reimplement its interface
     """
-    ID = None
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
-        assert self.ID is not None
         self.setWindowTitle(self.get_plugin_title())
         
     def get_plugin_title(self):
@@ -158,11 +169,12 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     
     def get_plugin_icon(self):
         """
-        Return plugin icon name (e.g.: qt.png) or QIcon instance
-        Note: this is required only for plugins creating a main window
+        Return plugin icon (QIcon instance)
+        Note: this is required for plugins creating a main window
               (see SpyderPluginMixin.create_mainwindow)
+              and for configuration dialog widgets creation
         """
-        return 'qt.png'
+        return get_icon('qt.png')
     
     def get_focus_widget(self):
         """
@@ -208,8 +220,8 @@ class ReadOnlyEditor(SpyderPluginWidget):
         self.connect(self.editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
-        self.editor.set_font( get_font(self.ID) )
-        self.editor.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        self.editor.set_font(self.get_font_option())
+        self.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
         font_action = create_action(self, translate("Editor", "&Font..."), None,
@@ -218,7 +230,7 @@ class ReadOnlyEditor(SpyderPluginWidget):
                                     triggered=self.change_font)
         wrap_action = create_action(self, translate("Editor", "Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        wrap_action.setChecked(self.get_option('wrap'))
         self.editor.readonly_menu.addSeparator()
         add_actions(self.editor.readonly_menu, (font_action, wrap_action))
         
@@ -255,4 +267,4 @@ class ReadOnlyEditor(SpyderPluginWidget):
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         self.editor.toggle_wrap_mode(checked)
-        CONF.set(self.ID, 'wrap', checked)
+        self.set_option('wrap', checked)

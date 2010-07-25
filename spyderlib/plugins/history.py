@@ -18,7 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config import CONF, get_font, get_icon, set_font
+from spyderlib.config import get_font, get_icon, set_font
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -102,7 +102,7 @@ class HistoryLog(SpyderPluginWidget):
                                     triggered=self.change_font)
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        wrap_action.setChecked( self.get_option('wrap') )
         self.menu_actions = [history_action, font_action, wrap_action]
         return (self.menu_actions, None)
         
@@ -141,7 +141,7 @@ class HistoryLog(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
         editor.set_font( get_font(self.ID) )
-        editor.toggle_wrap_mode( CONF.get(self.ID, 'wrap') )
+        editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
         editor.set_text(text)
@@ -172,10 +172,10 @@ class HistoryLog(SpyderPluginWidget):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, self.tr('History'),
                                        self.tr('Maximum entries'),
-                                       CONF.get(self.ID, 'max_entries'),
+                                       self.get_option('max_entries'),
                                        10, 10000)
         if valid:
-            CONF.set(self.ID, 'max_entries', depth)
+            self.set_option('max_entries', depth)
         
     def change_font(self):
         """Change console font"""
@@ -192,4 +192,4 @@ class HistoryLog(SpyderPluginWidget):
             return
         for editor in self.editors:
             editor.toggle_wrap_mode(checked)
-        CONF.set(self.ID, 'wrap', checked)
+        self.set_option('wrap', checked)

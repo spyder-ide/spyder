@@ -19,7 +19,6 @@ STDOUT = sys.stdout
 from PyQt4.QtCore import SIGNAL
 
 # Local imports
-from spyderlib.config import CONF
 from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin
 
@@ -28,24 +27,24 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
     ID = 'find_in_files'
     def __init__(self, parent=None):
-        supported_encodings = CONF.get(self.ID, 'supported_encodings')
+        supported_encodings = self.get_option('supported_encodings')
         
-        search_path = CONF.get(self.ID, 'search_path', None)        
-        self.search_text_samples = CONF.get(self.ID, 'search_text_samples')
-        search_text = CONF.get(self.ID, 'search_text')
+        search_path = self.get_option('search_path', None)        
+        self.search_text_samples = self.get_option('search_text_samples')
+        search_text = self.get_option('search_text')
         search_text = [txt for txt in search_text \
                        if txt not in self.search_text_samples]
         search_text += self.search_text_samples
         
-        search_text_regexp = CONF.get(self.ID, 'search_text_regexp')
-        include = CONF.get(self.ID, 'include')
-        include_idx = CONF.get(self.ID, 'include_idx', None)
-        include_regexp = CONF.get(self.ID, 'include_regexp')
-        exclude = CONF.get(self.ID, 'exclude')
-        exclude_idx = CONF.get(self.ID, 'exclude_idx', None)
-        exclude_regexp = CONF.get(self.ID, 'exclude_regexp')
-        in_python_path = CONF.get(self.ID, 'in_python_path')
-        more_options = CONF.get(self.ID, 'more_options')
+        search_text_regexp = self.get_option('search_text_regexp')
+        include = self.get_option('include')
+        include_idx = self.get_option('include_idx', None)
+        include_regexp = self.get_option('include_regexp')
+        exclude = self.get_option('exclude')
+        exclude_idx = self.get_option('exclude_idx', None)
+        exclude_regexp = self.get_option('exclude_regexp')
+        in_python_path = self.get_option('in_python_path')
+        more_options = self.get_option('more_options')
         FindInFilesWidget.__init__(self, parent,
                                    search_text, search_text_regexp, search_path,
                                    include, include_idx, include_regexp,
@@ -98,16 +97,16 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             search_path = search_path[:hist_limit]
             include = include[:hist_limit]
             exclude = exclude[:hist_limit]
-            CONF.set(self.ID, 'search_text', search_text)
-            CONF.set(self.ID, 'search_text_regexp', text_re)
-            CONF.set(self.ID, 'search_path', search_path)
-            CONF.set(self.ID, 'include', include)
-            CONF.set(self.ID, 'include_idx', include_idx)
-            CONF.set(self.ID, 'include_regexp', include_re)
-            CONF.set(self.ID, 'exclude', exclude)
-            CONF.set(self.ID, 'exclude_idx', exclude_idx)
-            CONF.set(self.ID, 'exclude_regexp', exclude_re)
-            CONF.set(self.ID, 'in_python_path', in_python_path)
-            CONF.set(self.ID, 'more_options', more_options)
+            self.set_option('search_text', search_text)
+            self.set_option('search_text_regexp', text_re)
+            self.set_option('search_path', search_path)
+            self.set_option('include', include)
+            self.set_option('include_idx', include_idx)
+            self.set_option('include_regexp', include_re)
+            self.set_option('exclude', exclude)
+            self.set_option('exclude_idx', exclude_idx)
+            self.set_option('exclude_regexp', exclude_re)
+            self.set_option('in_python_path', in_python_path)
+            self.set_option('more_options', more_options)
         return True
 

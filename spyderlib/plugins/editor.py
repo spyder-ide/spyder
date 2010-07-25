@@ -27,7 +27,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import CONF, get_conf_path, get_icon, get_font, set_font
+from spyderlib.config import get_conf_path, get_icon, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
@@ -118,16 +118,14 @@ class Editor(SpyderPluginWidget):
         
         # Class browser
         self.classbrowser = ClassBrowser(self,
-             show_fullpath=CONF.get(self.ID,
-                                    'class_browser/show_fullpath', False),
-             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True),
-             show_all_files=CONF.get(self.ID,
-                                     'class_browser/show_all_files', True))
+           show_fullpath=self.get_option('class_browser/show_fullpath', False),
+           fullpath_sorting=self.get_option('fullpath_sorting', True),
+           show_all_files=self.get_option('class_browser/show_all_files', True))
         self.connect(self.classbrowser,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        cb_enabled = CONF.get(self.ID, 'class_browser')
+        cb_enabled = self.get_option('class_browser')
         if cb_enabled:
-            cb_state = CONF.get(self.ID, 'class_browser/visibility', False)
+            cb_state = self.get_option('class_browser/visibility', False)
         else:
             cb_state = False
         self.classbrowser.visibility_action.setChecked(cb_state)
@@ -167,23 +165,23 @@ class Editor(SpyderPluginWidget):
         self.setLayout(layout)
         
         # Editor's splitter state
-        state = CONF.get(self.ID, 'splitter_state', None)
+        state = self.get_option('splitter_state', None)
         if state is not None:
             self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
-        self.recent_files = CONF.get(self.ID, 'recent_files', [])
+        self.recent_files = self.get_option('recent_files', [])
         
         self.untitled_num = 0
 
         self.last_focus_editorstack = None
                 
-        filenames = CONF.get(self.ID, 'filenames', [])
+        filenames = self.get_option('filenames', [])
         if filenames and not ignore_last_opened_files:
             self.load(filenames)
-            layout = CONF.get(self.ID, 'layout_settings', None)
+            layout = self.get_option('layout_settings', None)
             if layout is not None:
                 self.editorsplitter.set_layout_settings(layout)
-            win_layout = CONF.get(self.ID, 'windows_layout_settings', None)
+            win_layout = self.get_option('windows_layout_settings', None)
             if win_layout:
                 for layout_settings in win_layout:
                     self.editorwindows_to_be_created.append(layout_settings)
@@ -199,7 +197,7 @@ class Editor(SpyderPluginWidget):
         self.__last_ec_exec = None # external console
         
         # Restoring class browser state
-        expanded_state = CONF.get(self.ID, 'class_browser/expanded_state', None)
+        expanded_state = self.get_option('class_browser/expanded_state', None)
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
         
@@ -216,7 +214,7 @@ class Editor(SpyderPluginWidget):
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
-        scrollbar_pos = CONF.get(self.ID,
+        scrollbar_pos = self.get_option(
                                  'class_browser/scrollbar_position', None)
         if scrollbar_pos is not None:
             self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
@@ -254,18 +252,18 @@ class Editor(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         for option, value in self.classbrowser.get_options().items():
-            CONF.set(self.ID, 'class_browser/%s' % option, value)
+            self.set_option('class_browser/%s' % option, value)
         state = self.splitter.saveState()
-        CONF.set(self.ID, 'splitter_state', str(state.toHex()))
+        self.set_option('splitter_state', str(state.toHex()))
         filenames = []
         editorstack = self.editorstacks[0]
         filenames += [finfo.filename for finfo in editorstack.data]
-        CONF.set(self.ID, 'layout_settings',
-                 self.editorsplitter.get_layout_settings())
-        CONF.set(self.ID, 'windows_layout_settings',
-                 [win.get_layout_settings() for win in self.editorwindows])
-        CONF.set(self.ID, 'filenames', filenames)
-        CONF.set(self.ID, 'recent_files', self.recent_files)
+        self.set_option('layout_settings',
+                        self.editorsplitter.get_layout_settings())
+        self.set_option('windows_layout_settings',
+                    [win.get_layout_settings() for win in self.editorwindows])
+        self.set_option('filenames', filenames)
+        self.set_option('recent_files', self.recent_files)
         is_ok = True
         for editorstack in self.editorstacks:
             is_ok = is_ok and editorstack.save_if_changed(cancelable)
@@ -454,54 +452,53 @@ class Editor(SpyderPluginWidget):
             triggered=self.change_font)
         linenumbers_action = create_action(self, self.tr("Show line numbers"),
                                            toggled=self.toggle_linenumbers)
-        linenumbers_action.setChecked( CONF.get(self.ID, 'line_numbers', True) )
+        linenumbers_action.setChecked(self.get_option('line_numbers', True))
         todo_action = create_action(self,
             self.tr("Tasks (TODO, FIXME, XXX)"),
             toggled=self.toggle_todo_list)
-        todo_action.setChecked( CONF.get(self.ID, 'todo_list', True) )
+        todo_action.setChecked(self.get_option('todo_list', True))
         analyze_action = create_action(self,
             self.tr("Code analysis (pyflakes)"),
             toggled=self.toggle_code_analysis,
             tip=self.tr("If enabled, Python source code will be analyzed "
                         "using pyflakes, lines containing errors or "
                         "warnings will be highlighted"))
-        analyze_action.setChecked( CONF.get(self.ID, 'code_analysis', True) )
+        analyze_action.setChecked(self.get_option('code_analysis', True))
         analyze_action.setEnabled(programs.is_module_installed('pyflakes'))
         codecompletion_action = create_action(self,
                                           self.tr("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked( CONF.get(self.ID,
-                                                   'codecompletion/auto') )
+        codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
         codecompenter_action = create_action(self,
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
-        codecompenter_action.setChecked( CONF.get(self.ID,
-                                                   'codecompletion/enter-key') )
+        codecompenter_action.setChecked(self.get_option(
+                                                    'codecompletion/enter-key'))
         checkeol_action = create_action(self,
                 self.tr("Show warning when fixing newline chars"),
                 toggled=lambda checked: self.emit(SIGNAL('option_changed'),
                                                   'check_eol_chars', checked))
-        checkeol_action.setChecked( CONF.get(self.ID, 'check_eol_chars', True) )
+        checkeol_action.setChecked(self.get_option('check_eol_chars', True))
         wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( CONF.get(self.ID, 'wrap') )
+        wrap_action.setChecked(self.get_option('wrap'))
         tab_action = create_action(self, self.tr("Tab always indent"),
             toggled=self.toggle_tab_mode,
             tip=self.tr("If enabled, pressing Tab will always indent, "
                         "even when the cursor is not at the beginning "
                         "of a line"))
-        tab_action.setChecked( CONF.get(self.ID, 'tab_always_indent', True) )
+        tab_action.setChecked(self.get_option('tab_always_indent', True))
         occurence_action = create_action(self, self.tr("Highlight occurences"),
             toggled=self.toggle_occurence_highlighting)
-        occurence_action.setChecked( CONF.get(self.ID,
-                                              'occurence_highlighting', True) )
+        occurence_action.setChecked(self.get_option(
+                                              'occurence_highlighting', True))
         fpsorting_action = create_action(self,
                                  self.tr("Sort files according to full path"),
                                  toggled=self.toggle_fullpath_sorting)
-        fpsorting_action.setChecked( CONF.get(self.ID, 'fullpath_sorting', True) )
+        fpsorting_action.setChecked(self.get_option('fullpath_sorting', True))
         showtabbar_action = create_action(self, self.tr("Show tab bar"),
                                  toggled=self.toggle_tabbar_visibility)
-        showtabbar_action.setChecked( CONF.get(self.ID, 'show_tab_bar', True) )
+        showtabbar_action.setChecked(self.get_option('show_tab_bar', True))
         workdir_action = create_action(self,
                 self.tr("Set console working directory"),
                 icon=get_std_icon('DirOpenIcon'),
@@ -645,7 +642,7 @@ class Editor(SpyderPluginWidget):
                                                    'fullpath_sorting'),
                     ('set_tabbar_visible',         'show_tab_bar'))
         for method, setting in settings:
-            getattr(editorstack, method)(CONF.get(self.ID, setting))
+            getattr(editorstack, method)(self.get_option(setting))
         editorstack.set_default_font(get_font(self.ID))
         
         self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
@@ -696,8 +693,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
                      self.load)
         
-        self.connect(editorstack, SIGNAL("inspector_show_help(QString)"),
-                     self.main.inspector.show_help)
+        if self.main.inspector is not None:
+            self.connect(editorstack, SIGNAL("inspector_show_help(QString)"),
+                         self.main.inspector.show_help)
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
@@ -760,12 +758,10 @@ class Editor(SpyderPluginWidget):
         
     def create_new_window(self):
         window = EditorMainWindow(self, self.stack_menu_actions,
-             self.toolbar_list, self.menu_list,
-             show_fullpath=CONF.get(self.ID,
-                                    'class_browser/show_fullpath', False),
-             fullpath_sorting=CONF.get(self.ID, 'fullpath_sorting', True),
-             show_all_files=CONF.get(self.ID,
-                                     'class_browser/show_all_files', True))
+           self.toolbar_list, self.menu_list,
+           show_fullpath=self.get_option('class_browser/show_fullpath', False),
+           fullpath_sorting=self.get_option('fullpath_sorting', True),
+           show_all_files=self.get_option('class_browser/show_all_files', True))
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -937,7 +933,7 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_analysis_results()
         
         # Update code analysis buttons
-        state = CONF.get(self.ID, 'code_analysis') \
+        state = self.get_option('code_analysis') \
                 and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
@@ -946,7 +942,7 @@ class Editor(SpyderPluginWidget):
     def update_todo_actions(self):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
-        state = CONF.get(self.ID, 'todo_list') \
+        state = self.get_option('todo_list') \
                 and results is not None and len(results)
         self.todo_list_action.setEnabled(state)
         
@@ -979,7 +975,7 @@ class Editor(SpyderPluginWidget):
             return
         if not fname in self.recent_files:
             self.recent_files.insert(0, fname)
-            if len(self.recent_files) > CONF.get(self.ID, 'max_recent_files'):
+            if len(self.recent_files) > self.get_option('max_recent_files'):
                 self.recent_files.pop(-1)
     
     def new(self, fname=None, editorstack=None):
@@ -1054,9 +1050,9 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         mrf, valid = QInputDialog.getInteger(editorstack, self.tr('Editor'),
                                self.tr('Maximum number of recent files'),
-                               CONF.get(self.ID, 'max_recent_files'), 1, 100)
+                               self.get_option('max_recent_files'), 1, 100)
         if valid:
-            CONF.set(self.ID, 'max_recent_files', mrf)
+            self.set_option('max_recent_files', mrf)
         
     def load(self, filenames=None, goto=None, word=''):
         """Load a text file"""
@@ -1348,7 +1344,7 @@ class Editor(SpyderPluginWidget):
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'wrap', checked)
+            self.set_option('wrap', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_wrap_enabled(checked)
             
@@ -1359,35 +1355,35 @@ class Editor(SpyderPluginWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'tab_always_indent', checked)
+            self.set_option('tab_always_indent', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_tabmode_enabled(checked)
             
     def toggle_occurence_highlighting(self, checked):
         """Toggle occurence highlighting"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'occurence_highlighting', checked)
+            self.set_option('occurence_highlighting', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_occurence_highlighting_enabled(checked)
             
     def toggle_codecompletion(self, checked):
         """Toggle automatic code completion"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'codecompletion/auto', checked)
+            self.set_option('codecompletion/auto', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codecompletion_auto_enabled(checked)
             
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'codecompletion/enter-key', checked)
+            self.set_option('codecompletion/enter-key', checked)
             for editorstack in self.editorstacks:
                 editorstack.set_codecompletion_enter_enabled(checked)
                             
     def toggle_code_analysis(self, checked):
         """Toggle code analysis"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'code_analysis', checked)
+            self.set_option('code_analysis', checked)
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
                 editorstack.set_codeanalysis_enabled(checked,
@@ -1401,7 +1397,7 @@ class Editor(SpyderPluginWidget):
     def toggle_todo_list(self, checked):
         """Toggle todo list"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'todo_list', checked)
+            self.set_option('todo_list', checked)
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
                 editorstack.set_todolist_enabled(checked,
@@ -1415,7 +1411,7 @@ class Editor(SpyderPluginWidget):
     def toggle_linenumbers(self, checked):
         """Toggle line numbers visibility"""
         if self.editorstacks is not None:
-            CONF.set(self.ID, 'line_numbers', checked)
+            self.set_option('line_numbers', checked)
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
                 editorstack.set_linenumbers_enabled(checked,
@@ -1424,7 +1420,7 @@ class Editor(SpyderPluginWidget):
     def toggle_classbrowser_visibility(self, checked):
         """Toggle class browser"""
         self.classbrowser.setVisible(checked)
-        CONF.set(self.ID, 'class_browser/visibility', checked)
+        self.set_option('class_browser/visibility', checked)
         if checked:
             self.classbrowser.update()
             editorstack = self.get_current_editorstack()
