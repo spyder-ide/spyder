@@ -310,11 +310,13 @@ class MainWindow(QMainWindow):
                                 triggered=self.findinfiles_callback,
                                 tip=self.tr("Search text in multiple files"))        
             def create_edit_action(text, icon_name):
+                textseq = text.split(' ')
+                method_name = textseq[0].lower()+"".join(textseq[1:])
                 return create_action(self, translate("SimpleEditor", text),
                                      shortcut=keybinding(text.replace(' ', '')),
                                      icon=get_icon(icon_name),
                                      triggered=self.global_callback,
-                                     data=text.lower(),
+                                     data=method_name,
                                      context=Qt.WidgetShortcut)
             self.undo_action = create_edit_action("Undo",'undo.png')
             self.redo_action = create_edit_action("Redo", 'redo.png')
