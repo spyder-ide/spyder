@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
                                         triggered=self.path_manager_callback,
                                         tip=self.tr("Open Spyder path manager"))
         
-        # Widgets
+        # Plugins
         self.console = None
         self.editor = None
         self.explorer = None
@@ -242,6 +242,7 @@ class MainWindow(QMainWindow):
         self.file_menu = None
         self.edit_menu = None
         self.search_menu = None
+        self.run_menu = None
         self.view_menu = None
         
         # Set Window title and icon
@@ -359,7 +360,6 @@ class MainWindow(QMainWindow):
             
             # Edit menu
             self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
-            add_actions(self.edit_menu, self.edit_menu_actions)
             
             # Search menu
             self.search_menu = self.menuBar().addMenu(self.tr("&Search"))
@@ -407,7 +407,15 @@ class MainWindow(QMainWindow):
             self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),
                          self.redirect_internalshell_stdio)
             self.add_dockwidget(self.editor)
+            
+            # Editor-related menu bars:
             self.add_to_menubar(self.editor, self.tr("&Source"))
+            self.edit_menu_actions += [None]+self.editor.edit_menu_actions
+            add_actions(self.edit_menu, self.edit_menu_actions)
+            self.run_menu = self.menuBar().addMenu(self.tr("&Run"))
+            add_actions(self.run_menu, self.editor.run_menu_actions)
+            
+            # Editor-related toolbars:
             file_toolbar = self.create_toolbar(self.tr("File toolbar"),
                                                "file_toolbar")
             add_actions(file_toolbar, self.editor.file_toolbar_actions)
@@ -824,6 +832,12 @@ class MainWindow(QMainWindow):
         self.cut_action.setEnabled(has_selection and not_readonly)
         self.paste_action.setEnabled(not_readonly)
         self.delete_action.setEnabled(has_selection and not_readonly)
+        
+        # Comment, uncomment, indent, unindent...
+        if not console and not_readonly:
+            # This is the editor and current file is writable
+            for action in self.editor.edit_menu_actions:
+                action.setEnabled(True)
         
     def update_search_menu(self):
         """Update search menu"""

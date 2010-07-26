@@ -79,6 +79,8 @@ class Editor(SpyderPluginWidget):
         self.run_toolbar_actions = None
         self.edit_toolbar_actions = None
         self.file_menu_actions = None
+        self.run_menu_actions = None
+        self.edit_menu_actions = None
         self.source_menu_actions = None
         self.stack_menu_actions = None
         SpyderPluginWidget.__init__(self, parent)
@@ -322,7 +324,7 @@ class Editor(SpyderPluginWidget):
             triggered=lambda: self.run_script_extconsole( \
                                            ask_for_arguments=True))
         run_debug_action = create_action(self,
-            self.tr("Debug"), "Ctrl+Shift+F5", 'run_new_external.png',
+            self.tr("Debug"), "Ctrl+Shift+F5", 'bug.png',
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a "
                         "separate process)"),
@@ -348,9 +350,8 @@ class Editor(SpyderPluginWidget):
                         "separate process)"),
             triggered=lambda: self.run_script_extconsole(current=True,
                                                         ask_for_arguments=True))
-        
         run_selected_action = create_action(self,
-            self.tr("Run &selection or current block"), "Ctrl+F5",
+            self.tr("Run &selection or current block"), "Ctrl+F6",
             'run_selection.png',
             tip=self.tr("Run selected text or current block of lines \n"
                         "inside current external console's interpreter"),
@@ -517,11 +518,14 @@ class Editor(SpyderPluginWidget):
                      self.update_recent_file_menu)
 
         self.file_menu_actions = [self.new_action, self.open_action,
-                              self.recent_file_menu, self.save_action,
-                              self.save_all_action, save_as_action,
-                              None, print_preview_action, print_action,
-                              None, self.close_action, self.close_all_action,
-                              None]
+                                  self.recent_file_menu, self.save_action,
+                                  self.save_all_action, save_as_action,
+                                  None, print_preview_action, print_action,
+                                  None, self.close_action,
+                                  self.close_all_action, None]
+        self.file_toolbar_actions = [self.new_action, self.open_action,
+                                     self.save_action, self.save_all_action,
+                                     print_action]
         
         option_menu = QMenu(self.tr("Code source editor settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
@@ -532,46 +536,46 @@ class Editor(SpyderPluginWidget):
               None, checkeol_action,
               None, linenumbers_action, todo_action, analyze_action))
         
-        self.source_menu_actions = (self.comment_action, self.uncomment_action,
-                blockcomment_action, unblockcomment_action,
-                self.indent_action, self.unindent_action,
-                None, run_new_action, run_interact_action, run_args_action,
-                run_debug_action, re_run_action,
-                None, run_inside_action, run_args_inside_action,
-                run_selected_action,
-                None, pylint_action, self.winpdb_action,
-                None, eol_menu, trailingspaces_action, fixindentation_action,
-                None, option_menu)
-        self.file_toolbar_actions = [self.new_action, self.open_action,
-                self.save_action, self.save_all_action, print_action]
+        
+        self.edit_menu_actions = [self.comment_action, self.uncomment_action,
+                                  blockcomment_action, unblockcomment_action,
+                                  self.indent_action, self.unindent_action]
+        self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
+                                     self.indent_action, self.unindent_action]
+        
+        self.run_menu_actions = [run_new_action, run_interact_action,
+                                 run_args_action, run_debug_action,
+                                 re_run_action, None, run_inside_action,
+                                 run_args_inside_action, run_selected_action]
+        self.run_toolbar_actions = [run_new_action, run_inside_action,
+                                    run_selected_action, re_run_action]
+        
+        self.source_menu_actions = [pylint_action, self.winpdb_action, None,
+                                    eol_menu, trailingspaces_action,
+                                    fixindentation_action]
+        
         self.analysis_toolbar_actions = [self.todo_list_action,
                 self.warning_list_action, self.previous_warning_action,
                 self.next_warning_action]
-        self.run_toolbar_actions = [run_new_action, run_inside_action,
-                                    run_selected_action, re_run_action]
-        self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
-                self.indent_action, self.unindent_action]
         self.dock_toolbar_actions = self.file_toolbar_actions + [None] + \
                                     self.analysis_toolbar_actions + [None] + \
                                     self.run_toolbar_actions + [None] + \
                                     self.edit_toolbar_actions
-        self.pythonfile_dependent_actions = (run_new_action,
-                run_inside_action, run_args_inside_action, re_run_action,
-                run_interact_action, run_selected_action,
-                run_args_action, run_debug_action,
+        self.pythonfile_dependent_actions = (run_new_action, run_inside_action,
+                run_args_inside_action, re_run_action, run_interact_action,
+                run_selected_action, run_args_action, run_debug_action,
                 blockcomment_action, unblockcomment_action, pylint_action,
                 self.winpdb_action)
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                (self.save_action, save_as_action,
-                 print_preview_action, print_action,
-                 self.save_all_action, workdir_action, self.close_action,
-                 self.close_all_action,
+                (self.save_action, save_as_action, print_preview_action,
+                 print_action, self.save_all_action, workdir_action,
+                 self.close_action, self.close_all_action,
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action)
         self.stack_menu_actions = (self.save_action, save_as_action,
-                                   print_action,
-                                   run_new_action, run_inside_action,
-                                   workdir_action, self.close_action)
+                                   print_action, run_new_action,
+                                   run_inside_action, workdir_action,
+                                   self.close_action)
         return (self.source_menu_actions, self.dock_toolbar_actions)        
     
         
