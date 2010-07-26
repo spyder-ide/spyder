@@ -5,6 +5,7 @@ SOURCES	     += utils/iofuncs.py
 SOURCES	     += utils/qthelpers.py
 
 SOURCES	     += plugins/__init__.py
+SOURCES	     += plugins/configdialog.py
 SOURCES	     += plugins/console.py
 SOURCES	     += plugins/editor.py
 SOURCES	     += plugins/explorer.py

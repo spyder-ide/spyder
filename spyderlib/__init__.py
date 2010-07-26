@@ -38,8 +38,7 @@ __license__ = __doc__
 
 #TODO: add an option to customize namespace browser refresh time out
 
-#TODO: regroup plugin settings in a new menu (or dlg box??) "Preferences"
-#      --> color schemes for editor
+#TODO: "Preferences": add color schemes for editor/console
 
 #TODO: IPython: add "configurations" management
 
@@ -61,3 +60,8 @@ __license__ = __doc__
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
 
 #TODO: Option to inverse console colors
+
+#TODO: menus/toolbars reordering:
+# 1. Move tools to "Tools" > "External Tools" submenu
+# 2. Move Preferences + Open Terminal + Windows EnvVar Sync to "Tools" menu
+# 3. Move Open Python/IPython interpreters to "Run" menu

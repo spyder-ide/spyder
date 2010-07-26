@@ -42,6 +42,7 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
+from spyderlib.plugins.configdialog import ConfigDialog
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
@@ -443,7 +444,11 @@ class MainWindow(QMainWindow):
                                   "(i.e. for all sessions)"),
                     triggered=self.win_env)
                 file_actions.append(winenv_action)
-            file_actions += (None, self.quit_action)
+            prefs_action = create_action(self, self.tr("Preferences..."),
+                                         icon='configure.png',
+                                         triggered=self.edit_preferences)
+            file_actions += (None, prefs_action, None, self.quit_action)
+            add_actions(main_toolbar, [prefs_action, None])
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
@@ -1169,6 +1174,17 @@ class MainWindow(QMainWindow):
     def win_env(self):
         """Show Windows current user environment variables"""
         dlg = WinUserEnvDialog(self)
+        dlg.exec_()
+        
+    def edit_preferences(self):
+        """Edit Spyder preferences"""
+        dlg = ConfigDialog(self)
+        for plugin in (self.editor, self.projectexplorer, self.extconsole,
+                       self.historylog, self.inspector, self.variableexplorer,
+                       self.onlinehelp, self.explorer, self.findinfiles,
+                       self.pylint):
+            if plugin is not None:
+                dlg.add_page(plugin)
         dlg.exec_()
         
     def load_session(self, filename=None):

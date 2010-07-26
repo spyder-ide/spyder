@@ -19,7 +19,9 @@ These plugins inherit the following classes
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
-                         QKeySequence, QMainWindow, QApplication)
+                         QKeySequence, QMainWindow, QApplication, QCheckBox,
+                         QMessageBox, QLabel, QLineEdit, QSpinBox, QVBoxLayout,
+                         QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -32,8 +34,116 @@ from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.userconfig import NoDefault
+from spyderlib.plugins.configdialog import ConfigPage
 from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
+
+
+class PluginConfigPage(ConfigPage):
+    """Plugin configuration dialog box page widget"""
+    def __init__(self, plugin, parent):
+        self.plugin = plugin
+        self.get_option = self.plugin.get_option
+        self.set_option = self.plugin.set_option
+        ConfigPage.__init__(self, parent,
+                            apply_callback=plugin.apply_plugin_settings)
+        self.checkboxes = {}
+        self.lineedits = {}
+        self.spinboxes = {}
+        
+    def get_name(self):
+        """Return page name"""
+        return self.plugin.get_plugin_title()
+    
+    def get_icon(self):
+        """Return page icon"""
+        return self.plugin.get_plugin_icon()
+        
+    def load_from_conf(self):
+        """Load settings from configuration file"""
+        for checkbox, (option, default) in self.checkboxes.items():
+            checkbox.setChecked(self.get_option(option, default))
+        for lineedit, (option, default) in self.lineedits.items():
+            lineedit.setText(self.get_option(option, default))
+        for spinbox, (option, default) in self.spinboxes.items():
+            spinbox.setValue(self.get_option(option, default))
+    
+    def save_to_conf(self):
+        """Save settings to configuration file"""
+        for checkbox, (option, _default) in self.checkboxes.items():
+            self.set_option(option, checkbox.isChecked())
+        for lineedit, (option, _default) in self.lineedits.items():
+            self.set_option(option, unicode(lineedit.text()))
+        for spinbox, (option, _default) in self.spinboxes.items():
+            self.set_option(option, spinbox.value())
+    
+    def create_checkbox(self, text, option, default=NoDefault,
+                        tip=None, msg_warning=None, msg_info=None,
+                        msg_if_enabled=False):
+        checkbox = QCheckBox(text)
+        if tip is not None:
+            checkbox.setToolTip(tip)
+        self.checkboxes[checkbox] = (option, default)
+        if msg_warning is not None or msg_info is not None:
+            def show_message(is_checked):
+                if is_checked or not msg_if_enabled:
+                    if msg_warning is not None:
+                        QMessageBox.warning(self, self.get_name(),
+                                            msg_warning, QMessageBox.Ok)
+                    if msg_info is not None:
+                        QMessageBox.information(self, self.get_name(),
+                                                msg_info, QMessageBox.Ok)
+            self.connect(checkbox, SIGNAL("clicked(bool)"), show_message)
+        return checkbox
+    
+    def create_lineedit(self, text, option, default=NoDefault,
+                        tip=None, alignment=Qt.Vertical):
+        label = QLabel(text)
+        label.setWordWrap(True)
+        edit = QLineEdit()
+        layout = QVBoxLayout() if alignment == Qt.Vertical else QHBoxLayout()
+        layout.addWidget(label)
+        layout.addWidget(edit)
+        layout.setContentsMargins(0, 0, 0, 0)
+        if tip:
+            edit.setToolTip(tip)
+        self.lineedits[edit] = (option, default)
+        lineedit = QWidget(self)
+        lineedit.setLayout(layout)
+        return lineedit
+    
+    def create_spinbox(self, prefix, suffix, option, default=NoDefault,
+                       min_=None, max_=None, step=None, tip=None):
+        plabel = QLabel(prefix)
+        slabel = QLabel(suffix)
+        spinbox = QSpinBox()
+        if min_ is not None:
+            spinbox.setMinimum(min_)
+        if max_ is not None:
+            spinbox.setMaximum(max_)
+        if step is not None:
+            spinbox.setSingleStep(step)
+        if tip is not None:
+            spinbox.setToolTip(tip)
+        self.spinboxes[spinbox] = (option, default)
+        layout = QHBoxLayout()
+        for subwidget in (plabel, spinbox, slabel):
+            layout.addWidget(subwidget)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
+    def create_tab(self, *widgets):
+        """Create simple tab widget page: widgets added in a vertical layout"""
+        widget = QWidget()
+        layout = QVBoxLayout()
+        for widg in widgets:
+            layout.addWidget(widg)
+        layout.addStretch(1)
+        widget.setLayout(layout)
+        return widget
 
 
 class SpyderPluginMixin(object):
@@ -48,6 +158,7 @@ class SpyderPluginMixin(object):
         'show_message(QString,int)'
     """
     ID = None
+    CONFIGWIDGET_CLASS = None
     FLAGS = Qt.Window
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
     LOCATION = Qt.LeftDockWidgetArea
@@ -99,6 +210,17 @@ class SpyderPluginMixin(object):
         mainwindow.setCentralWidget(self)
         self.refresh_plugin()
         return mainwindow
+    
+    def create_configwidget(self, parent):
+        """Create configuration dialog box page widget"""
+        if self.CONFIGWIDGET_CLASS is not None:
+            configwidget = self.CONFIGWIDGET_CLASS(self, parent)
+            configwidget.initialize()
+            return configwidget
+
+    def apply_plugin_settings(self):
+        """Apply configuration file's plugin settings"""
+        raise NotImplementedError
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""

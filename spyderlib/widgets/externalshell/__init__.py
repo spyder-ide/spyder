@@ -131,6 +131,14 @@ class ExternalShellBase(QWidget):
         if self.options_button is not None:
             buttons.insert(1, self.options_button)
         return buttons
+            
+    def set_icontext_visible(self, state):
+        """Set icon text visibility"""
+        for widget in self.get_toolbar_buttons():
+            if state:
+                widget.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+            else:
+                widget.setToolButtonStyle(Qt.ToolButtonIconOnly)
     
     def get_options_menu(self):
         return []

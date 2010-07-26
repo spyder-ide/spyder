@@ -16,7 +16,8 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
-                         QFontDialog, QAbstractPrintDialog)
+                         QFontDialog, QAbstractPrintDialog, QGroupBox,
+                         QPushButton, QTabWidget)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -38,7 +39,7 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
                                       EditorMainWindow, CodeEditor, Printer)
-from spyderlib.plugins import SpyderPluginWidget
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 
 WINPDB_PATH = programs.get_nt_program_name('winpdb')
@@ -47,11 +48,89 @@ def is_winpdb_installed():
     return programs.is_program_installed(WINPDB_PATH)
 
 
+class EditorConfigPage(PluginConfigPage):
+    def setup_page(self):
+        template_btn = QPushButton(self.tr("Edit template for new modules"))
+        self.connect(template_btn, SIGNAL('clicked()'),
+                     self.plugin.edit_template)
+        
+        interface_group = QGroupBox(self.tr("Interface"))
+        font_btn = QPushButton(self.tr("Set text and margin font style"))
+        self.connect(font_btn, SIGNAL('clicked()'),
+                     self.plugin.change_font)
+        newcb = self.create_checkbox
+        cbvis_box = newcb(self.tr("Show class browser"),
+                          'class_browser/visibility')
+        fpsorting_box = newcb(self.tr("Sort files according to full path"),
+                              'fullpath_sorting')
+        showtabbar_box = newcb(self.tr("Show tab bar"), 'show_tab_bar')
+
+        interface_layout = QVBoxLayout()
+        interface_layout.addWidget(font_btn)
+        interface_layout.addWidget(cbvis_box)
+        interface_layout.addWidget(fpsorting_box)
+        interface_layout.addWidget(showtabbar_box)
+        interface_group.setLayout(interface_layout)
+
+        margins_group = QGroupBox(self.tr("Margins"))
+        linenumbers_box = newcb(self.tr("Show line numbers"), 'line_numbers')
+        occurence_box = newcb(self.tr("Highlight occurences"),
+                              'occurence_highlighting', default=True)
+        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
+                                 'code_analysis', default=True)
+        codeanalysis_box.setToolTip(self.tr("If enabled, Python source code "
+                        "will be analyzed using pyflakes, lines containing "
+                        "errors or warnings will be highlighted"))
+        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
+        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
+                             'todo_list', default=True)
+        
+        margins_layout = QVBoxLayout()
+        margins_layout.addWidget(linenumbers_box)
+        margins_layout.addWidget(occurence_box)
+        margins_layout.addWidget(codeanalysis_box)
+        margins_layout.addWidget(todolist_box)
+        margins_group.setLayout(margins_layout)
+        
+        sourcecode_group = QGroupBox(self.tr("Source code"))
+        completion_box = newcb(self.tr("Automatic code completion"),
+                               'codecompletion/auto')
+        comp_enter_box = newcb(self.tr("Enter key selects completion"),
+                               'codecompletion/enter-key')
+        tab_mode_box = newcb(self.tr("Tab always indent"),
+                             'tab_always_indent', default=True,
+                             tip=self.tr("If enabled, pressing Tab will always "
+                                         "indent, even when the cursor is not "
+                                         "at the beginning of a line"))
+        wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
+        check_eol_box = newcb(self.tr("Show warning when fixing newline chars"),
+                              'check_eol_chars', default=True)
+        
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(completion_box)
+        sourcecode_layout.addWidget(comp_enter_box)
+        sourcecode_layout.addWidget(tab_mode_box)
+        sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_group.setLayout(sourcecode_layout)
+        
+        tabs = QTabWidget()
+        tabs.addTab(self.create_tab(interface_group, sourcecode_group),
+                    self.tr("Basics"))
+        tabs.addTab(self.create_tab(template_btn, margins_group,
+                                    check_eol_box),
+                    self.tr("Advanced"))
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(tabs)
+        self.setLayout(vlayout)
+
+
 class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
     """
     ID = 'editor'
+    CONFIGWIDGET_CLASS = EditorConfigPage
     TEMPFILE_PATH = get_conf_path('.temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
@@ -227,6 +306,10 @@ class Editor(SpyderPluginWidget):
     def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Editor')
+    
+    def get_plugin_icon(self):
+        """Return widget icon"""
+        return get_icon('edit.png')
     
     def get_focus_widget(self):
         """
@@ -444,62 +527,6 @@ class Editor(SpyderPluginWidget):
                       tip=self.tr("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
-        template_action = create_action(self, self.tr("Edit template for "
-                                                      "new modules"),
-                                        triggered=self.edit_template)
-        
-        font_action = create_action(self, self.tr("&Font..."), None,
-            'font.png', self.tr("Set text and margin font style"),
-            triggered=self.change_font)
-        linenumbers_action = create_action(self, self.tr("Show line numbers"),
-                                           toggled=self.toggle_linenumbers)
-        linenumbers_action.setChecked(self.get_option('line_numbers', True))
-        todo_action = create_action(self,
-            self.tr("Tasks (TODO, FIXME, XXX)"),
-            toggled=self.toggle_todo_list)
-        todo_action.setChecked(self.get_option('todo_list', True))
-        analyze_action = create_action(self,
-            self.tr("Code analysis (pyflakes)"),
-            toggled=self.toggle_code_analysis,
-            tip=self.tr("If enabled, Python source code will be analyzed "
-                        "using pyflakes, lines containing errors or "
-                        "warnings will be highlighted"))
-        analyze_action.setChecked(self.get_option('code_analysis', True))
-        analyze_action.setEnabled(programs.is_module_installed('pyflakes'))
-        codecompletion_action = create_action(self,
-                                          self.tr("Automatic code completion"),
-                                          toggled=self.toggle_codecompletion)
-        codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
-        codecompenter_action = create_action(self,
-                                    self.tr("Enter key selects completion"),
-                                    toggled=self.toggle_codecompletion_enter)
-        codecompenter_action.setChecked(self.get_option(
-                                                    'codecompletion/enter-key'))
-        checkeol_action = create_action(self,
-                self.tr("Show warning when fixing newline chars"),
-                toggled=lambda checked: self.emit(SIGNAL('option_changed'),
-                                                  'check_eol_chars', checked))
-        checkeol_action.setChecked(self.get_option('check_eol_chars', True))
-        wrap_action = create_action(self, self.tr("Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked(self.get_option('wrap'))
-        tab_action = create_action(self, self.tr("Tab always indent"),
-            toggled=self.toggle_tab_mode,
-            tip=self.tr("If enabled, pressing Tab will always indent, "
-                        "even when the cursor is not at the beginning "
-                        "of a line"))
-        tab_action.setChecked(self.get_option('tab_always_indent', True))
-        occurence_action = create_action(self, self.tr("Highlight occurences"),
-            toggled=self.toggle_occurence_highlighting)
-        occurence_action.setChecked(self.get_option(
-                                              'occurence_highlighting', True))
-        fpsorting_action = create_action(self,
-                                 self.tr("Sort files according to full path"),
-                                 toggled=self.toggle_fullpath_sorting)
-        fpsorting_action.setChecked(self.get_option('fullpath_sorting', True))
-        showtabbar_action = create_action(self, self.tr("Show tab bar"),
-                                 toggled=self.toggle_tabbar_visibility)
-        showtabbar_action.setChecked(self.get_option('show_tab_bar', True))
         workdir_action = create_action(self,
                 self.tr("Set console working directory"),
                 icon=get_std_icon('DirOpenIcon'),
@@ -527,14 +554,6 @@ class Editor(SpyderPluginWidget):
                                      self.save_action, self.save_all_action,
                                      print_action]
         
-        option_menu = QMenu(self.tr("Code source editor settings"), self)
-        option_menu.setIcon(get_icon('tooloptions.png'))
-        add_actions(option_menu, (
-              template_action, font_action, fpsorting_action, showtabbar_action,
-              None, wrap_action, tab_action, occurence_action,
-              None, codecompletion_action, codecompenter_action,
-              None, checkeol_action,
-              None, linenumbers_action, todo_action, analyze_action))
         
         
         self.edit_menu_actions = [self.comment_action, self.uncomment_action,
@@ -1345,63 +1364,44 @@ class Editor(SpyderPluginWidget):
                 editorstack.set_default_font(font)
             self.set_plugin_font(font)
             
-    def toggle_wrap_mode(self, checked):
-        """Toggle wrap mode"""
+    def apply_plugin_settings(self):
+        """Apply configuration file's plugin settings"""
+        # toggle_classbrowser_visibility
+        checked = self.get_option('class_browser/visibility')
+        self.classbrowser.setVisible(checked)
+        if checked:
+            self.classbrowser.update()
+            editorstack = self.get_current_editorstack()
+            editorstack._refresh_classbrowser(update=True)
+        # toggle_fullpath_sorting
+        checked = self.get_option('fullpath_sorting')
         if self.editorstacks is not None:
-            self.set_option('wrap', checked)
+            if self.classbrowser is not None:
+                self.classbrowser.set_fullpath_sorting(checked)
+            for window in self.editorwindows:
+                window.editorwidget.classbrowser.set_fullpath_sorting(checked)
             for editorstack in self.editorstacks:
-                editorstack.set_wrap_enabled(checked)
-            
-    def toggle_tab_mode(self, checked):
-        """
-        Toggle tab mode:
-        checked = tab always indent
-        (otherwise tab indents only when cursor is at the beginning of a line)
-        """
+                editorstack.set_fullpath_sorting_enabled(checked)
+        # toggle_tabbar_visibility
+        checked = self.get_option('show_tab_bar')
         if self.editorstacks is not None:
-            self.set_option('tab_always_indent', checked)
             for editorstack in self.editorstacks:
-                editorstack.set_tabmode_enabled(checked)
-            
-    def toggle_occurence_highlighting(self, checked):
-        """Toggle occurence highlighting"""
+                editorstack.set_tabbar_visible(checked)
+        # toggle_linenumbers
+        checked = self.get_option('line_numbers')
         if self.editorstacks is not None:
-            self.set_option('occurence_highlighting', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_occurence_highlighting_enabled(checked)
-            
-    def toggle_codecompletion(self, checked):
-        """Toggle automatic code completion"""
-        if self.editorstacks is not None:
-            self.set_option('codecompletion/auto', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_codecompletion_auto_enabled(checked)
-            
-    def toggle_codecompletion_enter(self, checked):
-        """Toggle Enter key for code completion"""
-        if self.editorstacks is not None:
-            self.set_option('codecompletion/enter-key', checked)
-            for editorstack in self.editorstacks:
-                editorstack.set_codecompletion_enter_enabled(checked)
-                            
-    def toggle_code_analysis(self, checked):
-        """Toggle code analysis"""
-        if self.editorstacks is not None:
-            self.set_option('code_analysis', checked)
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
-                editorstack.set_codeanalysis_enabled(checked,
-                                                     current_finfo=finfo)
-            # We must update the current editor after the others:
-            # (otherwise, code analysis buttons state would correspond to the
-            #  last editor instead of showing the one of the current editor)
-            if checked:
-                finfo.run_code_analysis()
-            
-    def toggle_todo_list(self, checked):
-        """Toggle todo list"""
+                editorstack.set_linenumbers_enabled(checked,
+                                                    current_finfo=finfo)
+        # toggle_occurence_highlighting
+        checked = self.get_option('occurence_highlighting')
         if self.editorstacks is not None:
-            self.set_option('todo_list', checked)
+            for editorstack in self.editorstacks:
+                editorstack.set_occurence_highlighting_enabled(checked)
+        # toggle_todo_list
+        checked = self.get_option('todo_list')
+        if self.editorstacks is not None:
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
                 editorstack.set_todolist_enabled(checked,
@@ -1411,39 +1411,36 @@ class Editor(SpyderPluginWidget):
             #  last editor instead of showing the one of the current editor)
             if checked:
                 finfo.run_todo_finder()
-
-    def toggle_linenumbers(self, checked):
-        """Toggle line numbers visibility"""
+        # toggle_code_analysis
+        checked = self.get_option('code_analysis')
         if self.editorstacks is not None:
-            self.set_option('line_numbers', checked)
             finfo = self.get_current_finfo()
             for editorstack in self.editorstacks:
-                editorstack.set_linenumbers_enabled(checked,
-                                                    current_finfo=finfo)
-
-    def toggle_classbrowser_visibility(self, checked):
-        """Toggle class browser"""
-        self.classbrowser.setVisible(checked)
-        self.set_option('class_browser/visibility', checked)
-        if checked:
-            self.classbrowser.update()
-            editorstack = self.get_current_editorstack()
-            editorstack._refresh_classbrowser(update=True)
-            
-    def toggle_fullpath_sorting(self, checked):
-        """Toggle full path sorting"""
+                editorstack.set_codeanalysis_enabled(checked,
+                                                     current_finfo=finfo)
+            # We must update the current editor after the others:
+            # (otherwise, code analysis buttons state would correspond to the
+            #  last editor instead of showing the one of the current editor)
+            if checked:
+                finfo.run_code_analysis()
+        # toggle_wrap_mode
+        checked = self.get_option('wrap')
         if self.editorstacks is not None:
-            self.emit(SIGNAL('option_changed'), 'fullpath_sorting', checked)
-            if self.classbrowser is not None:
-                self.classbrowser.set_fullpath_sorting(checked)
-            for window in self.editorwindows:
-                window.editorwidget.classbrowser.set_fullpath_sorting(checked)
             for editorstack in self.editorstacks:
-                editorstack.set_fullpath_sorting_enabled(checked)
-
-    def toggle_tabbar_visibility(self, checked):
-        """Toggle tab bar visibility"""
+                editorstack.set_wrap_enabled(checked)
+        # toggle_tab_mode
+        checked = self.get_option('tab_always_indent')
         if self.editorstacks is not None:
-            self.emit(SIGNAL('option_changed'), 'show_tab_bar', checked)
             for editorstack in self.editorstacks:
-                editorstack.set_tabbar_visible(checked)
+                editorstack.set_tabmode_enabled(checked)
+        # toggle_codecompletion
+        checked = self.get_option('codecompletion/auto')
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                editorstack.set_codecompletion_auto_enabled(checked)
+        # toggle_codecompletion_enter
+        checked = self.get_option('codecompletion/enter-key')
+        if self.editorstacks is not None:
+            for editorstack in self.editorstacks:
+                editorstack.set_codecompletion_enter_enabled(checked)
+        
