@@ -438,7 +438,8 @@ class FindOptions(QWidget):
     def toggle_more_options(self, state):
         for layout in self.more_widgets:
             for index in range(layout.count()):
-                layout.itemAt(index).widget().setVisible(state)
+                if state and self.isVisible() or not state:
+                    layout.itemAt(index).widget().setVisible(state)
         if state:
             icon_name = 'options_less.png'
             tip = translate('FindInFiles', 'Hide advanced options')
