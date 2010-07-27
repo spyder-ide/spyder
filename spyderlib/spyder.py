@@ -668,14 +668,6 @@ class MainWindow(QMainWindow):
             
         if not self.light:
             self.set_splash(self.tr("Setting up main window..."))
-                                
-            # View menu
-            self.view_menu = self.createPopupMenu()
-            self.view_menu.setTitle(self.tr("&View"))
-            add_actions(self.view_menu, (None, self.maximize_action,
-                                         self.fullscreen_action))
-            self.menuBar().insertMenu(self.help_menu.menuAction(),
-                                      self.view_menu)
             
             # ? menu
             about_action = create_action(self,
@@ -722,6 +714,14 @@ class MainWindow(QMainWindow):
                             plugin.register_plugin()
                         except AttributeError, error:
                             print >>STDERR, "%s: %s" % (mod, str(error))
+                                
+            # View menu
+            self.view_menu = self.createPopupMenu()
+            self.view_menu.setTitle(self.tr("&View"))
+            add_actions(self.view_menu, (None, self.maximize_action,
+                                         self.fullscreen_action))
+            self.menuBar().insertMenu(self.help_menu.menuAction(),
+                                      self.view_menu)
             
             # Adding external tools action to "Tools" menu
             external_tools_act = create_action(self, self.tr("External Tools"),

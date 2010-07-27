@@ -33,7 +33,6 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.pylintgui import is_pylint_installed
 from spyderlib.widgets.editortools import ClassBrowser
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
@@ -490,12 +489,8 @@ class Editor(SpyderPluginWidget):
             triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
-        pylint_action = create_action(self, self.tr("Run pylint code analysis"),
-                                      "F7", triggered=self.run_pylint)
-        pylint_action.setEnabled(is_pylint_installed())
-        
         self.winpdb_action = create_action(self, self.tr("Debug with winpdb"),
-                                           "F8", triggered=self.run_winpdb)
+                                           "F7", triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(is_winpdb_installed())
         
         self.win_eol_action = create_action(self,
@@ -568,8 +563,7 @@ class Editor(SpyderPluginWidget):
         self.main.run_toolbar_actions += run_toolbar_actions
         
         source_menu_actions = [eol_menu, trailingspaces_action,
-                               fixindentation_action, None,
-                               pylint_action, self.winpdb_action]
+                               fixindentation_action, None, self.winpdb_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,
@@ -581,21 +575,20 @@ class Editor(SpyderPluginWidget):
                                     source_toolbar_actions + [None] + \
                                     run_toolbar_actions + [None] + \
                                     edit_toolbar_actions
-        self.pythonfile_dependent_actions = (run_new_action, run_inside_action,
+        self.pythonfile_dependent_actions = [run_new_action, run_inside_action,
                 run_args_inside_action, re_run_action, run_interact_action,
                 run_selected_action, run_args_action, run_debug_action,
-                blockcomment_action, unblockcomment_action, pylint_action,
-                self.winpdb_action)
+                blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
-                (self.save_action, save_as_action, print_preview_action,
+                [self.save_action, save_as_action, print_preview_action,
                  print_action, self.save_all_action, workdir_action,
                  self.close_action, self.close_all_action,
                  self.comment_action, self.uncomment_action,
-                 self.indent_action, self.unindent_action)
-        self.stack_menu_actions = (self.save_action, save_as_action,
+                 self.indent_action, self.unindent_action]
+        self.stack_menu_actions = [self.save_action, save_as_action,
                                    print_action, run_new_action,
                                    run_inside_action, workdir_action,
-                                   self.close_action)
+                                   self.close_action]
         return (source_menu_actions, self.dock_toolbar_actions)        
     
         
@@ -1289,11 +1282,6 @@ class Editor(SpyderPluginWidget):
     def go_to_previous_warning(self):
         editor = self.get_current_editor()
         editor.go_to_previous_warning()
-            
-    def run_pylint(self):
-        """Run pylint code analysis"""
-        fname = self.get_current_filename()
-        self.emit(SIGNAL('run_pylint(QString)'), fname)
         
     def run_winpdb(self):
         """Run winpdb to debug current file"""
