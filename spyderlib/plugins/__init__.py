@@ -288,6 +288,12 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
         self.setWindowTitle(self.get_plugin_title())
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        #XXX: For now, it is required only for 3rd party plugins,
+        # but it should be generalized to all plugins
+        pass
         
     def get_plugin_title(self):
         """

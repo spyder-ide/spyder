@@ -567,9 +567,9 @@ class Editor(SpyderPluginWidget):
         self.run_toolbar_actions = [run_new_action, run_inside_action,
                                     run_selected_action, re_run_action]
         
-        self.source_menu_actions = [pylint_action, self.winpdb_action, None,
-                                    eol_menu, trailingspaces_action,
-                                    fixindentation_action]
+        self.source_menu_actions = [eol_menu, trailingspaces_action,
+                                    fixindentation_action, None,
+                                    pylint_action, self.winpdb_action]
         
         self.analysis_toolbar_actions = [self.todo_list_action,
                 self.warning_list_action, self.previous_warning_action,

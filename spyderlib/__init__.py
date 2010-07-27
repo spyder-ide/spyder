@@ -36,11 +36,11 @@ __license__ = __doc__
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
-#TODO: add an option to customize namespace browser refresh time out
-
-#TODO: "Preferences": add color schemes for editor/console
-
-#TODO: IPython: add "configurations" management
+#TODO: "Preferences":
+# * add an option to customize namespace browser refresh time out
+# * add color schemes for editor/console
+# * Option to inverse console colors
+# * IPython: add "configurations" management
 
 #TODO: File Explorer: add support for multiple selection
 
@@ -58,7 +58,6 @@ __license__ = __doc__
 #TODO: QsciEditor was removed: remove (or rename) all the QScintilla-compat. methods (e.g. selectedText, hasSelectedText, etc.)
 
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
-
-#TODO: Option to inverse console colors
+#TODO: implement all "register_plugin" methods for plugins (see SpyderPluginWigdet class)
 
 #TODO: Take a look at session management: adapt to new v2.0 features

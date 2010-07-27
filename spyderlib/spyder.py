@@ -58,7 +58,6 @@ from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
-from spyderlib.plugins.pylintgui import Pylint
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
@@ -212,7 +211,7 @@ class MainWindow(QMainWindow):
         self.extconsole = None
         self.variableexplorer = None
         self.findinfiles = None
-        self.pylint = None
+        self.thirdparty_plugins = []
         
         # Actions
         self.find_action = None
@@ -535,18 +534,23 @@ class MainWindow(QMainWindow):
                 self.add_dockwidget(self.projectexplorer)
             add_actions(self.file_menu, file_actions)
                 
-            # Pylint widget
-            if CONF.get('pylint', 'enable'):
-                self.set_splash(self.tr("Loading pylint plugin..."))
-                self.pylint = Pylint(self)
-                self.connect(self.editor, SIGNAL('run_pylint(QString)'),
-                             self.pylint.analyze)
-                self.connect(self.pylint,
-                             SIGNAL("edit_goto(QString,int,QString)"),
-                             self.editor.load)
-                self.connect(self.pylint, SIGNAL('redirect_stdio(bool)'),
-                             self.redirect_internalshell_stdio)
-                self.add_dockwidget(self.pylint)
+            # Third-party plugins
+            from spyderlib.utils import programs
+            if programs.is_module_installed("spyderplugins"):
+                self.set_splash(self.tr("Loading third-party plugins..."))
+                import spyderplugins
+                path = spyderplugins.__path__[0]
+                for name in os.listdir(path):
+                    modname, ext = osp.splitext(name)
+                    if name.startswith('p_') and ext == '.py':
+                        mod = getattr(__import__('spyderplugins.%s' % modname),
+                                      modname)
+                        try:
+                            plugin = mod.PLUGIN_CLASS(self)
+                            self.thirdparty_plugins.append(plugin)
+                            plugin.register_plugin()
+                        except AttributeError, error:
+                            print >>STDERR, "%s: %s" % (mod, str(error))
             
         # External console menu
         if not self.light:
@@ -738,12 +742,11 @@ class MainWindow(QMainWindow):
                                   (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
-                                  (self.findinfiles, self.pylint),
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
-            for plugin in (self.pylint, self.findinfiles, self.onlinehelp,
-                           self.console):
+            for plugin in [self.findinfiles, self.onlinehelp, self.console,
+                           ]+self.thirdparty_plugins:
                 if plugin is not None:
                     plugin.dockwidget.close()
             for plugin in (self.inspector, self.extconsole):
@@ -1193,10 +1196,10 @@ class MainWindow(QMainWindow):
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)
-        for plugin in (self.editor, self.projectexplorer, self.extconsole,
+        for plugin in [self.editor, self.projectexplorer, self.extconsole,
                        self.historylog, self.inspector, self.variableexplorer,
                        self.onlinehelp, self.explorer, self.findinfiles,
-                       self.pylint):
+                       ]+self.thirdparty_plugins:
             if plugin is not None:
                 dlg.add_page(plugin)
         dlg.exec_()
