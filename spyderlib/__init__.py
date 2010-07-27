@@ -59,5 +59,6 @@ __license__ = __doc__
 
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
 #TODO: implement all "register_plugin" methods for plugins (see SpyderPluginWigdet class)
+#TODO: reconsidérer la pertinence de la méthode "get_plugin_actions"
 
 #TODO: Take a look at session management: adapt to new v2.0 features

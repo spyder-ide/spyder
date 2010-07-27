@@ -26,7 +26,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     ID = 'project_explorer'
     DATAPATH = get_conf_path('.projects')
     def __init__(self, parent=None):
-        self.new_project_action = None
         include = self.get_option('include', '.')
         exclude = self.get_option('exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
         show_all = self.get_option('show_all', False)
@@ -59,8 +58,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """Setup actions"""
-        self.new_project_action = create_action(self,
-                                        text=self.tr('New project...'),
+        new_project_act = create_action(self, text=self.tr('New project...'),
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.create_new_project)
 
@@ -68,6 +66,9 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                                     None, 'font.png', self.tr("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
+        
+        self.main.file_menu_actions.insert(1, new_project_act)
+        
         return (None, None)
         
     def refresh_plugin(self):

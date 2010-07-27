@@ -153,14 +153,8 @@ class Editor(SpyderPluginWidget):
         self.file_dependent_actions = []
         self.pythonfile_dependent_actions = []
         self.dock_toolbar_actions = None
-        self.file_toolbar_actions = None
-        self.analysis_toolbar_actions = None
-        self.run_toolbar_actions = None
-        self.edit_toolbar_actions = None
-        self.file_menu_actions = None
-        self.run_menu_actions = None
-        self.edit_menu_actions = None
-        self.source_menu_actions = None
+        self.edit_menu_actions = None #XXX: find another way to notify Spyder
+        # (see spyder.py: 'update_edit_menu' method)
         self.stack_menu_actions = None
         SpyderPluginWidget.__init__(self, parent)
 
@@ -544,40 +538,49 @@ class Editor(SpyderPluginWidget):
         self.connect(self.recent_file_menu, SIGNAL("aboutToShow()"),
                      self.update_recent_file_menu)
 
-        self.file_menu_actions = [self.new_action, self.open_action,
-                                  self.recent_file_menu, self.save_action,
-                                  self.save_all_action, save_as_action,
-                                  None, print_preview_action, print_action,
-                                  None, self.close_action,
-                                  self.close_all_action, None]
-        self.file_toolbar_actions = [self.new_action, self.open_action,
-                                     self.save_action, self.save_all_action,
-                                     print_action]
+        file_menu_actions = [self.new_action, self.open_action,
+                             self.recent_file_menu, self.save_action,
+                             self.save_all_action, save_as_action,
+                             None, print_preview_action, print_action,
+                             None, self.close_action,
+                             self.close_all_action, None]
+        self.main.file_menu_actions += file_menu_actions
+        file_toolbar_actions = [self.new_action, self.open_action,
+                                self.save_action, self.save_all_action,
+                                print_action]
+        self.main.file_toolbar_actions += file_toolbar_actions
         
         self.edit_menu_actions = [self.comment_action, self.uncomment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action]
-        self.edit_toolbar_actions = [self.comment_action, self.uncomment_action,
-                                     self.indent_action, self.unindent_action]
+        self.main.edit_menu_actions += [None]+self.edit_menu_actions
+        edit_toolbar_actions = [self.comment_action, self.uncomment_action,
+                                self.indent_action, self.unindent_action]
+        self.main.edit_toolbar_actions += edit_toolbar_actions
         
-        self.run_menu_actions = [run_new_action, run_interact_action,
-                                 run_args_action, run_debug_action,
-                                 re_run_action, None, run_inside_action,
-                                 run_args_inside_action, run_selected_action]
-        self.run_toolbar_actions = [run_new_action, run_inside_action,
-                                    run_selected_action, re_run_action]
+        run_menu_actions = [run_new_action, run_interact_action,
+                            run_args_action, run_debug_action,
+                            re_run_action, None, run_inside_action,
+                            run_args_inside_action, run_selected_action]
+        self.main.run_menu_actions += run_menu_actions
+        run_toolbar_actions = [run_new_action, run_inside_action,
+                               run_selected_action, re_run_action]
+        self.main.run_toolbar_actions += run_toolbar_actions
         
-        self.source_menu_actions = [eol_menu, trailingspaces_action,
-                                    fixindentation_action, None,
-                                    pylint_action, self.winpdb_action]
+        source_menu_actions = [eol_menu, trailingspaces_action,
+                               fixindentation_action, None,
+                               pylint_action, self.winpdb_action]
+        self.main.source_menu_actions += source_menu_actions
         
-        self.analysis_toolbar_actions = [self.todo_list_action,
+        source_toolbar_actions = [self.todo_list_action,
                 self.warning_list_action, self.previous_warning_action,
                 self.next_warning_action]
-        self.dock_toolbar_actions = self.file_toolbar_actions + [None] + \
-                                    self.analysis_toolbar_actions + [None] + \
-                                    self.run_toolbar_actions + [None] + \
-                                    self.edit_toolbar_actions
+        self.main.source_toolbar_actions += source_toolbar_actions
+        
+        self.dock_toolbar_actions = file_toolbar_actions + [None] + \
+                                    source_toolbar_actions + [None] + \
+                                    run_toolbar_actions + [None] + \
+                                    edit_toolbar_actions
         self.pythonfile_dependent_actions = (run_new_action, run_inside_action,
                 run_args_inside_action, re_run_action, run_interact_action,
                 run_selected_action, run_args_action, run_debug_action,
@@ -593,7 +596,7 @@ class Editor(SpyderPluginWidget):
                                    print_action, run_new_action,
                                    run_inside_action, workdir_action,
                                    self.close_action)
-        return (self.source_menu_actions, self.dock_toolbar_actions)        
+        return (source_menu_actions, self.dock_toolbar_actions)        
     
         
     #------ Focus tabwidget
@@ -758,17 +761,17 @@ class Editor(SpyderPluginWidget):
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
         self.toolbar_list = (
-                (self.tr("File toolbar"), self.file_toolbar_actions),
-                (self.tr("Search toolbar"), self.main.search_menu_actions),
-                (self.tr("Analysis toolbar"), self.analysis_toolbar_actions),
-                (self.tr("Run toolbar"), self.run_toolbar_actions),
-                (self.tr("Edit toolbar"), self.edit_toolbar_actions),
+            (self.tr("File toolbar"), self.main.file_toolbar_actions),
+            (self.tr("Search toolbar"), self.main.search_menu_actions),
+            (self.tr("Source toolbar"), self.main.source_toolbar_actions),
+            (self.tr("Run toolbar"), self.main.run_toolbar_actions),
+            (self.tr("Edit toolbar"), self.main.edit_toolbar_actions),
                              )
         self.menu_list = (
-                          (self.tr("&File"), self.file_menu_actions),
+                          (self.tr("&File"), self.main.file_menu_actions),
                           (self.tr("&Edit"), self.main.edit_menu_actions),
                           (self.tr("&Search"), self.main.search_menu_actions),
-                          (self.tr("&Source"), self.source_menu_actions),
+                          (self.tr("&Source"), self.main.source_menu_actions),
                           (self.tr("&Tools"), self.main.tools_menu_actions),
                           (self.tr("?"), self.main.help_menu_actions),
                           )

@@ -181,8 +181,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.commands = []
         self.tabwidget = None
         self.menu_actions = None
-        self.run_menu_actions = None
-        self.tools_menu_actions = None
         self.inspector = None
         self.historylog = None
         self.variableexplorer = None # variable explorer plugin
@@ -515,8 +513,8 @@ class ExternalConsole(SpyderPluginWidget):
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
 
-        self.run_menu_actions = [interpreter_action]
-        self.tools_menu_actions = [terminal_action]
+        run_menu_actions = [interpreter_action]
+        tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
         ipython_action = create_action(self,
@@ -526,7 +524,10 @@ class ExternalConsole(SpyderPluginWidget):
                             triggered=self.open_ipython)
         if programs.is_module_installed("IPython"):
             self.menu_actions.insert(1, ipython_action)
-            self.run_menu_actions.append(ipython_action)
+            run_menu_actions.append(ipython_action)
+        
+        self.main.run_menu_actions += [None]+run_menu_actions
+        self.main.tools_menu_actions += tools_menu_actions
         
         return (self.menu_actions, None)
     

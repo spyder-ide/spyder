@@ -225,22 +225,43 @@ class MainWindow(QMainWindow):
         self.paste_action = None
         self.delete_action = None
         self.selectall_action = None
-        self.edit_menu_actions = None
-        self.search_menu_actions = None
         self.maximize_action = None
         self.fullscreen_action = None
         self.quit_action = None
-        self.tools_menu_actions = None
-        self.external_tools_menu = None # We must keep a reference to this,
-        # otherwise the external tools menu is lost after leaving setup method
-        self.help_menu_actions = None
         
         # Menu bars
         self.file_menu = None
+        self.file_menu_actions = []
         self.edit_menu = None
+        self.edit_menu_actions = []
         self.search_menu = None
+        self.search_menu_actions = []
+        self.source_menu = None
+        self.source_menu_actions = []
         self.run_menu = None
+        self.run_menu_actions = []
+        self.tools_menu = None
+        self.tools_menu_actions = []
+        self.external_tools_menu = None # We must keep a reference to this,
+        # otherwise the external tools menu is lost after leaving setup method
+        self.external_tools_menu_actions = []
         self.view_menu = None
+        self.help_menu = None
+        self.help_menu_actions = []
+        
+        # Toolbars
+        self.main_toolbar = None
+        self.main_toolbar_actions = []
+        self.file_toolbar = None
+        self.file_toolbar_actions = []
+        self.edit_toolbar = None
+        self.edit_toolbar_actions = []
+        self.search_toolbar = None
+        self.search_toolbar_actions = []
+        self.source_toolbar = None
+        self.source_toolbar_actions = []
+        self.run_toolbar = None
+        self.run_toolbar_actions = []
         
         # Set Window title and icon
         title = "Spyder"
@@ -330,41 +351,127 @@ class MainWindow(QMainWindow):
                                       None, self.selectall_action]
             self.search_menu_actions = [self.find_action, self.find_next_action,
                                         self.replace_action]
+            self.search_toolbar_actions = self.search_menu_actions[:]
 
         namespace = None
         if not self.light:
-            main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
-                                               "main_toolbar")
             # Maximize current plugin
             self.maximize_action = create_action(self, '',
                                              shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
             self.__update_maximize_action()
-            main_toolbar.addAction(self.maximize_action)
             
             # Fullscreen mode
             self.fullscreen_action = create_action(self,
                                            self.tr("Fullscreen mode"),
                                            shortcut="F11",
                                            triggered=self.toggle_fullscreen)
-            main_toolbar.addAction(self.fullscreen_action)
-            main_toolbar.addSeparator()
+            self.main_toolbar_actions = [self.maximize_action,
+                                         self.fullscreen_action, None]
             
-            # File menu
+            # Main toolbar
+            self.main_toolbar = self.create_toolbar(self.tr("Main toolbar"),
+                                                    "main_toolbar")
+            
+            # File menu/toolbar
             self.file_menu = self.menuBar().addMenu(self.tr("&File"))
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
                          self.update_file_menu)
+            self.file_toolbar = self.create_toolbar(self.tr("File toolbar"),
+                                                    "file_toolbar")
             
-            # Edit menu
+            # Edit menu/toolbar
             self.edit_menu = self.menuBar().addMenu(self.tr("&Edit"))
+            self.edit_toolbar = self.create_toolbar(self.tr("Edit toolbar"),
+                                                    "edit_toolbar")
             
-            # Search menu
+            # Search menu/toolbar
             self.search_menu = self.menuBar().addMenu(self.tr("&Search"))
+            self.search_toolbar = self.create_toolbar(self.tr("Search toolbar"),
+                                                      "search_toolbar")
+            
+            # Source menu/toolbar
+            self.source_menu = self.menuBar().addMenu(self.tr("Sour&ce"))
+            self.source_toolbar = self.create_toolbar(self.tr("Source toolbar"),
+                                                      "source_toolbar")
+            
+            # Run menu/toolbar
+            self.run_menu = self.menuBar().addMenu(self.tr("&Run"))
+            self.run_toolbar = self.create_toolbar(self.tr("Run toolbar"),
+                                                   "run_toolbar")
+            
+            # Tools menu
+            self.tools_menu = self.menuBar().addMenu(self.tr("&Tools"))
+            
+            # View menu will be inserted afterwards
+            
+            # Help menu
+            self.help_menu = self.menuBar().addMenu("?")
                     
             # Status bar
             status = self.statusBar()
             status.setObjectName("StatusBar")
             status.showMessage(self.tr("Welcome to Spyder!"), 5000)
+            
+            
+            # Tools + External Tools
+            prefs_action = create_action(self, self.tr("Preferences..."),
+                                         icon='configure.png',
+                                         triggered=self.edit_preferences)
+            spyder_path_action = create_action(self,
+                                        self.tr("PYTHONPATH manager"),
+                                        None, 'pythonpath_mgr.png',
+                                        triggered=self.path_manager_callback,
+                                        tip=self.tr("Open Spyder path manager"))
+            self.tools_menu_actions = [prefs_action, spyder_path_action, None]
+            self.main_toolbar_actions += [prefs_action, spyder_path_action]
+            if WinUserEnvDialog is not None:
+                winenv_action = create_action(self,
+                    self.tr("Current user environment variables..."),
+                    icon = 'win_env.png',
+                    tip = self.tr("Show and edit current user environment "
+                                  "variables in Windows registry "
+                                  "(i.e. for all sessions)"),
+                    triggered=self.win_env)
+                self.tools_menu_actions.append(winenv_action)
+            
+            # External Tools submenu
+            self.external_tools_menu = QMenu(self.tr("External Tools"))
+            self.external_tools_menu_actions = []
+            # Python(x,y) launcher
+            self.xy_action = create_action(self,
+                                       self.tr("Python(x,y) launcher"),
+                                       icon=get_icon('pythonxy.png'),
+                                       triggered=lambda:
+                                       run_python_gui_script('xy', 'xyhome'))
+            self.external_tools_menu_actions.append(self.xy_action)
+            if not is_module_installed('xy'):
+                self.xy_action.setDisabled(True)
+                self.xy_action.setToolTip(self.xy_action.toolTip() + \
+                                          '\nPlease install Python(x,y) to '
+                                          'enable this feature')
+            # Qt-related tools
+            additact = [None]
+            qtdact = create_program_action(self, self.tr("Qt Designer"),
+                                           'qtdesigner.png', "designer")
+            qtlact = create_program_action(self, self.tr("Qt Linguist"),
+                                           'qtlinguist.png', "linguist")
+            qteact = create_python_gui_script_action(self,
+                                   self.tr("Qt examples"), 'qt.png', "PyQt4",
+                                   osp.join("examples", "demos",
+                                            "qtdemo", "qtdemo"))
+            for act in (qtdact, qtlact, qteact):
+                if act:
+                    additact.append(act)
+            if len(additact) > 1:
+                self.external_tools_menu_actions += additact
+                
+            # ViTables
+            vitables_act = create_program_action(self, self.tr("ViTables"),
+                                                 'vitables.png', "vitables")
+            if vitables_act:
+                self.external_tools_menu_actions += [None, vitables_act]
+            
             
             # Internal console widget
             self.console = Console(self, namespace, debug=self.debug,
@@ -405,32 +512,11 @@ class MainWindow(QMainWindow):
                          self.redirect_internalshell_stdio)
             self.add_dockwidget(self.editor)
             
-            # Editor-related menu bars:
-            self.add_to_menubar(self.editor, self.tr("&Source"))
-            self.edit_menu_actions += [None]+self.editor.edit_menu_actions
-            add_actions(self.edit_menu, self.edit_menu_actions)
-            self.run_menu = self.menuBar().addMenu(self.tr("&Run"))
-            add_actions(self.run_menu, self.editor.run_menu_actions)
-            
-            # Editor-related toolbars:
-            file_toolbar = self.create_toolbar(self.tr("File toolbar"),
-                                               "file_toolbar")
-            add_actions(file_toolbar, self.editor.file_toolbar_actions)
-            analysis_toolbar = self.create_toolbar(self.tr("Analysis toolbar"),
-                                                   "analysis_toolbar")
-            add_actions(analysis_toolbar, self.editor.analysis_toolbar_actions)
-            run_toolbar = self.create_toolbar(self.tr("Run toolbar"),
-                                              "run_toolbar")
-            add_actions(run_toolbar, self.editor.run_toolbar_actions)
-            edit_toolbar = self.create_toolbar(self.tr("Edit toolbar"),
-                                               "edit_toolbar")
-            add_actions(edit_toolbar, self.editor.edit_toolbar_actions)
-            
             # Populating file menu entries
-            file_actions = self.editor.file_menu_actions[:]
-            file_actions += [self.load_temp_session_action,
-                             self.load_session_action, self.save_session_action]
-            file_actions += (None, self.quit_action)
+            self.file_menu_actions += [self.load_temp_session_action,
+                                       self.load_session_action,
+                                       self.save_session_action,
+                                       None, self.quit_action]
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
@@ -447,12 +533,7 @@ class MainWindow(QMainWindow):
                 self.connect(self, SIGNAL('find_files(QString)'),
                              self.findinfiles.set_search_text)
                 self.search_menu_actions += [None, self.findinfiles_action]
-                
-            # Populating search menu and toolbar
-            add_actions(self.search_menu, self.search_menu_actions)
-            search_toolbar = self.create_toolbar(self.tr("Search toolbar"),
-                                                 "search_toolbar")
-            add_actions(search_toolbar, self.search_menu_actions)
+                self.search_toolbar_actions += [None, self.findinfiles_action]
             
             # Explorer
             if CONF.get('explorer', 'enable'):
@@ -508,7 +589,6 @@ class MainWindow(QMainWindow):
             if CONF.get('project_explorer', 'enable'):
                 self.set_splash(self.tr("Loading project explorer..."))
                 self.projectexplorer = ProjectExplorer(self)
-                file_actions.insert(1, self.projectexplorer.new_project_action)
                 self.pythonpath_changed()
                 valid_types = self.editor.get_valid_types()
                 self.projectexplorer.set_editor_valid_types(valid_types)
@@ -532,27 +612,8 @@ class MainWindow(QMainWindow):
                 self.editor.set_projectexplorer(self.projectexplorer)
                 self.editor.set_inspector(self.inspector)
                 self.add_dockwidget(self.projectexplorer)
-            add_actions(self.file_menu, file_actions)
-                
-            # Third-party plugins
-            from spyderlib.utils import programs
-            if programs.is_module_installed("spyderplugins"):
-                self.set_splash(self.tr("Loading third-party plugins..."))
-                import spyderplugins
-                path = spyderplugins.__path__[0]
-                for name in os.listdir(path):
-                    modname, ext = osp.splitext(name)
-                    if name.startswith('p_') and ext == '.py':
-                        mod = getattr(__import__('spyderplugins.%s' % modname),
-                                      modname)
-                        try:
-                            plugin = mod.PLUGIN_CLASS(self)
-                            self.thirdparty_plugins.append(plugin)
-                            plugin.register_plugin()
-                        except AttributeError, error:
-                            print >>STDERR, "%s: %s" % (mod, str(error))
             
-        # External console menu
+        # External console
         if not self.light:
             self.set_splash(self.tr("Loading external console..."))
         self.extconsole = ExternalConsole(self, light_mode=self.light)
@@ -589,8 +650,6 @@ class MainWindow(QMainWindow):
                          self.extconsole.open_interpreter)
             self.connect(self.projectexplorer, SIGNAL("open_ipython(QString)"),
                          self.extconsole.open_ipython)
-            # External console menu entries:
-            add_actions(self.run_menu, [None]+self.extconsole.run_menu_actions)
 
             # Namespace browser
             self.set_splash(self.tr("Loading namespace browser..."))
@@ -609,82 +668,16 @@ class MainWindow(QMainWindow):
             
         if not self.light:
             self.set_splash(self.tr("Setting up main window..."))
-            # Tools menu
-            tools_menu = self.menuBar().addMenu(self.tr("&Tools"))
-            prefs_action = create_action(self, self.tr("Preferences..."),
-                                         icon='configure.png',
-                                         triggered=self.edit_preferences)
-            spyder_path_action = create_action(self,
-                                        self.tr("PYTHONPATH manager"),
-                                        None, 'pythonpath_mgr.png',
-                                        triggered=self.path_manager_callback,
-                                        tip=self.tr("Open Spyder path manager"))
-            self.tools_menu_actions = [prefs_action, spyder_path_action, None]
-            add_actions(main_toolbar, [prefs_action, spyder_path_action])
-            if WinUserEnvDialog is not None:
-                winenv_action = create_action(self,
-                    self.tr("Current user environment variables..."),
-                    icon = 'win_env.png',
-                    tip = self.tr("Show and edit current user environment "
-                                  "variables in Windows registry "
-                                  "(i.e. for all sessions)"),
-                    triggered=self.win_env)
-                self.tools_menu_actions.append(winenv_action)
-            self.tools_menu_actions += self.extconsole.tools_menu_actions
-            
-            # External Tools submenu
-            self.external_tools_menu = QMenu(self.tr("External Tools"))
-            # Python(x,y) launcher
-            self.xy_action = create_action(self,
-                                       self.tr("Python(x,y) launcher"),
-                                       icon=get_icon('pythonxy.png'),
-                                       triggered=lambda:
-                                       run_python_gui_script('xy', 'xyhome'))
-            self.external_tools_menu.addAction(self.xy_action)
-            if not is_module_installed('xy'):
-                self.xy_action.setDisabled(True)
-                self.xy_action.setToolTip(self.xy_action.toolTip() + \
-                                          '\nPlease install Python(x,y) to '
-                                          'enable this feature')
-            # Qt-related tools
-            additact = [None]
-            qtdact = create_program_action(self, self.tr("Qt Designer"),
-                                           'qtdesigner.png', "designer")
-            qtlact = create_program_action(self, self.tr("Qt Linguist"),
-                                           'qtlinguist.png', "linguist")
-            qteact = create_python_gui_script_action(self,
-                                   self.tr("Qt examples"), 'qt.png', "PyQt4",
-                                   osp.join("examples", "demos",
-                                            "qtdemo", "qtdemo"))
-            for act in (qtdact, qtlact, qteact):
-                if act:
-                    additact.append(act)
-            if len(additact) > 1:
-                add_actions(self.external_tools_menu, additact)
-                
-            # ViTables
-            vitables_act = create_program_action(self, self.tr("ViTables"),
-                                                 'vitables.png', "vitables")
-            if vitables_act:
-                add_actions(self.external_tools_menu, [None, vitables_act])
-                
-            external_tools_act = create_action(self, self.tr("External Tools"),
-                                               icon="ext_tools.png")
-            external_tools_act.setMenu(self.external_tools_menu)
-            self.tools_menu_actions.append(external_tools_act)
-            main_toolbar.addAction(external_tools_act)
-            
-            add_actions(tools_menu, self.tools_menu_actions)
-                    
+                                
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
             add_actions(self.view_menu, (None, self.maximize_action,
                                          self.fullscreen_action))
-            self.menuBar().addMenu(self.view_menu)
+            self.menuBar().insertMenu(self.help_menu.menuAction(),
+                                      self.view_menu)
             
             # ? menu
-            help_menu = self.menuBar().addMenu("?")
             about_action = create_action(self,
                                     self.tr("About %1...").arg("Spyder"),
                                     icon=get_std_icon('MessageBoxInformation'),
@@ -711,7 +704,49 @@ class MainWindow(QMainWindow):
             add_actions(web_resources,
                         create_module_bookmark_actions(self, self.BOOKMARKS))
             self.help_menu_actions.append(web_resources)
-            add_actions(help_menu, self.help_menu_actions)
+
+            # Third-party plugins
+            from spyderlib.utils import programs
+            if programs.is_module_installed("spyderplugins"):
+                self.set_splash(self.tr("Loading third-party plugins..."))
+                import spyderplugins
+                path = spyderplugins.__path__[0]
+                for name in os.listdir(path):
+                    modname, ext = osp.splitext(name)
+                    if name.startswith('p_') and ext == '.py':
+                        mod = getattr(__import__('spyderplugins.%s' % modname),
+                                      modname)
+                        try:
+                            plugin = mod.PLUGIN_CLASS(self)
+                            self.thirdparty_plugins.append(plugin)
+                            plugin.register_plugin()
+                        except AttributeError, error:
+                            print >>STDERR, "%s: %s" % (mod, str(error))
+            
+            # Adding external tools action to "Tools" menu
+            external_tools_act = create_action(self, self.tr("External Tools"),
+                                               icon="ext_tools.png")
+            external_tools_act.setMenu(self.external_tools_menu)
+            self.tools_menu_actions.append(external_tools_act)
+            self.main_toolbar_actions.append(external_tools_act)
+            
+            # Filling out menu/toolbar entries:
+            add_actions(self.file_menu, self.file_menu_actions)
+            add_actions(self.edit_menu, self.edit_menu_actions)
+            add_actions(self.search_menu, self.search_menu_actions)
+            add_actions(self.source_menu, self.source_menu_actions)
+            add_actions(self.run_menu, self.run_menu_actions)
+            add_actions(self.tools_menu, self.tools_menu_actions)
+            add_actions(self.external_tools_menu,
+                        self.external_tools_menu_actions)
+            add_actions(self.help_menu, self.help_menu_actions)
+            
+            add_actions(self.main_toolbar, self.main_toolbar_actions)
+            add_actions(self.file_toolbar, self.file_toolbar_actions)
+            add_actions(self.edit_toolbar, self.edit_toolbar_actions)
+            add_actions(self.search_toolbar, self.search_toolbar_actions)
+            add_actions(self.source_toolbar, self.source_toolbar_actions)
+            add_actions(self.run_toolbar, self.run_toolbar_actions)
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -752,7 +787,7 @@ class MainWindow(QMainWindow):
             for plugin in (self.inspector, self.extconsole):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
-            for toolbar in (run_toolbar, edit_toolbar):
+            for toolbar in (self.run_toolbar, self.edit_toolbar):
                 toolbar.close()
             self.projectexplorer.dockwidget.close()
         self.resize( QSize(width, height) )
@@ -776,7 +811,7 @@ class MainWindow(QMainWindow):
         
         # Enabling tear off for all menus except help menu
         for child in self.menuBar().children():
-            if isinstance(child, QMenu) and child != help_menu:
+            if isinstance(child, QMenu) and child != self.help_menu:
                 child.setTearOffEnabled(True)
         
         # Menu about to show
@@ -995,21 +1030,6 @@ class MainWindow(QMainWindow):
             self.fullscreen_flag = True
             self.showFullScreen()
         self.__update_fullscreen_action()
-    
-    def add_to_menubar(self, widget, title=None, existing_menu=None):
-        """Add menu and actions to menubar"""
-        actions = widget.menu_actions
-        if actions is not None:
-            if not title:
-                title = widget.get_plugin_title()
-            if existing_menu is None:
-                menu = self.menuBar().addMenu(title)
-                add_actions(menu, actions)
-                return menu
-            else:
-                first_action = existing_menu.actions()[0]
-                add_actions(existing_menu, actions+(None,),
-                            insert_before=first_action)
 
     def add_to_toolbar(self, toolbar, widget):
         """Add widget actions to toolbar"""
