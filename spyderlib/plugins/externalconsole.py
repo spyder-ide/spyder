@@ -13,7 +13,7 @@
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QMessageBox,
                          QInputDialog, QLineEdit, QPushButton, QGroupBox,
-                         QLabel, QTabWidget, QWidget)
+                         QLabel, QTabWidget)
 from PyQt4.QtCore import SIGNAL, QString, Qt
 
 import sys, os
@@ -33,7 +33,7 @@ from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
-#TODO: add this method to external console's class (see editor.py)
+
 class ExternalConsoleConfigPage(PluginConfigPage):
     def setup_page(self):
         interface_group = QGroupBox(self.tr("Interface"))
@@ -181,6 +181,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.commands = []
         self.tabwidget = None
         self.menu_actions = None
+        self.run_menu_actions = None
+        self.tools_menu_actions = None
         self.inspector = None
         self.historylog = None
         self.variableexplorer = None # variable explorer plugin
@@ -506,14 +508,16 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             text = self.tr("Open &terminal")
             tip = self.tr("Open a terminal window inside Spyder")
-        console_action = create_action(self, text, None, 'cmdprompt.png', tip,
-                            triggered=self.open_terminal)
+        terminal_action = create_action(self, text, None, 'cmdprompt.png', tip,
+                                        triggered=self.open_terminal)
         run_action = create_action(self,
                             self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)
 
-        self.menu_actions = [interpreter_action, console_action, run_action]
+        self.run_menu_actions = [interpreter_action]
+        self.tools_menu_actions = [terminal_action]
+        self.menu_actions = [interpreter_action, terminal_action, run_action]
         
         ipython_action = create_action(self,
                             self.tr("Open IPython interpreter"), None,
@@ -522,6 +526,7 @@ class ExternalConsole(SpyderPluginWidget):
                             triggered=self.open_ipython)
         if programs.is_module_installed("IPython"):
             self.menu_actions.insert(1, ipython_action)
+            self.run_menu_actions.append(ipython_action)
         
         return (self.menu_actions, None)
     

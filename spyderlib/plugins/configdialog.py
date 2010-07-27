@@ -8,54 +8,10 @@
 
 from spyderlib.utils.qthelpers import get_icon
 
-from PyQt4.QtGui import (QWidget, QCheckBox, QDialog, QGroupBox, QListWidget,
-                         QListWidgetItem, QPushButton, QVBoxLayout, QLabel,
-                         QLineEdit, QDateTimeEdit, QSpinBox, QGridLayout,
-                         QStackedWidget, QListView, QHBoxLayout,
+from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
+                         QVBoxLayout, QStackedWidget, QListView, QHBoxLayout,
                          QDialogButtonBox, QMainWindow)
-from PyQt4.QtCore import Qt, QDate, QSize, SIGNAL, SLOT
-
-
-class Sample2():
-    def setup_page(self):
-        packagesGroup = QGroupBox(self.tr("Look for packages"))
-
-        nameLabel = QLabel(self.tr("Name:"))
-        nameEdit = QLineEdit()
-
-        dateLabel = QLabel(self.tr("Released after:"))
-        dateEdit = QDateTimeEdit(QDate.currentDate())
-
-        releasesCheckBox = QCheckBox(self.tr("Releases"))
-        upgradesCheckBox = QCheckBox(self.tr("Upgrades"))
-
-        hitsSpinBox = QSpinBox()
-        hitsSpinBox.setPrefix(self.tr("Return up to "))
-        hitsSpinBox.setSuffix(self.tr(" results"))
-        hitsSpinBox.setSpecialValueText(self.tr("Return only the first result"))
-        hitsSpinBox.setMinimum(1)
-        hitsSpinBox.setMaximum(100)
-        hitsSpinBox.setSingleStep(10)
-
-        startQueryButton = QPushButton(self.tr("Start query"))
-
-        packagesLayout = QGridLayout()
-        packagesLayout.addWidget(nameLabel, 0, 0)
-        packagesLayout.addWidget(nameEdit, 0, 1)
-        packagesLayout.addWidget(dateLabel, 1, 0)
-        packagesLayout.addWidget(dateEdit, 1, 1)
-        packagesLayout.addWidget(releasesCheckBox, 2, 0)
-        packagesLayout.addWidget(upgradesCheckBox, 3, 0)
-        packagesLayout.addWidget(hitsSpinBox, 4, 0, 1, 2)
-        packagesGroup.setLayout(packagesLayout)
-
-        vlayout = QVBoxLayout()
-        vlayout.addWidget(packagesGroup)
-        vlayout.addSpacing(12)
-        vlayout.addWidget(startQueryButton)
-        vlayout.addStretch(1)
-
-        self.setLayout(vlayout)
+from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT
 
 
 class ConfigPage(QWidget):

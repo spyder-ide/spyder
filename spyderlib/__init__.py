@@ -61,7 +61,4 @@ __license__ = __doc__
 
 #TODO: Option to inverse console colors
 
-#TODO: menus/toolbars reordering:
-# 1. Move tools to "Tools" > "External Tools" submenu
-# 2. Move Preferences + Open Terminal + Windows EnvVar Sync to "Tools" menu
-# 3. Move Open Python/IPython interpreters to "Run" menu
+#TODO: Take a look at session management: adapt to new v2.0 features

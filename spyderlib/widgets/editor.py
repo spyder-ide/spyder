@@ -1699,7 +1699,7 @@ class CursorPositionStatus(StatusBarWidget):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions, toolbar_list, menu_list,
+    def __init__(self, parent, plugin, menu_actions,
                  show_fullpath, fullpath_sorting, show_all_files):
         super(EditorWidget, self).__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -1794,7 +1794,6 @@ class EditorMainWindow(QMainWindow):
         self.window_size = None
         
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
-                                         toolbar_list, menu_list,
                                          show_fullpath, fullpath_sorting,
                                          show_all_files)
         self.setCentralWidget(self.editorwidget)

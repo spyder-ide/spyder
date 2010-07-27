@@ -554,8 +554,6 @@ class Editor(SpyderPluginWidget):
                                      self.save_action, self.save_all_action,
                                      print_action]
         
-        
-        
         self.edit_menu_actions = [self.comment_action, self.uncomment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action]
