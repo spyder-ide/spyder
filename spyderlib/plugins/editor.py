@@ -1374,80 +1374,45 @@ class Editor(SpyderPluginWidget):
     def apply_plugin_settings(self):
         """Apply configuration file's plugin settings"""
         # toggle_classbrowser_visibility
-        checked = self.get_option('class_browser/visibility')
-        self.classbrowser.setVisible(checked)
-        if checked:
+        cbvis = self.get_option('class_browser/visibility')
+        self.classbrowser.setVisible(cbvis)
+        if cbvis:
             self.classbrowser.update()
             editorstack = self.get_current_editorstack()
             editorstack._refresh_classbrowser(update=True)
         # toggle_fullpath_sorting
-        checked = self.get_option('fullpath_sorting')
         if self.editorstacks is not None:
+            fpsorting = self.get_option('fullpath_sorting')
+            tabbar = self.get_option('show_tab_bar')
+            linenb = self.get_option('line_numbers')
+            occurence = self.get_option('occurence_highlighting')
+            wrap = self.get_option('wrap')
+            tabindent = self.get_option('tab_always_indent')
+            autocomp = self.get_option('codecompletion/auto')
+            enter_key = self.get_option('codecompletion/enter-key')
+            todo = self.get_option('todo_list')
+            analysis = self.get_option('code_analysis')
+            finfo = self.get_current_finfo()
             if self.classbrowser is not None:
-                self.classbrowser.set_fullpath_sorting(checked)
+                self.classbrowser.set_fullpath_sorting(fpsorting)
             for window in self.editorwindows:
-                window.editorwidget.classbrowser.set_fullpath_sorting(checked)
+                window.editorwidget.classbrowser.set_fullpath_sorting(fpsorting)
             for editorstack in self.editorstacks:
-                editorstack.set_fullpath_sorting_enabled(checked)
-        # toggle_tabbar_visibility
-        checked = self.get_option('show_tab_bar')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_tabbar_visible(checked)
-        # toggle_linenumbers
-        checked = self.get_option('line_numbers')
-        if self.editorstacks is not None:
-            finfo = self.get_current_finfo()
-            for editorstack in self.editorstacks:
-                editorstack.set_linenumbers_enabled(checked,
-                                                    current_finfo=finfo)
-        # toggle_occurence_highlighting
-        checked = self.get_option('occurence_highlighting')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_occurence_highlighting_enabled(checked)
-        # toggle_todo_list
-        checked = self.get_option('todo_list')
-        if self.editorstacks is not None:
-            finfo = self.get_current_finfo()
-            for editorstack in self.editorstacks:
-                editorstack.set_todolist_enabled(checked,
-                                                 current_finfo=finfo)
-            # We must update the current editor after the others:
-            # (otherwise, code analysis buttons state would correspond to the
-            #  last editor instead of showing the one of the current editor)
-            if checked:
-                finfo.run_todo_finder()
-        # toggle_code_analysis
-        checked = self.get_option('code_analysis')
-        if self.editorstacks is not None:
-            finfo = self.get_current_finfo()
-            for editorstack in self.editorstacks:
-                editorstack.set_codeanalysis_enabled(checked,
+                editorstack.set_fullpath_sorting_enabled(fpsorting)
+                editorstack.set_tabbar_visible(tabbar)
+                editorstack.set_linenumbers_enabled(linenb, current_finfo=finfo)
+                editorstack.set_occurence_highlighting_enabled(occurence)
+                editorstack.set_wrap_enabled(wrap)
+                editorstack.set_tabmode_enabled(tabindent)
+                editorstack.set_codecompletion_auto_enabled(autocomp)
+                editorstack.set_codecompletion_enter_enabled(enter_key)
+                editorstack.set_todolist_enabled(todo, current_finfo=finfo)
+                editorstack.set_codeanalysis_enabled(analysis,
                                                      current_finfo=finfo)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            if checked:
+            if todo:
+                finfo.run_todo_finder()
+            if analysis:
                 finfo.run_code_analysis()
-        # toggle_wrap_mode
-        checked = self.get_option('wrap')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_wrap_enabled(checked)
-        # toggle_tab_mode
-        checked = self.get_option('tab_always_indent')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_tabmode_enabled(checked)
-        # toggle_codecompletion
-        checked = self.get_option('codecompletion/auto')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_codecompletion_auto_enabled(checked)
-        # toggle_codecompletion_enter
-        checked = self.get_option('codecompletion/enter-key')
-        if self.editorstacks is not None:
-            for editorstack in self.editorstacks:
-                editorstack.set_codecompletion_enter_enabled(checked)
-        
