@@ -14,6 +14,9 @@ try:
 except ImportError:
     load_dicom = None
 
+#===============================================================================
+# The following statements are required to register this I/O plugin:
+#===============================================================================
 FORMAT_NAME = "DICOM images"
 FORMAT_EXT  = ".dcm"
 FORMAT_LOAD = load_dicom

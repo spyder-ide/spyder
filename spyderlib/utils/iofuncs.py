@@ -185,7 +185,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.config import get_conf_path
+from spyderlib.config import get_conf_path, get_spyderplugins
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
@@ -323,20 +323,14 @@ class IOFunctions(QObject):
         
     def get_3rd_party_funcs(self):
         other_funcs = []
-        from spyderlib.utils import programs
-        if programs.is_module_installed("spyderplugins"):
-            import spyderplugins
-            path = spyderplugins.__path__[0]
-            for name in os.listdir(path):
-                modname, ext = osp.splitext(name)
-                if name.startswith('io_') and ext == '.py':
-                    mod = getattr(__import__('spyderplugins.%s' % modname),
-                                  modname)
-                    try:
-                        other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
-                                            mod.FORMAT_LOAD, mod.FORMAT_SAVE))
-                    except AttributeError, error:
-                        print >>STDERR, "%s: %s" % (mod, str(error))
+        for modname in get_spyderplugins(prefix='io_', extension='.py'):
+            mod = getattr(__import__('spyderplugins.%s' % modname),
+                          modname)
+            try:
+                other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
+                                    mod.FORMAT_LOAD, mod.FORMAT_SAVE))
+            except AttributeError, error:
+                print >>STDERR, "%s: %s" % (mod, str(error))
         return other_funcs
     
     def get_open_filename(self, parent, filename, title):

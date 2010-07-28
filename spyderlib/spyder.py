@@ -65,7 +65,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        keybinding, translate, qapplication,
                                        create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
-                              DOC_PATH)
+                              DOC_PATH, get_spyderplugins)
 from spyderlib.utils.programs import run_python_gui_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 
@@ -568,22 +568,15 @@ class MainWindow(QMainWindow):
             self.help_menu_actions.append(web_resources)
 
             # Third-party plugins
-            from spyderlib.utils import programs
-            if programs.is_module_installed("spyderplugins"):
-                self.set_splash(self.tr("Loading third-party plugins..."))
-                import spyderplugins
-                path = spyderplugins.__path__[0]
-                for name in os.listdir(path):
-                    modname, ext = osp.splitext(name)
-                    if name.startswith('p_') and ext == '.py':
-                        mod = getattr(__import__('spyderplugins.%s' % modname),
-                                      modname)
-                        try:
-                            plugin = mod.PLUGIN_CLASS(self)
-                            self.thirdparty_plugins.append(plugin)
-                            plugin.register_plugin()
-                        except AttributeError, error:
-                            print >>STDERR, "%s: %s" % (mod, str(error))
+            for modname in get_spyderplugins(prefix='p_', extension='.py'):
+                mod = getattr(__import__('spyderplugins.%s' % modname),
+                              modname)
+                try:
+                    plugin = mod.PLUGIN_CLASS(self)
+                    self.thirdparty_plugins.append(plugin)
+                    plugin.register_plugin()
+                except AttributeError, error:
+                    print >>STDERR, "%s: %s" % (mod, str(error))
                                 
             # View menu
             self.view_menu = self.createPopupMenu()

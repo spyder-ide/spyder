@@ -16,7 +16,7 @@ from PyQt4.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale, QTranslator,
                           QLibraryInfo)
 
 # Local import
-from spyderlib.config import get_icon, DATA_PATH
+from spyderlib.config import get_icon, DATA_PATH, get_spyderplugins, PLUGIN_PATH
 from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -51,6 +51,12 @@ def qapplication(translate=True):
             TRANSLATORS.append(app_translator) # Keep reference alive
             if app_translator.load("spyder_"+locale, DATA_PATH):
                 app.installTranslator(app_translator)
+            # Load 3rd-party plugin translators
+            for modname in get_spyderplugins(prefix='p_', extension='.py'):
+                plugin_translator = QTranslator()
+                TRANSLATORS.append(plugin_translator)
+                if plugin_translator.load(modname+"_"+locale, PLUGIN_PATH):
+                    app.installTranslator(plugin_translator)
     else:
         app = QApplication.instance()
     return app

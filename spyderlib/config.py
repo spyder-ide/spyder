@@ -377,4 +377,24 @@ def set_font(font, section, option=None):
     CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
     FONT_CACHE[(section, option)] = font
-    
+
+
+PLUGIN_PATH = None
+from spyderlib.utils import programs
+if programs.is_module_installed("spyderplugins"):
+    import spyderplugins
+    PLUGIN_PATH = spyderplugins.__path__[0]
+
+def get_spyderplugins(prefix, extension):
+    """Scan spyderplugins module and
+    return the list of files matching *prefix* and *extension*"""
+    plist = []
+    if PLUGIN_PATH is not None:
+        for name in os.listdir(PLUGIN_PATH):
+            modname, ext = osp.splitext(name)
+            if prefix is not None and not name.startswith(prefix):
+                continue
+            if extension is not None and ext != extension:
+                continue
+            plist.append(modname)
+    return plist
