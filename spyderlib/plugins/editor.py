@@ -592,6 +592,23 @@ class Editor(SpyderPluginWidget):
         
         return self.file_dependent_actions
     
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
+                     self.restore_scrollbar_position)
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+        self.connect(self.main.console,
+                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
+        self.connect(self, SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
+                     self.main.open_external_console)
+        self.connect(self, SIGNAL('external_console_execute_lines(QString)'),
+                     self.main.execute_python_code_in_external_console)
+        self.connect(self, SIGNAL('redirect_stdio(bool)'),
+                     self.main.redirect_internalshell_stdio)
+        self.set_inspector(self.main.inspector)
+        self.main.add_dockwidget(self)
+    
         
     #------ Focus tabwidget
     def __get_focus_editorstack(self):

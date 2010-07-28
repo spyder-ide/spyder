@@ -70,6 +70,26 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.main.file_menu_actions.insert(1, new_project_act)
         
         return []
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.main.pythonpath_changed()
+        valid_types = self.main.editor.get_valid_types()
+        self.set_editor_valid_types(valid_types)
+        self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
+                     self.restore_scrollbar_position)
+        self.connect(self, SIGNAL("pythonpath_changed()"),
+                     self.main.pythonpath_changed)
+        self.connect(self, SIGNAL("create_module(QString)"),
+                     self.main.editor.new)
+        self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
+        self.connect(self, SIGNAL("removed(QString)"), self.main.editor.removed)
+        self.connect(self, SIGNAL("removed_tree(QString)"),
+                     self.main.editor.removed_tree)
+        self.connect(self, SIGNAL("renamed(QString,QString)"),
+                     self.main.editor.renamed)
+        self.main.editor.set_projectexplorer(self)
+        self.main.add_dockwidget(self)
         
     def refresh_plugin(self):
         """Refresh project explorer widget"""

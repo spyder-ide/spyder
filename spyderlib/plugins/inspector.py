@@ -124,6 +124,21 @@ class ObjectInspector(ReadOnlyEditor):
         """
         self.combo.lineEdit().selectAll()
         return self.combo
+    
+    def get_plugin_actions(self):
+        """Return a list of actions related to plugin"""
+        return []
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+        self.main.add_dockwidget(self)
+        self.main.console.set_inspector(self)
+        
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
         
     def refresh_plugin(self):
         """Refresh widget"""

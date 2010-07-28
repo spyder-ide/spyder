@@ -174,6 +174,12 @@ class Console(SpyderPluginWidget):
         add_actions(self.shell.menu, plugin_actions)
         
         return plugin_actions
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+        self.main.add_dockwidget(self)
         
     #------ Public API ---------------------------------------------------------
     def quit(self):

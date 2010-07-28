@@ -217,7 +217,6 @@ class MainWindow(QMainWindow):
         self.find_action = None
         self.find_next_action = None
         self.replace_action = None
-        self.findinfiles_action = None        
         self.undo_action = None
         self.redo_action = None
         self.copy_action = None
@@ -227,7 +226,6 @@ class MainWindow(QMainWindow):
         self.selectall_action = None
         self.maximize_action = None
         self.fullscreen_action = None
-        self.quit_action = None
         
         # Menu bars
         self.file_menu = None
@@ -323,11 +321,6 @@ class MainWindow(QMainWindow):
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
                                                 triggered=self.replace)
-            self.findinfiles_action = create_action(self,
-                                self.tr("&Find in files"),
-                                "Ctrl+Shift+F", 'findf.png',
-                                triggered=self.findinfiles_callback,
-                                tip=self.tr("Search text in multiple files"))        
             def create_edit_action(text, icon_name):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
@@ -473,196 +466,73 @@ class MainWindow(QMainWindow):
                 self.external_tools_menu_actions += [None, vitables_act]
             
             
-            # Internal console widget
+            # Internal console plugin
             self.console = Console(self, namespace, debug=self.debug,
                                    exitfunc=self.closing, profile=self.profile,
                                    multithreaded=self.multithreaded)
-            self.connect(self.console, SIGNAL('focus_changed()'),
-                         self.plugin_focus_changed)
-            self.add_dockwidget(self.console)
-            self.quit_action = create_action(self, self.tr("&Quit"),
-                             self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
-                             triggered=self.console.quit)
+            self.console.register_plugin()
         
-            # Object inspector widget
+            # Object inspector plugin
             if CONF.get('inspector', 'enable'):
                 self.set_splash(self.tr("Loading object inspector..."))
                 self.inspector = ObjectInspector(self)
-                self.connect(self.inspector, SIGNAL('focus_changed()'),
-                             self.plugin_focus_changed)
-                self.add_dockwidget(self.inspector)
-                self.console.set_inspector(self.inspector)
+                self.inspector.register_plugin()
                                     
-            # Editor widget
+            # Editor plugin
             self.set_splash(self.tr("Loading editor..."))
             self.editor = Editor(self)
-            self.connect(self, SIGNAL('restore_scrollbar_position()'),
-                         self.editor.restore_scrollbar_position)
-            self.connect(self.editor, SIGNAL('focus_changed()'),
-                         self.plugin_focus_changed)
-            self.connect(self.console, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.editor.load)
-            self.connect(self.editor,
-                         SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
-                         self.open_external_console)
-            self.connect(self.editor,
-                         SIGNAL('external_console_execute_lines(QString)'),
-                         self.execute_python_code_in_external_console)
-            self.connect(self.editor, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_internalshell_stdio)
-            self.add_dockwidget(self.editor)
+            self.editor.register_plugin()
             
             # Populating file menu entries
+            quit_action = create_action(self, self.tr("&Quit"),
+                             self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
+                             triggered=self.console.quit)
             self.file_menu_actions += [self.load_temp_session_action,
                                        self.load_session_action,
                                        self.save_session_action,
-                                       None, self.quit_action]
+                                       None, quit_action]
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
                 self.set_splash(self.tr("Loading find in files plugin..."))
                 self.findinfiles = FindInFiles(self)
-                self.findinfiles.set_pythonpath_callback( \
-                                                  self.get_spyder_pythonpath)
-                self.add_dockwidget(self.findinfiles)
-                self.connect(self.findinfiles,
-                             SIGNAL("edit_goto(QString,int,QString)"),
-                             self.editor.load)
-                self.connect(self.findinfiles, SIGNAL('redirect_stdio(bool)'),
-                             self.redirect_internalshell_stdio)
-                self.connect(self, SIGNAL('find_files(QString)'),
-                             self.findinfiles.set_search_text)
-                self.search_menu_actions += [None, self.findinfiles_action]
-                self.search_toolbar_actions += [None, self.findinfiles_action]
+                self.findinfiles.register_plugin()
             
             # Explorer
             if CONF.get('explorer', 'enable'):
                 self.set_splash(self.tr("Loading file explorer..."))
                 self.explorer = Explorer(self)
-                self.add_dockwidget(self.explorer)
-                valid_types = self.editor.get_valid_types()
-                self.explorer.set_editor_valid_types(valid_types)
-                self.connect(self.explorer, SIGNAL("edit(QString)"),
-                             self.editor.load)
-                self.connect(self.explorer, SIGNAL("removed(QString)"),
-                             self.editor.removed)
-                self.connect(self.explorer, SIGNAL("renamed(QString,QString)"),
-                             self.editor.renamed)
-                self.connect(self.editor, SIGNAL("open_dir(QString)"),
-                             self.explorer.chdir)
-                self.connect(self.explorer, SIGNAL("run(QString)"),
-                             lambda fname:
-                             self.open_external_console(unicode(fname),
-                                                osp.dirname(unicode(fname)),
-                                                False, False, False, True))
-                # Signal "refresh_explorer()" will eventually force the
-                # explorer to change the opened directory:
-                self.connect(self.console.shell, SIGNAL("refresh_explorer()"),
-                             lambda:
-                             self.explorer.refresh_plugin(force_current=True))
-                # Signal "refresh_explorer(QString)" will refresh only the
-                # contents of path passed by the signal in explorer:
-                self.connect(self.console.shell,
-                             SIGNAL("refresh_explorer(QString)"),
-                             self.explorer.refresh_folder)
-                self.connect(self.editor, SIGNAL("refresh_explorer(QString)"),
-                             self.explorer.refresh_folder)
+                self.explorer.register_plugin()
 
             # History log widget
             if CONF.get('historylog', 'enable'):
                 self.set_splash(self.tr("Loading history plugin..."))
                 self.historylog = HistoryLog(self)
-                self.connect(self.historylog, SIGNAL('focus_changed()'),
-                             self.plugin_focus_changed)
-                self.add_dockwidget(self.historylog)
-#                self.console.set_historylog(self.historylog)
-                self.connect(self.console.shell, SIGNAL("refresh()"),
-                             self.historylog.refresh_plugin)
+                self.historylog.register_plugin()
                 
             # Online help widget
             if CONF.get('onlinehelp', 'enable') and OnlineHelp is not None:
                 self.set_splash(self.tr("Loading online help..."))
                 self.onlinehelp = OnlineHelp(self)
-                self.add_dockwidget(self.onlinehelp)
+                self.onlinehelp.register_plugin()
                 
             # Project explorer widget
             if CONF.get('project_explorer', 'enable'):
                 self.set_splash(self.tr("Loading project explorer..."))
                 self.projectexplorer = ProjectExplorer(self)
-                self.pythonpath_changed()
-                valid_types = self.editor.get_valid_types()
-                self.projectexplorer.set_editor_valid_types(valid_types)
-                self.connect(self, SIGNAL('restore_scrollbar_position()'),
-                             self.projectexplorer.restore_scrollbar_position)
-                self.connect(self.projectexplorer,
-                             SIGNAL("pythonpath_changed()"),
-                             self.pythonpath_changed)
-                self.connect(self.projectexplorer,
-                             SIGNAL("create_module(QString)"), self.editor.new)
-                self.connect(self.projectexplorer, SIGNAL("edit(QString)"),
-                             self.editor.load)
-                self.connect(self.projectexplorer, SIGNAL("removed(QString)"),
-                             self.editor.removed)
-                self.connect(self.projectexplorer,
-                             SIGNAL("removed_tree(QString)"),
-                             self.editor.removed_tree)
-                self.connect(self.projectexplorer,
-                             SIGNAL("renamed(QString,QString)"),
-                             self.editor.renamed)
-                self.editor.set_projectexplorer(self.projectexplorer)
-                self.editor.set_inspector(self.inspector)
-                self.add_dockwidget(self.projectexplorer)
+                self.projectexplorer.register_plugin()
             
         # External console
         if not self.light:
             self.set_splash(self.tr("Loading external console..."))
         self.extconsole = ExternalConsole(self, light_mode=self.light)
-        if self.light:
-            self.setCentralWidget(self.extconsole)
-            self.widgetlist.append(self.extconsole)
-        else:
-            self.extconsole.set_inspector(self.inspector)
-            self.extconsole.set_historylog(self.historylog)
-            self.connect(self.extconsole,
-                         SIGNAL("edit_goto(QString,int,QString)"),
-                         self.editor.load)
-            self.connect(self.editor,
-                         SIGNAL('run_script_in_external_console(QString,bool)'),
-                         self.extconsole.run_script_in_current_shell)
-            self.connect(self.editor, SIGNAL("open_dir(QString)"),
-                     self.extconsole.set_current_shell_working_directory)
-            self.add_dockwidget(self.extconsole)
-            self.connect(self.extconsole, SIGNAL('focus_changed()'),
-                         self.plugin_focus_changed)
-            self.connect(self.extconsole, SIGNAL('redirect_stdio(bool)'),
-                         self.redirect_internalshell_stdio)
-            if self.explorer is not None:
-                self.connect(self.explorer, SIGNAL("open_terminal(QString)"),
-                             self.extconsole.open_terminal)
-                self.connect(self.explorer, SIGNAL("open_interpreter(QString)"),
-                             self.extconsole.open_interpreter)
-                self.connect(self.explorer, SIGNAL("open_ipython(QString)"),
-                             self.extconsole.open_ipython)
-            self.connect(self.projectexplorer, SIGNAL("open_terminal(QString)"),
-                         self.extconsole.open_terminal)
-            self.connect(self.projectexplorer,
-                         SIGNAL("open_interpreter(QString)"),
-                         self.extconsole.open_interpreter)
-            self.connect(self.projectexplorer, SIGNAL("open_ipython(QString)"),
-                         self.extconsole.open_ipython)
-
-            # Namespace browser
+        self.extconsole.register_plugin()
+        
+        # Namespace browser
+        if not self.light:
             self.set_splash(self.tr("Loading namespace browser..."))
             self.variableexplorer = VariableExplorer(self)
-            self.extconsole.set_variableexplorer(self.variableexplorer)
-            self.add_dockwidget(self.variableexplorer)
-            if self.explorer is not None:
-                self.connect(self.explorer, SIGNAL("import_data(QString)"),
-                             self.variableexplorer.import_data)
-            if self.projectexplorer is not None:
-                self.connect(self.projectexplorer,
-                             SIGNAL("import_data(QString)"),
-                             self.variableexplorer.import_data)
+            self.variableexplorer.register_plugin()
 
         self.extconsole.open_interpreter_at_startup()
             
@@ -1132,19 +1002,6 @@ class MainWindow(QMainWindow):
         if plugin is not None:
             plugin.find_widget.show_replace()
             
-    def findinfiles_callback(self):
-        """Find in files callback"""
-        widget = QApplication.focusWidget()
-        if not self.findinfiles.ismaximized:
-            self.findinfiles.dockwidget.setVisible(True)
-            self.findinfiles.dockwidget.raise_()
-        text = ''
-        from spyderlib.widgets.editor import TextEditBaseWidget
-        if isinstance(widget, TextEditBaseWidget):
-            if widget.has_selected_text():
-                text = widget.get_selected_text()
-        self.emit(SIGNAL('find_files(QString)'), text)
-    
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()

@@ -531,13 +531,42 @@ class ExternalConsole(SpyderPluginWidget):
         
         return self.menu_actions+run_menu_actions+tools_menu_actions
     
-    def open_interpreter_at_startup(self):
-        """Open an interpreter at startup, IPython if module is available"""
-        if self.get_option('open_ipython_at_startup') \
-           and programs.is_module_installed("IPython"):
-            self.open_ipython()
-        if self.get_option('open_python_at_startup'):
-            self.open_interpreter()
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        if self.main.light:
+            self.main.setCentralWidget(self)
+            self.main.widgetlist.append(self)
+        else:
+            self.main.add_dockwidget(self)
+            self.set_inspector(self.main.inspector)
+            self.set_historylog(self.main.historylog)
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                         self.main.editor.load)
+            self.connect(self.main.editor,
+                         SIGNAL('run_script_in_external_console(QString,bool)'),
+                         self.run_script_in_current_shell)
+            self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
+                         self.set_current_shell_working_directory)
+            self.connect(self, SIGNAL('focus_changed()'),
+                         self.main.plugin_focus_changed)
+            self.connect(self, SIGNAL('redirect_stdio(bool)'),
+                         self.main.redirect_internalshell_stdio)
+            expl = self.main.explorer
+            if expl is not None:
+                self.connect(expl, SIGNAL("open_terminal(QString)"),
+                             self.open_terminal)
+                self.connect(expl, SIGNAL("open_interpreter(QString)"),
+                             self.open_interpreter)
+                self.connect(expl, SIGNAL("open_ipython(QString)"),
+                             self.open_ipython)
+            pexpl = self.main.projectexplorer
+            if pexpl is not None:
+                self.connect(pexpl, SIGNAL("open_terminal(QString)"),
+                             self.open_terminal)
+                self.connect(pexpl, SIGNAL("open_interpreter(QString)"),
+                             self.open_interpreter)
+                self.connect(pexpl, SIGNAL("open_ipython(QString)"),
+                             self.open_ipython)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -574,6 +603,14 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.setMaximumBlockCount(mlc)
     
     #------ Public API ---------------------------------------------------------
+    def open_interpreter_at_startup(self):
+        """Open an interpreter at startup, IPython if module is available"""
+        if self.get_option('open_ipython_at_startup') \
+           and programs.is_module_installed("IPython"):
+            self.open_ipython()
+        if self.get_option('open_python_at_startup'):
+            self.open_interpreter()
+            
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:

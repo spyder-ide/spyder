@@ -105,6 +105,15 @@ class HistoryLog(SpyderPluginWidget):
         wrap_action.setChecked( self.get_option('wrap') )
         self.menu_actions = [history_action, font_action, wrap_action]
         return self.menu_actions
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.connect(self, SIGNAL('focus_changed()'),
+                     self.main.plugin_focus_changed)
+        self.main.add_dockwidget(self)
+#        self.main.console.set_historylog(self)
+        self.connect(self.main.console.shell, SIGNAL("refresh()"),
+                     self.refresh_plugin)
         
     #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):

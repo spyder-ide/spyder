@@ -287,12 +287,6 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
         self.setWindowTitle(self.get_plugin_title())
-    
-    def register_plugin(self):
-        """Register plugin in Spyder's main window"""
-        #XXX: For now, it is required only for 3rd party plugins,
-        # but it should be generalized to all plugins
-        pass
         
     def get_plugin_title(self):
         """
@@ -336,6 +330,10 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         Note: these actions will be enabled when plugin's dockwidget is visible
               and they will be disabled when it's hidden
         """
+        raise NotImplementedError
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
         raise NotImplementedError
 
 
@@ -384,14 +382,6 @@ class ReadOnlyEditor(SpyderPluginWidget):
         """
         return self.editor
             
-    def get_plugin_actions(self):
-        """Return a list of actions related to plugin"""
-        return []
-        
-    def closing_plugin(self, cancelable=False):
-        """Perform actions before parent main window is closed"""
-        return True
-        
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.ID), self,

@@ -55,9 +55,4 @@ __license__ = __doc__
 # 3. Refactoring -> shell.py key press events --> in base class (shared with qteditor.py)
 # 4. Implement: zoomIn, zoomOut
 
-#TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
-#TODO: implement all "register_plugin" methods for plugins (see SpyderPluginWigdet class)
-#TODO: reconsidérer la pertinence de la méthode "get_plugin_actions"
-#      --> déplacer tout dans register_plugin et ajouter un appel dans le __init__
-
 #TODO: Take a look at session management: adapt to new v2.0 features

@@ -70,6 +70,32 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                     triggered=self.change_font)
         self.treewidget.common_actions.append(font_action)
         return []
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.main.add_dockwidget(self)
+        valid_types = self.main.editor.get_valid_types()
+        self.set_editor_valid_types(valid_types)
+        self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
+        self.connect(self, SIGNAL("removed(QString)"), self.main.editor.removed)
+        self.connect(self, SIGNAL("renamed(QString,QString)"),
+                     self.main.editor.renamed)
+        self.connect(self.main.editor, SIGNAL("open_dir(QString)"), self.chdir)
+        self.connect(self, SIGNAL("run(QString)"),
+                     lambda fname:
+                     self.main.open_external_console(unicode(fname),
+                                                 osp.dirname(unicode(fname)),
+                                                 False, False, False, True))
+        # Signal "refresh_explorer()" will eventually force the
+        # explorer to change the opened directory:
+        self.connect(self.main.console.shell, SIGNAL("refresh_explorer()"),
+                     lambda: self.refresh_plugin(force_current=True))
+        # Signal "refresh_explorer(QString)" will refresh only the
+        # contents of path passed by the signal in explorer:
+        self.connect(self.main.console.shell,
+                     SIGNAL("refresh_explorer(QString)"), self.refresh_folder)
+        self.connect(self.main.editor, SIGNAL("refresh_explorer(QString)"),
+                     self.refresh_folder)
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""

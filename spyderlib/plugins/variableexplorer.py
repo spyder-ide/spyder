@@ -9,6 +9,7 @@
 import sys
 
 from PyQt4.QtGui import QStackedWidget
+from PyQt4.QtCore import SIGNAL
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -96,4 +97,15 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.main.extconsole.set_variableexplorer(self)
+        self.main.add_dockwidget(self)
+        if self.main.explorer is not None:
+            self.connect(self.main.explorer, SIGNAL("import_data(QString)"),
+                         self.import_data)
+        if self.main.projectexplorer is not None:
+            self.connect(self.main.projectexplorer,
+                         SIGNAL("import_data(QString)"), self.import_data)
         
