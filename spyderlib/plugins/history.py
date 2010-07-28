@@ -92,7 +92,7 @@ class HistoryLog(SpyderPluginWidget):
         self.find_widget.set_editor(editor)
         
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         history_action = create_action(self, self.tr("History..."),
                                        None, 'history.png',
                                        self.tr("Set history maximum entries"),
@@ -104,7 +104,7 @@ class HistoryLog(SpyderPluginWidget):
                                     toggled=self.toggle_wrap_mode)
         wrap_action.setChecked( self.get_option('wrap') )
         self.menu_actions = [history_action, font_action, wrap_action]
-        return (self.menu_actions, None)
+        return self.menu_actions
         
     #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):

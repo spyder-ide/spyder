@@ -114,7 +114,7 @@ class Console(SpyderPluginWidget):
         pass
     
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
                             'exit.png', self.tr("Quit"),
                             triggered=self.quit)
@@ -167,14 +167,13 @@ class Console(SpyderPluginWidget):
                                   calltips_action, codecompletion_action,
                                   codecompenter_action, exteditor_action))
                     
-        menu_actions = [None, run_action, environ_action, syspath_action,
-                        option_menu, None, quit_action]
-        toolbar_actions = []
+        plugin_actions = [None, run_action, environ_action, syspath_action,
+                          option_menu, None, quit_action]
         
         # Add actions to context menu
-        add_actions(self.shell.menu, menu_actions)
+        add_actions(self.shell.menu, plugin_actions)
         
-        return menu_actions, toolbar_actions
+        return plugin_actions
         
     #------ Public API ---------------------------------------------------------
     def quit(self):

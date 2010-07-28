@@ -353,7 +353,7 @@ class Editor(SpyderPluginWidget):
         return is_ok
 
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         self.new_action = create_action(self, self.tr("New file..."), "Ctrl+N",
             'filenew.png', self.tr("Create a new Python script"),
             triggered = self.new)
@@ -589,7 +589,8 @@ class Editor(SpyderPluginWidget):
                                    print_action, run_new_action,
                                    run_inside_action, workdir_action,
                                    self.close_action]
-        return (source_menu_actions, self.dock_toolbar_actions)        
+        
+        return self.file_dependent_actions
     
         
     #------ Focus tabwidget

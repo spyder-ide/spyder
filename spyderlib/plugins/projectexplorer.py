@@ -57,7 +57,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         return self.treewidget
     
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         new_project_act = create_action(self, text=self.tr('New project...'),
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.create_new_project)
@@ -69,7 +69,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         
         self.main.file_menu_actions.insert(1, new_project_act)
         
-        return (None, None)
+        return []
         
     def refresh_plugin(self):
         """Refresh project explorer widget"""

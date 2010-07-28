@@ -78,7 +78,6 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         pass
     
     def get_plugin_actions(self):
-        """Setup actions"""
-        # Return menu and toolbar actions
-        return (None, None)
+        """Return a list of actions related to plugin"""
+        return []
         

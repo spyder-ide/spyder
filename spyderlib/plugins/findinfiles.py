@@ -77,8 +77,8 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         return self.find_options.search_text
     
     def get_plugin_actions(self):
-        """Setup actions"""
-        return (None, None)
+        """Return a list of actions related to plugin"""
+        return []
         
     def refresh_plugin(self):
         """Refresh widget"""

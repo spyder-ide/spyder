@@ -62,14 +62,14 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         return self.treewidget
     
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         # Font
         font_action = create_action(self, translate('Explorer', "&Font..."),
                                     None, 'font.png',
                                     translate("Explorer", "Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions.append(font_action)
-        return (None, None)
+        return []
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""

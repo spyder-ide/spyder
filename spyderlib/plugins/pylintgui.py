@@ -47,7 +47,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         return self.treewidget
     
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         # Font
         history_action = create_action(self, self.tr("History..."),
                                        None, 'history.png',
@@ -57,7 +57,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                                     None, 'font.png', self.tr("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, history_action, font_action)
-        return (None, None)
+        return []
         
     def refresh_plugin(self):
         """Refresh pylint widget"""

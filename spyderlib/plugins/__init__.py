@@ -171,7 +171,7 @@ class SpyderPluginMixin(object):
         super(SpyderPluginMixin, self).__init__()
         assert self.ID is not None
         self.main = main
-        self.menu_actions, self.toolbar_actions = self.get_plugin_actions()
+        self.plugin_actions = self.get_plugin_actions()
         self.dockwidget = None
         self.ismaximized = False
         QObject.connect(self, SIGNAL('option_changed'), self.set_option)
@@ -231,8 +231,7 @@ class SpyderPluginMixin(object):
                 widget.setFocus()
         visible = self.dockwidget.isVisible() or self.ismaximized
         if self.DISABLE_ACTIONS_WHEN_HIDDEN:
-            toggle_actions(self.menu_actions, visible)
-            toggle_actions(self.toolbar_actions, visible)
+            toggle_actions(self.plugin_actions, visible)
         if visible:
             self.refresh_plugin() #XXX Is it a good idea?
 
@@ -333,8 +332,9 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """
-        Setup actions and return a tuple (menu_actions, toolbar_actions)
-        (each tuple element contains a list of QAction objects or None)
+        Return a list of actions related to plugin
+        Note: these actions will be enabled when plugin's dockwidget is visible
+              and they will be disabled when it's hidden
         """
         raise NotImplementedError
 
@@ -385,8 +385,8 @@ class ReadOnlyEditor(SpyderPluginWidget):
         return self.editor
             
     def get_plugin_actions(self):
-        """Setup and return actions"""
-        return (None, None)
+        """Return a list of actions related to plugin"""
+        return []
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""

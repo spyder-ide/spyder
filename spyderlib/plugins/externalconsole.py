@@ -495,7 +495,7 @@ class ExternalConsole(SpyderPluginWidget):
         return self.tabwidget.currentWidget()
         
     def get_plugin_actions(self):
-        """Setup actions"""
+        """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
                             self.tr("Open &interpreter"), None,
                             'python.png', self.tr("Open a Python interpreter"),
@@ -529,7 +529,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.main.run_menu_actions += [None]+run_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         
-        return (self.menu_actions, None)
+        return self.menu_actions+run_menu_actions+tools_menu_actions
     
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
