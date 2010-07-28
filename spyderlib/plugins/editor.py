@@ -49,14 +49,13 @@ def is_winpdb_installed():
 
 class EditorConfigPage(PluginConfigPage):
     def setup_page(self):
-        template_btn = QPushButton(self.tr("Edit template for new modules"))
-        self.connect(template_btn, SIGNAL('clicked()'),
-                     self.plugin.edit_template)
+        template_btn = self.create_button(
+                                    self.tr("Edit template for new modules"),
+                                    self.plugin.edit_template)
         
         interface_group = QGroupBox(self.tr("Interface"))
-        font_btn = QPushButton(self.tr("Set text and margin font style"))
-        self.connect(font_btn, SIGNAL('clicked()'),
-                     self.plugin.change_font)
+        font_btn = self.create_button(self.tr("Set text and margin font style"),
+                                      self.plugin.change_font)
         newcb = self.create_checkbox
         cbvis_box = newcb(self.tr("Show class browser"),
                           'class_browser/visibility')

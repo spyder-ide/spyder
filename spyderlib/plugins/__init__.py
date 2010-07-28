@@ -21,7 +21,7 @@ These plugins inherit the following classes
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
                          QKeySequence, QMainWindow, QApplication, QCheckBox,
                          QMessageBox, QLabel, QLineEdit, QSpinBox, QVBoxLayout,
-                         QHBoxLayout)
+                         QHBoxLayout, QPushButton)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -42,6 +42,7 @@ from spyderlib.widgets.findreplace import FindReplace
 class PluginConfigPage(ConfigPage):
     """Plugin configuration dialog box page widget"""
     def __init__(self, plugin, parent):
+        self.is_modified = False
         self.plugin = plugin
         self.get_option = self.plugin.get_option
         self.set_option = self.plugin.set_option
@@ -58,15 +59,26 @@ class PluginConfigPage(ConfigPage):
     def get_icon(self):
         """Return page icon"""
         return self.plugin.get_plugin_icon()
+    
+    def apply_changes(self):
+        """Apply changes callback"""
+        if self.is_modified:
+            ConfigPage.apply_changes(self)
         
     def load_from_conf(self):
         """Load settings from configuration file"""
         for checkbox, (option, default) in self.checkboxes.items():
             checkbox.setChecked(self.get_option(option, default))
+            self.connect(checkbox, SIGNAL("clicked(bool)"),
+                         lambda checked: self.has_been_modified())
         for lineedit, (option, default) in self.lineedits.items():
             lineedit.setText(self.get_option(option, default))
+            self.connect(lineedit, SIGNAL("textChanged(QString)"),
+                         lambda text: self.has_been_modified())
         for spinbox, (option, default) in self.spinboxes.items():
             spinbox.setValue(self.get_option(option, default))
+            self.connect(spinbox, SIGNAL('valueChanged(int)'),
+                         lambda value: self.has_been_modified())
     
     def save_to_conf(self):
         """Save settings to configuration file"""
@@ -76,6 +88,9 @@ class PluginConfigPage(ConfigPage):
             self.set_option(option, unicode(lineedit.text()))
         for spinbox, (option, _default) in self.spinboxes.items():
             self.set_option(option, spinbox.value())
+    
+    def has_been_modified(self):
+        self.is_modified = True
     
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
@@ -134,6 +149,12 @@ class PluginConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
+    
+    def create_button(self, text, callback):
+        btn = QPushButton(text)
+        self.connect(btn, SIGNAL('clicked()'), callback)
+        self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+        return btn
     
     def create_tab(self, *widgets):
         """Create simple tab widget page: widgets added in a vertical layout"""

@@ -47,11 +47,7 @@ __license__ = __doc__
 #TODO: Handling errors in project explorer I/O functions (i.e. find a way to 
 # allow loading a corrupted project to be able to launch Spyder anyway)
 
-#FIXME: When saving, collapsing corresponding class browser item
-#       -> was it introduced following last bugfix on class browser?
-
 #TODO: Implement code completion in code editor with rope:
-# 1. QtEditor -> add completion support
 # 3. Refactoring -> shell.py key press events --> in base class (shared with qteditor.py)
 # 4. Implement: zoomIn, zoomOut
 

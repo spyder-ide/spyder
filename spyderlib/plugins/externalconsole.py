@@ -41,9 +41,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             self.tr("Buffer: "), self.tr(" lines"),
                             'max_line_count', min_=100, max_=1000000, step=100,
                             tip=self.tr("Set maximum line count"))
-        font_btn = QPushButton(self.tr("Set text font style"))
-        self.connect(font_btn, SIGNAL('clicked()'),
-                     self.plugin.change_font)
+        font_btn = self.create_button(self.tr("Set text font style"),
+                                      self.plugin.change_font)
         newcb = self.create_checkbox
         singletab_box = newcb(self.tr("One tab per script"), 'single_tab')
         icontext_box = newcb(self.tr("Show icons and text"), 'show_icontext')
