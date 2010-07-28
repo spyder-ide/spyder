@@ -147,6 +147,8 @@ class QtEditor(TextEditBaseWidget):
         self.tab_indents = None
         self.tab_mode = True # see QtEditor.set_tab_mode
         
+        self.go_to_definition_enabled = False
+        
         # Mouse tracking
         self.setMouseTracking(True)
         self.__cursor_changed = False
@@ -172,10 +174,13 @@ class QtEditor(TextEditBaseWidget):
                      font=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True, codecompletion_auto=False,
-                     codecompletion_enter=False, cloned_from=None):
-        # Code completion
+                     codecompletion_enter=False, calltips=None,
+                     go_to_definition=False, cloned_from=None):
+        # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_enter(codecompletion_enter)
+        self.set_calltips(calltips)
+        self.set_go_to_definition_enabled(go_to_definition)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -209,6 +214,11 @@ class QtEditor(TextEditBaseWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         self.tab_mode = enable
+        
+    def set_go_to_definition_enabled(self, enable):
+        """Enable/Disable go-to-definition feature, which is implemented in 
+        child class -> Editor widget"""
+        self.go_to_definition_enabled = enable
         
     def set_occurence_highlighting(self, enable):
         """Enable/disable occurence highlighting"""
@@ -1177,7 +1187,7 @@ class QtEditor(TextEditBaseWidget):
 #                QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self.hide_completion_widget()
-            if self.get_text('sol', 'cursor'):
+            if self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip()'))
             self.insert_text(text)
             event.accept()
@@ -1207,7 +1217,8 @@ class QtEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
-        if event.modifiers() & Qt.ControlModifier:
+        if self.go_to_definition_enabled and \
+           event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
             if text and (self.is_python() or self.is_cython()) \
                and not is_keyword(unicode(text)):
@@ -1253,7 +1264,7 @@ class QtEditor(TextEditBaseWidget):
             position = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
             text = unicode(cursor.selectedText())
-            if text is None or \
+            if not self.go_to_definition_enabled or text is None or \
                (self.is_python() or self.is_cython()) and is_keyword(text):
                 QPlainTextEdit.mousePressEvent(self, event)
             else:

@@ -183,7 +183,6 @@ class FileInfo(QObject):
     def __init__(self, filename, encoding, editor, new):
         QObject.__init__(self)
         self.project = None
-        self.inspector = None
         self.filename = filename
         self.newly_created = new
         self.encoding = encoding
@@ -211,9 +210,6 @@ class FileInfo(QObject):
     def set_project(self, project):
         self.project = project
         
-    def set_inspector(self, inspector):
-        self.inspector = inspector
-        
     def trigger_code_completion(self):
         if self.project is None:
             return []
@@ -238,11 +234,7 @@ class FileInfo(QObject):
             parpos = text.find('(')
             if parpos:
                 text = text[:parpos]
-                if (self.inspector is not None) and \
-                   (self.inspector.dockwidget.isVisible()):
-                    # ObjectInspector widget exists and is visible
-                    self.inspector.set_object_text(text)
-                    self.editor.setFocus()
+                self.emit(SIGNAL("send_to_inspector(QString)"), text)
             self.editor.show_calltip("rope", textlist)
                     
     def go_to_definition(self, position):
@@ -347,6 +339,9 @@ class EditorStack(QWidget):
         self.classbrowser_enabled = True
         self.codecompletion_auto_enabled = False
         self.codecompletion_enter_enabled = False
+        self.calltips_enabled = False
+        self.go_to_definition_enabled = False
+        self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
@@ -515,8 +510,6 @@ class EditorStack(QWidget):
         
     def set_inspector(self, inspector):
         self.inspector = inspector
-        for finfo in self.data:
-            finfo.set_inspector(inspector)
         
     def set_tempfile_path(self, path):
         self.tempfile_path = path
@@ -577,6 +570,23 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_enter(state)
+                
+    def set_calltips_enabled(self, state):
+        # CONF.get(self.ID, 'calltips')
+        self.calltips_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_calltips(state)
+                
+    def set_go_to_definition_enabled(self, state):
+        # CONF.get(self.ID, 'go_to_definition')
+        self.go_to_definition_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_go_to_definition_enabled(state)
+                
+    def set_inspector_enabled(self, state):
+        self.inspector_enabled = state
         
     def set_classbrowser_enabled(self, state):
         # CONF.get(self.ID, 'class_browser')
@@ -1290,9 +1300,9 @@ class EditorStack(QWidget):
         finfo = FileInfo(fname, enc, editor, new)
         if self.projectexplorer is not None:
             finfo.set_project(self.projectexplorer.get_source_project(fname))
-        if self.inspector is not None:
-            finfo.set_inspector(self.inspector)
         self.add_to_data(finfo, set_current)
+        self.connect(finfo, SIGNAL("send_to_inspector(QString)"),
+                     self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
@@ -1309,6 +1319,8 @@ class EditorStack(QWidget):
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
+                calltips=self.calltips_enabled,
+                go_to_definition=self.go_to_definition_enabled,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)
@@ -1332,6 +1344,14 @@ class EditorStack(QWidget):
         self.modification_changed()
         
         return finfo
+    
+    def send_to_inspector(self, qstr):
+        if not self.inspector_enabled:
+            return
+        if self.inspector is not None and self.inspector.dockwidget.isVisible():
+            # ObjectInspector widget exists and is visible
+            self.inspector.set_object_text(qstr)
+            self.setFocus()
     
     def new(self, filename, encoding, text):
         """

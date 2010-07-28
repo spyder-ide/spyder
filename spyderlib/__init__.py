@@ -56,6 +56,3 @@ __license__ = __doc__
 # 4. Implement: zoomIn, zoomOut
 
 #TODO: Take a look at session management: adapt to new v2.0 features
-
-#TODO: Editor: add an option to enable/disable go-to-definition feature
-#TODO: Editor: add an option to enable/disable auto-calltip feature

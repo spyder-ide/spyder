@@ -76,10 +76,10 @@ class EditorConfigPage(PluginConfigPage):
         occurence_box = newcb(self.tr("Highlight occurences"),
                               'occurence_highlighting', default=True)
         codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
-                                 'code_analysis', default=True)
-        codeanalysis_box.setToolTip(self.tr("If enabled, Python source code "
-                        "will be analyzed using pyflakes, lines containing "
-                        "errors or warnings will be highlighted"))
+              'code_analysis', default=True,
+              tip=self.tr("If enabled, Python source code will be analyzed\n"
+                          "using pyflakes, lines containing errors or \n"
+                          "warnings will be highlighted"))
         codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
         todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
                              'todo_list', default=True)
@@ -96,16 +96,32 @@ class EditorConfigPage(PluginConfigPage):
                                'codecompletion/auto')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
                                'codecompletion/enter-key')
+        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
+        gotodef_box = newcb(self.tr("Link to object definition"),
+              'go_to_definition',
+              tip=self.tr("If this option is enabled, clicking on an object\n"
+                          "name (left-click + Ctrl key) will go this object\n"
+                          "definition (if resolved)."))
+        inspector_box = newcb(
+              self.tr("Automatic notification to object inspector"),
+              'object_inspector', default=True,
+              tip=self.tr("If this option is enabled, object inspector\n"
+                          "will automatically show informations on functions\n"
+                          "entered in editor (this is triggered when entering\n"
+                          "a left parenthesis after a valid function name)"))
         tab_mode_box = newcb(self.tr("Tab always indent"),
-                             'tab_always_indent', default=True,
-                             tip=self.tr("If enabled, pressing Tab will always "
-                                         "indent, even when the cursor is not "
-                                         "at the beginning of a line"))
+              'tab_always_indent', default=True,
+              tip=self.tr("If enabled, pressing Tab will always indent,\n"
+                          "even when the cursor is not at the beginning\n"
+                          "of a line"))
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
         check_eol_box = newcb(self.tr("Show warning when fixing newline chars"),
                               'check_eol_chars', default=True)
         
         sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(calltips_box)
+        sourcecode_layout.addWidget(gotodef_box)
+        sourcecode_layout.addWidget(inspector_box)
         sourcecode_layout.addWidget(completion_box)
         sourcecode_layout.addWidget(comp_enter_box)
         sourcecode_layout.addWidget(tab_mode_box)
@@ -115,8 +131,7 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(interface_group, sourcecode_group),
                     self.tr("Basics"))
-        tabs.addTab(self.create_tab(template_btn, margins_group,
-                                    check_eol_box),
+        tabs.addTab(self.create_tab(template_btn, margins_group, check_eol_box),
                     self.tr("Advanced"))
         
         vlayout = QVBoxLayout()
@@ -665,9 +680,13 @@ class Editor(SpyderPluginWidget):
                     ('set_linenumbers_enabled',    'line_numbers'),
                     ('set_classbrowser_enabled',   'class_browser'),
                     ('set_codecompletion_auto_enabled',
-                                                    'codecompletion/auto'),
+                                                   'codecompletion/auto'),
                     ('set_codecompletion_enter_enabled',
-                                                    'codecompletion/enter-key'),
+                                                   'codecompletion/enter-key'),
+                    ('set_calltips_enabled',       'calltips'),
+                    ('set_go_to_definition_enabled',
+                                                   'go_to_definition'),
+                    ('set_inspector_enabled',      'object_inspector'),
                     ('set_wrap_enabled',           'wrap'),
                     ('set_tabmode_enabled',        'tab_always_indent'),
                     ('set_occurence_highlighting_enabled',
@@ -1390,6 +1409,9 @@ class Editor(SpyderPluginWidget):
             tabindent = self.get_option('tab_always_indent')
             autocomp = self.get_option('codecompletion/auto')
             enter_key = self.get_option('codecompletion/enter-key')
+            calltips = self.get_option('calltips')
+            gotodef = self.get_option('go_to_definition')
+            inspector = self.get_option('object_inspector')
             todo = self.get_option('todo_list')
             analysis = self.get_option('code_analysis')
             finfo = self.get_current_finfo()
@@ -1406,6 +1428,9 @@ class Editor(SpyderPluginWidget):
                 editorstack.set_tabmode_enabled(tabindent)
                 editorstack.set_codecompletion_auto_enabled(autocomp)
                 editorstack.set_codecompletion_enter_enabled(enter_key)
+                editorstack.set_calltips_enabled(calltips)
+                editorstack.set_go_to_definition_enabled(gotodef)
+                editorstack.set_inspector_enabled(inspector)
                 editorstack.set_todolist_enabled(todo, current_finfo=finfo)
                 editorstack.set_codeanalysis_enabled(analysis,
                                                      current_finfo=finfo)

@@ -41,7 +41,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             self.tr("Buffer: "), self.tr(" lines"),
                             'max_line_count', min_=100, max_=1000000, step=100,
                             tip=self.tr("Set maximum line count"))
-        font_btn = QPushButton(self.tr("Set text and margin font style"))
+        font_btn = QPushButton(self.tr("Set text font style"))
         self.connect(font_btn, SIGNAL('clicked()'),
                      self.plugin.change_font)
         newcb = self.create_checkbox
@@ -386,15 +386,15 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.shell.setup_code_completion(case_sensitive, show_single,
                                                  from_document)
         
-        shellwidget.shell.setMaximumBlockCount( self.get_option(
-                                                          'max_line_count') )
+        shellwidget.shell.setMaximumBlockCount(
+                                            self.get_option('max_line_count') )
         shellwidget.shell.set_font( self.get_plugin_font() )
         shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
         shellwidget.shell.set_calltips( self.get_option('calltips') )
-        shellwidget.shell.set_codecompletion_auto( self.get_option(
-                                                 'codecompletion/auto') )
-        shellwidget.shell.set_codecompletion_enter(self.get_option(
-                                                 'codecompletion/enter-key'))
+        shellwidget.shell.set_codecompletion_auto(
+                                self.get_option('codecompletion/auto') )
+        shellwidget.shell.set_codecompletion_enter(
+                                self.get_option('codecompletion/enter-key') )
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
         if self.historylog is not None:
