@@ -99,6 +99,12 @@ class ConfigDialog(QDialog):
         self.setWindowTitle(self.tr("Preferences"))
         self.setWindowIcon(get_icon("configure.png"))
         
+    def accept(self):
+        """Reimplement Qt method"""
+        for index in range(self.pages_widget.count()):
+            self.pages_widget.widget(index).apply_changes()
+        QDialog.accept(self)
+        
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
