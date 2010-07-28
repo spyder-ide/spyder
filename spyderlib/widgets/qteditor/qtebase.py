@@ -152,11 +152,6 @@ class TextEditBaseWidget(QPlainTextEdit):
         
         self.extra_selections_dict = {}
         
-        # Undo/Redo
-        self.undo_available = False
-        self.redo_available = False
-        self.connect(self, SIGNAL("undoAvailable(bool)"), self.set_undo)
-        self.connect(self, SIGNAL("redoAvailable(bool)"), self.set_redo)
         self.connect(self, SIGNAL('textChanged()'), self.changed)
         self.connect(self, SIGNAL('cursorPositionChanged()'),
                      self.cursor_position_changed)
@@ -204,7 +199,8 @@ class TextEditBaseWidget(QPlainTextEdit):
         
     def changed(self):
         """Emit changed signal"""
-        self.emit(SIGNAL('modificationChanged(bool)'), self.isModified())
+        self.emit(SIGNAL('modificationChanged(bool)'),
+                  self.document().isModified())
 
 
     #------Brace matching
@@ -292,78 +288,16 @@ class TextEditBaseWidget(QPlainTextEdit):
         else:
             self.bracepos = (pos1,)
             self.__highlight(self.bracepos, color=QColor(Qt.red).lighter(160))
-        
-        
-    #------QsciScintilla API emulation
-    def isModified(self):
-        """Reimplement QScintilla method
-        Returns true if the text has been modified"""
-        return self.document().isModified()
-    
-    def setModified(self, state):
-        """Reimplement QScintilla method
-        Sets the modified state of the text edit to state"""
-        self.document().setModified(state)
-        
-    def hasSelectedText(self):
-        """Reimplements QScintilla method
-        Returns true if some text is selected"""
-        return not self.textCursor().selectedText().isEmpty()
-    
-    def selectedText(self):
-        """Reimplements QScintilla method
-        Returns the selected text or an empty string
-        if there is no currently selected text"""
-        return self.textCursor().selectedText()
-    
-    def removeSelectedText(self):
-        """Delete selected text"""
-        self.textCursor().removeSelectedText()
-        
-    def set_undo(self, state):
-        """Set undo availablity"""
-        self.undo_available = state
-        
-    def set_redo(self, state):
-        """Set redo availablity"""
-        self.redo_available = state
-        
-    def isUndoAvailable(self):
-        """Reimplements QScintilla method
-        Returns true if there is something that can be undone"""
-        return self.undo_available
-        
-    def isRedoAvailable(self):
-        """Reimplements QScintilla method
-        Returns true if there is something that can be redone"""
-        return self.redo_available
-    
-    def replace(self, text):
-        """Reimplements QScintilla method"""
-        cursor = self.textCursor()
-        cursor.beginEditBlock()
-        cursor.removeSelectedText()
-        cursor.insertText(text)
-        cursor.endEditBlock()
-    
-    def text(self, line_nb=None):
-        """Reimplements QScintilla method"""
-        if line_nb is None:
-            return self.toPlainText()
-        else:
-            return unicode(self.toPlainText()).splitlines()[line_nb-1]
-    
-    def setText(self, text):
-        """Reimplements QScintilla method"""
-        self.setPlainText(text)
-        
+
+
+    #------Zoom in/out
     def zoomIn(self):
-        """Reimplements QScintilla method"""
+        """Zoom in text size --- <!> Currently not implemented"""
         #TODO: Implement Zoom In
         pass
     
     def zoomOut(self):
-        """Reimplements QScintilla method"""
+        """Zoom out text size --- <!> Currently not implemented"""
         #TODO: Implement Zoom Out
         pass
     
@@ -554,9 +488,31 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         self.setTextCursor(cursor)
+
+
+    #------Text selection
+    def has_selected_text(self):
+        """Returns True if some text is selected"""
+        return not self.textCursor().selectedText().isEmpty()
+    
+    def get_selected_text(self):
+        """Return text selected by current text cursor, converted in unicode"""
+        return unicode(self.textCursor().selectedText())
+    
+    def remove_selected_text(self):
+        """Delete selected text"""
+        self.textCursor().removeSelectedText()
+        
+    def replace(self, text):
+        """Replace selected text by *text*"""
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.removeSelectedText()
+        cursor.insertText(text)
+        cursor.endEditBlock()
         
 
-    #------Text: get, set, replace, ...
+    #------Text: get, set, ...
     def __select_text(self, position_from, position_to):
         position_from = self.get_position(position_from)
         position_to = self.get_position(position_to)
@@ -565,13 +521,15 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.setPosition(position_to, QTextCursor.KeepAnchor)
         return cursor
 
-    def get_text(self, position_from=None, position_to=None):
+    def get_text_line(self, line_nb):
+        """Return text line at line number *line_nb*"""
+        return unicode(self.toPlainText()).splitlines()[line_nb-1]
+    
+    def get_text(self, position_from, position_to):
         """
         Return text between *position_from* and *position_to*
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
         """
-        if position_from is None and position_to is None:
-            return self.text()
         cursor = self.__select_text(position_from, position_to)
         text = cursor.selectedText()
         if not text.isEmpty():
@@ -806,15 +764,15 @@ class TextEditBaseWidget(QPlainTextEdit):
         
     #------Standard keys
     def stdkey_clear(self):
-        if not self.hasSelectedText():
+        if not self.has_selected_text():
             self.moveCursor(QTextCursor.NextCharacter, QTextCursor.KeepAnchor)
-        self.textCursor().removeSelectedText()
+        self.remove_selected_text()
     
     def stdkey_backspace(self):
-        if not self.hasSelectedText():
+        if not self.has_selected_text():
             self.moveCursor(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
-        self.textCursor().removeSelectedText()
+        self.remove_selected_text()
 
     def __get_move_mode(self, shift):
         return QTextCursor.KeepAnchor if shift else QTextCursor.MoveAnchor
@@ -988,8 +946,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         
     def paste(self):
         """Reimplement Qt method"""
-        if self.hasSelectedText():
-            self.removeSelectedText()
+        if self.has_selected_text():
+            self.remove_selected_text()
         self.insert_text(QApplication.clipboard().text())
         
     def append_text_to_shell(self, text, error, prompt):

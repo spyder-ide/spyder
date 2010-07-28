@@ -139,7 +139,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
           
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        state = self.hasSelectedText()
+        state = self.has_selected_text()
         self.copy_action.setEnabled(state)
         self.cut_action.setEnabled(state)
         self.delete_action.setEnabled(state)
@@ -220,8 +220,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
     #------ Copy / Keyboard interrupt
     def copy(self):
         """Copy text to clipboard... or keyboard interrupt"""
-        if self.hasSelectedText():
-            text = unicode(self.selectedText()).replace(u"\u2029", os.linesep)
+        if self.has_selected_text():
+            text = self.get_selected_text().replace(u"\u2029", os.linesep)
             QApplication.clipboard().setText(text)
         else:
             self.emit(SIGNAL("keyboard_interrupt()"))
@@ -229,14 +229,14 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def cut(self):
         """Cut text"""
         self.check_selection()
-        if self.hasSelectedText():
+        if self.has_selected_text():
             ConsoleBaseWidget.cut(self)
 
     def delete(self):
         """Remove selected text"""
         self.check_selection()
-        if self.hasSelectedText():
-            ConsoleBaseWidget.removeSelectedText(self)
+        if self.has_selected_text():
+            ConsoleBaseWidget.remove_selected_text(self)
         
     def save_historylog(self):
         """Save current history log (all text in console)"""
@@ -248,7 +248,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         if filename:
             filename = osp.normpath(unicode(filename))
             try:
-                encoding.write(unicode(self.text()), filename)
+                encoding.write(unicode(self.toPlainText()), filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
             except EnvironmentError, error:
@@ -318,7 +318,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         # Is cursor on the last line? and after prompt?
         if len(text):
             #XXX: Shouldn't it be: `if len(unicode(text).strip(os.linesep))` ?
-            if self.hasSelectedText():
+            if self.has_selected_text():
                 self.check_selection()
             self.restrict_cursor_position(self.current_prompt_pos, 'eof')
             
@@ -329,14 +329,13 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self._key_enter()
             # add and run selection
             else:
-                text = self.selectedText()
-                self.insert_text(text, at_end=True)
+                self.insert_text(self.get_selected_text(), at_end=True)
             event.accept()
             
         elif key == Qt.Key_Delete:
-            if self.hasSelectedText():
+            if self.has_selected_text():
                 self.check_selection()
-                self.removeSelectedText()
+                self.remove_selected_text()
             elif self.is_cursor_on_last_line():
                 self.stdkey_clear()
             event.accept()
@@ -430,15 +429,15 @@ class ShellBaseWidget(ConsoleBaseWidget):
             self.selectAll()
             event.accept()
                 
-        elif key == Qt.Key_Question and not self.hasSelectedText():
+        elif key == Qt.Key_Question and not self.has_selected_text():
             self._key_question(text)
             event.accept()
             
-        elif key == Qt.Key_ParenLeft and not self.hasSelectedText():
+        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self._key_parenleft(text)
             event.accept()
             
-        elif key == Qt.Key_Period and not self.hasSelectedText():
+        elif key == Qt.Key_Period and not self.has_selected_text():
             self._key_period(text)
             event.accept()
 
@@ -645,7 +644,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         event: the mouse press event (QMouseEvent)
         """
         if event.button() == Qt.MidButton:
-            text = self.selectedText()
+            text = self.get_selected_text()
             # Simulating left mouse button:
             event = QMouseEvent(QMouseEvent.MouseButtonPress, event.pos(),
                                 Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
@@ -739,13 +738,13 @@ class PythonShellWidget(ShellBaseWidget):
           
     def contextMenuEvent(self, event):
         """Reimplements ShellBaseWidget method"""
-        state = self.hasSelectedText()
+        state = self.has_selected_text()
         self.copy_without_prompts_action.setEnabled(state)
         ShellBaseWidget.contextMenuEvent(self, event)
         
     def copy_without_prompts(self):
         """Copy text to clipboard without prompts"""
-        text = unicode(self.selectedText()).replace(u"\u2029", os.linesep)
+        text = self.get_selected_text().replace(u"\u2029", os.linesep)
         lines = text.split(os.linesep)
         for index, line in enumerate(lines):
             if line.startswith('>>> ') or line.startswith('... '):
@@ -759,7 +758,7 @@ class PythonShellWidget(ShellBaseWidget):
         """Go to error"""
         ConsoleBaseWidget.mouseReleaseEvent(self, event)            
         text = self.get_line_at(event.pos())
-        if get_error_match(text) and not self.hasSelectedText():
+        if get_error_match(text) and not self.has_selected_text():
             self.emit(SIGNAL("go_to_error(QString)"), text)
 
     def mouseMoveEvent(self, event):
@@ -805,9 +804,9 @@ class PythonShellWidget(ShellBaseWidget):
                 
     def _key_backspace(self, cursor_position):
         """Action for Backspace key"""
-        if self.hasSelectedText():
+        if self.has_selected_text():
             self.check_selection()
-            self.removeSelectedText()
+            self.remove_selected_text()
         elif self.current_prompt_pos == cursor_position:
             # Avoid deleting prompt
             return
@@ -897,7 +896,7 @@ class PythonShellWidget(ShellBaseWidget):
         text = unicode(QApplication.clipboard().text())
         if len(text.splitlines()) > 1:
             # Multiline paste
-            self.removeSelectedText() # Remove selection, eventually
+            self.remove_selected_text() # Remove selection, eventually
             end = self.get_current_line_from_cursor()
             lines = self.get_current_line_to_cursor() + text + end
             self.clear_line()
@@ -1082,9 +1081,9 @@ class TerminalWidget(ShellBaseWidget):
                 
     def _key_backspace(self, cursor_position):
         """Action for Backspace key"""
-        if self.hasSelectedText():
+        if self.has_selected_text():
             self.check_selection()
-            self.removeSelectedText()
+            self.remove_selected_text()
         elif self.current_prompt_pos == cursor_position:
             # Avoid deleting prompt
             return

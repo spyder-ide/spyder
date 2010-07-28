@@ -277,7 +277,7 @@ class FileInfo(QObject):
             
     def run_todo_finder(self):
         if self.editor.is_python():
-            self.todo_thread.set_text(self.editor.get_text())
+            self.todo_thread.set_text(self.editor.toPlainText())
             self.todo_thread.start()
         
     def todo_finished(self):
@@ -852,7 +852,7 @@ class EditorStack(QWidget):
             buttons |= QMessageBox.Cancel
         unsaved_nb = 0
         for index in indexes:
-            if self.data[index].editor.isModified():
+            if self.data[index].editor.document().isModified():
                 unsaved_nb += 1
         if not unsaved_nb:
             # No file to save
@@ -866,7 +866,7 @@ class EditorStack(QWidget):
             if finfo.filename == self.tempfile_path or yes_all:
                 if not self.save(refresh_explorer=False):
                     return False
-            elif finfo.editor.isModified():
+            elif finfo.editor.document().isModified():
                 answer = QMessageBox.question(self, self.title,
                             translate("Editor",
                                       "<b>%1</b> has been modified."
@@ -894,7 +894,7 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
             
         finfo = self.data[index]
-        if not finfo.editor.isModified() and not force:
+        if not finfo.editor.document().isModified() and not force:
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
@@ -903,14 +903,14 @@ class EditorStack(QWidget):
                 finfo.filename = filename
             else:
                 return False
-        txt = unicode(finfo.editor.get_text())
+        txt = unicode(finfo.editor.toPlainText())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
             self.emit(SIGNAL('file_saved(int)'), index)
-            finfo.editor.setModified(False)
+            finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
             
@@ -1144,7 +1144,7 @@ class EditorStack(QWidget):
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
             if lastm.toString().compare(finfo.lastmodified.toString()):
-                if finfo.editor.isModified():
+                if finfo.editor.document().isModified():
                     answer = QMessageBox.question(self,
                         self.title,
                         translate("Editor",
@@ -1245,7 +1245,7 @@ class EditorStack(QWidget):
             return
         finfo = self.data[index]
         if state is None:
-            state = finfo.editor.isModified()
+            state = finfo.editor.document().isModified()
         combo_title, tab_title = self.get_titles(state, finfo)
         self.set_stack_title(index, combo_title, tab_title)
         # Toggle save/save all actions state
@@ -1264,7 +1264,7 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
         position = finfo.editor.get_position('cursor')
         finfo.editor.set_text(txt)
-        finfo.editor.setModified(False)
+        finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
         
     def create_new_editor(self, fname, enc, txt,
@@ -1312,7 +1312,7 @@ class EditorStack(QWidget):
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)
-            editor.setModified(False)
+            editor.document().setModified(False)
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
@@ -1377,7 +1377,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         eol_mode = sourcecode.get_eol_chars_from_os_name(os.name)
         finfo.editor.set_eol_mode(eol_mode)
-        finfo.editor.setModified(True)
+        finfo.editor.document().setModified(True)
         
     def remove_trailing_spaces(self, index=None):
         """Remove trailing spaces"""
@@ -1401,12 +1401,12 @@ class EditorStack(QWidget):
         _indent = lambda line: len(line)-len(line.lstrip())
         
         line_from, line_to = editor.get_selection_bounds()
-        text = unicode(editor.selectedText())
+        text = editor.get_selected_text()
 
         lines = text.split(ls)
         if len(lines) > 1:
             # Multiline selection -> eventually fixing indentation
-            original_indent = _indent(unicode(editor.text(line_from)))
+            original_indent = _indent(editor.get_text_line(line_from))
             text = (" "*(original_indent-_indent(lines[0])))+text
         
         # If there is a common indent to all lines, remove it
@@ -1418,7 +1418,7 @@ class EditorStack(QWidget):
             text = ls.join([line[min_indent:] for line in text.split(ls)])
 
         last_line = text.split(ls)[-1]
-        if last_line.strip() == unicode(editor.text(line_to)).strip():
+        if last_line.strip() == editor.get_text_line(line_to).strip():
             # If last line is complete, add an EOL character
             text += ls
         
@@ -1434,7 +1434,7 @@ class EditorStack(QWidget):
         Run current block of lines in console and go to next block
         """
         editor = self.get_current_editor()
-        if editor.hasSelectedText():
+        if editor.has_selected_text():
             # Run selected text in external console and set focus to console
             self.__run_in_external_console( self.__process_lines() )
         else:

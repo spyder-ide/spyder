@@ -879,12 +879,12 @@ class MainWindow(QMainWindow):
         
         # Undo, redo
         self.undo_action.setEnabled( readwrite_editor \
-                                     and widget.isUndoAvailable() )
+                                     and widget.document().isUndoAvailable() )
         self.redo_action.setEnabled( readwrite_editor \
-                                     and widget.isRedoAvailable() )
+                                     and widget.document().isRedoAvailable() )
 
         # Copy, cut, paste, delete
-        has_selection = widget.hasSelectedText()
+        has_selection = widget.has_selected_text()
         self.copy_action.setEnabled(has_selection)
         self.cut_action.setEnabled(has_selection and not_readonly)
         self.paste_action.setEnabled(not_readonly)
@@ -1141,8 +1141,8 @@ class MainWindow(QMainWindow):
         text = ''
         from spyderlib.widgets.editor import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
-            if widget.hasSelectedText():
-                text = widget.selectedText()
+            if widget.has_selected_text():
+                text = widget.get_selected_text()
         self.emit(SIGNAL('find_files(QString)'), text)
     
     def global_callback(self):

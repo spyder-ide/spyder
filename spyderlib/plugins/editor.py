@@ -860,7 +860,7 @@ class Editor(SpyderPluginWidget):
         state = False
         editorstack = self.editorstacks[0]
         if editorstack.get_stack_count() > 1:
-            state = state or any([finfo.editor.isModified()
+            state = state or any([finfo.editor.document().isModified()
                                   for finfo in editorstack.data])
         self.save_all_action.setEnabled(state)
             
@@ -1143,7 +1143,7 @@ class Editor(SpyderPluginWidget):
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_plugin_font('printer_header'))
         printDialog = QPrintDialog(printer, editor)
-        if editor.hasSelectedText():
+        if editor.has_selected_text():
             printDialog.addEnabledOption(QAbstractPrintDialog.PrintSelection)
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         answer = printDialog.exec_()

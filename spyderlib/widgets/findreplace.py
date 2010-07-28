@@ -156,7 +156,7 @@ class FindReplace(QWidget):
         QWidget.show(self)
         self.emit(SIGNAL("visibility_changed(bool)"), True)
         if self.editor is not None:
-            text = self.editor.selectedText()
+            text = self.editor.get_selected_text()
             if len(text) > 0:
                 self.search_text.setEditText(text)
                 self.search_text.lineEdit().selectAll()
@@ -240,8 +240,8 @@ class FindReplace(QWidget):
             while True:
                 if first:
                     # First found
-                    if self.editor.hasSelectedText() \
-                       and self.editor.selectedText() == search_text:
+                    if self.editor.has_selected_text() and \
+                       self.editor.get_selected_text() == unicode(search_text):
                         # Text was already found, do nothing
                         pass
                     else:

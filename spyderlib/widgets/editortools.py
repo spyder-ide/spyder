@@ -408,7 +408,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
                         remove_from_tree_cache(tree_cache, line=line_nb)
                 item = FunctionItem(func_name, line_nb, parent, preceding)
                 if item.is_method() and line_nb > 1:
-                    text = unicode(editor.text(block_nb-1))
+                    text = editor.get_text_line(block_nb-1)
                     decorator = editor.classfunc_match.get_decorator(text)
                     item.set_decorator(decorator)
             item.setup()

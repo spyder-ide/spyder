@@ -263,17 +263,17 @@ class QtEditor(TextEditBaseWidget):
     
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
-        text_before = unicode(self.text())
+        text_before = unicode(self.toPlainText())
         text_after = sourcecode.remove_trailing_spaces(text_before)
         if text_before != text_after:
-            self.setText(text_after)
+            self.setPlainText(text_after)
             
     def fix_indentation(self):
         """Replace tabs by spaces"""
-        text_before = unicode(self.text())
+        text_before = unicode(self.toPlainText())
         text_after = sourcecode.fix_indentation(text_before)
         if text_before != text_after:
-            self.setText(text_after)
+            self.setPlainText(text_after)
     
     #------EOL characters
     def set_eol_mode(self, text):
@@ -285,7 +285,7 @@ class QtEditor(TextEditBaseWidget):
         eol_chars = sourcecode.get_eol_chars(text)
         if eol_chars is not None:
             if self.eol_mode is not None:
-                self.setModified(True)
+                self.document().setModified(True)
             self.eol_mode = self.EOL_MODES[eol_chars]
         
     def get_line_separator(self):
@@ -298,22 +298,21 @@ class QtEditor(TextEditBaseWidget):
 
     def copy(self):
         """Copy text to clipboard with correct EOL chars"""
-        text = unicode(self.selectedText()).replace(u"\u2029",
-                                                    self.get_line_separator())
+        text = self.get_selected_text().replace(u"\u2029",
+                                                self.get_line_separator())
         QApplication.clipboard().setText(text)
 
-    def text(self, line_nb=None):
-        """Reimplements TextEditBaseWidget method"""
-        utext = unicode(self.toPlainText())
+    def toPlainText(self):
+        """
+        Reimplemented to replace '\n' by correct end-of-line characters
+        """
+        utext = unicode(TextEditBaseWidget.toPlainText(self))
         lines = utext.splitlines()
-        if line_nb is None:
-            linesep = self.get_line_separator()
-            txt = linesep.join(lines)
-            if utext.endswith('\n'):
-                txt += linesep
-            return txt
-        else:
-            return lines[line_nb-1]
+        linesep = self.get_line_separator()
+        txt = linesep.join(lines)
+        if utext.endswith('\n'):
+            txt += linesep
+        return txt
     
     #------Find occurences
     def __find_first(self, text):
@@ -380,16 +379,15 @@ class QtEditor(TextEditBaseWidget):
 
         if not self.supported_language:
             return
-        if self.hasSelectedText():
+        if self.has_selected_text():
             block1, block2 = self.get_selection_bounds()
             if block1 != block2:
                 # Selection extends to more than one line
                 return
-            if not re.match(r'([a-zA-Z_]+[0-9a-zA-Z_]*)$',
-                            unicode(self.selectedText())):
+            text = self.get_selected_text()
+            if not re.match(r'([a-zA-Z_]+[0-9a-zA-Z_]*)$', text):
                 # Selection is not a word
                 return
-            text = unicode(self.selectedText())
         else:
             text = self.get_current_word()
             if text is None:
@@ -624,7 +622,7 @@ class QtEditor(TextEditBaseWidget):
     def delete(self):
         """Remove selected text"""
         # Used by global callbacks in Spyder -> delete_action
-        self.removeSelectedText()
+        self.remove_selected_text()
         
     def _apply_highlighter_color_scheme(self):
         hl = self.highlighter
@@ -824,7 +822,7 @@ class QtEditor(TextEditBaseWidget):
     def add_prefix(self, prefix):
         """Add prefix to current line or selected line(s)"""        
         cursor = self.textCursor()
-        if self.hasSelectedText():
+        if self.has_selected_text():
             # Add prefix to selected line(s)
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.beginEditBlock()
@@ -864,7 +862,7 @@ class QtEditor(TextEditBaseWidget):
     def remove_prefix(self, prefix):
         """Remove prefix from current line or selected line(s)"""        
         cursor = self.textCursor()
-        if self.hasSelectedText():
+        if self.has_selected_text():
             # Remove prefix from selected line(s)
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.beginEditBlock()
@@ -957,7 +955,7 @@ class QtEditor(TextEditBaseWidget):
     
     def indent(self):
         """Indent current line or selection"""
-        if self.hasSelectedText():
+        if self.has_selected_text():
             self.add_prefix(" "*4)
         elif not self.get_text('sol', 'cursor').strip() or \
              (self.tab_indents and self.tab_mode):
@@ -971,7 +969,7 @@ class QtEditor(TextEditBaseWidget):
     
     def unindent(self):
         """Unindent current line or selection"""
-        if self.hasSelectedText():
+        if self.has_selected_text():
             self.remove_prefix(" "*4)
         else:
             leading_text = self.get_text('sol', 'cursor')
@@ -997,7 +995,7 @@ class QtEditor(TextEditBaseWidget):
         comline = self.comment_string + '='*(80-len(self.comment_string)) \
                   + self.get_line_separator()
         cursor = self.textCursor()
-        if self.hasSelectedText():
+        if self.has_selected_text():
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.setPosition(start_pos)
         else:
@@ -1079,7 +1077,7 @@ class QtEditor(TextEditBaseWidget):
                            translate("SimpleEditor", "Delete"),
                            shortcut=keybinding('Delete'),
                            icon=get_icon('editdelete.png'),
-                           triggered=self.removeSelectedText)
+                           triggered=self.delete)
         selectall_action = create_action(self,
                            translate("SimpleEditor", "Select All"),
                            shortcut=keybinding('SelectAll'),
@@ -1115,7 +1113,7 @@ class QtEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
-            if not self.hasSelectedText() and leading_length > 4 \
+            if not self.has_selected_text() and leading_length > 4 \
                and not leading_text.strip():
                 if leading_length % 4 == 0:
                     self.unindent()
@@ -1177,7 +1175,7 @@ class QtEditor(TextEditBaseWidget):
 #                event.accept()
 #            else:
 #                QPlainTextEdit.keyPressEvent(self, event)
-        elif key == Qt.Key_ParenLeft and not self.hasSelectedText():
+        elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self.hide_completion_widget()
             if self.get_text('sol', 'cursor'):
                 self.emit(SIGNAL('trigger_calltip()'))
@@ -1265,12 +1263,12 @@ class QtEditor(TextEditBaseWidget):
             
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
-        state = self.hasSelectedText()
+        state = self.has_selected_text()
         self.copy_action.setEnabled(state)
         self.cut_action.setEnabled(state)
         self.delete_action.setEnabled(state)
-        self.undo_action.setEnabled( self.isUndoAvailable() )
-        self.redo_action.setEnabled( self.isRedoAvailable() )
+        self.undo_action.setEnabled( self.document().isUndoAvailable() )
+        self.redo_action.setEnabled( self.document().isRedoAvailable() )
         menu = self.menu
         if self.isReadOnly():
             menu = self.readonly_menu

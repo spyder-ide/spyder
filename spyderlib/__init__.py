@@ -55,8 +55,6 @@ __license__ = __doc__
 # 3. Refactoring -> shell.py key press events --> in base class (shared with qteditor.py)
 # 4. Implement: zoomIn, zoomOut
 
-#TODO: QsciEditor was removed: remove (or rename) all the QScintilla-compat. methods (e.g. selectedText, hasSelectedText, etc.)
-
 #TODO: remove all plugin cross references: use directly the 'main' attribute (rename it?)
 #TODO: implement all "register_plugin" methods for plugins (see SpyderPluginWigdet class)
 #TODO: reconsidérer la pertinence de la méthode "get_plugin_actions"
