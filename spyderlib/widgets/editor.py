@@ -903,7 +903,7 @@ class EditorStack(QWidget):
                 finfo.filename = filename
             else:
                 return False
-        txt = unicode(finfo.editor.toPlainText())
+        txt = unicode(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
             finfo.newly_created = False

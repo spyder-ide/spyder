@@ -302,11 +302,11 @@ class QtEditor(TextEditBaseWidget):
                                                 self.get_line_separator())
         QApplication.clipboard().setText(text)
 
-    def toPlainText(self):
+    def get_text_with_eol(self):
         """
-        Reimplemented to replace '\n' by correct end-of-line characters
+        Same as 'toPlainText', replace '\n' by correct end-of-line characters
         """
-        utext = unicode(TextEditBaseWidget.toPlainText(self))
+        utext = unicode(self.toPlainText(self))
         lines = utext.splitlines()
         linesep = self.get_line_separator()
         txt = linesep.join(lines)

@@ -248,7 +248,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         if filename:
             filename = osp.normpath(unicode(filename))
             try:
-                encoding.write(unicode(self.toPlainText()), filename)
+                encoding.write(unicode(self.get_text_with_eol()), filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
             except EnvironmentError, error:
