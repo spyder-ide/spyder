@@ -42,7 +42,7 @@ class Console(SpyderPluginWidget):
     """
     Console widget
     """
-    ID = 'shell'
+    CONF_SECTION = 'shell'
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell

@@ -27,7 +27,7 @@ from spyderlib.plugins import SpyderPluginMixin
 
 class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
-    ID = 'explorer'
+    CONF_SECTION = 'explorer'
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
                             path=self.get_option('path', None),

@@ -27,7 +27,7 @@ from spyderlib.plugins import SpyderPluginMixin
 
 class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
-    ID = 'pylint'
+    CONF_SECTION = 'pylint'
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries'))

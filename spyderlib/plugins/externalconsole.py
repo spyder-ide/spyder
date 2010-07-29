@@ -173,7 +173,7 @@ class ExternalConsole(SpyderPluginWidget):
     """
     Console widget
     """
-    ID = 'external_shell'
+    CONF_SECTION = 'external_shell'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     def __init__(self, parent, light_mode):
         self.light_mode = light_mode

@@ -178,7 +178,7 @@ class SpyderPluginMixin(object):
             self.emit(SIGNAL('option_changed'), 'show_all', checked)
         'show_message(QString,int)'
     """
-    ID = None
+    CONF_SECTION = None
     CONFIGWIDGET_CLASS = None
     FLAGS = Qt.Window
     ALLOWED_AREAS = Qt.AllDockWidgetAreas
@@ -190,7 +190,7 @@ class SpyderPluginMixin(object):
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
-        assert self.ID is not None
+        assert self.CONF_SECTION is not None
         self.main = main
         self.plugin_actions = self.get_plugin_actions()
         self.dockwidget = None
@@ -262,19 +262,19 @@ class SpyderPluginMixin(object):
         Use a SIGNAL to call it, e.g.:
         self.emit(SIGNAL('option_changed'), 'show_all', checked)
         """
-        CONF.set(self.ID, option, value)
+        CONF.set(self.CONF_SECTION, option, value)
 
     def get_option(self, option, default=NoDefault):
         """Get a plugin option from configuration file"""
-        return CONF.get(self.ID, option, default)
+        return CONF.get(self.CONF_SECTION, option, default)
     
     def get_plugin_font(self, option=None):
         """Return plugin font option"""
-        return get_font(self.ID, option)
+        return get_font(self.CONF_SECTION, option)
     
     def set_plugin_font(self, font, option=None):
         """Set plugin font option"""
-        set_font(font, self.ID, option)
+        set_font(font, self.CONF_SECTION, option)
         
     def show_message(self, message, timeout=0):
         """Show message in main window's status bar"""
@@ -405,11 +405,11 @@ class ReadOnlyEditor(SpyderPluginWidget):
             
     def change_font(self):
         """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.ID), self,
+        font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
                                       translate("Editor", "Select a new font"))
         if valid:
             self.editor.set_font(font)
-            set_font(font, self.ID)
+            set_font(font, self.CONF_SECTION)
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""

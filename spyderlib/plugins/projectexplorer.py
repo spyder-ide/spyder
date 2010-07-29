@@ -23,7 +23,7 @@ from spyderlib.plugins import SpyderPluginMixin
 
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
-    ID = 'project_explorer'
+    CONF_SECTION = 'project_explorer'
     DATAPATH = get_conf_path('.projects')
     def __init__(self, parent=None):
         include = self.get_option('include', '.')

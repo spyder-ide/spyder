@@ -31,7 +31,7 @@ class HistoryLog(SpyderPluginWidget):
     """
     History log widget
     """
-    ID = 'historylog'
+    CONF_SECTION = 'historylog'
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None

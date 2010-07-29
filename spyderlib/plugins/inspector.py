@@ -55,7 +55,7 @@ class ObjectInspector(ReadOnlyEditor):
     """
     Docstrings viewer widget
     """
-    ID = 'inspector'
+    CONF_SECTION = 'inspector'
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         ReadOnlyEditor.__init__(self, parent)

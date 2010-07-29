@@ -529,7 +529,7 @@ class EditorStack(QWidget):
                              todo_list=self.todolist_enabled)
         
     def set_codeanalysis_enabled(self, state, current_finfo=None):
-        # CONF.get(self.ID, 'code_analysis')
+        # CONF.get(self.CONF_SECTION, 'code_analysis')
         self.codeanalysis_enabled = state
         if self.data:
             for finfo in self.data:
@@ -540,7 +540,7 @@ class EditorStack(QWidget):
                         finfo.run_code_analysis()                    
     
     def set_todolist_enabled(self, state, current_finfo=None):
-        # CONF.get(self.ID, 'todo_list')
+        # CONF.get(self.CONF_SECTION, 'todo_list')
         self.todolist_enabled = state
         if self.data:
             for finfo in self.data:
@@ -551,35 +551,35 @@ class EditorStack(QWidget):
                         finfo.run_todo_finder()
     
     def set_linenumbers_enabled(self, state, current_finfo=None):
-        # CONF.get(self.ID, 'line_numbers')
+        # CONF.get(self.CONF_SECTION, 'line_numbers')
         self.linenumbers_enabled = state
         if self.data:
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
         
     def set_codecompletion_auto_enabled(self, state):
-        # CONF.get(self.ID, 'codecompletion_auto')
+        # CONF.get(self.CONF_SECTION, 'codecompletion_auto')
         self.codecompletion_auto_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_auto(state)
                     
     def set_codecompletion_enter_enabled(self, state):
-        # CONF.get(self.ID, 'codecompletion_enter')
+        # CONF.get(self.CONF_SECTION, 'codecompletion_enter')
         self.codecompletion_enter_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_enter(state)
                 
     def set_calltips_enabled(self, state):
-        # CONF.get(self.ID, 'calltips')
+        # CONF.get(self.CONF_SECTION, 'calltips')
         self.calltips_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_calltips(state)
                 
     def set_go_to_definition_enabled(self, state):
-        # CONF.get(self.ID, 'go_to_definition')
+        # CONF.get(self.CONF_SECTION, 'go_to_definition')
         self.go_to_definition_enabled = state
         if self.data:
             for finfo in self.data:
@@ -589,43 +589,43 @@ class EditorStack(QWidget):
         self.inspector_enabled = state
         
     def set_classbrowser_enabled(self, state):
-        # CONF.get(self.ID, 'class_browser')
+        # CONF.get(self.CONF_SECTION, 'class_browser')
         self.classbrowser_enabled = state
         
     def set_default_font(self, font):
-        # get_font(self.ID)
+        # get_font(self.CONF_SECTION)
         self.default_font = font
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_font(font)
         
     def set_wrap_enabled(self, state):
-        # CONF.get(self.ID, 'wrap')
+        # CONF.get(self.CONF_SECTION, 'wrap')
         self.wrap_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.toggle_wrap_mode(state)
         
     def set_tabmode_enabled(self, state):
-        # CONF.get(self.ID, 'tab_always_indent'))
+        # CONF.get(self.CONF_SECTION, 'tab_always_indent'))
         self.tabmode_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_tab_mode(state)
         
     def set_occurence_highlighting_enabled(self, state):
-        # CONF.get(self.ID, 'occurence_highlighting'))
+        # CONF.get(self.CONF_SECTION, 'occurence_highlighting'))
         self.occurence_highlighting_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_occurence_highlighting(state)
         
     def set_checkeolchars_enabled(self, state):
-        # CONF.get(self.ID, 'check_eol_chars')
+        # CONF.get(self.CONF_SECTION, 'check_eol_chars')
         self.checkeolchars_enabled = state
         
     def set_fullpath_sorting_enabled(self, state):
-        # CONF.get(self.ID, 'fullpath_sorting')
+        # CONF.get(self.CONF_SECTION, 'fullpath_sorting')
         self.fullpath_sorting_enabled = state
         if self.data:
             finfo = self.data[self.get_stack_index()]

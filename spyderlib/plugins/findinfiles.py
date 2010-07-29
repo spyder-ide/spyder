@@ -27,7 +27,7 @@ from spyderlib.plugins import SpyderPluginMixin
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
-    ID = 'find_in_files'
+    CONF_SECTION = 'find_in_files'
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
         

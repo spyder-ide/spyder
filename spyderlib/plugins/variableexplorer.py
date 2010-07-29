@@ -23,7 +23,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     """
     Variable Explorer Plugin
     """
-    ID = 'variable_explorer'
+    CONF_SECTION = 'variable_explorer'
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)

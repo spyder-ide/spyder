@@ -142,7 +142,7 @@ class Editor(SpyderPluginWidget):
     """
     Multi-file Editor widget
     """
-    ID = 'editor'
+    CONF_SECTION = 'editor'
     CONFIGWIDGET_CLASS = EditorConfigPage
     TEMPFILE_PATH = get_conf_path('.temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
