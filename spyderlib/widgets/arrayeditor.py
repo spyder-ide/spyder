@@ -436,6 +436,9 @@ class ArrayEditor(QDialog):
         """
         self.arraywidget = None
         self.is_record_array = data.dtype.names is not None
+        if data.size == 0:
+            self.error(self.tr("Array is empty"))
+            return False
         if data.ndim > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
