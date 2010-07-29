@@ -272,11 +272,6 @@ DEFAULTS = [
               'in_python_path': False,
               'more_options': True,
               }),
-            ('pylint',
-             {
-              'enable': True,
-              'max_entries': 50,
-              }),
             ]
 
 DEV = not __file__.startswith(sys.prefix)

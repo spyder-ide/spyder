@@ -266,10 +266,6 @@ class PylintWidget(QWidget):
         self.data.append( (filename, data) )
         self.save()
         
-    def set_max_entries(self, max_entries):
-        self.max_entries = max_entries
-        self.save()
-        
     def save(self):
         while len(self.data) > self.max_entries+1:
             self.data.pop(1)

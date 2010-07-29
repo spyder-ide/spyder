@@ -11,8 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import SIGNAL
-from PyQt4.QtGui import QFontDialog, QInputDialog
+from PyQt4.QtGui import (QFontDialog, QInputDialog, QVBoxLayout, QGroupBox,
+                         QLabel, QLineEdit)
+from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
 
@@ -20,17 +21,47 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.pylintgui import PylintWidget, is_pylint_installed
-from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+
+
+class PylintConfigPage(PluginConfigPage):
+    def setup_page(self):
+        font_btn = self.create_button(self.tr("Set text font style"),
+                                      self.plugin.change_font)
+        
+        hist_group = QGroupBox(self.tr("History"))
+        hist_label = QLabel(self.tr("Pylint plugin results are stored here:\n"
+                                    "%1\n\nThe following option "
+                                    "will be applied at next startup.\n"
+                                    ).arg(PylintWidget.DATAPATH))
+        hist_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        hist_label.setWordWrap(True)
+        hist_spin = self.create_spinbox(self.tr("History: "),
+                            self.tr(" results"), 'max_entries', default=50,
+                            min_=10, max_=1000000, step=10)
+
+        hist_layout = QVBoxLayout()
+        hist_layout.addWidget(hist_label)
+        hist_layout.addWidget(hist_spin)
+        hist_group.setLayout(hist_layout)
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(font_btn)
+        vlayout.addWidget(hist_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
 
 
 class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     CONF_SECTION = 'pylint'
+    CONFIGWIDGET_CLASS = PylintConfigPage
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
-                              max_entries=self.get_option('max_entries'))
+                              max_entries=self.get_option('max_entries', 50))
         SpyderPluginMixin.__init__(self, parent)
 
         self.set_font(self.get_plugin_font())
@@ -39,6 +70,10 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     def get_plugin_title(self):
         """Return widget title"""
         return self.tr("Pylint")
+    
+    def get_plugin_icon(self):
+        """Return widget icon"""
+        return get_icon('pylint.png')
     
     def get_focus_widget(self):
         """
@@ -82,6 +117,12 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         return True
+            
+    def apply_plugin_settings(self):
+        """Apply configuration file's plugin settings"""
+        # Nothing to do here: the history depth option will be applied at 
+        # next Spyder startup, which is soon enough
+        pass
         
     #------ Public API ---------------------------------------------------------
     def change_history_depth(self):
