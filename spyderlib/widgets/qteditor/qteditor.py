@@ -316,7 +316,7 @@ class QtEditor(TextEditBaseWidget):
         """
         Same as 'toPlainText', replace '\n' by correct end-of-line characters
         """
-        utext = unicode(self.toPlainText(self))
+        utext = unicode(self.toPlainText())
         lines = utext.splitlines()
         linesep = self.get_line_separator()
         txt = linesep.join(lines)
