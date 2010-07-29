@@ -173,7 +173,7 @@ class ExternalConsole(SpyderPluginWidget):
     """
     Console widget
     """
-    CONF_SECTION = 'external_shell'
+    CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     def __init__(self, parent, light_mode):
         self.light_mode = light_mode
@@ -369,7 +369,7 @@ class ExternalConsole(SpyderPluginWidget):
             umd_verbose = self.get_option('umd/verbose')
             shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
-                           arguments=arguments, stand_alone=self.light_mode,
+                           arguments=arguments, stand_alone=sa_settings,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose,
                            mpl_patch_enabled=mpl_patch_enabled)

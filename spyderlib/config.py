@@ -111,7 +111,7 @@ DEFAULTS = [
               'completion/font/bold': False,
               'completion/size': (300, 180),
               }),
-            ('shell',
+            ('internal_console',
              {
               'max_line_count': 300,
               'working_dir_history': 30,
@@ -130,7 +130,7 @@ DEFAULTS = [
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
               }),
-            ('external_shell',
+            ('console',
              {
               'shortcut': "Ctrl+Shift+C",
               'max_line_count': 300,
