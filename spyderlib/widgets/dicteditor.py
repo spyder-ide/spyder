@@ -525,6 +525,7 @@ class BaseTableView(QTableView):
         self.array_filename = None
         self.menu = None
         self.empty_ws_menu = None
+        self.delegate = None
         
     def setup_table(self):
         """Setup table"""
@@ -777,7 +778,8 @@ class BaseTableView(QTableView):
         if not index.isValid():
             return
         key = self.model.get_key(index)
-        if self.is_list(key) or self.is_dict(key) or self.is_array(key):
+        if (self.delegate is None or not self.delegate.inplace) \
+            and (self.is_list(key) or self.is_dict(key) or self.is_array(key)):
             self.oedit(key)
         else:
             self.edit(index)
@@ -961,8 +963,6 @@ class DictEditorTableView(BaseTableView):
         BaseTableView.__init__(self, parent)
         self.dictfilter = None
         self.readonly = readonly or isinstance(data, tuple)
-        self.model = None
-        self.delegate = None
         DictModelClass = ReadOnlyDictModel if self.readonly else DictModel
         self.model = DictModelClass(self, data, title, names=names,
                                     truncate=truncate, minmax=minmax,
