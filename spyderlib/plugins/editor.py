@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
                          QFontDialog, QAbstractPrintDialog, QGroupBox,
-                         QPushButton, QTabWidget)
+                         QTabWidget)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re

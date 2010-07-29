@@ -300,11 +300,17 @@ def get_conf_path(filename=None):
     else:
         return osp.join(conf_dir, filename)
 
-IMG_PATH_ROOT = osp.join(DATA_PATH, 'images')
-IMG_PATH = [IMG_PATH_ROOT]
-for root, dirs, files in os.walk(IMG_PATH_ROOT):
-    for dir in dirs:
-        IMG_PATH.append(osp.join(IMG_PATH_ROOT, dir))
+IMG_PATH = []
+def add_image_path(path):
+    if not osp.isdir(path):
+        return
+    global IMG_PATH
+    IMG_PATH.append(path)
+    for _root, dirs, _files in os.walk(path):
+        for dir in dirs:
+            IMG_PATH.append(osp.join(path, dir))
+
+add_image_path(osp.join(DATA_PATH, 'images'))
 
 def get_image_path( name, default="not_found.png" ):
     """Return image absolute path"""
@@ -387,6 +393,7 @@ from spyderlib.utils import programs
 if programs.is_module_installed("spyderplugins"):
     import spyderplugins
     PLUGIN_PATH = spyderplugins.__path__[0]
+    add_image_path(osp.join(PLUGIN_PATH, 'images'))
 
 def get_spyderplugins(prefix, extension):
     """Scan spyderplugins module and

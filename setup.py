@@ -38,7 +38,8 @@ packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
            +['spyderplugins']
 extensions = ('.qm', '.api', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
-package_data={libname: get_package_data(libname, extensions)}
+package_data={libname: get_package_data(libname, extensions),
+              'spyderplugins': get_package_data('spyderplugins', extensions)}
 if os.name == 'nt':
     scripts = ['spyder.pyw', 'spyder.py']
 else:
