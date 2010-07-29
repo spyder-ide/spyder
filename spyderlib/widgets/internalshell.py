@@ -108,7 +108,7 @@ class InternalShell(PythonShellWidget):
                      self.keyboard_interrupt)
         
         # Code completion / calltips
-        getcfg = lambda option: CONF.get('shell', option)
+        getcfg = lambda option: CONF.get('internal_console', option)
         case_sensitive = getcfg('codecompletion/case-sensitivity')
         show_single = getcfg('codecompletion/select-single')
         from_document = getcfg('codecompletion/from-document')
@@ -230,8 +230,8 @@ class InternalShell(PythonShellWidget):
     def external_editor(self, filename, goto=-1):
         """Edit in an external editor
         Recommended: SciTE (e.g. to go to line where an error did occur)"""
-        editor_path = CONF.get('shell', 'external_editor/path')
-        goto_option = CONF.get('shell', 'external_editor/gotoline')
+        editor_path = CONF.get('internal_console', 'external_editor/path')
+        goto_option = CONF.get('internal_console', 'external_editor/gotoline')
         try:
             if goto > 0 and goto_option:
                 Popen(r'%s "%s" %s%d' % (editor_path, filename,

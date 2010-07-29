@@ -15,7 +15,9 @@ from PyQt4.QtCore import SIGNAL
 STDOUT = sys.stdout
 
 # Local imports
+from spyderlib.config import CONF
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 
 
@@ -28,6 +30,17 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
         self.shellwidgets = {}
+
+    @staticmethod
+    def get_settings():
+        """
+        Return Variable Explorer settings dictionary
+        (i.e. namespace browser settings according to Spyder's configuration file)
+        """
+        settings = {}
+        for name in REMOTE_SETTINGS:
+            settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
+        return settings
         
     #------ Public API ---------------------------------------------------------
     def add_shellwidget(self, shellwidget):
@@ -39,7 +52,11 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             return
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
+            nsb.setup(**VariableExplorer.get_settings())
             nsb.set_shellwidget(shellwidget)
+            self.connect(nsb, SIGNAL('option_changed'),
+                         lambda option, value:
+                         self.emit(SIGNAL('option_changed'), option, value))
             self.addWidget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             shellwidget.set_namespacebrowser(nsb)

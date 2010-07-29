@@ -20,7 +20,7 @@ from PyQt4.QtCore import SIGNAL, Qt
 from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_is_array, communicate)
+                monitor_is_array, communicate, REMOTE_SETTINGS)
 from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
 from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
@@ -29,56 +29,68 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.config import get_icon
-#TODO: remove the following line and make it work anyway
-# In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
-# which should not contain anything directly related to Spyder's main app
-# (including its preferences which are stored in CONF).
-# So, one should be able to get rid of this object and set options through
-# methods like 'set_options(kw1=..., kw2=..., ...)
-from spyderlib.config import CONF
-
-
-def get_settings():
-    """
-    Return namespace browser settings
-    according to Spyder's configuration file
-    """
-    settings = {}
-    for name in ('filters', 'itermax', 'exclude_private', 'exclude_upper',
-                 'exclude_unsupported', 'excluded_names',
-                 'truncate', 'minmax', 'collvalue'):
-        settings[name] = CONF.get('external_shell', name)
-    return settings
 
 
 class NamespaceBrowser(QWidget):
-    ID = 'external_shell'
-    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
         self.is_visible = True
         self.auto_refresh_enabled = True
-
+        
+        # Remote dict editor settings
+        self.filters = None
+        self.itermax = None
+        self.exclude_private = None
+        self.exclude_upper = None
+        self.exclude_unsupported = None
+        self.excluded_names = None
+        self.truncate = None
+        self.minmax = None
+        self.collvalue = None
+        self.inplace = None
+        
+        self.editor = None
+        
+        self.filename = None
+        
+    def setup(self, filters=None, itermax=None, exclude_private=None,
+              exclude_upper=None, exclude_unsupported=None, excluded_names=None,
+              truncate=None, minmax=None, collvalue=None, inplace=None):
+        self.filters = filters
+        self.itermax = itermax
+        self.exclude_private = exclude_private
+        self.exclude_upper = exclude_upper
+        self.exclude_unsupported = exclude_unsupported
+        self.excluded_names = excluded_names
+        self.truncate = truncate
+        self.minmax = minmax
+        self.collvalue = collvalue
+        self.inplace = inplace
+        
+        if self.editor is not None:
+            self.refresh_table()
+            return
+        
         # Dict editor:
-        truncate = CONF.get(self.ID, 'truncate')
-        inplace = CONF.get(self.ID, 'inplace')
-        minmax = CONF.get(self.ID, 'minmax')
-        collvalue = CONF.get(self.ID, 'collvalue')
-        self.editor = RemoteDictEditorTableView(parent, None,
-                truncate=truncate, inplace=inplace, minmax=minmax,
-                collvalue=collvalue, get_value_func=self.get_value,
-                set_value_func=self.set_value, new_value_func=self.set_value,
-                remove_values_func=self.remove_values,
-                copy_value_func=self.copy_value,
-                is_list_func=self.is_list, get_len_func=self.get_len,
-                is_array_func=self.is_array, is_dict_func=self.is_dict,
-                get_array_shape_func=self.get_array_shape,
-                get_array_ndim_func=self.get_array_ndim,
-                oedit_func=self.oedit,
-                plot_func=self.plot, imshow_func=self.imshow)
-        self.connect(self.editor, SIGNAL('option_changed'), self.option_changed)
+        self.editor = RemoteDictEditorTableView(self, None,
+                        truncate=truncate, inplace=inplace, minmax=minmax,
+                        collvalue=collvalue,
+                        get_value_func=self.get_value,
+                        set_value_func=self.set_value,
+                        new_value_func=self.set_value,
+                        remove_values_func=self.remove_values,
+                        copy_value_func=self.copy_value,
+                        is_list_func=self.is_list, get_len_func=self.get_len,
+                        is_array_func=self.is_array, is_dict_func=self.is_dict,
+                        get_array_shape_func=self.get_array_shape,
+                        get_array_ndim_func=self.get_array_ndim,
+                        oedit_func=self.oedit,
+                        plot_func=self.plot, imshow_func=self.imshow)
+        self.connect(self.editor, SIGNAL('option_changed'),
+                     lambda option, value:
+                     self.emit(SIGNAL('option_changed'), option, value))
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -90,9 +102,7 @@ class NamespaceBrowser(QWidget):
         hlayout.setContentsMargins(0, 0, 0, 0)
 
         self.connect(self, SIGNAL('option_changed'), self.option_changed)
-        
-        self.filename = None
-        
+                
         self.toggle_auto_refresh(self.auto_refresh_enabled)
         
     def set_shellwidget(self, shellwidget):
@@ -133,7 +143,7 @@ class NamespaceBrowser(QWidget):
                             " with an underscore"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_private', state))
-        exclude_private_action.setChecked(CONF.get(self.ID, 'exclude_private'))
+        exclude_private_action.setChecked(self.exclude_private)
         
         exclude_upper_action = create_action(self,
                 self.tr("Exclude capitalized references"),
@@ -141,7 +151,7 @@ class NamespaceBrowser(QWidget):
                             "upper-case character"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_upper', state))
-        exclude_upper_action.setChecked( CONF.get(self.ID, 'exclude_upper') )
+        exclude_upper_action.setChecked(self.exclude_upper)
         
         exclude_unsupported_action = create_action(self,
                 self.tr("Exclude unsupported data types"),
@@ -149,8 +159,7 @@ class NamespaceBrowser(QWidget):
                             " (i.e. which won't be handled/saved correctly)"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_unsupported', state))
-        exclude_unsupported_action.setChecked(CONF.get(self.ID,
-                                              'exclude_unsupported'))
+        exclude_unsupported_action.setChecked(self.exclude_unsupported)
         
         options_button = create_toolbutton(self, text=self.tr("Options"),
                                            icon=get_icon('tooloptions.png'),
@@ -172,7 +181,7 @@ class NamespaceBrowser(QWidget):
             layout.addWidget(widget)
 
     def option_changed(self, option, value):
-        CONF.set(self.ID, option, value)
+        setattr(self, option, value)
         self.refresh_table()
         
     def visibility_changed(self, enable):
@@ -188,6 +197,12 @@ class NamespaceBrowser(QWidget):
         if self.auto_refresh_enabled:
             self.refresh_table()
         
+    def _get_settings(self):
+        settings = {}
+        for name in REMOTE_SETTINGS:
+            settings[name] = getattr(self, name)
+        return settings
+        
     def refresh_table(self):
         if self.is_visible and self.isVisible() \
            and self.shellwidget.is_running():
@@ -195,7 +210,7 @@ class NamespaceBrowser(QWidget):
             sock = self.shellwidget.monitor_socket
             if sock is None:
                 return
-            settings = get_settings()
+            settings = self._get_settings()
             try:
                 self.set_data( monitor_get_remote_view(sock, settings) )
             except socket.error: #XXX EOFError?
@@ -343,7 +358,7 @@ class NamespaceBrowser(QWidget):
             else:
                 return False
         sock = self.shellwidget.monitor_socket
-        settings = get_settings()
+        settings = self._get_settings()
         error_message = monitor_save_globals(sock, settings, filename)
         if error_message is not None:
             QMessageBox.critical(self, self.tr("Save data"),

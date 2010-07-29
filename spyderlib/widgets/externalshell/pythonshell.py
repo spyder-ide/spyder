@@ -119,14 +119,14 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[],
-                 ipython=False, arguments=None, stand_alone=True,
+                 ipython=False, arguments=None, stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  mpl_patch_enabled=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.fname = startup.__file__ if fname is None else fname
         
-        self.stand_alone = stand_alone
+        self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
         self.mpl_patch_enabled = mpl_patch_enabled
         self.umd_enabled = umd_enabled
@@ -175,7 +175,8 @@ class ExternalPythonShell(ExternalShellBase):
         
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
-        if self.namespacebrowser_button is None and self.stand_alone:
+        if self.namespacebrowser_button is None \
+           and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
@@ -218,8 +219,10 @@ class ExternalPythonShell(ExternalShellBase):
         self.namespacebrowser = namespacebrowser
         
     def get_shell_widget(self):
-        if self.stand_alone:
+        if self.stand_alone is not None:
             self.namespacebrowser = NamespaceBrowser(self)
+            settings = self.stand_alone
+            self.namespacebrowser.setup(**settings)
             self.namespacebrowser.set_shellwidget(self)
             self.connect(self.namespacebrowser, SIGNAL('collapse()'),
                          lambda: self.toggle_globals_explorer(False))
@@ -402,7 +405,7 @@ class ExternalPythonShell(ExternalShellBase):
 #    Globals explorer
 #===============================================================================
     def toggle_globals_explorer(self, state):
-        if self.stand_alone:
+        if self.stand_alone is not None:
             self.splitter.setSizes([1, 1 if state else 0])
             self.namespacebrowser_button.setChecked(state)
             if state:

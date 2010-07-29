@@ -16,6 +16,10 @@ from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
 
 DEBUG = False
 
+REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
+                   'exclude_unsupported', 'excluded_names',
+                   'truncate', 'minmax', 'collvalue', 'inplace')
+
 def get_remote_data(data, settings, more_excluded_names=None):
     """Return globals according to filter described in *settings*"""
     excluded_names = settings['excluded_names']
@@ -33,6 +37,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
+    assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, more_excluded_names)
     remote = {}
     for key, value in data.iteritems():

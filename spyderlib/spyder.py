@@ -530,6 +530,8 @@ class MainWindow(QMainWindow):
         
         # Namespace browser
         if not self.light:
+            # In light mode, namespace browser is opened inside external console
+            # Here, it is opened as an independent plugin, in its own dockwidget
             self.set_splash(self.tr("Loading namespace browser..."))
             self.variableexplorer = VariableExplorer(self)
             self.variableexplorer.register_plugin()

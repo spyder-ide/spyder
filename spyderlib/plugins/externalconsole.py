@@ -367,6 +367,11 @@ class ExternalConsole(SpyderPluginWidget):
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
+            if self.light_mode:
+                from spyderlib.plugins.variableexplorer import VariableExplorer
+                sa_settings = VariableExplorer.get_settings()
+            else:
+                sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath, ipython=ipython,
                            arguments=arguments, stand_alone=sa_settings,
