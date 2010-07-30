@@ -366,6 +366,7 @@ class ExternalConsole(SpyderPluginWidget):
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
+            ar_timeout = self.get_option('autorefresh/timeout')
             if self.light_mode:
                 from spyderlib.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()
@@ -376,7 +377,8 @@ class ExternalConsole(SpyderPluginWidget):
                            arguments=arguments, stand_alone=sa_settings,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose,
-                           mpl_patch_enabled=mpl_patch_enabled)
+                           mpl_patch_enabled=mpl_patch_enabled,
+                           autorefresh_timeout=ar_timeout)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shellwidget(shellwidget)
         else:

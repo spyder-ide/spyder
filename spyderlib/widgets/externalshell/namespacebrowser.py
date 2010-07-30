@@ -37,7 +37,6 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_visible = True
-        self.auto_refresh_enabled = True
         
         # Remote dict editor settings
         self.filters = None
@@ -50,6 +49,7 @@ class NamespaceBrowser(QWidget):
         self.minmax = None
         self.collvalue = None
         self.inplace = None
+        self.autorefresh = None
         
         self.editor = None
         self.exclude_private_action = None
@@ -60,7 +60,8 @@ class NamespaceBrowser(QWidget):
         
     def setup(self, filters=None, itermax=None, exclude_private=None,
               exclude_upper=None, exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, collvalue=None, inplace=None):
+              truncate=None, minmax=None, collvalue=None, inplace=None,
+              autorefresh=None):
         self.filters = filters
         self.itermax = itermax
         self.exclude_private = exclude_private
@@ -71,12 +72,14 @@ class NamespaceBrowser(QWidget):
         self.minmax = minmax
         self.collvalue = collvalue
         self.inplace = inplace
+        self.autorefresh = autorefresh
         
         if self.editor is not None:
             self.editor.setup_menu(truncate, minmax, inplace, collvalue)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_upper_action.setChecked(exclude_upper)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
+            self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
             return
         
@@ -103,7 +106,7 @@ class NamespaceBrowser(QWidget):
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
         toolbar = self.setup_toolbar(exclude_private, exclude_upper,
-                                     exclude_unsupported)
+                                     exclude_unsupported, autorefresh)
         vlayout.setAlignment(Qt.AlignTop)
         for widget in toolbar:
             vlayout.addWidget(widget)
@@ -113,14 +116,12 @@ class NamespaceBrowser(QWidget):
         hlayout.setContentsMargins(0, 0, 0, 0)
 
         self.connect(self, SIGNAL('option_changed'), self.option_changed)
-                
-        self.toggle_auto_refresh(self.auto_refresh_enabled)
         
     def set_shellwidget(self, shellwidget):
         self.shellwidget = shellwidget
         
     def setup_toolbar(self, exclude_private, exclude_upper,
-                      exclude_unsupported):
+                      exclude_unsupported, autorefresh):
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
@@ -132,6 +133,7 @@ class NamespaceBrowser(QWidget):
                                            icon=get_icon('auto_reload.png'),
                                            toggled=self.toggle_auto_refresh,
                                            text_beside_icon=False)
+        self.auto_refresh_button.setChecked(autorefresh)
         load_button = create_toolbutton(self, text=self.tr("Import data"),
                                         icon=get_icon('fileimport.png'),
                                         triggered=self.import_data,
@@ -201,11 +203,10 @@ class NamespaceBrowser(QWidget):
         self.is_visible = enable
         
     def toggle_auto_refresh(self, state):
-        self.auto_refresh_button.setChecked(state)
-        self.auto_refresh_enabled = state
+        self.autorefresh = state
         
     def auto_refresh(self):
-        if self.auto_refresh_enabled:
+        if self.autorefresh:
             self.refresh_table()
         
     def _get_settings(self):

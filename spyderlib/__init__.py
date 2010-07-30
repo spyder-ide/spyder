@@ -37,7 +37,6 @@ __license__ = __doc__
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
 #TODO: "Preferences":
-# * add an option to customize namespace browser refresh time out
 # * add color schemes for editor/console
 # * Option to inverse console colors
 # * IPython: add "configurations" management

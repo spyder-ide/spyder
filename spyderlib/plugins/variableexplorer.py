@@ -24,6 +24,13 @@ from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 
 class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
+        ar_group = QGroupBox(self.tr("Autorefresh"))
+        ar_box = self.create_checkbox(self.tr("Enable autorefresh"),
+                                      'autorefresh/enable')
+        ar_spin = self.create_spinbox(self.tr("Refresh interval: "),
+                                      self.tr(" ms"), 'autorefresh/timeout',
+                                      min_=100, max_=1000000, step=100)
+        
         filter_group = QGroupBox(self.tr("Filter"))
         filter_data = [
             ('exclude_private', self.tr("Exclude private references")),
@@ -43,7 +50,12 @@ class VariableExplorerConfigPage(PluginConfigPage):
             display_data.append( ('minmax', self.tr("Show arrays min/max")) )
         display_boxes = [self.create_checkbox(text, option)
                          for option, text in display_data]
-
+        
+        ar_layout = QVBoxLayout()
+        ar_layout.addWidget(ar_box)
+        ar_layout.addWidget(ar_spin)
+        ar_group.setLayout(ar_layout)
+        
         filter_layout = QVBoxLayout()
         for box in filter_boxes:
             filter_layout.addWidget(box)
@@ -55,6 +67,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
 
         vlayout = QVBoxLayout()
+        vlayout.addWidget(ar_group)
         vlayout.addWidget(filter_group)
         vlayout.addWidget(display_group)
         vlayout.addStretch(1)
@@ -81,6 +94,8 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         settings = {}
         for name in REMOTE_SETTINGS:
             settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
+        settings['autorefresh'] = CONF.get(VariableExplorer.CONF_SECTION,
+                                           'autorefresh/enable')
         return settings
         
     #------ Public API ---------------------------------------------------------
@@ -175,3 +190,6 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         """Apply configuration file's plugin settings"""
         for nsb in self.shellwidgets.values():
             nsb.setup(**VariableExplorer.get_settings())
+        ar_timeout = self.get_option('autorefresh/timeout')
+        for shellwidget in self.main.extconsole.shellwidgets:
+            shellwidget.set_autorefresh_timeout(ar_timeout)

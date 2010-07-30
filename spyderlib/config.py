@@ -162,6 +162,8 @@ DEFAULTS = [
               'umd/enabled': True,
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
+              'autorefresh/enable': True,
+              'autorefresh/timeout': 3000,
               }),
             ('editor',
              {
