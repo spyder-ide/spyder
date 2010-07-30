@@ -446,10 +446,11 @@ class MainWindow(QMainWindow):
                                            'qtdesigner.png', "designer")
             qtlact = create_program_action(self, self.tr("Qt Linguist"),
                                            'qtlinguist.png', "linguist")
+            args = '-no-opengl' if os.name == 'nt' else ''
             qteact = create_python_gui_script_action(self,
                                    self.tr("Qt examples"), 'qt.png', "PyQt4",
                                    osp.join("examples", "demos",
-                                            "qtdemo", "qtdemo"))
+                                            "qtdemo", "qtdemo"), args)
             for act in (qtdact, qtlact, qteact):
                 if act:
                     additact.append(act)

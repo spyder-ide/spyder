@@ -240,14 +240,16 @@ def create_program_action(parent, text, icon, name, nt_name=None):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
         
-def create_python_gui_script_action(parent, text, icon, package, module):
+def create_python_gui_script_action(parent, text, icon,
+                                    package, module, args=''):
     """Create action to run a GUI based Python script"""
     if isinstance(icon, basestring):
         icon = get_icon(icon)
     if programs.is_python_gui_script_installed(package, module):
         return create_action(parent, text, icon=icon,
                              triggered=lambda:
-                             programs.run_python_gui_script(package, module))
+                             programs.run_python_gui_script(package, module,
+                                                            args))
         
 def get_std_icon(name, size=None):
     """Get standard platform icon
