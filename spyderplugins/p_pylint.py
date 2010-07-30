@@ -11,8 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QFontDialog, QInputDialog, QVBoxLayout, QGroupBox,
-                         QLabel, QLineEdit)
+from PyQt4.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -29,9 +28,6 @@ from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
 class PylintConfigPage(PluginConfigPage):
     def setup_page(self):
-        font_btn = self.create_button(self.tr("Set text font style"),
-                                      self.plugin.change_font)
-        
         hist_group = QGroupBox(self.tr("History"))
         hist_label = QLabel(self.tr("Pylint plugin results are stored here:\n"
                                     "%1\n\nThe following option "
@@ -49,7 +45,6 @@ class PylintConfigPage(PluginConfigPage):
         hist_group.setLayout(hist_layout)
 
         vlayout = QVBoxLayout()
-        vlayout.addWidget(font_btn)
         vlayout.addWidget(hist_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -63,8 +58,6 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
         SpyderPluginMixin.__init__(self, parent)
-
-        self.set_font(self.get_plugin_font())
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -89,10 +82,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                                        None, 'history.png',
                                        self.tr("Set history maximum entries"),
                                        triggered=self.change_history_depth)
-        font_action = create_action(self, self.tr("&Font..."),
-                                    None, 'font.png', self.tr("Set font style"),
-                                    triggered=self.change_font)
-        self.treewidget.common_actions += (None, history_action, font_action)
+        self.treewidget.common_actions += (None, history_action)
         return []
     
     def register_plugin(self):
@@ -120,7 +110,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
             
     def apply_plugin_settings(self):
         """Apply configuration file's plugin settings"""
-        # Nothing to do here: the history depth option will be applied at 
+        # The history depth option will be applied at 
         # next Spyder startup, which is soon enough
         pass
         
@@ -134,19 +124,6 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         if valid:
             self.set_option('max_entries', depth)
         
-    def change_font(self):
-        """Change font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
-                                          self.tr("Select a new font"))
-        if valid:
-            self.set_font(font)
-            self.set_plugin_font(font)
-            
-    def set_font(self, font):
-        """Set pylint widget font"""
-        self.ratelabel.setFont(font)
-        self.treewidget.setFont(font)
-
     def run_pylint(self):
         """Run pylint code analysis"""
         self.analyze( self.main.editor.get_current_filename() )
