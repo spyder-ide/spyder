@@ -32,7 +32,8 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
-from spyderlib.config import CONF, get_font, set_font, get_icon
+from spyderlib.config import (CONF, get_font, set_font, get_icon,
+                              is_shortcut_available)
 from spyderlib.userconfig import NoDefault
 from spyderlib.plugins.configdialog import ConfigPage
 from spyderlib.widgets.editor import CodeEditor
@@ -211,9 +212,8 @@ class SpyderPluginMixin(object):
         self.dockwidget = dock
         self.refresh_plugin()
         short = self.get_option("shortcut", None)
-        if short is not None:
-            QShortcut(QKeySequence(short), self.main,
-                      lambda: self.visibility_changed(True))
+        if short is not None and is_shortcut_available(short):
+            QShortcut(QKeySequence(short), self.main, self.switch_to_plugin)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -242,6 +242,12 @@ class SpyderPluginMixin(object):
     def apply_plugin_settings(self):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
+    
+    def switch_to_plugin(self):
+        """Switch to plugin
+        This method is called when pressing plugin's shortcut key"""
+        self.dockwidget.show()
+        self.visibility_changed(True)
 
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""

@@ -16,7 +16,8 @@ Important note regarding shortcuts:
 import os, sys
 import os.path as osp
 from datetime import date
-from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from PyQt4.QtGui import (QLabel, QIcon, QPixmap, QFont, QFontDatabase,
+                         QKeySequence)
 
 # Local import
 from userconfig import UserConfig, get_home_dir
@@ -409,3 +410,16 @@ def get_spyderplugins_mods(prefix, extension):
     return the list of modules matching *prefix* and *extension*"""
     return [getattr(__import__('spyderplugins.%s' % modname), modname)
             for modname in get_spyderplugins(prefix, extension)]
+
+
+SHORTCUTS = {}
+def is_shortcut_available(shortcut, context=None):
+    """Return True if shortcut (string) is available"""
+    global SHORTCUTS
+    sclist = SHORTCUTS.get(context, [])
+    keystr = unicode(QKeySequence(shortcut).toString())
+    is_available = keystr not in sclist
+    if is_available:
+        sclist.append(keystr)
+        SHORTCUTS[context] = sclist
+    return is_available
