@@ -185,7 +185,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.config import get_conf_path, get_spyderplugins
+from spyderlib.config import get_conf_path, get_spyderplugins_mods
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
@@ -323,9 +323,7 @@ class IOFunctions(QObject):
         
     def get_3rd_party_funcs(self):
         other_funcs = []
-        for modname in get_spyderplugins(prefix='io_', extension='.py'):
-            mod = getattr(__import__('spyderplugins.%s' % modname),
-                          modname)
+        for mod in get_spyderplugins_mods(prefix='io_', extension='.py'):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))
