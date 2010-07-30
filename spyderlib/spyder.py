@@ -21,9 +21,6 @@ import spyderlib.requirements #@UnusedImport
 import sys, os, platform, re, webbrowser, os.path as osp
 original_sys_exit = sys.exit
 
-# Force Python to search modules in the current directory first:
-sys.path.insert(0, '')
-
 # For debugging purpose only
 STDOUT = sys.stdout
 STDERR = sys.stderr
