@@ -36,6 +36,7 @@ from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, ClassBrowser
 from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
+from spyderlib.widgets.qteditor.syntaxhighlighters import BaseSH
 from spyderlib.widgets.qteditor.qteditor import Printer #@UnusedImport
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget #@UnusedImport
 
@@ -349,6 +350,10 @@ class EditorStack(QWidget):
         self.checkeolchars_enabled = True
         self.fullpath_sorting_enabled = None
         self.set_fullpath_sorting_enabled(False)
+        ccs = 'Pydev'
+        if ccs not in BaseSH.COLOR_SCHEMES:
+            ccs = BaseSH.COLOR_SCHEMES[0]
+        self.color_scheme = ccs
         
         self.cursor_position_changed_callback = lambda line, index: \
                 self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
@@ -592,12 +597,20 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'class_browser')
         self.classbrowser_enabled = state
         
-    def set_default_font(self, font):
+    def set_default_font(self, font, color_scheme=None):
         # get_font(self.CONF_SECTION)
         self.default_font = font
+        if color_scheme is not None:
+            self.color_scheme = color_scheme
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_font(font)
+                finfo.editor.set_font(font, color_scheme)
+            
+    def set_color_scheme(self, color_scheme):
+        self.color_scheme = color_scheme
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_color_scheme(color_scheme)
         
     def set_wrap_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'wrap')
@@ -633,6 +646,7 @@ class EditorStack(QWidget):
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
+            
     
     #------ Stacked widget management
     def get_stack_index(self):
@@ -1315,6 +1329,7 @@ class EditorStack(QWidget):
                 linenumbers=self.linenumbers_enabled, language=language,
                 code_analysis=self.codeanalysis_enabled,
                 todo_list=self.todolist_enabled, font=self.default_font,
+                color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
@@ -1960,7 +1975,7 @@ class FakePlugin(QSplitter):
         editorstack.set_io_actions(action, action, action)
         font = QFont("Courier New")
         font.setPointSize(10)
-        editorstack.set_default_font(font)
+        editorstack.set_default_font(font, color_scheme='Pydev')
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),

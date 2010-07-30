@@ -36,7 +36,7 @@ from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import ClassBrowser
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
-                                      EditorSplitter, EditorStack,
+                                      EditorSplitter, EditorStack, BaseSH,
                                       EditorMainWindow, CodeEditor, Printer)
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
@@ -116,6 +116,10 @@ class EditorConfigPage(PluginConfigPage):
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
         check_eol_box = newcb(self.tr("Show warning when fixing newline chars"),
                               'check_eol_chars', default=True)
+        names = self.get_option('color_scheme/names')
+        choices = zip(names, names)
+        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+                                        choices, 'color_scheme/current')
         
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(calltips_box)
@@ -125,6 +129,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(comp_enter_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
         
         tabs = QTabWidget()
@@ -150,6 +155,14 @@ class Editor(SpyderPluginWidget):
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):
         self.__set_eol_mode = True
+        
+        color_scheme = self.get_option('color_scheme/current', None)
+        if color_scheme is None:
+            self.set_option('color_scheme/names', BaseSH.COLOR_SCHEMES)
+            ccs = 'Pydev'
+            if ccs not in BaseSH.COLOR_SCHEMES:
+                ccs = BaseSH.COLOR_SCHEMES[0]
+            self.set_option('color_scheme/current', ccs)
         
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
@@ -675,29 +688,27 @@ class Editor(SpyderPluginWidget):
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
         editorstack.set_filetype_filters(self.get_filetype_filters())
         editorstack.set_valid_types(self.get_valid_types())
-        settings = (('set_codeanalysis_enabled',   'code_analysis'),
-                    ('set_todolist_enabled',       'todo_list'),
-                    ('set_linenumbers_enabled',    'line_numbers'),
-                    ('set_classbrowser_enabled',   'class_browser'),
-                    ('set_codecompletion_auto_enabled',
-                                                   'codecompletion/auto'),
-                    ('set_codecompletion_enter_enabled',
-                                                   'codecompletion/enter-key'),
-                    ('set_calltips_enabled',       'calltips'),
-                    ('set_go_to_definition_enabled',
-                                                   'go_to_definition'),
-                    ('set_inspector_enabled',      'object_inspector'),
-                    ('set_wrap_enabled',           'wrap'),
-                    ('set_tabmode_enabled',        'tab_always_indent'),
-                    ('set_occurence_highlighting_enabled',
-                                                   'occurence_highlighting'),
-                    ('set_checkeolchars_enabled',  'check_eol_chars'),
-                    ('set_fullpath_sorting_enabled',
-                                                   'fullpath_sorting'),
-                    ('set_tabbar_visible',         'show_tab_bar'))
+        settings = (
+            ('set_codeanalysis_enabled',            'code_analysis'),
+            ('set_todolist_enabled',                'todo_list'),
+            ('set_linenumbers_enabled',             'line_numbers'),
+            ('set_classbrowser_enabled',            'class_browser'),
+            ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
+            ('set_codecompletion_enter_enabled',    'codecompletion/enter-key'),
+            ('set_calltips_enabled',                'calltips'),
+            ('set_go_to_definition_enabled',        'go_to_definition'),
+            ('set_inspector_enabled',               'object_inspector'),
+            ('set_wrap_enabled',                    'wrap'),
+            ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
+            ('set_checkeolchars_enabled',           'check_eol_chars'),
+            ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
+            ('set_tabbar_visible',                  'show_tab_bar'),
+                    )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
-        editorstack.set_default_font(self.get_plugin_font())
+        editorstack.set_default_font(self.get_plugin_font(),
+                                     self.get_option('color_scheme/current'))
         
         self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
                      self.starting_long_process)
@@ -1391,6 +1402,7 @@ class Editor(SpyderPluginWidget):
             editorstack._refresh_classbrowser(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
+            color_scheme = self.get_option('color_scheme/current')
             font = self.get_plugin_font()
             fpsorting = self.get_option('fullpath_sorting')
             tabbar = self.get_option('show_tab_bar')
@@ -1411,7 +1423,7 @@ class Editor(SpyderPluginWidget):
             for window in self.editorwindows:
                 window.editorwidget.classbrowser.set_fullpath_sorting(fpsorting)
             for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
+                editorstack.set_default_font(font, color_scheme)
                 editorstack.set_fullpath_sorting_enabled(fpsorting)
                 editorstack.set_tabbar_visible(tabbar)
                 editorstack.set_linenumbers_enabled(linenb, current_finfo=finfo)

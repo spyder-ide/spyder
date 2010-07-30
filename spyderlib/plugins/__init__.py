@@ -21,8 +21,9 @@ These plugins inherit the following classes
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
                          QKeySequence, QMainWindow, QApplication, QCheckBox,
                          QMessageBox, QLabel, QLineEdit, QSpinBox, QVBoxLayout,
-                         QHBoxLayout, QPushButton, QFontComboBox, QGroupBox)
-from PyQt4.QtCore import SIGNAL, Qt, QObject
+                         QHBoxLayout, QPushButton, QFontComboBox, QGroupBox,
+                         QComboBox)
+from PyQt4.QtCore import SIGNAL, Qt, QObject, QVariant
 
 import sys
 
@@ -54,6 +55,7 @@ class PluginConfigPage(ConfigPage):
         self.checkboxes = {}
         self.lineedits = {}
         self.spinboxes = {}
+        self.comboboxes = {}
         self.fontboxes = {}
         
     def get_name(self):
@@ -84,6 +86,15 @@ class PluginConfigPage(ConfigPage):
             spinbox.setValue(self.get_option(option, default))
             self.connect(spinbox, SIGNAL('valueChanged(int)'),
                          lambda value: self.has_been_modified())
+        for combobox, (option, default) in self.comboboxes.items():
+            value = self.get_option(option, default)
+            for index in range(combobox.count()):
+                if unicode(combobox.itemData(index).toString()
+                           ) == unicode(value):
+                    break
+            combobox.setCurrentIndex(index)
+            self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
+                         lambda index: self.has_been_modified())
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
@@ -101,6 +112,9 @@ class PluginConfigPage(ConfigPage):
             self.set_option(option, unicode(lineedit.text()))
         for spinbox, (option, _default) in self.spinboxes.items():
             self.set_option(option, spinbox.value())
+        for combobox, (option, _default) in self.comboboxes.items():
+            data = combobox.itemData(combobox.currentIndex())
+            self.set_option(option, unicode(data.toString()))
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = fontbox.currentFont()
             font.setPointSize(sizebox.value())
@@ -160,6 +174,25 @@ class PluginConfigPage(ConfigPage):
         self.spinboxes[spinbox] = (option, default)
         layout = QHBoxLayout()
         for subwidget in (plabel, spinbox, slabel):
+            layout.addWidget(subwidget)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
+    def create_combobox(self, text, choices, option, default=NoDefault,
+                        tip=None):
+        """choices: couples (name, key)"""
+        label = QLabel(text)
+        combobox = QComboBox()
+        if tip is not None:
+            combobox.setToolTip(tip)
+        for name, key in choices:
+            combobox.addItem(name, QVariant(key))
+        self.comboboxes[combobox] = (option, default)
+        layout = QHBoxLayout()
+        for subwidget in (label, combobox):
             layout.addWidget(subwidget)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)

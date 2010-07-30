@@ -34,7 +34,8 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
 from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
-                                                           CppSH, FortranSH)
+                                                           CppSH, FortranSH,
+                                                           BaseSH)
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
 from spyderlib.utils import sourcecode, is_keyword
@@ -97,7 +98,10 @@ class QtEditor(TextEditBaseWidget):
         # Syntax highlighting
         self.highlighter_class = None
         self.highlighter = None
-        self.color_scheme = ('IDLE', 'Pydev', 'Emacs', 'Scintilla')[1]
+        ccs = 'Pydev'
+        if ccs not in BaseSH.COLOR_SCHEMES:
+            ccs = BaseSH.COLOR_SCHEMES[0]
+        self.color_scheme = ccs
         
         #  Background colors: current line, occurences
         self.currentline_color = QColor(Qt.red).lighter(190)
@@ -171,7 +175,7 @@ class QtEditor(TextEditBaseWidget):
         self._apply_highlighter_color_scheme()
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
-                     font=None, wrap=False, tab_mode=True,
+                     font=None, color_scheme=None, wrap=False, tab_mode=True,
                      occurence_highlighting=True, scrollflagarea=True,
                      todo_list=True, codecompletion_auto=False,
                      codecompletion_enter=False, calltips=None,
@@ -204,7 +208,9 @@ class QtEditor(TextEditBaseWidget):
             self.set_as_clone(cloned_from)
             self.update_linenumberarea_width(0)
         elif font is not None:
-            self.set_font(font)
+            self.set_font(font, color_scheme)
+        elif color_scheme is not None:
+            self.set_color_scheme(color_scheme)
             
         self.toggle_wrap_mode(wrap)
         
@@ -644,8 +650,14 @@ class QtEditor(TextEditBaseWidget):
             self.area_background_color = hl.get_sideareas_color()
         self.highlight_current_line()
 
-    def set_font(self, font):
+    def set_font(self, font, color_scheme=None):
         """Set shell font"""
+        # Note: why using this method to set color scheme instead of 
+        #       'set_color_scheme'? To avoid rehighlighting the document twice
+        #       at startup.
+        if color_scheme is not None:
+            assert color_scheme in BaseSH.COLOR_SCHEMES
+            self.color_scheme = color_scheme
         self.setFont(font)
         self.update_linenumberarea_width(0)
         if self.highlighter_class is not None:
@@ -655,7 +667,15 @@ class QtEditor(TextEditBaseWidget):
                 self._apply_highlighter_color_scheme()
             else:
                 self.highlighter.setup_formats(font)
-                self.highlighter.rehighlight()
+                if color_scheme is not None:
+                    self.highlighter.set_color_scheme(color_scheme)
+                else:
+                    self.highlighter.rehighlight()
+
+    def set_color_scheme(self, color_scheme):
+        assert color_scheme in BaseSH.COLOR_SCHEMES
+        self.color_scheme = color_scheme
+        self.highlighter.set_color_scheme(color_scheme)
         
     def set_text(self, text):
         """Set the text of the editor"""

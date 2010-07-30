@@ -109,22 +109,22 @@ class BaseSH(QSyntaxHighlighter):
                "NUMBER":     ("#800000", False, False),
                "INSTANCE":   ("#000000", False, True),
                },
-              'Emacs':
-              {#  Name          Color    Bold   Italic
-               "BACKGROUND":  "#000000",
-               "CURRENTLINE": "#E8F2FE",
-               "OCCURENCE":   "#FFFF99",
-               "CTRLCLICK":   "#0000FF",
-               "SIDEAREAS":   "#555555",
-               "NORMAL":     ("#FFFFFF", False, False),
-               "KEYWORD":    ("#3C51E8", False, False),
-               "BUILTIN":    ("#900090", False, False),
-               "DEFINITION": ("#FF8040", True,  False),
-               "COMMENT":    ("#005100", False, False),
-               "STRING":     ("#00AA00", False, True),
-               "NUMBER":     ("#800000", False, False),
-               "INSTANCE":   ("#FFFFFF", False, True),
-               },
+#              'Emacs':
+#              {#  Name          Color    Bold   Italic
+#               "BACKGROUND":  "#000000",
+#               "CURRENTLINE": "#E8F2FE",
+#               "OCCURENCE":   "#FFFF99",
+#               "CTRLCLICK":   "#0000FF",
+#               "SIDEAREAS":   "#555555",
+#               "NORMAL":     ("#FFFFFF", False, False),
+#               "KEYWORD":    ("#3C51E8", False, False),
+#               "BUILTIN":    ("#900090", False, False),
+#               "DEFINITION": ("#FF8040", True,  False),
+#               "COMMENT":    ("#005100", False, False),
+#               "STRING":     ("#00AA00", False, True),
+#               "NUMBER":     ("#800000", False, False),
+#               "INSTANCE":   ("#FFFFFF", False, True),
+#               },
               'Scintilla':
               {#  Name          Color    Bold   Italic
                "BACKGROUND":  "#FFFFFF",
@@ -142,13 +142,14 @@ class BaseSH(QSyntaxHighlighter):
                "INSTANCE":   ("#000000", False, True),
                },
               }
+    COLOR_SCHEMES = COLORS.keys()
     def __init__(self, parent, font=None, color_scheme=None):
         super(BaseSH, self).__init__(parent)
         
         self.classbrowser_data = {}
         
-        if color_scheme is None:
-            color_scheme = 'Pydev'
+        self.font = font
+        assert color_scheme in self.COLOR_SCHEMES
         self.color_scheme = color_scheme
         
         self.background_color = None
@@ -178,7 +179,9 @@ class BaseSH(QSyntaxHighlighter):
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
         if font is not None:
-            base_format.setFont(font)
+            self.font = font
+        if self.font is not None:
+            base_format.setFont(self.font)
         self.formats = {}
         colors = self.COLORS[self.color_scheme].copy()
         self.background_color = colors.pop("BACKGROUND")
@@ -194,6 +197,12 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
+#        print self.color_scheme, self.formats
+
+    def set_color_scheme(self, color_scheme):
+        self.color_scheme = color_scheme
+        self.setup_formats()
+        self.rehighlight()
 
     def highlightBlock(self, text):
         raise NotImplementedError
