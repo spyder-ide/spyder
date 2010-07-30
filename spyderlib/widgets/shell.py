@@ -15,7 +15,8 @@ import sys, os, time
 import os.path as osp
 
 from PyQt4.QtGui import (QMenu, QApplication, QCursor, QToolTip, QKeySequence,
-                         QFileDialog, QMessageBox, QMouseEvent)
+                         QFileDialog, QMessageBox, QMouseEvent, QTextCursor,
+                         QTextCharFormat)
 from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
 
 # For debugging purpose:
@@ -94,6 +95,12 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def set_font(self, font):
         """Set shell styles font"""
         self.set_pythonshell_font(font)
+        cursor = self.textCursor()
+        cursor.select(QTextCursor.Document)
+        charformat = QTextCharFormat()
+        charformat.setFontFamily(font.family())
+        charformat.setFontPointSize(font.pointSize())
+        cursor.mergeCharFormat(charformat)
 
 
     #------ Context menu
