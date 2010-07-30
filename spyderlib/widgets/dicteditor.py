@@ -525,6 +525,20 @@ class BaseTableView(QTableView):
         self.array_filename = None
         self.menu = None
         self.empty_ws_menu = None
+        self.paste_action = None
+        self.copy_action = None
+        self.edit_action = None
+        self.plot_action = None
+        self.imshow_action = None
+        self.save_array_action = None
+        self.insert_action = None
+        self.remove_action = None
+        self.truncate_action = None
+        self.minmax_action = None
+        self.collvalue_action = None
+        self.inplace_action = None
+        self.rename_action = None
+        self.duplicate_action = None
         self.delegate = None
         
     def setup_table(self):
@@ -537,6 +551,13 @@ class BaseTableView(QTableView):
     
     def setup_menu(self, truncate, minmax, inplace, collvalue):
         """Setup context menu"""
+        if self.truncate_action is not None:
+            self.truncate_action.setChecked(truncate)
+            self.minmax_action.setChecked(minmax)
+            self.inplace_action.setChecked(inplace)
+            self.collvalue_action.setChecked(collvalue)
+            return
+        
         self.empty_ws_menu = QMenu(self)
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),

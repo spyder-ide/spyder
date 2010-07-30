@@ -52,6 +52,9 @@ class NamespaceBrowser(QWidget):
         self.inplace = None
         
         self.editor = None
+        self.exclude_private_action = None
+        self.exclude_upper_action = None
+        self.exclude_unsupported_action = None
         
         self.filename = None
         
@@ -70,6 +73,10 @@ class NamespaceBrowser(QWidget):
         self.inplace = inplace
         
         if self.editor is not None:
+            self.editor.setup_menu(truncate, minmax, inplace, collvalue)
+            self.exclude_private_action.setChecked(exclude_private)
+            self.exclude_upper_action.setChecked(exclude_upper)
+            self.exclude_unsupported_action.setChecked(exclude_unsupported)
             self.refresh_table()
             return
         
@@ -95,7 +102,11 @@ class NamespaceBrowser(QWidget):
         # Setup layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
-        self.setup_toolbar(vlayout)
+        toolbar = self.setup_toolbar(exclude_private, exclude_upper,
+                                     exclude_unsupported)
+        vlayout.setAlignment(Qt.AlignTop)
+        for widget in toolbar:
+            vlayout.addWidget(widget)
         hlayout.addWidget(self.editor)
         hlayout.addLayout(vlayout)
         self.setLayout(hlayout)
@@ -108,7 +119,8 @@ class NamespaceBrowser(QWidget):
     def set_shellwidget(self, shellwidget):
         self.shellwidget = shellwidget
         
-    def setup_toolbar(self, layout):
+    def setup_toolbar(self, exclude_private, exclude_upper,
+                      exclude_unsupported):
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
@@ -137,29 +149,29 @@ class NamespaceBrowser(QWidget):
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
         
-        exclude_private_action = create_action(self,
+        self.exclude_private_action = create_action(self,
                 self.tr("Exclude private references"),
                 tip=self.tr("Exclude references which name starts"
                             " with an underscore"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_private', state))
-        exclude_private_action.setChecked(self.exclude_private)
+        self.exclude_private_action.setChecked(exclude_private)
         
-        exclude_upper_action = create_action(self,
+        self.exclude_upper_action = create_action(self,
                 self.tr("Exclude capitalized references"),
                 tip=self.tr("Exclude references which name starts with an "
                             "upper-case character"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_upper', state))
-        exclude_upper_action.setChecked(self.exclude_upper)
+        self.exclude_upper_action.setChecked(exclude_upper)
         
-        exclude_unsupported_action = create_action(self,
+        self.exclude_unsupported_action = create_action(self,
                 self.tr("Exclude unsupported data types"),
                 tip=self.tr("Exclude references to unsupported data types"
                             " (i.e. which won't be handled/saved correctly)"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_unsupported', state))
-        exclude_unsupported_action.setChecked(self.exclude_unsupported)
+        self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
         options_button = create_toolbutton(self, text=self.tr("Options"),
                                            icon=get_icon('tooloptions.png'),
@@ -168,17 +180,16 @@ class NamespaceBrowser(QWidget):
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         editor = self.editor
-        actions = [exclude_private_action, exclude_upper_action,
-                   exclude_unsupported_action, None, editor.truncate_action,
-                   editor.inplace_action, editor.collvalue_action]
+        actions = [self.exclude_private_action, self.exclude_upper_action,
+                   self.exclude_unsupported_action, None,
+                   editor.truncate_action, editor.inplace_action,
+                   editor.collvalue_action]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
-
-        layout.setAlignment(Qt.AlignTop)
-        for widget in toolbar:
-            layout.addWidget(widget)
+        
+        return toolbar
 
     def option_changed(self, option, value):
         setattr(self, option, value)

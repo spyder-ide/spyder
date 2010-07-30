@@ -8,17 +8,57 @@
 
 import sys
 
-from PyQt4.QtGui import QStackedWidget
+from PyQt4.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
 from PyQt4.QtCore import SIGNAL
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF
-from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.config import CONF, get_icon
+from spyderlib.utils import programs
+from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
+
+
+class VariableExplorerConfigPage(PluginConfigPage):
+    def setup_page(self):
+        filter_group = QGroupBox(self.tr("Filter"))
+        filter_data = [
+            ('exclude_private', self.tr("Exclude private references")),
+            ('exclude_upper', self.tr("Exclude capitalized references")),
+            ('exclude_unsupported', self.tr("Exclude unsupported data types")),
+                ]
+        filter_boxes = [self.create_checkbox(text, option)
+                        for option, text in filter_data]
+
+        display_group = QGroupBox(self.tr("Display"))
+        display_data = [
+            ('truncate', self.tr("Truncate values")),
+            ('collvalue', self.tr("Show collection contents")),
+            ('inplace', self.tr("Always edit in-place")),
+                ]
+        if programs.is_module_installed('numpy'):
+            display_data.append( ('minmax', self.tr("Show arrays min/max")) )
+        display_boxes = [self.create_checkbox(text, option)
+                         for option, text in display_data]
+
+        filter_layout = QVBoxLayout()
+        for box in filter_boxes:
+            filter_layout.addWidget(box)
+        filter_group.setLayout(filter_layout)
+
+        display_layout = QVBoxLayout()
+        for box in display_boxes:
+            display_layout.addWidget(box)
+        display_group.setLayout(display_layout)
+
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(filter_group)
+        vlayout.addWidget(display_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
 
 
 class VariableExplorer(QStackedWidget, SpyderPluginMixin):
@@ -26,6 +66,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     Variable Explorer Plugin
     """
     CONF_SECTION = 'console'
+    CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
@@ -95,6 +136,10 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Variable explorer')
+
+    def get_plugin_icon(self):
+        """Return plugin icon"""
+        return get_icon('dictedit.png')
     
     def get_focus_widget(self):
         """
@@ -126,3 +171,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             self.connect(self.main.projectexplorer,
                          SIGNAL("import_data(QString)"), self.import_data)
         
+    def apply_plugin_settings(self):
+        """Apply configuration file's plugin settings"""
+        for nsb in self.shellwidgets.values():
+            nsb.setup(**VariableExplorer.get_settings())
