@@ -21,7 +21,7 @@ These plugins inherit the following classes
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
                          QKeySequence, QMainWindow, QApplication, QCheckBox,
                          QMessageBox, QLabel, QLineEdit, QSpinBox, QVBoxLayout,
-                         QHBoxLayout, QPushButton)
+                         QHBoxLayout, QPushButton, QFontComboBox, QGroupBox)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -47,11 +47,14 @@ class PluginConfigPage(ConfigPage):
         self.plugin = plugin
         self.get_option = self.plugin.get_option
         self.set_option = self.plugin.set_option
+        self.get_font = self.plugin.get_plugin_font
+        self.set_font = self.plugin.set_plugin_font
         ConfigPage.__init__(self, parent,
                             apply_callback=plugin.apply_plugin_settings)
         self.checkboxes = {}
         self.lineedits = {}
         self.spinboxes = {}
+        self.fontboxes = {}
         
     def get_name(self):
         """Return page name"""
@@ -65,6 +68,7 @@ class PluginConfigPage(ConfigPage):
         """Apply changes callback"""
         if self.is_modified:
             ConfigPage.apply_changes(self)
+            self.is_modified = False
         
     def load_from_conf(self):
         """Load settings from configuration file"""
@@ -80,6 +84,14 @@ class PluginConfigPage(ConfigPage):
             spinbox.setValue(self.get_option(option, default))
             self.connect(spinbox, SIGNAL('valueChanged(int)'),
                          lambda value: self.has_been_modified())
+        for (fontbox, sizebox), option in self.fontboxes.items():
+            font = self.get_font(option)
+            fontbox.setCurrentFont(font)
+            sizebox.setValue(font.pointSize())
+            self.connect(fontbox, SIGNAL('currentIndexChanged(int)'),
+                         lambda index: self.has_been_modified())
+            self.connect(sizebox, SIGNAL('valueChanged(int)'),
+                         lambda value: self.has_been_modified())
     
     def save_to_conf(self):
         """Save settings to configuration file"""
@@ -89,6 +101,10 @@ class PluginConfigPage(ConfigPage):
             self.set_option(option, unicode(lineedit.text()))
         for spinbox, (option, _default) in self.spinboxes.items():
             self.set_option(option, spinbox.value())
+        for (fontbox, sizebox), option in self.fontboxes.items():
+            font = fontbox.currentFont()
+            font.setPointSize(sizebox.value())
+            self.set_font(font)
     
     def has_been_modified(self):
         self.is_modified = True
@@ -150,6 +166,29 @@ class PluginConfigPage(ConfigPage):
         widget = QWidget(self)
         widget.setLayout(layout)
         return widget
+    
+    def create_fontgroup(self, option=None, text=None,
+                         tip=None, fontfilters=None):
+        """Option=None -> setting plugin font"""
+        fontlabel = QLabel(translate("PluginConfigPage", "Font: "))
+        fontbox = QFontComboBox()
+        if fontfilters is not None:
+            fontbox.setFontFilters(fontfilters)
+        sizelabel = QLabel("  "+translate("PluginConfigPage", "Size: "))
+        sizebox = QSpinBox()
+        sizebox.setRange(7, 100)
+        self.fontboxes[(fontbox, sizebox)] = option
+        layout = QHBoxLayout()
+        for subwidget in (fontlabel, fontbox, sizelabel, sizebox):
+            layout.addWidget(subwidget)
+        layout.addStretch(1)
+        if text is None:
+            text = translate("PluginConfigPage", "Font style")
+        group = QGroupBox(text)
+        group.setLayout(layout)
+        if tip is not None:
+            group.setToolTip(tip)
+        return group
     
     def create_button(self, text, callback):
         btn = QPushButton(text)

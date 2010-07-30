@@ -11,9 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QMessageBox,
-                         QInputDialog, QLineEdit, QPushButton, QGroupBox,
-                         QLabel, QTabWidget)
+from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QInputDialog,
+                         QLineEdit, QPushButton, QGroupBox, QLabel, QTabWidget,
+                         QFontComboBox)
 from PyQt4.QtCore import SIGNAL, QString, Qt
 
 import sys, os
@@ -41,8 +41,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             self.tr("Buffer: "), self.tr(" lines"),
                             'max_line_count', min_=100, max_=1000000, step=100,
                             tip=self.tr("Set maximum line count"))
-        font_btn = self.create_button(self.tr("Set text font style"),
-                                      self.plugin.change_font)
+        font_group = self.create_fontgroup(option=None, text=None,
+                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(self.tr("One tab per script"), 'single_tab')
         icontext_box = newcb(self.tr("Show icons and text"), 'show_icontext')
@@ -50,7 +50,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Interface Group
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(buffer_spin)
-        interface_layout.addWidget(font_btn)
         interface_layout.addWidget(singletab_box)
         interface_layout.addWidget(icontext_box)
         interface_group.setLayout(interface_layout)
@@ -157,7 +156,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, source_group),
+        tabs.addTab(self.create_tab(font_group, interface_group, source_group),
                     self.tr("Basics"))
         tabs.addTab(self.create_tab(startup_group, umd_group),
                     self.tr("Advanced"))
@@ -589,21 +588,20 @@ class ExternalConsole(SpyderPluginWidget):
     
     def apply_plugin_settings(self):
         """Apply configuration file's plugin settings"""
+        font = self.get_plugin_font()
+        icontext = self.get_option('show_icontext')
+        calltips = self.get_option('calltips')
+        wrap = self.get_option('wrap')
+        compauto = self.get_option('codecompletion/auto')
+        compenter = self.get_option('codecompletion/enter-key')
+        mlc = self.get_option('max_line_count')
         for shellwidget in self.shellwidgets:
-            # toggle_icontext
-            shellwidget.set_icontext_visible(self.get_option('show_icontext'))
-            # toggle_calltips
-            shellwidget.shell.set_calltips(self.get_option('calltips'))
-            # toggle_wrap_mode
-            shellwidget.shell.toggle_wrap_mode(self.get_option('wrap'))
-            # toggle_codecompletion
-            auto = self.get_option('codecompletion/auto')
-            shellwidget.shell.set_codecompletion_auto(auto)
-            # toggle_codecompletion_enter
-            enter = self.get_option('codecompletion/enter-key')
-            shellwidget.shell.set_codecompletion_enter(enter)
-            # change_max_line_count
-            mlc = self.get_option('max_line_count')
+            shellwidget.shell.set_font(font)
+            shellwidget.set_icontext_visible(icontext)
+            shellwidget.shell.set_calltips(calltips)
+            shellwidget.shell.toggle_wrap_mode(wrap)
+            shellwidget.shell.set_codecompletion_auto(compauto)
+            shellwidget.shell.set_codecompletion_enter(compenter)
             shellwidget.shell.setMaximumBlockCount(mlc)
     
     #------ Public API ---------------------------------------------------------
@@ -663,15 +661,6 @@ class ExternalConsole(SpyderPluginWidget):
         if filename:
             self.start(fname=unicode(filename), wdir=None,
                        ask_for_arguments=False, interact=False, debug=False)
-        
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(self.get_plugin_font(),
-                       self, self.tr("Select a new font"))
-        if valid:
-            for index in range(self.tabwidget.count()):
-                self.tabwidget.widget(index).shell.set_font(font)
-            self.set_plugin_font(font)
         
     def set_umd_namelist(self):
         """Set UMD excluded modules name list"""

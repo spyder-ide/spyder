@@ -16,8 +16,8 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
-                         QFontDialog, QAbstractPrintDialog, QGroupBox,
-                         QTabWidget)
+                         QAbstractPrintDialog, QGroupBox, QTabWidget,
+                         QFontComboBox)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -54,8 +54,9 @@ class EditorConfigPage(PluginConfigPage):
                                     self.plugin.edit_template)
         
         interface_group = QGroupBox(self.tr("Interface"))
-        font_btn = self.create_button(self.tr("Set text and margin font style"),
-                                      self.plugin.change_font)
+        font_group = self.create_fontgroup(option=None,
+                                    text=self.tr("Text and margin font style"),
+                                    fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         cbvis_box = newcb(self.tr("Show class browser"),
                           'class_browser/visibility')
@@ -64,7 +65,6 @@ class EditorConfigPage(PluginConfigPage):
         showtabbar_box = newcb(self.tr("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(font_btn)
         interface_layout.addWidget(cbvis_box)
         interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
@@ -128,7 +128,8 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(interface_group, sourcecode_group),
+        tabs.addTab(self.create_tab(font_group, interface_group,
+                                    sourcecode_group),
                     self.tr("Basics"))
         tabs.addTab(self.create_tab(template_btn, margins_group, check_eol_box),
                     self.tr("Advanced"))
@@ -1379,16 +1380,6 @@ class Editor(SpyderPluginWidget):
         
         
     #------ Options
-    def change_font(self):
-        """Change editor font"""
-        editorstack = self.get_current_editorstack()
-        font, valid = QFontDialog.getFont(self.get_plugin_font(), editorstack,
-                                          self.tr("Select a new font"))
-        if valid:
-            for editorstack in self.editorstacks:
-                editorstack.set_default_font(font)
-            self.set_plugin_font(font)
-            
     def apply_plugin_settings(self):
         """Apply configuration file's plugin settings"""
         # toggle_classbrowser_visibility
@@ -1400,6 +1391,7 @@ class Editor(SpyderPluginWidget):
             editorstack._refresh_classbrowser(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
+            font = self.get_plugin_font()
             fpsorting = self.get_option('fullpath_sorting')
             tabbar = self.get_option('show_tab_bar')
             linenb = self.get_option('line_numbers')
@@ -1419,6 +1411,7 @@ class Editor(SpyderPluginWidget):
             for window in self.editorwindows:
                 window.editorwidget.classbrowser.set_fullpath_sorting(fpsorting)
             for editorstack in self.editorstacks:
+                editorstack.set_default_font(font)
                 editorstack.set_fullpath_sorting_enabled(fpsorting)
                 editorstack.set_tabbar_visible(tabbar)
                 editorstack.set_linenumbers_enabled(linenb, current_finfo=finfo)
