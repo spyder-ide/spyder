@@ -1391,57 +1391,95 @@ class Editor(SpyderPluginWidget):
         
         
     #------ Options
-    def apply_plugin_settings(self):
+    def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         # toggle_classbrowser_visibility
-        cbvis = self.get_option('class_browser/visibility')
-        self.classbrowser.setVisible(cbvis)
-        if cbvis:
-            self.classbrowser.update()
-            editorstack = self.get_current_editorstack()
-            editorstack._refresh_classbrowser(update=True)
+        cbvis_n = 'class_browser/visibility'
+        if cbvis_n in options:
+            cbvis_o = self.get_option(cbvis_n)
+            self.classbrowser.setVisible(cbvis_o)
+            if cbvis_o:
+                self.classbrowser.update()
+                editorstack = self.get_current_editorstack()
+                editorstack._refresh_classbrowser(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
-            color_scheme = self.get_option('color_scheme/current')
-            font = self.get_plugin_font()
-            fpsorting = self.get_option('fullpath_sorting')
-            tabbar = self.get_option('show_tab_bar')
-            linenb = self.get_option('line_numbers')
-            occurence = self.get_option('occurence_highlighting')
-            wrap = self.get_option('wrap')
-            tabindent = self.get_option('tab_always_indent')
-            autocomp = self.get_option('codecompletion/auto')
-            enter_key = self.get_option('codecompletion/enter-key')
-            calltips = self.get_option('calltips')
-            gotodef = self.get_option('go_to_definition')
-            inspector = self.get_option('object_inspector')
-            todo = self.get_option('todo_list')
-            analysis = self.get_option('code_analysis')
+            color_scheme_n = 'color_scheme/current'
+            color_scheme_o = self.get_option(color_scheme_n)
+            font_n = 'plugin_font'
+            font_o = self.get_plugin_font()
+            fpsorting_n = 'fullpath_sorting'
+            fpsorting_o = self.get_option(fpsorting_n)
+            tabbar_n = 'show_tab_bar'
+            tabbar_o = self.get_option(tabbar_n)
+            linenb_n = 'line_numbers'
+            linenb_o = self.get_option(linenb_n)
+            occurence_n = 'occurence_highlighting'
+            occurence_o = self.get_option(occurence_n)
+            wrap_n = 'wrap'
+            wrap_o = self.get_option(wrap_n)
+            tabindent_n = 'tab_always_indent'
+            tabindent_o = self.get_option(tabindent_n)
+            autocomp_n = 'codecompletion/auto'
+            autocomp_o = self.get_option(autocomp_n)
+            enter_key_n = 'codecompletion/enter-key'
+            enter_key_o = self.get_option(enter_key_n)
+            calltips_n = 'calltips'
+            calltips_o = self.get_option(calltips_n)
+            gotodef_n = 'go_to_definition'
+            gotodef_o = self.get_option(gotodef_n)
+            inspector_n = 'object_inspector'
+            inspector_o = self.get_option(inspector_n)
+            todo_n = 'todo_list'
+            todo_o = self.get_option(todo_n)
+            analysis_n = 'code_analysis'
+            analysis_o = self.get_option(analysis_n)
             finfo = self.get_current_finfo()
-            if self.classbrowser is not None:
-                self.classbrowser.set_fullpath_sorting(fpsorting)
-            for window in self.editorwindows:
-                window.editorwidget.classbrowser.set_fullpath_sorting(fpsorting)
+            if fpsorting_n in options:
+                if self.classbrowser is not None:
+                    self.classbrowser.set_fullpath_sorting(fpsorting_o)
+                for window in self.editorwindows:
+                    window.editorwidget.classbrowser.set_fullpath_sorting(
+                                                                    fpsorting_o)
             for editorstack in self.editorstacks:
-                editorstack.set_default_font(font, color_scheme)
-                editorstack.set_fullpath_sorting_enabled(fpsorting)
-                editorstack.set_tabbar_visible(tabbar)
-                editorstack.set_linenumbers_enabled(linenb, current_finfo=finfo)
-                editorstack.set_occurence_highlighting_enabled(occurence)
-                editorstack.set_wrap_enabled(wrap)
-                editorstack.set_tabmode_enabled(tabindent)
-                editorstack.set_codecompletion_auto_enabled(autocomp)
-                editorstack.set_codecompletion_enter_enabled(enter_key)
-                editorstack.set_calltips_enabled(calltips)
-                editorstack.set_go_to_definition_enabled(gotodef)
-                editorstack.set_inspector_enabled(inspector)
-                editorstack.set_todolist_enabled(todo, current_finfo=finfo)
-                editorstack.set_codeanalysis_enabled(analysis,
+                if font_n in options:
+                    scs = color_scheme_o if color_scheme_n in options else None
+                    editorstack.set_default_font(font_o, scs)
+                elif color_scheme_n in options:
+                    editorstack.set_color_scheme(color_scheme_o)
+                if fpsorting_n in options:
+                    editorstack.set_fullpath_sorting_enabled(fpsorting_o)
+                if tabbar_n in options:
+                    editorstack.set_tabbar_visible(tabbar_o)
+                if linenb_n in options:
+                    editorstack.set_linenumbers_enabled(linenb_o,
+                                                        current_finfo=finfo)
+                if occurence_n in options:
+                    editorstack.set_occurence_highlighting_enabled(occurence_o)
+                if wrap_n in options:
+                    editorstack.set_wrap_enabled(wrap_o)
+                if tabindent_n in options:
+                    editorstack.set_tabmode_enabled(tabindent_o)
+                if autocomp_n in options:
+                    editorstack.set_codecompletion_auto_enabled(autocomp_o)
+                if enter_key_n in options:
+                    editorstack.set_codecompletion_enter_enabled(enter_key_o)
+                if calltips_n in options:
+                    editorstack.set_calltips_enabled(calltips_o)
+                if gotodef_n in options:
+                    editorstack.set_go_to_definition_enabled(gotodef_o)
+                if inspector_n in options:
+                    editorstack.set_inspector_enabled(inspector_o)
+                if todo_n in options:
+                    editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
+                if analysis_n in options:
+                    editorstack.set_codeanalysis_enabled(analysis_o,
+                                                         current_finfo=finfo)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            if todo:
+            if todo_o:
                 finfo.run_todo_finder()
-            if analysis:
+            if analysis_o:
                 finfo.run_code_analysis()

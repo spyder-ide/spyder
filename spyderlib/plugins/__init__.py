@@ -44,19 +44,21 @@ from spyderlib.widgets.findreplace import FindReplace
 class PluginConfigPage(ConfigPage):
     """Plugin configuration dialog box page widget"""
     def __init__(self, plugin, parent):
-        self.is_modified = False
         self.plugin = plugin
         self.get_option = self.plugin.get_option
         self.set_option = self.plugin.set_option
         self.get_font = self.plugin.get_plugin_font
         self.set_font = self.plugin.set_plugin_font
         ConfigPage.__init__(self, parent,
-                            apply_callback=plugin.apply_plugin_settings)
+                            apply_callback=lambda:
+                            self.plugin.apply_plugin_settings(
+                                                        self.changed_options))
         self.checkboxes = {}
         self.lineedits = {}
         self.spinboxes = {}
         self.comboboxes = {}
         self.fontboxes = {}
+        self.changed_options = set()
         
     def get_name(self):
         """Return page name"""
@@ -65,25 +67,27 @@ class PluginConfigPage(ConfigPage):
     def get_icon(self):
         """Return page icon"""
         return self.plugin.get_plugin_icon()
-    
-    def apply_changes(self):
-        """Apply changes callback"""
-        if self.is_modified:
-            ConfigPage.apply_changes(self)
-            self.is_modified = False
+        
+    def set_modified(self, state):
+        ConfigPage.set_modified(self, state)
+        if not state:
+            self.changed_options = set()
         
     def load_from_conf(self):
         """Load settings from configuration file"""
         for checkbox, (option, default) in self.checkboxes.items():
             checkbox.setChecked(self.get_option(option, default))
+            checkbox.setProperty("option", QVariant(option))
             self.connect(checkbox, SIGNAL("clicked(bool)"),
                          lambda checked: self.has_been_modified())
         for lineedit, (option, default) in self.lineedits.items():
             lineedit.setText(self.get_option(option, default))
+            lineedit.setProperty("option", QVariant(option))
             self.connect(lineedit, SIGNAL("textChanged(QString)"),
                          lambda text: self.has_been_modified())
         for spinbox, (option, default) in self.spinboxes.items():
             spinbox.setValue(self.get_option(option, default))
+            spinbox.setProperty("option", QVariant(option))
             self.connect(spinbox, SIGNAL('valueChanged(int)'),
                          lambda value: self.has_been_modified())
         for combobox, (option, default) in self.comboboxes.items():
@@ -93,14 +97,21 @@ class PluginConfigPage(ConfigPage):
                            ) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
+            combobox.setProperty("option", QVariant(option))
             self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
                          lambda index: self.has_been_modified())
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
+            if option is None:
+                property = QVariant('plugin_font')
+            else:
+                property = QVariant(option)
+            fontbox.setProperty("option", property)
             self.connect(fontbox, SIGNAL('currentIndexChanged(int)'),
                          lambda index: self.has_been_modified())
+            sizebox.setProperty("option", property)
             self.connect(sizebox, SIGNAL('valueChanged(int)'),
                          lambda value: self.has_been_modified())
     
@@ -121,7 +132,9 @@ class PluginConfigPage(ConfigPage):
             self.set_font(font)
     
     def has_been_modified(self):
-        self.is_modified = True
+        option = unicode(self.sender().property("option").toString())
+        self.set_modified(True)
+        self.changed_options.add(option)
     
     def create_checkbox(self, text, option, default=NoDefault,
                         tip=None, msg_warning=None, msg_info=None,
@@ -226,6 +239,7 @@ class PluginConfigPage(ConfigPage):
     def create_button(self, text, callback):
         btn = QPushButton(text)
         self.connect(btn, SIGNAL('clicked()'), callback)
+        btn.setProperty("option", QVariant(""))
         self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
         return btn
     
@@ -311,7 +325,7 @@ class SpyderPluginMixin(object):
             configwidget.initialize()
             return configwidget
 
-    def apply_plugin_settings(self):
+    def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
     

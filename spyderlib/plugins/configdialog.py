@@ -19,6 +19,7 @@ class ConfigPage(QWidget):
     def __init__(self, parent, apply_callback=None):
         QWidget.__init__(self, parent)
         self.apply_callback = apply_callback
+        self.is_modified = False
         
     def initialize(self):
         """
@@ -40,11 +41,18 @@ class ConfigPage(QWidget):
     def setup_page(self):
         """Setup configuration page widget"""
         raise NotImplementedError
+        
+    def set_modified(self, state):
+        self.is_modified = state
+        self.emit(SIGNAL("apply_button_enabled(bool)"), state)
     
     def apply_changes(self):
         """Apply changes callback"""
-        self.save_to_conf()
-        self.apply_callback()
+        if self.is_modified:
+            self.save_to_conf()
+            if self.apply_callback is not None:
+                self.apply_callback()
+            self.set_modified(False)
     
     def load_from_conf(self):
         """Load settings from configuration file"""
@@ -112,11 +120,14 @@ class ConfigDialog(QDialog):
             
     def current_page_changed(self, index):
         widget = self.pages_widget.widget(index)
-        self.apply_btn.setEnabled(widget.apply_callback is not None)
+        self.apply_btn.setVisible(widget.apply_callback is not None)
+        self.apply_btn.setEnabled(widget.is_modified)
         
     def add_page(self, plugin):
         widget = plugin.create_configwidget(self)
         if widget is not None:
+            self.connect(widget, SIGNAL("apply_button_enabled(bool)"),
+                         self.apply_btn.setEnabled)
             self.pages_widget.addWidget(widget)
             item = QListWidgetItem(self.contents_widget)
             item.setIcon(widget.get_icon())

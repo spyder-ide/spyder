@@ -108,7 +108,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         """Perform actions before parent main window is closed"""
         return True
             
-    def apply_plugin_settings(self):
+    def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         # The history depth option will be applied at 
         # next Spyder startup, which is soon enough

@@ -588,7 +588,7 @@ class ExternalConsole(SpyderPluginWidget):
             editor = None
         self.find_widget.set_editor(editor)
     
-    def apply_plugin_settings(self):
+    def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         font = self.get_plugin_font()
         icontext = self.get_option('show_icontext')

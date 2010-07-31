@@ -186,7 +186,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             self.connect(self.main.projectexplorer,
                          SIGNAL("import_data(QString)"), self.import_data)
         
-    def apply_plugin_settings(self):
+    def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         for nsb in self.shellwidgets.values():
             nsb.setup(**VariableExplorer.get_settings())
