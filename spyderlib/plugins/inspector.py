@@ -7,7 +7,7 @@
 """Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
-                         QToolButton)
+                         QToolButton, QGroupBox, QFontComboBox)
 from PyQt4.QtCore import SIGNAL
 
 import sys, re, os.path as osp
@@ -16,11 +16,11 @@ import sys, re, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_conf_path, get_icon
+from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.plugins import ReadOnlyEditor
+from spyderlib.plugins import ReadOnlyEditor, PluginConfigPage
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 
@@ -51,13 +51,39 @@ class ObjectComboBox(EditableComboBox):
         self.validate(self.currentText())
 
 
+class ObjectInspectorConfigPage(PluginConfigPage):
+    def setup_page(self):
+        sourcecode_group = QGroupBox(self.tr("Source code"))
+        wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
+        font_group = self.create_fontgroup(option=None,
+                                    text=self.tr("Text and margin font style"),
+                                    fontfilters=QFontComboBox.MonospacedFonts)
+        names = CONF.get('color_schemes', 'names')
+        choices = zip(names, names)
+        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+                                        choices, 'color_scheme_name')
+
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(cs_combo)
+        sourcecode_group.setLayout(sourcecode_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(font_group)
+        vlayout.addWidget(sourcecode_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
+
+
 class ObjectInspector(ReadOnlyEditor):
     """
     Docstrings viewer widget
     """
     CONF_SECTION = 'inspector'
+    CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
+        self.set_default_color_scheme()
         ReadOnlyEditor.__init__(self, parent)
         
         self.shell = None
@@ -117,6 +143,10 @@ class ObjectInspector(ReadOnlyEditor):
         """Return widget title"""
         return self.tr('Object inspector')
     
+    def get_plugin_icon(self):
+        """Return widget icon"""
+        return get_icon('inspector.png')
+    
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -143,6 +173,23 @@ class ObjectInspector(ReadOnlyEditor):
     def refresh_plugin(self):
         """Refresh widget"""
         self.set_object_text(None, force_refresh=False)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        wrap_n = 'wrap'
+        wrap_o = self.get_option(wrap_n)
+        self.wrap_action.setChecked(wrap_o)
+        if font_n in options:
+            scs = color_scheme_o if color_scheme_n in options else None
+            self.editor.set_font(font_o, scs)
+        elif color_scheme_n in options:
+            self.editor.set_color_scheme(color_scheme_o)
+        if wrap_n in options:
+            self.editor.toggle_wrap_mode(wrap_o)
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):

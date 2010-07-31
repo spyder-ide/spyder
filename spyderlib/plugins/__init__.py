@@ -34,7 +34,8 @@ STDOUT = sys.stdout
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import (CONF, get_font, set_font, get_icon,
-                              is_shortcut_available, CUSTOM_COLOR_SCHEME_NAME)
+                              is_shortcut_available, CUSTOM_COLOR_SCHEME_NAME,
+                              get_color_scheme)
 from spyderlib.userconfig import NoDefault
 from spyderlib.plugins.configdialog import ConfigPage
 from spyderlib.widgets.editor import CodeEditor
@@ -487,6 +488,15 @@ class SpyderPluginMixin(object):
         QApplication.restoreOverrideCursor()
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
+        
+    def set_default_color_scheme(self, name='Pydev'):
+        """Set default color scheme (only once)"""
+        color_scheme_name = self.get_option('color_scheme_name', None)
+        if color_scheme_name is None:
+            names = CONF.get("color_schemes", "names")
+            if name not in names:
+                name = names[0]
+            self.set_option('color_scheme_name', name)
 
 
 class SpyderPluginWidget(QWidget, SpyderPluginMixin):
@@ -565,7 +575,8 @@ class ReadOnlyEditor(SpyderPluginWidget):
         self.connect(self.editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         self.editor.setReadOnly(True)
-        self.editor.set_font(self.get_plugin_font())
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        self.editor.set_font(self.get_plugin_font(), color_scheme)
         self.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
@@ -573,11 +584,12 @@ class ReadOnlyEditor(SpyderPluginWidget):
                                     'font.png',
                                     translate("Editor", "Set font style"),
                                     triggered=self.change_font)
-        wrap_action = create_action(self, translate("Editor", "Wrap lines"),
-                                    toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked(self.get_option('wrap'))
+        self.wrap_action = create_action(self,
+                                         translate("Editor", "Wrap lines"),
+                                         toggled=self.toggle_wrap_mode)
+        self.wrap_action.setChecked(self.get_option('wrap'))
         self.editor.readonly_menu.addSeparator()
-        add_actions(self.editor.readonly_menu, (font_action, wrap_action))
+        add_actions(self.editor.readonly_menu, (font_action, self.wrap_action))
         
         # Find/replace widget
         self.find_widget = FindReplace(self)
@@ -655,4 +667,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
-        self.main.historylog.apply_plugin_settings(['color_scheme_name'])
+        if self.main.historylog is not None:
+            self.main.historylog.apply_plugin_settings(['color_scheme_name'])
+        if self.main.inspector is not None:
+            self.main.inspector.apply_plugin_settings(['color_scheme_name'])

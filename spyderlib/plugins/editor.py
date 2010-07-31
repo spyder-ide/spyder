@@ -156,13 +156,7 @@ class Editor(SpyderPluginWidget):
     def __init__(self, parent, ignore_last_opened_files=False):
         self.__set_eol_mode = True
         
-        color_scheme_name = self.get_option('color_scheme_name', None)
-        if color_scheme_name is None:
-            names = CONF.get("color_schemes", "names")
-            ccs = 'Pydev'
-            if ccs not in names:
-                ccs = names[0]
-            self.set_option('color_scheme_name', ccs)
+        self.set_default_color_scheme()
         
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):

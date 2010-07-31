@@ -75,13 +75,7 @@ class HistoryLog(SpyderPluginWidget):
         
         SpyderPluginWidget.__init__(self, parent)
 
-        color_scheme_name = self.get_option('color_scheme_name', None)
-        if color_scheme_name is None:
-            names = CONF.get("color_schemes", "names")
-            ccs = 'Pydev'
-            if ccs not in names:
-                ccs = names[0]
-            self.set_option('color_scheme_name', ccs)
+        self.set_default_color_scheme()
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
@@ -113,6 +107,7 @@ class HistoryLog(SpyderPluginWidget):
         return self.tr('History log')
     
     def get_plugin_icon(self):
+        """Return widget icon"""
         return get_icon('history.png')
     
     def get_focus_widget(self):
@@ -157,6 +152,24 @@ class HistoryLog(SpyderPluginWidget):
 #        self.main.console.set_historylog(self)
         self.connect(self.main.console.shell, SIGNAL("refresh()"),
                      self.refresh_plugin)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        wrap_n = 'wrap'
+        wrap_o = self.get_option(wrap_n)
+        self.wrap_action.setChecked(wrap_o)
+        for editor in self.editors:
+            if font_n in options:
+                scs = color_scheme_o if color_scheme_n in options else None
+                editor.set_font(font_o, scs)
+            elif color_scheme_n in options:
+                editor.set_color_scheme(color_scheme_o)
+            if wrap_n in options:
+                editor.toggle_wrap_mode(wrap_o)
         
     #------ Private API --------------------------------------------------------
     def move_tab(self, index_from, index_to):
@@ -246,21 +259,3 @@ class HistoryLog(SpyderPluginWidget):
         for editor in self.editors:
             editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-
-    def apply_plugin_settings(self, options):
-        """Apply configuration file's plugin settings"""
-        color_scheme_n = 'color_scheme_name'
-        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
-        font_n = 'plugin_font'
-        font_o = self.get_plugin_font()
-        wrap_n = 'wrap'
-        wrap_o = self.get_option(wrap_n)
-        self.wrap_action.setChecked(wrap_o)
-        for editor in self.editors:
-            if font_n in options:
-                scs = color_scheme_o if color_scheme_n in options else None
-                editor.set_font(font_o, scs)
-            elif color_scheme_n in options:
-                editor.set_color_scheme(color_scheme_o)
-            if wrap_n in options:
-                editor.toggle_wrap_mode(wrap_o)
