@@ -785,7 +785,7 @@ class MainWindow(QMainWindow):
         self.debug_print(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
-                                Qt.AlignAbsolute, QColor(Qt.white))
+                                Qt.AlignAbsolute, QColor(Qt.darkGray))
         QApplication.processEvents()
         
     def closeEvent(self, event):

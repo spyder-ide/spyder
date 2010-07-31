@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.0.0alpha3'
+__version__ = '2.0.0alpha4'
 __license__ = __doc__
 
 #TODO: Workspace is gone: find a way to implement the save on exit with the 
@@ -37,7 +37,6 @@ __license__ = __doc__
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
 #TODO: "Preferences":
-# * add color schemes for editor/console
 # * Option to inverse console colors
 # * IPython: add "configurations" management
 
@@ -46,8 +45,7 @@ __license__ = __doc__
 #TODO: Handling errors in project explorer I/O functions (i.e. find a way to 
 # allow loading a corrupted project to be able to launch Spyder anyway)
 
-#TODO: Implement code completion in code editor with rope:
-# 3. Refactoring -> shell.py key press events --> in base class (shared with codeeditor.py)
-# 4. Implement: zoomIn, zoomOut
+#TODO: Refactoring -> shell.py key press events --> in base class (shared with codeeditor.py)
+#TODO: Implement: zoomIn, zoomOut
 
 #TODO: Take a look at session management: adapt to new v2.0 features

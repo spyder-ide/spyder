@@ -625,7 +625,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         return self.tr("Syntax coloring")
     
     def get_icon(self):
-        return get_icon("advanced.png")
+        return get_icon("genprefs.png")
     
     def setup_page(self):
         tabs = QTabWidget()
