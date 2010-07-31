@@ -7,7 +7,7 @@
 """Console History Plugin"""
 
 from PyQt4.QtGui import (QVBoxLayout, QFontDialog, QInputDialog, QToolButton,
-                         QMenu)
+                         QMenu, QFontComboBox, QGroupBox)
 from PyQt4.QtCore import SIGNAL
 
 import os.path as osp
@@ -18,13 +18,43 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, CONF, get_color_scheme
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.plugins import SpyderPluginWidget
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+
+
+class HistoryConfigPage(PluginConfigPage):
+    def setup_page(self):
+        hist_spin = self.create_spinbox(
+                            self.tr("History depth: "), self.tr(" entries"),
+                            'max_entries', min_=10, max_=10000, step=10,
+                            tip=self.tr("Set maximum line count"))
+
+        sourcecode_group = QGroupBox(self.tr("Source code"))
+        wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
+        font_group = self.create_fontgroup(option=None,
+                                    text=self.tr("Text and margin font style"),
+                                    fontfilters=QFontComboBox.MonospacedFonts)
+        names = CONF.get('color_schemes', 'names')
+        choices = zip(names, names)
+        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+                                        choices, 'color_scheme_name')
+
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(cs_combo)
+        sourcecode_group.setLayout(sourcecode_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(hist_spin)
+        vlayout.addWidget(font_group)
+        vlayout.addWidget(sourcecode_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
 
 
 class HistoryLog(SpyderPluginWidget):
@@ -32,16 +62,26 @@ class HistoryLog(SpyderPluginWidget):
     History log widget
     """
     CONF_SECTION = 'historylog'
+    CONFIGWIDGET_CLASS = HistoryConfigPage
     def __init__(self, parent):
         self.tabwidget = None
         self.menu_actions = None
         self.dockviewer = None
+        self.wrap_action = None
         
         self.editors = []
         self.filenames = []
         self.icons = []
         
         SpyderPluginWidget.__init__(self, parent)
+
+        color_scheme_name = self.get_option('color_scheme_name', None)
+        if color_scheme_name is None:
+            names = CONF.get("color_schemes", "names")
+            ccs = 'Pydev'
+            if ccs not in names:
+                ccs = names[0]
+            self.set_option('color_scheme_name', ccs)
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
@@ -72,6 +112,9 @@ class HistoryLog(SpyderPluginWidget):
         """Return widget title"""
         return self.tr('History log')
     
+    def get_plugin_icon(self):
+        return get_icon('history.png')
+    
     def get_focus_widget(self):
         """
         Return the widget to give focus to when
@@ -100,10 +143,10 @@ class HistoryLog(SpyderPluginWidget):
         font_action = create_action(self, self.tr("&Font..."), None,
                                     'font.png', self.tr("Set shell font style"),
                                     triggered=self.change_font)
-        wrap_action = create_action(self, self.tr("Wrap lines"),
+        self.wrap_action = create_action(self, self.tr("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
-        wrap_action.setChecked( self.get_option('wrap') )
-        self.menu_actions = [history_action, font_action, wrap_action]
+        self.wrap_action.setChecked( self.get_option('wrap') )
+        self.menu_actions = [history_action, font_action, self.wrap_action]
         return self.menu_actions
     
     def register_plugin(self):
@@ -149,7 +192,8 @@ class HistoryLog(SpyderPluginWidget):
         self.connect(editor, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
-        editor.set_font( self.get_plugin_font() )
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        editor.set_font( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
@@ -202,3 +246,21 @@ class HistoryLog(SpyderPluginWidget):
         for editor in self.editors:
             editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        color_scheme_n = 'color_scheme_name'
+        color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
+        font_n = 'plugin_font'
+        font_o = self.get_plugin_font()
+        wrap_n = 'wrap'
+        wrap_o = self.get_option(wrap_n)
+        self.wrap_action.setChecked(wrap_o)
+        for editor in self.editors:
+            if font_n in options:
+                scs = color_scheme_o if color_scheme_n in options else None
+                editor.set_font(font_o, scs)
+            elif color_scheme_n in options:
+                editor.set_color_scheme(color_scheme_o)
+            if wrap_n in options:
+                editor.toggle_wrap_mode(wrap_o)

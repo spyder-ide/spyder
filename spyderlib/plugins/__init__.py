@@ -654,5 +654,5 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         self.setLayout(vlayout)
             
     def apply_settings(self, options):
-        # Editor plugin
         self.main.editor.apply_plugin_settings(['color_scheme_name'])
+        self.main.historylog.apply_plugin_settings(['color_scheme_name'])

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<!DOCTYPE TS><TS version="1.1" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -3343,54 +3342,92 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
 </context>
 <context>
+    <name>HistoryConfigPage</name>
+    <message>
+        <location filename="plugins/history.py" line="32"/>
+        <source>History depth: </source>
+        <translation>Historique : </translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="32"/>
+        <source> entries</source>
+        <translation>entrées</translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="34"/>
+        <source>Set maximum line count</source>
+        <translation>Modifier le nombre maximum de lignes</translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="39"/>
+        <source>Text and margin font style</source>
+        <translation>Police d&apos;écriture du texte et de la marge</translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="43"/>
+        <source>Syntax color scheme: </source>
+        <translation>Thème de coloration syntaxique : </translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="36"/>
+        <source>Source code</source>
+        <translation>Code source</translation>
+    </message>
+    <message>
+        <location filename="plugins/history.py" line="37"/>
+        <source>Wrap lines</source>
+        <translation>Retour à la ligne automatique</translation>
+    </message>
+</context>
+<context>
     <name>HistoryLog</name>
     <message>
-        <location filename="plugins/history.py" line="74"/>
+        <location filename="plugins/history.py" line="114"/>
         <source>History log</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="99"/>
+        <location filename="plugins/history.py" line="142"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="100"/>
+        <location filename="plugins/history.py" line="143"/>
         <source>Set shell font style</source>
         <translation>Changer la police d&apos;écriture de la console</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="102"/>
+        <location filename="plugins/history.py" line="145"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="193"/>
+        <location filename="plugins/history.py" line="235"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="54"/>
+        <location filename="plugins/history.py" line="94"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="95"/>
+        <location filename="plugins/history.py" line="138"/>
         <source>History...</source>
         <translation>Historique...</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="97"/>
+        <location filename="plugins/history.py" line="140"/>
         <source>Set history maximum entries</source>
         <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="183"/>
+        <location filename="plugins/history.py" line="225"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="184"/>
+        <location filename="plugins/history.py" line="226"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
     </message>
