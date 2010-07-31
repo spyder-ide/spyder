@@ -32,20 +32,20 @@ from spyderlib.config import get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget
-from spyderlib.widgets.qteditor.syntaxhighlighters import (PythonSH, CythonSH,
-                                                           CppSH, FortranSH,
-                                                           BaseSH)
+from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
+from spyderlib.widgets.codeeditor.syntaxhighlighters import (PythonSH, CythonSH,
+                                                             CppSH, FortranSH,
+                                                             BaseSH)
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
 from spyderlib.utils import sourcecode, is_keyword
 
 
 #===============================================================================
-# QtEditor widget
+# CodeEditor widget
 #===============================================================================
 
-class QtEditor(TextEditBaseWidget):
+class CodeEditor(TextEditBaseWidget):
     """
     Source Code Editor Widget based exclusively on Qt
     """
@@ -149,7 +149,7 @@ class QtEditor(TextEditBaseWidget):
         
         # Tab key behavior
         self.tab_indents = None
-        self.tab_mode = True # see QtEditor.set_tab_mode
+        self.tab_mode = True # see CodeEditor.set_tab_mode
         
         self.go_to_definition_enabled = False
         
@@ -159,7 +159,7 @@ class QtEditor(TextEditBaseWidget):
         self.ctrl_click_color = QColor(Qt.blue)
 
     def closeEvent(self, event):
-        super(QtEditor, self).closeEvent(event)
+        super(CodeEditor, self).closeEvent(event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))
             
@@ -587,7 +587,7 @@ class QtEditor(TextEditBaseWidget):
                     
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
-        super(QtEditor, self).resizeEvent(event)
+        super(CodeEditor, self).resizeEvent(event)
         cr = self.contentsRect()
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
@@ -621,7 +621,7 @@ class QtEditor(TextEditBaseWidget):
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
-        return super(QtEditor, self).viewportEvent(event)
+        return super(CodeEditor, self).viewportEvent(event)
 
     #-----highlight current line
     def highlight_current_line(self):
@@ -1312,7 +1312,7 @@ class QtEditor(TextEditBaseWidget):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         if event.mimeData().hasText():
-            super(QtEditor, self).dragEnterEvent(event)
+            super(CodeEditor, self).dragEnterEvent(event)
         else:
             event.ignore()
             
@@ -1320,13 +1320,13 @@ class QtEditor(TextEditBaseWidget):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         if event.mimeData().hasText():
-            super(QtEditor, self).dropEvent(event)
+            super(CodeEditor, self).dropEvent(event)
         else:
             event.ignore()
 
 
 #===============================================================================
-# QtEditor's Printer
+# CodeEditor's Printer
 #===============================================================================
 
 #TODO: Implement the header and footer support
@@ -1356,7 +1356,7 @@ class Printer(QPrinter):
 #===============================================================================
 # Editor + Class browser test
 #===============================================================================
-class TestEditor(QtEditor):
+class TestEditor(CodeEditor):
     def __init__(self, parent):
         super(TestEditor, self).__init__(parent)
         self.setup_editor(linenumbers=True, code_analysis=False,

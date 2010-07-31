@@ -176,7 +176,7 @@ class TextEditBaseWidget(QPlainTextEdit):
     #------Line number area
     def get_linenumberarea_width(self):
         """Return line number area width"""
-        # Implemented in QtEditor, but needed here for completion widget
+        # Implemented in CodeEditor, but needed here for completion widget
         return 0
         
     #------Extra selections

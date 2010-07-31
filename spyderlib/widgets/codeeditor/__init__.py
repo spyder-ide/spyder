@@ -5,8 +5,8 @@
 # (see spyderlib/__init__.py for details)
 
 """
-spyderlib.widgets.qteditor
-==========================
+spyderlib.widgets.codeeditor
+============================
 
 Code editor-related widgets based exclusively on Qt
 """

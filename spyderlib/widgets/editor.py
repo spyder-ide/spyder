@@ -35,10 +35,10 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, ClassBrowser
-from spyderlib.widgets.qteditor.qteditor import QtEditor as CodeEditor
-from spyderlib.widgets.qteditor.syntaxhighlighters import BaseSH
-from spyderlib.widgets.qteditor.qteditor import Printer #@UnusedImport
-from spyderlib.widgets.qteditor.qtebase import TextEditBaseWidget #@UnusedImport
+from spyderlib.widgets.codeeditor.codeeditor import CodeEditor
+from spyderlib.widgets.codeeditor.syntaxhighlighters import BaseSH
+from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
+from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
 
 
 class FileListDialog(QDialog):
@@ -938,7 +938,7 @@ class EditorStack(QWidget):
             self.modification_changed(index=index)
             self.analyze_script(index)
             
-            #XXX QtEditor-only: re-scan the whole text to rebuild class browser 
+            #XXX CodeEditor-only: re-scan the whole text to rebuild class browser 
             #    data from scratch (could be optimized because rehighlighting
             #    text means searching for all syntax coloring patterns instead 
             #    of only searching for class/def patterns which would be 
@@ -1142,7 +1142,7 @@ class EditorStack(QWidget):
     def __check_file_status(self, index):
         if self.__file_status_flag:
             # Avoid infinite loop: when the QMessageBox.question pops, it
-            # gets focus and then give it back to the QtEditor instance,
+            # gets focus and then give it back to the CodeEditor instance,
             # triggering a refresh cycle which calls this method
             return
         
@@ -2036,7 +2036,7 @@ def test():
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
-    test.load("qteditor/qteditor.py")
+    test.load("codeeditor/codeeditor.py")
     test.show()
     sys.exit(app.exec_())
     

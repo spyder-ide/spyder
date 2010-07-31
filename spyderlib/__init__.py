@@ -47,7 +47,7 @@ __license__ = __doc__
 # allow loading a corrupted project to be able to launch Spyder anyway)
 
 #TODO: Implement code completion in code editor with rope:
-# 3. Refactoring -> shell.py key press events --> in base class (shared with qteditor.py)
+# 3. Refactoring -> shell.py key press events --> in base class (shared with codeeditor.py)
 # 4. Implement: zoomIn, zoomOut
 
 #TODO: Take a look at session management: adapt to new v2.0 features

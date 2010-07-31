@@ -31,7 +31,7 @@ from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, translate)
 from spyderlib.widgets.shellhelpers import get_error_match
-from spyderlib.widgets.qteditor.qtebase import ConsoleBaseWidget
+from spyderlib.widgets.codeeditor.base import ConsoleBaseWidget
 
 
 HISTORY_FILENAMES = []

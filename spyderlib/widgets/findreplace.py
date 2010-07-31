@@ -197,7 +197,7 @@ class FindReplace(QWidget):
     def set_editor(self, editor, refresh=True):
         """
         Set associated editor/web page:
-            qtebase.TextEditBaseWidget
+            codeeditor.base.TextEditBaseWidget
             browser.WebView
         """
         self.editor = editor

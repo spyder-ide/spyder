@@ -34,7 +34,7 @@ from spyderlib import __version__ as version
 google_url = 'http://%s.googlecode.com' % libname
 download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
-                                '.widgets.qteditor', '.plugins', '.utils']] \
+                                '.widgets.codeeditor', '.plugins', '.utils']] \
            +['spyderplugins']
 extensions = ('.qm', '.api', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
