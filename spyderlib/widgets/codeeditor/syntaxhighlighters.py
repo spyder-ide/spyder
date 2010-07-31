@@ -28,13 +28,13 @@ def any(name, alternates):
 
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kw = r"\b" + any("KEYWORD", keyword.kwlist+additional_keywords) + r"\b"
+    kw = r"\b" + any("keyword", keyword.kwlist+additional_keywords) + r"\b"
     builtinlist = [str(name) for name in dir(__builtin__)
                    if not name.startswith('_')]+additional_builtins
-    builtin = r"([^.'\"\\#]\b|^)" + any("BUILTIN", builtinlist) + r"\b"
-    comment = any("COMMENT", [r"#[^\n]*"])
-    instance = any("INSTANCE", [r"\bself\b"])
-    number = any("NUMBER",
+    builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
+    comment = any("comment", [r"#[^\n]*"])
+    instance = any("instance", [r"\bself\b"])
+    number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
@@ -44,9 +44,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
     uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')$"
     uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")$'
-    string = any("STRING", [sqstring, dqstring, sq3string, dq3string])
-    ufstring1 = any("UF_SQ3STRING", [uf_sq3string])
-    ufstring2 = any("UF_DQ3STRING", [uf_dq3string])
+    string = any("string", [sqstring, dqstring, sq3string, dq3string])
+    ufstring1 = any("uf_sq3string", [uf_sq3string])
+    ufstring2 = any("uf_dq3string", [uf_dq3string])
     return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
            ufstring1 + "|" + ufstring2 + "|" + string + "|" + number + "|" + \
            any("SYNC", [r"\n"])
@@ -74,72 +74,76 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting rules:
     PROG = None
     # Syntax highlighting states (from one text block to another):
-    NORMAL = 0
+    normal = 0
     # Syntax highlighting color schemes:
+    COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
+                         "ctrlclick", "sideareas",
+                         "normal", "keyword", "builtin", "definition",
+                         "comment", "string", "number", "instance")
     COLORS = {
               'IDLE':
               {#  Name          Color    Bold   Italic
-               "BACKGROUND":  "#FFFFFF",
-               "CURRENTLINE": "#EEFFDD",
-               "OCCURENCE":   "#E8F2FE",
-               "CTRLCLICK":   "#0000FF",
-               "SIDEAREAS":   "#EFEFEF",
-               "NORMAL":     ("#000000", False, False),
-               "KEYWORD":    ("#ff7700", True,  False),
-               "BUILTIN":    ("#900090", False, False),
-               "DEFINITION": ("#0000ff", False, False),
-               "COMMENT":    ("#dd0000", False, True),
-               "STRING":     ("#00aa00", False, False),
-               "NUMBER":     ("#924900", False, False),
-               "INSTANCE":   ("#777777", True,  True),
+               "background":  "#FFFFFF",
+               "currentline": "#EEFFDD",
+               "occurence":   "#E8F2FE",
+               "ctrlclick":   "#0000FF",
+               "sideareas":   "#EFEFEF",
+               "normal":     ("#000000", False, False),
+               "keyword":    ("#ff7700", True,  False),
+               "builtin":    ("#900090", False, False),
+               "definition": ("#0000ff", False, False),
+               "comment":    ("#dd0000", False, True),
+               "string":     ("#00aa00", False, False),
+               "number":     ("#924900", False, False),
+               "instance":   ("#777777", True,  True),
                },
               'Pydev':
               {#  Name          Color    Bold   Italic
-               "BACKGROUND":  "#FFFFFF",
-               "CURRENTLINE": "#E8F2FE",
-               "OCCURENCE":   "#FFFF99",
-               "CTRLCLICK":   "#0000FF",
-               "SIDEAREAS":   "#EFEFEF",
-               "NORMAL":     ("#000000", False, False),
-               "KEYWORD":    ("#0000FF", False, False),
-               "BUILTIN":    ("#900090", False, False),
-               "DEFINITION": ("#000000", True,  False),
-               "COMMENT":    ("#C0C0C0", False, False),
-               "STRING":     ("#00AA00", False, True),
-               "NUMBER":     ("#800000", False, False),
-               "INSTANCE":   ("#000000", False, True),
+               "background":  "#FFFFFF",
+               "currentline": "#E8F2FE",
+               "occurence":   "#FFFF99",
+               "ctrlclick":   "#0000FF",
+               "sideareas":   "#EFEFEF",
+               "normal":     ("#000000", False, False),
+               "keyword":    ("#0000FF", False, False),
+               "builtin":    ("#900090", False, False),
+               "definition": ("#000000", True,  False),
+               "comment":    ("#C0C0C0", False, False),
+               "string":     ("#00AA00", False, True),
+               "number":     ("#800000", False, False),
+               "instance":   ("#000000", False, True),
                },
               'Emacs':
               {#  Name          Color    Bold   Italic
-               "BACKGROUND":  "#000000",
-               "CURRENTLINE": "#E8F2FE",
-               "OCCURENCE":   "#FFFF99",
-               "CTRLCLICK":   "#0000FF",
-               "SIDEAREAS":   "#555555",
-               "NORMAL":     ("#FFFFFF", False, False),
-               "KEYWORD":    ("#3C51E8", False, False),
-               "BUILTIN":    ("#900090", False, False),
-               "DEFINITION": ("#FF8040", True,  False),
-               "COMMENT":    ("#005100", False, False),
-               "STRING":     ("#00AA00", False, True),
-               "NUMBER":     ("#800000", False, False),
-               "INSTANCE":   ("#FFFFFF", False, True),
+               "background":  "#000000",
+               "currentline": "#E8F2FE",
+               "occurence":   "#FFFF99",
+               "ctrlclick":   "#0000FF",
+               "sideareas":   "#555555",
+               "normal":     ("#FFFFFF", False, False),
+               "keyword":    ("#3C51E8", False, False),
+               "builtin":    ("#900090", False, False),
+               "definition": ("#FF8040", True,  False),
+               "comment":    ("#005100", False, False),
+               "string":     ("#00AA00", False, True),
+               "number":     ("#800000", False, False),
+               "instance":   ("#FFFFFF", False, True),
                },
               'Scintilla':
               {#  Name          Color    Bold   Italic
-               "BACKGROUND":  "#FFFFFF",
-               "CURRENTLINE": "#EEFFDD",
-               "OCCURENCE":   "#FFFF99",
-               "CTRLCLICK":   "#0000FF",
-               "SIDEAREAS":   "#EFEFEF",
-               "NORMAL":     ("#000000", False, False),
-               "KEYWORD":    ("#00007F", True,  False),
-               "BUILTIN":    ("#000000", False, False),
-               "DEFINITION": ("#007F7F", True,  False),
-               "COMMENT":    ("#007F00", False, False),
-               "STRING":     ("#7F007F", False, False),
-               "NUMBER":     ("#007F7F", False, False),
-               "INSTANCE":   ("#000000", False, True),
+               "background":  "#FFFFFF",
+               "currentline": "#EEFFDD",
+               "occurence":   "#FFFF99",
+               "ctrlclick":   "#0000FF",
+               "sideareas":   "#EFEFEF",
+               "normal":     ("#000000", False, False),
+               "keyword":    ("#00007F", True,  False),
+               "builtin":    ("#000000", False, False),
+               "definition": ("#007F7F", True,  False),
+               "comment":    ("#007F00", False, False),
+               "string":     ("#7F007F", False, False),
+               "number":     ("#007F7F", False, False),
+               "instance":   ("#000000", False, True),
                },
               }
     COLOR_SCHEMES = COLORS.keys()
@@ -149,8 +153,11 @@ class BaseSH(QSyntaxHighlighter):
         self.classbrowser_data = {}
         
         self.font = font
-        assert color_scheme in self.COLOR_SCHEMES
-        self.color_scheme = color_scheme
+        self._check_color_scheme(color_scheme)
+        if isinstance(color_scheme, basestring):
+            self.color_scheme = self.COLORS[color_scheme]
+        else:
+            self.color_scheme = color_scheme
         
         self.background_color = None
         self.currentline_color = None
@@ -183,12 +190,12 @@ class BaseSH(QSyntaxHighlighter):
         if self.font is not None:
             base_format.setFont(self.font)
         self.formats = {}
-        colors = self.COLORS[self.color_scheme].copy()
-        self.background_color = colors.pop("BACKGROUND")
-        self.currentline_color = colors.pop("CURRENTLINE")
-        self.occurence_color = colors.pop("OCCURENCE")
-        self.ctrlclick_color = colors.pop("CTRLCLICK")
-        self.sideareas_color = colors.pop("SIDEAREAS")
+        colors = self.color_scheme.copy()
+        self.background_color = colors.pop("background")
+        self.currentline_color = colors.pop("currentline")
+        self.occurence_color = colors.pop("occurence")
+        self.ctrlclick_color = colors.pop("ctrlclick")
+        self.sideareas_color = colors.pop("sideareas")
         for name, (color, bold, italic) in colors.iteritems():
             format = QTextCharFormat(base_format)
             format.setForeground(QColor(color))
@@ -197,10 +204,19 @@ class BaseSH(QSyntaxHighlighter):
                 format.setFontWeight(QFont.Bold)
             format.setFontItalic(italic)
             self.formats[name] = format
-#        print self.color_scheme, self.formats
+
+    def _check_color_scheme(self, color_scheme):
+        if isinstance(color_scheme, basestring):
+            assert color_scheme in self.COLOR_SCHEMES
+        else:
+            assert all([key in color_scheme for key in self.COLOR_SCHEME_KEYS])
 
     def set_color_scheme(self, color_scheme):
-        self.color_scheme = color_scheme
+        self._check_color_scheme(color_scheme)
+        if isinstance(color_scheme, basestring):
+            self.color_scheme = self.COLORS[color_scheme]
+        else:
+            self.color_scheme = color_scheme
         self.setup_formats()
         self.rehighlight()
 
@@ -224,7 +240,7 @@ class PythonSH(BaseSH):
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
-    NORMAL, INSIDE_SQSTRING, INSIDE_DQSTRING = range(3)
+    normal, INSIDE_SQSTRING, INSIDE_DQSTRING = range(3)
     DEF_TYPES = {"def": ClassBrowserData.FUNCTION,
                  "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
@@ -242,15 +258,15 @@ class PythonSH(BaseSH):
             text = r"''' "+text
         else:
             offset = 0
-            prev_state = self.NORMAL
+            prev_state = self.normal
         
         cbdata = None
         import_stmt = None
 
-        self.setFormat(0, len(text), self.formats["NORMAL"])
+        self.setFormat(0, len(text), self.formats["normal"])
         
         last_state = None
-        state = self.NORMAL
+        state = self.normal
         match = self.PROG.search(text)
         while match:
             for key, value in match.groupdict().items():
@@ -258,22 +274,22 @@ class PythonSH(BaseSH):
                     start, end = match.span(key)
                     start = max([0, start+offset])
                     end = max([0, end+offset])
-                    if key == "UF_SQ3STRING":
-                        self.setFormat(start, end-start, self.formats["STRING"])
-                        if prev_state in (self.NORMAL, self.INSIDE_SQSTRING):
+                    if key == "uf_sq3string":
+                        self.setFormat(start, end-start, self.formats["string"])
+                        if prev_state in (self.normal, self.INSIDE_SQSTRING):
                             state = self.INSIDE_SQSTRING
                         else:
                             state = prev_state
-                    elif key == "UF_DQ3STRING":
-                        self.setFormat(start, end-start, self.formats["STRING"])
-                        if prev_state in (self.NORMAL, self.INSIDE_DQSTRING):
+                    elif key == "uf_dq3string":
+                        self.setFormat(start, end-start, self.formats["string"])
+                        if prev_state in (self.normal, self.INSIDE_DQSTRING):
                             state = self.INSIDE_DQSTRING
                         else:
                             state = prev_state
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                        if key != "STRING":
-                            last_state = self.NORMAL
+                        if key != "string":
+                            last_state = self.normal
                         else:
                             last_state = None
                         if value in ("def", "class"):
@@ -281,7 +297,7 @@ class PythonSH(BaseSH):
                             if match1:
                                 start1, end1 = match1.span(1)
                                 self.setFormat(start1, end1-start1,
-                                               self.formats["DEFINITION"])
+                                               self.formats["definition"])
                                 cbdata = ClassBrowserData()
                                 cbdata.text = unicode(text)
                                 cbdata.fold_level = start
@@ -302,7 +318,7 @@ class PythonSH(BaseSH):
                                     break
                                 start, end = match1.span(1)
                                 self.setFormat(start, end-start,
-                                               self.formats["KEYWORD"])
+                                               self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
 
@@ -347,19 +363,19 @@ def make_cpp_patterns():
     kwstr1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
     kwstr1b = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ f[ f] file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
     kwstr2 = 'asm auto class compl false true volatile wchar_t'
-    kw = r"\b" + any("BUILTIN", kwstr1.split()+kwstr1b.split()) + r"\b"
-    builtin = r"\b" + any("KEYWORD", kwstr2.split()+C_TYPES.split()) + r"\b"
-    comment = any("COMMENT", [r"//[^\n]*"])
-    comment_start = any("COMMENT_START", [r"\/\*"])
-    comment_end = any("COMMENT_END", [r"\*\/"])
-    instance = any("INSTANCE", [r"\bthis\b"])
-    number = any("NUMBER",
+    kw = r"\b" + any("builtin", kwstr1.split()+kwstr1b.split()) + r"\b"
+    builtin = r"\b" + any("keyword", kwstr2.split()+C_TYPES.split()) + r"\b"
+    comment = any("comment", [r"//[^\n]*"])
+    comment_start = any("comment_start", [r"\/\*"])
+    comment_end = any("comment_end", [r"\*\/"])
+    instance = any("instance", [r"\bthis\b"])
+    number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
-    string = any("STRING", [sqstring, dqstring])
+    string = any("string", [sqstring, dqstring])
     return instance + "|" + kw + "|" + comment + "|" + string + "|" + \
            number + "|" + comment_start + "|" + comment_end + "|" + \
            builtin + "|" + any("SYNC", [r"\n"])
@@ -369,7 +385,7 @@ class CppSH(BaseSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_cpp_patterns(), re.S)
     # Syntax highlighting states (from one text block to another):
-    NORMAL = 0
+    normal = 0
     INSIDE_COMMENT = 1
     def __init__(self, parent, font=None, color_scheme=None):
         super(CppSH, self).__init__(parent, font, color_scheme)
@@ -377,7 +393,7 @@ class CppSH(BaseSH):
     def highlightBlock(self, text):
         inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
         self.setFormat(0, text.length(),
-                       self.formats["COMMENT" if inside_comment else "NORMAL"])
+                       self.formats["comment" if inside_comment else "normal"])
         
         match = self.PROG.search(text)
         index = 0
@@ -386,23 +402,23 @@ class CppSH(BaseSH):
                 if value:
                     start, end = match.span(key)
                     index += end-start
-                    if key == "COMMENT_START":
+                    if key == "comment_start":
                         inside_comment = True
                         self.setFormat(start, text.length()-start,
-                                       self.formats["COMMENT"])
-                    elif key == "COMMENT_END":
+                                       self.formats["comment"])
+                    elif key == "comment_end":
                         inside_comment = False
                         self.setFormat(start, end-start,
-                                       self.formats["COMMENT"])
+                                       self.formats["comment"])
                     elif inside_comment:
                         self.setFormat(start, end-start,
-                                       self.formats["COMMENT"])
+                                       self.formats["comment"])
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
 
-        last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
+        last_state = self.INSIDE_COMMENT if inside_comment else self.normal
         self.setCurrentBlockState(last_state)
 
 
@@ -415,16 +431,16 @@ def make_fortran_patterns():
     kwstr1 = 'abs achar acos acosd adjustl adjustr aimag aimax0 aimin0 aint ajmax0 ajmin0 akmax0 akmin0 all allocated alog alog10 amax0 amax1 amin0 amin1 amod anint any asin asind associated atan atan2 atan2d atand bitest bitl bitlr bitrl bjtest bit_size bktest break btest cabs ccos cdabs cdcos cdexp cdlog cdsin cdsqrt ceiling cexp char clog cmplx conjg cos cosd cosh count cpu_time cshift csin csqrt dabs dacos dacosd dasin dasind datan datan2 datan2d datand date date_and_time dble dcmplx dconjg dcos dcosd dcosh dcotan ddim dexp dfloat dflotk dfloti dflotj digits dim dimag dint dlog dlog10 dmax1 dmin1 dmod dnint dot_product dprod dreal dsign dsin dsind dsinh dsqrt dtan dtand dtanh eoshift epsilon errsns exp exponent float floati floatj floatk floor fraction free huge iabs iachar iand ibclr ibits ibset ichar idate idim idint idnint ieor ifix iiabs iiand iibclr iibits iibset iidim iidint iidnnt iieor iifix iint iior iiqint iiqnnt iishft iishftc iisign ilen imax0 imax1 imin0 imin1 imod index inint inot int int1 int2 int4 int8 iqint iqnint ior ishft ishftc isign isnan izext jiand jibclr jibits jibset jidim jidint jidnnt jieor jifix jint jior jiqint jiqnnt jishft jishftc jisign jmax0 jmax1 jmin0 jmin1 jmod jnint jnot jzext kiabs kiand kibclr kibits kibset kidim kidint kidnnt kieor kifix kind kint kior kishft kishftc kisign kmax0 kmax1 kmin0 kmin1 kmod knint knot kzext lbound leadz len len_trim lenlge lge lgt lle llt log log10 logical lshift malloc matmul max max0 max1 maxexponent maxloc maxval merge min min0 min1 minexponent minloc minval mod modulo mvbits nearest nint not nworkers number_of_processors pack popcnt poppar precision present product radix random random_number random_seed range real repeat reshape rrspacing rshift scale scan secnds selected_int_kind selected_real_kind set_exponent shape sign sin sind sinh size sizeof sngl snglq spacing spread sqrt sum system_clock tan tand tanh tiny transfer transpose trim ubound unpack verify'
     kwstr1b = 'cdabs cdcos cdexp cdlog cdsin cdsqrt cotan cotand dcmplx dconjg dcotan dcotand decode dimag dll_export dll_import doublecomplex dreal dvchk encode find flen flush getarg getcharqq getcl getdat getenv gettim hfix ibchng identifier imag int1 int2 int4 intc intrup invalop iostat_msg isha ishc ishl jfix lacfar locking locnear map nargs nbreak ndperr ndpexc offset ovefl peekcharqq precfill prompt qabs qacos qacosd qasin qasind qatan qatand qatan2 qcmplx qconjg qcos qcosd qcosh qdim qexp qext qextd qfloat qimag qlog qlog10 qmax1 qmin1 qmod qreal qsign qsin qsind qsinh qsqrt qtan qtand qtanh ran rand randu rewrite segment setdat settim system timer undfl unlock union val virtual volatile zabs zcos zexp zlog zsin zsqrt'
     kwstr2 = 'access action advance allocatable allocate apostrophe assign assignment associate asynchronous backspace bind blank blockdata call case character class close common complex contains continue cycle data deallocate decimal delim default dimension direct do dowhile double doubleprecision else elseif elsewhere encoding end endassociate endblockdata enddo endfile endforall endfunction endif endinterface endmodule endprogram endselect endsubroutine endtype endwhere entry eor equivalence err errmsg exist exit external file flush fmt forall form format formatted function go goto id if implicit in include inout integer inquire intent interface intrinsic iomsg iolength iostat kind len logical module name named namelist nextrec nml none nullify number only open opened operator optional out pad parameter pass pause pending pointer pos position precision print private program protected public quote read readwrite real rec recl recursive result return rewind save select selectcase selecttype sequential sign size stat status stop stream subroutine target then to type unformatted unit use value volatile wait where while write'
-    kw = r"\b" + any("BUILTIN", kwstr1.split()+kwstr1b.split()) + r"\b"
-    builtin = r"\b" + any("KEYWORD", kwstr2.split()) + r"\b"
-    comment = any("COMMENT", [r"\![^\n]*"])
-    number = any("NUMBER",
+    kw = r"\b" + any("builtin", kwstr1.split()+kwstr1b.split()) + r"\b"
+    builtin = r"\b" + any("keyword", kwstr2.split()) + r"\b"
+    comment = any("comment", [r"\![^\n]*"])
+    number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
-    string = any("STRING", [sqstring, dqstring])
+    string = any("string", [sqstring, dqstring])
     return kw + "|" + comment + "|" + string + "|" + \
            number + "|" + builtin + "|" + any("SYNC", [r"\n"])
 
@@ -433,12 +449,12 @@ class FortranSH(BaseSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_cpp_patterns(), re.S)
     # Syntax highlighting states (from one text block to another):
-    NORMAL = 0
+    normal = 0
     def __init__(self, parent, font=None, color_scheme=None):
         super(FortranSH, self).__init__(parent, font, color_scheme)
 
     def highlightBlock(self, text):
-        self.setFormat(0, text.length(), self.formats["NORMAL"])
+        self.setFormat(0, text.length(), self.formats["normal"])
         
         match = self.PROG.search(text)
         index = 0

@@ -39,6 +39,7 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
+from spyderlib.plugins import ColorSchemeConfigPage
 from spyderlib.plugins.configdialog import ConfigDialog
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.editor import Editor
@@ -209,6 +210,9 @@ class MainWindow(QMainWindow):
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
+        
+        # Preferences
+        self.general_prefs = [ColorSchemeConfigPage]
         
         # Actions
         self.find_action = None
@@ -1064,12 +1068,18 @@ class MainWindow(QMainWindow):
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)
+        for PrefPageClass in self.general_prefs:
+            widget = PrefPageClass(dlg, main=self)
+            widget.initialize()
+            dlg.add_page(widget)
         for plugin in [self.editor, self.projectexplorer, self.extconsole,
                        self.historylog, self.inspector, self.variableexplorer,
-                       self.onlinehelp, self.explorer, self.findinfiles,
+                       self.onlinehelp, self.explorer, self.findinfiles
                        ]+self.thirdparty_plugins:
             if plugin is not None:
-                dlg.add_page(plugin)
+                widget = plugin.create_configwidget(dlg)
+                if widget is not None:
+                    dlg.add_page(widget)
         dlg.exec_()
         
     def load_session(self, filename=None):

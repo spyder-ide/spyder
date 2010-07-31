@@ -656,7 +656,6 @@ class CodeEditor(TextEditBaseWidget):
         #       'set_color_scheme'? To avoid rehighlighting the document twice
         #       at startup.
         if color_scheme is not None:
-            assert color_scheme in BaseSH.COLOR_SCHEMES
             self.color_scheme = color_scheme
         self.setFont(font)
         self.update_linenumberarea_width(0)
@@ -673,7 +672,6 @@ class CodeEditor(TextEditBaseWidget):
                     self.highlighter.rehighlight()
 
     def set_color_scheme(self, color_scheme):
-        assert color_scheme in BaseSH.COLOR_SCHEMES
         self.color_scheme = color_scheme
         self.highlighter.set_color_scheme(color_scheme)
         self._apply_highlighter_color_scheme()

@@ -386,6 +386,31 @@ def set_font(font, section, option=None):
     FONT_CACHE[(section, option)] = font
 
 
+from spyderlib.widgets.codeeditor.syntaxhighlighters import BaseSH
+def get_color_scheme(name):
+    """Get syntax color scheme"""
+    color_scheme = {}
+    for key in BaseSH.COLOR_SCHEME_KEYS:
+        color_scheme[key] = CONF.get("color_schemes", "%s/%s" % (name, key))
+    return color_scheme
+
+def set_color_scheme(name, color_scheme, do_not_replace=False):
+    """Set syntax color scheme"""
+    names = CONF.get("color_schemes", "names", [])
+    if do_not_replace and name in names:
+        return
+    for key in BaseSH.COLOR_SCHEME_KEYS:
+        CONF.set("color_schemes", "%s/%s" % (name, key), color_scheme[key])
+    names.append(unicode(name))
+    CONF.set("color_schemes", "names", sorted(list(set(names))))
+
+for _cs in BaseSH.COLOR_SCHEMES:
+    set_color_scheme(_cs, BaseSH.COLORS[_cs])
+CUSTOM_COLOR_SCHEME_NAME = "Custom"
+set_color_scheme(CUSTOM_COLOR_SCHEME_NAME, BaseSH.COLORS["Pydev"],
+                 do_not_replace=True)
+
+
 PLUGIN_PATH = None
 from spyderlib.utils import programs
 if programs.is_module_installed("spyderplugins"):

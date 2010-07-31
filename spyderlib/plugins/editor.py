@@ -28,7 +28,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import get_conf_path, get_icon
+from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
@@ -36,7 +36,7 @@ from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import ClassBrowser
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
-                                      EditorSplitter, EditorStack, BaseSH,
+                                      EditorSplitter, EditorStack,
                                       EditorMainWindow, CodeEditor, Printer)
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
@@ -116,10 +116,10 @@ class EditorConfigPage(PluginConfigPage):
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
         check_eol_box = newcb(self.tr("Show warning when fixing newline chars"),
                               'check_eol_chars', default=True)
-        names = self.get_option('color_scheme/names')
+        names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
-                                        choices, 'color_scheme/current')
+                                        choices, 'color_scheme_name')
         
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(calltips_box)
@@ -156,13 +156,13 @@ class Editor(SpyderPluginWidget):
     def __init__(self, parent, ignore_last_opened_files=False):
         self.__set_eol_mode = True
         
-        color_scheme = self.get_option('color_scheme/current', None)
-        if color_scheme is None:
-            self.set_option('color_scheme/names', BaseSH.COLOR_SCHEMES)
+        color_scheme_name = self.get_option('color_scheme_name', None)
+        if color_scheme_name is None:
+            names = CONF.get("color_schemes", "names")
             ccs = 'Pydev'
-            if ccs not in BaseSH.COLOR_SCHEMES:
-                ccs = BaseSH.COLOR_SCHEMES[0]
-            self.set_option('color_scheme/current', ccs)
+            if ccs not in names:
+                ccs = names[0]
+            self.set_option('color_scheme_name', ccs)
         
         # Creating template if it doesn't already exist
         if not osp.isfile(self.TEMPLATE_PATH):
@@ -707,8 +707,8 @@ class Editor(SpyderPluginWidget):
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
-        editorstack.set_default_font(self.get_plugin_font(),
-                                     self.get_option('color_scheme/current'))
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        editorstack.set_default_font(self.get_plugin_font(), color_scheme)
         
         self.connect(editorstack, SIGNAL('starting_long_process(QString)'),
                      self.starting_long_process)
@@ -1404,8 +1404,8 @@ class Editor(SpyderPluginWidget):
                 editorstack._refresh_classbrowser(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
-            color_scheme_n = 'color_scheme/current'
-            color_scheme_o = self.get_option(color_scheme_n)
+            color_scheme_n = 'color_scheme_name'
+            color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
             font_n = 'plugin_font'
             font_o = self.get_plugin_font()
             fpsorting_n = 'fullpath_sorting'

@@ -193,9 +193,45 @@ Souhaitez-vous néanmoins continuer ?</translation>
     </message>
 </context>
 <context>
+    <name>CodeEditor</name>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="815"/>
+        <source>Code analysis</source>
+        <translation>Analyse de code</translation>
+    </message>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="823"/>
+        <source>To do</source>
+        <translation>À faire</translation>
+    </message>
+</context>
+<context>
+    <name>ColorSchemeConfigPage</name>
+    <message>
+        <location filename="plugins/__init__.py" line="614"/>
+        <source>Syntax coloring</source>
+        <translation>Coloration syntaxique</translation>
+    </message>
+    <message>
+        <location filename="plugins/__init__.py" line="620"/>
+        <source>Color scheme</source>
+        <translation>Paramètres de coloration syntaxique</translation>
+    </message>
+    <message>
+        <location filename="plugins/__init__.py" line="625"/>
+        <source>Note: this is the custom and editable syntax color scheme</source>
+        <translation>Note : les paramètres de coloration syntaxique personnalisés ci-dessus sont modifiables</translation>
+    </message>
+    <message>
+        <location filename="plugins/__init__.py" line="630"/>
+        <source>Note: this syntax color scheme will not be saved when closing Spyder. You may however use it to help you defining your own custom syntax color scheme</source>
+        <translation>Note : ces paramètres ne sont pas enregistrés par Spyder. Ils peuvent néanmoins servir à établir plus facilement le jeu de paramètres de coloration syntaxique personnalisable</translation>
+    </message>
+</context>
+<context>
     <name>ConfigDialog</name>
     <message>
-        <location filename="plugins/configdialog.py" line="98"/>
+        <location filename="plugins/configdialog.py" line="106"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
@@ -703,7 +739,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="459"/>
+        <location filename="plugins/__init__.py" line="571"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
@@ -713,12 +749,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="486"/>
+        <location filename="plugins/__init__.py" line="598"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="463"/>
+        <location filename="plugins/__init__.py" line="575"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
@@ -983,7 +1019,7 @@ avec l&apos;interpréteur Python une fois l&apos;exécution du programme termin�
         <translation>Afficher le message d&apos;avertissement ou d&apos;erreur précédent</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="461"/>
+        <location filename="plugins/__init__.py" line="573"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
@@ -1946,6 +1982,11 @@ définition de cet objet (si celle-ci est trouvée).</translation>
         <location filename="plugins/editor.py" line="120"/>
         <source>Syntax color scheme: </source>
         <translation>Thème de coloration syntaxique : </translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="141"/>
+        <source>Syntax coloring</source>
+        <translation type="obsolete">Coloration syntaxique</translation>
     </message>
 </context>
 <context>
@@ -3163,7 +3204,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="317"/>
+        <location filename="spyder.py" line="321"/>
         <source>Replace text</source>
         <translation>Remplacer</translation>
     </message>
@@ -3208,7 +3249,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Chaîne de caractères de remplacement</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="315"/>
+        <location filename="spyder.py" line="319"/>
         <source>Find next</source>
         <translation>Rechercher le suivant</translation>
     </message>
@@ -3324,7 +3365,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="191"/>
+        <location filename="plugins/history.py" line="193"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -3344,12 +3385,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Modifier le nombre d&apos;entrées maximum de l&apos;historique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="181"/>
+        <location filename="plugins/history.py" line="183"/>
         <source>History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="plugins/history.py" line="182"/>
+        <location filename="plugins/history.py" line="184"/>
         <source>Maximum entries</source>
         <translation>Nombre maximum d&apos;entrées</translation>
     </message>
@@ -3716,22 +3757,22 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="spyder.py" line="366"/>
+        <location filename="spyder.py" line="370"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="373"/>
+        <location filename="spyder.py" line="377"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="580"/>
+        <location filename="spyder.py" line="584"/>
         <source>&amp;View</source>
         <translation>&amp;Affichage</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="403"/>
+        <location filename="spyder.py" line="407"/>
         <source>Welcome to Spyder!</source>
         <translation>Bienvenue dans Spyder !</translation>
     </message>
@@ -3746,12 +3787,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">&amp;Source</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="543"/>
+        <location filename="spyder.py" line="547"/>
         <source>About %1...</source>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="912"/>
+        <location filename="spyder.py" line="916"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
@@ -3785,7 +3826,7 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Souhaitez-vous conserver les données de l&apos;espace de travail ?</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="275"/>
+        <location filename="spyder.py" line="279"/>
         <source>Initializing...</source>
         <translation>Initialisation...</translation>
     </message>
@@ -3800,7 +3841,7 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Rechercher une chaîne de caractères dans plusieurs fichiers à la fois</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="378"/>
+        <location filename="spyder.py" line="382"/>
         <source>&amp;Search</source>
         <translation>&amp;Recherche</translation>
     </message>
@@ -3810,87 +3851,87 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Gestionnaire de chemins d&apos;accès...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="414"/>
+        <location filename="spyder.py" line="418"/>
         <source>Open Spyder path manager</source>
         <translation>Ouvre le gestionnaire de chemin d&apos;accès de Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="554"/>
+        <location filename="spyder.py" line="558"/>
         <source>Python documentation</source>
         <translation>Documentation Python</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="559"/>
+        <location filename="spyder.py" line="563"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant (documentation Qt)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="145"/>
+        <location filename="spyder.py" line="146"/>
         <source>PyQt4 Reference Guide</source>
         <translation>Guide de référence de PyQt4</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="148"/>
+        <location filename="spyder.py" line="149"/>
         <source>PyQt4 API Reference</source>
         <translation>Documentation de l&apos;API de PyQt4</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="150"/>
+        <location filename="spyder.py" line="151"/>
         <source>Python(x,y)</source>
         <translation>Python(x,y)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="152"/>
+        <location filename="spyder.py" line="153"/>
         <source>Numpy and Scipy documentation</source>
         <translation>Documentation Numpy et Scipy</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="155"/>
+        <location filename="spyder.py" line="156"/>
         <source>Matplotlib documentation</source>
         <translation>Documentation Matplotlib</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="419"/>
+        <location filename="spyder.py" line="423"/>
         <source>Current user environment variables...</source>
         <translation>Variables d&apos;environnement de l&apos;utilisateur...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="423"/>
+        <location filename="spyder.py" line="427"/>
         <source>Show and edit current user environment variables in Windows registry (i.e. for all sessions)</source>
         <translation>Afficher et modifier les variables d&apos;environnement de l&apos;utilisateur courant dans Windows (c&apos;est-à-dire directement dans la base de registre)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="550"/>
+        <location filename="spyder.py" line="554"/>
         <source>Spyder documentation</source>
         <translation>Documentation Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="831"/>
+        <location filename="spyder.py" line="835"/>
         <source>Maximize current plugin</source>
         <translation>Agrandir la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="833"/>
+        <location filename="spyder.py" line="837"/>
         <source>Maximize current plugin to fit the whole application window</source>
         <translation>Agrandir la fenêtre courante sur toute la surface de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="836"/>
+        <location filename="spyder.py" line="840"/>
         <source>Restore current plugin</source>
         <translation>Réduire la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="838"/>
+        <location filename="spyder.py" line="842"/>
         <source>Restore current plugin to its original size and position within the application window</source>
         <translation>Réduire la fenêtre courante à sa taille et position d&apos;origine au sein de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="362"/>
+        <location filename="spyder.py" line="366"/>
         <source>Main toolbar</source>
         <translation>Barre d&apos;outil principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="369"/>
+        <location filename="spyder.py" line="373"/>
         <source>File toolbar</source>
         <translation>Barre d&apos;outil fichiers</translation>
     </message>
@@ -3900,12 +3941,12 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Barre d&apos;outil analyse</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="389"/>
+        <location filename="spyder.py" line="393"/>
         <source>Run toolbar</source>
         <translation>Barre d&apos;outil exécution</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="374"/>
+        <location filename="spyder.py" line="378"/>
         <source>Edit toolbar</source>
         <translation>Barre d&apos;outil édition</translation>
     </message>
@@ -3930,7 +3971,7 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Chargement de l&apos;espace de travail...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="506"/>
+        <location filename="spyder.py" line="510"/>
         <source>Loading history plugin...</source>
         <translation>Chargement du journal d&apos;historique...</translation>
     </message>
@@ -3974,92 +4015,92 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;Scientific PYthon Development EnviRonment            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://code.google.com/p/spyder/&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyder&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="393"/>
+        <location filename="spyder.py" line="397"/>
         <source>&amp;Tools</source>
         <translation>Ou&amp;tils</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="432"/>
+        <location filename="spyder.py" line="436"/>
         <source>Python(x,y) launcher</source>
         <translation>Accueil de Python(x,y)</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="444"/>
+        <location filename="spyder.py" line="448"/>
         <source>Qt Designer</source>
         <translation>Qt Designer</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="446"/>
+        <location filename="spyder.py" line="450"/>
         <source>Qt Linguist</source>
         <translation>Qt Linguist</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="450"/>
+        <location filename="spyder.py" line="454"/>
         <source>Qt examples</source>
         <translation>Exemples Qt</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="539"/>
+        <location filename="spyder.py" line="543"/>
         <source>Setting up main window...</source>
         <translation>Configuration de la fenêtre principale...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="355"/>
+        <location filename="spyder.py" line="359"/>
         <source>Fullscreen mode</source>
         <translation>Mode plein écran</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="188"/>
+        <location filename="spyder.py" line="189"/>
         <source>Load session...</source>
         <translation>Charger une session...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="191"/>
+        <location filename="spyder.py" line="192"/>
         <source>Load Spyder session</source>
         <translation>Charger une session Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="193"/>
+        <location filename="spyder.py" line="194"/>
         <source>Save session and quit...</source>
         <translation>Enregistrer la session et quitter...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="197"/>
+        <location filename="spyder.py" line="198"/>
         <source>Save current session and quit application</source>
         <translation>Enregistrer la session en cours et quitter l&apos;application</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1079"/>
+        <location filename="spyder.py" line="1089"/>
         <source>Open session</source>
         <translation>Ouvrir une session</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1094"/>
+        <location filename="spyder.py" line="1104"/>
         <source>Spyder sessions</source>
         <translation>Sessions Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1093"/>
+        <location filename="spyder.py" line="1103"/>
         <source>Save session</source>
         <translation>Enregistrer la session</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="184"/>
+        <location filename="spyder.py" line="185"/>
         <source>Reload last session</source>
         <translation>Recharger la session précédente</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="484"/>
+        <location filename="spyder.py" line="488"/>
         <source>&amp;Quit</source>
         <translation>&amp;Quitter</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="485"/>
+        <location filename="spyder.py" line="489"/>
         <source>Ctrl+Q</source>
         <translation>Ctrl+Q</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="485"/>
+        <location filename="spyder.py" line="489"/>
         <source>Quit</source>
         <translation>Quitter</translation>
     </message>
@@ -4132,7 +4173,7 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;Scientific PYthon Development EnviRonment            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes %10%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://spyderlib.googlecode.com&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyderlib&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="411"/>
+        <location filename="spyder.py" line="415"/>
         <source>PYTHONPATH manager</source>
         <translation>Gestionnaire de PYTHONPATH</translation>
     </message>
@@ -4147,17 +4188,17 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Veuillez installer &lt;b&gt;%1&lt;/b&gt; et redémarrer Spyder.&lt;br&gt;&lt;br&gt;Exécuter Spyder avec l&apos;option &lt;b&gt;%2&lt;/b&gt; requiert l&apos;installation du module Python &lt;b&gt;%1&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="460"/>
+        <location filename="spyder.py" line="464"/>
         <source>ViTables</source>
         <translation>ViTables</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="379"/>
+        <location filename="spyder.py" line="383"/>
         <source>Search toolbar</source>
         <translation>Barre d&apos;outil de recherche</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="903"/>
+        <location filename="spyder.py" line="907"/>
         <source>(not installed)</source>
         <translation>(non installé)</translation>
     </message>
@@ -4196,47 +4237,47 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">&lt;b&gt;%1 %2&lt;/b&gt;            &lt;br&gt;Scientific PYthon Development EnviRonment            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut            &lt;br&gt;Distribué selon les termes de la licence MIT            &lt;p&gt;Développé et maintenu par %8Pierre Raybaut%9            &lt;p&gt;Remerciements à %8Christopher Brown%9 (beta-testeur de la première             heure),             %8Alexandre Radicchi%9 (en particulier pour ses contributions à l&apos;&lt;i&gt;espace de travail&lt;/i&gt;             et au widget &lt;i&gt;DictEditor&lt;/i&gt;),             %8Ludovic Aubry%9 (pour ses idées, ses suggestions et surtout ses solutions techniques             sans lesquelles Spyder ne serait pas le même)            et à tous les beta-testeurs et utilisateurs de Spyder.            &lt;p&gt;L&apos;analyse de code intégrée est fournie par %8pyflakes %10%9:            &lt;br&gt;Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/            &lt;p&gt;La majorité des icônes provient du projet %8Crystal Project%9:            &lt;br&gt;Copyright &amp;copy; 2006-2007 Everaldo Coelho            &lt;p&gt;Spyder is based on spyderlib module v%2            &lt;br&gt;Signalement d&apos;anomalies et demandes de nouvelles fonctionnalités:             &lt;a href=&quot;http://spyderlib.googlecode.com&quot;&gt;Google Code&lt;/a&gt;&lt;br&gt;            Discussions autour du projet:             &lt;a href=&quot;http://groups.google.com/group/spyderlib&quot;&gt;Google Group&lt;/a&gt;            &lt;p&gt;Ce projet fait partie de la             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;distribution Python(x,y)&lt;/a&gt;            &lt;p&gt;Python %3, Qt %4, PyQt %5%6 on %7%11</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="479"/>
+        <location filename="spyder.py" line="483"/>
         <source>Loading editor...</source>
         <translation>Chargement de l&apos;éditeur...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="494"/>
+        <location filename="spyder.py" line="498"/>
         <source>Loading find in files plugin...</source>
         <translation>Chargement de l&apos;extension de recherche dans les fichiers...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="500"/>
+        <location filename="spyder.py" line="504"/>
         <source>Loading file explorer...</source>
         <translation>Chargement de l&apos;explorateur de fichiers...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="474"/>
+        <location filename="spyder.py" line="478"/>
         <source>Loading object inspector...</source>
         <translation>Chargement de l&apos;inspecteur d&apos;objet...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="512"/>
+        <location filename="spyder.py" line="516"/>
         <source>Loading online help...</source>
         <translation>Chargement de l&apos;aide en ligne...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="518"/>
+        <location filename="spyder.py" line="522"/>
         <source>Loading project explorer...</source>
         <translation>Chargement de l&apos;explorateur de projet...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="524"/>
+        <location filename="spyder.py" line="528"/>
         <source>Loading external console...</source>
         <translation>Chargement de la console externe...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="532"/>
+        <location filename="spyder.py" line="536"/>
         <source>Loading namespace browser...</source>
         <translation>Chargement de l&apos;explorateur d&apos;espace de noms...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="941"/>
+        <location filename="spyder.py" line="945"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -4268,22 +4309,22 @@ Souhaitez-vous continuer ?</translation>
         <translation></translation>
     </message>
     <message>
-        <location filename="spyder.py" line="407"/>
+        <location filename="spyder.py" line="411"/>
         <source>Preferences...</source>
         <translation>Préférences...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="388"/>
+        <location filename="spyder.py" line="392"/>
         <source>&amp;Run</source>
         <translation>E&amp;xécution</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="587"/>
+        <location filename="spyder.py" line="591"/>
         <source>External Tools</source>
         <translation>Outils externes</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="563"/>
+        <location filename="spyder.py" line="567"/>
         <source>Web Resources</source>
         <translation>Documentation en ligne</translation>
     </message>
@@ -4293,12 +4334,12 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Chargement des extensions tierces...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="383"/>
+        <location filename="spyder.py" line="387"/>
         <source>Sour&amp;ce</source>
         <translation>Sour&amp;ce</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="384"/>
+        <location filename="spyder.py" line="388"/>
         <source>Source toolbar</source>
         <translation>Barre d&apos;outils code source</translation>
     </message>
@@ -4470,32 +4511,32 @@ Souhaitez-vous continuer ?</translation>
     <message>
         <location filename="widgets/__init__.py" line="59"/>
         <source>Collapse all</source>
-        <translation>Replier tout</translation>
+        <translation type="obsolete">Replier tout</translation>
     </message>
     <message>
         <location filename="widgets/__init__.py" line="63"/>
         <source>Expand all</source>
-        <translation>Déplier tout</translation>
+        <translation type="obsolete">Déplier tout</translation>
     </message>
     <message>
         <location filename="widgets/__init__.py" line="67"/>
         <source>Restore</source>
-        <translation>Rétablir</translation>
+        <translation type="obsolete">Rétablir</translation>
     </message>
     <message>
         <location filename="widgets/__init__.py" line="73"/>
         <source>Collapse selection</source>
-        <translation>Replier la sélection</translation>
+        <translation type="obsolete">Replier la sélection</translation>
     </message>
     <message>
         <location filename="widgets/__init__.py" line="77"/>
         <source>Expand selection</source>
-        <translation>Déplier la sélection</translation>
+        <translation type="obsolete">Déplier la sélection</translation>
     </message>
     <message>
         <location filename="widgets/__init__.py" line="69"/>
         <source>Restore original tree layout</source>
-        <translation>Rétablir l&apos;organisation initiale de l&apos;arbre</translation>
+        <translation type="obsolete">Rétablir l&apos;organisation initiale de l&apos;arbre</translation>
     </message>
 </context>
 <context>
@@ -4603,17 +4644,17 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>PluginConfigPage</name>
     <message>
-        <location filename="plugins/__init__.py" line="205"/>
+        <location filename="plugins/__init__.py" line="286"/>
         <source>Font: </source>
         <translation>Police : </translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="209"/>
+        <location filename="plugins/__init__.py" line="290"/>
         <source>Size: </source>
         <translation>Taille : </translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="219"/>
+        <location filename="plugins/__init__.py" line="300"/>
         <source>Font style</source>
         <translation>Police d&apos;écriture</translation>
     </message>
@@ -5236,12 +5277,12 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
     <message>
         <location filename="widgets/qteditor/qteditor.py" line="816"/>
         <source>Code analysis</source>
-        <translation>Analyse de code</translation>
+        <translation type="obsolete">Analyse de code</translation>
     </message>
     <message>
         <location filename="widgets/qteditor/qteditor.py" line="824"/>
         <source>To do</source>
-        <translation>À faire</translation>
+        <translation type="obsolete">À faire</translation>
     </message>
 </context>
 <context>
@@ -5315,32 +5356,32 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1086"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1085"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1090"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1089"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1094"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1093"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1098"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1097"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1102"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1101"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1106"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1105"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
@@ -5350,9 +5391,22 @@ Veuillez entrer un chemin d&apos;accès correct, puis appuyer sur Entrée pour l
         <translation type="obsolete">Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/qteditor/qteditor.py" line="1111"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1110"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
+    </message>
+</context>
+<context>
+    <name>SpyderConfigPage</name>
+    <message>
+        <location filename="plugins/__init__.py" line="247"/>
+        <source>Bold</source>
+        <translation>Gras</translation>
+    </message>
+    <message>
+        <location filename="plugins/__init__.py" line="248"/>
+        <source>Italic</source>
+        <translation>Italique</translation>
     </message>
 </context>
 <context>

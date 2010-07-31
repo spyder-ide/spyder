@@ -22,7 +22,7 @@ from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
                          QKeySequence, QMainWindow, QApplication, QCheckBox,
                          QMessageBox, QLabel, QLineEdit, QSpinBox, QVBoxLayout,
                          QHBoxLayout, QPushButton, QFontComboBox, QGroupBox,
-                         QComboBox)
+                         QComboBox, QColor, QGridLayout, QTabWidget)
 from PyQt4.QtCore import SIGNAL, Qt, QObject, QVariant
 
 import sys
@@ -34,39 +34,31 @@ STDOUT = sys.stdout
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import (CONF, get_font, set_font, get_icon,
-                              is_shortcut_available)
+                              is_shortcut_available, CUSTOM_COLOR_SCHEME_NAME)
 from spyderlib.userconfig import NoDefault
 from spyderlib.plugins.configdialog import ConfigPage
 from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.colors import ColorLayout
 
 
-class PluginConfigPage(ConfigPage):
+class SpyderConfigPage(ConfigPage):
     """Plugin configuration dialog box page widget"""
-    def __init__(self, plugin, parent):
-        self.plugin = plugin
-        self.get_option = self.plugin.get_option
-        self.set_option = self.plugin.set_option
-        self.get_font = self.plugin.get_plugin_font
-        self.set_font = self.plugin.set_plugin_font
+    def __init__(self, parent):
         ConfigPage.__init__(self, parent,
                             apply_callback=lambda:
-                            self.plugin.apply_plugin_settings(
-                                                        self.changed_options))
+                            self.apply_settings(self.changed_options))
         self.checkboxes = {}
         self.lineedits = {}
         self.spinboxes = {}
         self.comboboxes = {}
         self.fontboxes = {}
+        self.coloredits = {}
+        self.scedits = {}
         self.changed_options = set()
         
-    def get_name(self):
-        """Return page name"""
-        return self.plugin.get_plugin_title()
-    
-    def get_icon(self):
-        """Return page icon"""
-        return self.plugin.get_plugin_icon()
+    def apply_settings(self, options):
+        raise NotImplementedError
         
     def set_modified(self, state):
         ConfigPage.set_modified(self, state)
@@ -114,6 +106,32 @@ class PluginConfigPage(ConfigPage):
             sizebox.setProperty("option", property)
             self.connect(sizebox, SIGNAL('valueChanged(int)'),
                          lambda value: self.has_been_modified())
+        for clayout, (option, default) in self.coloredits.items():
+            property = QVariant(option)
+            edit = clayout.lineedit
+            btn = clayout.colorbtn
+            edit.setText(self.get_option(option, default))
+            edit.setProperty("option", property)
+            btn.setProperty("option", property)
+            self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+            self.connect(edit, SIGNAL("textChanged(QString)"),
+                         lambda text: self.has_been_modified())
+        for (clayout, cb_bold, cb_italic), (option, default) in self.scedits.items():
+            edit = clayout.lineedit
+            btn = clayout.colorbtn
+            color, bold, italic = self.get_option(option, default)
+            edit.setText(color)
+            cb_bold.setChecked(bold)
+            cb_italic.setChecked(italic)
+            for _w in (edit, btn, cb_bold, cb_italic):
+                _w.setProperty("option", QVariant(option))
+            self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+            self.connect(edit, SIGNAL("textChanged(QString)"),
+                         lambda text: self.has_been_modified())
+            self.connect(cb_bold, SIGNAL("clicked(bool)"),
+                         lambda checked: self.has_been_modified())
+            self.connect(cb_italic, SIGNAL("clicked(bool)"),
+                         lambda checked: self.has_been_modified())
     
     def save_to_conf(self):
         """Save settings to configuration file"""
@@ -130,6 +148,13 @@ class PluginConfigPage(ConfigPage):
             font = fontbox.currentFont()
             font.setPointSize(sizebox.value())
             self.set_font(font)
+        for clayout, (option, _default) in self.coloredits.items():
+            self.set_option(option, unicode(clayout.lineedit.text()))
+        for (clayout, cb_bold, cb_italic), (option, _default) in self.scedits.items():
+            color = unicode(clayout.lineedit.text())
+            bold = cb_bold.isChecked()
+            italic = cb_italic.isChecked()
+            self.set_option(option, (color, bold, italic))
     
     def has_been_modified(self):
         option = unicode(self.sender().property("option").toString())
@@ -194,6 +219,49 @@ class PluginConfigPage(ConfigPage):
         widget.setLayout(layout)
         return widget
     
+    def create_coloredit(self, text, option, default=NoDefault, tip=None,
+                         without_layout=False):
+        label = QLabel(text)
+        clayout = ColorLayout(QColor(Qt.black), self)
+        clayout.lineedit.setMaximumWidth(80)
+        if tip is not None:
+            clayout.setToolTip(tip)
+        self.coloredits[clayout] = (option, default)
+        if without_layout:
+            return label, clayout
+        layout = QHBoxLayout()
+        layout.addWidget(label)
+        layout.addLayout(clayout)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
+    def create_scedit(self, text, option, default=NoDefault, tip=None,
+                      without_layout=False):
+        label = QLabel(text)
+        clayout = ColorLayout(QColor(Qt.black), self)
+        clayout.lineedit.setMaximumWidth(80)
+        if tip is not None:
+            clayout.setToolTip(tip)
+        cb_bold = QCheckBox(self.tr("Bold"))
+        cb_italic = QCheckBox(self.tr("Italic"))
+        self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
+        if without_layout:
+            return label, clayout, cb_bold, cb_italic
+        layout = QHBoxLayout()
+        layout.addWidget(label)
+        layout.addLayout(clayout)
+        layout.addSpacing(10)
+        layout.addWidget(cb_bold)
+        layout.addWidget(cb_italic)
+        layout.addStretch(1)
+        layout.setContentsMargins(0, 0, 0, 0)
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
     def create_combobox(self, text, choices, option, default=NoDefault,
                         tip=None):
         """choices: couples (name, key)"""
@@ -252,6 +320,36 @@ class PluginConfigPage(ConfigPage):
         layout.addStretch(1)
         widget.setLayout(layout)
         return widget
+    
+
+class PluginConfigPage(SpyderConfigPage):
+    """Plugin configuration dialog box page widget"""
+    def __init__(self, plugin, parent):
+        self.plugin = plugin
+        self.get_option = plugin.get_option
+        self.set_option = plugin.set_option
+        self.get_name = plugin.get_plugin_title
+        self.get_icon = plugin.get_plugin_icon
+        self.get_font = plugin.get_plugin_font
+        self.set_font = plugin.set_plugin_font
+        self.apply_settings = plugin.apply_plugin_settings
+        SpyderConfigPage.__init__(self, parent)
+
+
+class GeneralConfigPage(SpyderConfigPage):
+    CONF_SECTION = None
+    def __init__(self, parent, main):
+        SpyderConfigPage.__init__(self, parent)
+        self.main = main
+
+    def set_option(self, option, value):
+        CONF.set(self.CONF_SECTION, option, value)
+
+    def get_option(self, option, default=NoDefault):
+        return CONF.get(self.CONF_SECTION, option, default)
+            
+    def apply_settings(self, options):
+        raise NotImplementedError
 
 
 class SpyderPluginMixin(object):
@@ -507,3 +605,54 @@ class ReadOnlyEditor(SpyderPluginWidget):
         """Toggle wrap mode"""
         self.editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
+
+
+class ColorSchemeConfigPage(GeneralConfigPage):
+    CONF_SECTION = "color_schemes"
+    def get_name(self):
+        return self.tr("Syntax coloring")
+    
+    def get_icon(self):
+        return get_icon("advanced.png")
+    
+    def setup_page(self):
+        tabs = QTabWidget()
+        for tabname in self.get_option("names"):
+            cs_group = QGroupBox(self.tr("Color scheme"))
+            cs_layout = QGridLayout()
+            if tabname == CUSTOM_COLOR_SCHEME_NAME:
+                text = self.tr("Note: this is the custom and editable syntax "
+                               "color scheme")
+            else:
+                text = self.tr("Note: this syntax color scheme will not be "
+                               "saved when closing Spyder. You may however "
+                               "use it to help you defining your own custom "
+                               "syntax color scheme")
+            tlabel = QLabel(text)
+            tlabel.setWordWrap(True)
+            from spyderlib.widgets.codeeditor.syntaxhighlighters import BaseSH
+            for row, key in enumerate(BaseSH.COLOR_SCHEME_KEYS):
+                option = "%s/%s" % (tabname, key)
+                value = self.get_option(option)
+                if isinstance(value, basestring):
+                    label, clayout = self.create_coloredit(key, option,
+                                                           without_layout=True)
+                    cs_layout.addWidget(label, row+1, 0)
+                    cs_layout.addLayout(clayout, row+1, 1)
+                else:
+                    label, clayout, cb_bold, cb_italic = self.create_scedit(
+                                                key, option, without_layout=True)
+                    cs_layout.addWidget(label, row+1, 0)
+                    cs_layout.addLayout(clayout, row+1, 1)
+                    cs_layout.addWidget(cb_bold, row+1, 2)
+                    cs_layout.addWidget(cb_italic, row+1, 3)
+            cs_group.setLayout(cs_layout)
+            tabs.addTab(self.create_tab(cs_group, tlabel), tabname)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(tabs)
+        self.setLayout(vlayout)
+            
+    def apply_settings(self, options):
+        # Editor plugin
+        self.main.editor.apply_plugin_settings(['color_scheme_name'])

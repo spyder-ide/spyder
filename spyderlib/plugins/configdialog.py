@@ -123,17 +123,15 @@ class ConfigDialog(QDialog):
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
         
-    def add_page(self, plugin):
-        widget = plugin.create_configwidget(self)
-        if widget is not None:
-            self.connect(widget, SIGNAL("apply_button_enabled(bool)"),
-                         self.apply_btn.setEnabled)
-            self.pages_widget.addWidget(widget)
-            item = QListWidgetItem(self.contents_widget)
-            item.setIcon(widget.get_icon())
-            item.setText(widget.get_name())
-            item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
-            item.setSizeHint(QSize(0, 25))
+    def add_page(self, widget):
+        self.connect(widget, SIGNAL("apply_button_enabled(bool)"),
+                     self.apply_btn.setEnabled)
+        self.pages_widget.addWidget(widget)
+        item = QListWidgetItem(self.contents_widget)
+        item.setIcon(widget.get_icon())
+        item.setText(widget.get_name())
+        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
+        item.setSizeHint(QSize(0, 25))
 
 
 def test():
