@@ -668,7 +668,7 @@ class QtEditor(TextEditBaseWidget):
             else:
                 self.highlighter.setup_formats(font)
                 if color_scheme is not None:
-                    self.highlighter.set_color_scheme(color_scheme)
+                    self.set_color_scheme(color_scheme)
                 else:
                     self.highlighter.rehighlight()
 
@@ -676,6 +676,7 @@ class QtEditor(TextEditBaseWidget):
         assert color_scheme in BaseSH.COLOR_SCHEMES
         self.color_scheme = color_scheme
         self.highlighter.set_color_scheme(color_scheme)
+        self._apply_highlighter_color_scheme()
         
     def set_text(self, text):
         """Set the text of the editor"""
@@ -1363,7 +1364,7 @@ class TestEditor(QtEditor):
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])
-        self.set_font(QFont("Courier New", 10))
+        self.set_font(QFont("Courier New", 10), 'IDLE')
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
 #        self.setup_margins(True, True, True)

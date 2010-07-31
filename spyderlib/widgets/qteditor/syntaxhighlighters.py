@@ -109,22 +109,22 @@ class BaseSH(QSyntaxHighlighter):
                "NUMBER":     ("#800000", False, False),
                "INSTANCE":   ("#000000", False, True),
                },
-#              'Emacs':
-#              {#  Name          Color    Bold   Italic
-#               "BACKGROUND":  "#000000",
-#               "CURRENTLINE": "#E8F2FE",
-#               "OCCURENCE":   "#FFFF99",
-#               "CTRLCLICK":   "#0000FF",
-#               "SIDEAREAS":   "#555555",
-#               "NORMAL":     ("#FFFFFF", False, False),
-#               "KEYWORD":    ("#3C51E8", False, False),
-#               "BUILTIN":    ("#900090", False, False),
-#               "DEFINITION": ("#FF8040", True,  False),
-#               "COMMENT":    ("#005100", False, False),
-#               "STRING":     ("#00AA00", False, True),
-#               "NUMBER":     ("#800000", False, False),
-#               "INSTANCE":   ("#FFFFFF", False, True),
-#               },
+              'Emacs':
+              {#  Name          Color    Bold   Italic
+               "BACKGROUND":  "#000000",
+               "CURRENTLINE": "#E8F2FE",
+               "OCCURENCE":   "#FFFF99",
+               "CTRLCLICK":   "#0000FF",
+               "SIDEAREAS":   "#555555",
+               "NORMAL":     ("#FFFFFF", False, False),
+               "KEYWORD":    ("#3C51E8", False, False),
+               "BUILTIN":    ("#900090", False, False),
+               "DEFINITION": ("#FF8040", True,  False),
+               "COMMENT":    ("#005100", False, False),
+               "STRING":     ("#00AA00", False, True),
+               "NUMBER":     ("#800000", False, False),
+               "INSTANCE":   ("#FFFFFF", False, True),
+               },
               'Scintilla':
               {#  Name          Color    Bold   Italic
                "BACKGROUND":  "#FFFFFF",
