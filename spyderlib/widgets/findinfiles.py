@@ -39,7 +39,7 @@ from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        translate, get_filetype_icon)
 from spyderlib.config import get_icon
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
-from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.onecolumntree import OneColumnTree
 
 
 def abspardir(path):

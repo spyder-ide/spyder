@@ -19,7 +19,7 @@ STDOUT = sys.stdout
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, translate,
                                        create_toolbutton, set_item_user_text)
-from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.onecolumntree import OneColumnTree
 
 
 #===============================================================================

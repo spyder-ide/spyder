@@ -36,7 +36,7 @@ STDOUT = sys.stdout
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton, translate
 from spyderlib.config import get_icon, get_conf_path
-from spyderlib.widgets import OneColumnTree
+from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
