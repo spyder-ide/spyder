@@ -39,8 +39,7 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
-from spyderlib.plugins import ColorSchemeConfigPage
-from spyderlib.plugins.configdialog import ConfigDialog
+from spyderlib.plugins.configdialog import ConfigDialog, ColorSchemeConfigPage
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
