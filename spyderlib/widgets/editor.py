@@ -36,7 +36,7 @@ from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, ClassBrowser
 from spyderlib.widgets.codeeditor.codeeditor import CodeEditor
-from spyderlib.widgets.codeeditor.syntaxhighlighters import BaseSH
+from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
 
@@ -350,9 +350,9 @@ class EditorStack(QWidget):
         self.checkeolchars_enabled = True
         self.fullpath_sorting_enabled = None
         self.set_fullpath_sorting_enabled(False)
-        ccs = 'Pydev'
-        if ccs not in BaseSH.COLOR_SCHEMES:
-            ccs = BaseSH.COLOR_SCHEMES[0]
+        ccs = 'Spyder'
+        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
+            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
         
         self.cursor_position_changed_callback = lambda line, index: \
@@ -1975,7 +1975,7 @@ class FakePlugin(QSplitter):
         editorstack.set_io_actions(action, action, action)
         font = QFont("Courier New")
         font.setPointSize(10)
-        editorstack.set_default_font(font, color_scheme='Pydev')
+        editorstack.set_default_font(font, color_scheme='Spyder')
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),

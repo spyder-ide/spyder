@@ -33,9 +33,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
-from spyderlib.widgets.codeeditor.syntaxhighlighters import (PythonSH, CythonSH,
-                                                             CppSH, FortranSH,
-                                                             BaseSH)
+from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check, ClassBrowser)
 from spyderlib.utils import sourcecode, is_keyword
@@ -50,14 +48,18 @@ class CodeEditor(TextEditBaseWidget):
     Source Code Editor Widget based exclusively on Qt
     """
     LANGUAGES = {
-                 ('py', 'pyw', 'python'): (PythonSH, '#', PythonCFM),
-                 ('pyx',): (CythonSH, '#', PythonCFM),
+                 ('py', 'pyw', 'python'): (syntaxhighlighters.PythonSH,
+                                           '#', PythonCFM),
+                 ('pyx',): (syntaxhighlighters.CythonSH,
+                            '#', PythonCFM),
 #                 ('f', 'for'): (QsciLexerFortran77, 'c', None),
-                 ('f90', 'f95', 'f2k'): (FortranSH, '!', None),
+                 ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
+                                         '!', None),
 #                 ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),
 #                 'css': (QsciLexerCSS, '#', None),
 #                 ('htm', 'html'): (QsciLexerHTML, '', None),
-                 ('c', 'cpp', 'h', 'hpp', 'cxx'): (CppSH, '//', None),
+                 ('c', 'cpp', 'h', 'hpp', 'cxx'): (syntaxhighlighters.CppSH,
+                                                   '//', None),
 #                 ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
 #                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
 #                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
@@ -98,9 +100,9 @@ class CodeEditor(TextEditBaseWidget):
         # Syntax highlighting
         self.highlighter_class = None
         self.highlighter = None
-        ccs = 'Pydev'
-        if ccs not in BaseSH.COLOR_SCHEMES:
-            ccs = BaseSH.COLOR_SCHEMES[0]
+        ccs = 'Spyder'
+        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
+            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
         
         #  Background colors: current line, occurences
@@ -248,10 +250,10 @@ class CodeEditor(TextEditBaseWidget):
                     self.highlighter_class = sh_class
                 
     def is_python(self):
-        return self.highlighter_class is PythonSH
+        return self.highlighter_class is syntaxhighlighters.PythonSH
         
     def is_cython(self):
-        return self.highlighter_class is CythonSH
+        return self.highlighter_class is syntaxhighlighters.CythonSH
         
     def rehighlight(self):
         """

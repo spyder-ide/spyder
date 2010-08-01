@@ -188,7 +188,7 @@ class SpyderPluginMixin(object):
         self.show_message(message, timeout=2000)
         QApplication.processEvents()
         
-    def set_default_color_scheme(self, name='Pydev'):
+    def set_default_color_scheme(self, name='Spyder'):
         """Set default color scheme (only once)"""
         color_scheme_name = self.get_option('color_scheme_name', None)
         if color_scheme_name is None:

@@ -6,7 +6,8 @@
 
 """Configuration dialog / Preferences"""
 
-from spyderlib.config import get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME
+from spyderlib.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
+                              set_default_color_scheme, COLOR_SCHEME_NAMES)
 from spyderlib.utils.qthelpers import translate
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
@@ -445,21 +446,14 @@ class ColorSchemeConfigPage(GeneralConfigPage):
     
     def setup_page(self):
         tabs = QTabWidget()
-        for tabname in self.get_option("names"):
+        names = self.get_option("names")
+        names.pop(names.index(CUSTOM_COLOR_SCHEME_NAME))
+        names.insert(0, CUSTOM_COLOR_SCHEME_NAME)
+        for tabname in names:
             cs_group = QGroupBox(self.tr("Color scheme"))
             cs_layout = QGridLayout()
-            if tabname == CUSTOM_COLOR_SCHEME_NAME:
-                text = self.tr("Note: this is the custom and editable syntax "
-                               "color scheme")
-            else:
-                text = self.tr("Note: this syntax color scheme will not be "
-                               "saved when closing Spyder. You may however "
-                               "use it to help you defining your own custom "
-                               "syntax color scheme")
-            tlabel = QLabel(text)
-            tlabel.setWordWrap(True)
-            from spyderlib.widgets.codeeditor.syntaxhighlighters import BaseSH
-            for row, key in enumerate(BaseSH.COLOR_SCHEME_KEYS):
+            from spyderlib.widgets.codeeditor import syntaxhighlighters
+            for row, key in enumerate(syntaxhighlighters.COLOR_SCHEME_KEYS):
                 option = "%s/%s" % (tabname, key)
                 value = self.get_option(option)
                 if isinstance(value, basestring):
@@ -475,11 +469,22 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                     cs_layout.addWidget(cb_bold, row+1, 2)
                     cs_layout.addWidget(cb_italic, row+1, 3)
             cs_group.setLayout(cs_layout)
-            tabs.addTab(self.create_tab(cs_group, tlabel), tabname)
+            if tabname in COLOR_SCHEME_NAMES:
+                def_btn = self.create_button(self.tr("Reset to default values"),
+                                             self.reset_to_default)
+                def_btn.setProperty("name", QVariant(tabname))
+                tabs.addTab(self.create_tab(cs_group, def_btn), tabname)
+            else:
+                tabs.addTab(self.create_tab(cs_group), tabname)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+        
+    def reset_to_default(self):
+        name = unicode(self.sender().property("name").toString())
+        set_default_color_scheme(name, replace=True)
+        self.load_from_conf()
             
     def apply_settings(self, options):
         self.main.editor.apply_plugin_settings(['color_scheme_name'])

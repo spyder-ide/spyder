@@ -20,133 +20,102 @@ STDOUT = sys.stdout
 
 
 #===============================================================================
-# Python syntax highlighter
+# Syntax highlighting color schemes
 #===============================================================================
-def any(name, alternates):
-    "Return a named group pattern matching list of alternates."
-    return "(?P<%s>" % name + "|".join(alternates) + ")"
+COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
+                     "ctrlclick", "sideareas",
+                     "normal", "keyword", "builtin", "definition",
+                     "comment", "string", "number", "instance")
+COLORS = {
+          'IDLE':
+          {#  Name          Color    Bold   Italic
+           "background":  "#ffffff",
+           "currentline": "#eeffdd",
+           "occurence":   "#e8f2fe",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "normal":     ("#000000", False, False),
+           "keyword":    ("#ff7700", True,  False),
+           "builtin":    ("#900090", False, False),
+           "definition": ("#0000ff", False, False),
+           "comment":    ("#dd0000", False, True),
+           "string":     ("#00aa00", False, False),
+           "number":     ("#924900", False, False),
+           "instance":   ("#777777", True,  True),
+           },
+          'Pydev':
+          {#  Name          Color    Bold   Italic
+           "background":  "#ffffff",
+           "currentline": "#e8f2fe",
+           "occurence":   "#ffff99",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "normal":     ("#000000", False, False),
+           "keyword":    ("#0000ff", False, False),
+           "builtin":    ("#900090", False, False),
+           "definition": ("#000000", True,  False),
+           "comment":    ("#c0c0c0", False, False),
+           "string":     ("#00aa00", False, True),
+           "number":     ("#800000", False, False),
+           "instance":   ("#000000", False, True),
+           },
+          'Emacs':
+          {#  Name          Color    Bold   Italic
+           "background":  "#000000",
+           "currentline": "#2b2b43",
+           "occurence":   "#abab67",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#555555",
+           "normal":     ("#ffffff", False, False),
+           "keyword":    ("#3c51e8", False, False),
+           "builtin":    ("#900090", False, False),
+           "definition": ("#ff8040", True,  False),
+           "comment":    ("#005100", False, False),
+           "string":     ("#00aa00", False, True),
+           "number":     ("#800000", False, False),
+           "instance":   ("#ffffff", False, True),
+           },
+          'Scintilla':
+          {#  Name          Color    Bold   Italic
+           "background":  "#ffffff",
+           "currentline": "#eeffdd",
+           "occurence":   "#ffff99",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "normal":     ("#000000", False, False),
+           "keyword":    ("#00007f", True,  False),
+           "builtin":    ("#000000", False, False),
+           "definition": ("#007f7f", True,  False),
+           "comment":    ("#007f00", False, False),
+           "string":     ("#7f007f", False, False),
+           "number":     ("#007f7f", False, False),
+           "instance":   ("#000000", False, True),
+           },
+          'Spyder':
+          {#  Name          Color    Bold   Italic
+           "background":  "#ffffff",
+           "currentline": "#e8f2fe",
+           "occurence":   "#ffff99",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#efefef",
+           "normal":     ("#000000", False, False),
+           "keyword":    ("#0000ff", False, False),
+           "builtin":    ("#900090", False, False),
+           "definition": ("#000000", True,  False),
+           "comment":    ("#adadad", False, False),
+           "string":     ("#00aa00", False, True),
+           "number":     ("#800000", False, False),
+           "instance":   ("#000000", False, True),
+           },
+          }
+COLOR_SCHEME_NAMES = COLORS.keys()
 
-def make_python_patterns(additional_keywords=[], additional_builtins=[]):
-    "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kw = r"\b" + any("keyword", keyword.kwlist+additional_keywords) + r"\b"
-    builtinlist = [str(name) for name in dir(__builtin__)
-                   if not name.startswith('_')]+additional_builtins
-    builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
-    comment = any("comment", [r"#[^\n]*"])
-    instance = any("instance", [r"\bself\b"])
-    number = any("number",
-                 [r"\b[+-]?[0-9]+[lL]?\b",
-                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
-    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
-    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
-    sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
-    dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
-    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')$"
-    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")$'
-    string = any("string", [sqstring, dqstring, sq3string, dq3string])
-    ufstring1 = any("uf_sq3string", [uf_sq3string])
-    ufstring2 = any("uf_dq3string", [uf_dq3string])
-    return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
-           ufstring1 + "|" + ufstring2 + "|" + string + "|" + number + "|" + \
-           any("SYNC", [r"\n"])
-
-#TODO: Use setCurrentBlockUserData for brace matching (see Qt documentation)
-class ClassBrowserData(object):
-    CLASS = 0
-    FUNCTION = 1
-    def __init__(self):
-        self.text = None
-        self.fold_level = None
-        self.def_type = None
-        self.def_name = None
-        
-    def get_class_name(self):
-        if self.def_type == self.CLASS:
-            return self.def_name
-        
-    def get_function_name(self):
-        if self.def_type == self.FUNCTION:
-            return self.def_name
-    
 class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
     # Syntax highlighting rules:
     PROG = None
     # Syntax highlighting states (from one text block to another):
     normal = 0
-    # Syntax highlighting color schemes:
-    COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
-                         "ctrlclick", "sideareas",
-                         "normal", "keyword", "builtin", "definition",
-                         "comment", "string", "number", "instance")
-    COLORS = {
-              'IDLE':
-              {#  Name          Color    Bold   Italic
-               "background":  "#FFFFFF",
-               "currentline": "#EEFFDD",
-               "occurence":   "#E8F2FE",
-               "ctrlclick":   "#0000FF",
-               "sideareas":   "#EFEFEF",
-               "normal":     ("#000000", False, False),
-               "keyword":    ("#ff7700", True,  False),
-               "builtin":    ("#900090", False, False),
-               "definition": ("#0000ff", False, False),
-               "comment":    ("#dd0000", False, True),
-               "string":     ("#00aa00", False, False),
-               "number":     ("#924900", False, False),
-               "instance":   ("#777777", True,  True),
-               },
-              'Pydev':
-              {#  Name          Color    Bold   Italic
-               "background":  "#FFFFFF",
-               "currentline": "#E8F2FE",
-               "occurence":   "#FFFF99",
-               "ctrlclick":   "#0000FF",
-               "sideareas":   "#EFEFEF",
-               "normal":     ("#000000", False, False),
-               "keyword":    ("#0000FF", False, False),
-               "builtin":    ("#900090", False, False),
-               "definition": ("#000000", True,  False),
-               "comment":    ("#C0C0C0", False, False),
-               "string":     ("#00AA00", False, True),
-               "number":     ("#800000", False, False),
-               "instance":   ("#000000", False, True),
-               },
-              'Emacs':
-              {#  Name          Color    Bold   Italic
-               "background":  "#000000",
-               "currentline": "#E8F2FE",
-               "occurence":   "#FFFF99",
-               "ctrlclick":   "#0000FF",
-               "sideareas":   "#555555",
-               "normal":     ("#FFFFFF", False, False),
-               "keyword":    ("#3C51E8", False, False),
-               "builtin":    ("#900090", False, False),
-               "definition": ("#FF8040", True,  False),
-               "comment":    ("#005100", False, False),
-               "string":     ("#00AA00", False, True),
-               "number":     ("#800000", False, False),
-               "instance":   ("#FFFFFF", False, True),
-               },
-              'Scintilla':
-              {#  Name          Color    Bold   Italic
-               "background":  "#FFFFFF",
-               "currentline": "#EEFFDD",
-               "occurence":   "#FFFF99",
-               "ctrlclick":   "#0000FF",
-               "sideareas":   "#EFEFEF",
-               "normal":     ("#000000", False, False),
-               "keyword":    ("#00007F", True,  False),
-               "builtin":    ("#000000", False, False),
-               "definition": ("#007F7F", True,  False),
-               "comment":    ("#007F00", False, False),
-               "string":     ("#7F007F", False, False),
-               "number":     ("#007F7F", False, False),
-               "instance":   ("#000000", False, True),
-               },
-              }
-    COLOR_SCHEMES = COLORS.keys()
     def __init__(self, parent, font=None, color_scheme=None):
         super(BaseSH, self).__init__(parent)
         
@@ -155,7 +124,7 @@ class BaseSH(QSyntaxHighlighter):
         self.font = font
         self._check_color_scheme(color_scheme)
         if isinstance(color_scheme, basestring):
-            self.color_scheme = self.COLORS[color_scheme]
+            self.color_scheme = COLORS[color_scheme]
         else:
             self.color_scheme = color_scheme
         
@@ -207,14 +176,14 @@ class BaseSH(QSyntaxHighlighter):
 
     def _check_color_scheme(self, color_scheme):
         if isinstance(color_scheme, basestring):
-            assert color_scheme in self.COLOR_SCHEMES
+            assert color_scheme in COLOR_SCHEME_NAMES
         else:
-            assert all([key in color_scheme for key in self.COLOR_SCHEME_KEYS])
+            assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
 
     def set_color_scheme(self, color_scheme):
         self._check_color_scheme(color_scheme)
         if isinstance(color_scheme, basestring):
-            self.color_scheme = self.COLORS[color_scheme]
+            self.color_scheme = COLORS[color_scheme]
         else:
             self.color_scheme = color_scheme
         self.setup_formats()
@@ -233,6 +202,55 @@ class BaseSH(QSyntaxHighlighter):
         QApplication.restoreOverrideCursor()
 
 
+#===============================================================================
+# Python syntax highlighter
+#===============================================================================
+def any(name, alternates):
+    "Return a named group pattern matching list of alternates."
+    return "(?P<%s>" % name + "|".join(alternates) + ")"
+
+def make_python_patterns(additional_keywords=[], additional_builtins=[]):
+    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    kw = r"\b" + any("keyword", keyword.kwlist+additional_keywords) + r"\b"
+    builtinlist = [str(name) for name in dir(__builtin__)
+                   if not name.startswith('_')]+additional_builtins
+    builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
+    comment = any("comment", [r"#[^\n]*"])
+    instance = any("instance", [r"\bself\b"])
+    number = any("number",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
+    dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
+    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')$"
+    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")$'
+    string = any("string", [sqstring, dqstring, sq3string, dq3string])
+    ufstring1 = any("uf_sq3string", [uf_sq3string])
+    ufstring2 = any("uf_dq3string", [uf_dq3string])
+    return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
+           ufstring1 + "|" + ufstring2 + "|" + string + "|" + number + "|" + \
+           any("SYNC", [r"\n"])
+
+class ClassBrowserData(object):
+    CLASS = 0
+    FUNCTION = 1
+    def __init__(self):
+        self.text = None
+        self.fold_level = None
+        self.def_type = None
+        self.def_name = None
+        
+    def get_class_name(self):
+        if self.def_type == self.CLASS:
+            return self.def_name
+        
+    def get_function_name(self):
+        if self.def_type == self.FUNCTION:
+            return self.def_name
+    
 class PythonSH(BaseSH):
     """Python Syntax Highlighter"""
     # Syntax highlighting rules:
