@@ -136,6 +136,11 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         data = cPickle.load(file(self.DATAPATH))
         self.set_project_config(data)
         expanded_state = self.get_option('expanded_state', None)
+        # Sometimes the expanded state option may be truncated in .ini file
+        # (for an unknown reason), in this case it would be converted to a
+        # string by 'userconfig':
+        if isinstance(expanded_state, basestring):
+            expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)
         
