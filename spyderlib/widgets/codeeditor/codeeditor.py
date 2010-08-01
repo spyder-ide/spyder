@@ -1218,6 +1218,10 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_D and ctrl:
             self.duplicate_line()
             event.accept()
+        elif key == Qt.Key_G and ctrl:
+            self.emit(SIGNAL("go_to_definition(int)"),
+                      self.textCursor().position())
+            event.accept()
 #TODO: find other shortcuts...
 #        elif (key == Qt.Key_3) and ctrl:
 #            self.comment()
