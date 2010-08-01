@@ -46,10 +46,12 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
         # Shell
+        light_background = self.get_option('light_background')
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
                                    self.get_plugin_font(),
-                                   debug, exitfunc, profile, multithreaded)
+                                   debug, exitfunc, profile, multithreaded,
+                                   light_background=light_background)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:
                      self.emit(SIGNAL('show_message(QString,int)'), msg, 0))

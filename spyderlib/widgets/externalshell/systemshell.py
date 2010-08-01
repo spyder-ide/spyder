@@ -26,9 +26,10 @@ from spyderlib.widgets.shell import TerminalWidget
 class ExternalSystemShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = TerminalWidget
-    def __init__(self, parent=None, wdir=None, path=[]):
+    def __init__(self, parent=None, wdir=None, path=[], light_background=True):
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename='.history')
+                                   history_filename='.history',
+                                   light_background=light_background)
         
         # Additional python path list
         self.path = path

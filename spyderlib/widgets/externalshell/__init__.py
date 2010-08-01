@@ -50,7 +50,7 @@ class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
     def __init__(self, parent=None, wdir=None, history_filename=None,
-                 show_icontext=True):
+                 show_icontext=True, light_background=True):
         QWidget.__init__(self, parent)
         
         self.run_button = None
@@ -64,6 +64,7 @@ class ExternalShellBase(QWidget):
         self.arguments = ""
         
         self.shell = self.SHELL_CLASS(parent, get_conf_path(history_filename))
+        self.shell.set_light_background(light_background)
         self.connect(self.shell, SIGNAL("execute(QString)"),
                      self.send_to_process)
         self.connect(self.shell, SIGNAL("keyboard_interrupt()"),
@@ -265,12 +266,15 @@ def test():
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
                                 ipython=True, stand_alone=settings,
                                 arguments="-q4thread -pylab -colors LightBG",
-                                mpl_patch_enabled=True)
+                                mpl_patch_enabled=True, light_background=False)
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
 #                                interact=True, umd_enabled=True,
+#                                stand_alone=settings,
 #                                umd_namelist=['guidata', 'guiqwt'],
-#                                umd_verbose=True, mpl_patch_enabled=False)
-#     shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__))
+#                                umd_verbose=True, mpl_patch_enabled=False,
+#                                light_background=False)
+#    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__),
+#                                light_background=False)
     shell.shell.toggle_wrap_mode(True)
     shell.start(False)
     from PyQt4.QtGui import QFont

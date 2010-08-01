@@ -130,6 +130,7 @@ DEFAULTS = [
               'codecompletion/from-document': False,
               'external_editor/path': 'SciTE',
               'external_editor/gotoline': '-goto:',
+              'light_background': True,
               }),
             ('console',
              {
@@ -164,6 +165,7 @@ DEFAULTS = [
               'umd/namelist': ['guidata', 'guiqwt'],
               'autorefresh/enable': True,
               'autorefresh/timeout': 3000,
+              'light_background': True,
               }),
             ('editor',
              {

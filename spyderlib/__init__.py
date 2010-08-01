@@ -37,7 +37,6 @@ __license__ = __doc__
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
 
 #TODO: "Preferences":
-# * Option to inverse console colors
 # * IPython: add "configurations" management
 
 #TODO: File Explorer: add support for multiple selection

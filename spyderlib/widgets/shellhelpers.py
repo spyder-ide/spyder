@@ -32,6 +32,8 @@ class ANSIEscapeCodeHandler(object):
         self.underline = None
         self.foreground_color = None
         self.background_color = None
+        self.default_foreground_color = 30
+        self.default_background_color = 47
         
     def set_code(self, code):
         assert isinstance(code, int)
@@ -63,13 +65,13 @@ class ANSIEscapeCodeHandler(object):
             self.foreground_color = code
         elif code == 39:
             # Default text color
-            self.foreground_color = None
+            self.foreground_color = self.default_foreground_color
         elif code >= 40 and code <= 47:
             # Background color
             self.background_color = code
         elif code == 49:
             # Default background color
-            self.background_color = None
+            self.background_color = self.default_background_color
         self.set_style()
         
     def reset(self):

@@ -69,6 +69,18 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(wrap_mode_box)
         source_group.setLayout(source_layout)
+        
+        # Background Color Group
+        bg_group = QGroupBox(self.tr("Background color"))
+        bg_label = QLabel(self.tr("This option will be applied the next time "
+                                  "a Python console or a terminal is opened."))
+        bg_label.setWordWrap(True)
+        lightbg_box = newcb(self.tr("Light background (white color)"),
+                            'light_background')
+        bg_layout = QVBoxLayout()
+        bg_layout.addWidget(bg_label)
+        bg_layout.addWidget(lightbg_box)
+        bg_group.setLayout(bg_layout)
 
         # UMD Group
         umd_group = QGroupBox(self.tr("User Module Deleter (UMD)"))
@@ -156,7 +168,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, source_group),
+        tabs.addTab(self.create_tab(font_group, interface_group, source_group,
+                                    bg_group),
                     self.tr("Basics"))
         tabs.addTab(self.create_tab(startup_group, umd_group),
                     self.tr("Advanced"))
@@ -361,6 +374,7 @@ class ExternalConsole(SpyderPluginWidget):
 
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
+        light_background = self.get_option('light_background')
         if python:
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
             umd_enabled = self.get_option('umd/enabled')
@@ -378,11 +392,13 @@ class ExternalConsole(SpyderPluginWidget):
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose,
                            mpl_patch_enabled=mpl_patch_enabled,
-                           autorefresh_timeout=ar_timeout)
+                           autorefresh_timeout=ar_timeout,
+                           light_background=light_background)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shellwidget(shellwidget)
         else:
-            shellwidget = ExternalSystemShell(self, wdir, path=pythonpath)
+            shellwidget = ExternalSystemShell(self, wdir, path=pythonpath,
+                                              light_background=light_background)
         
         # Code completion / calltips
         case_sensitive = self.get_option('codecompletion/case-sensitivity')

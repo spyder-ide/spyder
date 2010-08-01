@@ -826,6 +826,14 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         self.base_format = None
         self.current_format = None
         
+    def set_light_background(self, state):
+        if state:
+            self.default_foreground_color = 30
+            self.default_background_color = 47
+        else:
+            self.default_foreground_color = 37
+            self.default_background_color = 40
+        
     def set_base_format(self, base_format):
         self.base_format = base_format
         
@@ -884,6 +892,8 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        self.light_background = True
 
         self.setMaximumBlockCount(300)
 
@@ -907,6 +917,15 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                         self.traceback_link_format: 'TRACEBACK_LINK_STYLE'}
         self.set_pythonshell_font()
         self.setMouseTracking(True)
+        
+    def set_light_background(self, state):
+        self.light_background = state
+        if state:
+            self.set_background_color(QColor(Qt.white))
+        else:
+            self.set_background_color(QColor(Qt.black))
+        self.ansi_handler.set_light_background(state)
+        self.set_pythonshell_font()
         
     def remove_margins(self):
         """Suppressing Scintilla margins"""
@@ -1007,11 +1026,17 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         
         getstyleconf = lambda name, prop: CONF.get('shell_appearance',
                                                    name+'/'+prop)
+        def inverse_color(color):
+            color.setHsv(color.hue(), color.saturation(), 255-color.value())
         for format, stylestr in self.formats.items():
-            foreground = getstyleconf(stylestr, 'foregroundcolor')
-            format.setForeground(QColor(foreground))
-            background = getstyleconf(stylestr, 'backgroundcolor')
-            format.setBackground(QColor(background))
+            foreground = QColor(getstyleconf(stylestr, 'foregroundcolor'))
+            if not self.light_background and format is self.default_format:
+                inverse_color(foreground)
+            format.setForeground(foreground)
+            background = QColor(getstyleconf(stylestr, 'backgroundcolor'))
+            if not self.light_background:
+                inverse_color(background)
+            format.setBackground(background)
             font = format.font()
             font.setBold(getstyleconf(stylestr, 'bold'))
             font.setItalic(getstyleconf(stylestr, 'italic'))

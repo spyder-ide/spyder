@@ -121,7 +121,8 @@ class ExternalPythonShell(ExternalShellBase):
                  interact=False, debug=False, path=[],
                  ipython=False, arguments=None, stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
-                 mpl_patch_enabled=True, autorefresh_timeout=3000):
+                 mpl_patch_enabled=True, autorefresh_timeout=3000,
+                 light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.fname = startup.__file__ if fname is None else fname
@@ -139,7 +140,8 @@ class ExternalPythonShell(ExternalShellBase):
         self.terminate_button = None
         
         ExternalShellBase.__init__(self, parent, wdir,
-                                   history_filename='.history.py')
+                                   history_filename='.history.py',
+                                   light_background=light_background)
 
         self.nsb_timer = QTimer(self) # Namespace browser auto-refresh timer
         self.set_autorefresh_timeout(autorefresh_timeout)

@@ -90,10 +90,12 @@ class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  max_line_count=300, font=None, debug=False, exitfunc=None,
-                 profile=False, multithreaded=True):
+                 profile=False, multithreaded=True, light_background=True):
         PythonShellWidget.__init__(self, parent,
                                    get_conf_path('.history_internal.py'),
                                    debug, profile)
+        
+        self.set_light_background(light_background)
         
         self.multithreaded = multithreaded
         
