@@ -272,7 +272,7 @@ class MainWindow(QMainWindow):
         pixmap = QPixmap(get_image_path('splash.png'), 'png')
         self.splash = QSplashScreen(pixmap)
         font = self.splash.font()
-        font.setPixelSize(11)
+        font.setPixelSize(10)
         self.splash.setFont(font)
         if not self.light:
             self.splash.show()
@@ -492,10 +492,10 @@ class MainWindow(QMainWindow):
                                        self.load_session_action,
                                        self.save_session_action,
                                        None, quit_action]
+            self.set_splash("")
         
             # Find in files
             if CONF.get('find_in_files', 'enable'):
-                self.set_splash(self.tr("Loading find in files plugin..."))
                 self.findinfiles = FindInFiles(self)
                 self.findinfiles.register_plugin()
             
@@ -784,7 +784,7 @@ class MainWindow(QMainWindow):
         self.debug_print(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
-                                Qt.AlignAbsolute, QColor(Qt.darkGray))
+                                Qt.AlignAbsolute, QColor(Qt.white))
         QApplication.processEvents()
         
     def closeEvent(self, event):

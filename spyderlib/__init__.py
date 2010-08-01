@@ -30,21 +30,4 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '2.0.0alpha4'
 __license__ = __doc__
 
-#TODO: Workspace is gone: find a way to implement the save on exit with the 
-#      external console --> see the external console's closing method
-#      --> show a window with checkboxes and... quickview of namespace contents?
-
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
-
-#TODO: "Preferences":
-# * IPython: add "configurations" management
-
-#TODO: File Explorer: add support for multiple selection
-
-#TODO: Handling errors in project explorer I/O functions (i.e. find a way to 
-# allow loading a corrupted project to be able to launch Spyder anyway)
-
-#TODO: Refactoring -> shell.py key press events --> in base class (shared with codeeditor.py)
-#TODO: Implement: zoomIn, zoomOut
-
-#TODO: Take a look at session management: adapt to new v2.0 features
