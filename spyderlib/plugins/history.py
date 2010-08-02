@@ -29,6 +29,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 class HistoryConfigPage(PluginConfigPage):
     def setup_page(self):
+        settings_group = QGroupBox(self.tr("Settings"))
         hist_spin = self.create_spinbox(
                             self.tr("History depth: "), self.tr(" entries"),
                             'max_entries', min_=10, max_=10000, step=10,
@@ -37,12 +38,16 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group = QGroupBox(self.tr("Source code"))
         wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
         font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Text and margin font style"),
+                                    text=self.tr("Font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
+
+        settings_layout = QVBoxLayout()
+        settings_layout.addWidget(hist_spin)
+        settings_group.setLayout(settings_layout)
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
@@ -50,7 +55,7 @@ class HistoryConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(hist_spin)
+        vlayout.addWidget(settings_group)
         vlayout.addWidget(font_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)

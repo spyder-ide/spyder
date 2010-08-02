@@ -16,7 +16,7 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
-                         QAbstractPrintDialog, QGroupBox, QTabWidget,
+                         QAbstractPrintDialog, QGroupBox, QTabWidget, QLabel,
                          QFontComboBox)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
@@ -69,26 +69,23 @@ class EditorConfigPage(PluginConfigPage):
         interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
-
-        margins_group = QGroupBox(self.tr("Margins"))
+        
+        display_group = QGroupBox(self.tr("Source code"))
         linenumbers_box = newcb(self.tr("Show line numbers"), 'line_numbers')
         occurence_box = newcb(self.tr("Highlight occurences"),
                               'occurence_highlighting', default=True)
-        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
-              'code_analysis', default=True,
-              tip=self.tr("If enabled, Python source code will be analyzed\n"
-                          "using pyflakes, lines containing errors or \n"
-                          "warnings will be highlighted"))
-        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
-        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
-                             'todo_list', default=True)
+        wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
+        names = CONF.get('color_schemes', 'names')
+        choices = zip(names, names)
+        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+                                        choices, 'color_scheme_name')
         
-        margins_layout = QVBoxLayout()
-        margins_layout.addWidget(linenumbers_box)
-        margins_layout.addWidget(occurence_box)
-        margins_layout.addWidget(codeanalysis_box)
-        margins_layout.addWidget(todolist_box)
-        margins_group.setLayout(margins_layout)
+        display_layout = QVBoxLayout()
+        display_layout.addWidget(linenumbers_box)
+        display_layout.addWidget(occurence_box)
+        display_layout.addWidget(wrap_mode_box)
+        display_layout.addWidget(cs_combo)
+        display_group.setLayout(display_layout)
         
         sourcecode_group = QGroupBox(self.tr("Source code"))
         completion_box = newcb(self.tr("Automatic code completion"),
@@ -108,36 +105,64 @@ class EditorConfigPage(PluginConfigPage):
                           "will automatically show informations on functions\n"
                           "entered in editor (this is triggered when entering\n"
                           "a left parenthesis after a valid function name)"))
+        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
+              'code_analysis', default=True,
+              tip=self.tr("If enabled, Python source code will be analyzed\n"
+                          "using pyflakes, lines containing errors or \n"
+                          "warnings will be highlighted"))
+        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
+        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
+                             'todo_list', default=True)
         tab_mode_box = newcb(self.tr("Tab always indent"),
-              'tab_always_indent', default=True,
+              'tab_always_indent', default=False,
               tip=self.tr("If enabled, pressing Tab will always indent,\n"
                           "even when the cursor is not at the beginning\n"
-                          "of a line"))
-        wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
-        check_eol_box = newcb(self.tr("Show warning when fixing newline chars"),
-                              'check_eol_chars', default=True)
-        names = CONF.get('color_schemes', 'names')
-        choices = zip(names, names)
-        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
-                                        choices, 'color_scheme_name')
+                          "of a line (when this option is enabled, code\n"
+                          "completion may be triggered using the alternate\n"
+                          "shortcut: Ctrl+Space)"))
+        
+        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
+                                    "The Python module <i>rope</i> is not "
+                                    "installed on this computer: calltips, "
+                                    "code completion and go-to-definition "
+                                    "features won't be available."))
+        rope_label.setWordWrap(True)
         
         sourcecode_layout = QVBoxLayout()
-        sourcecode_layout.addWidget(calltips_box)
-        sourcecode_layout.addWidget(gotodef_box)
-        sourcecode_layout.addWidget(inspector_box)
-        sourcecode_layout.addWidget(completion_box)
-        sourcecode_layout.addWidget(comp_enter_box)
+        if programs.is_module_installed('rope'):
+            sourcecode_layout.addWidget(calltips_box)
+            sourcecode_layout.addWidget(completion_box)
+            sourcecode_layout.addWidget(comp_enter_box)
+            sourcecode_layout.addWidget(gotodef_box)
+            sourcecode_layout.addWidget(inspector_box)
+        else:
+            sourcecode_layout.addWidget(rope_label)
+        sourcecode_layout.addWidget(codeanalysis_box)
+        sourcecode_layout.addWidget(todolist_box)
         sourcecode_layout.addWidget(tab_mode_box)
-        sourcecode_layout.addWidget(wrap_mode_box)
-        sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
+
+        eol_group = QGroupBox(self.tr("End-of-line characters"))
+        eol_label = QLabel(self.tr("When opening a text file containing "
+                                   "mixed end-of-line characters (this may "
+                                   "raise syntax errors in Python interpreter "
+                                   "on Windows platforms), Spyder may fix the "
+                                   "file automatically."))
+        eol_label.setWordWrap(True)
+        check_eol_box = newcb(self.tr("Fix automatically and show warning "
+                                      "message box"),
+                              'check_eol_chars', default=True)
+
+        eol_layout = QVBoxLayout()
+        eol_layout.addWidget(eol_label)
+        eol_layout.addWidget(check_eol_box)
+        eol_group.setLayout(eol_layout)
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group,
-                                    sourcecode_group),
-                    self.tr("Basics"))
-        tabs.addTab(self.create_tab(template_btn, margins_group, check_eol_box),
-                    self.tr("Advanced"))
+        tabs.addTab(self.create_tab(font_group, interface_group, display_group),
+                    self.tr("Display"))
+        tabs.addTab(self.create_tab(template_btn, sourcecode_group, eol_group),
+                    self.tr("Advanced settings"))
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)

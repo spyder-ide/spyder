@@ -37,10 +37,6 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 class ExternalConsoleConfigPage(PluginConfigPage):
     def setup_page(self):
         interface_group = QGroupBox(self.tr("Interface"))
-        buffer_spin = self.create_spinbox(
-                            self.tr("Buffer: "), self.tr(" lines"),
-                            'max_line_count', min_=100, max_=1000000, step=100,
-                            tip=self.tr("Set maximum line count"))
         font_group = self.create_fontgroup(option=None, text=None,
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
@@ -49,26 +45,22 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
         # Interface Group
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(buffer_spin)
         interface_layout.addWidget(singletab_box)
         interface_layout.addWidget(icontext_box)
         interface_group.setLayout(interface_layout)
         
         # Source Code Group
-        source_group = QGroupBox(self.tr("Source code"))
-        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
-        completion_box = newcb(self.tr("Automatic code completion"),
-                               'codecompletion/auto')
-        comp_enter_box = newcb(self.tr("Enter key selects completion"),
-                               'codecompletion/enter-key')
+        display_group = QGroupBox(self.tr("Source code"))
+        buffer_spin = self.create_spinbox(
+                            self.tr("Buffer: "), self.tr(" lines"),
+                            'max_line_count', min_=100, max_=1000000, step=100,
+                            tip=self.tr("Set maximum line count"))
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
         
-        source_layout = QVBoxLayout()
-        source_layout.addWidget(calltips_box)
-        source_layout.addWidget(completion_box)
-        source_layout.addWidget(comp_enter_box)
-        source_layout.addWidget(wrap_mode_box)
-        source_group.setLayout(source_layout)
+        display_layout = QVBoxLayout()
+        display_layout.addWidget(buffer_spin)
+        display_layout.addWidget(wrap_mode_box)
+        display_group.setLayout(display_layout)
         
         # Background Color Group
         bg_group = QGroupBox(self.tr("Background color"))
@@ -81,6 +73,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         bg_layout.addWidget(bg_label)
         bg_layout.addWidget(lightbg_box)
         bg_group.setLayout(bg_layout)
+
+        # Advanced settings
+        source_group = QGroupBox(self.tr("Source code"))
+        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
+        completion_box = newcb(self.tr("Automatic code completion"),
+                               'codecompletion/auto')
+        comp_enter_box = newcb(self.tr("Enter key selects completion"),
+                               'codecompletion/enter-key')
+        
+        source_layout = QVBoxLayout()
+        source_layout.addWidget(calltips_box)
+        source_layout.addWidget(completion_box)
+        source_layout.addWidget(comp_enter_box)
+        source_group.setLayout(source_layout)
 
         # UMD Group
         umd_group = QGroupBox(self.tr("User Module Deleter (UMD)"))
@@ -168,11 +174,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, source_group,
+        tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
-                    self.tr("Basics"))
-        tabs.addTab(self.create_tab(startup_group, umd_group),
-                    self.tr("Advanced"))
+                    self.tr("Display"))
+        tabs.addTab(self.create_tab(source_group, startup_group, umd_group),
+                    self.tr("Advanced settings"))
         tabs.addTab(self.create_tab(ipython_group, mpl_group),
                     self.tr("External modules"))
         

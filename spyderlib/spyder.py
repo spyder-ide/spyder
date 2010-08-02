@@ -918,27 +918,22 @@ class MainWindow(QMainWindow):
             <br>Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
-            <p>Developed and maintained by %7Pierre Raybaut%8
-            <p>Many thanks to %7Christopher Brown%8 (beta-tester from the 
-            very beginning), 
-            %7Alexandre Radicchi%8 (especially for his contributions to the 
-            <i>Workspace</i> plugin and the <i>DictEditor</i> widget), 
-            %7Ludovic Aubry%8 (for his great ideas, suggestions and 
-            technical solutions - without him, the <i>external console</i> 
-            wouldn't have so many features)
-            and all the Spyder beta-testers and regular users.
-            <p>Editor's Python code analysis powered by %7pyflakes %9%8:
-            <br>Copyright (c) 2005 Divmod, Inc., http://www.divmod.com/
-            <p>Editor's Python code completion, tooltips and go-to-definition  
-            powered by %7rope %10%8:
-            <br>Copyright (C) 2006-2009 Ali Gholami Rudi
-            <p>Most of the icons are coming from the %7Crystal Project%8:
-            <br>Copyright &copy; 2006-2007 Everaldo Coelho
-            <p>Spyder is based on spyderlib module v%2
-            <br>Bug reports and feature requests: 
-            <a href="http://spyderlib.googlecode.com">Google Code</a><br>
-            Discussions around the project: 
+            <p>Created, developed and maintained by Pierre Raybaut
+            <br>Many thanks to Christopher Brown, Alexandre Radicchi,
+            Ludovic Aubry and all the Spyder beta-testers and regular users.
+            <p>Source code editor: Python code real-time analysis is powered by 
+            %7pyflakes %9%8 (&copy; 2005 
+            <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
+            introspection features (completion, go-to-definition, ...) are 
+            powered by %7rope %10%8 (&copy; 2006-2009 Ali Gholami Rudi)
+            <br>Most of the icons are coming from the %7Crystal Project%8 
+            (&copy; 2006-2007 Everaldo Coelho)
+            <p>Spyder's community:
+            <ul><li>Bug reports and feature requests: 
+            <a href="http://spyderlib.googlecode.com">Google Code</a>
+            </li><li>Discussions around the project: 
             <a href="http://groups.google.com/group/spyderlib">Google Group</a>
+            </li></ul>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %3, Qt %4, PyQt %5 on %6""") \

@@ -343,8 +343,12 @@ class SpyderConfigPage(ConfigPage):
         clayout.lineedit.setMaximumWidth(80)
         if tip is not None:
             clayout.setToolTip(tip)
-        cb_bold = QCheckBox(self.tr("Bold"))
-        cb_italic = QCheckBox(self.tr("Italic"))
+        cb_bold = QCheckBox()
+        cb_bold.setIcon(get_icon("bold.png"))
+        cb_bold.setToolTip(translate("PluginConfigPage", "Bold"))
+        cb_italic = QCheckBox()
+        cb_italic.setIcon(get_icon("italic.png"))
+        cb_italic.setToolTip(translate("PluginConfigPage", "Italic"))
         self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
         if without_layout:
             return label, clayout, cb_bold, cb_italic
@@ -449,21 +453,41 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         names = self.get_option("names")
         names.pop(names.index(CUSTOM_COLOR_SCHEME_NAME))
         names.insert(0, CUSTOM_COLOR_SCHEME_NAME)
+        fieldnames = {
+                      "background":     self.tr("Background:"),
+                      "currentline":    self.tr("Current line:"),
+                      "occurence":      self.tr("Occurence:"),
+                      "ctrlclick":      self.tr("Link:"),
+                      "sideareas":      self.tr("Side areas:"),
+                      "normal":         self.tr("Normal text:"),
+                      "keyword":        self.tr("Keyword:"),
+                      "builtin":        self.tr("Builtin:"),
+                      "definition":     self.tr("Definition:"),
+                      "comment":        self.tr("Comment:"),
+                      "string":         self.tr("String:"),
+                      "number":         self.tr("Number:"),
+                      "instance":       self.tr("Instance:"),
+                      }
+        from spyderlib.widgets.codeeditor import syntaxhighlighters
+        assert all([key in fieldnames
+                    for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:
             cs_group = QGroupBox(self.tr("Color scheme"))
             cs_layout = QGridLayout()
-            from spyderlib.widgets.codeeditor import syntaxhighlighters
             for row, key in enumerate(syntaxhighlighters.COLOR_SCHEME_KEYS):
                 option = "%s/%s" % (tabname, key)
                 value = self.get_option(option)
+                name = fieldnames[key]
                 if isinstance(value, basestring):
-                    label, clayout = self.create_coloredit(key, option,
+                    label, clayout = self.create_coloredit(name, option,
                                                            without_layout=True)
+                    label.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
                     cs_layout.addWidget(label, row+1, 0)
                     cs_layout.addLayout(clayout, row+1, 1)
                 else:
                     label, clayout, cb_bold, cb_italic = self.create_scedit(
-                                                key, option, without_layout=True)
+                                            name, option, without_layout=True)
+                    label.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
                     cs_layout.addWidget(label, row+1, 0)
                     cs_layout.addLayout(clayout, row+1, 1)
                     cs_layout.addWidget(cb_bold, row+1, 2)

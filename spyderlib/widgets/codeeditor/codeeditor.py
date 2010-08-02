@@ -1172,7 +1172,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.select_completion_list()
             else:
                 empty_line = not self.get_text('sol', 'cursor').strip()
-                if empty_line:
+                if empty_line or self.tab_mode:
                     self.indent()
                 else:
                     self.emit(SIGNAL('trigger_code_completion()'))

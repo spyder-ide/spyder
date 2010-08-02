@@ -56,7 +56,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_group = QGroupBox(self.tr("Source code"))
         wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
         font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Text and margin font style"),
+                                    text=self.tr("Font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
