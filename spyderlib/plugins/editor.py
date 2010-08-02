@@ -251,6 +251,11 @@ class Editor(SpyderPluginWidget):
             cb_state = False
         self.classbrowser.visibility_action.setChecked(cb_state)
         self.classbrowser.visibility_action.setEnabled(cb_enabled)
+
+        self.last_edit_cursor_pos = None
+        self.cursor_pos_history = []
+        self.cursor_pos_index = None
+        self.__ignore_cursor_position = True
         
         self.editorstacks = []
         self.editorwindows = []
@@ -321,6 +326,14 @@ class Editor(SpyderPluginWidget):
         expanded_state = self.get_option('class_browser/expanded_state', None)
         if expanded_state is not None:
             self.classbrowser.treewidget.set_expanded_state(expanded_state)
+            
+        self.__ignore_cursor_position = False
+        current_editor = self.get_current_editor()
+        if current_editor is not None:
+            filename = self.get_current_filename()
+            position = current_editor.get_position('cursor')
+            self.add_cursor_position_to_history(filename, position)
+        self.update_cursorpos_actions()
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
@@ -506,6 +519,22 @@ class Editor(SpyderPluginWidget):
             tip=self.tr("Go to next code analysis warning/error"),
             triggered=self.go_to_next_warning)
         
+        self.previous_edit_cursor_action = create_action(self,
+            self.tr("Last edit location"), "Ctrl+Alt+Up",
+            icon='last_edit_location.png',
+            tip=self.tr("Go to last edit location"),
+            triggered=self.go_to_last_edit_location)
+        self.previous_cursor_action = create_action(self,
+            self.tr("Previous cursor position"), "Ctrl+Alt+Left",
+            icon='prev_cursor.png',
+            tip=self.tr("Go to previous cursor position"),
+            triggered=self.go_to_previous_cursor_position)
+        self.next_cursor_action = create_action(self,
+            self.tr("Next cursor position"), "Ctrl+Alt+Right",
+            icon='next_cursor.png',
+            tip=self.tr("Go to next cursor position"),
+            triggered=self.go_to_next_cursor_position)
+        
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
             'comment.png', self.tr("Comment current line or selection"),
             triggered=self.comment)
@@ -615,7 +644,9 @@ class Editor(SpyderPluginWidget):
         
         source_toolbar_actions = [self.todo_list_action,
                 self.warning_list_action, self.previous_warning_action,
-                self.next_warning_action]
+                self.next_warning_action, None,
+                self.previous_edit_cursor_action,
+                self.previous_cursor_action, self.next_cursor_action]
         self.main.source_toolbar_actions += source_toolbar_actions
         
         self.dock_toolbar_actions = file_toolbar_actions + [None] + \
@@ -772,6 +803,11 @@ class Editor(SpyderPluginWidget):
                      self.refresh_save_all_action)
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.refresh_eol_mode)
+        
+        self.connect(editorstack, SIGNAL('text_changed_at(QString,int)'),
+                     self.text_changed_at)
+        self.connect(editorstack, SIGNAL('current_file_changed(QString,int)'),
+                     self.current_file_changed)
         
         self.connect(editorstack, SIGNAL('plugin_load(QString)'), self.load)
         self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
@@ -936,10 +972,11 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         check_results = editorstack.get_analysis_results()
         self.warning_menu.clear()
+        filename = self.get_current_filename()
         for message, line0, error in check_results:
             text = message[:1].upper()+message[1:]
             icon = get_icon('error.png' if error else 'warning.png')
-            slot = lambda _l=line0: self.get_current_editor().go_to_line(_l)
+            slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
@@ -962,9 +999,10 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         results = editorstack.get_todo_results()
         self.todo_menu.clear()
+        filename = self.get_current_filename()
         for text, line0 in results:
             icon = get_icon('todo.png')
-            slot = lambda _l=line0: self.get_current_editor().go_to_line(_l)
+            slot = lambda _l=line0: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.todo_menu.addAction(action)
         self.update_todo_actions()
@@ -1140,6 +1178,12 @@ class Editor(SpyderPluginWidget):
         
     def load(self, filenames=None, goto=None, word=''):
         """Load a text file"""
+        editor0 = self.get_current_editor()
+        if editor0 is not None:
+            position0 = editor0.get_position('cursor')
+            filename0 = self.get_current_filename()
+        else:
+            position0, filename0 = None, None
         if not filenames:
             # Recent files action
             action = self.sender()
@@ -1198,6 +1242,8 @@ class Editor(SpyderPluginWidget):
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word)
+                position = current_editor.get_position('cursor')
+                self.cursor_moved(filename0, position0, filename, position)
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
@@ -1340,16 +1386,22 @@ class Editor(SpyderPluginWidget):
     
     def go_to_next_todo(self):
         editor = self.get_current_editor()
-        editor.go_to_next_todo()
+        position = editor.go_to_next_todo()
+        filename = self.get_current_filename()
+        self.add_cursor_position_to_history(filename, position)
     
     def go_to_next_warning(self):
         editor = self.get_current_editor()
-        editor.go_to_next_warning()
+        position = editor.go_to_next_warning()
+        filename = self.get_current_filename()
+        self.add_cursor_position_to_history(filename, position)
     
     def go_to_previous_warning(self):
         editor = self.get_current_editor()
-        editor.go_to_previous_warning()
-        
+        position = editor.go_to_previous_warning()
+        filename = self.get_current_filename()
+        self.add_cursor_position_to_history(filename, position)
+                
     def run_winpdb(self):
         """Run winpdb to debug current file"""
         if self.save():
@@ -1368,7 +1420,88 @@ class Editor(SpyderPluginWidget):
     def fix_indentation(self):
         editorstack = self.get_current_editorstack()
         editorstack.fix_indentation()
+                    
+    #------ Cursor position history management
+    def update_cursorpos_actions(self):
+        self.previous_edit_cursor_action.setEnabled(
+                                        self.last_edit_cursor_pos is not None)
+        self.previous_cursor_action.setEnabled(
+               self.cursor_pos_index is not None and self.cursor_pos_index > 0)
+        self.next_cursor_action.setEnabled(self.cursor_pos_index is not None \
+                    and self.cursor_pos_index < len(self.cursor_pos_history)-1)
         
+    def add_cursor_position_to_history(self, filename, position, fc=False):
+        if self.__ignore_cursor_position:
+            return
+        for index, (fname, pos) in enumerate(self.cursor_pos_history[:]):
+            if fname == filename:
+                if pos == position or pos == 0:
+                    if fc:
+                        self.cursor_pos_history[index] = (filename, position)
+                        self.cursor_pos_index = index
+                        self.update_cursorpos_actions()
+                        return
+                    else:
+                        if self.cursor_pos_index >= index:
+                            self.cursor_pos_index -= 1
+                        self.cursor_pos_history.pop(index)
+                        break
+        if self.cursor_pos_index is not None:
+            self.cursor_pos_history = \
+                        self.cursor_pos_history[:self.cursor_pos_index+1]
+        self.cursor_pos_history.append((filename, position))
+        self.cursor_pos_index = len(self.cursor_pos_history)-1
+        self.update_cursorpos_actions()
+    
+    def cursor_moved(self, filename0, position0, filename1, position1):
+        """Cursor was just moved: 'go to'"""
+        if position0 is not None:
+            self.add_cursor_position_to_history(filename0, position0)
+        self.add_cursor_position_to_history(filename1, position1)
+        
+    def text_changed_at(self, filename, position):
+        self.last_edit_cursor_pos = (unicode(filename), position)
+        self.add_cursor_position_to_history(unicode(filename), position)
+        
+    def current_file_changed(self, filename, position):
+        self.add_cursor_position_to_history(unicode(filename), position,
+                                            fc=True)
+        
+    def go_to_last_edit_location(self):
+        if self.last_edit_cursor_pos is not None:
+            filename, position = self.last_edit_cursor_pos
+            self.load(filename)
+            editor = self.get_current_editor()
+            if position < editor.document().characterCount():
+                editor.set_cursor_position(position)
+            
+    def go_to_previous_cursor_position(self):
+        if self.cursor_pos_index is None:
+            return
+        self.__ignore_cursor_position = True
+        self.cursor_pos_index = max([0, self.cursor_pos_index-1])
+        filename, position = self.cursor_pos_history[self.cursor_pos_index]
+        self.load(filename)
+        editor = self.get_current_editor()
+        if position < editor.document().characterCount():
+            editor.set_cursor_position(position)
+        self.__ignore_cursor_position = False
+        self.update_cursorpos_actions()
+            
+    def go_to_next_cursor_position(self):
+        if self.cursor_pos_index is None:
+            return
+        self.__ignore_cursor_position = True
+        self.cursor_pos_index = min([len(self.cursor_pos_history)-1,
+                                     self.cursor_pos_index+1])
+        filename, position = self.cursor_pos_history[self.cursor_pos_index]
+        self.load(filename)
+        editor = self.get_current_editor()
+        if position < editor.document().characterCount():
+            editor.set_cursor_position(position)
+        self.__ignore_cursor_position = False
+        self.update_cursorpos_actions()
+    
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,
                               interact=False, debug=False, current=False):

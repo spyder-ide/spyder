@@ -199,6 +199,9 @@ class FileInfo(QObject):
                      self.trigger_calltip)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
+        
+        self.connect(editor, SIGNAL('textChanged()'),
+                     self.text_changed)
             
         self.analysis_thread = CodeAnalysisThread(self)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
@@ -210,6 +213,10 @@ class FileInfo(QObject):
         
     def set_project(self, project):
         self.project = project
+        
+    def text_changed(self):
+        self.emit(SIGNAL('text_changed_at(QString,int)'),
+                  self.filename, self.editor.get_position('cursor'))
         
     def trigger_code_completion(self):
         if self.project is None:
@@ -1061,6 +1068,9 @@ class EditorStack(QWidget):
         if DEBUG:
             print >>STDOUT, "current_changed:", index, self.data[index].editor,
             print >>STDOUT, self.data[index].editor.get_document_id()
+            
+        self.emit(SIGNAL('current_file_changed(QString,int)'),
+                  self.data[index].filename, editor.get_position('cursor'))
         
     def _get_previous_file_index(self):
         if len(self.stack_history) > 1:
@@ -1340,6 +1350,10 @@ class EditorStack(QWidget):
         if cloned_from is None:
             editor.set_text(txt)
             editor.document().setModified(False)
+        self.connect(finfo, SIGNAL('text_changed_at(QString,int)'),
+                     lambda fname, position:
+                     self.emit(SIGNAL('text_changed_at(QString,int)'),
+                               fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),

@@ -790,26 +790,30 @@ class CodeEditor(TextEditBaseWidget):
         self.__show_code_analysis_results(line)
 
     def go_to_next_warning(self):
-        """Go to next code analysis warning message"""
+        """Go to next code analysis warning message
+        and return new cursor position"""
         cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys())
         for line in lines:
             if line > cline:
-                self.__highlight_warning(line)
-                return
+                break
         else:
-            self.__highlight_warning(lines[0])
+            line = lines[0]
+        self.__highlight_warning(line)
+        return self.get_position('cursor')
 
     def go_to_previous_warning(self):
-        """Go to previous code analysis warning message"""
+        """Go to previous code analysis warning message
+        and return new cursor position"""
         cline = self.get_cursor_line_number()
         lines = sorted(self.ca_marker_lines.keys(), reverse=True)
         for line in lines:
             if line < cline:
-                self.__highlight_warning(line)
-                return
+                break
         else:
-            self.__highlight_warning(lines[-1])
+            line = lines[-1]
+        self.__highlight_warning(line)
+        return self.get_position('cursor')
 
     def __show_code_analysis_results(self, line):
         """Show warning/error messages"""
@@ -831,15 +835,16 @@ class CodeEditor(TextEditBaseWidget):
         self.__show_todo(line)
 
     def go_to_next_todo(self):
-        """Go to next todo"""
+        """Go to next todo and return new cursor position"""
         cline = self.get_cursor_line_number()
         lines = sorted(self.todo_lines.keys())
         for line in lines:
             if line > cline:
-                self.__highlight_todo(line)
-                return
+                break
         else:
-            self.__highlight_todo(lines[0])
+            line = lines[0]
+        self.__highlight_todo(line)
+        return self.get_position('cursor')
             
     def process_todo(self, todo_results):
         """Process todo finder results"""
