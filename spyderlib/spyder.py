@@ -27,7 +27,7 @@ STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QColor, QFileDialog, QShortcut,
-                         QKeySequence)
+                         QKeySequence, QDockWidget)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QSize, QByteArray)
 
@@ -39,7 +39,8 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
-from spyderlib.plugins.configdialog import ConfigDialog, ColorSchemeConfigPage
+from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
+                                            ColorSchemeConfigPage)
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
@@ -138,7 +139,8 @@ QMainWindow::separator:horizontal {
 
 class MainWindow(QMainWindow):
     """Spyder main window"""
-    
+    DOCKOPTIONS = QMainWindow.AnimatedDocks|QMainWindow.AllowTabbedDocks| \
+                  QMainWindow.AllowNestedDocks
     spyder_path = get_conf_path('.path')
     BOOKMARKS = (
          ('PyQt4',
@@ -168,10 +170,6 @@ class MainWindow(QMainWindow):
         self.debug_print("Start of MainWindow constructor")
         
 #        self.setStyleSheet(STYLESHEET)
-        
-        # Area occupied by a dock widget can be split in either direction
-        # to contain more dock widgets:
-        self.setDockNestingEnabled(True)
         
         # Loading Spyder path
         self.path = []
@@ -211,7 +209,7 @@ class MainWindow(QMainWindow):
         self.thirdparty_plugins = []
         
         # Preferences
-        self.general_prefs = [ColorSchemeConfigPage]
+        self.general_prefs = [MainConfigPage, ColorSchemeConfigPage]
         
         # Actions
         self.find_action = None
@@ -293,6 +291,8 @@ class MainWindow(QMainWindow):
         self.next_session_name = None
         self.save_session_name = None
         
+        self.apply_settings()
+        
         self.debug_print("End of MainWindow constructor")
         
     def debug_print(self, message):
@@ -305,6 +305,21 @@ class MainWindow(QMainWindow):
         toolbar.setObjectName(object_name)
         toolbar.setIconSize( QSize(iconsize, iconsize) )
         return toolbar
+    
+    def apply_settings(self):
+        """Apply settings changed in 'Preferences' dialog box"""
+        default = self.DOCKOPTIONS
+        if CONF.get('main', 'vertical_tabs'):
+            default = default|QMainWindow.VerticalTabs
+        if CONF.get('main', 'animated_docks'):
+            default = default|QMainWindow.AnimatedDocks
+        self.setDockOptions(default)
+        
+        for child in self.widgetlist:
+            features = child.FEATURES
+            if CONF.get('main', 'vertical_dockwidget_titlebars'):
+                features = features|QDockWidget.DockWidgetVerticalTitleBar
+            child.dockwidget.setFeatures(features)
         
     def setup(self):
         """Setup main window"""
@@ -826,6 +841,9 @@ class MainWindow(QMainWindow):
     def add_dockwidget(self, child):
         """Add QDockWidget and toggleViewAction"""
         dockwidget, location = child.create_dockwidget()
+        if CONF.get('main', 'vertical_dockwidget_titlebars'):
+            dockwidget.setFeatures(dockwidget.features()|
+                                   QDockWidget.DockWidgetVerticalTitleBar)
         self.addDockWidget(location, dockwidget)
         self.widgetlist.append(child)
         

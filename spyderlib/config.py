@@ -71,6 +71,9 @@ DEFAULTS = [
             ('main',
              {
               'translation': True,
+              'vertical_dockwidget_titlebars': False,
+              'vertical_tabs': False,
+              'animated_docks': True,
               'window/size': (1260, 740),
               'window/is_maximized': False,
               'window/is_fullscreen': False,
