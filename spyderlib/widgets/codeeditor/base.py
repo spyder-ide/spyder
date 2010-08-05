@@ -735,7 +735,7 @@ class TextEditBaseWidget(QPlainTextEdit):
 
     def show_completion_list(self, completions, completion_text=""):
         """Display the possible completions"""
-        if len(completions) == 0 or completion_text in completions:
+        if len(completions) == 0 or completions == [completion_text]:
             return
         self.completion_text = completion_text
         if isinstance(completions[0], unicode):
