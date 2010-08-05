@@ -491,7 +491,7 @@ class Editor(SpyderPluginWidget):
             'run_selection.png',
             tip=self.tr("Run selected text or current block of lines \n"
                         "inside current external console's interpreter"),
-            triggered=lambda: self.run_selection_or_block(external=True))
+            triggered=lambda: self.run_selection_or_block())
         
         self.todo_list_action = create_action(self,
             self.tr("Show todo list"), icon='todo_list.png',
