@@ -1294,10 +1294,9 @@ class CodeEditor(TextEditBaseWidget):
             position = cursor.position()
             cursor.select(QTextCursor.WordUnderCursor)
             text = unicode(cursor.selectedText())
-            if not self.go_to_definition_enabled or text is None or \
-               (self.is_python() or self.is_cython()) and is_keyword(text):
-                QPlainTextEdit.mousePressEvent(self, event)
-            else:
+            QPlainTextEdit.mousePressEvent(self, event)
+            if self.go_to_definition_enabled and text is not None and \
+               (self.is_python() or self.is_cython()) and not is_keyword(text):
                 self.emit(SIGNAL("go_to_definition(int)"), position)
         else:
             QPlainTextEdit.mousePressEvent(self, event)
