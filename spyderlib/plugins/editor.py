@@ -522,17 +522,20 @@ class Editor(SpyderPluginWidget):
         self.previous_edit_cursor_action = create_action(self,
             self.tr("Last edit location"), "Ctrl+Alt+Up",
             icon='last_edit_location.png',
-            tip=self.tr("Go to last edit location"),
+            tip=self.tr("Go to last edit location\n"
+                        "(shortcut: %1)").arg(u"Ctrl+Alt+↑"),
             triggered=self.go_to_last_edit_location)
         self.previous_cursor_action = create_action(self,
             self.tr("Previous cursor position"), "Ctrl+Alt+Left",
             icon='prev_cursor.png',
-            tip=self.tr("Go to previous cursor position"),
+            tip=self.tr("Go to previous cursor position"
+                        "\n(shortcut: %1)").arg(u"Ctrl+Alt+←"),
             triggered=self.go_to_previous_cursor_position)
         self.next_cursor_action = create_action(self,
             self.tr("Next cursor position"), "Ctrl+Alt+Right",
             icon='next_cursor.png',
-            tip=self.tr("Go to next cursor position"),
+            tip=self.tr("Go to next cursor position"
+                        "\n(shortcut: %1)").arg(u"Ctrl+Alt+→"),
             triggered=self.go_to_next_cursor_position)
         
         self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
