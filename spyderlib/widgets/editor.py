@@ -1380,7 +1380,8 @@ class EditorStack(QWidget):
         if self.inspector is not None and self.inspector.dockwidget.isVisible():
             # ObjectInspector widget exists and is visible
             self.inspector.set_object_text(qstr)
-            self.setFocus()
+            editor = self.get_current_editor()
+            editor.setFocus()
     
     def new(self, filename, encoding, text):
         """
