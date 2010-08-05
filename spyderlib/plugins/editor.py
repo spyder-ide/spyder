@@ -1478,11 +1478,17 @@ class Editor(SpyderPluginWidget):
             if position < editor.document().characterCount():
                 editor.set_cursor_position(position)
             
-    def go_to_previous_cursor_position(self):
+    def __move_cursor_position(self, index_move):
         if self.cursor_pos_index is None:
             return
+        filename, _position = self.cursor_pos_history[self.cursor_pos_index]
+        self.cursor_pos_history[self.cursor_pos_index] = ( filename,
+                            self.get_current_editor().get_position('cursor') )
         self.__ignore_cursor_position = True
-        self.cursor_pos_index = max([0, self.cursor_pos_index-1])
+        self.cursor_pos_index = min([
+                                     len(self.cursor_pos_history)-1,
+                                     max([0, self.cursor_pos_index+index_move])
+                                     ])
         filename, position = self.cursor_pos_history[self.cursor_pos_index]
         self.load(filename)
         editor = self.get_current_editor()
@@ -1491,19 +1497,11 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = False
         self.update_cursorpos_actions()
             
+    def go_to_previous_cursor_position(self):
+        self.__move_cursor_position(-1)
+            
     def go_to_next_cursor_position(self):
-        if self.cursor_pos_index is None:
-            return
-        self.__ignore_cursor_position = True
-        self.cursor_pos_index = min([len(self.cursor_pos_history)-1,
-                                     self.cursor_pos_index+1])
-        filename, position = self.cursor_pos_history[self.cursor_pos_index]
-        self.load(filename)
-        editor = self.get_current_editor()
-        if position < editor.document().characterCount():
-            editor.set_cursor_position(position)
-        self.__ignore_cursor_position = False
-        self.update_cursorpos_actions()
+        self.__move_cursor_position(1)
     
     #------ Run Python script
     def run_script_extconsole(self, ask_for_arguments=False,
