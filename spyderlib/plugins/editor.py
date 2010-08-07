@@ -1464,7 +1464,6 @@ class Editor(SpyderPluginWidget):
         
     def text_changed_at(self, filename, position):
         self.last_edit_cursor_pos = (unicode(filename), position)
-        self.add_cursor_position_to_history(unicode(filename), position)
         
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(unicode(filename), position,
@@ -1473,10 +1472,14 @@ class Editor(SpyderPluginWidget):
     def go_to_last_edit_location(self):
         if self.last_edit_cursor_pos is not None:
             filename, position = self.last_edit_cursor_pos
-            self.load(filename)
-            editor = self.get_current_editor()
-            if position < editor.document().characterCount():
-                editor.set_cursor_position(position)
+            if not osp.isfile(filename):
+                self.last_edit_cursor_pos = None
+                return
+            else:
+                self.load(filename)
+                editor = self.get_current_editor()
+                if position < editor.document().characterCount():
+                    editor.set_cursor_position(position)
             
     def __move_cursor_position(self, index_move):
         if self.cursor_pos_index is None:
@@ -1485,15 +1488,22 @@ class Editor(SpyderPluginWidget):
         self.cursor_pos_history[self.cursor_pos_index] = ( filename,
                             self.get_current_editor().get_position('cursor') )
         self.__ignore_cursor_position = True
+        old_index = self.cursor_pos_index
         self.cursor_pos_index = min([
                                      len(self.cursor_pos_history)-1,
                                      max([0, self.cursor_pos_index+index_move])
                                      ])
         filename, position = self.cursor_pos_history[self.cursor_pos_index]
-        self.load(filename)
-        editor = self.get_current_editor()
-        if position < editor.document().characterCount():
-            editor.set_cursor_position(position)
+        if not osp.isfile(filename):
+            self.cursor_pos_history.pop(self.cursor_pos_index)
+            if self.cursor_pos_index < old_index:
+                old_index -= 1
+            self.cursor_pos_index = old_index
+        else:
+            self.load(filename)
+            editor = self.get_current_editor()
+            if position < editor.document().characterCount():
+                editor.set_cursor_position(position)
         self.__ignore_cursor_position = False
         self.update_cursorpos_actions()
             
