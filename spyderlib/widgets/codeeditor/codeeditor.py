@@ -203,7 +203,6 @@ class CodeEditor(TextEditBaseWidget):
         self.set_occurence_highlighting(occurence_highlighting)
                 
         # Tab always indents (even when cursor is not at the begin of line)
-        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.set_tab_mode(tab_mode)
         
         if cloned_from is not None:
@@ -235,6 +234,7 @@ class CodeEditor(TextEditBaseWidget):
             self.__clear_occurences()
 
     def set_language(self, language):
+        self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.supported_language = False
         self.comment_string = ''
         if language is not None:
@@ -247,7 +247,10 @@ class CodeEditor(TextEditBaseWidget):
                         self.classfunc_match = None
                     else:
                         self.classfunc_match = CFMatch()
+                    apply_language = self.highlighter_class is not sh_class
                     self.highlighter_class = sh_class
+                    if apply_language:
+                        self.apply_highlighter_settings()
                 
     def is_python(self):
         return self.highlighter_class is syntaxhighlighters.PythonSH
@@ -651,6 +654,27 @@ class CodeEditor(TextEditBaseWidget):
             self.ctrl_click_color = hl.get_ctrlclick_color()
             self.area_background_color = hl.get_sideareas_color()
         self.highlight_current_line()
+        
+    def apply_highlighter_settings(self, color_scheme=None):
+        if self.highlighter_class is not None:
+            if not isinstance(self.highlighter, self.highlighter_class):
+                # Highlighter object has not been constructed yet
+                # or language has changed so it must be re-constructed
+                if self.highlighter is not None:
+                    # Removing old highlighter
+                    self.highlighter.setParent(None)
+                    self.highlighter.setDocument(None)
+                self.highlighter = self.highlighter_class(self.document(),
+                                                self.font(), self.color_scheme)
+                self._apply_highlighter_color_scheme()
+            else:
+                # Highlighter object has already been created:
+                # updating highlighter settings (font and color scheme)
+                self.highlighter.setup_formats(self.font())
+                if color_scheme is not None:
+                    self.set_color_scheme(color_scheme)
+                else:
+                    self.highlighter.rehighlight()
 
     def set_font(self, font, color_scheme=None):
         """Set shell font"""
@@ -661,17 +685,7 @@ class CodeEditor(TextEditBaseWidget):
             self.color_scheme = color_scheme
         self.setFont(font)
         self.update_linenumberarea_width(0)
-        if self.highlighter_class is not None:
-            if not isinstance(self.highlighter, self.highlighter_class):
-                self.highlighter = self.highlighter_class(self.document(),
-                                                    font, self.color_scheme)
-                self._apply_highlighter_color_scheme()
-            else:
-                self.highlighter.setup_formats(font)
-                if color_scheme is not None:
-                    self.set_color_scheme(color_scheme)
-                else:
-                    self.highlighter.rehighlight()
+        self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
         self.color_scheme = color_scheme

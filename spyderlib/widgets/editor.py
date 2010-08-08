@@ -294,6 +294,24 @@ class FileInfo(QObject):
         self.todo_results = []
 
 
+def get_file_language(filename, text=None):
+    ext = osp.splitext(filename)[1]
+    if ext.startswith('.'):
+        ext = ext[1:] # file extension with leading dot
+    language = ext
+    if not ext:
+        if text is None:
+            text, _enc = encoding.read(filename)
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            if line.startswith('#!') and \
+               line[2:].split() == ['/usr/bin/env', 'python']:
+                    language = 'python'
+            else:
+                break
+    return language
+        
 class EditorStack(QWidget):
     def __init__(self, parent, plugin, actions):
         QWidget.__init__(self, parent)
@@ -723,6 +741,10 @@ class EditorStack(QWidget):
         
     def rename_in_data(self, index, new_filename):
         finfo = self.data[index]
+        if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
+            # File type has changed!
+            language = get_file_language(new_filename)
+            finfo.editor.set_language(language)
         set_new_index = index == self.get_stack_index()
         finfo.filename = new_filename
         self.data.sort(key=self.__get_sorting_func())
@@ -1307,19 +1329,6 @@ class EditorStack(QWidget):
         Create a new editor instance
         Returns finfo object (instead of editor as in previous releases)
         """
-        ext = osp.splitext(fname)[1]
-        if ext.startswith('.'):
-            ext = ext[1:] # file extension with leading dot
-        language = ext
-        if not ext:
-            for line in txt.splitlines():
-                if not line.strip():
-                    continue
-                if line.startswith('#!') and \
-                   line[2:].split() == ['/usr/bin/env', 'python']:
-                        language = 'python'
-                else:
-                    break
         editor = CodeEditor(self)
         finfo = FileInfo(fname, enc, editor, new)
         if self.projectexplorer is not None:
@@ -1335,6 +1344,7 @@ class EditorStack(QWidget):
                      lambda fname, lineno, name:
                      self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, name))
+        language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled, language=language,
                 code_analysis=self.codeanalysis_enabled,
