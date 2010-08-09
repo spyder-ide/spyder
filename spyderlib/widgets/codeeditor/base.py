@@ -290,24 +290,6 @@ class TextEditBaseWidget(QPlainTextEdit):
             self.__highlight(self.bracepos, color=QColor(Qt.red).lighter(160))
 
 
-    #------Zoom in/out
-    def zoomIn(self):
-        """Zoom in text size --- <!> Currently not implemented"""
-        #TODO: Implement Zoom In
-        pass
-    
-    def zoomOut(self):
-        """Zoom out text size --- <!> Currently not implemented"""
-        #TODO: Implement Zoom Out
-        pass
-    
-#    def wheelEvent(self, event):
-#        if event.modifiers() & Qt.ControlModifier:
-#            pass ---> implement zoom in/out ??
-#        else:
-#            QPlainTextEdit.wheelEvent(self, event)
-
-        
     #-----Widget setup and options
     def setup(self):
         """Configure QPlainTextEdit"""

@@ -389,7 +389,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.set_cursor_position('eof')
             y_cursor = self.get_coordinates(cursor_position)[1]
             y_prompt = self.get_coordinates(self.current_prompt_pos)[1]
-            if self.is_completion_widget_visible() or y_cursor > y_prompt:
+            if y_cursor > y_prompt:
                 self.stdkey_up(shift)
             else:
                 self.browse_history(backward=True)
@@ -400,7 +400,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.set_cursor_position('eof')
             y_cursor = self.get_coordinates(cursor_position)[1]
             y_end = self.get_coordinates('eol')[1]
-            if self.is_completion_widget_visible() or y_cursor < y_end:
+            if y_cursor < y_end:
                 self.stdkey_down(shift)
             else:
                 self.browse_history(backward=False)
@@ -446,15 +446,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
             
         elif key == Qt.Key_Period and not self.has_selected_text():
             self._key_period(text)
-            event.accept()
-
-        elif ((key == Qt.Key_Plus) and ctrl) \
-             or ((key==Qt.Key_Equal) and shift and ctrl):
-            self.zoomIn()
-            event.accept()
-
-        elif (key == Qt.Key_Minus) and ctrl:
-            self.zoomOut()
             event.accept()
 
         elif text.length() and not self.isReadOnly():
@@ -797,12 +788,6 @@ class PythonShellWidget(ShellBaseWidget):
         if QToolTip.isVisible():
             _event, _text, key, _ctrl, _shift = restore_keyevent(event)
             self.hide_tooltip_if_necessary(key)
-            
-    def _key_enter(self):
-        if self.is_completion_widget_visible() and self.codecompletion_enter:
-            self.stdkey_tab()
-        else:
-            ShellBaseWidget._key_enter(self)
                 
     def _key_other(self, text):
         """1 character key"""
@@ -826,9 +811,7 @@ class PythonShellWidget(ShellBaseWidget):
                 
     def _key_tab(self):
         """Action for TAB key"""
-        if self.is_completion_widget_visible():
-            self.stdkey_tab()
-        elif self.is_cursor_on_last_line():
+        if self.is_cursor_on_last_line():
             empty_line = not self.get_current_line_to_cursor().strip()
             if empty_line:
                 self.stdkey_tab()
@@ -842,27 +825,21 @@ class PythonShellWidget(ShellBaseWidget):
                 
     def _key_home(self, shift):
         """Action for Home key"""
-        if self.is_completion_widget_visible():
-            self.completion_widget_home()
-        elif self.is_cursor_on_last_line():
+        if self.is_cursor_on_last_line():
             self.stdkey_home(shift, self.current_prompt_pos)
                 
     def _key_end(self, shift):
         """Action for End key"""
-        if self.is_completion_widget_visible():
-            self.completion_widget_end()
-        elif self.is_cursor_on_last_line():
+        if self.is_cursor_on_last_line():
             self.stdkey_end(shift)
                 
     def _key_pageup(self):
         """Action for PageUp key"""
-        if self.is_completion_widget_visible():
-            self.completion_widget_pageup()
+        pass
     
     def _key_pagedown(self):
         """Action for PageDown key"""
-        if self.is_completion_widget_visible():
-            self.completion_widget_pagedown()
+        pass
                 
     def _key_escape(self):
         """Action for ESCAPE key"""

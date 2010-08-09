@@ -1175,13 +1175,6 @@ class CodeEditor(TextEditBaseWidget):
                 QPlainTextEdit.keyPressEvent(self, event)
                 if self.is_completion_widget_visible():
                     self.completion_text = self.completion_text[:-1]
-        elif (key == Qt.Key_Plus and ctrl) \
-             or (key == Qt.Key_Equal and shift and ctrl):
-            self.zoomIn()
-            event.accept()
-        elif key == Qt.Key_Minus and ctrl:
-            self.zoomOut()
-            event.accept()
         # Indent/unindent
         elif key == Qt.Key_Backtab:
             self.unindent()
