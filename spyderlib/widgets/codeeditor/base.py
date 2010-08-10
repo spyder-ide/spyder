@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, re
+import sys, re, string
 
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
@@ -720,11 +720,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         if len(completions) == 0 or completions == [completion_text]:
             return
         self.completion_text = completion_text
-        if isinstance(completions[0], unicode):
-            key = unicode.lower
-        else:
-            key = str.lower
-        self.show_completion_widget(sorted(completions, key=key))
+        self.show_completion_widget(sorted(completions, key=string.lower))
         
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
