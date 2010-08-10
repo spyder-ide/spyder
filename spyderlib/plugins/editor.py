@@ -204,7 +204,7 @@ class Editor(SpyderPluginWidget):
         self.stack_menu_actions = None
         SpyderPluginWidget.__init__(self, parent)
 
-        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw')),
+        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw', '.ipy')),
                           (self.tr("Pyrex files"), ('.pyx',)),
                           (self.tr("C files"), ('.c', '.h')),
                           (self.tr("C++ files"), ('.cc', '.cpp', '.h',

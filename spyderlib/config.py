@@ -260,10 +260,10 @@ DEFAULTS = [
              {
               'enable': True,
               'wrap': True,
-              'name_filters': ['*.py', '*.pyw', '*.pth',
+              'name_filters': ['*.py', '*.pyw', '*.ipy', '*.pth',
                                '*.npy', '*.mat', '*.spydata'],
-              'valid_filetypes': ['', '.py', '.pyw', '.spydata', '.npy', '.pth',
-                                  '.txt', '.csv', '.mat', '.h5'],
+              'valid_filetypes': ['', '.py', '.pyw', '.ipy', '.spydata', '.npy',
+                                  '.pth', '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': False,
               'show_toolbar': True,
@@ -273,7 +273,7 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': [r'\.pyw?$|\.txt$|\.c$|\.cpp$|\.h$|\.hpp$|\.f$|\.ini$', '.'],
+              'include': [r'\.pyw?$|\.ipy$|\.txt$|\.c$|\.cpp$|\.h$|\.hpp$|\.f$|\.ini$', '.'],
               'include_regexp': True,
               'exclude': [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn'],
               'exclude_regexp': True,

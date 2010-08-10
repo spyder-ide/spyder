@@ -200,7 +200,7 @@ class Console(SpyderPluginWidget):
             self.shell.interpreter.restore_stds()
             filename = QFileDialog.getOpenFileName(self,
                           self.tr("Run Python script"), os.getcwdu(),
-                          self.tr("Python scripts")+" (*.py ; *.pyw)")
+                          self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
                 filename = unicode(filename)

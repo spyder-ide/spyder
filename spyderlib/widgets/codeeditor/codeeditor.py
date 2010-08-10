@@ -48,8 +48,8 @@ class CodeEditor(TextEditBaseWidget):
     Source Code Editor Widget based exclusively on Qt
     """
     LANGUAGES = {
-                 ('py', 'pyw', 'python'): (syntaxhighlighters.PythonSH,
-                                           '#', PythonCFM),
+                 ('py', 'pyw', 'python', 'ipy'): (syntaxhighlighters.PythonSH,
+                                                  '#', PythonCFM),
                  ('pyx',): (syntaxhighlighters.CythonSH,
                             '#', PythonCFM),
 #                 ('f', 'for'): (QsciLexerFortran77, 'c', None),

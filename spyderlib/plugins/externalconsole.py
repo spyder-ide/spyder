@@ -680,7 +680,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getOpenFileName(self,
                       self.tr("Run Python script"), os.getcwdu(),
-                      self.tr("Python scripts")+" (*.py ; *.pyw)")
+                      self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.start(fname=unicode(filename), wdir=None,
@@ -723,7 +723,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Is it a valid Python script?"""
         fname = unicode(qstr)
         return osp.isfile(fname) and \
-               ( fname.endswith('.py') or fname.endswith('.pyw') )
+               ( fname.endswith('.py') or fname.endswith('.pyw') \
+                 or fname.endswith('.ipy') )
         
     def dragEnterEvent(self, event):
         """Reimplement Qt method

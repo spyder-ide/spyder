@@ -241,7 +241,7 @@ class ExplorerTreeWidget(DirView):
             open_action = create_action(self,
                                         translate('Explorer', "Open"),
                                         triggered=self.startfile)
-            if ext in ('.py', '.pyw'):
+            if ext in ('.py', '.pyw', '.ipy'):
                 actions.append(run_action)
             if ext in self.valid_types or os.name != 'nt':
                 actions.append(browse_action if is_dir else edit_action)
@@ -511,14 +511,14 @@ class ExplorerTreeWidget(DirView):
         _temp = sys.stdout
         sys.stdout = None
         fname = QFileDialog.getSaveFileName(self,
-                translate('Explorer', "New Python script"), self.get_dirname(),
-                translate('Explorer', "Python scripts")+" (*.py ; *.pyw)"+"\n"+\
-                translate('Explorer', "All files")+" (*.*)")
+            translate('Explorer', "New Python script"), self.get_dirname(),
+            translate('Explorer', "Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
+            "\n"+translate('Explorer', "All files")+" (*.*)")
         sys.stdout = _temp
         if not fname.isEmpty():
             fname = unicode(fname)
             try:
-                if osp.splitext(fname)[1] in ('.py', '.pyw'):
+                if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):
                     create_script(fname)
                 else:
                     file(fname, 'wb').write('')

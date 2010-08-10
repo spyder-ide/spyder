@@ -1113,7 +1113,7 @@ class ExplorerTreeWidget(OneColumnTree):
     
     def new_module(self, item):
         title = translate('ProjectExplorer', "New module")
-        filters = translate('Explorer', "Python scripts")+" (*.py *.pyw)"
+        filters = translate('Explorer', "Python scripts")+" (*.py *.pyw *.ipy)"
         create_func = lambda fname: self.parent_widget.emit( \
                                      SIGNAL("create_module(QString)"), fname)
         self.__create_new_file(item, title, filters, create_func)
