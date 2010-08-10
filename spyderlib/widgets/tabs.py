@@ -161,6 +161,10 @@ class Tabs(BaseTabs):
                      self.__current_changed)
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent, self.tab_navigate)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
+                            lambda: self.emit(SIGNAL("close_tab(int)"),
+                                              self.currentIndex()))
+        closesc.setContext(Qt.WidgetWithChildrenShortcut)
         # Browsing tabs button
         browse_button = create_toolbutton(self,
                                           icon=get_icon("browse_tab.png"),

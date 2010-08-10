@@ -461,6 +461,9 @@ class EditorStack(QWidget):
         tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
                           self.go_to_previous_file)
         tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
+                            self.close_file)
+        closesc.setContext(Qt.WidgetWithChildrenShortcut)
         tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
                                self.go_to_next_file)
         tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
