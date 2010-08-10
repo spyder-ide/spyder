@@ -939,6 +939,13 @@ class PythonShellWidget(ShellBaseWidget):
             if obj_list:
                 self.show_completion_list(obj_list, completion_text=try1)
                 return
+        elif text.startswith('%'):
+            # IPython magic commands
+            obj_list = self.get_completion(text)
+            if obj_list:
+                self.show_completion_list(obj_list, completion_text=text)
+            # There is no point continuing the process when text starts with '%'
+            return
         obj_list = self.get_completion(last_obj)
         if not text.endswith('.') and last_obj and obj_list:
             self.show_completion_list(obj_list, completion_text=last_obj)
