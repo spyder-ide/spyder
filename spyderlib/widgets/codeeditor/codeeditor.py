@@ -1200,24 +1200,9 @@ class CodeEditor(TextEditBaseWidget):
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.emit(SIGNAL('trigger_code_completion()'))
-#        elif key == Qt.Key_Home and not ctrl and not shift:
-#            if self.is_completion_widget_visible():
-#                self.completion_widget_home()
-#                event.accept()
-#            else:
-#                QPlainTextEdit.keyPressEvent(self, event)
-#        elif key == Qt.Key_PageUp and not ctrl and not shift:
-#            if self.is_completion_widget_visible():
-#                self.completion_widget_pageup()
-#                event.accept()
-#            else:
-#                QPlainTextEdit.keyPressEvent(self, event)
-#        elif key == Qt.Key_PageDown and not ctrl and not shift:
-#            if self.is_completion_widget_visible():
-#                self.completion_widget_pagedown()
-#                event.accept()
-#            else:
-#                QPlainTextEdit.keyPressEvent(self, event)
+        elif key == Qt.Key_Home:
+            self.stdkey_home(shift)
+            event.accept()
         elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self.hide_completion_widget()
             if self.get_text('sol', 'cursor') and self.calltips:

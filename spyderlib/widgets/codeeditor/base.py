@@ -769,11 +769,20 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.insert_text(" "*4)
 
     def stdkey_home(self, shift, prompt_pos=None):
-        move_mode = self.__get_move_mode(shift)
+        """Smart HOME feature: cursor is first moved at 
+        indentation position, then at the start of the line"""
+        if prompt_pos is None:
+            start_position = self.get_position('sol')
+        else:
+            start_position = self.get_position(prompt_pos)
+        text = self.get_text(start_position, 'eol')
+        indent_pos = start_position+len(text)-len(text.lstrip())
         cursor = self.textCursor()
-        cursor.movePosition(QTextCursor.StartOfBlock, move_mode)
-        if prompt_pos is not None:
-            cursor.setPosition(prompt_pos, move_mode)
+        move_mode = self.__get_move_mode(shift)
+        if cursor.position() != indent_pos:
+            cursor.setPosition(indent_pos, move_mode)
+        else:
+            cursor.setPosition(start_position, move_mode)
         self.setTextCursor(cursor)
 
     def stdkey_end(self, shift):

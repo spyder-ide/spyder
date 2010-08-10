@@ -1082,24 +1082,6 @@ class TerminalWidget(ShellBaseWidget):
         """Action for Ctrl+Space"""
         pass
                 
-    def _key_home(self, shift):
-        """Action for Home key"""
-        if self.is_cursor_on_last_line():
-            self.stdkey_home(shift, self.current_prompt_pos)
-                
-    def _key_end(self, shift):
-        """Action for End key"""
-        if self.is_cursor_on_last_line():
-            self.stdkey_end(shift)
-                
-    def _key_pageup(self):
-        """Action for PageUp key"""
-        pass
-    
-    def _key_pagedown(self):
-        """Action for PageDown key"""
-        pass
-                
     def _key_escape(self):
         """Action for ESCAPE key"""
         self.clear_line()
