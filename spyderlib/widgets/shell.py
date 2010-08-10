@@ -946,9 +946,7 @@ class PythonShellWidget(ShellBaseWidget):
         #-----------------------------------------------------------------------
         
         obj_dir = self.get_dir(last_obj)
-        if last_obj and obj_dir:
-            if not text.endswith('.'):
-                return
+        if last_obj and obj_dir and text.endswith('.'):
             self.show_completion_list(obj_dir)
             return
         
@@ -957,11 +955,12 @@ class PythonShellWidget(ShellBaseWidget):
         if not text.endswith('.') and last_obj \
            and re.match(r'[a-zA-Z_0-9]*$', last_obj):
             b_k_g = dir(__builtin__)+self.get_globals_keys()+keyword.kwlist
-            if last_obj in b_k_g:
-                return
             for objname in b_k_g:
-                if objname.startswith(last_obj):
+                if objname.startswith(last_obj) and objname != last_obj:
                     self.show_completion_list(b_k_g, completion_text=last_obj)
+                    return
+            else:
+                return
         
         # Looking for an incomplete completion
         if last_obj is None:
