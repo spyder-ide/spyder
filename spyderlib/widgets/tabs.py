@@ -194,13 +194,20 @@ class Tabs(BaseTabs):
         
     def tab_navigate(self):
         """Ctrl+Tab"""
+        if len(self.index_history) < self.count():
+            # When tab is inserted, the 'currentChanged' signal is not emitted
+            # because index is still the same...
+            # so we add the index to history here:
+            index = self.currentIndex()
+            for _j, _i in enumerate(self.index_history[:]):
+                if _i >= index:
+                    self.index_history[_j] = _i+1
+            self.__current_changed(index)
         if len(self.index_history) > 1:
             last = len(self.index_history)-1
             index = self.index_history.pop(last)
             self.index_history.insert(0, index)
             self.setCurrentIndex(self.index_history[last])
-        elif len(self.index_history) == 0 and self.count():
-            self.index_history = [self.currentIndex()]            
 
     def move_tab(self, index_from, index_to):
         """Move tab inside a tabwidget"""
