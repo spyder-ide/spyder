@@ -261,11 +261,11 @@ class Monitor(threading.Thread):
         self.ipython_shell = None
         from __main__ import __dict__ as glbs
         while True:
-            if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                self.ipython_shell = glbs['__ipythonshell__'].IP
-                glbs = self.ipython_shell.user_ns
             try:
                 command = read_packet(self.request)
+                if self.ipython_shell is None and '__ipythonshell__' in glbs:
+                    self.ipython_shell = glbs['__ipythonshell__'].IP
+                    glbs = self.ipython_shell.user_ns
                 result = eval(command, glbs, self.locals)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
