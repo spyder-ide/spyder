@@ -1,0 +1,215 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © 2009 Pierre Raybaut
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
+"""Working Directory Plugin"""
+
+# pylint: disable-msg=C0103
+# pylint: disable-msg=R0903
+# pylint: disable-msg=R0911
+# pylint: disable-msg=R0201
+
+from PyQt4.QtGui import QToolBar, QLabel, QFileDialog
+from PyQt4.QtCore import SIGNAL
+
+import os, sys
+import os.path as osp
+
+# For debugging purpose:
+STDOUT = sys.stdout
+
+# Local imports
+from spyderlib.utils import encoding
+from spyderlib.config import get_conf_path, get_icon
+from spyderlib.utils.qthelpers import get_std_icon, create_action
+
+# Package local imports
+from spyderlib.widgets.comboboxes import PathComboBox
+from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.plugins.explorer import Explorer
+
+
+class WorkingDirectory(QToolBar, SpyderPluginMixin):
+    """
+    Working directory changer widget
+    """
+    CONF_SECTION = 'workingdir'
+    LOG_PATH = get_conf_path('.workingdir')
+    def __init__(self, parent, workdir=None):
+        QToolBar.__init__(self, parent)
+        SpyderPluginMixin.__init__(self, parent)
+        
+        self.setWindowTitle(self.get_plugin_title()) # Toolbar title
+        self.setObjectName(self.get_plugin_title()) # Used to save Window state
+        
+        label = QLabel(self.tr("Working directory:")+" ")
+        label.setToolTip(self.tr("This is the working directory for newly\n"
+                                 "opened consoles (Python interpreters and\n"
+                                 "terminals), for the file explorer, for the\n"
+                                 "find in files plugin and for new files\n"
+                                 "created in the editor"))
+        self.addWidget(label)
+        
+        # Previous dir action
+        self.history = []
+        self.histindex = None
+        self.previous_action = create_action(self, "previous", None,
+                                     get_icon('previous.png'), self.tr('Back'),
+                                     triggered=self.previous_directory)
+        self.addAction(self.previous_action)
+        
+        # Next dir action
+        self.history = []
+        self.histindex = None
+        self.next_action = create_action(self, "next", None,
+                                     get_icon('next.png'), self.tr('Next'),
+                                     triggered=self.next_directory)
+        self.addAction(self.next_action)
+        
+        # Enable/disable previous/next actions
+        self.connect(self, SIGNAL("set_previous_enabled(bool)"),
+                     self.previous_action.setEnabled)
+        self.connect(self, SIGNAL("set_next_enabled(bool)"),
+                     self.next_action.setEnabled)
+        
+        # Path combo box
+        adjust = self.get_option('working_dir_adjusttocontents', False)
+        self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
+        self.pathedit.setToolTip(self.tr("Working directory"))
+        self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
+        self.pathedit.setMaxCount(self.get_option('working_dir_history', 20))
+        wdhistory = self.load_wdhistory( workdir )
+        if workdir is None:
+            if wdhistory:
+                workdir = wdhistory[0]
+            else:
+                workdir = "."
+        self.chdir(workdir)
+        self.pathedit.addItems( wdhistory )
+        self.refresh_plugin()
+        self.addWidget(self.pathedit)
+        
+        # Browse action
+        browse_action = create_action(self, "browse", None,
+                                      get_std_icon('DirOpenIcon'),
+                                      self.tr('Browse a working directory'),
+                                      triggered=self.select_directory)
+        self.addAction(browse_action)
+        
+        # Set current console working directory action
+        setwd_action = create_action(self, icon=get_icon('set_workdir.png'),
+                                     text=self.tr("Set as current console's "
+                                                  "working directory"),
+                                     triggered=self.set_as_current_console_wd)
+        self.addAction(setwd_action)
+        
+        # Parent dir action
+        parent_action = create_action(self, "parent", None,
+                                      get_icon('up.png'),
+                                      self.tr('Change to parent directory'),
+                                      triggered=self.parent_directory)
+        self.addAction(parent_action)
+                
+    #------ SpyderPluginWidget API ---------------------------------------------    
+    def get_plugin_title(self):
+        """Return widget title"""
+        return self.tr('Working directory')
+        
+    def get_plugin_actions(self):
+        """Setup actions"""
+        return (None, None)
+    
+    def register_plugin(self):
+        """Register plugin in Spyder's main window"""
+        self.connect(self, SIGNAL('redirect_stdio(bool)'),
+                     self.main.redirect_internalshell_stdio)
+        self.connect(self.main.console.shell, SIGNAL("refresh()"),
+                     self.refresh_plugin)
+        self.main.addToolBar(self)
+        
+    def refresh_plugin(self):
+        """Refresh widget"""
+        curdir = os.getcwdu()
+        self.pathedit.add_text(curdir)
+        self.save_wdhistory()
+        self.emit(SIGNAL("set_previous_enabled(bool)"),
+                  self.histindex is not None and self.histindex > 0)
+        self.emit(SIGNAL("set_next_enabled(bool)"),
+                  self.histindex is not None and \
+                  self.histindex < len(self.history)-1)
+        
+    def closing_plugin(self, cancelable=False):
+        """Perform actions before parent main window is closed"""
+        return True
+        
+    #------ Public API ---------------------------------------------------------
+    def load_wdhistory(self, workdir=None):
+        """Load history from a text file in user home directory"""
+        if osp.isfile(self.LOG_PATH):
+            wdhistory, _ = encoding.readlines(self.LOG_PATH)
+            wdhistory = [name for name in wdhistory if os.path.isdir(name)]
+        else:
+            if workdir is None:
+                workdir = os.getcwdu()
+            wdhistory = [ workdir ]
+        return wdhistory
+    
+    def save_wdhistory(self):
+        """Save history to a text file in user home directory"""
+        text = [ unicode( self.pathedit.itemText(index) ) \
+                 for index in range(self.pathedit.count()) ]
+        encoding.writelines(text, self.LOG_PATH)
+        
+    def select_directory(self):
+        """Select directory"""
+        self.emit(SIGNAL('redirect_stdio(bool)'), False)
+        directory = QFileDialog.getExistingDirectory(self.main,
+                    self.tr("Select directory"), os.getcwdu())
+        if not directory.isEmpty():
+            self.chdir(directory)
+        self.emit(SIGNAL('redirect_stdio(bool)'), True)
+        
+    def previous_directory(self):
+        """Back to previous directory"""
+        self.histindex -= 1
+        self.chdir(browsing_history=True)
+        
+    def next_directory(self):
+        """Return to next directory"""
+        self.histindex += 1
+        self.chdir(browsing_history=True)
+        
+    def parent_directory(self):
+        """Change working directory to parent directory"""
+        self.chdir(os.path.join(os.getcwdu(), os.path.pardir))
+        
+    def chdir(self, directory=None, browsing_history=False):
+        """Set directory as working directory"""
+        # Working directory history management
+        if directory is not None:
+            directory = osp.abspath(unicode(directory))
+        if browsing_history:
+            directory = self.history[self.histindex]
+        elif directory in self.history:
+            self.histindex = self.history.index(directory)
+        else:
+            if self.histindex is None:
+                self.history = []
+            else:
+                self.history = self.history[:self.histindex+1]
+            self.history.append(directory)
+            self.histindex = len(self.history)-1
+        
+        # Changing working directory
+        os.chdir( unicode(directory) )
+        self.refresh_plugin()
+        if not isinstance(self.sender(), Explorer):
+            # Explorer is not the sender: let's refresh it
+            self.emit(SIGNAL("refresh_explorer(QString)"), directory)
+        self.emit(SIGNAL("refresh_findinfiles()"))
+        
+    def set_as_current_console_wd(self):
+        """Set as current console working directory"""
+        self.emit(SIGNAL("set_current_console_wd(QString)"), os.getcwdu())

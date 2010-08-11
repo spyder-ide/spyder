@@ -574,6 +574,9 @@ class ExternalConsole(SpyderPluginWidget):
                          self.run_script_in_current_shell)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)
+            self.connect(self.main.workingdirectory,
+                         SIGNAL("set_current_console_wd(QString)"),
+                         self.set_current_shell_working_directory)
             self.connect(self, SIGNAL('focus_changed()'),
                          self.main.plugin_focus_changed)
             self.connect(self, SIGNAL('redirect_stdio(bool)'),

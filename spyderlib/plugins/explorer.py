@@ -14,7 +14,7 @@
 from PyQt4.QtGui import QFontDialog
 from PyQt4.QtCore import SIGNAL
 
-import sys, os, os.path as osp
+import sys, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -29,8 +29,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
     def __init__(self, parent=None):
-        ExplorerWidget.__init__(self, parent=parent,
-                            path=self.get_option('path', None),
+        ExplorerWidget.__init__(self, parent=parent, path=None,
                             name_filters=self.get_option('name_filters'),
                             valid_types=self.get_option('valid_filetypes'),
                             show_all=self.get_option('show_all'),
@@ -96,14 +95,20 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      SIGNAL("refresh_explorer(QString)"), self.refresh_folder)
         self.connect(self.main.editor, SIGNAL("refresh_explorer(QString)"),
                      self.refresh_folder)
+        self.connect(self.main.workingdirectory,
+                     SIGNAL("refresh_explorer(QString)"),
+                     lambda directory: self.refresh_plugin(new_path=directory,
+                                                           force_current=True))
+        self.connect(self, SIGNAL("open_dir(QString)"),
+                     self.main.workingdirectory.chdir)
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
+        self.treewidget.update_history(new_path)
         self.treewidget.refresh(new_path, force_current=force_current)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        self.set_option('path', os.getcwdu())
         return True
         
     #------ Public API ---------------------------------------------------------        

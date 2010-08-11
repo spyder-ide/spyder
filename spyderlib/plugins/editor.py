@@ -296,9 +296,6 @@ class Editor(SpyderPluginWidget):
             self.splitter.restoreState( QByteArray().fromHex(str(state)) )
         
         self.recent_files = self.get_option('recent_files', [])
-        self.last_directory = None
-        if self.recent_files:
-            self.last_directory = osp.dirname(self.recent_files[0])
         
         self.untitled_num = 0
 
@@ -690,6 +687,8 @@ class Editor(SpyderPluginWidget):
                      self.main.execute_python_code_in_external_console)
         self.connect(self, SIGNAL('redirect_stdio(bool)'),
                      self.main.redirect_internalshell_stdio)
+        self.connect(self, SIGNAL("open_dir(QString)"),
+                     self.main.workingdirectory.chdir)
         self.set_inspector(self.main.inspector)
         self.main.add_dockwidget(self)
     
@@ -1105,8 +1104,6 @@ class Editor(SpyderPluginWidget):
             self.recent_files.insert(0, fname)
             if len(self.recent_files) > self.get_option('max_recent_files'):
                 self.recent_files.pop(-1)
-            if fname != self.TEMPFILE_PATH or self.last_directory is None:
-                self.last_directory = osp.dirname(fname)
     
     def new(self, fname=None, editorstack=None):
         """
@@ -1125,12 +1122,7 @@ class Editor(SpyderPluginWidget):
                            'username': os.environ.get('USERNAME', '-')}
         except:
             pass
-        basedir = self.last_directory
-        curfname = self.get_current_filename()
-        if curfname:
-            basedir = osp.dirname(curfname)
-        def create_fname(n):
-            return osp.join(basedir, unicode(self.tr("untitled"))+("%d.py" % n))
+        create_fname = lambda n: unicode(self.tr("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
             editorstack = self.get_current_editorstack()
@@ -1203,7 +1195,7 @@ class Editor(SpyderPluginWidget):
             if isinstance(action, QAction):
                 filenames = unicode(action.data().toString())
         if not filenames:
-            basedir = self.last_directory
+            basedir = os.getcwdu()
             fname = self.get_current_filename()
             if fname is not None and fname != self.TEMPFILE_PATH:
                 basedir = osp.dirname(fname)

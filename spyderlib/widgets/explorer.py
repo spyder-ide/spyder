@@ -384,19 +384,27 @@ class ExplorerTreeWidget(DirView):
         self.histindex += 1
         self.chdir(browsing_history=True)
         
+    def update_history(self, directory):
+        directory = osp.abspath(unicode(directory))
+        if directory in self.history:
+            self.histindex = self.history.index(directory)
+        
     def chdir(self, directory=None, browsing_history=False):
         """Set directory as working directory"""
+        if directory is not None:
+            directory = osp.abspath(unicode(directory))
         if browsing_history:
             directory = self.history[self.histindex]
+        elif directory in self.history:
+            self.histindex = self.history.index(directory)
         else:
             if self.histindex is None:
                 self.history = []
             else:
                 self.history = self.history[:self.histindex+1]
-            value = osp.abspath((unicode(directory)))
             if len(self.history) == 0 or \
-               (self.history and self.history[-1] != value):
-                self.history.append(value)
+               (self.history and self.history[-1] != directory):
+                self.history.append(directory)
             self.histindex = len(self.history)-1
         directory = unicode(directory)
         os.chdir(directory)

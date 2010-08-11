@@ -42,6 +42,7 @@ from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from spyderlib.plugins.console import Console
+from spyderlib.plugins.workingdirectory import WorkingDirectory
 from spyderlib.plugins.editor import Editor
 from spyderlib.plugins.history import HistoryLog
 from spyderlib.plugins.inspector import ObjectInspector
@@ -162,6 +163,7 @@ class MainWindow(QMainWindow):
     def __init__(self, options=None):
         super(MainWindow, self).__init__()
         
+        self.init_workdir = options.working_directory
         self.debug = options.debug
         self.profile = options.profile
         self.multithreaded = options.multithreaded
@@ -197,6 +199,7 @@ class MainWindow(QMainWindow):
         
         # Plugins
         self.console = None
+        self.workingdirectory = None
         self.editor = None
         self.explorer = None
         self.inspector = None
@@ -487,6 +490,10 @@ class MainWindow(QMainWindow):
                                    exitfunc=self.closing, profile=self.profile,
                                    multithreaded=self.multithreaded)
             self.console.register_plugin()
+            
+            # Working directory plugin
+            self.workingdirectory = WorkingDirectory(self, self.init_workdir)
+            self.workingdirectory.register_plugin()
         
             # Object inspector plugin
             if CONF.get('inspector', 'enable'):
@@ -1136,6 +1143,8 @@ def get_options():
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Reset to default session")
+    parser.add_option('-w', '--workdir', dest="working_directory", default=None,
+                      help="Default working directory")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
