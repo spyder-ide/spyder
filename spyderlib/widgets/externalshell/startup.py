@@ -91,10 +91,11 @@ class UserModuleDeleter(object):
 
 __umd__ = None
 
-def runfile(filename, args=None):
+def runfile(filename, args=None, wdir=None):
     """
     Run filename
     args: command line arguments (string)
+    wdir: working directory
     """
     global __umd__
     import os
@@ -117,6 +118,8 @@ def runfile(filename, args=None):
     if args is not None:
         for arg in args.split():
             sys.argv.append(arg)
+    if wdir is not None:
+        os.chdir(wdir)
     execfile(filename, glbs)
     sys.argv = ['']
     glbs.pop('__file__')

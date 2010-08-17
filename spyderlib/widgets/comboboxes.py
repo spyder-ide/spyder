@@ -143,8 +143,8 @@ class PathComboBox(EditableComboBox):
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this path"),
                      False: self.tr('This path is incorrect.\n'
-                                    'Enter a correct directory path.\n'
-                                    'Then press enter to validate')}
+                                    'Enter a correct directory path,\n'
+                                    'then press enter to validate')}
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""

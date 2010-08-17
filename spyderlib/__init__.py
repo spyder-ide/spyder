@@ -31,3 +31,9 @@ __version__ = '2.0.0alpha5'
 __license__ = __doc__
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
+
+#FIXME: syntax highlighting: see pdb.set_trace
+#TODO: option in 'variable explorer' to save variables (automatically?)
+#TODO: Editor: implement Ctrl+Home and Ctrl+End
+#TODO: Add an option in "general" preferences: starting working directory
+#      -> fixed directory or use last directory (radio button)

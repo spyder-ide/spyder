@@ -39,6 +39,8 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       EditorSplitter, EditorStack,
                                       EditorMainWindow, CodeEditor, Printer)
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
+                                         get_run_configuration)
 
 
 WINPDB_PATH = programs.get_nt_program_name('winpdb')
@@ -442,52 +444,27 @@ class Editor(SpyderPluginWidget):
             self.tr("Close all opened files"),
             triggered = self.close_all_files)
         
-        run_new_action = create_action(self,
-            self.tr("Run"), "F5", 'run_new.png',
-            self.tr("Run active script in a new external console"),
-            triggered=lambda: self.run_script_extconsole(current=False))
-        run_interact_action = create_action(self,
-            self.tr("Run and interact"), "Shift+F5", 'run.png',
-            tip=self.tr("Run current script in external console and interact "
-                        "\nwith Python interpreter when program has finished"),
-            triggered=lambda: self.run_script_extconsole(interact=True))
-        run_args_action = create_action(self,
-            self.tr("Run with arguments"), "Alt+F5", 'run_args.png',
-            tip=self.tr("Run current script in external console specifying "
-                        "command line arguments"
-                        "\n(external console is executed in a "
-                        "separate process)"),
-            triggered=lambda: self.run_script_extconsole( \
-                                           ask_for_arguments=True))
-        run_debug_action = create_action(self,
-            self.tr("Debug"), "Ctrl+Shift+F5", 'bug.png',
+        run_action = create_action(self, self.tr("Run"), "F5", 'run.png',
+            self.tr("Run active script in a new Python interpreter"),
+            triggered=self.run_file)
+        debug_action = create_action(self,
+            self.tr("Debug"), "Ctrl+F5", 'bug.png',
             tip=self.tr("Debug current script in external console"
                         "\n(external console is executed in a "
                         "separate process)"),
-            triggered=lambda: self.run_script_extconsole( \
-                                           ask_for_arguments=True, debug=True))
+            triggered=self.debug_file)
+        configure_action = create_action(self,
+            self.tr("Configure..."), "F6", 'configure.png',
+            self.tr("Edit run configurations"),
+            triggered=self.edit_run_configurations)
         re_run_action = create_action(self,
-            self.tr("Re-run last script"), "Ctrl+Alt+F5", 'run_again.png',
+            self.tr("Re-run last script"), "Ctrl+F6", 'run_again.png',
             self.tr("Run again last script in external console with the "
                     "same options"),
-            triggered=self.re_run_extconsole)
+            triggered=self.re_run_file)
         
-        run_inside_action = create_action(self,
-            self.tr("Run inside interpreter"), "F6", 'run.png',
-            self.tr("Run active script in current external console's "
-                    "interpreter"),
-            triggered=lambda: self.run_script_extconsole(current=True))
-        run_args_inside_action = create_action(self,
-            self.tr("Run inside interpreter with arguments"), "Alt+F6",
-            'run_args.png',
-            tip=self.tr("Run current script in external console specifying "
-                        "command line arguments"
-                        "\n(external console is executed in a "
-                        "separate process)"),
-            triggered=lambda: self.run_script_extconsole(current=True,
-                                                        ask_for_arguments=True))
         run_selected_action = create_action(self,
-            self.tr("Run &selection or current block"), "Ctrl+F6",
+            self.tr("Run &selection or current block"), "F9",
             'run_selection.png',
             tip=self.tr("Run selected text or current block of lines \n"
                         "inside current external console's interpreter"),
@@ -632,12 +609,10 @@ class Editor(SpyderPluginWidget):
                                 self.indent_action, self.unindent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
         
-        run_menu_actions = [run_new_action, run_interact_action,
-                            run_args_action, run_debug_action,
-                            re_run_action, None, run_inside_action,
-                            run_args_inside_action, run_selected_action]
+        run_menu_actions = [run_action, debug_action, configure_action,
+                            None, re_run_action, run_selected_action]
         self.main.run_menu_actions += run_menu_actions
-        run_toolbar_actions = [run_new_action, run_inside_action,
+        run_toolbar_actions = [run_action, debug_action, configure_action,
                                run_selected_action, re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
@@ -656,9 +631,8 @@ class Editor(SpyderPluginWidget):
                                     source_toolbar_actions + [None] + \
                                     run_toolbar_actions + [None] + \
                                     edit_toolbar_actions
-        self.pythonfile_dependent_actions = [run_new_action, run_inside_action,
-                run_args_inside_action, re_run_action, run_interact_action,
-                run_selected_action, run_args_action, run_debug_action,
+        self.pythonfile_dependent_actions = [run_action, configure_action,
+                debug_action, re_run_action, run_selected_action,
                 blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
@@ -667,8 +641,8 @@ class Editor(SpyderPluginWidget):
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [self.save_action, save_as_action,
-                                   print_action, run_new_action,
-                                   run_inside_action, workdir_action,
+                                   print_action, run_action, debug_action,
+                                   configure_action, workdir_action, 
                                    self.close_action]
         
         return self.file_dependent_actions
@@ -681,7 +655,7 @@ class Editor(SpyderPluginWidget):
                      self.main.plugin_focus_changed)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL("open_external_console(QString,QString,bool,bool,bool,bool)"),
+        self.connect(self, SIGNAL("open_external_console(QString,QString,QString,bool,bool,bool)"),
                      self.main.open_external_console)
         self.connect(self, SIGNAL('external_console_execute_lines(QString)'),
                      self.main.execute_python_code_in_external_console)
@@ -1516,19 +1490,39 @@ class Editor(SpyderPluginWidget):
         self.__move_cursor_position(1)
     
     #------ Run Python script
-    def run_script_extconsole(self, ask_for_arguments=False,
-                              interact=False, debug=False, current=False):
-        """Run current script in another process"""
+    def edit_run_configurations(self):
+        dialog = RunConfigDialog(self)
+        fname = osp.abspath(self.get_current_filename())
+        dialog.setup(fname)
+        dialog.exec_()
+        
+    def run_file(self, debug=None):
+        """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
         if editorstack.save():
             editor = self.get_current_editor()
             fname = osp.abspath(self.get_current_filename())
-            wdir = osp.dirname(fname)
+            
+            runconf = get_run_configuration(fname)
+            if runconf is None:
+                dialog = RunConfigOneDialog(self)
+                dialog.setup(fname)
+                if not dialog.exec_():
+                    return
+                runconf = dialog.get_configuration()
+                
+            wdir = runconf.get_working_directory()
+            args = runconf.get_arguments()
+            interact = runconf.interact
+            if debug is None:
+                debug = runconf.debug
+            current = runconf.current
+            
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
-            self.__last_ec_exec = (fname, wdir, ask_for_arguments,
+            self.__last_ec_exec = (fname, wdir, args,
                                    interact, debug, python, current)
-            self.re_run_extconsole()
+            self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
                 # raised in top-level and so focus will be given to the
@@ -1536,18 +1530,22 @@ class Editor(SpyderPluginWidget):
                 # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
-    def re_run_extconsole(self):
-        """Re-run script in external console"""
+    def debug_file(self):
+        """Debug current script"""
+        self.run_file(debug=True)
+        
+    def re_run_file(self):
+        """Re-run last script"""
         if self.__last_ec_exec is None:
             return
-        (fname, wdir, ask_for_arguments,
+        (fname, wdir, args,
          interact, debug, python, current) = self.__last_ec_exec
         if current:
-            self.emit(SIGNAL('run_script_in_external_console(QString,bool)'),
-                      fname, ask_for_arguments)
+            self.emit(SIGNAL('run_in_current_console(QString,QString,QString)'),
+                      fname, wdir, args)
         else:
-            self.emit(SIGNAL('open_external_console(QString,QString,bool,bool,bool,bool)'),
-                      fname, wdir, ask_for_arguments, interact, debug, python)
+            self.emit(SIGNAL('open_external_console(QString,QString,QString,bool,bool,bool)'),
+                      fname, wdir, args, interact, debug, python)
 
     def run_selection_or_block(self):
         """Run selection or current line in external console"""

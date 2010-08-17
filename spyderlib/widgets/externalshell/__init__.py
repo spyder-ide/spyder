@@ -188,11 +188,13 @@ class ExternalShellBase(QWidget):
         self.run_button.setEnabled(not state)
         self.kill_button.setEnabled(state)
     
-    def start(self, ask_for_arguments=False):
+    def start(self, args=None, ask_for_arguments=False):
         """Start shell"""
         if ask_for_arguments and not self.get_arguments():
             self.set_running_state(False)
             return
+        if args is not None:
+            self.arguments = unicode(args)
         self.create_process()
 
     def get_arguments(self):

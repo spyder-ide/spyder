@@ -1031,15 +1031,13 @@ class MainWindow(QMainWindow):
         else:
             self.console.shell.interpreter.restore_stds()
         
-    def open_external_console(self, fname, wdir,
-                              ask_for_arguments, interact, debug, python):
+    def open_external_console(self, fname, wdir, args, interact, debug, python):
         """Open external console"""
         self.extconsole.setVisible(True)
         self.extconsole.raise_()
         if fname is not None:
             fname = unicode(fname)
-        self.extconsole.start(fname, wdir,
-                              ask_for_arguments, interact, debug, python)
+        self.extconsole.start(fname, wdir, args, interact, debug, python)
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external console"""

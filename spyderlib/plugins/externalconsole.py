@@ -316,25 +316,16 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def get_runfile_args(self):
-        arguments, valid = QInputDialog.getText(self, self.tr('Arguments'),
-                                          self.tr('Command line arguments:'),
-                                          QLineEdit.Normal, self.runfile_args)
-        if valid:
-            self.runfile_args = unicode(arguments)
-        return valid
-        
-    def run_script_in_current_shell(self, filename, ask_for_arguments):
+    def run_script_in_current_shell(self, filename, wdir, args):
         """Run script in current shell, if any"""
         shellwidget = self.__find_python_shell(interpreter_only=True)
         if shellwidget is not None and shellwidget.is_running():
-            if ask_for_arguments:
-                if not self.get_runfile_args():
-                    return
-                line = "runfile(r'%s', args='%s')" % (unicode(filename),
-                                                      self.runfile_args)
-            else:
-                line = "runfile(r'%s')" % unicode(filename)
+            line = "runfile(r'%s'" % unicode(filename)
+            if args:
+                line += ", args='%s'" % args
+            if wdir:
+                line += ", wdir=u'%s'" % wdir
+            line += ")"
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()
             
@@ -351,7 +342,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.execute_lines(unicode(lines))
             shellwidget.shell.setFocus()
         
-    def start(self, fname, wdir=None, ask_for_arguments=False,
+    def start(self, fname, wdir=None, args=None,
               interact=False, debug=False, python=True,
               ipython=False, arguments=None, current=False):
         """Start new console"""
@@ -481,7 +472,7 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.set_icontext_visible(self.get_option('show_icontext'))
         
         # Start process and give focus to console
-        shellwidget.start(ask_for_arguments)
+        shellwidget.start(args)
         shellwidget.shell.setFocus()
         
     #------ Private API --------------------------------------------------------
@@ -570,7 +561,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
             self.connect(self.main.editor,
-                         SIGNAL('run_script_in_external_console(QString,bool)'),
+                         SIGNAL('run_in_current_console(QString,QString,QString)'),
                          self.run_script_in_current_shell)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)
@@ -644,7 +635,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open interpreter"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
+        self.start(fname=None, wdir=unicode(wdir), args=None,
                    interact=True, debug=False, python=True)
         
     def get_default_ipython_options(self):
@@ -667,7 +658,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open IPython"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
+        self.start(fname=None, wdir=unicode(wdir), args=None,
                    interact=True, debug=False, python=True, ipython=True,
                    arguments=self.get_option('ipython_options', ""))
         
@@ -675,7 +666,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open terminal"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), ask_for_arguments=False,
+        self.start(fname=None, wdir=unicode(wdir), args=None,
                    interact=True, debug=False, python=False)
         
     def run_script(self):
@@ -686,8 +677,8 @@ class ExternalConsole(SpyderPluginWidget):
                       self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.start(fname=unicode(filename), wdir=None,
-                       ask_for_arguments=False, interact=False, debug=False)
+            self.start(fname=unicode(filename), wdir=None, args=None,
+                       interact=False, debug=False)
         
     def set_umd_namelist(self):
         """Set UMD excluded modules name list"""
