@@ -9,7 +9,7 @@
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QDialog, QWidget, QGroupBox,
                          QLabel, QPushButton, QCheckBox, QLineEdit, QComboBox,
                          QHBoxLayout, QDialogButtonBox, QStackedWidget,
-                         QGridLayout, QSizePolicy, QRadioButton)
+                         QGridLayout, QSizePolicy, QRadioButton, QMessageBox)
 from PyQt4.QtCore import SIGNAL, SLOT
 
 import os, sys
@@ -108,6 +108,7 @@ class RunConfigOptions(QWidget):
         self.wd_edit.setEnabled(False)
         wd_layout.addWidget(self.wd_edit)
         browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn.setToolTip(self.tr("Select directory"))
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
@@ -183,6 +184,16 @@ class RunConfigOptions(QWidget):
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.debug = self.debug_cb.isChecked()
         return self.runconf.get()
+    
+    def is_valid(self):
+        wdir = unicode(self.wd_edit.text())
+        if not self.wd_cb.isChecked() or osp.isdir(wdir):
+            return True
+        else:
+            QMessageBox.critical(self, self.tr("Run configuration"),
+                                 self.tr("The following working directory is "
+                                         "not valid:<br><b>%1</b>").arg(wdir))
+            return False
 
 
 class RunConfigOneDialog(QDialog):
@@ -215,6 +226,8 @@ class RunConfigOneDialog(QDialog):
             
     def accept(self):
         """Reimplement Qt method"""
+        if not self.runconfigoptions.is_valid():
+            return
         configurations = _get_run_configurations()
         configurations.insert(0, (self.filename, self.runconfigoptions.get()))
         _set_run_configurations(configurations)
@@ -280,7 +293,10 @@ class RunConfigDialog(QDialog):
         configurations = []
         for index in range(self.stack.count()):
             filename = unicode(self.combo.itemText(index))
-            options = self.stack.widget(index).get()
+            runconfigoptions = self.stack.widget(index)
+            if not runconfigoptions.is_valid():
+                return
+            options = runconfigoptions.get()
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
