@@ -6,9 +6,11 @@
 
 """Configuration dialog / Preferences"""
 
+import os, os.path as osp
+
 from spyderlib.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
                               set_default_color_scheme, COLOR_SCHEME_NAMES)
-from spyderlib.utils.qthelpers import translate
+from spyderlib.utils.qthelpers import translate, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 
@@ -16,7 +18,8 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                          QVBoxLayout, QStackedWidget, QListView, QHBoxLayout,
                          QDialogButtonBox, QCheckBox, QMessageBox, QLabel,
                          QLineEdit, QSpinBox, QPushButton, QFontComboBox,
-                         QGroupBox, QComboBox, QColor, QGridLayout, QTabWidget)
+                         QGroupBox, QComboBox, QColor, QGridLayout, QTabWidget,
+                         QRadioButton, QButtonGroup, QFileDialog)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant
 
 
@@ -51,6 +54,10 @@ class ConfigPage(QWidget):
     def set_modified(self, state):
         self.is_modified = state
         self.emit(SIGNAL("apply_button_enabled(bool)"), state)
+        
+    def is_valid(self):
+        """Return True if all widget contents are valid"""
+        raise NotImplementedError
     
     def apply_changes(self):
         """Apply changes callback"""
@@ -116,13 +123,19 @@ class ConfigDialog(QDialog):
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.pages_widget.count()):
-            self.pages_widget.widget(index).apply_changes()
+            configpage = self.pages_widget.widget(index)
+            if not configpage.is_valid():
+                return
+            configpage.apply_changes()
         QDialog.accept(self)
         
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
-            self.pages_widget.currentWidget().apply_changes()
+            configpage = self.pages_widget.currentWidget()
+            if not configpage.is_valid():
+                return
+            configpage.apply_changes()
             
     def current_page_changed(self, index):
         widget = self.pages_widget.widget(index)
@@ -147,13 +160,16 @@ class SpyderConfigPage(ConfigPage):
                             apply_callback=lambda:
                             self.apply_settings(self.changed_options))
         self.checkboxes = {}
+        self.radiobuttons = {}
         self.lineedits = {}
+        self.validate_data = {}
         self.spinboxes = {}
         self.comboboxes = {}
         self.fontboxes = {}
         self.coloredits = {}
         self.scedits = {}
         self.changed_options = set()
+        self.default_button_group = None
         
     def apply_settings(self, options):
         raise NotImplementedError
@@ -163,12 +179,30 @@ class SpyderConfigPage(ConfigPage):
         if not state:
             self.changed_options = set()
         
+    def is_valid(self):
+        """Return True if all widget contents are valid"""
+        for lineedit in self.lineedits:
+            if lineedit in self.validate_data and lineedit.isEnabled():
+                validator, invalid_msg = self.validate_data[lineedit]
+                text = unicode(lineedit.text())
+                if not validator(text):
+                    QMessageBox.critical(self, self.get_name(),
+                                     "%s:<br><b>%s</b>" % (invalid_msg, text),
+                                     QMessageBox.Ok)
+                    return False
+        return True
+        
     def load_from_conf(self):
         """Load settings from configuration file"""
         for checkbox, (option, default) in self.checkboxes.items():
             checkbox.setChecked(self.get_option(option, default))
             checkbox.setProperty("option", QVariant(option))
             self.connect(checkbox, SIGNAL("clicked(bool)"),
+                         lambda checked: self.has_been_modified())
+        for radiobutton, (option, default) in self.radiobuttons.items():
+            radiobutton.setChecked(self.get_option(option, default))
+            radiobutton.setProperty("option", QVariant(option))
+            self.connect(radiobutton, SIGNAL("toggled(bool)"),
                          lambda checked: self.has_been_modified())
         for lineedit, (option, default) in self.lineedits.items():
             lineedit.setText(self.get_option(option, default))
@@ -235,6 +269,8 @@ class SpyderConfigPage(ConfigPage):
         """Save settings to configuration file"""
         for checkbox, (option, _default) in self.checkboxes.items():
             self.set_option(option, checkbox.isChecked())
+        for radiobutton, (option, _default) in self.radiobuttons.items():
+            self.set_option(option, radiobutton.isChecked())
         for lineedit, (option, _default) in self.lineedits.items():
             self.set_option(option, unicode(lineedit.text()))
         for spinbox, (option, _default) in self.spinboxes.items():
@@ -278,6 +314,30 @@ class SpyderConfigPage(ConfigPage):
             self.connect(checkbox, SIGNAL("clicked(bool)"), show_message)
         return checkbox
     
+    def create_radiobutton(self, text, option, default=NoDefault,
+                           tip=None, msg_warning=None, msg_info=None,
+                           msg_if_enabled=False, button_group=None):
+        radiobutton = QRadioButton(text)
+        if button_group is None:
+            if self.default_button_group is None:
+                self.default_button_group = QButtonGroup(self)
+            button_group = self.default_button_group
+        button_group.addButton(radiobutton)
+        if tip is not None:
+            radiobutton.setToolTip(tip)
+        self.radiobuttons[radiobutton] = (option, default)
+        if msg_warning is not None or msg_info is not None:
+            def show_message(is_checked):
+                if is_checked or not msg_if_enabled:
+                    if msg_warning is not None:
+                        QMessageBox.warning(self, self.get_name(),
+                                            msg_warning, QMessageBox.Ok)
+                    if msg_info is not None:
+                        QMessageBox.information(self, self.get_name(),
+                                                msg_info, QMessageBox.Ok)
+            self.connect(radiobutton, SIGNAL("toggled(bool)"), show_message)
+        return radiobutton
+    
     def create_lineedit(self, text, option, default=NoDefault,
                         tip=None, alignment=Qt.Vertical):
         label = QLabel(text)
@@ -290,9 +350,72 @@ class SpyderConfigPage(ConfigPage):
         if tip:
             edit.setToolTip(tip)
         self.lineedits[edit] = (option, default)
-        lineedit = QWidget(self)
-        lineedit.setLayout(layout)
-        return lineedit
+        widget = QWidget(self)
+        widget.setLayout(layout)
+        return widget
+    
+    def create_browsedir(self, text, option, default=NoDefault, tip=None):
+        widget = self.create_lineedit(text, option, default,
+                                      alignment=Qt.Horizontal)
+        for edit in self.lineedits:
+            if widget.isAncestorOf(edit):
+                break
+        msg = translate("PluginConfigPage", "Invalid directory path")
+        self.validate_data[edit] = (osp.isdir, msg)
+        browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        browse_btn.setToolTip(translate("PluginConfigPage", "Select directory"))
+        self.connect(browse_btn, SIGNAL("clicked()"),
+                     lambda: self.select_directory(edit))
+        layout = QHBoxLayout()
+        layout.addWidget(widget)
+        layout.addWidget(browse_btn)
+        layout.setContentsMargins(0, 0, 0, 0)
+        browsedir = QWidget(self)
+        browsedir.setLayout(layout)
+        return browsedir
+
+    def select_directory(self, edit):
+        """Select directory"""
+        basedir = unicode(edit.text())
+        if not osp.isdir(basedir):
+            basedir = os.getcwdu()
+        title = translate("PluginConfigPage", "Select directory")
+        directory = QFileDialog.getExistingDirectory(self, title, basedir)
+        if not directory.isEmpty():
+            edit.setText(directory)
+    
+    def create_browsefile(self, text, option, default=NoDefault, tip=None,
+                          filters=None):
+        widget = self.create_lineedit(text, option, default,
+                                      alignment=Qt.Horizontal)
+        for edit in self.lineedits:
+            if widget.isAncestorOf(edit):
+                break
+        msg = translate("PluginConfigPage", "Invalid file path")
+        self.validate_data[edit] = (osp.isfile, msg)
+        browse_btn = QPushButton(get_std_icon('FileIcon'), "", self)
+        browse_btn.setToolTip(translate("PluginConfigPage", "Select file"))
+        self.connect(browse_btn, SIGNAL("clicked()"),
+                     lambda: self.select_file(edit, filters))
+        layout = QHBoxLayout()
+        layout.addWidget(widget)
+        layout.addWidget(browse_btn)
+        layout.setContentsMargins(0, 0, 0, 0)
+        browsedir = QWidget(self)
+        browsedir.setLayout(layout)
+        return browsedir
+
+    def select_file(self, edit, filters=None):
+        """Select File"""
+        basedir = osp.dirname(unicode(edit.text()))
+        if not osp.isdir(basedir):
+            basedir = os.getcwdu()
+        if filters is None:
+            filters = translate("PluginConfigPage", "All files (*.*)")
+        title = translate("PluginConfigPage", "Select file")
+        filename = QFileDialog.getOpenFileName(self, title, basedir, filters)
+        if filename:
+            edit.setText(filename)
     
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):

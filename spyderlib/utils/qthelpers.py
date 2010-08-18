@@ -9,9 +9,9 @@
 import os.path as osp
 import os, webbrowser
 
-from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
-                         QVBoxLayout, QHBoxLayout, QLineEdit, QLabel,
-                         QKeySequence, QToolButton, QKeyEvent, QMenu)
+from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication, QLabel,
+                         QVBoxLayout, QHBoxLayout, QLineEdit, QKeyEvent, QMenu,
+                         QKeySequence, QToolButton)
 from PyQt4.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale, QTranslator,
                           QLibraryInfo)
 
@@ -250,6 +250,7 @@ def create_python_gui_script_action(parent, text, icon,
                              triggered=lambda:
                              programs.run_python_gui_script(package, module,
                                                             args))
+
         
 def get_std_icon(name, size=None):
     """Get standard platform icon

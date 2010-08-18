@@ -208,12 +208,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>ColorSchemeConfigPage</name>
     <message>
-        <location filename="plugins/configdialog.py" line="482"/>
+        <location filename="plugins/configdialog.py" line="605"/>
         <source>Syntax coloring</source>
         <translation>Coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="509"/>
+        <location filename="plugins/configdialog.py" line="632"/>
         <source>Color scheme</source>
         <translation>Paramètres de coloration syntaxique</translation>
     </message>
@@ -228,72 +228,72 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Note : ces paramètres ne sont pas enregistrés par Spyder. Ils peuvent néanmoins servir à établir plus facilement le jeu de paramètres de coloration syntaxique personnalisable</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="531"/>
+        <location filename="plugins/configdialog.py" line="654"/>
         <source>Reset to default values</source>
         <translation>Rétablir les valeurs par défaut</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="491"/>
+        <location filename="plugins/configdialog.py" line="614"/>
         <source>Background:</source>
         <translation>Fond :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="492"/>
+        <location filename="plugins/configdialog.py" line="615"/>
         <source>Current line:</source>
         <translation>Ligne actuelle :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="493"/>
+        <location filename="plugins/configdialog.py" line="616"/>
         <source>Occurence:</source>
         <translation>Occurence :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="494"/>
+        <location filename="plugins/configdialog.py" line="617"/>
         <source>Link:</source>
         <translation>Lien :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="495"/>
+        <location filename="plugins/configdialog.py" line="618"/>
         <source>Side areas:</source>
         <translation>Zones latérales :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="496"/>
+        <location filename="plugins/configdialog.py" line="619"/>
         <source>Normal text:</source>
         <translation>Texte normal :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="497"/>
+        <location filename="plugins/configdialog.py" line="620"/>
         <source>Keyword:</source>
         <translation>Mot-clé :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="498"/>
+        <location filename="plugins/configdialog.py" line="621"/>
         <source>Builtin:</source>
         <translation>Objet intégré :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="499"/>
+        <location filename="plugins/configdialog.py" line="622"/>
         <source>Definition:</source>
         <translation>Définition :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="500"/>
+        <location filename="plugins/configdialog.py" line="623"/>
         <source>Comment:</source>
         <translation>Commentaire :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="501"/>
+        <location filename="plugins/configdialog.py" line="624"/>
         <source>String:</source>
         <translation>Chaîne :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="502"/>
+        <location filename="plugins/configdialog.py" line="625"/>
         <source>Number:</source>
         <translation>Nombre :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="503"/>
+        <location filename="plugins/configdialog.py" line="626"/>
         <source>Instance:</source>
         <translation>Instance :</translation>
     </message>
@@ -301,7 +301,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>ConfigDialog</name>
     <message>
-        <location filename="plugins/configdialog.py" line="112"/>
+        <location filename="plugins/configdialog.py" line="119"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
@@ -4125,29 +4125,34 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>MainConfigPage</name>
     <message>
-        <location filename="plugins/configdialog.py" line="447"/>
+        <location filename="plugins/configdialog.py" line="570"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="451"/>
+        <location filename="plugins/configdialog.py" line="574"/>
         <source>Interface</source>
         <translation>Interface</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="453"/>
+        <location filename="plugins/configdialog.py" line="576"/>
         <source>Vertical dockwidget title bars</source>
         <translation>Barres de titre orientées verticalement</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="456"/>
+        <location filename="plugins/configdialog.py" line="579"/>
         <source>Vertical dockwidget tabs</source>
         <translation>Onglets distribués verticalement</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="459"/>
+        <location filename="plugins/configdialog.py" line="582"/>
         <source>Animated toolbars and dockwidgets</source>
         <translation>Panneaux et barres d&apos;outils animés</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="474"/>
+        <source>Startup</source>
+        <translation type="obsolete">Démarrage</translation>
     </message>
 </context>
 <context>
@@ -5146,29 +5151,54 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>PluginConfigPage</name>
     <message>
-        <location filename="plugins/configdialog.py" line="388"/>
+        <location filename="plugins/configdialog.py" line="511"/>
         <source>Font: </source>
         <translation>Police : </translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="392"/>
+        <location filename="plugins/configdialog.py" line="515"/>
         <source>Size: </source>
         <translation>Taille : </translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="402"/>
+        <location filename="plugins/configdialog.py" line="525"/>
         <source>Font style</source>
         <translation>Police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="347"/>
+        <location filename="plugins/configdialog.py" line="470"/>
         <source>Bold</source>
         <translation>Gras</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="350"/>
+        <location filename="plugins/configdialog.py" line="473"/>
         <source>Italic</source>
         <translation>Italique</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="363"/>
+        <source>Invalid directory path</source>
+        <translation>Chemin d&apos;accès de répertoire incorrect</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="382"/>
+        <source>Select directory</source>
+        <translation>Sélectionner un répertoire</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="394"/>
+        <source>Invalid file path</source>
+        <translation>Chemin d&apos;accès de fichier incorrect</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="415"/>
+        <source>Select file</source>
+        <translation>Sélectionner un fichier</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="414"/>
+        <source>All files (*.*)</source>
+        <translation>Tous les fichiers (*.*)</translation>
     </message>
 </context>
 <context>
@@ -5800,7 +5830,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="229"/>
+        <location filename="plugins/runconfig.py" line="243"/>
         <source>Select a run configuration:</source>
         <translation>Sélectionner une configuration d&apos;exécution :</translation>
     </message>
@@ -5810,7 +5840,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="253"/>
+        <location filename="plugins/runconfig.py" line="267"/>
         <source>Run configurations</source>
         <translation>Configurations d&apos;exécution</translation>
     </message>
@@ -5818,7 +5848,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigOneDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="211"/>
+        <location filename="plugins/runconfig.py" line="224"/>
         <source>Run %1</source>
         <translation>Exécution de %1</translation>
     </message>
@@ -5841,32 +5871,32 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Répertoire de travail :</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="124"/>
+        <location filename="plugins/runconfig.py" line="125"/>
         <source>Dedicated Python interpreter</source>
         <translation>Interpréteur Python dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="134"/>
+        <location filename="plugins/runconfig.py" line="135"/>
         <source>This applies when running the script in a new and dedicated Python interpreter. In other words, the following options will have no effect when running the script inside an already existing Python or IPython interpreter.</source>
         <translation>Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, les options suivantes n&apos;auront aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="138"/>
+        <location filename="plugins/runconfig.py" line="139"/>
         <source>Interact with the Python interpreter after execution</source>
         <translation>Intéragir avec l&apos;interpréteur Python après l&apos;exécution</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="141"/>
+        <location filename="plugins/runconfig.py" line="142"/>
         <source>Debug the script with pdb (Python debugger)</source>
         <translation>Déboguer le script avec pdb (Python debugger)</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="158"/>
+        <location filename="plugins/runconfig.py" line="159"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="114"/>
+        <location filename="plugins/runconfig.py" line="115"/>
         <source>Interpreter</source>
         <translation>Interpréteur</translation>
     </message>
@@ -5876,14 +5906,24 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Exécuter dans un nouvel interpréteur dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="121"/>
+        <location filename="plugins/runconfig.py" line="122"/>
         <source>Execute in current Python or IPython interpreter</source>
         <translation>Exécuter dans l&apos;interpréteur Python ou IPython actif</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="118"/>
+        <location filename="plugins/runconfig.py" line="119"/>
         <source>Execute in a new dedicated Python interpreter</source>
         <translation>Exécuter dans un nouvel interpréteur dédié</translation>
+    </message>
+    <message>
+        <location filename="plugins/runconfig.py" line="192"/>
+        <source>Run configuration</source>
+        <translation>Configuration d&apos;exécution</translation>
+    </message>
+    <message>
+        <location filename="plugins/runconfig.py" line="194"/>
+        <source>The following working directory is not valid:&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</source>
+        <translation>Le répertoire de travail suivant n&apos;est pas valide :&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
 </context>
 <context>
@@ -6008,6 +6048,31 @@ puis appuyer sur Entrée pour le valider</translation>
         <location filename="plugins/configdialog.py" line="346"/>
         <source>Italic</source>
         <translation type="obsolete">Italique</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="363"/>
+        <source>Invalid directory path</source>
+        <translation type="obsolete">Chemin d&apos;accès de répertoire invalide</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="382"/>
+        <source>Select directory</source>
+        <translation type="obsolete">Sélectionner un répertoire</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="393"/>
+        <source>Invalid file path</source>
+        <translation type="obsolete">Chemin d&apos;accès de fichier invalide</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="413"/>
+        <source>Select file</source>
+        <translation type="obsolete">Sélectionner un fichier</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="413"/>
+        <source>All files (*.*)</source>
+        <translation type="obsolete">Tous les fichiers (*.*)</translation>
     </message>
 </context>
 <context>
@@ -6176,17 +6241,17 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>WorkingDirectory</name>
     <message>
-        <location filename="plugins/workingdirectory.py" line="96"/>
+        <location filename="plugins/workingdirectory.py" line="141"/>
         <source>Browse a working directory</source>
         <translation>Sélectionner un répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="110"/>
+        <location filename="plugins/workingdirectory.py" line="155"/>
         <source>Change to parent directory</source>
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="168"/>
+        <location filename="plugins/workingdirectory.py" line="221"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -6198,20 +6263,20 @@ puis appuyer sur Entrée pour le valider</translation>
     <message>
         <location filename="plugins/workingdirectory.py" line="46"/>
         <source>Working directory:</source>
-        <translation>Répertoire de travail :</translation>
+        <translation type="obsolete">Répertoire de travail :</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="58"/>
+        <location filename="plugins/workingdirectory.py" line="98"/>
         <source>Back</source>
         <translation>Retour</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="66"/>
+        <location filename="plugins/workingdirectory.py" line="106"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="51"/>
+        <location filename="plugins/workingdirectory.py" line="91"/>
         <source>This is the working directory for newly
 opened consoles (Python interpreters and
 terminals), for the file explorer, for the
@@ -6224,9 +6289,57 @@ de fichiers, pour la recherche dans les fichiers
 et pour les fichiers créés dans l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="103"/>
+        <location filename="plugins/workingdirectory.py" line="148"/>
         <source>Set as current console&apos;s working directory</source>
         <translation>Changer le répertoire de travail de la console actuelle</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="86"/>
+        <source>Global working directory:</source>
+        <translation>Répertoire de travail global :</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="164"/>
+        <source>Global working directory</source>
+        <translation>Répertoire de travail global</translation>
+    </message>
+</context>
+<context>
+    <name>WorkingDirectoryConfigPage</name>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="36"/>
+        <source>Startup</source>
+        <translation>Démarrage</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="38"/>
+        <source>At startup, the global working directory is:</source>
+        <translation>Au démarrage, le répertoire de travail global est :</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="41"/>
+        <source>the same as in last session</source>
+        <translation>celui utilisé lors de la dernière session</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="44"/>
+        <source>At startup, Spyder will restore the global directory from last session</source>
+        <translation>Au démarrage, Spyder reprendra le répertoire de travail global de la dernière session</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="45"/>
+        <source>this directory:</source>
+        <translation type="obsolete">ce répertoire :</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="49"/>
+        <source>At startup, the global working directory will be the specified path</source>
+        <translation>Au démarrage, le répertoire de travail global sera le chemin d&apos;accès spécifié ici</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="46"/>
+        <source>the following directory:</source>
+        <translation>le répertoire suivant :</translation>
     </message>
 </context>
 <context>

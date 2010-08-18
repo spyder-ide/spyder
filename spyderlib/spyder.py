@@ -1089,10 +1089,10 @@ class MainWindow(QMainWindow):
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.editor, self.projectexplorer, self.extconsole,
-                       self.historylog, self.inspector, self.variableexplorer,
-                       self.onlinehelp, self.explorer, self.findinfiles
-                       ]+self.thirdparty_plugins:
+        for plugin in [self.workingdirectory, self.editor, self.projectexplorer,
+                       self.extconsole, self.historylog, self.inspector,
+                       self.variableexplorer, self.onlinehelp, self.explorer,
+                       self.findinfiles]+self.thirdparty_plugins:
             if plugin is not None:
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:

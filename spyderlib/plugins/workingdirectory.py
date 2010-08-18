@@ -11,7 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QToolBar, QLabel, QFileDialog
+from PyQt4.QtGui import (QToolBar, QLabel, QFileDialog, QGroupBox, QVBoxLayout,
+                         QHBoxLayout)
 from PyQt4.QtCore import SIGNAL
 
 import os, sys
@@ -27,8 +28,46 @@ from spyderlib.utils.qthelpers import get_std_icon, create_action
 
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
-from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.plugins.explorer import Explorer
+
+
+class WorkingDirectoryConfigPage(PluginConfigPage):
+    def setup_page(self):
+        startup_group = QGroupBox(self.tr("Startup"))
+        startup_label = QLabel(self.tr("At startup, the global working "
+                                       "directory is:"))
+        startup_label.setWordWrap(True)
+        lastdir_radio = self.create_radiobutton(
+                                self.tr("the same as in last session"),
+                                'startup/use_last_directory', True,
+                                self.tr("At startup, Spyder will restore the "
+                                        "global directory from last session"))
+        thisdir_radio = self.create_radiobutton(
+                                self.tr("the following directory:"),
+                                'startup/use_fixed_directory', False,
+                                self.tr("At startup, the global working "
+                                        "directory will be the specified path"))
+        thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
+                                           os.getcwdu())
+        self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
+                     thisdir_bd.setEnabled)
+        self.connect(lastdir_radio, SIGNAL("toggled(bool)"),
+                     thisdir_bd.setDisabled)
+        thisdir_layout = QHBoxLayout()
+        thisdir_layout.addWidget(thisdir_radio)
+        thisdir_layout.addWidget(thisdir_bd)
+        
+        startup_layout = QVBoxLayout()
+        startup_layout.addWidget(startup_label)
+        startup_layout.addWidget(lastdir_radio)
+        startup_layout.addLayout(thisdir_layout)
+        startup_group.setLayout(startup_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(startup_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
 
 
 class WorkingDirectory(QToolBar, SpyderPluginMixin):
@@ -36,6 +75,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     Working directory changer widget
     """
     CONF_SECTION = 'workingdir'
+    CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path('.workingdir')
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
@@ -44,7 +84,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state
         
-        label = QLabel(self.tr("Working directory:")+" ")
+        label = QLabel(self.tr("Global working directory:")+" ")
         label.setToolTip(self.tr("This is the working directory for newly\n"
                                  "opened consoles (Python interpreters and\n"
                                  "terminals), for the file explorer, for the\n"
@@ -82,10 +122,15 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.pathedit.setMaxCount(self.get_option('working_dir_history', 20))
         wdhistory = self.load_wdhistory( workdir )
         if workdir is None:
-            if wdhistory:
-                workdir = wdhistory[0]
+            if self.get_option('startup/use_last_directory', True):
+                if wdhistory:
+                    workdir = wdhistory[0]
+                else:
+                    workdir = "."
             else:
-                workdir = "."
+                workdir = self.get_option('startup/fixed_directory', ".")
+                if not osp.isdir(workdir):
+                    workdir = "."
         self.chdir(workdir)
         self.pathedit.addItems( wdhistory )
         self.refresh_plugin()
@@ -115,7 +160,11 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Working directory')
+        return self.tr('Global working directory')
+    
+    def get_plugin_icon(self):
+        """Return widget icon"""
+        return get_std_icon('DirOpenIcon')
         
     def get_plugin_actions(self):
         """Setup actions"""
@@ -139,6 +188,10 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.emit(SIGNAL("set_next_enabled(bool)"),
                   self.histindex is not None and \
                   self.histindex < len(self.history)-1)
+
+    def apply_plugin_settings(self, options):
+        """Apply configuration file's plugin settings"""
+        pass
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
