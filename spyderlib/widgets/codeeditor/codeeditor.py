@@ -1200,7 +1200,7 @@ class CodeEditor(TextEditBaseWidget):
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.emit(SIGNAL('trigger_code_completion()'))
-        elif key == Qt.Key_Home:
+        elif key == Qt.Key_Home and not ctrl:
             self.stdkey_home(shift)
             event.accept()
         elif key == Qt.Key_ParenLeft and not self.has_selected_text():
