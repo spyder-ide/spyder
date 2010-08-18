@@ -883,13 +883,26 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
             if cursor.selectedText().isEmpty():
                 cursor.movePosition(QTextCursor.PreviousBlock)
- 
+                
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor.insertText(prefix)
                 cursor.movePosition(QTextCursor.PreviousBlock)
+                if start_pos == 0 and cursor.blockNumber() == 0:
+                    # Avoid infinite loop when indenting the very first line
+                    break
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
+            # Extending selection to prefix:
+            cursor = self.textCursor()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            if start_pos < end_pos:
+                start_pos -= len(prefix)
+            else:
+                end_pos -= len(prefix)
+            cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
+            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+            self.setTextCursor(cursor)
         else:
             # Add prefix to current line
             cursor.movePosition(QTextCursor.StartOfBlock)
