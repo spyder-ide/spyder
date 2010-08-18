@@ -115,7 +115,7 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting rules:
     PROG = None
     # Syntax highlighting states (from one text block to another):
-    normal = 0
+    NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
         super(BaseSH, self).__init__(parent)
         
@@ -221,18 +221,22 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
                   r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
-    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
-    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
-    sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
-    dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
-    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(?!''')$"
-    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(?!""")$'
+    sqstring =     r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring =     r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    uf_sqstring =  r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$"
+    uf_dqstring =  r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*(\\)$(?!")$'
+    sq3string =    r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(''')?"
+    dq3string =    r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(""")?'
+    uf_sq3string = r"(\b[rRuU])?'''[^'\\]*((\\.|'(?!''))[^'\\]*)*(\\)?(?!''')$"
+    uf_dq3string = r'(\b[rRuU])?"""[^"\\]*((\\.|"(?!""))[^"\\]*)*(\\)?(?!""")$'
     string = any("string", [sqstring, dqstring, sq3string, dq3string])
-    ufstring1 = any("uf_sq3string", [uf_sq3string])
-    ufstring2 = any("uf_dq3string", [uf_dq3string])
+    ufstring1 = any("uf_sqstring", [uf_sqstring])
+    ufstring2 = any("uf_dqstring", [uf_dqstring])
+    ufstring3 = any("uf_sq3string", [uf_sq3string])
+    ufstring4 = any("uf_dq3string", [uf_dq3string])
     return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
-           ufstring1 + "|" + ufstring2 + "|" + string + "|" + number + "|" + \
-           any("SYNC", [r"\n"])
+           ufstring1 + "|" + ufstring2 + "|" + ufstring3 + "|" + ufstring4 + \
+           "|" + string + "|" + number + "|" + any("SYNC", [r"\n"])
 
 class ClassBrowserData(object):
     CLASS = 0
@@ -258,7 +262,8 @@ class PythonSH(BaseSH):
     IDPROG = re.compile(r"\s+(\w+)", re.S)
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
-    normal, INSIDE_SQSTRING, INSIDE_DQSTRING = range(3)
+    (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
+     INSIDE_SQSTRING, INSIDE_DQSTRING) = range(5)
     DEF_TYPES = {"def": ClassBrowserData.FUNCTION,
                  "class": ClassBrowserData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
@@ -268,23 +273,28 @@ class PythonSH(BaseSH):
     def highlightBlock(self, text):
         text = unicode(text)
         prev_state = self.previousBlockState()
-        if prev_state == self.INSIDE_DQSTRING:
+        if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
             text = r'""" '+text
-        elif prev_state == self.INSIDE_SQSTRING:
+        elif prev_state == self.INSIDE_SQ3STRING:
             offset = -4
             text = r"''' "+text
+        elif prev_state == self.INSIDE_DQSTRING:
+            offset = -2
+            text = r'" '+text
+        elif prev_state == self.INSIDE_SQSTRING:
+            offset = -2
+            text = r"' "+text
         else:
             offset = 0
-            prev_state = self.normal
+            prev_state = self.NORMAL
         
         cbdata = None
         import_stmt = None
 
         self.setFormat(0, len(text), self.formats["normal"])
         
-        last_state = None
-        state = self.normal
+        state = self.NORMAL
         match = self.PROG.search(text)
         while match:
             for key, value in match.groupdict().items():
@@ -294,22 +304,18 @@ class PythonSH(BaseSH):
                     end = max([0, end+offset])
                     if key == "uf_sq3string":
                         self.setFormat(start, end-start, self.formats["string"])
-                        if prev_state in (self.normal, self.INSIDE_SQSTRING):
-                            state = self.INSIDE_SQSTRING
-                        else:
-                            state = prev_state
+                        state = self.INSIDE_SQ3STRING
                     elif key == "uf_dq3string":
                         self.setFormat(start, end-start, self.formats["string"])
-                        if prev_state in (self.normal, self.INSIDE_DQSTRING):
-                            state = self.INSIDE_DQSTRING
-                        else:
-                            state = prev_state
+                        state = self.INSIDE_DQ3STRING
+                    elif key == "uf_sqstring":
+                        self.setFormat(start, end-start, self.formats["string"])
+                        state = self.INSIDE_SQSTRING
+                    elif key == "uf_dqstring":
+                        self.setFormat(start, end-start, self.formats["string"])
+                        state = self.INSIDE_DQSTRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                        if key != "string":
-                            last_state = self.normal
-                        else:
-                            last_state = None
                         if value in ("def", "class"):
                             match1 = self.IDPROG.match(text, end)
                             if match1:
@@ -340,8 +346,6 @@ class PythonSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
 
-        if last_state is not None:
-            state = last_state
         self.setCurrentBlockState(state)
         
         if cbdata is not None:
@@ -403,7 +407,7 @@ class CppSH(BaseSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_cpp_patterns(), re.S)
     # Syntax highlighting states (from one text block to another):
-    normal = 0
+    NORMAL = 0
     INSIDE_COMMENT = 1
     def __init__(self, parent, font=None, color_scheme=None):
         super(CppSH, self).__init__(parent, font, color_scheme)
@@ -436,7 +440,7 @@ class CppSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
 
-        last_state = self.INSIDE_COMMENT if inside_comment else self.normal
+        last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
 
 
@@ -467,7 +471,7 @@ class FortranSH(BaseSH):
     # Syntax highlighting rules:
     PROG = re.compile(make_cpp_patterns(), re.S)
     # Syntax highlighting states (from one text block to another):
-    normal = 0
+    NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
         super(FortranSH, self).__init__(parent, font, color_scheme)
 

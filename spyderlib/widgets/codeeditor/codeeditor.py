@@ -1404,5 +1404,8 @@ if __name__ == '__main__':
     else:
         fname = __file__
 #        fname = r"d:\Python\scintilla\src\LexCPP.cxx"
-#        fname = r"d:\Python\sandbox.pyw"
+        fname = r"C:\Python26\Lib\pdb.py"
+#        fname = r"C:\Python26\Lib\ssl.py"
+#        fname = r"D:\Python\testouille.py"
+#        fname = r"C:\Python26\Lib\pydoc.py"
     test(fname)
