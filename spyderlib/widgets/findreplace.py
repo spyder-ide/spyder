@@ -131,6 +131,7 @@ class FindReplace(QWidget):
         elif event.key() == Qt.Key_F3:
             # Find next
             self.find_next()
+            self.editor.setFocus()
             event.accept()
         elif event.key() == Qt.Key_F and ctrl:
             # Toggle find widgets
