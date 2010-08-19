@@ -1096,8 +1096,9 @@ class EditorStack(QWidget):
             print >>STDOUT, "current_changed:", index, self.data[index].editor,
             print >>STDOUT, self.data[index].editor.get_document_id()
             
-        self.emit(SIGNAL('current_file_changed(QString,int)'),
-                  self.data[index].filename, editor.get_position('cursor'))
+        if editor is not None:
+            self.emit(SIGNAL('current_file_changed(QString,int)'),
+                      self.data[index].filename, editor.get_position('cursor'))
         
     def _get_previous_file_index(self):
         if len(self.stack_history) > 1:
