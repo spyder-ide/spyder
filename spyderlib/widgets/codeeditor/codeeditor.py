@@ -875,6 +875,13 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             # Add prefix to selected line(s)
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            
+            # Let's see if selection begins at a block start
+            first_pos = min([start_pos, end_pos])
+            first_cursor = self.textCursor()
+            first_cursor.setPosition(first_pos)
+            begins_at_block_start = first_cursor.atBlockStart()
+            
             cursor.beginEditBlock()
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -883,26 +890,30 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
             if cursor.selectedText().isEmpty():
                 cursor.movePosition(QTextCursor.PreviousBlock)
+                if cursor.position() < start_pos:
+                    cursor.setPosition(start_pos)
                 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 cursor.insertText(prefix)
-                cursor.movePosition(QTextCursor.PreviousBlock)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
                     break
+                cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-            # Extending selection to prefix:
-            cursor = self.textCursor()
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            if start_pos < end_pos:
-                start_pos -= len(prefix)
-            else:
-                end_pos -= len(prefix)
-            cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
-            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-            self.setTextCursor(cursor)
+            if begins_at_block_start:
+                # Extending selection to prefix:
+                cursor = self.textCursor()
+                start_pos = cursor.selectionStart()
+                end_pos = cursor.selectionEnd()
+                if start_pos < end_pos:
+                    start_pos -= len(prefix)
+                else:
+                    end_pos -= len(prefix)
+                cursor.setPosition(start_pos, QTextCursor.MoveAnchor)
+                cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+                self.setTextCursor(cursor)
         else:
             # Add prefix to current line
             cursor.movePosition(QTextCursor.StartOfBlock)
@@ -936,6 +947,8 @@ class CodeEditor(TextEditBaseWidget):
                                 QTextCursor.KeepAnchor)
             if cursor.selectedText().isEmpty():
                 cursor.movePosition(QTextCursor.PreviousBlock)
+                if cursor.position() < start_pos:
+                    cursor.setPosition(start_pos)
                 
             old_pos = None
             while cursor.position() >= start_pos:
@@ -1197,10 +1210,28 @@ class CodeEditor(TextEditBaseWidget):
                 self.select_completion_list()
             else:
                 empty_line = not self.get_text('sol', 'cursor').strip()
-                if empty_line or self.tab_mode:
+                if self.tab_mode:
                     self.indent()
                 else:
-                    self.emit(SIGNAL('trigger_code_completion()'))
+                    if self.has_selected_text():
+                        cursor = self.textCursor()
+                        if self.get_selected_text() == unicode(
+                                                        cursor.block().text()):
+                            self.indent()
+                        else:
+                            cursor1 = self.textCursor()
+                            cursor1.setPosition(cursor.selectionStart())
+                            cursor2 = self.textCursor()
+                            cursor2.setPosition(cursor.selectionEnd())
+                            if cursor1.blockNumber() != cursor2.blockNumber():
+                                self.indent()
+                            else:
+                                self.replace(" "*4)
+                    else:
+                        if empty_line:
+                            self.indent()
+                        else:
+                            self.emit(SIGNAL('trigger_code_completion()'))
             event.accept()
         elif key == Qt.Key_Space and ctrl:
             if not self.is_completion_widget_visible():
