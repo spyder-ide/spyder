@@ -147,6 +147,7 @@ class CodeAnalysisThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.filename = None
+        self.analysis_results = []
         
     def set_filename(self, filename):
         self.filename = filename
@@ -164,6 +165,7 @@ class ToDoFinderThread(QThread):
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.text = None
+        self.todo_results = []
         
     def set_text(self, text):
         self.text = unicode(text)
