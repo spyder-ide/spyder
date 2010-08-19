@@ -199,8 +199,11 @@ class Project(object):
             return []
         self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
-        resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                       filename)
+        try:
+            resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                           filename)
+        except Exception, _error:
+            resource = None
         try:
             import rope.contrib.codeassist
             proposals = rope.contrib.codeassist.code_assist(self.rope_project,
@@ -215,8 +218,11 @@ class Project(object):
             return []
         self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
-        resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                       filename)
+        try:
+            resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                           filename)
+        except Exception, _error:
+            resource = None
         try:
             import rope.contrib.codeassist
             cts = rope.contrib.codeassist.get_calltip(self.rope_project,
@@ -233,8 +239,11 @@ class Project(object):
             return (None, None)
         self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
-        resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                       filename)
+        try:
+            resource = rope.base.libutils.path_to_resource(self.rope_project,
+                                                           filename)
+        except Exception, _error:
+            resource = None
         try:
             import rope.contrib.codeassist
             resource, lineno = rope.contrib.codeassist.get_definition_location(
