@@ -52,7 +52,7 @@ class CodeEditor(TextEditBaseWidget):
                                                   '#', PythonCFM),
                  ('pyx',): (syntaxhighlighters.CythonSH,
                             '#', PythonCFM),
-#                 ('f', 'for'): (QsciLexerFortran77, 'c', None),
+                 ('f', 'for'): (syntaxhighlighters.Fortran77SH, 'c', None),
                  ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
                                          '!', None),
 #                 ('diff', 'patch', 'rej'): (QsciLexerDiff, '', None),

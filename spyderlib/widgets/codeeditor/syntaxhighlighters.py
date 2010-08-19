@@ -489,3 +489,13 @@ class FortranSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
 
+class Fortran77SH(FortranSH):
+    """Fortran 77 Syntax Highlighter"""
+    def highlightBlock(self, text):
+        if text.startsWith("c"):
+            self.setFormat(0, text.length(), self.formats["comment"])
+        else:
+            FortranSH.highlightBlock(self, text)
+            self.setFormat(0, 5, self.formats["comment"])
+            self.setFormat(73, max([73, text.length()]),
+                           self.formats["comment"])
