@@ -213,6 +213,7 @@ class MainWindow(QMainWindow):
         
         # Preferences
         self.general_prefs = [MainConfigPage, ColorSchemeConfigPage]
+        self.prefs_index = None
         
         # Actions
         self.find_action = None
@@ -1097,7 +1098,10 @@ class MainWindow(QMainWindow):
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:
                     dlg.add_page(widget)
+        if self.prefs_index is not None:
+            dlg.set_current_index(self.prefs_index)
         dlg.exec_()
+        self.prefs_index = dlg.get_current_index()
         
     def load_session(self, filename=None):
         """Load session"""

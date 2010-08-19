@@ -120,6 +120,14 @@ class ConfigDialog(QDialog):
         self.setWindowTitle(self.tr("Preferences"))
         self.setWindowIcon(get_icon("configure.png"))
         
+    def get_current_index(self):
+        """Return current page index"""
+        return self.contents_widget.currentRow()
+        
+    def set_current_index(self, index):
+        """Set current page index"""
+        self.contents_widget.setCurrentRow(index)
+        
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.pages_widget.count()):
