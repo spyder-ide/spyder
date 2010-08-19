@@ -1642,7 +1642,7 @@ class Editor(SpyderPluginWidget):
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            if todo_n in options and todo_o:
+            if todo_n in options and todo_o and finfo is not None:
                 finfo.run_todo_finder()
-            if analysis_n in options and analysis_o:
+            if analysis_n in options and analysis_o and finfo is not None:
                 finfo.run_code_analysis()

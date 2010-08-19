@@ -683,7 +683,8 @@ class EditorStack(QWidget):
         return self.tabs.currentIndex()
     
     def get_current_finfo(self):
-        return self.data[self.get_stack_index()]
+        if self.data:
+            return self.data[self.get_stack_index()]
     
     def get_current_editor(self):
         return self.tabs.currentWidget()
