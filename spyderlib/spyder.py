@@ -570,6 +570,7 @@ class MainWindow(QMainWindow):
                                     self.tr("About %1...").arg("Spyder"),
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about)
+            # Spyder documentation
             spyder_doc = osp.join(DOC_PATH, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(DOC_PATH, "index.html")
@@ -577,6 +578,7 @@ class MainWindow(QMainWindow):
                                self.tr("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             self.help_menu_actions = [about_action, doc_action]
+            # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, self.tr("Python documentation"),
                                           icon=get_icon('python.png'),
@@ -587,6 +589,44 @@ class MainWindow(QMainWindow):
                                             'qtassistant.png', "assistant")
             if qta_act:
                 self.help_menu_actions.append(qta_act)
+            # Documentation provided by Python(x,y), if available
+            try:
+                from xy.config import DOC_PATH as xy_doc_path
+                xydoc = osp.join(xy_doc_path, "Libraries")
+                def add_xydoc(text, pathlist):
+                    for path in pathlist:
+                        if osp.exists(path):
+                            ext = osp.splitext(path)[1]
+                            if ext:
+                                icon = get_icon(ext[1:]+".png")
+                            else:
+                                icon = get_std_icon("DirIcon")
+                            action = create_action(self, text, icon=icon,
+                                                   triggered=lambda path=path:
+                                                             os.startfile(path))
+                            self.help_menu_actions.append(action)
+                            break
+                self.help_menu_actions.append(None)
+                add_xydoc(self.tr("Python(x,y) documentation folder"),
+                          [xy_doc_path])
+                add_xydoc(self.tr("IPython documentation"),
+                          [osp.join(xydoc, "IPython", "ipythondoc.chm")])
+                add_xydoc(self.tr("Matplotlib documentation"),
+                          [osp.join(xydoc, "matplotlib", "Matplotlibdoc.chm"),
+                           osp.join(xydoc, "matplotlib", "Matplotlib.pdf")])
+                add_xydoc(self.tr("NumPy documentation"),
+                          [osp.join(xydoc, "NumPy", "numpy.chm")])
+                add_xydoc(self.tr("NumPy reference guide"),
+                          [osp.join(xydoc, "NumPy", "numpy-ref.pdf")])
+                add_xydoc(self.tr("NumPy user guide"),
+                          [osp.join(xydoc, "NumPy", "numpy-user.pdf")])
+                add_xydoc(self.tr("SciPy documentation"),
+                          [osp.join(xydoc, "SciPy", "scipy.chm"),
+                           osp.join(xydoc, "SciPy", "scipy-ref.pdf")])
+                self.help_menu_actions.append(None)
+            except ImportError:
+                pass
+            # Online documentation
             web_resources = QMenu(self.tr("Web Resources"))
             web_resources.setIcon(get_icon("browser.png"))
             add_actions(web_resources,
