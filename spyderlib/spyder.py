@@ -833,6 +833,8 @@ class MainWindow(QMainWindow):
             child.setEnabled(False)
         
         widget, textedit_properties = self.__focus_widget_properties()
+        for action in self.editor.search_menu_actions:
+            action.setEnabled(self.editor.isAncestorOf(widget))
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -841,8 +843,6 @@ class MainWindow(QMainWindow):
         self.find_next_action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
-        for action in self.editor.search_menu_actions:
-            action.setEnabled(self.editor.isAncestorOf(widget))
         
     def set_splash(self, message):
         """Set splash message"""
