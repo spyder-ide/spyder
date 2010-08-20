@@ -203,6 +203,7 @@ class Editor(SpyderPluginWidget):
         self.dock_toolbar_actions = None
         self.edit_menu_actions = None #XXX: find another way to notify Spyder
         # (see spyder.py: 'update_edit_menu' method)
+        self.search_menu_actions = None #XXX: same thing ('update_search_menu')
         self.stack_menu_actions = None
         SpyderPluginWidget.__init__(self, parent)
 
@@ -572,6 +573,11 @@ class Editor(SpyderPluginWidget):
                       tip=self.tr("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
+        gotoline_action = create_action(self, self.tr("Go to line..."),
+                                        "Ctrl+L", icon=get_icon("gotoline.png"),
+                                        triggered=self.go_to_line,
+                                        context=Qt.WidgetShortcut)
+
         workdir_action = create_action(self,
                 self.tr("Set console working directory"),
                 icon=get_std_icon('DirOpenIcon'),
@@ -609,6 +615,10 @@ class Editor(SpyderPluginWidget):
                                 self.indent_action, self.unindent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
         
+        self.search_menu_actions = [gotoline_action]
+        self.main.search_menu_actions += self.search_menu_actions
+        self.main.search_toolbar_actions += [gotoline_action]
+        
         run_menu_actions = [run_action, debug_action, configure_action,
                             None, re_run_action, run_selected_action]
         self.main.run_menu_actions += run_menu_actions
@@ -636,14 +646,14 @@ class Editor(SpyderPluginWidget):
                 blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
-                 print_action, self.save_all_action, workdir_action,
-                 self.close_action, self.close_all_action,
+                 print_action, self.save_all_action, gotoline_action,
+                 workdir_action, self.close_action, self.close_all_action,
                  self.comment_action, self.uncomment_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [self.save_action, save_as_action,
-                                   print_action, run_action, debug_action,
-                                   configure_action, workdir_action, 
-                                   self.close_action]
+                                   print_action, None, run_action, debug_action,
+                                   configure_action, None, gotoline_action,
+                                   workdir_action, None, self.close_action]
         
         return self.file_dependent_actions
     
@@ -1488,6 +1498,12 @@ class Editor(SpyderPluginWidget):
             
     def go_to_next_cursor_position(self):
         self.__move_cursor_position(1)
+        
+    def go_to_line(self):
+        """Open 'go to line' dialog"""
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            editorstack.go_to_line()
     
     #------ Run Python script
     def edit_run_configurations(self):

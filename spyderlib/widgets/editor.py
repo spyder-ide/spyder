@@ -15,9 +15,10 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel, QListWidget, QListWidgetItem,
-                         QDialog, QLineEdit)
+                         QDialog, QLineEdit, QIntValidator, QDialogButtonBox,
+                         QGroupBox, QGridLayout)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
-                          PYQT_VERSION_STR, QSize, QPoint)
+                          PYQT_VERSION_STR, QSize, QPoint, SLOT)
 
 import os, sys, re
 import os.path as osp
@@ -40,6 +41,56 @@ from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
 
+
+class GoToLineDialog(QDialog):
+    def __init__(self, editor):
+        QDialog.__init__(self, editor)
+        self.editor = editor
+        
+        self.setWindowTitle(translate("Editor", "Editor"))
+        self.setModal(True)
+        
+        label = QLabel(translate("Editor", "Go to line:"))
+        self.lineedit = QLineEdit()
+        validator = QIntValidator(self.lineedit)
+        validator.setRange(1, editor.get_line_count())
+        self.lineedit.setValidator(validator)        
+        cl_label = QLabel(translate("Editor", "Current line:"))
+        cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
+        last_label = QLabel(translate("Editor", "Line count:"))
+        last_label_v = QLabel("%d" % editor.get_line_count())
+        
+        glayout = QGridLayout()
+        glayout.addWidget(label, 0, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(self.lineedit, 0, 1, Qt.AlignVCenter)
+        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(cl_label_v, 1, 1, Qt.AlignVCenter)
+        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel,
+                                Qt.Vertical, self)
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        btnlayout = QVBoxLayout()
+        btnlayout.addWidget(bbox)
+        btnlayout.addStretch(1)
+
+        ok_button = bbox.button(QDialogButtonBox.Ok)
+        ok_button.setEnabled(False)
+        self.connect(self.lineedit, SIGNAL("textChanged(QString)"),
+                     lambda text: ok_button.setEnabled(len(text) > 0))
+        
+        layout = QHBoxLayout()
+        layout.addLayout(glayout)
+        layout.addLayout(btnlayout)
+        self.setLayout(layout)
+
+        self.lineedit.setFocus()
+        
+    def get_line_number(self):
+        return int(self.lineedit.text())
+        
 
 class FileListDialog(QDialog):
     def __init__(self, parent, combo, fullpath_sorting):
@@ -457,6 +508,8 @@ class EditorStack(QWidget):
         layout.addLayout(self.header_layout)
 
         # Local shortcuts
+        gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent, self.go_to_line)
+        gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
         filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
                                self.open_filelistdialog)
         filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -516,6 +569,14 @@ class EditorStack(QWidget):
         """Synchronize file list dialog box with file selection combo box"""
         if self.filelist_dlg is not None:
             self.filelist_dlg.synchronize(self.get_stack_index())
+            
+    def go_to_line(self):
+        """Go to line dialog"""
+        if self.data:
+            editor = self.get_current_editor()
+            dlg = GoToLineDialog(editor)
+            if dlg.exec_():
+                editor.go_to_line(dlg.get_line_number())
         
         
     #------ Editor Widget Settings
