@@ -316,11 +316,12 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 return shellwidgets[0].shell
         
-    def run_script_in_current_shell(self, filename, wdir, args):
+    def run_script_in_current_shell(self, filename, wdir, args, debug):
         """Run script in current shell, if any"""
         shellwidget = self.__find_python_shell(interpreter_only=True)
         if shellwidget is not None and shellwidget.is_running():
-            line = "runfile(r'%s'" % unicode(filename)
+            line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
+                                 unicode(filename))
             if args:
                 line += ", args='%s'" % args
             if wdir:
@@ -561,7 +562,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
             self.connect(self.main.editor,
-                         SIGNAL('run_in_current_console(QString,QString,QString)'),
+                         SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)

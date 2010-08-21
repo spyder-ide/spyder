@@ -112,36 +112,28 @@ class RunConfigOptions(QWidget):
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
+        self.debug_cb = QCheckBox(self.tr("Debug the script with pdb (Python "
+                                          "debugger)"))
+        common_layout.addWidget(self.debug_cb, 2, 0, 1, -1)
         
         radio_group = QGroupBox(self.tr("Interpreter"))
         radio_layout = QVBoxLayout()
         radio_group.setLayout(radio_layout)
-        self.new_radio = QRadioButton(self.tr("Execute in a new dedicated "
-                                              "Python interpreter"))
-        radio_layout.addWidget(self.new_radio)
         self.current_radio = QRadioButton(self.tr("Execute in current Python "
                                                   "or IPython interpreter"))
         radio_layout.addWidget(self.current_radio)
+        self.new_radio = QRadioButton(self.tr("Execute in a new dedicated "
+                                              "Python interpreter"))
+        radio_layout.addWidget(self.new_radio)
         
         new_group = QGroupBox(self.tr("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
         new_layout = QVBoxLayout()
         new_group.setLayout(new_layout)
-        new_label = QLabel(self.tr("This applies when running the script in a "
-                                   "new and dedicated Python interpreter. "
-                                   "In other words, the following options "
-                                   "will have no effect when running the "
-                                   "script inside an already existing Python "
-                                   "or IPython interpreter."))
-        new_label.setWordWrap(True)
-        new_layout.addWidget(new_label)
         self.interact_cb = QCheckBox(self.tr("Interact with the Python "
                                              "interpreter after execution"))
         new_layout.addWidget(self.interact_cb)
-        self.debug_cb = QCheckBox(self.tr("Debug the script with pdb (Python "
-                                          "debugger)"))
-        new_layout.addWidget(self.debug_cb)
         
         #TODO: Add option for "Post-mortem debugging"
         

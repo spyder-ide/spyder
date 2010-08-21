@@ -2701,22 +2701,22 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="517"/>
+        <location filename="plugins/externalconsole.py" line="518"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="518"/>
+        <location filename="plugins/externalconsole.py" line="519"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="529"/>
+        <location filename="plugins/externalconsole.py" line="530"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="530"/>
+        <location filename="plugins/externalconsole.py" line="531"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
@@ -2736,12 +2736,12 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="675"/>
+        <location filename="plugins/externalconsole.py" line="676"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="676"/>
+        <location filename="plugins/externalconsole.py" line="677"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
@@ -2756,19 +2756,19 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="360"/>
+        <location filename="plugins/externalconsole.py" line="361"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="522"/>
+        <location filename="plugins/externalconsole.py" line="523"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="523"/>
+        <location filename="plugins/externalconsole.py" line="524"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
@@ -2798,22 +2798,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Entrée valide la complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="446"/>
+        <location filename="plugins/externalconsole.py" line="447"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="448"/>
+        <location filename="plugins/externalconsole.py" line="449"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="525"/>
+        <location filename="plugins/externalconsole.py" line="526"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="526"/>
+        <location filename="plugins/externalconsole.py" line="527"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
@@ -2848,12 +2848,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="538"/>
+        <location filename="plugins/externalconsole.py" line="539"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="540"/>
+        <location filename="plugins/externalconsole.py" line="541"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
@@ -2882,7 +2882,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Options de l&apos;interpréteur IPython...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="503"/>
+        <location filename="plugins/externalconsole.py" line="504"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
@@ -2937,19 +2937,19 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Modifie la liste des modules non rechargés par l&apos;User Module Deleter</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="699"/>
+        <location filename="plugins/externalconsole.py" line="700"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="686"/>
+        <location filename="plugins/externalconsole.py" line="687"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="698"/>
+        <location filename="plugins/externalconsole.py" line="699"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
@@ -2966,7 +2966,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Afficher les modules rechargés</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="702"/>
+        <location filename="plugins/externalconsole.py" line="703"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -5885,7 +5885,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="243"/>
+        <location filename="plugins/runconfig.py" line="242"/>
         <source>Select a run configuration:</source>
         <translation>Sélectionner une configuration d&apos;exécution :</translation>
     </message>
@@ -5895,7 +5895,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="267"/>
+        <location filename="plugins/runconfig.py" line="266"/>
         <source>Run configurations</source>
         <translation>Configurations d&apos;exécution</translation>
     </message>
@@ -5903,7 +5903,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigOneDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="224"/>
+        <location filename="plugins/runconfig.py" line="223"/>
         <source>Run %1</source>
         <translation>Exécution de %1</translation>
     </message>
@@ -5926,32 +5926,32 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Répertoire de travail :</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="125"/>
+        <location filename="plugins/runconfig.py" line="128"/>
         <source>Dedicated Python interpreter</source>
         <translation>Interpréteur Python dédié</translation>
     </message>
     <message>
         <location filename="plugins/runconfig.py" line="135"/>
         <source>This applies when running the script in a new and dedicated Python interpreter. In other words, the following options will have no effect when running the script inside an already existing Python or IPython interpreter.</source>
-        <translation>Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, les options suivantes n&apos;auront aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
+        <translation type="obsolete">Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, les options suivantes n&apos;auront aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="139"/>
+        <location filename="plugins/runconfig.py" line="141"/>
         <source>Interact with the Python interpreter after execution</source>
         <translation>Intéragir avec l&apos;interpréteur Python après l&apos;exécution</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="142"/>
+        <location filename="plugins/runconfig.py" line="115"/>
         <source>Debug the script with pdb (Python debugger)</source>
         <translation>Déboguer le script avec pdb (Python debugger)</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="159"/>
+        <location filename="plugins/runconfig.py" line="158"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="115"/>
+        <location filename="plugins/runconfig.py" line="118"/>
         <source>Interpreter</source>
         <translation>Interpréteur</translation>
     </message>
@@ -5961,24 +5961,29 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Exécuter dans un nouvel interpréteur dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="122"/>
+        <location filename="plugins/runconfig.py" line="125"/>
         <source>Execute in current Python or IPython interpreter</source>
         <translation>Exécuter dans l&apos;interpréteur Python ou IPython actif</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="119"/>
+        <location filename="plugins/runconfig.py" line="122"/>
         <source>Execute in a new dedicated Python interpreter</source>
         <translation>Exécuter dans un nouvel interpréteur dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="192"/>
+        <location filename="plugins/runconfig.py" line="191"/>
         <source>Run configuration</source>
         <translation>Configuration d&apos;exécution</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="194"/>
+        <location filename="plugins/runconfig.py" line="193"/>
         <source>The following working directory is not valid:&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Le répertoire de travail suivant n&apos;est pas valide :&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</translation>
+    </message>
+    <message>
+        <location filename="plugins/runconfig.py" line="137"/>
+        <source>This applies when running the script in a new and dedicated Python interpreter. In other words, this will have no effect when running the script inside an already existing Python or IPython interpreter.</source>
+        <translation>Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, ceci n&apos;aura aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
     </message>
 </context>
 <context>

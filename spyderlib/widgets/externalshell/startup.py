@@ -123,6 +123,29 @@ def runfile(filename, args=None, wdir=None):
     execfile(filename, glbs)
     sys.argv = ['']
     glbs.pop('__file__')
+    
+
+def debugfile(filename, args=None, wdir=None, breakpoints={}):
+    """
+    Debug filename
+    args: command line arguments (string)
+    wdir: working directory
+    """
+    import pdb
+    command = "runfile(r'%s'" % unicode(filename)
+    if args:
+        command += ", args='%s'" % args
+    if wdir:
+        command += ", wdir=u'%s'" % wdir
+    command += ")"
+    debugger = pdb.Pdb()
+    debugger.clear_all_breaks()
+    if breakpoints:
+        debugger._set_stopinfo(None, None)
+    for fname, linenumbers in breakpoints.iteritems():
+        for linenumber in linenumbers:
+            debugger.set_break(debugger.canonic(fname), linenumber)
+    debugger.run(command)
 
 
 if __name__ == "__main__":
@@ -159,5 +182,6 @@ if __name__ == "__main__":
         import IPython.Shell
         sys.platform = __real_platform__
         del __real_platform__, __is_ipython
-        __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile})
+        __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile,
+                                                        'debugfile': debugfile})
         __ipythonshell__.mainloop()
