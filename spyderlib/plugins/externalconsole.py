@@ -343,10 +343,23 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.execute_lines(unicode(lines))
             shellwidget.shell.setFocus()
         
-    def start(self, fname, wdir=None, args=None,
-              interact=False, debug=False, python=True,
-              ipython=False, arguments=None, current=False):
-        """Start new console"""
+    def start(self, fname, wdir=None, args='', interact=False, debug=False,
+              python=True, ipython=False, python_args=''):
+        """
+        Start new console
+        
+        fname:
+          string: filename of script to run
+          None: open an interpreter
+        wdir: working directory
+        args: command line options of the Python script
+        interact: inspect script interactively after its execution
+        debug: run pdb
+        python: True: Python interpreter, False: terminal
+        ipython: True: IPython interpreter, False: Python interpreter
+        python_args: additionnal Python interpreter command line options
+                   (option "-u" is mandatory, see widgets.externalshell package)
+        """
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
         wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
@@ -385,8 +398,9 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
-                           interact, debug, path=pythonpath, ipython=ipython,
-                           arguments=arguments, stand_alone=sa_settings,
+                           interact, debug, path=pythonpath,
+                           python_args=python_args, ipython=ipython,
+                           arguments=args, stand_alone=sa_settings,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose,
                            mpl_patch_enabled=mpl_patch_enabled,
@@ -473,7 +487,7 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.set_icontext_visible(self.get_option('show_icontext'))
         
         # Start process and give focus to console
-        shellwidget.start(args)
+        shellwidget.start_shell()
         shellwidget.shell.setFocus()
         
     #------ Private API --------------------------------------------------------
@@ -659,9 +673,9 @@ class ExternalConsole(SpyderPluginWidget):
         """Open IPython"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), args=None,
-                   interact=True, debug=False, python=True, ipython=True,
-                   arguments=self.get_option('ipython_options', ""))
+        args = self.get_option('ipython_options', "")
+        self.start(fname=None, wdir=unicode(wdir), args=args,
+                   interact=True, debug=False, python=True, ipython=True)
         
     def open_terminal(self, wdir=None):
         """Open terminal"""

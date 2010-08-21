@@ -111,7 +111,7 @@ class ExternalShellBase(QWidget):
                               translate('ExternalShellBase', "Run"),
                               tip=translate('ExternalShellBase',
                                             "Run again this program"),
-                              triggered=self.start)
+                              triggered=self.start_shell)
         if self.kill_button is None:
             self.kill_button = create_toolbutton(self, get_icon('kill.png'),
                               translate('ExternalShellBase', "Kill"),
@@ -188,13 +188,11 @@ class ExternalShellBase(QWidget):
         self.run_button.setEnabled(not state)
         self.kill_button.setEnabled(state)
     
-    def start(self, args=None, ask_for_arguments=False):
+    def start_shell(self, ask_for_arguments=False):
         """Start shell"""
         if ask_for_arguments and not self.get_arguments():
             self.set_running_state(False)
             return
-        if args is not None:
-            self.arguments = unicode(args)
         self.create_process()
 
     def get_arguments(self):
@@ -278,7 +276,7 @@ def test():
 #    shell = ExternalSystemShell(wdir=osp.dirname(spyderlib.__file__),
 #                                light_background=False)
     shell.shell.toggle_wrap_mode(True)
-    shell.start(False)
+    shell.start_shell(False)
     from PyQt4.QtGui import QFont
     font = QFont("Lucida console")
     font.setPointSize(10)

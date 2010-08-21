@@ -2701,22 +2701,22 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="518"/>
+        <location filename="plugins/externalconsole.py" line="532"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="519"/>
+        <location filename="plugins/externalconsole.py" line="533"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="530"/>
+        <location filename="plugins/externalconsole.py" line="544"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="531"/>
+        <location filename="plugins/externalconsole.py" line="545"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
@@ -2736,12 +2736,12 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="676"/>
+        <location filename="plugins/externalconsole.py" line="690"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="677"/>
+        <location filename="plugins/externalconsole.py" line="691"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
@@ -2756,19 +2756,19 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="361"/>
+        <location filename="plugins/externalconsole.py" line="374"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="523"/>
+        <location filename="plugins/externalconsole.py" line="537"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="524"/>
+        <location filename="plugins/externalconsole.py" line="538"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
@@ -2798,22 +2798,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Entrée valide la complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="447"/>
+        <location filename="plugins/externalconsole.py" line="461"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="449"/>
+        <location filename="plugins/externalconsole.py" line="463"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="526"/>
+        <location filename="plugins/externalconsole.py" line="540"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="527"/>
+        <location filename="plugins/externalconsole.py" line="541"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
@@ -2848,12 +2848,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="539"/>
+        <location filename="plugins/externalconsole.py" line="553"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="541"/>
+        <location filename="plugins/externalconsole.py" line="555"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
@@ -2882,7 +2882,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Options de l&apos;interpréteur IPython...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="504"/>
+        <location filename="plugins/externalconsole.py" line="518"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
@@ -2937,19 +2937,19 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Modifie la liste des modules non rechargés par l&apos;User Module Deleter</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="700"/>
+        <location filename="plugins/externalconsole.py" line="714"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="687"/>
+        <location filename="plugins/externalconsole.py" line="701"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="699"/>
+        <location filename="plugins/externalconsole.py" line="713"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
@@ -2966,7 +2966,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Afficher les modules rechargés</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="703"/>
+        <location filename="plugins/externalconsole.py" line="717"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -3198,22 +3198,22 @@ Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="186"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="192"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="187"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="193"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="196"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="202"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="201"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="207"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -3222,27 +3222,27 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="210"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="216"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="212"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="218"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="369"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="377"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="370"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="378"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="265"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="271"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
@@ -3252,27 +3252,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="260"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="266"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="263"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="269"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="191"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="197"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="192"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="198"/>
         <source>Set current working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="429"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="437"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -3315,12 +3315,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="201"/>
+        <location filename="widgets/externalshell/__init__.py" line="199"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="203"/>
+        <location filename="widgets/externalshell/__init__.py" line="201"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
@@ -4496,17 +4496,17 @@ Souhaitez-vous continuer ?</translation>
         <translation>Enregistrer la session en cours et quitter l&apos;application</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1152"/>
+        <location filename="spyder.py" line="1155"/>
         <source>Open session</source>
         <translation>Ouvrir une session</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1167"/>
+        <location filename="spyder.py" line="1170"/>
         <source>Spyder sessions</source>
         <translation>Sessions Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1166"/>
+        <location filename="spyder.py" line="1169"/>
         <source>Save session</source>
         <translation>Enregistrer la session</translation>
     </message>
@@ -5885,7 +5885,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="242"/>
+        <location filename="plugins/runconfig.py" line="262"/>
         <source>Select a run configuration:</source>
         <translation>Sélectionner une configuration d&apos;exécution :</translation>
     </message>
@@ -5895,7 +5895,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="266"/>
+        <location filename="plugins/runconfig.py" line="286"/>
         <source>Run configurations</source>
         <translation>Configurations d&apos;exécution</translation>
     </message>
@@ -5903,7 +5903,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigOneDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="223"/>
+        <location filename="plugins/runconfig.py" line="243"/>
         <source>Run %1</source>
         <translation>Exécution de %1</translation>
     </message>
@@ -5911,22 +5911,22 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigOptions</name>
     <message>
-        <location filename="plugins/runconfig.py" line="91"/>
+        <location filename="plugins/runconfig.py" line="103"/>
         <source>General settings</source>
         <translation>Options générales</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="94"/>
+        <location filename="plugins/runconfig.py" line="148"/>
         <source>Command line options:</source>
         <translation>Options en ligne de commande :</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="101"/>
+        <location filename="plugins/runconfig.py" line="113"/>
         <source>Working directory:</source>
         <translation>Répertoire de travail :</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="128"/>
+        <location filename="plugins/runconfig.py" line="140"/>
         <source>Dedicated Python interpreter</source>
         <translation>Interpréteur Python dédié</translation>
     </message>
@@ -5936,22 +5936,22 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, les options suivantes n&apos;auront aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="141"/>
+        <location filename="plugins/runconfig.py" line="146"/>
         <source>Interact with the Python interpreter after execution</source>
         <translation>Intéragir avec l&apos;interpréteur Python après l&apos;exécution</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="115"/>
+        <location filename="plugins/runconfig.py" line="127"/>
         <source>Debug the script with pdb (Python debugger)</source>
         <translation>Déboguer le script avec pdb (Python debugger)</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="158"/>
+        <location filename="plugins/runconfig.py" line="174"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="118"/>
+        <location filename="plugins/runconfig.py" line="130"/>
         <source>Interpreter</source>
         <translation>Interpréteur</translation>
     </message>
@@ -5961,29 +5961,34 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Exécuter dans un nouvel interpréteur dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="125"/>
+        <location filename="plugins/runconfig.py" line="134"/>
         <source>Execute in current Python or IPython interpreter</source>
         <translation>Exécuter dans l&apos;interpréteur Python ou IPython actif</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="122"/>
+        <location filename="plugins/runconfig.py" line="137"/>
         <source>Execute in a new dedicated Python interpreter</source>
         <translation>Exécuter dans un nouvel interpréteur dédié</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="191"/>
+        <location filename="plugins/runconfig.py" line="211"/>
         <source>Run configuration</source>
         <translation>Configuration d&apos;exécution</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="193"/>
+        <location filename="plugins/runconfig.py" line="213"/>
         <source>The following working directory is not valid:&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Le répertoire de travail suivant n&apos;est pas valide :&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
         <location filename="plugins/runconfig.py" line="137"/>
         <source>This applies when running the script in a new and dedicated Python interpreter. In other words, this will have no effect when running the script inside an already existing Python or IPython interpreter.</source>
-        <translation>Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, ceci n&apos;aura aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
+        <translation type="obsolete">Ceci s&apos;applique lorsque le script est exécuté dans un nouvel interpréteur Python dédié. En d&apos;autres termes, ceci n&apos;aura aucun effet si le script est exécuté dans un interpréteur Python ou IPython existant.</translation>
+    </message>
+    <message>
+        <location filename="plugins/runconfig.py" line="156"/>
+        <source>Note: the &lt;b&gt;-u&lt;/b&gt; option is automatically added to these commands</source>
+        <translation>Note : l&apos;option &lt;b&gt;-u&lt;/b&gt; est automatiquement ajoutée à ces commandes</translation>
     </message>
 </context>
 <context>

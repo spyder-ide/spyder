@@ -84,7 +84,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      lambda fname:
                      self.main.open_external_console(unicode(fname),
                                                  osp.dirname(unicode(fname)),
-                                                 '', False, False, True))
+                                                 '', False, False, True, ''))
         # Signal "refresh_explorer()" will eventually force the
         # explorer to change the opened directory:
         self.connect(self.main.console.shell, SIGNAL("refresh_explorer()"),

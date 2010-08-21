@@ -118,8 +118,8 @@ class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
-                 interact=False, debug=False, path=[],
-                 ipython=False, arguments=None, stand_alone=None,
+                 interact=False, debug=False, path=[], python_args='',
+                 ipython=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  mpl_patch_enabled=True, autorefresh_timeout=3000,
                  light_background=True):
@@ -146,7 +146,13 @@ class ExternalPythonShell(ExternalShellBase):
         self.nsb_timer = QTimer(self) # Namespace browser auto-refresh timer
         self.set_autorefresh_timeout(autorefresh_timeout)
         
-        if arguments is not None:
+        self.python_args = None
+        if python_args:
+            assert isinstance(python_args, basestring)
+            self.python_args = python_args
+        
+        self.arguments = None
+        if arguments:
             assert isinstance(arguments, basestring)
             self.arguments = arguments
         
@@ -289,6 +295,8 @@ class ExternalPythonShell(ExternalShellBase):
         #-------------------------Python specific-------------------------------
         # Python arguments
         p_args = ['-u']
+        if self.python_args is not None:
+            p_args += self.python_args.split()
         if self.interact_action.isChecked():
             p_args.append('-i')
         if self.debug_action.isChecked():

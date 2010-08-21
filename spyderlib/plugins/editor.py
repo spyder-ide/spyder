@@ -665,7 +665,7 @@ class Editor(SpyderPluginWidget):
                      self.main.plugin_focus_changed)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL("open_external_console(QString,QString,QString,bool,bool,bool)"),
+        self.connect(self, SIGNAL("open_external_console(QString,QString,QString,bool,bool,bool,QString)"),
                      self.main.open_external_console)
         self.connect(self, SIGNAL('external_console_execute_lines(QString)'),
                      self.main.execute_python_code_in_external_console)
@@ -1529,6 +1529,7 @@ class Editor(SpyderPluginWidget):
                 
             wdir = runconf.get_working_directory()
             args = runconf.get_arguments()
+            python_args = runconf.get_python_arguments()
             interact = runconf.interact
             if debug is None:
                 debug = runconf.debug
@@ -1536,8 +1537,8 @@ class Editor(SpyderPluginWidget):
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
-            self.__last_ec_exec = (fname, wdir, args,
-                                   interact, debug, python, current)
+            self.__last_ec_exec = (fname, wdir, args, interact, debug,
+                                   python, python_args, current)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -1554,14 +1555,14 @@ class Editor(SpyderPluginWidget):
         """Re-run last script"""
         if self.__last_ec_exec is None:
             return
-        (fname, wdir, args,
-         interact, debug, python, current) = self.__last_ec_exec
+        (fname, wdir, args, interact, debug,
+         python, python_args, current) = self.__last_ec_exec
         if current:
             self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)
         else:
-            self.emit(SIGNAL('open_external_console(QString,QString,QString,bool,bool,bool)'),
-                      fname, wdir, args, interact, debug, python)
+            self.emit(SIGNAL('open_external_console(QString,QString,QString,bool,bool,bool,QString)'),
+                      fname, wdir, args, interact, debug, python, python_args)
 
     def run_selection_or_block(self):
         """Run selection or current line in external console"""
