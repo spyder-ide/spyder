@@ -18,8 +18,8 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.config import get_icon
-from spyderlib.widgets.externalshell import (ExternalShellBase,
-                                             add_pathlist_to_PYTHONPATH)
+from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
+                                                   add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
 
 

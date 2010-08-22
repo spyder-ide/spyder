@@ -24,8 +24,8 @@ from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate
-from spyderlib.widgets.externalshell import (ExternalShellBase,
-                                             add_pathlist_to_PYTHONPATH)
+from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
+                                                   add_pathlist_to_PYTHONPATH)
 
 
 class ExtPythonShellWidget(PythonShellWidget):

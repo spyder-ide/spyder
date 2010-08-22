@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<!DOCTYPE TS><TS version="1.1" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -1961,21 +1960,21 @@ dans l&apos;interpréteur de la console externe active</translation>
     <message>
         <location filename="plugins/editor.py" line="524"/>
         <source>Go to last edit location
-(shortcut: Ctrl+Alt+â)</source>
+(shortcut: Ctrl+Alt+&#xe2;&#x86;&#x91;)</source>
         <translation type="obsolete">Aller à la dernière position d&apos;édition
 (raccourci clavier : Ctrl+Alt+â)</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="530"/>
         <source>Go to previous cursor position
-(shortcut: Ctrl+Alt+â)</source>
+(shortcut: Ctrl+Alt+&#xe2;&#x86;&#x90;)</source>
         <translation type="obsolete">Aller à la position précédente du curseur
 (raccourci clavier : Ctrl+Alt+â)</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="536"/>
         <source>Go to next cursor position
-(shortcut: Ctrl+Alt+â)</source>
+(shortcut: Ctrl+Alt+&#xe2;&#x86;&#x92;)</source>
         <translation type="obsolete">Aller à la position suivante du curseur
 (raccourci clavier : Ctrl+Alt+â)</translation>
     </message>
@@ -3280,52 +3279,52 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ExternalShellBase</name>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="94"/>
+        <location filename="widgets/externalshell/baseshell.py" line="87"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="110"/>
+        <location filename="widgets/externalshell/baseshell.py" line="103"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="112"/>
+        <location filename="widgets/externalshell/baseshell.py" line="105"/>
         <source>Run again this program</source>
         <translation>Exécuter de nouveau ce programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="116"/>
+        <location filename="widgets/externalshell/baseshell.py" line="109"/>
         <source>Kill</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="119"/>
+        <location filename="widgets/externalshell/baseshell.py" line="112"/>
         <source>Kills the current process, causing it to exit immediately</source>
         <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="177"/>
+        <location filename="widgets/externalshell/baseshell.py" line="170"/>
         <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="183"/>
+        <location filename="widgets/externalshell/baseshell.py" line="176"/>
         <source>Terminated.</source>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="199"/>
+        <location filename="widgets/externalshell/baseshell.py" line="192"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="201"/>
+        <location filename="widgets/externalshell/baseshell.py" line="194"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/__init__.py" line="125"/>
+        <location filename="widgets/externalshell/baseshell.py" line="118"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
