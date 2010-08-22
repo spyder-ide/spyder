@@ -125,7 +125,7 @@ def runfile(filename, args=None, wdir=None):
     glbs.pop('__file__')
     
 
-def debugfile(filename, args=None, wdir=None, breakpoints={}):
+def debugfile(filename, args=None, wdir=None):
     """
     Debug filename
     args: command line arguments (string)
@@ -140,11 +140,14 @@ def debugfile(filename, args=None, wdir=None, breakpoints={}):
     command += ")"
     debugger = pdb.Pdb()
     debugger.clear_all_breaks()
-    if breakpoints:
-        debugger._set_stopinfo(None, None)
-    for fname, linenumbers in breakpoints.iteritems():
-        for linenumber in linenumbers:
-            debugger.set_break(debugger.canonic(fname), linenumber)
+    
+    from spyderlib.config import CONF
+    if CONF.get('run', 'breakpoints/enabled', True):
+        breakpoints = CONF.get('run', 'breakpoints', {})
+        for fname, linenumbers in breakpoints.iteritems():
+            for linenumber in linenumbers:
+                debugger.set_break(debugger.canonic(fname), linenumber)
+                
     debugger.run(command)
 
 
