@@ -567,6 +567,9 @@ class LineNumberArea(QWidget):
 
     def mousePressEvent(self, event):
         self.code_editor.linenumberarea_mousepress_event(event)
+        
+    def mouseDoubleClickEvent(self, event):
+        self.code_editor.linenumberarea_mousedoubleclick_event(event)
 
 class ScrollFlagArea(QWidget):
     WIDTH = 12

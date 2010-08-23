@@ -43,6 +43,27 @@ from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)
 
 
+def _load_all_breakpoints():
+    bp_dict = CONF.get('run', 'breakpoints', {})
+    for filename in bp_dict.keys():
+        if not osp.isfile(filename):
+            bp_dict.pop(filename)
+    return bp_dict
+
+def load_breakpoints(filename):
+    return _load_all_breakpoints().get(filename, [])
+
+def save_breakpoints(filename, breakpoints):
+    if not osp.isfile(filename):
+        return
+    bp_dict = _load_all_breakpoints()
+    bp_dict[filename] = breakpoints
+    CONF.set('run', 'breakpoints', bp_dict)
+    
+def clear_all_breakpoints():
+    CONF.set('run', 'breakpoints', {})
+
+
 WINPDB_PATH = programs.get_nt_program_name('winpdb')
 
 def is_winpdb_installed():
@@ -445,6 +466,18 @@ class Editor(SpyderPluginWidget):
             self.tr("Close all opened files"),
             triggered = self.close_all_files)
         
+        set_clear_breakpoint_action = create_action(self,
+                                    self.tr("Set/Clear breakpoint"),
+                                    "F12", icon=get_icon("breakpoint.png"),
+                                    triggered=self.set_or_clear_breakpoint,
+                                    context=Qt.WidgetShortcut)
+        clear_all_breakpoints_action = create_action(self,
+                                    self.tr("Clear breakpoints in all files"),
+                                    triggered=self.clear_all_breakpoints)
+        breakpoints_menu = QMenu(self.tr("Breakpoints"), self)
+        add_actions(breakpoints_menu, (set_clear_breakpoint_action, None,
+                                       clear_all_breakpoints_action))
+        
         run_action = create_action(self, self.tr("Run"), "F5", 'run.png',
             self.tr("Run active script in a new Python interpreter"),
             triggered=self.run_file)
@@ -620,7 +653,8 @@ class Editor(SpyderPluginWidget):
         self.main.search_toolbar_actions += [gotoline_action]
         
         run_menu_actions = [run_action, debug_action, configure_action,
-                            None, re_run_action, run_selected_action]
+                            breakpoints_menu, None,
+                            re_run_action, run_selected_action]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, debug_action, configure_action,
                                run_selected_action, re_run_action]
@@ -642,6 +676,7 @@ class Editor(SpyderPluginWidget):
                                     run_toolbar_actions + [None] + \
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
+                set_clear_breakpoint_action,
                 debug_action, re_run_action, run_selected_action,
                 blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
@@ -792,6 +827,9 @@ class Editor(SpyderPluginWidget):
                      self.refresh_save_all_action)
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.refresh_eol_mode)
+        
+        self.connect(editorstack, SIGNAL("save_breakpoints(QString,QString)"),
+                     self.save_breakpoints)
         
         self.connect(editorstack, SIGNAL('text_changed_at(QString,int)'),
                      self.text_changed_at)
@@ -1213,7 +1251,6 @@ class Editor(SpyderPluginWidget):
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
             current_editor = self.set_current_filename(filename)
-            new_editors = []
             if current_editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
@@ -1223,9 +1260,9 @@ class Editor(SpyderPluginWidget):
                 for editorstack in self.editorstacks:
                     is_current = editorstack is current
                     editor = editorstack.load(filename, set_current=is_current)
+                    editor.set_breakpoints(load_breakpoints(filename))
                     if is_current:
                         current_editor = editor
-                    new_editors.append(editor)
                 current.analyze_script() # Analyze script only once (and update
                 # all other editor instances in other editorstacks)
                 self.__add_recent_file(filename)
@@ -1237,6 +1274,11 @@ class Editor(SpyderPluginWidget):
             current_editor.setFocus()
             current_editor.window().raise_()
             QApplication.processEvents()
+            
+    def save_breakpoints(self, filename, breakpoints):
+        filename = osp.normpath(osp.abspath(unicode(filename)))
+        breakpoints = [int(bp) for bp in unicode(breakpoints).split(',')]
+        save_breakpoints(filename, breakpoints)
 
     def print_file(self):
         """Print current file"""
@@ -1504,6 +1546,21 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.go_to_line()
+            
+    def set_or_clear_breakpoint(self):
+        """Set/Clear breakpoint"""
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            editorstack.set_or_clear_breakpoint()
+            
+    def clear_all_breakpoints(self):
+        """Clear breakpoints in all files"""
+        clear_all_breakpoints()
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            for data in editorstack.data:
+                data.editor.clear_breakpoints()
+        
     
     #------ Run Python script
     def edit_run_configurations(self):
@@ -1531,7 +1588,10 @@ class Editor(SpyderPluginWidget):
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
-            current = runconf.current
+            if debug:
+                current = False
+            else:
+                current = runconf.current
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
@@ -1555,6 +1615,12 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current) = self.__last_ec_exec
+        if debug:
+            editorstack = self.get_current_editorstack()
+            for finfo in editorstack.data:
+                breakpoints = finfo.editor.get_breakpoints()
+                if breakpoints:
+                    save_breakpoints(finfo.filename, breakpoints)
         if current:
             self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)

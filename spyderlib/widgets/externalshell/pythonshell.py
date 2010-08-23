@@ -298,7 +298,9 @@ class ExternalPythonShell(ExternalShellBase):
         if self.interact_action.isChecked():
             p_args.append('-i')
         if self.debug_action.isChecked():
-            p_args.extend(['-m', 'pdb'])
+#            p_args.extend(['-m', 'pdb'])
+            from spyderlib.widgets.externalshell import mypdb
+            p_args.append(osp.abspath(mypdb.__file__))
         if os.name == 'nt' and self.debug_action.isChecked():
             # When calling pdb on Windows, one has to replace backslashes by
             # slashes to avoid confusion with escape characters (otherwise, 

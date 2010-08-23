@@ -20,7 +20,7 @@ import sys, os, re, os.path as osp, time
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
-                         QPixmap, QPrinter, QToolTip, QCursor)
+                         QPixmap, QPrinter, QToolTip, QCursor, QTextBlockUserData)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
                           PYQT_VERSION_STR)
 
@@ -42,6 +42,22 @@ from spyderlib.utils import sourcecode, is_keyword
 #===============================================================================
 # CodeEditor widget
 #===============================================================================
+class BlockUserData(QTextBlockUserData):
+    def __init__(self, editor):
+        QTextBlockUserData.__init__(self)
+        self.editor = editor
+        self.breakpoint = False
+        self.code_analysis = []
+        self.todo = ''
+        self.editor.blockuserdata_list.append(self)
+        
+    def is_empty(self):
+        return not self.breakpoint and not self.code_analysis and not self.todo
+        
+    def __del__(self):
+        print "deleted:", self.todo
+        bud_list = self.editor.blockuserdata_list
+        bud_list.pop(bud_list.index(self))
 
 class CodeEditor(TextEditBaseWidget):
     """
@@ -87,6 +103,7 @@ class CodeEditor(TextEditBaseWidget):
         self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
         self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
+        self.bp_pixmap = QPixmap(get_image_path('breakpoint.png'), 'png')
         
         # Line number area management
         self.linenumbers_margin = True
@@ -113,8 +130,9 @@ class CodeEditor(TextEditBaseWidget):
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
         self.warning_color = "#EFB870"
-        self.error_color = "#ED9A91"
+        self.error_color = "#EA2B0E"
         self.todo_color = "#B4D4F3"
+        self.breakpoint_color = "#FF5533"
 
         self.update_linenumberarea_width(0)
                 
@@ -129,12 +147,9 @@ class CodeEditor(TextEditBaseWidget):
         self.supported_language = None
         self.classfunc_match = None
         self.comment_string = None
-
-        # Code analysis markers: errors, warnings
-        self.ca_marker_lines = {}
         
-        # Todo finder
-        self.todo_lines = {}
+        # Block user data
+        self.blockuserdata_list = []
         
         # Mark occurences timer
         self.occurence_highlighting = None
@@ -488,6 +503,8 @@ class CodeEditor(TextEditBaseWidget):
         bottom = top + self.blockBoundingRect(block).height()
         
         painter.setPen(Qt.darkGray)
+        def draw_pixmap(ytop, pixmap):
+            painter.drawPixmap(0, ytop+(font_height-pixmap.height())/2, pixmap)
         while block.isValid() and top <= event.rect().bottom():
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
@@ -496,32 +513,27 @@ class CodeEditor(TextEditBaseWidget):
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
                                      number)
-                if self.markers_margin:
-                    code_analysis = self.ca_marker_lines.get(line_number)
-                    if code_analysis is not None:
-                        for _message, error in code_analysis:
+                data = block.userData()
+                if self.markers_margin and data:
+                    if data.code_analysis:
+                        for _message, error in data.code_analysis:
                             if error:
                                 break
                         if error:
-                            pixmap = self.error_pixmap
+                            draw_pixmap(top, self.error_pixmap)
                         else:
-                            pixmap = self.warning_pixmap
-                        painter.drawPixmap(0,
-                                           top+(font_height-pixmap.height())/2,
-                                           pixmap)
-                    todo = self.todo_lines.get(line_number)
-                    if todo is not None:
-                        pixmap = self.todo_pixmap
-                        painter.drawPixmap(0,
-                                           top+(font_height-pixmap.height())/2,
-                                           pixmap)
+                            draw_pixmap(top, self.warning_pixmap)
+                    if data.todo:
+                        draw_pixmap(top, self.todo_pixmap)
+                    if data.breakpoint:
+                        draw_pixmap(top, self.bp_pixmap)
                     
             block = block.next()
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             block_number += 1
             
-    def linenumberarea_mousepress_event(self, event):
+    def __get_linenumber_from_mouse_event(self, event):
         block = self.firstVisibleBlock()
         line_number = block.blockNumber()
         top = self.blockBoundingGeometry(block).translated(
@@ -533,8 +545,57 @@ class CodeEditor(TextEditBaseWidget):
             top = bottom
             bottom = top + self.blockBoundingRect(block).height()
             line_number += 1
+            
+        return line_number
+            
+    def linenumberarea_mousepress_event(self, event):
+        line_number = self.__get_linenumber_from_mouse_event(event)
+        block = self.document().findBlockByNumber(line_number-1)
+        data = block.userData()
+        if data and data.code_analysis:
+            self.__show_code_analysis_results(line_number, data.code_analysis)
+            
+    def linenumberarea_mousedoubleclick_event(self, event):
+        line_number = self.__get_linenumber_from_mouse_event(event)
+        self.add_breakpoint(line_number)
         
-        self.__show_code_analysis_results(line_number)
+            
+    #------Breakpoints
+    def add_breakpoint(self, line_number=None):
+        if line_number is None:
+            block = self.textCursor().block()
+        else:
+            block = self.document().findBlockByNumber(line_number-1)
+        data = block.userData()
+        if data:
+            data.breakpoint = not data.breakpoint
+        else:
+            data = BlockUserData(self)
+            data.breakpoint = True
+        block.setUserData(data)
+        self.linenumberarea.update()
+        self.scrollflagarea.update()
+        
+    def get_breakpoints(self):
+        breakpoints = []
+        block = self.document().firstBlock()
+        for line_number in xrange(1, self.document().blockCount()+1):
+            data = block.userData()
+            if data and data.breakpoint:
+                breakpoints.append(line_number)
+            block = block.next()
+        return breakpoints
+    
+    def clear_breakpoints(self):
+        for data in self.blockuserdata_list[:]:
+            data.breakpoint = []
+            if data.is_empty():
+                del data
+    
+    def set_breakpoints(self, breakpoints):
+        self.clear_breakpoints()
+        for line_number in breakpoints:
+            self.add_breakpoint(line_number)
         
 
     #-----scrollflagarea
@@ -566,29 +627,34 @@ class CodeEditor(TextEditBaseWidget):
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), self.area_background_color)
         
-        # Warnings
-        self.__set_scrollflagarea_painter(painter, self.warning_color)
-        errors = []
-        for line, item in self.ca_marker_lines.iteritems():
-            for _message, error in item:
-                if error:
-                    errors.append(line)
-                    break
-            if error:
-                continue
-            painter.drawRect(make_flag(line))
-        # Errors
-        self.__set_scrollflagarea_painter(painter, self.error_color)
-        for line in errors:
-            painter.drawRect(make_flag(line))
+        block = self.document().firstBlock()
+        for line_number in xrange(1, self.document().blockCount()+1):
+            data = block.userData()
+            if data:
+                if data.code_analysis:
+                    # Warnings
+                    color = self.warning_color
+                    for _message, error in data.code_analysis:
+                        if error:
+                            color = self.error_color
+                            break
+                    self.__set_scrollflagarea_painter(painter, color)
+                    painter.drawRect(make_flag(line_number))
+                if data.todo:
+                    # TODOs
+                    self.__set_scrollflagarea_painter(painter, self.todo_color)
+                    painter.drawRect(make_flag(line_number))
+                if data.breakpoint:
+                    # Breakpoints
+                    self.__set_scrollflagarea_painter(painter,
+                                                      self.breakpoint_color)
+                    painter.drawRect(make_flag(line_number))
+            block = block.next()
         # Occurences
-        self.__set_scrollflagarea_painter(painter, self.occurence_color)
-        for line in self.occurences:
-            painter.drawRect(make_flag(line))
-        # TODOs
-        self.__set_scrollflagarea_painter(painter, self.todo_color)
-        for line in self.todo_lines:
-            painter.drawRect(make_flag(line))
+        if self.occurences:
+            self.__set_scrollflagarea_painter(painter, self.occurence_color)
+            for line in self.occurences:
+                painter.drawRect(make_flag(line))
                     
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
@@ -755,7 +821,10 @@ class CodeEditor(TextEditBaseWidget):
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
         self.clear_extra_selections('code_analysis')
-        self.ca_marker_lines = {}
+        for data in self.blockuserdata_list[:]:
+            data.code_analysis = []
+            if data.is_empty():
+                del data
         
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
@@ -766,11 +835,14 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         document = self.document()
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        for message, line0, error in check_results:
-            line1 = line0 - 1
-            if line0 not in self.ca_marker_lines:
-                self.ca_marker_lines[line0] = []
-            self.ca_marker_lines[line0].append( (message, error) )
+        for message, line_number, error in check_results:
+            # Note: line_number start from 1 (not 0)
+            block = self.document().findBlockByNumber(line_number-1)
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self)
+            data.code_analysis.append( (message, error) )
+            block.setUserData(data)
             refs = re.findall(r"\'[a-zA-Z0-9_]*\'", message)
             for ref in refs:
                 # Highlighting found references
@@ -781,10 +853,10 @@ class CodeEditor(TextEditBaseWidget):
                     stripped = text.strip()
                     return stripped.endswith('\\') or stripped.endswith(',') \
                            or len(stripped) == 0
-                line2 = line1
+                line2 = line_number-1
                 while line2 < self.blockCount()-1 and is_line_splitted(line2):
                     line2 += 1
-                cursor.setPosition(document.findBlockByNumber(line1).position())
+                cursor.setPosition(block.position())
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
                                  Qt.CaseSensitive)
@@ -799,72 +871,80 @@ class CodeEditor(TextEditBaseWidget):
 #                        cursor = document.find(text, cursor, flags)
         self.update_extra_selections()
 
-    def __highlight_warning(self, line):
-        self.go_to_line(line)
-        self.__show_code_analysis_results(line)
+    def __show_code_analysis_results(self, line_number, code_analysis):
+        """Show warning/error messages"""
+        msglist = [ msg for msg, _error in code_analysis ]
+        self.show_calltip(self.tr("Code analysis"), msglist,
+                          color='#129625', at_line=line_number)
 
     def go_to_next_warning(self):
         """Go to next code analysis warning message
         and return new cursor position"""
-        cline = self.get_cursor_line_number()
-        lines = sorted(self.ca_marker_lines.keys())
-        for line in lines:
-            if line > cline:
+        block = self.textCursor().block()
+        line_count = self.document().blockCount()
+        while True:
+            line_number = block.blockNumber()+1
+            if line_number < line_count:
+                block = block.next()
+            else:
+                block = self.document().firstBlock()
+            data = block.userData()
+            if data and data.code_analysis:
                 break
-        else:
-            line = lines[0]
-        self.__highlight_warning(line)
+        self.go_to_line(line_number)
+        self.__show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
 
     def go_to_previous_warning(self):
         """Go to previous code analysis warning message
         and return new cursor position"""
-        cline = self.get_cursor_line_number()
-        lines = sorted(self.ca_marker_lines.keys(), reverse=True)
-        for line in lines:
-            if line < cline:
+        block = self.textCursor().block()
+        while True:
+            line_number = block.blockNumber()+1
+            if line_number > 1:
+                block = block.previous()
+            else:
+                block = self.document().lastBlock()
+            data = block.userData()
+            if data and data.code_analysis:
                 break
-        else:
-            line = lines[-1]
-        self.__highlight_warning(line)
+        self.go_to_line(line_number)
+        self.__show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
-
-    def __show_code_analysis_results(self, line):
-        """Show warning/error messages"""
-        if line in self.ca_marker_lines:
-            msglist = [ msg for msg, _error in self.ca_marker_lines[line] ]
-            self.show_calltip(self.tr("Code analysis"), msglist,
-                              color='#129625', at_line=line)
 
     
     #------Tasks management
-    def __show_todo(self, line):
-        """Show todo message"""
-        if line in self.todo_lines:
-            self.show_calltip(self.tr("To do"), self.todo_lines[line],
-                              color='#3096FC', at_line=line)
-
-    def __highlight_todo(self, line):
-        self.go_to_line(line)
-        self.__show_todo(line)
-
     def go_to_next_todo(self):
         """Go to next todo and return new cursor position"""
-        cline = self.get_cursor_line_number()
-        lines = sorted(self.todo_lines.keys())
-        for line in lines:
-            if line > cline:
+        block = self.textCursor().block()
+        line_count = self.document().blockCount()
+        while True:
+            line_number = block.blockNumber()+1
+            if line_number < line_count:
+                block = block.next()
+            else:
+                block = self.document().firstBlock()
+            data = block.userData()
+            if data and data.todo:
                 break
-        else:
-            line = lines[0]
-        self.__highlight_todo(line)
+        self.go_to_line(line_number)
+        self.show_calltip(self.tr("To do"), data.todo,
+                          color='#3096FC', at_line=line_number)
         return self.get_position('cursor')
             
     def process_todo(self, todo_results):
         """Process todo finder results"""
-        self.todo_lines = {}
-        for message, line in todo_results:
-            self.todo_lines[line] = message
+        for data in self.blockuserdata_list[:]:
+            data.todo = ''
+            if data.is_empty():
+                del data
+        for message, line_number in todo_results:
+            block = self.document().findBlockByNumber(line_number-1)
+            data = block.userData()
+            if not data:
+                data = BlockUserData(self)
+            data.todo = message
+            block.setUserData(data)
         self.scrollflagarea.update()
                 
     
@@ -1316,7 +1396,7 @@ class CodeEditor(TextEditBaseWidget):
         QPlainTextEdit.leaveEvent(self, event)
             
     def mousePressEvent(self, event):
-        """Reimplement Qt method only on non-linux platforms"""
+        """Reimplement Qt method"""
         if os.name != 'posix' and event.button() == Qt.MidButton:
             self.setFocus()
             event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),

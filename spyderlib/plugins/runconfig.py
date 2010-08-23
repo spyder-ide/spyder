@@ -133,6 +133,10 @@ class RunConfigOptions(QWidget):
         self.new_radio = QRadioButton(self.tr("Execute in a new dedicated "
                                               "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
+        radio_label = QLabel(self.tr("Note: debugging will always take place "
+                                     "in a new interpreter"))
+        radio_label.setWordWrap(True)
+        radio_layout.addWidget(radio_label)
         
         new_group = QGroupBox(self.tr("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),

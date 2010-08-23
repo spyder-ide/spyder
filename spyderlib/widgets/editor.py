@@ -16,7 +16,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QComboBox, QKeySequence, QShortcut, QSizePolicy,
                          QMainWindow, QLabel, QListWidget, QListWidgetItem,
                          QDialog, QLineEdit, QIntValidator, QDialogButtonBox,
-                         QGroupBox, QGridLayout)
+                         QGridLayout)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR, QSize, QPoint, SLOT)
 
@@ -508,6 +508,9 @@ class EditorStack(QWidget):
         layout.addLayout(self.header_layout)
 
         # Local shortcuts
+        breakpointsc = QShortcut(QKeySequence("F12"), parent,
+                                 self.set_or_clear_breakpoint)
+        breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
         gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent, self.go_to_line)
         gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
         filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
@@ -577,6 +580,12 @@ class EditorStack(QWidget):
             dlg = GoToLineDialog(editor)
             if dlg.exec_():
                 editor.go_to_line(dlg.get_line_number())
+                
+    def set_or_clear_breakpoint(self):
+        """Set/clear breakpoint"""
+        if self.data:
+            editor = self.get_current_editor()
+            editor.add_breakpoint()
         
         
     #------ Editor Widget Settings
@@ -933,9 +942,16 @@ class EditorStack(QWidget):
                 new_index = current_index
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
+            finfo = self.data[index]
             # Removing editor reference from class browser settings:
             if self.classbrowser is not None:
-                self.classbrowser.remove_editor(self.data[index].editor)
+                self.classbrowser.remove_editor(finfo.editor)
+            # Saving breakpoints
+            breakpoints = finfo.editor.get_breakpoints()
+            if breakpoints:
+                bp_str = ",".join([str(bp) for bp in breakpoints])
+                self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                          finfo.filename, bp_str)
             
             self.remove_from_data(index)
             self.emit(SIGNAL('close_file(int)'), index)

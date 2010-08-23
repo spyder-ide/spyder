@@ -131,23 +131,22 @@ def debugfile(filename, args=None, wdir=None):
     args: command line arguments (string)
     wdir: working directory
     """
-    import pdb
-    command = "runfile(r'%s'" % unicode(filename)
+    from spyderlib.widgets.externalshell.mypdb import Pdb, set_breakpoints
+    debugger = Pdb()
+    filename = debugger.canonic(unicode(filename))
+    
+    command = "runfile(r'%s'" % filename
     if args:
         command += ", args='%s'" % args
     if wdir:
         command += ", wdir=u'%s'" % wdir
     command += ")"
-    debugger = pdb.Pdb()
-    debugger.clear_all_breaks()
     
-    from spyderlib.config import CONF
-    if CONF.get('run', 'breakpoints/enabled', True):
-        breakpoints = CONF.get('run', 'breakpoints', {})
-        for fname, linenumbers in breakpoints.iteritems():
-            for linenumber in linenumbers:
-                debugger.set_break(debugger.canonic(fname), linenumber)
-                
+    set_breakpoints(debugger)
+
+    debugger._wait_for_mainpyfile = 1
+    debugger.mainpyfile = filename
+    debugger._user_requested_quit = 0
     debugger.run(command)
 
 

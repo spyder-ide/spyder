@@ -7,10 +7,16 @@
 import sys, os, traceback
 from pdb import Pdb, Restart
 
-def get_breakpoints():
+def set_breakpoints(debugger):
+    debugger.clear_all_breaks()
     from spyderlib.config import CONF
+    CONF.load_from_ini()
     if CONF.get('run', 'breakpoints/enabled', True):
-        return CONF.get('run', 'breakpoints', {})
+        breakpoints = CONF.get('run', 'breakpoints', {})
+        print "bp:", breakpoints
+        for fname, linenumbers in breakpoints.iteritems():
+            for linenumber in linenumbers:
+                debugger.set_break(debugger.canonic(fname), linenumber)
 
 def main():
     if not sys.argv[1:] or sys.argv[1] in ("--help", "-h"):
@@ -32,6 +38,8 @@ def main():
     # changed by the user from the command line. There is a "restart" command which
     # allows explicit specification of command line arguments.
     pdb = Pdb()
+    set_breakpoints(pdb)
+            
     while 1:
         try:
             pdb._runscript(mainpyfile)
@@ -56,5 +64,4 @@ def main():
 
 # When invoked as main program, invoke the debugger on a script
 if __name__ == '__main__':
-    import pdb
-    pdb.main()
+    main()
