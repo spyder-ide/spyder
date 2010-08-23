@@ -301,11 +301,11 @@ class ExternalPythonShell(ExternalShellBase):
             p_args.append('-i')
         if self.debug_action.isChecked():
             p_args.extend(['-m', 'pdb'])
-        if os.name == 'nt':
-            # When calling pdb on Windows, one has to double the backslashes 
-            # to help Python escaping these characters (otherwise, for example,
-            # '\t' will be interpreted as a tabulation):
-            p_args.append(self.fname.replace(os.sep, os.sep*2))
+        if os.name == 'nt' and self.debug_action.isChecked():
+            # When calling pdb on Windows, one has to replace backslashes by
+            # slashes to avoid confusion with escape characters (otherwise, 
+            # for example, '\t' will be interpreted as a tabulation):
+            p_args.append(osp.normpath(self.fname).replace(os.sep, '/'))
         else:
             p_args.append(self.fname)
         
