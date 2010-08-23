@@ -151,10 +151,8 @@ class ExternalPythonShell(ExternalShellBase):
             assert isinstance(python_args, basestring)
             self.python_args = python_args
         
-        self.arguments = None
-        if arguments:
-            assert isinstance(arguments, basestring)
-            self.arguments = arguments
+        assert isinstance(arguments, basestring)
+        self.arguments = arguments
         
         self.ipython = ipython
         if self.ipython:

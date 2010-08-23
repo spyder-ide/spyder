@@ -363,7 +363,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Note: fname is None <=> Python interpreter
         fname = unicode(fname) if isinstance(fname, QString) else fname
         wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
-
+        
         if fname is not None and fname in self.filenames:
             index = self.filenames.index(fname)
             if self.get_option('single_tab'):
@@ -650,7 +650,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open interpreter"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), args=None,
+        self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True)
         
     def get_default_ipython_options(self):
@@ -681,7 +681,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open terminal"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), args=None,
+        self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=False)
         
     def run_script(self):
@@ -692,7 +692,7 @@ class ExternalConsole(SpyderPluginWidget):
                       self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.start(fname=unicode(filename), wdir=None, args=None,
+            self.start(fname=unicode(filename), wdir=None, args='',
                        interact=False, debug=False)
         
     def set_umd_namelist(self):
