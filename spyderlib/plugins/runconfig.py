@@ -31,7 +31,6 @@ class RunConfiguration(object):
         self.wdir_enabled = False
         self.current = False
         self.interact = False
-        self.debug = False
         self.python_args = ''
         self.python_args_enabled = False
         
@@ -42,7 +41,6 @@ class RunConfiguration(object):
         self.wdir_enabled = options.get('workdir/enabled', False)
         self.current = options.get('current', False)
         self.interact = options.get('interact', False)
-        self.debug = options.get('debug', False)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
         
@@ -54,7 +52,6 @@ class RunConfiguration(object):
                 'workdir': self.wdir,
                 'current': self.current,
                 'interact': self.interact,
-                'debug': self.debug,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
                 }
@@ -80,7 +77,9 @@ class RunConfiguration(object):
         
 def _get_run_configurations():
     history_count = CONF.get('run', 'history', 20)
-    return CONF.get('run', 'configurations', [])[:history_count]
+    return [(filename, options)
+            for filename, options in CONF.get('run', 'configurations', [])
+            if osp.isfile(filename)][:history_count]
 
 def _set_run_configurations(configurations):
     history_count = CONF.get('run', 'history', 20)
@@ -124,9 +123,6 @@ class RunConfigOptions(QWidget):
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
-        self.debug_cb = QCheckBox(self.tr("Debug the script with pdb (Python "
-                                          "debugger)"))
-        common_layout.addWidget(self.debug_cb, 2, 0, 1, -1)
         
         radio_group = QGroupBox(self.tr("Interpreter"))
         radio_layout = QVBoxLayout()
@@ -183,7 +179,6 @@ class RunConfigOptions(QWidget):
         self.clo_edit.setText(self.runconf.args)
         self.wd_cb.setChecked(self.runconf.wdir_enabled)
         self.wd_edit.setText(self.runconf.wdir)
-        self.debug_cb.setChecked(self.runconf.debug)
         if self.runconf.current:
             self.current_radio.setChecked(True)
         else:
@@ -197,7 +192,6 @@ class RunConfigOptions(QWidget):
         self.runconf.args = unicode(self.clo_edit.text())
         self.runconf.wdir_enabled = self.wd_cb.isChecked()
         self.runconf.wdir = unicode(self.wd_edit.text())
-        self.runconf.debug = self.debug_cb.isChecked()
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()

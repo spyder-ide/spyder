@@ -1512,7 +1512,7 @@ class Editor(SpyderPluginWidget):
         dialog.setup(fname)
         dialog.exec_()
         
-    def run_file(self, debug=None):
+    def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
         editorstack = self.get_current_editorstack()
         if editorstack.save():
@@ -1531,8 +1531,6 @@ class Editor(SpyderPluginWidget):
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
-            if debug is None:
-                debug = runconf.debug
             current = runconf.current
             
             python = True # Note: in the future, it may be useful to run
