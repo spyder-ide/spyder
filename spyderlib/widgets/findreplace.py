@@ -123,16 +123,23 @@ class FindReplace(QWidget):
         
     def keyPressEvent(self, event):
         """Reimplemented to handle key events"""
+        shift = event.modifiers() & Qt.ShiftModifier
         ctrl = event.modifiers() & Qt.ControlModifier
         if event.key() == Qt.Key_Escape:
             self.hide()
             event.accept()
             return
         elif event.key() == Qt.Key_F3:
-            # Find next
-            self.find_next()
-            self.editor.setFocus()
-            event.accept()
+            if shift:
+                # Find previous
+                self.find_previous()()
+                self.editor.setFocus()
+                event.accept()
+            else:
+                # Find next
+                self.find_next()
+                self.editor.setFocus()
+                event.accept()
         elif event.key() == Qt.Key_F and ctrl:
             # Toggle find widgets
             if self.isVisible():

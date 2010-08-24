@@ -218,6 +218,7 @@ class MainWindow(QMainWindow):
         # Actions
         self.find_action = None
         self.find_next_action = None
+        self.find_previous_action = None
         self.replace_action = None
         self.undo_action = None
         self.redo_action = None
@@ -336,6 +337,9 @@ class MainWindow(QMainWindow):
                                              _text, triggered=self.find)
             self.find_next_action = create_action(self, translate("FindReplace",
                   "Find next"), "F3", 'findnext.png', triggered=self.find_next)
+            self.find_previous_action = create_action(self,
+                        translate("FindReplace", "Find previous"), "Shift+F3",
+                        'findprevious.png', triggered=self.find_previous)
             _text = translate("FindReplace", "Replace text")
             self.replace_action = create_action(self, _text, "Ctrl+H",
                                                 'replace.png', _text,
@@ -362,8 +366,11 @@ class MainWindow(QMainWindow):
                                       self.paste_action, self.delete_action,
                                       None, self.selectall_action]
             self.search_menu_actions = [self.find_action, self.find_next_action,
+                                        self.find_previous_action,
                                         self.replace_action]
-            self.search_toolbar_actions = self.search_menu_actions[:]
+            self.search_toolbar_actions = [self.find_action,
+                                           self.find_next_action,
+                                           self.replace_action]
 
         namespace = None
         if not self.light:
@@ -829,7 +836,7 @@ class MainWindow(QMainWindow):
             return        
         # Disabling all actions to begin with
         for child in [self.find_action, self.find_next_action,
-                      self.replace_action]:
+                      self.find_previous_action, self.replace_action]:
             child.setEnabled(False)
         
         widget, textedit_properties = self.__focus_widget_properties()
@@ -839,8 +846,9 @@ class MainWindow(QMainWindow):
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
         _, _, readwrite_editor = textedit_properties
-        self.find_action.setEnabled(True)
-        self.find_next_action.setEnabled(True)
+        for action in [self.find_action, self.find_next_action,
+                       self.find_previous_action]:
+            action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
         
@@ -1052,6 +1060,12 @@ class MainWindow(QMainWindow):
         plugin = self.get_current_editor_plugin()
         if plugin is not None:
             plugin.find_widget.find_next()
+            
+    def find_previous(self):
+        """Global find previous callback"""
+        plugin = self.get_current_editor_plugin()
+        if plugin is not None:
+            plugin.find_widget.find_previous()
         
     def replace(self):
         """Global replace callback"""
