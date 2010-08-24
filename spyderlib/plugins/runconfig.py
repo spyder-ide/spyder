@@ -133,10 +133,6 @@ class RunConfigOptions(QWidget):
         self.new_radio = QRadioButton(self.tr("Execute in a new dedicated "
                                               "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
-        radio_label = QLabel(self.tr("Note: debugging will always take place "
-                                     "in a new interpreter"))
-        radio_label.setWordWrap(True)
-        radio_layout.addWidget(radio_label)
         
         new_group = QGroupBox(self.tr("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
@@ -145,18 +141,18 @@ class RunConfigOptions(QWidget):
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(self.tr("Interact with the Python "
                                              "interpreter after execution"))
-        new_layout.addWidget(self.interact_cb, 0, 0, 1, -1)
+        new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
         self.pclo_cb = QCheckBox(self.tr("Command line options:"))
-        new_layout.addWidget(self.pclo_cb, 1, 0)
+        new_layout.addWidget(self.pclo_cb, 2, 0)
         self.pclo_edit = QLineEdit()
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
-        new_layout.addWidget(self.pclo_edit, 1, 1)
-        pclo_label = QLabel(self.tr("Note: the <b>-u</b> option is "
-                                    "automatically added to these commands"))
+        new_layout.addWidget(self.pclo_edit, 2, 1)
+        pclo_label = QLabel(self.tr("The <b>-u</b> option is "
+                                    "added to these commands"))
         pclo_label.setWordWrap(True)
-        new_layout.addWidget(pclo_label, 2, 1)
+        new_layout.addWidget(pclo_label, 3, 1)
         
         #TODO: Add option for "Post-mortem debugging"
         

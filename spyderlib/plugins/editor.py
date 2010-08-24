@@ -1588,10 +1588,7 @@ class Editor(SpyderPluginWidget):
             args = runconf.get_arguments()
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
-            if debug:
-                current = False
-            else:
-                current = runconf.current
+            current = runconf.current
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.

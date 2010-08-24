@@ -342,6 +342,12 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget is not None:
             shellwidget.shell.execute_lines(unicode(lines))
             shellwidget.shell.setFocus()
+            
+    def pdb_has_stopped(self, fname, lineno, shell):
+        """Python debugger has just stopped at frame (fname, lineno)"""
+        self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                  fname, lineno, '')
+        shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipython=False, python_args=''):
@@ -408,6 +414,9 @@ class ExternalConsole(SpyderPluginWidget):
                            light_background=light_background)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shellwidget(shellwidget)
+            self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
+                         lambda fname, lineno, shell=shellwidget.shell:
+                         self.pdb_has_stopped(fname, lineno, shell))
         else:
             shellwidget = ExternalSystemShell(self, wdir, path=pythonpath,
                                               light_background=light_background)

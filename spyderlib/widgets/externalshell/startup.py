@@ -131,8 +131,8 @@ def debugfile(filename, args=None, wdir=None):
     args: command line arguments (string)
     wdir: working directory
     """
-    from spyderlib.widgets.externalshell.mypdb import Pdb, set_breakpoints
-    debugger = Pdb()
+    import pdb
+    debugger = pdb.Pdb()
     filename = debugger.canonic(unicode(filename))
     
     command = "runfile(r'%s'" % filename
@@ -142,8 +142,6 @@ def debugfile(filename, args=None, wdir=None):
         command += ", wdir=u'%s'" % wdir
     command += ")"
     
-    set_breakpoints(debugger)
-
     debugger._wait_for_mainpyfile = 1
     debugger.mainpyfile = filename
     debugger._user_requested_quit = 0

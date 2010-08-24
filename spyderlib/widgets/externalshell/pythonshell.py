@@ -298,9 +298,7 @@ class ExternalPythonShell(ExternalShellBase):
         if self.interact_action.isChecked():
             p_args.append('-i')
         if self.debug_action.isChecked():
-#            p_args.extend(['-m', 'pdb'])
-            from spyderlib.widgets.externalshell import mypdb
-            p_args.append(osp.abspath(mypdb.__file__))
+            p_args.extend(['-m', 'pdb'])
         if os.name == 'nt' and self.debug_action.isChecked():
             # When calling pdb on Windows, one has to replace backslashes by
             # slashes to avoid confusion with escape characters (otherwise, 
@@ -316,8 +314,12 @@ class ExternalPythonShell(ExternalShellBase):
         from spyderlib.widgets.externalshell.monitor import start_server
         server, port = start_server()
         self.notification_thread = server.register(str(id(self)), self)
-        self.connect(self.notification_thread, SIGNAL('refresh()'),
+        self.connect(self.notification_thread,
+                     SIGNAL('refresh_namespace_browser()'),
                      self.namespacebrowser.refresh_table)
+        self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
+                     lambda fname, lineno:
+                     self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
         env.append('SPYDER_PORT=%d' % port)
         
         # Python init commands (interpreter only)

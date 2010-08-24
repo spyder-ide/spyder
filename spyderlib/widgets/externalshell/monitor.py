@@ -201,6 +201,17 @@ class Monitor(threading.Thread):
         """
         self.request.send("x", socket.MSG_OOB)
         
+    def notify_pdb_step(self, fname, lineno):
+        """
+        Notify the ExternalPythonShell regarding pdb current frame
+        """
+        if not self.ipython_shell:
+            # Because it crashes with ipdb...
+            self.refresh()
+        self.request.send("p", socket.MSG_OOB)
+        write_packet(self.request, fname)
+        write_packet(self.request, str(lineno))
+        
     def make_remote_view(self, glbs):
         """
         Return remote view of globals()
@@ -333,8 +344,13 @@ class NotificationThread(QThread):
         while True:
             try:
                 try:
-                    _d = self.shell.monitor_socket.recv(1, socket.MSG_OOB)
-                    self.emit(SIGNAL('refresh()'))
+                    msg1 = self.shell.monitor_socket.recv(1, socket.MSG_OOB)
+                    if msg1 == 'p':
+                        fname = read_packet(self.shell.monitor_socket)
+                        lineno = int(read_packet(self.shell.monitor_socket))
+                        self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
+                    else:
+                        self.emit(SIGNAL('refresh_namespace_browser()'))
                 except socket.error:
                     # Connection closed: socket error during recv()
                     break

@@ -77,6 +77,58 @@ def displayhook(obj):
 
 sys.displayhook = displayhook
 
+# Patching pdb
+import pdb, bdb
+class SpyderPdb(pdb.Pdb):
+    def user_return(self, frame, return_value):
+        """This function is called when a return trap is set here."""
+        #-----Spyder-specific---------------------------------------------------
+        # This is useful when debugging in an active interpreter (otherwise,
+        # the debugger will stop before reaching the target file)
+        if self._wait_for_mainpyfile:
+            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
+                or frame.f_lineno<= 0):
+                return
+            self._wait_for_mainpyfile = 0
+        #-----Spyder-specific---------------------------------------------------
+        frame.f_locals['__return__'] = return_value
+        print >>self.stdout, '--Return--'
+        self.interaction(frame, None)
+        
+    def interaction(self, frame, traceback):
+        self.setup(frame, traceback)
+        self.notify_spyder(frame) #-----Spyder-specific-------------------------
+        self.print_stack_entry(self.stack[self.curindex])
+        self.cmdloop()
+        self.forget()
+
+    def reset(self):
+        bdb.Bdb.reset(self)
+        self.forget()
+        self.set_spyder_breakpoints() #-----Spyder-specific---------------------
+        
+    def notify_spyder(self, frame):
+        if not frame:
+            return
+        fname = self.canonic(frame.f_code.co_filename)
+        lineno = frame.f_lineno
+        if isinstance(fname, basestring) and isinstance(lineno, int):
+            if osp.isfile(fname):
+                monitor.notify_pdb_step(fname, lineno)
+
+    def set_spyder_breakpoints(self):
+        self.clear_all_breaks()
+        from spyderlib.config import CONF
+        CONF.load_from_ini()
+        if CONF.get('run', 'breakpoints/enabled', True):
+            breakpoints = CONF.get('run', 'breakpoints', {})
+            for fname, linenumbers in breakpoints.iteritems():
+                for linenumber in linenumbers:
+                    self.set_break(self.canonic(fname), linenumber)
+
+pdb.Pdb = SpyderPdb
+
+
 ## Restoring original PYTHONPATH
 #try:
 #    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
