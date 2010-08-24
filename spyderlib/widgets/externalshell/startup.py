@@ -133,19 +133,11 @@ def debugfile(filename, args=None, wdir=None):
     """
     import pdb
     debugger = pdb.Pdb()
-    filename = debugger.canonic(unicode(filename))
-    
-    command = "runfile(r'%s'" % filename
-    if args:
-        command += ", args='%s'" % args
-    if wdir:
-        command += ", wdir=u'%s'" % wdir
-    command += ")"
-    
+    filename = debugger.canonic(filename)
     debugger._wait_for_mainpyfile = 1
     debugger.mainpyfile = filename
     debugger._user_requested_quit = 0
-    debugger.run(command)
+    debugger.run("runfile(%r, args=%r, wdir=%r)" % (filename, args, wdir))
 
 
 if __name__ == "__main__":

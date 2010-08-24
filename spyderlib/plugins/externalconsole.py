@@ -24,7 +24,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils import programs
+from spyderlib.utils import programs, remove_trailing_single_backslash
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -322,10 +322,11 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget is not None and shellwidget.is_running():
             line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
                                  unicode(filename))
+            norm = lambda text: remove_trailing_single_backslash(unicode(text))
             if args:
-                line += ", args='%s'" % args
+                line += ", args=r'%s'" % norm(args)
             if wdir:
-                line += ", wdir=u'%s'" % wdir
+                line += ", wdir=r'%s'" % norm(wdir)
             line += ")"
             shellwidget.shell.execute_lines(line)
             shellwidget.shell.setFocus()

@@ -112,6 +112,7 @@ def is_keyword(text):
     import keyword
     return text in keyword.kwlist
 
+
 def fix_reference_name(name, blacklist=None):
     """Return a syntax-valid reference name from an arbitrary name"""
     import re
@@ -130,3 +131,16 @@ def fix_reference_name(name, blacklist=None):
             index += 1
         name = get_new_name(index)
     return name
+
+
+def remove_trailing_single_backslash(text):
+    """
+    Remove trailing single backslash in *text*
+    
+    This is especially useful when formatting path strings on 
+    Windows platforms for which folder paths may end with such 
+    a character
+    """
+    if text.endswith('\\') and not text.endswith('\\\\'):
+        text = text[:-1]
+    return text
