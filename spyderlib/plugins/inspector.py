@@ -10,7 +10,7 @@ from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
                          QToolButton, QGroupBox, QFontComboBox)
 from PyQt4.QtCore import SIGNAL
 
-import sys, re, os.path as osp
+import sys, re, os.path as osp, socket
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -41,11 +41,21 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        shell = self.parent().shell
+        shell = self.object_inspector.shell
         if shell is not None:
             self.object_inspector._check_if_shell_is_running()
             force_import = self.object_inspector.get_option('automatic_import')
-            return shell.is_defined(unicode(qstr), force_import=force_import)
+            try:
+                return shell.is_defined(unicode(qstr),
+                                        force_import=force_import)
+            except socket.error:
+                self.object_inspector._check_if_shell_is_running()
+                try:
+                    return shell.is_defined(unicode(qstr),
+                                            force_import=force_import)
+                except socket.error:
+                    # Well... too bad!
+                    pass
         
     def validate_current_text(self):
         self.validate(self.currentText())
