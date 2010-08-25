@@ -1255,6 +1255,8 @@ class CodeEditor(TextEditBaseWidget):
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
         text = unicode(event.text())
+        if text:
+            self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
         # Zoom in/out
