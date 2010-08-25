@@ -1199,7 +1199,7 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         mrf, valid = QInputDialog.getInteger(editorstack, self.tr('Editor'),
                                self.tr('Maximum number of recent files'),
-                               self.get_option('max_recent_files'), 1, 100)
+                               self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
         
