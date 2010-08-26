@@ -511,6 +511,9 @@ class EditorStack(QWidget):
         breakpointsc = QShortcut(QKeySequence("F12"), parent,
                                  self.set_or_clear_breakpoint)
         breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
+        cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), parent,
+                                  self.set_or_edit_conditional_breakpoint)
+        cbreakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
         gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent, self.go_to_line)
         gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
         filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
@@ -585,7 +588,13 @@ class EditorStack(QWidget):
         """Set/clear breakpoint"""
         if self.data:
             editor = self.get_current_editor()
-            editor.add_breakpoint()
+            editor.add_remove_breakpoint()
+            
+    def set_or_edit_conditional_breakpoint(self):
+        """Set conditional breakpoint"""
+        if self.data:
+            editor = self.get_current_editor()
+            editor.add_remove_breakpoint(edit_condition=True)
         
         
     #------ Editor Widget Settings

@@ -51,7 +51,11 @@ def _load_all_breakpoints():
     return bp_dict
 
 def load_breakpoints(filename):
-    return _load_all_breakpoints().get(filename, [])
+    breakpoints = _load_all_breakpoints().get(filename, [])
+    if breakpoints and isinstance(breakpoints[0], int):
+        # Old breakpoints format
+        breakpoints = [(lineno, None) for lineno in breakpoints]
+    return breakpoints
 
 def save_breakpoints(filename, breakpoints):
     if not osp.isfile(filename):
@@ -471,11 +475,17 @@ class Editor(SpyderPluginWidget):
                                     "F12", icon=get_icon("breakpoint.png"),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
+        set_cond_breakpoint_action = create_action(self,
+                            self.tr("Set/Edit conditional breakpoint"),
+                            "Shift+F12", icon=get_icon("breakpoint_cond.png"),
+                            triggered=self.set_or_edit_conditional_breakpoint,
+                            context=Qt.WidgetShortcut)
         clear_all_breakpoints_action = create_action(self,
                                     self.tr("Clear breakpoints in all files"),
                                     triggered=self.clear_all_breakpoints)
         breakpoints_menu = QMenu(self.tr("Breakpoints"), self)
-        add_actions(breakpoints_menu, (set_clear_breakpoint_action, None,
+        add_actions(breakpoints_menu, (set_clear_breakpoint_action,
+                                       set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
         run_action = create_action(self, self.tr("Run"), "F5", 'run.png',
@@ -676,7 +686,7 @@ class Editor(SpyderPluginWidget):
                                     run_toolbar_actions + [None] + \
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
-                set_clear_breakpoint_action,
+                set_clear_breakpoint_action, set_cond_breakpoint_action,
                 debug_action, re_run_action, run_selected_action,
                 blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
@@ -1556,6 +1566,12 @@ class Editor(SpyderPluginWidget):
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             editorstack.set_or_clear_breakpoint()
+            
+    def set_or_edit_conditional_breakpoint(self):
+        """Set/Edit conditional breakpoint"""
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            editorstack.set_or_edit_conditional_breakpoint()
             
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""

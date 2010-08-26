@@ -118,13 +118,24 @@ class SpyderPdb(pdb.Pdb):
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
+        #------Really deleting all breakpoints:
+        for bp in bdb.Breakpoint.bpbynumber:
+            if bp:
+                bp.deleteMe()
+        bdb.Breakpoint.next = 1
+        bdb.Breakpoint.bplist = {}
+        bdb.Breakpoint.bpbynumber = [None]
+        #------
         from spyderlib.config import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):
             breakpoints = CONF.get('run', 'breakpoints', {})
-            for fname, linenumbers in breakpoints.iteritems():
-                for linenumber in linenumbers:
-                    self.set_break(self.canonic(fname), linenumber)
+            i = 0
+            for fname, data in breakpoints.iteritems():
+                for linenumber, condition in data:
+                    i += 1
+                    self.set_break(self.canonic(fname), linenumber,
+                                   cond=condition)
 
 pdb.Pdb = SpyderPdb
 

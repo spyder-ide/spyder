@@ -20,7 +20,8 @@ import sys, os, re, os.path as osp, time
 from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
-                         QPixmap, QPrinter, QToolTip, QCursor, QTextBlockUserData)
+                         QPixmap, QPrinter, QToolTip, QCursor, QInputDialog,
+                         QTextBlockUserData, QLineEdit)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
                           PYQT_VERSION_STR)
 
@@ -47,6 +48,7 @@ class BlockUserData(QTextBlockUserData):
         QTextBlockUserData.__init__(self)
         self.editor = editor
         self.breakpoint = False
+        self.breakpoint_condition = None
         self.code_analysis = []
         self.todo = ''
         self.editor.blockuserdata_list.append(self)
@@ -55,7 +57,6 @@ class BlockUserData(QTextBlockUserData):
         return not self.breakpoint and not self.code_analysis and not self.todo
         
     def __del__(self):
-        print "deleted:", self.todo
         bud_list = self.editor.blockuserdata_list
         bud_list.pop(bud_list.index(self))
 
@@ -104,6 +105,7 @@ class CodeEditor(TextEditBaseWidget):
         self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
         self.bp_pixmap = QPixmap(get_image_path('breakpoint.png'), 'png')
+        self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond.png'), 'png')
         
         # Line number area management
         self.linenumbers_margin = True
@@ -526,7 +528,10 @@ class CodeEditor(TextEditBaseWidget):
                     if data.todo:
                         draw_pixmap(top, self.todo_pixmap)
                     if data.breakpoint:
-                        draw_pixmap(top, self.bp_pixmap)
+                        if data.breakpoint_condition is None:
+                            draw_pixmap(top, self.bp_pixmap)
+                        else:
+                            draw_pixmap(top, self.bpc_pixmap)
                     
             block = block.next()
             top = bottom
@@ -557,11 +562,13 @@ class CodeEditor(TextEditBaseWidget):
             
     def linenumberarea_mousedoubleclick_event(self, event):
         line_number = self.__get_linenumber_from_mouse_event(event)
-        self.add_breakpoint(line_number)
+        shift = event.modifiers() & Qt.ShiftModifier
+        self.add_remove_breakpoint(line_number, edit_condition=shift)
         
             
     #------Breakpoints
-    def add_breakpoint(self, line_number=None):
+    def add_remove_breakpoint(self, line_number=None, condition=None,
+                              edit_condition=False):
         if line_number is None:
             block = self.textCursor().block()
         else:
@@ -572,6 +579,24 @@ class CodeEditor(TextEditBaseWidget):
         else:
             data = BlockUserData(self)
             data.breakpoint = True
+        if condition is not None:
+            data.breakpoint_condition = condition
+        if edit_condition:
+            data.breakpoint = True
+            condition = data.breakpoint_condition
+            if condition is None:
+                condition = ''
+            condition, valid = QInputDialog.getText(self,
+                                        translate("SimpleEditor", 'Breakpoint'),
+                                        translate("SimpleEditor", "Condition:"),
+                                        QLineEdit.Normal, condition)
+            if valid:
+                condition = str(condition)
+                if not condition:
+                    condition = None
+                data.breakpoint_condition = condition
+            else:
+                return
         block.setUserData(data)
         self.linenumberarea.update()
         self.scrollflagarea.update()
@@ -582,20 +607,21 @@ class CodeEditor(TextEditBaseWidget):
         for line_number in xrange(1, self.document().blockCount()+1):
             data = block.userData()
             if data and data.breakpoint:
-                breakpoints.append(line_number)
+                breakpoints.append((line_number, data.breakpoint_condition))
             block = block.next()
         return breakpoints
     
     def clear_breakpoints(self):
         for data in self.blockuserdata_list[:]:
-            data.breakpoint = []
+            data.breakpoint = False
+#            data.breakpoint_condition = None # not necessary, but logical
             if data.is_empty():
                 del data
     
     def set_breakpoints(self, breakpoints):
         self.clear_breakpoints()
-        for line_number in breakpoints:
-            self.add_breakpoint(line_number)
+        for line_number, condition in breakpoints:
+            self.add_remove_breakpoint(line_number, condition)
         
 
     #-----scrollflagarea
