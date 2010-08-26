@@ -1276,8 +1276,12 @@ class Editor(SpyderPluginWidget):
             QApplication.processEvents()
             
     def save_breakpoints(self, filename, breakpoints):
-        filename = osp.normpath(osp.abspath(unicode(filename)))
-        breakpoints = [int(bp) for bp in unicode(breakpoints).split(',')]
+        filename, breakpoints = unicode(filename), unicode(breakpoints)
+        filename = osp.normpath(osp.abspath(filename))
+        if breakpoints:
+            breakpoints = [int(bp) for bp in breakpoints.split(',')]
+        else:
+            breakpoints = []
         save_breakpoints(filename, breakpoints)
 
     def print_file(self):
@@ -1616,8 +1620,7 @@ class Editor(SpyderPluginWidget):
             editorstack = self.get_current_editorstack()
             for finfo in editorstack.data:
                 breakpoints = finfo.editor.get_breakpoints()
-                if breakpoints:
-                    save_breakpoints(finfo.filename, breakpoints)
+                save_breakpoints(finfo.filename, breakpoints)
         if current:
             self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)

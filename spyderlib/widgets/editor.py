@@ -948,10 +948,8 @@ class EditorStack(QWidget):
                 self.classbrowser.remove_editor(finfo.editor)
             # Saving breakpoints
             breakpoints = finfo.editor.get_breakpoints()
-            if breakpoints:
-                bp_str = ",".join([str(bp) for bp in breakpoints])
-                self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                          finfo.filename, bp_str)
+            self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                      finfo.filename, ",".join([str(bp) for bp in breakpoints]))
             
             self.remove_from_data(index)
             self.emit(SIGNAL('close_file(int)'), index)
