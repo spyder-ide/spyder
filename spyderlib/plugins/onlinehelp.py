@@ -24,6 +24,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     CONF_SECTION = 'onlinehelp'
     LOG_PATH = get_conf_path('.onlinehelp')
     def __init__(self, parent):
+        self.main = parent
         PydocBrowser.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
         

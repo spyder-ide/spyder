@@ -93,12 +93,14 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        pylint_action = create_action(self, self.tr("Run pylint code analysis"),
-                                      "F8", triggered=self.run_pylint)
-        pylint_action.setEnabled(is_pylint_installed())
+        pylint_act = create_action(self, self.tr("Run pylint code analysis"),
+                                   triggered=self.run_pylint)
+        pylint_act.setEnabled(is_pylint_installed())
+        self.register_shortcut(pylint_act, context="Pylint",
+                               name="Run analysis", default="F8")
         
-        self.main.source_menu_actions += [pylint_action]
-        self.main.editor.pythonfile_dependent_actions += [pylint_action]
+        self.main.source_menu_actions += [pylint_act]
+        self.main.editor.pythonfile_dependent_actions += [pylint_act]
                     
     def refresh_plugin(self):
         """Refresh pylint widget"""

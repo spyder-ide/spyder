@@ -70,6 +70,7 @@ class Console(SpyderPluginWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)
         self.find_widget.hide()
+        self.register_findreplace_shortcuts(self.find_widget)
 
         # Main layout
         layout = QVBoxLayout()
@@ -117,9 +118,10 @@ class Console(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        quit_action = create_action(self, self.tr("&Quit"), self.tr("Ctrl+Q"),
-                            'exit.png', self.tr("Quit"),
-                            triggered=self.quit)
+        quit_action = create_action(self, self.tr("&Quit"),
+                                    icon='exit.png', tip=self.tr("Quit"),
+                                    triggered=self.quit)
+        self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
         run_action = create_action(self, self.tr("&Run..."), None,
                             'run_small.png', self.tr("Run a Python script"),
                             triggered=self.run_script)

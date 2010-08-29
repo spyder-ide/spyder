@@ -298,6 +298,7 @@ class Editor(SpyderPluginWidget):
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
+        self.register_findreplace_shortcuts(self.find_widget)
         
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)
@@ -442,33 +443,44 @@ class Editor(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        self.new_action = create_action(self, self.tr("New file..."), "Ctrl+N",
-            'filenew.png', self.tr("Create a new Python script"),
-            triggered = self.new)
-        self.open_action = create_action(self, self.tr("Open..."), "Ctrl+O",
-            'fileopen.png', self.tr("Open text file"),
-            triggered = self.load)
-        self.save_action = create_action(self, self.tr("Save"), "Ctrl+S",
-            'filesave.png', self.tr("Save current file"),
-            triggered = self.save)
+        self.new_action = create_action(self, self.tr("New file..."),
+                icon='filenew.png', tip=self.tr("Create a new Python script"),
+                triggered = self.new)
+        self.register_shortcut(self.new_action, context="Editor",
+                               name="New file", default="Ctrl+N")
+        self.open_action = create_action(self, self.tr("Open..."),
+                icon='fileopen.png', tip=self.tr("Open text file"),
+                triggered = self.load)
+        self.register_shortcut(self.open_action, context="Editor",
+                               name="Open file", default="Ctrl+O")
+        self.save_action = create_action(self, self.tr("Save"),
+                icon='filesave.png', tip=self.tr("Save current file"),
+                triggered = self.save)
+        self.register_shortcut(self.save_action, context="Editor",
+                               name="Save file", default="Ctrl+S")
         self.save_all_action = create_action(self, self.tr("Save all"),
-            "Ctrl+Shift+S", 'save_all.png', self.tr("Save all opened files"),
-            triggered = self.save_all)
+                icon='save_all.png', tip=self.tr("Save all opened files"),
+                triggered = self.save_all)
+        self.register_shortcut(self.save_all_action, context="Editor",
+                               name="Save all", default="Ctrl+Shift+S")
         save_as_action = create_action(self, self.tr("Save as..."), None,
-            'filesaveas.png', self.tr("Save current file as..."),
-            triggered = self.save_as)
+                'filesaveas.png', self.tr("Save current file as..."),
+                triggered = self.save_as)
         print_preview_action = create_action(self, self.tr("Print preview..."),
-            tip=self.tr("Print preview..."), triggered=self.print_preview)
-        print_action = create_action(self, self.tr("Print..."), None,
-            'print.png', self.tr("Print current file..."),
-            triggered = self.print_file)
-        self.close_action = create_action(self, self.tr("Close"), "Ctrl+W",
-            'fileclose.png', self.tr("Close current file"),
-            triggered = self.close_file)
+                tip=self.tr("Print preview..."), triggered=self.print_preview)
+        print_action = create_action(self, self.tr("Print..."),
+                icon='print.png', tip=self.tr("Print current file..."),
+                triggered = self.print_file)
+        self.close_action = create_action(self, self.tr("Close"),
+                icon='fileclose.png', tip=self.tr("Close current file"),
+                triggered = self.close_file)
+        self.register_shortcut(self.close_action, context="Editor",
+                               name="Close file", default="Ctrl+W")
         self.close_all_action = create_action(self, self.tr("Close all"),
-            "Ctrl+Shift+W", 'filecloseall.png',
-            self.tr("Close all opened files"),
-            triggered = self.close_all_files)
+                icon='filecloseall.png', tip=self.tr("Close all opened files"),
+                triggered = self.close_all_files)
+        self.register_shortcut(self.close_all_action, context="Editor",
+                               name="Close all", default="Ctrl+Shift+W")
         
         set_clear_breakpoint_action = create_action(self,
                                     self.tr("Set/Clear breakpoint"),
@@ -488,110 +500,139 @@ class Editor(SpyderPluginWidget):
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
-        run_action = create_action(self, self.tr("Run"), "F5", 'run.png',
-            self.tr("Run active script in a new Python interpreter"),
-            triggered=self.run_file)
-        debug_action = create_action(self,
-            self.tr("Debug"), "Ctrl+F5", 'bug.png',
-            tip=self.tr("Debug current script in external console"
-                        "\n(external console is executed in a "
-                        "separate process)"),
-            triggered=self.debug_file)
+        run_action = create_action(self, self.tr("Run"), icon='run.png',
+                tip=self.tr("Run active script in a new Python interpreter"),
+                triggered=self.run_file)
+        self.register_shortcut(run_action, context="Editor",
+                               name="Run", default="F5")
+        debug_action = create_action(self, self.tr("Debug"), icon='bug.png',
+                tip=self.tr("Debug current script in external console"
+                            "\n(external console is executed in a "
+                            "separate process)"),
+                triggered=self.debug_file)
+        self.register_shortcut(debug_action, context="Editor",
+                               name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
-            self.tr("Configure..."), "F6", 'configure.png',
-            self.tr("Edit run configurations"),
-            triggered=self.edit_run_configurations)
+                self.tr("Configure..."), icon='configure.png',
+                tip=self.tr("Edit run configurations"),
+                triggered=self.edit_run_configurations)
+        self.register_shortcut(configure_action, context="Editor",
+                               name="Configure", default="F6")
         re_run_action = create_action(self,
-            self.tr("Re-run last script"), "Ctrl+F6", 'run_again.png',
-            self.tr("Run again last script in external console with the "
-                    "same options"),
-            triggered=self.re_run_file)
+                self.tr("Re-run last script"), icon='run_again.png',
+                tip=self.tr("Run again last script in external console "
+                            "with the same options"),
+                triggered=self.re_run_file)
+        self.register_shortcut(re_run_action, context="Editor",
+                               name="Re-run last script", default="Ctrl+F6")
         
         run_selected_action = create_action(self,
-            self.tr("Run &selection or current block"), "F9",
-            'run_selection.png',
-            tip=self.tr("Run selected text or current block of lines \n"
-                        "inside current external console's interpreter"),
-            triggered=lambda: self.run_selection_or_block())
+                self.tr("Run &selection or current block"),
+                icon='run_selection.png',
+                tip=self.tr("Run selected text or current block of lines \n"
+                            "inside current external console's interpreter"),
+                triggered=lambda: self.run_selection_or_block())
+        self.register_shortcut(run_selected_action, context="Editor",
+                               name="Run selection", default="F9")
         
         self.todo_list_action = create_action(self,
-            self.tr("Show todo list"), icon='todo_list.png',
-            tip=self.tr("Show TODO/FIXME/XXX comments list"),
-            triggered=self.go_to_next_todo)
+                self.tr("Show todo list"), icon='todo_list.png',
+                tip=self.tr("Show TODO/FIXME/XXX comments list"),
+                triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
         self.connect(self.todo_menu, SIGNAL("aboutToShow()"),
                      self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
-            self.tr("Show warning/error list"), icon='wng_list.png',
-            tip=self.tr("Show code analysis warnings/errors"),
-            triggered=self.go_to_next_warning)
+                self.tr("Show warning/error list"), icon='wng_list.png',
+                tip=self.tr("Show code analysis warnings/errors"),
+                triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
         self.connect(self.warning_menu, SIGNAL("aboutToShow()"),
                      self.update_warning_menu)
         self.previous_warning_action = create_action(self,
-            self.tr("Previous warning/error"), icon='prev_wng.png',
-            tip=self.tr("Go to previous code analysis warning/error"),
-            triggered=self.go_to_previous_warning)
+                self.tr("Previous warning/error"), icon='prev_wng.png',
+                tip=self.tr("Go to previous code analysis warning/error"),
+                triggered=self.go_to_previous_warning)
         self.next_warning_action = create_action(self,
-            self.tr("Next warning/error"), icon='next_wng.png',
-            tip=self.tr("Go to next code analysis warning/error"),
-            triggered=self.go_to_next_warning)
+                self.tr("Next warning/error"), icon='next_wng.png',
+                tip=self.tr("Go to next code analysis warning/error"),
+                triggered=self.go_to_next_warning)
         
         self.previous_edit_cursor_action = create_action(self,
-            self.tr("Last edit location"), "Ctrl+Alt+Up",
-            icon='last_edit_location.png',
-            tip=self.tr("Go to last edit location\n"
-                        "(shortcut: %1)").arg(u"Ctrl+Alt+↑"),
-            triggered=self.go_to_last_edit_location)
+                self.tr("Last edit location"), icon='last_edit_location.png',
+                tip=self.tr("Go to last edit location"),
+                triggered=self.go_to_last_edit_location)
+        self.register_shortcut(self.previous_edit_cursor_action,
+                               context="Editor",
+                               name="Last edit location", default="Ctrl+Alt+Up")
         self.previous_cursor_action = create_action(self,
-            self.tr("Previous cursor position"), "Ctrl+Alt+Left",
-            icon='prev_cursor.png',
-            tip=self.tr("Go to previous cursor position"
-                        "\n(shortcut: %1)").arg(u"Ctrl+Alt+←"),
-            triggered=self.go_to_previous_cursor_position)
+                self.tr("Previous cursor position"), icon='prev_cursor.png',
+                tip=self.tr("Go to previous cursor position"),
+                triggered=self.go_to_previous_cursor_position)
+        self.register_shortcut(self.previous_cursor_action,
+                               context="Editor",
+                               name="Previous cursor position",
+                               default="Ctrl+Alt+Left")
         self.next_cursor_action = create_action(self,
-            self.tr("Next cursor position"), "Ctrl+Alt+Right",
-            icon='next_cursor.png',
-            tip=self.tr("Go to next cursor position"
-                        "\n(shortcut: %1)").arg(u"Ctrl+Alt+→"),
-            triggered=self.go_to_next_cursor_position)
+                self.tr("Next cursor position"), icon='next_cursor.png',
+                tip=self.tr("Go to next cursor position"),
+                triggered=self.go_to_next_cursor_position)
+        self.register_shortcut(self.next_cursor_action,
+                               context="Editor", name="Next cursor position",
+                               default="Ctrl+Alt+Right")
         
-        self.comment_action = create_action(self, self.tr("Comment"), "Ctrl+3",
-            'comment.png', self.tr("Comment current line or selection"),
-            triggered=self.comment)
-        self.uncomment_action = create_action(self, self.tr("Uncomment"),
-            "Ctrl+2",
-            'uncomment.png', self.tr("Uncomment current line or selection"),
-            triggered=self.uncomment)
-        blockcomment_action = create_action(self,
-            self.tr("Add block comment"), "Ctrl+4",
-            tip = self.tr("Add block comment around current line or selection"),
-            triggered=self.blockcomment)
+        self.comment_action = create_action(self,
+                self.tr("Comment"), icon='comment.png',
+                tip=self.tr("Comment current line or selection"),
+                triggered=self.comment)
+        self.register_shortcut(self.comment_action, context="Editor",
+                               name="Comment", default="Ctrl+3")
+        self.uncomment_action = create_action(self,
+                self.tr("Uncomment"), icon='uncomment.png',
+                tip=self.tr("Uncomment current line or selection"),
+                triggered=self.uncomment)
+        self.register_shortcut(self.uncomment_action, context="Editor",
+                               name="Uncomment", default="Ctrl+2")
+        blockcomment_action = create_action(self, self.tr("Add block comment"),
+                tip=self.tr("Add block comment around "
+                            "current line or selection"),
+                triggered=self.blockcomment)
+        self.register_shortcut(blockcomment_action, context="Editor",
+                               name="Block comment (add)", default="Ctrl+4")
         unblockcomment_action = create_action(self,
-            self.tr("Remove block comment"), "Ctrl+5",
-            tip = self.tr("Remove comment block around "
-                          "current line or selection"),
-            triggered=self.unblockcomment)
+                self.tr("Remove block comment"),
+                tip = self.tr("Remove comment block around "
+                              "current line or selection"),
+                triggered=self.unblockcomment)
+        self.register_shortcut(unblockcomment_action, context="Editor",
+                               name="Block comment (remove)", default="Ctrl+5")
                 
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
-        self.indent_action = create_action(self, self.tr("Indent"), "Tab",
-            'indent.png', self.tr("Indent current line or selection"),
-            triggered=self.indent, context=Qt.WidgetShortcut)
-        self.unindent_action = create_action(self, self.tr("Unindent"),
-            "Shift+Tab",
-            'unindent.png', self.tr("Unindent current line or selection"),
-            triggered=self.unindent, context=Qt.WidgetShortcut)
+        self.indent_action = create_action(self,
+                self.tr("Indent"), icon='indent.png',
+                tip=self.tr("Indent current line or selection"),
+                triggered=self.indent, context=Qt.WidgetShortcut)
+        self.register_shortcut(self.indent_action, context="Editor",
+                               name="Indent", default="Tab")
+        self.unindent_action = create_action(self,
+                self.tr("Unindent"), icon='unindent.png',
+                tip=self.tr("Unindent current line or selection"),
+                triggered=self.unindent, context=Qt.WidgetShortcut)
+        self.register_shortcut(self.unindent_action, context="Editor",
+                               name="Unindent", default="Shift+Tab")
         # ----------------------------------------------------------------------
         
         self.winpdb_action = create_action(self, self.tr("Debug with winpdb"),
-                                           "F7", triggered=self.run_winpdb)
+                                           triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(is_winpdb_installed())
+        self.register_shortcut(self.winpdb_action, context="Editor",
+                               name="Debug with winpdb", default="F7")
         
         self.win_eol_action = create_action(self,
                            self.tr("Carriage return and line feed (Windows)"),

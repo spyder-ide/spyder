@@ -16,11 +16,10 @@ Important note regarding shortcuts:
 import os, sys
 import os.path as osp
 from datetime import date
-from PyQt4.QtGui import (QLabel, QIcon, QPixmap, QFont, QFontDatabase,
-                         QKeySequence)
+from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
-from userconfig import UserConfig, get_home_dir
+from userconfig import UserConfig, get_home_dir, NoDefault
 
 DATA_DEV_PATH = osp.dirname(__file__)
 DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
@@ -394,6 +393,21 @@ def set_font(font, section, option=None):
     FONT_CACHE[(section, option)] = font
 
 
+def get_shortcut(context, name, default=NoDefault):
+    """Get keyboard shortcut (key sequence string)"""
+    return CONF.get('shortcuts', '%s/%s' % (context, name), default=default)
+
+def set_shortcut(context, name, keystr):
+    """Set keyboard shortcut (key sequence string)"""
+    CONF.set('shortcuts', '%s/%s' % (context, name), keystr)
+    
+def iter_shortcuts():
+    """Iterate over keyboard shortcuts"""
+    for option in CONF.options('shortcuts'):
+        context, name = option.split("/")
+        yield context, name, get_shortcut(context, name)
+
+
 from spyderlib.widgets.codeeditor.syntaxhighlighters import (
                                 COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
 def get_color_scheme(name):
@@ -450,16 +464,3 @@ def get_spyderplugins_mods(prefix, extension):
     return the list of modules matching *prefix* and *extension*"""
     return [getattr(__import__('spyderplugins.%s' % modname), modname)
             for modname in get_spyderplugins(prefix, extension)]
-
-
-SHORTCUTS = {}
-def is_shortcut_available(shortcut, context=None):
-    """Return True if shortcut (string) is available"""
-    global SHORTCUTS
-    sclist = SHORTCUTS.get(context, [])
-    keystr = unicode(QKeySequence(shortcut).toString())
-    is_available = keystr not in sclist
-    if is_available:
-        sclist.append(keystr)
-        SHORTCUTS[context] = sclist
-    return is_available

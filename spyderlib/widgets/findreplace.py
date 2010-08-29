@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
-                         QSizePolicy)
+                         QSizePolicy, QShortcut, QKeySequence)
 from PyQt4.QtCore import SIGNAL, SLOT, Qt
 
 import sys
@@ -115,39 +115,36 @@ class FindReplace(QWidget):
         
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         
+        self.findnext_sc = QShortcut(QKeySequence("F3"), parent, self.find_next)
+        self.findnext_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.findprev_sc = QShortcut(QKeySequence("Shift+F3"), parent,
+                                     self.find_previous)
+        self.findprev_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.togglefind_sc = QShortcut(QKeySequence("Ctrl+F"), parent,
+                                  self.toggle_find_widgets)
+        self.togglefind_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.togglereplace_sc = QShortcut(QKeySequence("Ctrl+H"), parent,
+                                     self.toggle_replace_widgets)
+        self.togglereplace_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+        escape_sc = QShortcut(QKeySequence("Escape"), parent, self.hide)
+        escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        
     def update_search_combo(self):
         self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
         
     def update_replace_combo(self):
         self.replace_text.lineEdit().emit(SIGNAL('returnPressed()'))
         
-    def keyPressEvent(self, event):
-        """Reimplemented to handle key events"""
-        shift = event.modifiers() & Qt.ShiftModifier
-        ctrl = event.modifiers() & Qt.ControlModifier
-        if event.key() == Qt.Key_Escape:
+    def toggle_find_widgets(self):
+        # Toggle find widgets
+        if self.isVisible():
             self.hide()
-            event.accept()
-            return
-        elif event.key() == Qt.Key_F3:
-            if shift:
-                # Find previous
-                self.find_previous()()
-                self.editor.setFocus()
-                event.accept()
-            else:
-                # Find next
-                self.find_next()
-                self.editor.setFocus()
-                event.accept()
-        elif event.key() == Qt.Key_F and ctrl:
-            # Toggle find widgets
-            if self.isVisible():
-                self.hide()
-            else:
-                self.show()
-            event.accept()
-        elif event.key() == Qt.Key_H and ctrl and self.enable_replace:
+        else:
+            self.show()
+    
+    def toggle_replace_widgets(self):
+        if self.enable_replace:
             # Toggle replace widgets
             if self.replace_widgets[0].isVisible():
                 self.hide_replace()
@@ -155,9 +152,6 @@ class FindReplace(QWidget):
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
-            event.accept()
-        else:
-            event.ignore()
         
     def show(self):
         """Overrides Qt Method"""
@@ -216,11 +210,15 @@ class FindReplace(QWidget):
         
     def find_next(self):
         """Find next occurence"""
-        return self.find(changed=False, forward=True)
+        state = self.find(changed=False, forward=True)
+        self.editor.setFocus()
+        return state
         
     def find_previous(self):
         """Find previous occurence"""
-        return self.find(changed=False, forward=False)
+        state = self.find(changed=False, forward=False)
+        self.editor.setFocus()
+        return state
         
     def text_has_changed(self, text):
         """Find text has changed"""

@@ -19,7 +19,7 @@ These plugins inherit the following classes
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
-                         QKeySequence, QMainWindow, QApplication)
+                         QKeySequence, QMainWindow, QApplication, QAction)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -31,7 +31,7 @@ STDOUT = sys.stdout
 from spyderlib.utils.qthelpers import (toggle_actions, create_action,
                                        add_actions, translate)
 from spyderlib.config import (CONF, get_font, set_font, get_icon,
-                              is_shortcut_available, get_color_scheme)
+                              get_color_scheme, get_shortcut)
 from spyderlib.userconfig import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
 from spyderlib.widgets.editor import CodeEditor
@@ -96,8 +96,12 @@ class SpyderPluginMixin(object):
         self.dockwidget = dock
         self.refresh_plugin()
         short = self.get_option("shortcut", None)
-        if short is not None and is_shortcut_available(short):
-            QShortcut(QKeySequence(short), self.main, self.switch_to_plugin)
+        if short is not None:
+            shortcut = QShortcut(QKeySequence(short),
+                                 self.main, self.switch_to_plugin)
+            self.register_shortcut(shortcut, "_",
+                                   "Switch to %s" % self.CONF_SECTION,
+                                   default=short)
         return (dock, self.LOCATION)
     
     def create_mainwindow(self):
@@ -126,6 +130,24 @@ class SpyderPluginMixin(object):
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
         raise NotImplementedError
+    
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          default=NoDefault):
+        """
+        Register QAction or QShortcut to Spyder main application,
+        with shortcut (context, name, default)
+        """
+        self.main.register_shortcut(qaction_or_qshortcut,
+                                    context, name, default)
+        
+    def register_findreplace_shortcuts(self, widget):
+        """Register Find/Replace widget shortcuts"""
+        shortcut_data = [(widget.findnext_sc, "Find next"),
+                         (widget.findprev_sc, "Find previous"),
+                         (widget.togglefind_sc, "Find text"),
+                         (widget.togglereplace_sc, "Replace text"),]
+        for qshortcut, name in shortcut_data:
+            self.register_shortcut(qshortcut, "Editor", name)
     
     def switch_to_plugin(self):
         """Switch to plugin

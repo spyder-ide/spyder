@@ -1866,6 +1866,7 @@ class EditorWidget(QSplitter):
         self.plugin = plugin
         
         self.find_widget = FindReplace(self, enable_replace=True)
+        self.plugin.register_findreplace_shortcuts(self.find_widget)
         self.find_widget.hide()
         self.classbrowser = ClassBrowser(self, show_fullpath=show_fullpath,
                                          fullpath_sorting=fullpath_sorting,

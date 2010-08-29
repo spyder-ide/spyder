@@ -240,6 +240,8 @@ class ExternalConsole(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
+        self.register_findreplace_shortcuts(self.find_widget)
+        
         layout.addWidget(self.find_widget)
         
         self.setLayout(layout)

@@ -27,7 +27,7 @@ STDERR = sys.stderr
 
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QColor, QFileDialog, QShortcut,
-                         QKeySequence, QDockWidget)
+                         QKeySequence, QDockWidget, QAction)
 from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
                           QSize, QByteArray)
 
@@ -41,6 +41,7 @@ except ImportError:
 from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
+from spyderlib.plugins.shortcuts import ShortcutsConfigPage
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.workingdirectory import WorkingDirectory
 from spyderlib.plugins.editor import Editor
@@ -64,9 +65,10 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        keybinding, translate, qapplication,
                                        create_python_gui_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
-                              DOC_PATH, get_spyderplugins_mods)
+                              DOC_PATH, get_spyderplugins_mods, get_shortcut)
 from spyderlib.utils.programs import run_python_gui_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
+from spyderlib.userconfig import NoDefault
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -172,6 +174,9 @@ class MainWindow(QMainWindow):
         self.debug_print("Start of MainWindow constructor")
         
 #        self.setStyleSheet(STYLESHEET)
+
+        # Shortcut management data
+        self.shortcut_data = []
         
         # Loading Spyder path
         self.path = []
@@ -212,7 +217,8 @@ class MainWindow(QMainWindow):
         self.thirdparty_plugins = []
         
         # Preferences
-        self.general_prefs = [MainConfigPage, ColorSchemeConfigPage]
+        self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
+                              ColorSchemeConfigPage]
         self.prefs_index = None
         
         # Actions
@@ -329,21 +335,30 @@ class MainWindow(QMainWindow):
     def setup(self):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
-        if self.light:
-            QShortcut(QKeySequence("Ctrl+F"), self, self.find)
-        else:
+        if not self.light:
             _text = translate("FindReplace", "Find text")
-            self.find_action = create_action(self, _text, "Ctrl+F", 'find.png',
-                                             _text, triggered=self.find)
+            self.find_action = create_action(self, _text, icon='find.png',
+                                             tip=_text, triggered=self.find,
+                                             context=Qt.WidgetShortcut)
+            self.register_shortcut(self.find_action, "Editor",
+                                   "Find text", "Ctrl+F")
             self.find_next_action = create_action(self, translate("FindReplace",
-                  "Find next"), "F3", 'findnext.png', triggered=self.find_next)
+                  "Find next"), icon='findnext.png', triggered=self.find_next,
+                  context=Qt.WidgetShortcut)
+            self.register_shortcut(self.find_next_action, "Editor",
+                                   "Find next", "F3")
             self.find_previous_action = create_action(self,
-                        translate("FindReplace", "Find previous"), "Shift+F3",
-                        'findprevious.png', triggered=self.find_previous)
+                        translate("FindReplace", "Find previous"),
+                        icon='findprevious.png', triggered=self.find_previous,
+                        context=Qt.WidgetShortcut)
+            self.register_shortcut(self.find_previous_action, "Editor",
+                                   "Find previous", "Shift+F3")
             _text = translate("FindReplace", "Replace text")
-            self.replace_action = create_action(self, _text, "Ctrl+H",
-                                                'replace.png', _text,
-                                                triggered=self.replace)
+            self.replace_action = create_action(self, _text, icon='replace.png',
+                                            tip=_text, triggered=self.replace,
+                                            context=Qt.WidgetShortcut)
+            self.register_shortcut(self.replace_action, "Editor",
+                                   "Replace text", "Ctrl+H")
             def create_edit_action(text, icon_name):
                 textseq = text.split(' ')
                 method_name = textseq[0].lower()+"".join(textseq[1:])
@@ -376,15 +391,17 @@ class MainWindow(QMainWindow):
         if not self.light:
             # Maximize current plugin
             self.maximize_action = create_action(self, '',
-                                             shortcut="Ctrl+Alt+Shift+M",
                                              triggered=self.maximize_dockwidget)
+            self.register_shortcut(self.maximize_action, "_",
+                                   "Maximize dockwidget", "Ctrl+Alt+Shift+M")
             self.__update_maximize_action()
             
             # Fullscreen mode
             self.fullscreen_action = create_action(self,
-                                           self.tr("Fullscreen mode"),
-                                           shortcut="F11",
-                                           triggered=self.toggle_fullscreen)
+                                            self.tr("Fullscreen mode"),
+                                            triggered=self.toggle_fullscreen)
+            self.register_shortcut(self.fullscreen_action, "_",
+                                   "Fullscreen mode", "F11")
             self.main_toolbar_actions = [self.maximize_action,
                                          self.fullscreen_action, None]
             
@@ -516,8 +533,9 @@ class MainWindow(QMainWindow):
             
             # Populating file menu entries
             quit_action = create_action(self, self.tr("&Quit"),
-                             self.tr("Ctrl+Q"), 'exit.png', self.tr("Quit"),
-                             triggered=self.console.quit)
+                                        icon='exit.png', tip=self.tr("Quit"),
+                                        triggered=self.console.quit)
+            self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
             self.file_menu_actions += [self.load_temp_session_action,
                                        self.load_session_action,
                                        self.save_session_action,
@@ -681,6 +699,9 @@ class MainWindow(QMainWindow):
             add_actions(self.search_toolbar, self.search_toolbar_actions)
             add_actions(self.source_toolbar, self.source_toolbar_actions)
             add_actions(self.run_toolbar, self.run_toolbar_actions)
+        
+        # Apply all defined shortcuts (plugins + 3rd-party plugins)
+        self.apply_shortcuts()
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
@@ -1161,6 +1182,33 @@ class MainWindow(QMainWindow):
             dlg.set_current_index(self.prefs_index)
         dlg.exec_()
         self.prefs_index = dlg.get_current_index()
+
+    def register_shortcut(self, qaction_or_qshortcut, context, name,
+                          default=NoDefault):
+        """
+        Register QAction or QShortcut to Spyder main application,
+        with shortcut (context, name, default)
+        """
+        self.shortcut_data.append( (qaction_or_qshortcut,
+                                    context, name, default) )
+#        self.apply_shortcuts()
+        
+    def apply_shortcuts(self):
+        """Apply shortcuts settings to all widgets/plugins"""
+        toberemoved = []
+        for index, (qobject, context, name,
+                    default) in enumerate(self.shortcut_data):
+            keyseq = QKeySequence( get_shortcut(context, name, default) )
+            try:
+                if isinstance(qobject, QAction):
+                    qobject.setShortcut(keyseq)
+                elif isinstance(qobject, QShortcut):
+                    qobject.setKey(keyseq)
+            except RuntimeError:
+                # Object has been deleted
+                toberemoved.append(index)
+        for index in sorted(toberemoved, reverse=True):
+            self.shortcut_data.pop(index)
         
     def load_session(self, filename=None):
         """Load session"""
