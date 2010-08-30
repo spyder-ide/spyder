@@ -142,12 +142,12 @@ class SpyderPluginMixin(object):
         
     def register_findreplace_shortcuts(self, widget):
         """Register Find/Replace widget shortcuts"""
-        shortcut_data = [(widget.findnext_sc, "Find next"),
-                         (widget.findprev_sc, "Find previous"),
-                         (widget.togglefind_sc, "Find text"),
-                         (widget.togglereplace_sc, "Replace text"),]
-        for qshortcut, name in shortcut_data:
-            self.register_shortcut(qshortcut, "Editor", name)
+        shortcut_data = [(widget.findnext_sc, "Find next", "F3"),
+                         (widget.findprev_sc, "Find previous", "Shift+F3"),
+                         (widget.togglefind_sc, "Find text", "Ctrl+F"),
+                         (widget.togglereplace_sc, "Replace text", "Ctrl+H"),]
+        for qshortcut, name, default in shortcut_data:
+            self.register_shortcut(qshortcut, "Editor", name, default)
     
     def switch_to_plugin(self):
         """Switch to plugin
