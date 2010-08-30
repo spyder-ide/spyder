@@ -186,18 +186,19 @@ class Project(object):
                                                           **ROPE_PREFS)
         except ImportError:
             self.rope_project = None
-        #TODO: connect a signal emitted by editor when saving file,
-        #      to a method here which will do: self.rope_project.validate()
-        #TODO: *or* (?) implement SOA
+        self.validate_rope_project()
         
     def close_rope_project(self):
         if self.rope_project is not None:
             self.rope_project.close()
+            
+    def validate_rope_project(self):
+        if self.rope_project is not None:
+            self.rope_project.validate(self.rope_project.root)
         
     def get_completion_list(self, source_code, offset, filename):
         if self.rope_project is None:
             return []
-        self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,
@@ -216,7 +217,6 @@ class Project(object):
     def get_calltip_text(self, source_code, offset, filename):
         if self.rope_project is None:
             return []
-        self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,
@@ -237,7 +237,6 @@ class Project(object):
     def get_definition_location(self, source_code, offset, filename):
         if self.rope_project is None:
             return (None, None)
-        self.rope_project.validate(self.rope_project.root)
         import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,

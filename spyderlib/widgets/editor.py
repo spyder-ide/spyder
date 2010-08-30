@@ -271,6 +271,11 @@ class FileInfo(QObject):
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
         
+    def validate_project(self):
+        if self.project is None:
+            return []
+        self.project.validate_rope_project()
+        
     def trigger_code_completion(self):
         if self.project is None:
             return []
@@ -1057,6 +1062,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
+            finfo.validate_project()
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline explorer 
             #    data from scratch (could be optimized because rehighlighting
@@ -1414,6 +1420,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
+        finfo.validate_project()
         
     def create_new_editor(self, fname, enc, txt,
                           set_current, new=False, cloned_from=None):
