@@ -121,10 +121,10 @@ class FindReplace(QWidget):
                                      self.find_previous)
         self.findprev_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.togglefind_sc = QShortcut(QKeySequence("Ctrl+F"), parent,
-                                  self.toggle_find_widgets)
+                                       self.show)
         self.togglefind_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.togglereplace_sc = QShortcut(QKeySequence("Ctrl+H"), parent,
-                                     self.toggle_replace_widgets)
+                                          self.toggle_replace_widgets)
         self.togglereplace_sc.setContext(Qt.WidgetWithChildrenShortcut)
         
         escape_sc = QShortcut(QKeySequence("Escape"), parent, self.hide)
@@ -135,13 +135,6 @@ class FindReplace(QWidget):
         
     def update_replace_combo(self):
         self.replace_text.lineEdit().emit(SIGNAL('returnPressed()'))
-        
-    def toggle_find_widgets(self):
-        # Toggle find widgets
-        if self.isVisible():
-            self.hide()
-        else:
-            self.show()
     
     def toggle_replace_widgets(self):
         if self.enable_replace:
