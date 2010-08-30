@@ -78,7 +78,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     """
     Variable Explorer Plugin
     """
-    CONF_SECTION = 'console'
+    CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)

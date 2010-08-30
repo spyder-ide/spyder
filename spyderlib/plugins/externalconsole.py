@@ -23,7 +23,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, CONF
 from spyderlib.utils import programs, remove_trailing_single_backslash
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
@@ -400,7 +400,7 @@ class ExternalConsole(SpyderPluginWidget):
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
-            ar_timeout = self.get_option('autorefresh/timeout')
+            ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
             if self.light_mode:
                 from spyderlib.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()
