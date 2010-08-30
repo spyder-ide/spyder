@@ -430,7 +430,8 @@ class CodeEditor(TextEditBaseWidget):
             text = self.get_current_word()
             if text is None:
                 return
-        if (self.is_python() or self.is_cython()) and is_keyword(unicode(text)):
+        if (self.is_python() or self.is_cython()) and \
+           (is_keyword(unicode(text)) or unicode(text) == 'self'):
             return
 
         # Highlighting all occurences of word *text*
