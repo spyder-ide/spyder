@@ -105,7 +105,7 @@ class CompletionWidget(QListWidget):
                 self.update_current()
             event.accept()
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End):
+                     Qt.Key_Home, Qt.Key_End, Qt.Key_CapsLock):
             QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
