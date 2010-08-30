@@ -188,7 +188,7 @@ DEFAULTS = [
               'wrapflag': True,
               'code_analysis': True,
               'todo_list': True,
-              'class_browser': True,
+              'outline_explorer': True,
               'line_numbers': True,
               'toolbox_panel': True,
               'calltips': True,

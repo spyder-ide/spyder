@@ -30,15 +30,16 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.utils.classparser import get_classes
 
 
-class ClassBrowser(OneColumnTree):
+class OutlineExplorer(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
-        title = translate("ClassBrowser", "Classes and functions")
+        title = translate("OutlineExplorer", "Outline")
         self.setWindowTitle(title)
         self.set_title(title)
         self.fname = None
         self.classes = None
         self.lines = None
+        self.setWindowIcon(get_icon('outline_explorer.png'))
         
     def clear(self):
         """Reimplemented Qt method"""
@@ -46,7 +47,7 @@ class ClassBrowser(OneColumnTree):
         OneColumnTree.clear(self)
         
     def refresh(self, data=None, update=True):
-        """Refresh class browser"""
+        """Refresh outline explorer"""
         if data is not None:
             fname, self.classes, self.lines = data
             self.fname = osp.abspath(fname)
@@ -100,10 +101,10 @@ class ClassBrowser(OneColumnTree):
 
 
 def test(fname):
-    """Show class browser for Python script *fname*"""
+    """Show outline explorer for Python script *fname*"""
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    widget = ClassBrowser(None)
+    widget = OutlineExplorer(None)
     data = (fname, None, None)
     widget.refresh(data)
     widget.show()
@@ -113,6 +114,6 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         fname = sys.argv[1]
     else:
-        fname = "classbrowser.py"
+        fname = "outlineexplorer.py"
     test(fname)
     

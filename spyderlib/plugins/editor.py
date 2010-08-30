@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-#TODO: Make a plugin for the class browser ?
+#TODO: Make a plugin for the outline explorer ?
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
@@ -33,7 +33,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import ClassBrowser
+from spyderlib.widgets.editortools import OutlineExplorer
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
@@ -85,14 +85,14 @@ class EditorConfigPage(PluginConfigPage):
                                     text=self.tr("Text and margin font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        cbvis_box = newcb(self.tr("Show class browser"),
-                          'class_browser/visibility')
+        oevis_box = newcb(self.tr("Show outline explorer"),
+                          'outline_explorer/visibility')
         fpsorting_box = newcb(self.tr("Sort files according to full path"),
                               'fullpath_sorting')
         showtabbar_box = newcb(self.tr("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(cbvis_box)
+        interface_layout.addWidget(oevis_box)
         interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
@@ -244,7 +244,8 @@ class Editor(SpyderPluginWidget):
                           (self.tr("Batch files"),
                            ('.bat', '.cmd')),
                           (self.tr("Text files"), ('.txt',)),
-                          (self.tr("reStructured Text files"), ('.txt', '.rst')),
+                          (self.tr("reStructured Text files"),
+                           ('.txt', '.rst')),
                           (self.tr("gettext files"), ('.po', '.pot')),
                           (self.tr("Web page files"),
                            ('.css', '.htm', '.html',)),
@@ -266,19 +267,21 @@ class Editor(SpyderPluginWidget):
         layout.addWidget(self.dock_toolbar)
         
         # Class browser
-        self.classbrowser = ClassBrowser(self,
-           show_fullpath=self.get_option('class_browser/show_fullpath', False),
-           fullpath_sorting=self.get_option('fullpath_sorting', True),
-           show_all_files=self.get_option('class_browser/show_all_files', True))
-        self.connect(self.classbrowser,
+        self.outlineexplorer = OutlineExplorer(self,
+                   show_fullpath=self.get_option(
+                                    'outline_explorer/show_fullpath', False),
+                   fullpath_sorting=self.get_option('fullpath_sorting', True),
+                   show_all_files=self.get_option(
+                                    'outline_explorer/show_all_files', True))
+        self.connect(self.outlineexplorer,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        cb_enabled = self.get_option('class_browser')
-        if cb_enabled:
-            cb_state = self.get_option('class_browser/visibility', False)
+        oe_enabled = self.get_option('outline_explorer')
+        if oe_enabled:
+            oe_state = self.get_option('outline_explorer/visibility', False)
         else:
-            cb_state = False
-        self.classbrowser.visibility_action.setChecked(cb_state)
-        self.classbrowser.visibility_action.setEnabled(cb_enabled)
+            oe_state = False
+        self.outlineexplorer.visibility_action.setChecked(oe_state)
+        self.outlineexplorer.visibility_action.setEnabled(oe_enabled)
 
         self.last_edit_cursor_pos = None
         self.cursor_pos_history = []
@@ -310,10 +313,10 @@ class Editor(SpyderPluginWidget):
         editor_layout.addWidget(self.editorsplitter)
         editor_layout.addWidget(self.find_widget)
 
-        # Splitter: editor widgets (see above) + class browser
+        # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
         self.splitter.addWidget(editor_widgets)
-        self.splitter.addWidget(self.classbrowser)
+        self.splitter.addWidget(self.outlineexplorer)
         self.splitter.setStretchFactor(0, 5)
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
@@ -351,10 +354,11 @@ class Editor(SpyderPluginWidget):
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
         
-        # Restoring class browser state
-        expanded_state = self.get_option('class_browser/expanded_state', None)
+        # Restoring outline explorer state
+        expanded_state = self.get_option('outline_explorer/expanded_state',
+                                         None)
         if expanded_state is not None:
-            self.classbrowser.treewidget.set_expanded_state(expanded_state)
+            self.outlineexplorer.treewidget.set_expanded_state(expanded_state)
             
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
@@ -378,9 +382,10 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         scrollbar_pos = self.get_option(
-                                 'class_browser/scrollbar_position', None)
+                                 'outline_explorer/scrollbar_position', None)
         if scrollbar_pos is not None:
-            self.classbrowser.treewidget.set_scrollbar_position(scrollbar_pos)
+            self.outlineexplorer.treewidget.set_scrollbar_position(
+                                                                scrollbar_pos)
         # Widget is now visible, we may center cursor on top level editor:
         self.get_current_editor()._center_cursor()
             
@@ -418,8 +423,8 @@ class Editor(SpyderPluginWidget):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        for option, value in self.classbrowser.get_options().items():
-            self.set_option('class_browser/%s' % option, value)
+        for option, value in self.outlineexplorer.get_options().items():
+            self.set_option('outline_explorer/%s' % option, value)
         state = self.splitter.saveState()
         self.set_option('splitter_state', str(state.toHex()))
         filenames = []
@@ -786,7 +791,7 @@ class Editor(SpyderPluginWidget):
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
             editorstack.set_closable( len(self.editorstacks) > 1 )
-            editorstack.set_classbrowser(self.classbrowser)
+            editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_projectexplorer(self.projectexplorer)
             editorstack.set_inspector(self.inspector)
             editorstack.set_find_widget(self.find_widget)
@@ -804,9 +809,9 @@ class Editor(SpyderPluginWidget):
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                          self.eol_status.eol_changed)
-            cb_btn = create_toolbutton(self, text_beside_icon=False)
-            cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-            editorstack.add_widget_to_header(cb_btn, space_before=True)
+            oe_btn = create_toolbutton(self, text_beside_icon=False)
+            oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
+            editorstack.add_widget_to_header(oe_btn, space_before=True)
             
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
@@ -817,7 +822,7 @@ class Editor(SpyderPluginWidget):
             ('set_codeanalysis_enabled',            'code_analysis'),
             ('set_todolist_enabled',                'todo_list'),
             ('set_linenumbers_enabled',             'line_numbers'),
-            ('set_classbrowser_enabled',            'class_browser'),
+            ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_enter_enabled',    'codecompletion/enter-key'),
             ('set_calltips_enabled',                'calltips'),
@@ -849,8 +854,8 @@ class Editor(SpyderPluginWidget):
                      self.emit(SIGNAL('redirect_stdio(bool)'), state))
         self.connect(editorstack,
                      SIGNAL('external_console_execute_lines(QString)'),
-                     lambda text:
-                     self.emit(SIGNAL('external_console_execute_lines(QString)'), text))
+                     lambda text: self.emit(
+                     SIGNAL('external_console_execute_lines(QString)'), text))
         
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
@@ -957,9 +962,11 @@ class Editor(SpyderPluginWidget):
     def create_new_window(self):
         window = EditorMainWindow(self, self.stack_menu_actions,
            self.toolbar_list, self.menu_list,
-           show_fullpath=self.get_option('class_browser/show_fullpath', False),
+           show_fullpath=self.get_option('outline_explorer/show_fullpath',
+                                         False),
            fullpath_sorting=self.get_option('fullpath_sorting', True),
-           show_all_files=self.get_option('class_browser/show_all_files', True))
+           show_all_files=self.get_option('outline_explorer/show_all_files',
+                                          True))
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -1694,15 +1701,15 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # toggle_classbrowser_visibility
-        cbvis_n = 'class_browser/visibility'
-        if cbvis_n in options:
-            cbvis_o = self.get_option(cbvis_n)
-            self.classbrowser.setVisible(cbvis_o)
-            if cbvis_o:
-                self.classbrowser.update()
+        # toggle_outlineexplorer_visibility
+        oevis_n = 'outline_explorer/visibility'
+        if oevis_n in options:
+            oevis_o = self.get_option(oevis_n)
+            self.outlineexplorer.setVisible(oevis_o)
+            if oevis_o:
+                self.outlineexplorer.update()
                 editorstack = self.get_current_editorstack()
-                editorstack._refresh_classbrowser(update=True)
+                editorstack._refresh_outlineexplorer(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
             color_scheme_n = 'color_scheme_name'
@@ -1737,10 +1744,10 @@ class Editor(SpyderPluginWidget):
             analysis_o = self.get_option(analysis_n)
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
-                if self.classbrowser is not None:
-                    self.classbrowser.set_fullpath_sorting(fpsorting_o)
+                if self.outlineexplorer is not None:
+                    self.outlineexplorer.set_fullpath_sorting(fpsorting_o)
                 for window in self.editorwindows:
-                    window.editorwidget.classbrowser.set_fullpath_sorting(
+                    window.editorwidget.outlineexplorer.set_fullpath_sorting(
                                                                     fpsorting_o)
             for editorstack in self.editorstacks:
                 if font_n in options:

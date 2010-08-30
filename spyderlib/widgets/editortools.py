@@ -4,7 +4,7 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Editor tools: class browser, etc."""
+"""Editor tools: outline explorer, etc."""
 
 import sys, re,  os.path as osp
 
@@ -65,8 +65,8 @@ class PythonCFM(object):
     """
     Collection of helpers to match functions and classes
     for Python language
-    This has to be reimplemented for other languages for the class browser 
-    to be supported (not implemented yet: class browser won't be populated
+    This has to be reimplemented for other languages for the outline explorer 
+    to be supported (not implemented yet: outline explorer won't be populated
     unless the current script is a Python script)
     """
     def __get_name(self, statmt, text):
@@ -123,12 +123,13 @@ class TreeItem(QTreeWidgetItem):
         self.setIcon(0, get_icon(icon_name))
         
     def setup(self):
-        raise NotImplementedError
+        self.setToolTip(0, translate("OutlineExplorer",
+                                     "Line %1").arg(str(self.line)))
 
 class ClassItem(TreeItem):
     def setup(self):
         self.set_icon('class.png')
-        self.setToolTip(0, translate("ClassBrowser",
+        self.setToolTip(0, translate("OutlineExplorer",
                              "Class defined at line %1").arg(str(self.line)))
 
 class FunctionItem(TreeItem):
@@ -144,7 +145,7 @@ class FunctionItem(TreeItem):
     
     def setup(self):
         if self.is_method():
-            self.setToolTip(0, translate("ClassBrowser",
+            self.setToolTip(0, translate("OutlineExplorer",
                              "Method defined at line %1").arg(str(self.line)))
             if self.decorator is not None:
                 self.set_icon('decorator.png')
@@ -158,7 +159,7 @@ class FunctionItem(TreeItem):
                     self.set_icon('method.png')
         else:
             self.set_icon('function.png')
-            self.setToolTip(0, translate("ClassBrowser",
+            self.setToolTip(0, translate("OutlineExplorer",
                              "Function defined at line %1").arg(str(self.line)))
 
 
@@ -193,7 +194,7 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
         #XXX: remove this debug-related fragment of code
         print >>STDOUT, "unable to remove tree item: ", debug
 
-class ClassBrowserTreeWidget(OneColumnTree):
+class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
                  show_all_files=True):
         self.show_fullpath = show_fullpath
@@ -205,22 +206,24 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.current_editor = None
-        title = translate("ClassBrowser", "Classes and functions")
+        title = translate("OutlineExplorer", "Outline")
         self.set_title(title)
         self.setWindowTitle(title)
+        self.setUniformRowHeights(True)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
         fromcursor_act = create_action(self,
-                        text=translate('ClassBrowser', 'Go to cursor position'),
+                        text=translate('OutlineExplorer',
+                                       'Go to cursor position'),
                         icon=get_icon('fromcursor.png'),
                         triggered=self.go_to_cursor_position)
         fullpath_act = create_action(self,
-                        text=translate('ClassBrowser', 'Show absolute path'),
+                        text=translate('OutlineExplorer', 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
         fullpath_act.setChecked(self.show_fullpath)
         allfiles_act = create_action(self,
-                        text=translate('ClassBrowser', 'Show all files'),
+                        text=translate('OutlineExplorer', 'Show all files'),
                         toggled=self.toggle_show_all_files)
         allfiles_act.setChecked(self.show_all_files)
         actions = [fullpath_act, allfiles_act, fromcursor_act]
@@ -296,7 +299,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
         self.current_editor = editor
         
     def file_renamed(self, editor, new_filename):
-        """File was renamed, updating class browser tree"""
+        """File was renamed, updating outline explorer tree"""
         editor_id = editor.get_document_id()
         if editor_id in self.editor_ids.values():
             root_item = self.editor_items[editor_id]
@@ -347,17 +350,16 @@ class ClassBrowserTreeWidget(OneColumnTree):
         previous_item = None
         previous_level = None
         
-        cb_data = editor.highlighter.get_classbrowser_data()
+        oe_data = editor.highlighter.get_outlineexplorer_data()
         
         for block_nb in range(editor.get_line_count()):
             line_nb = block_nb+1
-            data = cb_data.get(block_nb)
+            data = oe_data.get(block_nb)
             if data is None:
                 level = None
             else:
                 level = data.fold_level
-            citem, clevel, _d = tree_cache.get(line_nb,
-                                                      (None, None, ""))
+            citem, clevel, _d = tree_cache.get(line_nb, (None, None, ""))
             
             # Skip iteration if line is not the first line of a foldable block
             if level is None:
@@ -366,13 +368,15 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 continue
             
             # Searching for class/function statements
-            class_name = data.get_class_name()
-            if class_name is None:
-                func_name = data.get_function_name()
-                if func_name is None:
-                    if citem is not None:
-                        remove_from_tree_cache(tree_cache, line=line_nb)
-                    continue
+            not_class_nor_function = data.is_not_class_nor_function()
+            if not not_class_nor_function:
+                class_name = data.get_class_name()
+                if class_name is None:
+                    func_name = data.get_function_name()
+                    if func_name is None:
+                        if citem is not None:
+                            remove_from_tree_cache(tree_cache, line=line_nb)
+                        continue
                 
             if previous_level is not None:
                 if level == previous_level:
@@ -389,7 +393,16 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 cname = unicode(citem.text(0))
                 
             preceding = root_item if previous_item is None else previous_item
-            if class_name is not None:
+            if not_class_nor_function:
+                if citem is not None:
+                    if data.text == cname and level == clevel:
+                        previous_level = clevel
+                        previous_item = citem
+                        continue
+                    else:
+                        remove_from_tree_cache(tree_cache, line=line_nb)
+                item = TreeItem(data.text, line_nb, parent, preceding)
+            elif class_name is not None:
                 if citem is not None:
                     if class_name == cname and level == clevel:
                         previous_level = clevel
@@ -411,6 +424,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
                     text = editor.get_text_line(block_nb-1)
                     decorator = editor.classfunc_match.get_decorator(text)
                     item.set_decorator(decorator)
+                
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
                                      unicode(item.parent().text(0)),
@@ -470,7 +484,7 @@ class ClassBrowserTreeWidget(OneColumnTree):
                 break
     
     
-class ClassBrowser(QWidget):
+class OutlineExplorer(QWidget):
     """
     Class browser
     
@@ -481,14 +495,14 @@ class ClassBrowser(QWidget):
                  show_all_files=True):
         QWidget.__init__(self, parent)
 
-        self.treewidget = ClassBrowserTreeWidget(self,
+        self.treewidget = OutlineExplorerTreeWidget(self,
                                             show_fullpath=show_fullpath,
                                             fullpath_sorting=fullpath_sorting,
                                             show_all_files=show_all_files)
 
         self.visibility_action = create_action(self,
-                                           self.tr("Show/hide class browser"),
-                                           icon='class_browser_vis.png',
+                                           self.tr("Show/hide outline explorer"),
+                                           icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
         
@@ -509,11 +523,12 @@ class ClassBrowser(QWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             if state:
-                self.emit(SIGNAL("classbrowser_is_visible()"))
+                self.emit(SIGNAL("outlineexplorer_is_visible()"))
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
-                         tip=translate('ClassBrowser', 'Go to cursor position'),
+                         tip=translate('OutlineExplorer',
+                                       'Go to cursor position'),
                          triggered=self.treewidget.go_to_cursor_position)
         collapse_btn = create_toolbutton(self, text_beside_icon=False)
         collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
@@ -532,7 +547,7 @@ class ClassBrowser(QWidget):
         
     def get_options(self):
         """
-        Return class browser options
+        Return outline explorer options
         except for fullpath sorting option which is more global
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,

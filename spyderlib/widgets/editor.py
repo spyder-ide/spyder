@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import check, ClassBrowser
+from spyderlib.widgets.editortools import check, OutlineExplorer
 from spyderlib.widgets.codeeditor.codeeditor import CodeEditor
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
@@ -400,7 +400,7 @@ class EditorStack(QWidget):
         self.data = []
         
         self.menu_actions = actions
-        self.classbrowser = None
+        self.outlineexplorer = None
         self.projectexplorer = None
         self.inspector = None
         self.unregister_callback = None
@@ -415,7 +415,7 @@ class EditorStack(QWidget):
         self.codeanalysis_enabled = True
         self.todolist_enabled = True
         self.linenumbers_enabled = True
-        self.classbrowser_enabled = True
+        self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = False
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = False
@@ -610,11 +610,12 @@ class EditorStack(QWidget):
     def set_find_widget(self, find_widget):
         self.find_widget = find_widget
         
-    def set_classbrowser(self, classbrowser):
-        self.classbrowser = classbrowser
-        self.classbrowser_enabled = True
-        self.connect(self.classbrowser, SIGNAL("classbrowser_is_visible()"),
-                     self._refresh_classbrowser)
+    def set_outlineexplorer(self, outlineexplorer):
+        self.outlineexplorer = outlineexplorer
+        self.outlineexplorer_enabled = True
+        self.connect(self.outlineexplorer,
+                     SIGNAL("outlineexplorer_is_visible()"),
+                     self._refresh_outlineexplorer)
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
@@ -702,9 +703,9 @@ class EditorStack(QWidget):
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
         
-    def set_classbrowser_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'class_browser')
-        self.classbrowser_enabled = state
+    def set_outlineexplorer_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'outline_explorer')
+        self.outlineexplorer_enabled = state
         
     def set_default_font(self, font, color_scheme=None):
         # get_font(self.CONF_SECTION)
@@ -837,8 +838,8 @@ class EditorStack(QWidget):
         self.__repopulate_stack()
         if set_new_index:
             self.set_stack_index(new_index)
-        if self.classbrowser is not None:
-            self.classbrowser.file_renamed(finfo.editor, finfo.filename)
+        if self.outlineexplorer is not None:
+            self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
         return new_index
         
     def set_stack_title(self, index, combo_title, tab_title):
@@ -952,9 +953,9 @@ class EditorStack(QWidget):
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
-            # Removing editor reference from class browser settings:
-            if self.classbrowser is not None:
-                self.classbrowser.remove_editor(finfo.editor)
+            # Removing editor reference from outline explorer settings:
+            if self.outlineexplorer is not None:
+                self.outlineexplorer.remove_editor(finfo.editor)
             # Saving breakpoints
             breakpoints = finfo.editor.get_breakpoints()
             self.emit(SIGNAL("save_breakpoints(QString,QString)"),
@@ -968,7 +969,7 @@ class EditorStack(QWidget):
                 self.close()
             self.emit(SIGNAL('opened_files_list_changed()'))
             self.emit(SIGNAL('update_code_analysis_actions()'))
-            self._refresh_classbrowser()
+            self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
             
             if new_index is not None:
@@ -1057,14 +1058,14 @@ class EditorStack(QWidget):
             self.modification_changed(index=index)
             self.analyze_script(index)
             
-            #XXX CodeEditor-only: re-scan the whole text to rebuild class browser 
+            #XXX CodeEditor-only: re-scan the whole text to rebuild outline explorer 
             #    data from scratch (could be optimized because rehighlighting
             #    text means searching for all syntax coloring patterns instead 
             #    of only searching for class/def patterns which would be 
-            #    sufficient for class browser data.
+            #    sufficient for outline explorer data.
             finfo.editor.rehighlight()
             
-            self._refresh_classbrowser(index)
+            self._refresh_outlineexplorer(index)
             if refresh_explorer:
                 # Refresh the explorer widget if it exists:
                 self.emit(SIGNAL("refresh_explorer(QString)"),
@@ -1224,26 +1225,26 @@ class EditorStack(QWidget):
             if fwidget is finfo.editor:
                 self.refresh()
         
-    def _refresh_classbrowser(self, index=None, update=True):
-        """Refresh class browser panel"""
+    def _refresh_outlineexplorer(self, index=None, update=True):
+        """Refresh outline explorer panel"""
         if index is None:
             index = self.get_stack_index()
         enable = False
-        cb = self.classbrowser
+        oe = self.outlineexplorer
         if self.data:
             finfo = self.data[index]
-            # cb_visible: if class browser is not visible, maybe the whole
+            # oe_visible: if outline explorer is not visible, maybe the whole
             # GUI is not visible (Spyder is starting up) -> in this case,
-            # it is necessary to update the class browser
-            cb_visible = cb.isVisible() or not self.isVisible()
-            if self.classbrowser_enabled and finfo.editor.is_python() \
-               and cb_visible:
+            # it is necessary to update the outline explorer
+            oe_visible = oe.isVisible() or not self.isVisible()
+            if self.outlineexplorer_enabled and finfo.editor.is_python() \
+               and oe_visible:
                 enable = True
-                cb.setEnabled(True)
-                cb.set_current_editor(finfo.editor, finfo.filename,
+                oe.setEnabled(True)
+                oe.set_current_editor(finfo.editor, finfo.filename,
                                       update=update)
         if not enable:
-            cb.setEnabled(False)
+            oe.setEnabled(False)
             
     def __refresh_statusbar(self, index):
         """Refreshing statusbar widgets"""
@@ -1319,7 +1320,7 @@ class EditorStack(QWidget):
             finfo = self.data[index]
             editor = finfo.editor
             editor.setFocus()
-            self._refresh_classbrowser(index, update=False)
+            self._refresh_outlineexplorer(index, update=False)
             self.emit(SIGNAL('update_code_analysis_actions()'))
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
@@ -1462,11 +1463,11 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
                      self.focus_changed_callback)
-        if self.classbrowser is not None:
-            # Removing editor reference from class browser settings:
+        if self.outlineexplorer is not None:
+            # Removing editor reference from outline explorer settings:
             self.connect(editor, SIGNAL("destroyed()"),
                          lambda obj=editor:
-                         self.classbrowser.remove_editor(obj))
+                         self.outlineexplorer.remove_editor(obj))
 
         self.find_widget.set_editor(editor)
        
@@ -1508,7 +1509,7 @@ class EditorStack(QWidget):
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
         index = self.get_stack_index()
-        self._refresh_classbrowser(index, update=True)
+        self._refresh_outlineexplorer(index, update=True)
         self.emit(SIGNAL('ending_long_process(QString)'), "")
         if self.isVisible() and self.checkeolchars_enabled \
            and sourcecode.has_mixed_eol_chars(text):
@@ -1868,10 +1869,10 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_findreplace_shortcuts(self.find_widget)
         self.find_widget.hide()
-        self.classbrowser = ClassBrowser(self, show_fullpath=show_fullpath,
-                                         fullpath_sorting=fullpath_sorting,
-                                         show_all_files=show_all_files)
-        self.connect(self.classbrowser,
+        self.outlineexplorer = OutlineExplorer(self, show_fullpath=show_fullpath,
+                                            fullpath_sorting=fullpath_sorting,
+                                            show_all_files=show_all_files)
+        self.connect(self.outlineexplorer,
                      SIGNAL("edit_goto(QString,int,QString)"), plugin.load)
         
         editor_widgets = QWidget(self)
@@ -1887,13 +1888,13 @@ class EditorWidget(QSplitter):
         
         splitter = QSplitter(self)
         splitter.addWidget(editor_widgets)
-        splitter.addWidget(self.classbrowser)
+        splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
         splitter.setStretchFactor(1, 1)
 
-        # Refreshing class browser
+        # Refreshing outline explorer
         for index in range(editorsplitter.editorstack.get_stack_count()):
-            editorsplitter.editorstack._refresh_classbrowser(index, update=True)
+            editorsplitter.editorstack._refresh_outlineexplorer(index, update=True)
         
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
@@ -1901,7 +1902,7 @@ class EditorWidget(QSplitter):
             print >>STDOUT, "EditorWidget.register_editorstack:", editorstack
             self.__print_editorstacks()
         editorstack.set_closable( len(self.editorstacks) > 1 )
-        editorstack.set_classbrowser(self.classbrowser)
+        editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)
         self.connect(editorstack, SIGNAL('reset_statusbar()'),
                      self.readwrite_status.hide)
@@ -1918,9 +1919,9 @@ class EditorWidget(QSplitter):
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
-        cb_btn = create_toolbutton(self, text_beside_icon=False)
-        cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-        editorstack.add_widget_to_header(cb_btn, space_before=True)
+        oe_btn = create_toolbutton(self, text_beside_icon=False)
+        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
+        editorstack.add_widget_to_header(oe_btn, space_before=True)
         
     def __print_editorstacks(self):
         print >>STDOUT, "%d editorstack(s) in editorwidget:" \
@@ -2039,8 +2040,8 @@ class FakePlugin(QSplitter):
         self.editorwindows = []
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.classbrowser = ClassBrowser(self, show_fullpath=False,
-                                         show_all_files=False)
+        self.outlineexplorer = OutlineExplorer(self, show_fullpath=False,
+                                               show_all_files=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -2051,7 +2052,7 @@ class FakePlugin(QSplitter):
         editor_layout.addWidget(self.find_widget)
         
         self.addWidget(editor_widgets)
-        self.addWidget(self.classbrowser)
+        self.addWidget(self.outlineexplorer)
         
         self.setStretchFactor(0, 5)
         self.setStretchFactor(1, 1)
@@ -2082,11 +2083,11 @@ class FakePlugin(QSplitter):
             # editorstack is a child of the Editor plugin
             editorstack.set_fullpath_sorting_enabled(True)
             editorstack.set_closable( len(self.editorstacks) > 1 )
-            editorstack.set_classbrowser(self.classbrowser)
+            editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
-            cb_btn = create_toolbutton(self, text_beside_icon=False)
-            cb_btn.setDefaultAction(self.classbrowser.visibility_action)
-            editorstack.add_widget_to_header(cb_btn, space_before=True)
+            oe_btn = create_toolbutton(self, text_beside_icon=False)
+            oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
+            editorstack.add_widget_to_header(oe_btn, space_before=True)
             
         action = QAction(self)
         editorstack.set_io_actions(action, action, action)

@@ -36,7 +36,7 @@ from spyderlib.utils.dochelpers import getobj
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
-                                           ScrollFlagArea, check, ClassBrowser)
+                                           ScrollFlagArea, check, OutlineExplorer)
 from spyderlib.utils import sourcecode, is_keyword
 
 
@@ -277,7 +277,7 @@ class CodeEditor(TextEditBaseWidget):
         
     def rehighlight(self):
         """
-        Rehighlight the whole document to rebuild class browser data
+        Rehighlight the whole document to rebuild outline explorer data
         and import statements data from scratch
         """
         if self.highlighter is not None:
@@ -1527,7 +1527,7 @@ class TestWidget(QSplitter):
         super(TestWidget, self).__init__(parent)
         self.editor = TestEditor(self)
         self.addWidget(self.editor)
-        self.classtree = ClassBrowser(self)
+        self.classtree = OutlineExplorer(self)
         self.addWidget(self.classtree)
         self.connect(self.classtree, SIGNAL("edit_goto(QString,int,QString)"),
                      lambda _fn, line, word: self.editor.go_to_line(line, word))

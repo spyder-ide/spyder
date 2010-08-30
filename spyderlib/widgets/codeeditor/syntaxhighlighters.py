@@ -119,7 +119,7 @@ class BaseSH(QSyntaxHighlighter):
     def __init__(self, parent, font=None, color_scheme=None):
         super(BaseSH, self).__init__(parent)
         
-        self.classbrowser_data = {}
+        self.outlineexplorer_data = {}
         
         self.font = font
         self._check_color_scheme(color_scheme)
@@ -192,11 +192,11 @@ class BaseSH(QSyntaxHighlighter):
     def highlightBlock(self, text):
         raise NotImplementedError
             
-    def get_classbrowser_data(self):
-        return self.classbrowser_data
+    def get_outlineexplorer_data(self):
+        return self.outlineexplorer_data
 
     def rehighlight(self):
-        self.classbrowser_data = {}
+        self.outlineexplorer_data = {}
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QSyntaxHighlighter.rehighlight(self)
         QApplication.restoreOverrideCursor()
@@ -238,7 +238,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
            ufstring1 + "|" + ufstring2 + "|" + ufstring3 + "|" + ufstring4 + \
            "|" + string + "|" + number + "|" + any("SYNC", [r"\n"])
 
-class ClassBrowserData(object):
+class OutlineExplorerData(object):
     CLASS = 0
     FUNCTION = 1
     def __init__(self):
@@ -246,6 +246,9 @@ class ClassBrowserData(object):
         self.fold_level = None
         self.def_type = None
         self.def_name = None
+        
+    def is_not_class_nor_function(self):
+        return self.def_type not in (self.CLASS, self.FUNCTION)
         
     def get_class_name(self):
         if self.def_type == self.CLASS:
@@ -264,8 +267,8 @@ class PythonSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
      INSIDE_SQSTRING, INSIDE_DQSTRING) = range(5)
-    DEF_TYPES = {"def": ClassBrowserData.FUNCTION,
-                 "class": ClassBrowserData.CLASS}
+    DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
+                 "class": OutlineExplorerData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
         super(PythonSH, self).__init__(parent, font, color_scheme)
         self.import_statements = {}
@@ -289,7 +292,7 @@ class PythonSH(BaseSH):
             offset = 0
             prev_state = self.NORMAL
         
-        cbdata = None
+        oedata = None
         import_stmt = None
 
         self.setFormat(0, len(text), self.formats["normal"])
@@ -316,41 +319,51 @@ class PythonSH(BaseSH):
                         state = self.INSIDE_DQSTRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                        if value in ("def", "class"):
-                            match1 = self.IDPROG.match(text, end)
-                            if match1:
-                                start1, end1 = match1.span(1)
-                                self.setFormat(start1, end1-start1,
-                                               self.formats["definition"])
-                                cbdata = ClassBrowserData()
-                                cbdata.text = unicode(text)
-                                cbdata.fold_level = start
-                                cbdata.def_type = self.DEF_TYPES[unicode(value)]
-                                cbdata.def_name = text[start1:end1]
-                        elif value == "import":
-                            import_stmt = text.strip()
-                            # color all the "as" words on same line, except
-                            # if in a comment; cheap approximation to the
-                            # truth
-                            if '#' in text:
-                                endpos = text.index('#')
-                            else:
-                                endpos = len(text)
-                            while True:
-                                match1 = self.ASPROG.match(text, end, endpos)
-                                if not match1:
-                                    break
-                                start, end = match1.span(1)
-                                self.setFormat(start, end-start,
-                                               self.formats["keyword"])
+                        if key == "keyword":
+                            if value in ("def", "class"):
+                                match1 = self.IDPROG.match(text, end)
+                                if match1:
+                                    start1, end1 = match1.span(1)
+                                    self.setFormat(start1, end1-start1,
+                                                   self.formats["definition"])
+                                    oedata = OutlineExplorerData()
+                                    oedata.text = unicode(text)
+                                    oedata.fold_level = start
+                                    oedata.def_type = self.DEF_TYPES[
+                                                                unicode(value)]
+                                    oedata.def_name = text[start1:end1]
+                            elif value in ("elif", "else", "except", "finally",
+                                           "for", "if", "try", "while", "with"):
+                                oedata = OutlineExplorerData()
+                                oedata.text = unicode(text).strip()
+                                oedata.fold_level = start
+                                oedata.def_type = None
+                                oedata.def_name = text.strip()
+                            elif value == "import":
+                                import_stmt = text.strip()
+                                # color all the "as" words on same line, except
+                                # if in a comment; cheap approximation to the
+                                # truth
+                                if '#' in text:
+                                    endpos = text.index('#')
+                                else:
+                                    endpos = len(text)
+                                while True:
+                                    match1 = self.ASPROG.match(text, end,
+                                                               endpos)
+                                    if not match1:
+                                        break
+                                    start, end = match1.span(1)
+                                    self.setFormat(start, end-start,
+                                                   self.formats["keyword"])
                     
             match = self.PROG.search(text, match.end())
 
         self.setCurrentBlockState(state)
         
-        if cbdata is not None:
+        if oedata is not None:
             block_nb = self.currentBlock().blockNumber()
-            self.classbrowser_data[block_nb] = cbdata
+            self.outlineexplorer_data[block_nb] = oedata
         if import_stmt is not None:
             block_nb = self.currentBlock().blockNumber()
             self.import_statements[block_nb] = import_stmt
