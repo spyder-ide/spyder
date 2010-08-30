@@ -1635,7 +1635,11 @@ class Editor(SpyderPluginWidget):
         dialog = RunConfigDialog(self)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
-        dialog.exec_()
+        if dialog.exec_():
+            fname = dialog.file_to_run
+            if fname is not None:
+                self.load(fname)
+                self.run_file()
         
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""

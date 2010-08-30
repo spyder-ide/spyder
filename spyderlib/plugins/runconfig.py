@@ -20,7 +20,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import get_icon, CONF
-from spyderlib.utils.qthelpers import get_std_icon
+from spyderlib.utils.qthelpers import get_std_icon, translate
 
 
 class RunConfiguration(object):
@@ -218,7 +218,9 @@ class RunConfigOneDialog(QDialog):
         self.runconfigoptions = RunConfigOptions(self)
         self.runconfigoptions.set(RunConfiguration().get())
         
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
+        bbox.addButton(translate("RunConfigDialog", "Run"),
+                       QDialogButtonBox.AcceptRole)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
 
@@ -254,6 +256,8 @@ class RunConfigDialog(QDialog):
     def __init__(self, parent=None):
         super(RunConfigDialog, self).__init__(parent)
         
+        self.file_to_run = None
+        
         combo_label = QLabel(self.tr("Select a run configuration:"))
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
@@ -263,6 +267,8 @@ class RunConfigDialog(QDialog):
         self.stack = QStackedWidget()
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        run_btn = bbox.addButton(self.tr("Run"), QDialogButtonBox.AcceptRole)
+        self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
 
@@ -313,3 +319,6 @@ class RunConfigDialog(QDialog):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
+        
+    def run_btn_clicked(self):
+        self.file_to_run = unicode(self.combo.currentText())

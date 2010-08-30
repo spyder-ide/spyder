@@ -205,12 +205,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>CodeEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="910"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="903"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="964"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="957"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -5978,7 +5978,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>RunConfigDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="256"/>
+        <location filename="plugins/runconfig.py" line="260"/>
         <source>Select a run configuration:</source>
         <translation>Sélectionner une configuration d&apos;exécution :</translation>
     </message>
@@ -5988,15 +5988,20 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="plugins/runconfig.py" line="280"/>
+        <location filename="plugins/runconfig.py" line="286"/>
         <source>Run configurations</source>
         <translation>Configurations d&apos;exécution</translation>
+    </message>
+    <message>
+        <location filename="plugins/runconfig.py" line="269"/>
+        <source>Run</source>
+        <translation>Exécuter</translation>
     </message>
 </context>
 <context>
     <name>RunConfigOneDialog</name>
     <message>
-        <location filename="plugins/runconfig.py" line="237"/>
+        <location filename="plugins/runconfig.py" line="239"/>
         <source>Run %1</source>
         <translation>Exécution de %1</translation>
     </message>
@@ -6235,32 +6240,32 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1246"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1239"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1250"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1243"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1254"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1247"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1258"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1251"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1262"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1255"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1266"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1259"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
@@ -6270,17 +6275,17 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1271"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1264"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="597"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="590"/>
         <source>Breakpoint</source>
         <translation>Point d&apos;arrêt</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="598"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="591"/>
         <source>Condition:</source>
         <translation>Condition :</translation>
     </message>
