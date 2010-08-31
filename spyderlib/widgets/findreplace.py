@@ -13,7 +13,7 @@
 
 from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
                          QSizePolicy, QShortcut, QKeySequence)
-from PyQt4.QtCore import SIGNAL, SLOT, Qt
+from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
 
@@ -79,12 +79,7 @@ class FindReplace(QWidget):
         glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
-        replace_with1 = QLabel(self.tr("Replace"))
-        replace_with2 = QLabel()
-        font = replace_with2.font()
-        font.setBold(True)
-        replace_with2.setFont(font)
-        replace_with3 = QLabel(self.tr("with:"))
+        replace_with = QLabel(self.tr("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
                                             tip=self.tr("Replace string"))
         
@@ -100,12 +95,10 @@ class FindReplace(QWidget):
         self.all_check = QCheckBox(self.tr("Replace all"))
         
         self.replace_layout = QHBoxLayout()
-        widgets = [replace_with1, replace_with2, replace_with3,
-                   self.replace_text, self.replace_button, self.all_check]
+        widgets = [replace_with, self.replace_text, self.replace_button,
+                   self.all_check]
         for widget in widgets:
             self.replace_layout.addWidget(widget)
-        self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
-                     replace_with2, SLOT("setText(QString)"))
         glayout.addLayout(self.replace_layout, 1, 1)
         self.widgets.extend(widgets)
         self.replace_widgets = widgets
