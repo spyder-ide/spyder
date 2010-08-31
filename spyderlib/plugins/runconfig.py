@@ -24,11 +24,14 @@ from spyderlib.utils.qthelpers import get_std_icon, translate
 
 
 class RunConfiguration(object):
-    def __init__(self):
+    def __init__(self, fname=None):
         self.args = ''
         self.args_enabled = False
-        self.wdir = ''
+        self.wdir = None
         self.wdir_enabled = False
+        if fname is not None:
+            self.wdir = osp.dirname(fname)
+            self.wdir_enabled = True
         self.current = False
         self.interact = False
         self.python_args = ''
@@ -216,7 +219,6 @@ class RunConfigOneDialog(QDialog):
         self.filename = None
         
         self.runconfigoptions = RunConfigOptions(self)
-        self.runconfigoptions.set(RunConfiguration().get())
         
         bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
         bbox.addButton(translate("RunConfigDialog", "Run"),
@@ -237,6 +239,7 @@ class RunConfigOneDialog(QDialog):
         
     def setup(self, fname):
         self.filename = fname
+        self.runconfigoptions.set(RunConfiguration(fname).get())
         self.setWindowTitle(self.tr("Run %1").arg(osp.basename(fname)))
             
     def accept(self):
