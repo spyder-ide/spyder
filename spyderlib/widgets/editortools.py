@@ -388,6 +388,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if previous_level is not None:
                 if level == previous_level:
                     pass
+                elif level > previous_level+4: # Invalid indentation
+                    continue
                 elif level > previous_level:
                     ancestors.append((previous_item, previous_level))
                 else:
