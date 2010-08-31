@@ -334,11 +334,12 @@ class PythonSH(BaseSH):
                                     oedata.def_name = text[start1:end1]
                             elif value in ("elif", "else", "except", "finally",
                                            "for", "if", "try", "while", "with"):
-                                oedata = OutlineExplorerData()
-                                oedata.text = unicode(text).strip()
-                                oedata.fold_level = start
-                                oedata.def_type = None
-                                oedata.def_name = text.strip()
+                                if text.lstrip().startswith(value):
+                                    oedata = OutlineExplorerData()
+                                    oedata.text = unicode(text).strip()
+                                    oedata.fold_level = start
+                                    oedata.def_type = None
+                                    oedata.def_name = text.strip()
                             elif value == "import":
                                 import_stmt = text.strip()
                                 # color all the "as" words on same line, except

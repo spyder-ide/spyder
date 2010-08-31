@@ -36,7 +36,8 @@ from spyderlib.utils.dochelpers import getobj
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
-                                           ScrollFlagArea, check, OutlineExplorer)
+                                           ScrollFlagArea, check,
+                                           OutlineExplorer)
 from spyderlib.utils import sourcecode, is_keyword
 
 
