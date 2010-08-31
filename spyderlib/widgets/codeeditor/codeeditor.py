@@ -132,10 +132,10 @@ class CodeEditor(TextEditBaseWidget):
         self.scrollflagarea_enabled = None
         self.scrollflagarea = ScrollFlagArea(self)
         self.scrollflagarea.hide()
-        self.warning_color = "#EFB870"
+        self.warning_color = "#FFAD07"
         self.error_color = "#EA2B0E"
         self.todo_color = "#B4D4F3"
-        self.breakpoint_color = "#FF5533"
+        self.breakpoint_color = "#30E62E"
 
         self.update_linenumberarea_width(0)
                 
@@ -889,8 +889,9 @@ class CodeEditor(TextEditBaseWidget):
                 regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
                                  Qt.CaseSensitive)
                 cursor = document.find(regexp, cursor, flags)
+                color = self.error_color if error else self.warning_color
                 self.__highlight_selection('code_analysis', cursor,
-                                   underline_color=QColor(self.warning_color))
+                                           underline_color=QColor(color))
 #                old_pos = None
 #                if cursor:
 #                    while cursor.blockNumber() <= line2 and cursor.position() != old_pos:

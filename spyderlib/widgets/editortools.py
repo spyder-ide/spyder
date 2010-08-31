@@ -29,7 +29,7 @@ import compiler
 
 def check(filename):
     try:
-        import pyflakes.checker
+        import pyflakes.checker, pyflakes.messages
     except ImportError:
         return []
     try:
@@ -47,9 +47,16 @@ def check(filename):
         results = []
         w = pyflakes.checker.Checker(tree, filename)
         w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
+        
+        error_messages = (pyflakes.messages.UndefinedName,
+                          pyflakes.messages.UndefinedExport,
+                          pyflakes.messages.UndefinedLocal,
+                          pyflakes.messages.DuplicateArgument,
+                          pyflakes.messages.LateFutureImport)
         for warning in w.messages:
             results.append( (warning.message % warning.message_args,
-                             warning.lineno, False) )
+                             warning.lineno,
+                             isinstance(warning, error_messages)) )
         return results
 
 if __name__ == '__main__':
