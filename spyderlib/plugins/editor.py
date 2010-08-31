@@ -792,8 +792,6 @@ class Editor(SpyderPluginWidget):
             # editorstack is a child of the Editor plugin
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
-            editorstack.set_projectexplorer(self.projectexplorer)
-            editorstack.set_inspector(self.inspector)
             editorstack.set_find_widget(self.find_widget)
             self.connect(editorstack, SIGNAL('reset_statusbar()'),
                          self.readwrite_status.hide)
@@ -813,6 +811,8 @@ class Editor(SpyderPluginWidget):
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_widget_to_header(oe_btn, space_before=True)
             
+        editorstack.set_projectexplorer(self.projectexplorer)
+        editorstack.set_inspector(self.inspector)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
