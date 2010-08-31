@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Class browser widget
+Outline explorer widget
 
 ******************************** WARNING ***************************************
     This module is not used anymore in Spyder since v1.1.0.

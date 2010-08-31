@@ -950,7 +950,8 @@ class Editor(SpyderPluginWidget):
                           (self.tr("&File"), self.main.file_menu_actions),
                           (self.tr("&Edit"), self.main.edit_menu_actions),
                           (self.tr("&Search"), self.main.search_menu_actions),
-                          (self.tr("&Source"), self.main.source_menu_actions),
+                          (self.tr("Sour&ce"), self.main.source_menu_actions),
+                          (self.tr("&Run"), self.main.run_menu_actions),
                           (self.tr("&Tools"), self.main.tools_menu_actions),
                           (self.tr("?"), self.main.help_menu_actions),
                           )
