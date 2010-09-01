@@ -25,16 +25,17 @@ if os.name == 'nt':
         pass
         
     # Workaround for IPython thread issues with win32 comdlg32
-    try:
-        import win32gui, win32api
+    if os.environ.get('IPYTHON', False):
         try:
-            win32gui.GetOpenFileNameW(File=win32api.GetSystemDirectory()[:2])
-        except win32gui.error:
-            # This error is triggered intentionally
+            import win32gui, win32api
+            try:
+                win32gui.GetOpenFileNameW(File=win32api.GetSystemDirectory()[:2])
+            except win32gui.error:
+                # This error is triggered intentionally
+                pass
+        except ImportError:
+            # Unfortunately, pywin32 is not installed...
             pass
-    except ImportError:
-        # Unfortunately, pywin32 is not installed...
-        pass
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
