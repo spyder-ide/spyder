@@ -301,7 +301,7 @@ class Editor(SpyderPluginWidget):
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
         self.find_widget.hide()
-        self.register_findreplace_shortcuts(self.find_widget)
+        self.register_widget_shortcuts("Editor", self.find_widget)
         
         # Tabbed editor widget + Find/Replace widget
         editor_widgets = QWidget(self)

@@ -123,6 +123,18 @@ class FindReplace(QWidget):
         escape_sc = QShortcut(QKeySequence("Escape"), parent, self.hide)
         escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
         
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [(self.findnext_sc, "Find next", "F3"),
+                (self.findprev_sc, "Find previous", "Shift+F3"),
+                (self.togglefind_sc, "Find text", "Ctrl+F"),
+                (self.togglereplace_sc, "Replace text", "Ctrl+H"),]
+        
     def update_search_combo(self):
         self.search_text.lineEdit().emit(SIGNAL('returnPressed()'))
         

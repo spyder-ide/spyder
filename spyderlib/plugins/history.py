@@ -102,7 +102,7 @@ class HistoryLog(SpyderPluginWidget):
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
-        self.register_findreplace_shortcuts(self.find_widget)
+        self.register_widget_shortcuts("Editor", self.find_widget)
         
         layout.addWidget(self.find_widget)
         
