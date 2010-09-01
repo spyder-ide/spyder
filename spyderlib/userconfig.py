@@ -292,3 +292,11 @@ class UserConfig(ConfigParser):
         self.__set(section, option, value, verbose)
         if save:
             self.__save()
+            
+    def remove_section(self, section):
+        ConfigParser.remove_section(self, section)
+        self.__save()
+            
+    def remove_option(self, section, option):
+        ConfigParser.remove_option(self, section, option)
+        self.__save()

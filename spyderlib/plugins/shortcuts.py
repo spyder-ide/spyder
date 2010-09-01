@@ -7,7 +7,7 @@
 """Shortcut management"""
 
 from PyQt4.QtGui import (QVBoxLayout, QWidget, QComboBox, QItemDelegate,
-                         QTableView, QMessageBox)
+                         QTableView, QMessageBox, QPushButton)
 from PyQt4.QtCore import (Qt, QSize, QAbstractTableModel, QVariant, QModelIndex,
                           SIGNAL)
 
@@ -18,7 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import (get_icon, get_shortcut, set_shortcut,
-                              iter_shortcuts)
+                              iter_shortcuts, reset_shortcuts)
 from spyderlib.utils.qthelpers import translate
 from spyderlib.plugins.configdialog import GeneralConfigPage
 
@@ -319,11 +319,17 @@ class ShortcutsConfigPage(GeneralConfigPage):
                      lambda i1, i2: self.has_been_modified())
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.table)
+        reset_btn = QPushButton(self.tr("Reset to default values"))
+        self.connect(reset_btn, SIGNAL('clicked()'), self.reset_to_default)
+        vlayout.addWidget(reset_btn)
         self.setLayout(vlayout)
         
     def reset_to_default(self):
+        reset_shortcuts()
+        self.main.apply_shortcuts()
         self.table.load_shortcuts()
         self.load_from_conf()
+        self.set_modified(False)
             
     def apply_settings(self, options):
         self.table.save_shortcuts()

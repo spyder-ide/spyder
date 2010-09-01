@@ -410,6 +410,10 @@ def iter_shortcuts():
     for option in CONF.options('shortcuts'):
         context, name = option.split("/")
         yield context, name, get_shortcut(context, name)
+        
+def reset_shortcuts():
+    """Reset keyboard shortcuts to default values"""
+    CONF.remove_section('shortcuts')
 
 
 from spyderlib.widgets.codeeditor.syntaxhighlighters import (
