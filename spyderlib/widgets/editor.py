@@ -447,6 +447,43 @@ class EditorStack(QWidget):
         
         # Accepting drops
         self.setAcceptDrops(True)
+
+        # Local shortcuts
+        self.breakpointsc = QShortcut(QKeySequence("F12"), parent,
+                                      self.set_or_clear_breakpoint)
+        self.breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), parent,
+                                       self.set_or_edit_conditional_breakpoint)
+        self.cbreakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent,
+                                    self.go_to_line)
+        self.gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
+                                    self.open_filelistdialog)
+        self.filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
+                               self.go_to_previous_file)
+        self.tabsc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
+                                 self.close_file)
+        self.closesc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
+                                    self.go_to_next_file)
+        self.tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [
+                (self.breakpointsc, "Breakpoint", "F12"),
+                (self.cbreakpointsc, "Conditional breakpoint", "Shift+F12"),
+                (self.gotolinesc, "Go to line", "Ctrl+L"),
+                (self.filelistsc, "File list management", "Ctrl+E"),
+                ]
         
     def setup_editorstack(self, parent, layout, actions):
         """Setup editorstack's layout"""
@@ -475,17 +512,17 @@ class EditorStack(QWidget):
 #        self.add_widget_to_header(horsplit_btn)
 
         self.filelist_btn = create_toolbutton(self, get_icon('filelist.png'),
-                     tip=translate("Editor", "File list management (Ctrl+E)"),
+                     tip=translate("Editor", "File list management"),
                      triggered=self.open_filelistdialog)
         self.add_widget_to_header(self.filelist_btn, space_before=True)
         
         self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
-                         tip=translate("Editor", "Previous file (Ctrl+Tab)"),
+                         tip=translate("Editor", "Previous file"),
                          triggered=self.go_to_previous_file)
         self.add_widget_to_header(self.previous_btn, space_before=True)
         
         self.next_btn = create_toolbutton(self, get_icon('next.png'),
-                         tip=translate("Editor", "Next file (Ctrl+Shift+Tab)"),
+                         tip=translate("Editor", "Next file"),
                          triggered=self.go_to_next_file)
         self.add_widget_to_header(self.next_btn)
                 
@@ -511,28 +548,6 @@ class EditorStack(QWidget):
                                        tip=translate("Editor", "Close file"))
         self.add_widget_to_header(self.close_btn)
         layout.addLayout(self.header_layout)
-
-        # Local shortcuts
-        breakpointsc = QShortcut(QKeySequence("F12"), parent,
-                                 self.set_or_clear_breakpoint)
-        breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), parent,
-                                  self.set_or_edit_conditional_breakpoint)
-        cbreakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent, self.go_to_line)
-        gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
-        filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
-                               self.open_filelistdialog)
-        filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
-        tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
-                          self.go_to_previous_file)
-        tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
-                            self.close_file)
-        closesc.setContext(Qt.WidgetWithChildrenShortcut)
-        tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
-                               self.go_to_next_file)
-        tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         
         # Optional tabs
         self.tabs = BaseTabs(self, menu=self.menu)

@@ -21,7 +21,7 @@ from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
                          QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
                          QPixmap, QPrinter, QToolTip, QCursor, QInputDialog,
-                         QTextBlockUserData, QLineEdit)
+                         QTextBlockUserData, QLineEdit, QShortcut, QKeySequence)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
                           PYQT_VERSION_STR)
 
@@ -177,6 +177,46 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
+        
+        # Keyboard shortcuts
+        self.codecomp_sc = QShortcut(QKeySequence("Ctrl+Space"), self,
+                                     self.do_code_completion)
+        self.codecomp_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.duplicate_sc = QShortcut(QKeySequence("Ctrl+D"), self,
+                                      self.duplicate_line)
+        self.duplicate_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.gotodef_sc = QShortcut(QKeySequence("Ctrl+G"), self,
+                                    self.do_go_to_definition)
+        self.gotodef_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.comment_sc = QShortcut(QKeySequence("Ctrl+3"), self,
+                                    self.comment)
+        self.comment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.uncomment_sc = QShortcut(QKeySequence("Ctrl+2"), self,
+                                      self.uncomment)
+        self.uncomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.blockcomment_sc = QShortcut(QKeySequence("Ctrl+4"), self,
+                                         self.blockcomment)
+        self.blockcomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.unblockcomment_sc = QShortcut(QKeySequence("Ctrl+5"), self,
+                                           self.unblockcomment)
+        self.unblockcomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [
+                (self.codecomp_sc, "Code completion", "Ctrl+Space"),
+                (self.duplicate_sc, "Duplicate line", "Ctrl+D"),
+                (self.gotodef_sc, "Go to definition", "Ctrl+G"),
+                (self.comment_sc, "Comment", "Ctrl+3"),
+                (self.uncomment_sc, "Uncomment", "Ctrl+2"),
+                (self.blockcomment_sc, "Blockcomment", "Ctrl+4"),
+                (self.unblockcomment_sc, "Unblockcomment", "Ctrl+5"),
+                ]
 
     def closeEvent(self, event):
         super(CodeEditor, self).closeEvent(event)
@@ -625,6 +665,15 @@ class CodeEditor(TextEditBaseWidget):
         for line_number, condition in breakpoints:
             self.add_remove_breakpoint(line_number, condition)
         
+        
+    #-----Code introspection
+    def do_code_completion(self):
+        if not self.is_completion_widget_visible():
+            self.emit(SIGNAL('trigger_code_completion()'))
+            
+    def do_go_to_definition(self):
+        self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
+            
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
@@ -1151,6 +1200,24 @@ class CodeEditor(TextEditBaseWidget):
                 self.add_prefix(" "*4)
         else:
             self.insert_text(" "*4)
+            
+    def indent_or_replace(self):
+        """Indent or replace by 4 spaces depending on selection and tab mode"""
+        if (self.tab_indents and self.tab_mode) or not self.has_selected_text():
+            self.indent()
+        else:
+            cursor = self.textCursor()
+            if self.get_selected_text() == unicode(cursor.block().text()):
+                self.indent()
+            else:
+                cursor1 = self.textCursor()
+                cursor1.setPosition(cursor.selectionStart())
+                cursor2 = self.textCursor()
+                cursor2.setPosition(cursor.selectionEnd())
+                if cursor1.blockNumber() != cursor2.blockNumber():
+                    self.indent()
+                else:
+                    self.replace(" "*4)
     
     def unindent(self):
         """Unindent current line or selection"""
@@ -1312,42 +1379,6 @@ class CodeEditor(TextEditBaseWidget):
                 QPlainTextEdit.keyPressEvent(self, event)
                 if self.is_completion_widget_visible():
                     self.completion_text = self.completion_text[:-1]
-        # Indent/unindent
-        elif key == Qt.Key_Backtab:
-            self.unindent()
-            event.accept()
-        elif key == Qt.Key_Tab:
-            if self.is_completion_widget_visible():
-                self.select_completion_list()
-            else:
-                empty_line = not self.get_text('sol', 'cursor').strip()
-                if self.tab_mode:
-                    self.indent()
-                else:
-                    if self.has_selected_text():
-                        cursor = self.textCursor()
-                        if self.get_selected_text() == unicode(
-                                                        cursor.block().text()):
-                            self.indent()
-                        else:
-                            cursor1 = self.textCursor()
-                            cursor1.setPosition(cursor.selectionStart())
-                            cursor2 = self.textCursor()
-                            cursor2.setPosition(cursor.selectionEnd())
-                            if cursor1.blockNumber() != cursor2.blockNumber():
-                                self.indent()
-                            else:
-                                self.replace(" "*4)
-                    else:
-                        if empty_line:
-                            self.indent()
-                        else:
-                            self.emit(SIGNAL('trigger_code_completion()'))
-            event.accept()
-        elif key == Qt.Key_Space and ctrl:
-            if not self.is_completion_widget_visible():
-                self.emit(SIGNAL('trigger_code_completion()'))
-                event.accept()
         elif key == Qt.Key_Period:
             self.insert_text(text)
             if self.codecompletion_auto:
@@ -1364,29 +1395,14 @@ class CodeEditor(TextEditBaseWidget):
                 self.emit(SIGNAL('trigger_calltip()'))
             self.insert_text(text)
             event.accept()
-        elif key == Qt.Key_V and ctrl:
-            self.paste()
-            event.accept()
-        elif key == Qt.Key_D and ctrl:
-            self.duplicate_line()
-            event.accept()
-        elif key == Qt.Key_G and ctrl:
-            self.emit(SIGNAL("go_to_definition(int)"),
-                      self.textCursor().position())
-            event.accept()
-#TODO: find other shortcuts...
-#        elif (key == Qt.Key_3) and ctrl:
-#            self.comment()
-#            event.accept()
-#        elif (key == Qt.Key_2) and ctrl:
-#            self.uncomment()
-#            event.accept()
-#        elif (key == Qt.Key_4) and ctrl:
-#            self.blockcomment()
-#            event.accept()
-#        elif (key == Qt.Key_5) and ctrl:
-#            self.unblockcomment()
-#            event.accept()
+        elif key == Qt.Key_Tab:
+            # Important note: <TAB> can't be called with a QShortcut because
+            # of its singular role with respect to widget focus management
+            self.indent_or_replace()
+        elif key == Qt.Key_Backtab:
+            # Backtab, i.e. Shift+<TAB>, could be treated as a QShortcut but
+            # there is no point since <TAB> can't (see above)
+            self.unindent()
         else:
             QPlainTextEdit.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:

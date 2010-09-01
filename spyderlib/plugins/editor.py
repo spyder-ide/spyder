@@ -489,14 +489,19 @@ class Editor(SpyderPluginWidget):
         
         set_clear_breakpoint_action = create_action(self,
                                     self.tr("Set/Clear breakpoint"),
-                                    "F12", icon=get_icon("breakpoint.png"),
+                                    icon=get_icon("breakpoint.png"),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
+        self.register_shortcut(set_clear_breakpoint_action, context="Editor",
+                               name="Breakpoint", default="F12")
         set_cond_breakpoint_action = create_action(self,
                             self.tr("Set/Edit conditional breakpoint"),
-                            "Shift+F12", icon=get_icon("breakpoint_cond.png"),
+                            icon=get_icon("breakpoint_cond.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
+        self.register_shortcut(set_cond_breakpoint_action, context="Editor",
+                               name="Conditional breakpoint",
+                               default="Shift+F12")
         clear_all_breakpoints_action = create_action(self,
                                     self.tr("Clear breakpoints in all files"),
                                     triggered=self.clear_all_breakpoints)
@@ -592,45 +597,41 @@ class Editor(SpyderPluginWidget):
         self.comment_action = create_action(self,
                 self.tr("Comment"), icon='comment.png',
                 tip=self.tr("Comment current line or selection"),
-                triggered=self.comment)
+                triggered=self.comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.comment_action, context="Editor",
                                name="Comment", default="Ctrl+3")
         self.uncomment_action = create_action(self,
                 self.tr("Uncomment"), icon='uncomment.png',
                 tip=self.tr("Uncomment current line or selection"),
-                triggered=self.uncomment)
+                triggered=self.uncomment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.uncomment_action, context="Editor",
                                name="Uncomment", default="Ctrl+2")
         blockcomment_action = create_action(self, self.tr("Add block comment"),
                 tip=self.tr("Add block comment around "
                             "current line or selection"),
-                triggered=self.blockcomment)
+                triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
-                               name="Block comment (add)", default="Ctrl+4")
+                               name="Blockcomment", default="Ctrl+4")
         unblockcomment_action = create_action(self,
                 self.tr("Remove block comment"),
                 tip = self.tr("Remove comment block around "
                               "current line or selection"),
-                triggered=self.unblockcomment)
+                triggered=self.unblockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(unblockcomment_action, context="Editor",
-                               name="Block comment (remove)", default="Ctrl+5")
+                               name="Unblockcomment", default="Ctrl+5")
                 
         # ----------------------------------------------------------------------
         # The following action shortcuts are hard-coded in CodeEditor
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self,
-                self.tr("Indent"), icon='indent.png',
+                self.tr("Indent"), "Tab", icon='indent.png',
                 tip=self.tr("Indent current line or selection"),
                 triggered=self.indent, context=Qt.WidgetShortcut)
-        self.register_shortcut(self.indent_action, context="Editor",
-                               name="Indent", default="Tab")
         self.unindent_action = create_action(self,
-                self.tr("Unindent"), icon='unindent.png',
+                self.tr("Unindent"), "Shift+Tab", icon='unindent.png',
                 tip=self.tr("Unindent current line or selection"),
                 triggered=self.unindent, context=Qt.WidgetShortcut)
-        self.register_shortcut(self.unindent_action, context="Editor",
-                               name="Unindent", default="Shift+Tab")
         # ----------------------------------------------------------------------
         
         self.winpdb_action = create_action(self, self.tr("Debug with winpdb"),
@@ -663,9 +664,11 @@ class Editor(SpyderPluginWidget):
                       triggered=self.fix_indentation)
 
         gotoline_action = create_action(self, self.tr("Go to line..."),
-                                        "Ctrl+L", icon=get_icon("gotoline.png"),
+                                        icon=get_icon("gotoline.png"),
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
+        self.register_shortcut(gotoline_action, context="Editor",
+                               name="Go to line", default="Ctrl+L")
 
         workdir_action = create_action(self,
                 self.tr("Set console working directory"),
@@ -787,6 +790,8 @@ class Editor(SpyderPluginWidget):
     #------ Handling editorstacks
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
+        
+        self.register_widget_shortcuts("Editor", editorstack)
         
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -1320,6 +1325,7 @@ class Editor(SpyderPluginWidget):
                     is_current = editorstack is current
                     editor = editorstack.load(filename, set_current=is_current)
                     editor.set_breakpoints(load_breakpoints(filename))
+                    self.register_widget_shortcuts("Editor", editor)
                     if is_current:
                         current_editor = editor
                 current.analyze_script() # Analyze script only once (and update
