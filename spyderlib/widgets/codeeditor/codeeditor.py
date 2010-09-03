@@ -1369,18 +1369,21 @@ class CodeEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
-            if not self.has_selected_text() and leading_length > 4 \
-               and not leading_text.strip():
-                if leading_length % 4 == 0:
-                    self.unindent()
+            if self.has_selected_text():
+                QPlainTextEdit.keyPressEvent(self, event)
+            else:
+                if leading_length > 4 and not leading_text.strip():
+                    if leading_length % 4 == 0:
+                        self.unindent()
+                    else:
+                        QPlainTextEdit.keyPressEvent(self, event)
+                elif trailing_spaces and not self.get_text('cursor',
+                                                           'eol').strip():
+                    self.remove_suffix(" "*trailing_spaces)
                 else:
                     QPlainTextEdit.keyPressEvent(self, event)
-            elif trailing_spaces and not self.get_text('cursor', 'eol').strip():
-                self.remove_suffix(" "*trailing_spaces)
-            else:
-                QPlainTextEdit.keyPressEvent(self, event)
-                if self.is_completion_widget_visible():
-                    self.completion_text = self.completion_text[:-1]
+                    if self.is_completion_widget_visible():
+                        self.completion_text = self.completion_text[:-1]
         elif key == Qt.Key_Period:
             self.insert_text(text)
             if self.codecompletion_auto:
