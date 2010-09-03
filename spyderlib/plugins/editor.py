@@ -1302,11 +1302,15 @@ class Editor(SpyderPluginWidget):
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
         
+        def _convert(fname):
+            fname = osp.abspath(encoding.to_unicode(fname))
+            if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
+                fname = fname[0].upper()+fname[1:]
+            return fname
         if not isinstance(filenames, (list, QStringList)):
-            filenames = [osp.abspath(encoding.to_unicode(filenames))]
+            filenames = [_convert(filenames)]
         else:
-            filenames = [osp.abspath(encoding.to_unicode(fname)) \
-                         for fname in list(filenames)]
+            filenames = [_convert(fname) for fname in list(filenames)]
         if isinstance(goto, int):
             goto = [goto]
         elif goto is not None and len(goto) != len(filenames):
