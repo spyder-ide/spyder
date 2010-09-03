@@ -299,7 +299,7 @@ class RunConfigDialog(QDialog):
             # There is no run configuration for script *fname*:
             # creating a temporary configuration that will be kept only if
             # dialog changes are accepted by the user
-            configurations.insert(0, (fname, RunConfiguration().get()))
+            configurations.insert(0, (fname, RunConfiguration(fname).get()))
             index = 0
         for filename, options in configurations:
             widget = RunConfigOptions(self)
