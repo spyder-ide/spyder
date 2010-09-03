@@ -611,6 +611,8 @@ class CodeEditor(TextEditBaseWidget):
     #------Breakpoints
     def add_remove_breakpoint(self, line_number=None, condition=None,
                               edit_condition=False):
+        if not self.is_python() and not self.is_cython():
+            return
         if line_number is None:
             block = self.textCursor().block()
         else:
