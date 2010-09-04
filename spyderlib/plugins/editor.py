@@ -450,40 +450,43 @@ class Editor(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         self.new_action = create_action(self, self.tr("New file..."),
                 icon='filenew.png', tip=self.tr("Create a new Python script"),
-                triggered = self.new)
+                triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", default="Ctrl+N")
         self.open_action = create_action(self, self.tr("Open..."),
                 icon='fileopen.png', tip=self.tr("Open text file"),
-                triggered = self.load)
+                triggered=self.load)
+        self.revert_action = create_action(self, self.tr("Revert"),
+                icon='revert.png', tip=self.tr("Revert file from disk"),
+                triggered=self.revert)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", default="Ctrl+O")
         self.save_action = create_action(self, self.tr("Save"),
                 icon='filesave.png', tip=self.tr("Save current file"),
-                triggered = self.save)
+                triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file", default="Ctrl+S")
         self.save_all_action = create_action(self, self.tr("Save all"),
                 icon='save_all.png', tip=self.tr("Save all opened files"),
-                triggered = self.save_all)
+                triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all", default="Ctrl+Shift+S")
         save_as_action = create_action(self, self.tr("Save as..."), None,
                 'filesaveas.png', self.tr("Save current file as..."),
-                triggered = self.save_as)
+                triggered=self.save_as)
         print_preview_action = create_action(self, self.tr("Print preview..."),
                 tip=self.tr("Print preview..."), triggered=self.print_preview)
         print_action = create_action(self, self.tr("Print..."),
                 icon='print.png', tip=self.tr("Print current file..."),
-                triggered = self.print_file)
+                triggered=self.print_file)
         self.close_action = create_action(self, self.tr("Close"),
                 icon='fileclose.png', tip=self.tr("Close current file"),
-                triggered = self.close_file)
+                triggered=self.close_file)
         self.register_shortcut(self.close_action, context="Editor",
                                name="Close file", default="Ctrl+W")
         self.close_all_action = create_action(self, self.tr("Close all"),
                 icon='filecloseall.png', tip=self.tr("Close all opened files"),
-                triggered = self.close_all_files)
+                triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all", default="Ctrl+Shift+W")
         
@@ -690,6 +693,7 @@ class Editor(SpyderPluginWidget):
         file_menu_actions = [self.new_action, self.open_action,
                              self.recent_file_menu, self.save_action,
                              self.save_all_action, save_as_action,
+                             self.revert_action, 
                              None, print_preview_action, print_action,
                              None, self.close_action,
                              self.close_all_action, None]
@@ -742,7 +746,7 @@ class Editor(SpyderPluginWidget):
                 [self.save_action, save_as_action, print_preview_action,
                  print_action, self.save_all_action, gotoline_action,
                  workdir_action, self.close_action, self.close_all_action,
-                 self.comment_action, self.uncomment_action,
+                 self.comment_action, self.uncomment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [self.save_action, save_as_action,
                                    print_action, None, run_action, debug_action,
@@ -819,7 +823,7 @@ class Editor(SpyderPluginWidget):
         editorstack.set_projectexplorer(self.projectexplorer)
         editorstack.set_inspector(self.inspector)
         editorstack.set_io_actions(self.new_action, self.open_action,
-                                   self.save_action)
+                                   self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
         editorstack.set_filetype_filters(self.get_filetype_filters())
         editorstack.set_valid_types(self.get_valid_types())
@@ -1422,6 +1426,11 @@ class Editor(SpyderPluginWidget):
     def save_all(self):
         """Save all opened files"""
         self.editorstacks[0].save_all()
+        
+    def revert(self):
+        """Revert the currently edited file from disk"""
+        editorstack = self.get_current_editorstack()
+        editorstack.revert()
     
     
     #------ Explorer widget

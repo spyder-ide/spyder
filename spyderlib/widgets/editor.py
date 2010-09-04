@@ -413,6 +413,7 @@ class EditorStack(QWidget):
         self.new_action = None
         self.open_action = None
         self.save_action = None
+        self.revert_action = None
         self.tempfile_path = None
         self.title = translate("Editor", "Editor")
         self.filetype_filters = None
@@ -622,10 +623,12 @@ class EditorStack(QWidget):
         """Parent widget must handle the closable state"""
         self.is_closable = state
         
-    def set_io_actions(self, new_action, open_action, save_action):
+    def set_io_actions(self, new_action, open_action,
+                       save_action, revert_action):
         self.new_action = new_action
         self.open_action = open_action
         self.save_action = save_action
+        self.revert_action = revert_action
         
     def set_find_widget(self, find_widget):
         self.find_widget = find_widget
@@ -1419,6 +1422,7 @@ class EditorStack(QWidget):
         self.set_stack_title(index, combo_title, tab_title)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
+        self.revert_action.setEnabled(state)
         self.emit(SIGNAL('refresh_save_all_action()'))
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
@@ -1436,6 +1440,17 @@ class EditorStack(QWidget):
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
         finfo.validate_project()
+        
+    def revert(self):
+        index = self.get_stack_index()
+        filename = self.data[index].filename
+        answer = QMessageBox.warning(self, self.title,
+                    translate("Editor",
+                              "All changes to <b>%1</b> will be lost."
+                              "<br>Do you want to revert file from disk?").arg(
+                    osp.basename(filename)), QMessageBox.Yes|QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.reload(index)
         
     def create_new_editor(self, fname, enc, txt,
                           set_current, new=False, cloned_from=None):
