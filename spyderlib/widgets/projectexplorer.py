@@ -186,6 +186,10 @@ class Project(object):
                                                           **ROPE_PREFS)
         except ImportError:
             self.rope_project = None
+        except TypeError:
+            # Compatibility with new Mercurial API (>= 1.3).
+            # New versions of rope (> 0.9.2) already handle this issue
+            self.rope_project = None
         self.validate_rope_project()
         
     def close_rope_project(self):
