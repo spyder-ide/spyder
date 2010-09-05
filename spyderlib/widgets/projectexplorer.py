@@ -997,6 +997,8 @@ class ExplorerTreeWidget(OneColumnTree):
                 project = self.add_project(folder)
                 project.set_name(name)
                 return True
+            else:
+                return False
     
     def __select_existing_project(self, typename, configname):
         title = translate('ProjectExplorer', 'Import existing project')
