@@ -636,6 +636,12 @@ class MainWindow(QMainWindow):
                           [xy_doc_path])
                 add_xydoc(self.tr("IPython documentation"),
                           [osp.join(xydoc, "IPython", "ipythondoc.chm")])
+                add_xydoc(self.tr("guidata documentation"),
+                          [osp.join(xydoc, "guidata", "guidatadoc.chm"),
+                           r"D:\Python\guidata\build\doc_chm\guidatadoc.chm"])
+                add_xydoc(self.tr("guiqwt documentation"),
+                          [osp.join(xydoc, "guiqwt", "guiqwtdoc.chm"),
+                           r"D:\Python\guiqwt\build\doc_chm\guiqwtdoc.chm"])
                 add_xydoc(self.tr("Matplotlib documentation"),
                           [osp.join(xydoc, "matplotlib", "Matplotlibdoc.chm"),
                            osp.join(xydoc, "matplotlib", "Matplotlib.pdf")])
