@@ -22,6 +22,9 @@ from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 from userconfig import UserConfig, get_home_dir, NoDefault
 
 DATA_DEV_PATH = osp.dirname(__file__)
+if not osp.isdir(DATA_DEV_PATH):
+    # Assuming py2exe distribution
+    DATA_DEV_PATH = osp.join(sys.prefix, "spyderlib")
 DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
 
 # The two following lines are patched when making the debian package:

@@ -125,7 +125,13 @@ class ExternalPythonShell(ExternalShellBase):
                  light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
-        self.fname = startup.__file__ if fname is None else fname
+        startup_file = startup.__file__
+        if 'library.zip' in startup_file:
+            # py2exe distribution
+            from spyderlib.config import DATA_DEV_PATH
+            startup_file = osp.join(DATA_DEV_PATH, "widgets", "externalshell",
+                                    "startup.py")
+        self.fname = startup_file if fname is None else fname
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
@@ -371,7 +377,11 @@ class ExternalPythonShell(ExternalShellBase):
                      self.process.kill)
         
         #-------------------------Python specific-------------------------------
-        self.process.start(sys.executable, p_args)
+        executable = sys.executable
+        if executable.endswith("spyder.exe"):
+            # py2exe distribution
+            executable = "python.exe"
+        self.process.start(executable, p_args)
         #-------------------------Python specific-------------------------------
             
         running = self.process.waitForStarted()

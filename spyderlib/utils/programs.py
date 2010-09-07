@@ -42,7 +42,10 @@ def run_program(name, args=''):
     subprocess.Popen(command)
     
 def is_python_gui_script_installed(package, module, get_path=False):
-    path = osp.join(imp.find_module(package)[1], module)+'.py'
+    try:
+        path = osp.join(imp.find_module(package)[1], module)+'.py'
+    except ImportError:
+        return
     if not osp.isfile(path):
         path += 'w'
     if osp.isfile(path):
@@ -62,7 +65,7 @@ def run_python_gui_script(package, module, args=''):
 def is_module_installed(module_name):
     """Return True if module *module_name* is installed"""
     try:
-        imp.find_module(module_name)
+        __import__(module_name)
         return True
     except ImportError:
         return False
