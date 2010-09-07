@@ -286,6 +286,10 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.splash.show()
             self.set_splash(self.tr("Initializing..."))
+            if CONF.get('main', 'current_version', '') != __version__:
+                CONF.set('main', 'current_version', __version__)
+                run_python_script(module="compileall",
+                                  args='-q '+spyderlib.__path__[0], p_args='-O')
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []

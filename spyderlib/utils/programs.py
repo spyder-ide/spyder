@@ -38,12 +38,22 @@ def run_program(name, args=''):
         raise RuntimeError("Program %s was not found" % name)
     command = [path]
     if args:
-        command.append(args)
+        if isinstance(args, basestring):
+            args = args.split(' ')
+        command += args
     subprocess.Popen(command)
     
-def is_python_script_installed(package, module, get_path=False):
+def python_script_exists(package=None, module=None, get_path=False):
+    """
+    Return True if Python script exists
+    package=None -> module is in sys.path (standard library modules)
+    """
+    assert module is not None
     try:
-        path = osp.join(imp.find_module(package)[1], module)+'.py'
+        if package is None:
+            path = imp.find_module(module)[1]
+        else:
+            path = osp.join(imp.find_module(package)[1], module)+'.py'
     except ImportError:
         return
     if not osp.isfile(path):
@@ -54,12 +64,23 @@ def is_python_script_installed(package, module, get_path=False):
         else:
             return True
     
-def run_python_script(package, module, args=''):
-    """Run Python script in a separate process"""
-    path = is_python_script_installed(package, module, get_path=True)
-    command = [sys.executable, path]
+def run_python_script(package=None, module=None, args='', p_args=''):
+    """
+    Run Python script in a separate process
+    package=None -> module is in sys.path (standard library modules)
+    """
+    assert module is not None
+    path = python_script_exists(package, module, get_path=True)
+    command = [sys.executable]
+    if p_args:
+        if isinstance(p_args, basestring):
+            p_args = p_args.split(' ')
+        command += p_args
+    command.append(path)
     if args:
-        command.append(args)
+        if isinstance(args, basestring):
+            args = args.split(' ')
+        command += args
     subprocess.Popen(command)
 
 def is_module_installed(module_name):

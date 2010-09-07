@@ -250,7 +250,7 @@ def create_python_script_action(parent, text, icon,
     """Create action to run a GUI based Python script"""
     if isinstance(icon, basestring):
         icon = get_icon(icon)
-    if programs.is_python_script_installed(package, module):
+    if programs.python_script_exists(package, module):
         return create_action(parent, text, icon=icon,
                              triggered=lambda:
                              programs.run_python_script(package, module, args))
