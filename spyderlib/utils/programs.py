@@ -41,7 +41,7 @@ def run_program(name, args=''):
         command.append(args)
     subprocess.Popen(command)
     
-def is_python_gui_script_installed(package, module, get_path=False):
+def is_python_script_installed(package, module, get_path=False):
     try:
         path = osp.join(imp.find_module(package)[1], module)+'.py'
     except ImportError:
@@ -54,9 +54,9 @@ def is_python_gui_script_installed(package, module, get_path=False):
         else:
             return True
     
-def run_python_gui_script(package, module, args=''):
-    """Run GUI-based Python script in a separate process"""
-    path = is_python_gui_script_installed(package, module, get_path=True)
+def run_python_script(package, module, args=''):
+    """Run Python script in a separate process"""
+    path = is_python_script_installed(package, module, get_path=True)
     command = [sys.executable, path]
     if args:
         command.append(args)

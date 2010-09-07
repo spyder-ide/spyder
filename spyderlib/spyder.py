@@ -63,10 +63,10 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_bookmark_action,
                                        create_program_action,
                                        keybinding, translate, qapplication,
-                                       create_python_gui_script_action)
+                                       create_python_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               DOC_PATH, get_spyderplugins_mods, get_shortcut)
-from spyderlib.utils.programs import run_python_gui_script, is_module_installed
+from spyderlib.utils.programs import run_python_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault
 
@@ -479,7 +479,7 @@ class MainWindow(QMainWindow):
                                        self.tr("Python(x,y) launcher"),
                                        icon=get_icon('pythonxy.png'),
                                        triggered=lambda:
-                                       run_python_gui_script('xy', 'xyhome'))
+                                       run_python_script('xy', 'xyhome'))
             self.external_tools_menu_actions.append(self.xy_action)
             if not is_module_installed('xy'):
                 self.xy_action.setDisabled(True)
@@ -493,7 +493,7 @@ class MainWindow(QMainWindow):
             qtlact = create_program_action(self, self.tr("Qt Linguist"),
                                            'qtlinguist.png', "linguist")
             args = '-no-opengl' if os.name == 'nt' else ''
-            qteact = create_python_gui_script_action(self,
+            qteact = create_python_script_action(self,
                                    self.tr("Qt examples"), 'qt.png', "PyQt4",
                                    osp.join("examples", "demos",
                                             "qtdemo", "qtdemo"), args)
