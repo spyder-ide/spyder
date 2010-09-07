@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,23 +7,24 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Installation &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Installation &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
-    <link rel="next" title="Global shortcuts" href="shortcuts.html" />
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
+    <link rel="next" title="Command line options" href="options.html" />
     <link rel="prev" title="Overview" href="overview.html" /> 
   </head>
   <body>
@@ -32,14 +35,55 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="options.html" title="Command line options"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Overview"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#id1">Installation</a></li>
+<li><a class="reference internal" href="#help-and-support">Help and support</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="options.html"
+                        title="next chapter">Command line options</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/installation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -55,15 +99,21 @@
 <dd><ul class="first last simple">
 <li>Python 2.x (x&gt;=5)</li>
 <li>PyQt4 4.x (x&gt;=3 ; recommended x&gt;=4)</li>
-<li>QScintilla2 2.x (x&gt;=1) (PyQt4 extension)</li>
+</ul>
+</dd>
+<dt>Recommended modules:</dt>
+<dd><ul class="first last simple">
+<li>pyflakes &gt;v0.3.0 (real-time code analysis)</li>
+<li>rope &gt;=v0.9.2 (editor code completion, calltips and go-to-definition)</li>
+<li>numpy (N-dimensional arrays)</li>
+<li>scipy (signal/image processing)</li>
+<li>matplotlib (2D/3D plotting)</li>
+<li>IPython (enhanced Python interpreter)</li>
 </ul>
 </dd>
 <dt>Optional modules:</dt>
 <dd><ul class="first last simple">
 <li>pylint (code analysis)</li>
-<li>numpy (N-dimensional arrays)</li>
-<li>scipy (signal/image processing)</li>
-<li>matplotlib (2D plotting)</li>
 </ul>
 </dd>
 </dl>
@@ -80,7 +130,7 @@
 <dl class="docutils">
 <dt>Spyder websites:</dt>
 <dd><ul class="first last simple">
-<li>Downloads, bug reports and feature requests: <a class="reference external" href="http://code.google.com/p/pydee/">http://code.google.com/p/pydee/</a></li>
+<li>Downloads, bug reports and feature requests: <a class="reference external" href="http://spyderlib.googlecode.com">http://spyderlib.googlecode.com</a></li>
 <li>Discussions: <a class="reference external" href="http://groups.google.com/group/spyderlib">http://groups.google.com/group/spyderlib</a></li>
 </ul>
 </dd>
@@ -92,47 +142,6 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Installation</a><ul>
-<li><a class="reference external" href="#dependencies">Dependencies</a></li>
-<li><a class="reference external" href="#id1">Installation</a></li>
-<li><a class="reference external" href="#help-and-support">Help and support</a></li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="overview.html"
-                                  title="previous chapter">Overview</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="shortcuts.html"
-                                  title="next chapter">Global shortcuts</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/installation.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -142,17 +151,17 @@
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="options.html" title="Command line options"
              >next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Overview"
              >previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>

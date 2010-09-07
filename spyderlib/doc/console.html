@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,22 +7,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Interactive Console &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Console &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
     <link rel="next" title="Object inspector" href="inspector.html" />
     <link rel="prev" title="Command line options" href="options.html" /> 
   </head>
@@ -37,59 +40,96 @@
         <li class="right" >
           <a href="options.html" title="Command line options"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Console</a><ul>
+<li><a class="reference internal" href="#reloading-modules-the-user-module-deleter-umd">Reloading modules: the User Module Deleter (UMD)</a></li>
+<li><a class="reference internal" href="#special-commands">Special commands</a></li>
+<li><a class="reference internal" href="#the-workspace">The Workspace</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="options.html"
+                        title="previous chapter">Command line options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="inspector.html"
+                        title="next chapter">Object inspector</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/console.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="interactive-console">
-<h1>Interactive Console<a class="headerlink" href="#interactive-console" title="Permalink to this headline">¶</a></h1>
-<p>The interactive console is a Python interpreter executed in the <em>same thread</em>
-as Spyder&#8217;s graphical user interface, providing unique features such as
-<tt class="docutils literal"><span class="pre">matplotlib</span></tt> figures integration or MATLAB-like Workspace.</p>
-<img alt="_images/intconsole.png" src="_images/intconsole.png" />
+  <div class="section" id="console">
+<h1>Console<a class="headerlink" href="#console" title="Permalink to this headline">¶</a></h1>
+<p><em>DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0</em></p>
+<p>The Spyder console run programs (Python interpreter or system terminal) in a
+separate process:</p>
+<blockquote>
+<ul class="simple">
+<li>Run Python scripts</li>
+<li>Open Python interpreters</li>
+<li>Open IPython interpreters</li>
+<li>Open terminals (terminals have quite limited features so GNU/Linux users
+will certainly prefer to use the system terminal instead)</li>
+</ul>
+</blockquote>
+<p>Python/IPython interpreters (or running Python scripts) support the following
+features:</p>
+<blockquote>
+<ul class="simple">
+<li>Variable explorer</li>
+<li>Debugging with <cite>pdb</cite></li>
+<li>Code completion and calltips</li>
+<li>User Module Deleter</li>
+</ul>
+</blockquote>
 <dl class="docutils">
 <dt>Related plugins:</dt>
 <dd><ul class="first last simple">
-<li><a class="reference external" href="inspector.html"><em>Object inspector</em></a></li>
-<li><a class="reference external" href="historylog.html"><em>History log</em></a></li>
-<li><a class="reference external" href="editor.html"><em>Editor</em></a></li>
-<li><a class="reference external" href="explorer.html"><em>Explorer</em></a></li>
+<li><a class="reference internal" href="inspector.html"><em>Object inspector</em></a></li>
+<li><a class="reference internal" href="historylog.html"><em>History log</em></a></li>
+<li><a class="reference internal" href="editor.html"><em>Editor</em></a></li>
+<li><a class="reference internal" href="explorer.html"><em>Explorer</em></a></li>
 </ul>
 </dd>
 </dl>
-<div class="section" id="the-thread-safe-issue">
-<h2>The thread safe issue<a class="headerlink" href="#the-thread-safe-issue" title="Permalink to this headline">¶</a></h2>
-<p>The interactive console being not thread safe, one must be conscious that <strong>any
-blocking command send to the console will freeze the whole application</strong>, i.e.
-the whole GUI (Graphical User Interface) will be unavailable until command
-interpretation is over: events will not be processed by the GUI main loop,
-including keyboard events - meaning that not only the interface will be freezed
-but it won&#8217;t be possible to interrupt the process by pressing <tt class="docutils literal"><span class="pre">Ctrl+C</span></tt>.</p>
-<p>However, there is one exception to this behaviour: standard output or error
-streams will automatically refresh interactive console&#8217;s widget by asking the
-GUI event loop to process queued events. This will also give the opportunity
-to the rest of Spyder&#8217;s GUI to refresh. In other words, an infinite loop with
-<tt class="docutils literal"><span class="pre">print</span></tt> statements will not freeze Spyder&#8217;s GUI and it will even be possible
-to interrupt it with <tt class="docutils literal"><span class="pre">Ctrl+C</span></tt>.</p>
-<p>To sum up, when using the interactive console, please keep in my mind this
-thread-safe issue and eventually think about writing <tt class="docutils literal"><span class="pre">print</span></tt> statements in
-loops if you want to be able to interrupt them (when debugging for example).</p>
-<p>Of course, Spyder has a solution to this thread-safe issue: the
-<a class="reference external" href="extconsole.html"><em>External Console</em></a>, a Python interpreter executed in a separate process.
-But there is a price to pay: more safety, less interactivity
-(no <tt class="docutils literal"><span class="pre">matplotlib</span></tt> integration).</p>
-</div>
-<div class="section" id="reloading-modules">
-<h2>Reloading modules<a class="headerlink" href="#reloading-modules" title="Permalink to this headline">¶</a></h2>
-<p>The interactive console can force the Python interpreter to reload modules
-completely when executing import statements. This feature is however disabled
-by default because some modules may be not work properly with it (see
-Interactive console option submenu in the menu bar &#8220;Source&#8221; entry).</p>
+<div class="section" id="reloading-modules-the-user-module-deleter-umd">
+<h2>Reloading modules: the User Module Deleter (UMD)<a class="headerlink" href="#reloading-modules-the-user-module-deleter-umd" title="Permalink to this headline">¶</a></h2>
+<p>When enabled, the User Module Deleter (UMD) force the Python interpreter to
+reload modules completely when executing import statements. This feature is
+however disabled by default because some modules may be not work properly with
+it.</p>
 <p>When enabled, this option will systematically reload imported modules since its
 activation. In other words, if you would like some modules to be loaded only
 once, you may import them before enabling the option.</p>
@@ -151,48 +191,6 @@ effect on interactive console&#8217;s performance:</p>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h3><a href="index.html">Table Of Contents</a></h3>
-            <ul>
-<li><a class="reference external" href="#">Interactive Console</a><ul>
-<li><a class="reference external" href="#the-thread-safe-issue">The thread safe issue</a></li>
-<li><a class="reference external" href="#reloading-modules">Reloading modules</a></li>
-<li><a class="reference external" href="#special-commands">Special commands</a></li>
-<li><a class="reference external" href="#the-workspace">The Workspace</a></li>
-</ul>
-</li>
-</ul>
-
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="options.html"
-                                  title="previous chapter">Command line options</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="inspector.html"
-                                  title="next chapter">Object inspector</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/console.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -207,12 +205,12 @@ effect on interactive console&#8217;s performance:</p>
         <li class="right" >
           <a href="options.html" title="Command line options"
              >previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>

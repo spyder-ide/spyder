@@ -7,13 +7,17 @@ Dependencies
 Requirements:
     * Python 2.x (x>=5)
     * PyQt4 4.x (x>=3 ; recommended x>=4)
-    * QScintilla2 2.x (x>=1) (PyQt4 extension)
-    
-Optional modules:
-    * pylint (code analysis)
+            
+Recommended modules:
+    * pyflakes >v0.3.0 (real-time code analysis)
+    * rope >=v0.9.2 (editor code completion, calltips and go-to-definition)
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
-    * matplotlib (2D plotting)
+    * matplotlib (2D/3D plotting)
+    * IPython (enhanced Python interpreter)
+	
+Optional modules:
+    * pylint (code analysis)
 
 Installation
 ------------
@@ -25,5 +29,5 @@ Help and support
 ----------------
 
 Spyder websites:
-    * Downloads, bug reports and feature requests: http://code.google.com/p/pydee/
+    * Downloads, bug reports and feature requests: http://spyderlib.googlecode.com
     * Discussions: http://groups.google.com/group/spyderlib

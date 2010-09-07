@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,22 +7,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Overview &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Overview &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
     <link rel="next" title="Installation" href="installation.html" />
     <link rel="prev" title="Welcome to Spyder’s documentation!" href="index.html" /> 
   </head>
@@ -37,9 +40,40 @@
         <li class="right" >
           <a href="index.html" title="Welcome to Spyder’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Spyder&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="next chapter">Installation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/overview.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -48,34 +82,34 @@
             
   <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
+<p><em>DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0</em></p>
 <p>Spyder is a Python development environment with the following features:</p>
 <dl class="docutils">
-<dt><a class="reference external" href="editor.html"><em>Editor</em></a>:</dt>
-<dd>Multi-language editor with function/class browser, code
-analysis (pyflakes and pylint are currently supported), horizontal/vertical
+<dt><a class="reference internal" href="editor.html"><em>Editor</em></a>:</dt>
+<dd>Source editor with outline explorer (functions, classes, ...), code
+analysis (pyflakes and pylint are currently supported), code completion,
+go-to-definition, calltips, cursor position history, horizontal/vertical
 splitting, etc.</dd>
-<dt><a class="reference external" href="inspector.html"><em>Object inspector</em></a>:</dt>
-<dd>Automatically show documentation (if available, or
-source code otherwise) for any class instantiation or function call made
-in a Python shell (interactive/external console, see below)</dd>
-<dt><a class="reference external" href="onlinehelp.html"><em>Online help</em></a>:</dt>
+<dt><a class="reference internal" href="inspector.html"><em>Object inspector</em></a>:</dt>
+<dd>Automatically show documentation (if available, or source code otherwise)
+for any class instantiation or function call made in a Python console or
+in the source editor</dd>
+<dt><a class="reference internal" href="onlinehelp.html"><em>Online help</em></a>:</dt>
 <dd>Open an internal web browser to explore dynamically-generated Python
 documentation on installed module, including your own modules (this feature
 is using a pydoc server)</dd>
-<dt><a class="reference external" href="console.html"><em>Interactive Console</em></a>:</dt>
-<dd>Python shell with workspace support (variable explorer with GUI based
-editors: dictionary editor, array editor, ...) and matplotlib figures
-integration</dd>
-<dt><a class="reference external" href="extconsole.html"><em>External Console</em></a> (separate process):</dt>
-<dd>Run Python scripts (interactive, debugging or normal mode) or open a Python
-interpreter with variable explorer and documentation viewer support (a basic
-terminal window may also be opened with the external console)</dd>
-<dt><a class="reference external" href="explorer.html"><em>Explorer</em></a>:</dt>
+<dt><a class="reference internal" href="console.html"><em>Console</em></a>:</dt>
+<dd>Run Python scripts or open as many Python/IPython interpreters or terminals
+as you need.
+Python/IPython interpreters: variable explorer (list supported variables
+with GUI based editors: dictionary editor, array editor, ...), debugging
+with <cite>pdb</cite>, code completion, calltips, etc.</dd>
+<dt><a class="reference internal" href="explorer.html"><em>Explorer</em></a>:</dt>
 <dd>File/directory explorer</dd>
 <dt>Find in files feature:</dt>
 <dd>Supporting regular expressions and mercurial repositories</dd>
 </dl>
-<p><a class="reference external" href="historylog.html"><em>History log</em></a></p>
+<p><a class="reference internal" href="historylog.html"><em>History log</em></a></p>
 <p>Spyder may also be used as a PyQt4 extension library (module &#8216;spyderlib&#8217;).
 For example, the Python interactive shell widget used in Spyder may be
 embedded in your own PyQt4 application.</p>
@@ -83,37 +117,6 @@ embedded in your own PyQt4 application.</p>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="index.html"
-                                  title="previous chapter">Welcome to Spyder&#8217;s documentation!</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="installation.html"
-                                  title="next chapter">Installation</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/overview.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -130,12 +133,12 @@ embedded in your own PyQt4 application.</p>
         <li class="right" >
           <a href="index.html" title="Welcome to Spyder’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>

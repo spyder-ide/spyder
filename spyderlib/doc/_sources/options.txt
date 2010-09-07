@@ -12,18 +12,8 @@ Options:
   --reset               Reset to default session
   -w WORKING_DIRECTORY, --workdir=WORKING_DIRECTORY
                         Default working directory
-  -s STARTUP, --startup=STARTUP
-                        Startup script (overrides PYTHONSTARTUP)
-  -m MODULE_LIST, --modules=MODULE_LIST
-                        Modules to import (comma separated)
-  -b, --basics          Import numpy, scipy and matplotlib following official
-                        coding guidelines
-  -a, --all             Option 'basics', 'pylab' and import os, sys, re, time,
-                        os.path as osp
-  -p, --pylab           Import pylab in interactive mode and add option
-                        --numpy
-  --mlab                Import mlab (MayaVi's interactive 3D-plotting
-                        interface)
   -d, --debug           Debug mode (stds are not redirected)
+  --onethread           Internal console run in the same thread as main
+                        application
   --profile             Profile mode (internal test, not related with Python
                         profiling)

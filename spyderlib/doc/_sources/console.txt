@@ -1,11 +1,25 @@
-Interactive Console
-===================
+Console
+=======
 
-The interactive console is a Python interpreter executed in the *same thread* 
-as Spyder's graphical user interface, providing unique features such as
-``matplotlib`` figures integration or MATLAB-like Workspace.
+*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
 
-.. image:: images/intconsole.png
+The Spyder console run programs (Python interpreter or system terminal) in a 
+separate process:
+
+    * Run Python scripts
+    * Open Python interpreters
+    * Open IPython interpreters
+    * Open terminals (terminals have quite limited features so GNU/Linux users 
+      will certainly prefer to use the system terminal instead)
+
+Python/IPython interpreters (or running Python scripts) support the following 
+features:
+
+    * Variable explorer
+    * Debugging with `pdb`
+    * Code completion and calltips
+    * User Module Deleter
+
 
 Related plugins:
     * :doc:`inspector`
@@ -14,40 +28,13 @@ Related plugins:
     * :doc:`explorer`
 
 
-The thread safe issue
----------------------
+Reloading modules: the User Module Deleter (UMD)
+------------------------------------------------
 
-The interactive console being not thread safe, one must be conscious that **any 
-blocking command send to the console will freeze the whole application**, i.e. 
-the whole GUI (Graphical User Interface) will be unavailable until command 
-interpretation is over: events will not be processed by the GUI main loop, 
-including keyboard events - meaning that not only the interface will be freezed 
-but it won't be possible to interrupt the process by pressing ``Ctrl+C``.
-
-However, there is one exception to this behaviour: standard output or error 
-streams will automatically refresh interactive console's widget by asking the 
-GUI event loop to process queued events. This will also give the opportunity 
-to the rest of Spyder's GUI to refresh. In other words, an infinite loop with 
-``print`` statements will not freeze Spyder's GUI and it will even be possible 
-to interrupt it with ``Ctrl+C``.
-
-To sum up, when using the interactive console, please keep in my mind this 
-thread-safe issue and eventually think about writing ``print`` statements in 
-loops if you want to be able to interrupt them (when debugging for example).
-
-Of course, Spyder has a solution to this thread-safe issue: the 
-:doc:`extconsole`, a Python interpreter executed in a separate process. 
-But there is a price to pay: more safety, less interactivity 
-(no ``matplotlib`` integration).
-
-
-Reloading modules
------------------
-
-The interactive console can force the Python interpreter to reload modules 
-completely when executing import statements. This feature is however disabled 
-by default because some modules may be not work properly with it (see 
-Interactive console option submenu in the menu bar "Source" entry).
+When enabled, the User Module Deleter (UMD) force the Python interpreter to 
+reload modules completely when executing import statements. This feature is 
+however disabled by default because some modules may be not work properly with 
+it.
 
 When enabled, this option will systematically reload imported modules since its 
 activation. In other words, if you would like some modules to be loaded only 

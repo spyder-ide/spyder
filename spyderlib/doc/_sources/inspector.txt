@@ -2,7 +2,7 @@ Object inspector
 ================
 
 The object inspector plugin works together with the :doc:`console` and the 
-:doc:`extconsole`: it shows automatically documentation available when the 
+:doc:`editor`: it shows automatically documentation available when the 
 user is instantiating a class or calling a function (pressing the left 
 parenthesis key after a valid function or class name triggers the object 
 inspector).
@@ -24,4 +24,4 @@ if the object is pure Python):
 
 Related plugins:
     * :doc:`console`
-    * :doc:`extconsole`
+    * :doc:`editor`

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,24 +7,25 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Command line options &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Command line options &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
-    <link rel="next" title="Interactive Console" href="console.html" />
-    <link rel="prev" title="Global shortcuts" href="shortcuts.html" /> 
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
+    <link rel="next" title="Console" href="console.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
   </head>
   <body>
     <div class="related">
@@ -32,14 +35,45 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="console.html" title="Interactive Console"
+          <a href="console.html" title="Console"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="installation.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="installation.html"
+                        title="previous chapter">Installation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="console.html"
+                        title="next chapter">Console</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/options.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -73,33 +107,13 @@
 <kbd><span class="option">-w <var>WORKING_DIRECTORY</var></span>, <span class="option">--workdir=<var>WORKING_DIRECTORY</var></span></kbd></td>
 </tr>
 <tr><td>&nbsp;</td><td>Default working directory</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-s <var>STARTUP</var></span>, <span class="option">--startup=<var>STARTUP</var></span></kbd></td>
-</tr>
-<tr><td>&nbsp;</td><td>Startup script (overrides PYTHONSTARTUP)</td></tr>
-<tr><td class="option-group" colspan="2">
-<kbd><span class="option">-m <var>MODULE_LIST</var></span>, <span class="option">--modules=<var>MODULE_LIST</var></span></kbd></td>
-</tr>
-<tr><td>&nbsp;</td><td>Modules to import (comma separated)</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-b</span>, <span class="option">--basics</span></kbd></td>
-<td>Import numpy, scipy and matplotlib following official
-coding guidelines</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-a</span>, <span class="option">--all</span></kbd></td>
-<td>Option &#8216;basics&#8217;, &#8216;pylab&#8217; and import os, sys, re, time,
-os.path as osp</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-p</span>, <span class="option">--pylab</span></kbd></td>
-<td>Import pylab in interactive mode and add option
-&#8211;numpy</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">--mlab</span></kbd></td>
-<td>Import mlab (MayaVi&#8217;s interactive 3D-plotting
-interface)</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-d</span>, <span class="option">--debug</span></kbd></td>
 <td>Debug mode (stds are not redirected)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">--onethread</span></kbd></td>
+<td>Internal console run in the same thread as main
+application</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">--profile</span></kbd></td>
 <td>Profile mode (internal test, not related with Python
@@ -114,37 +128,6 @@ profiling)</td></tr>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="shortcuts.html"
-                                  title="previous chapter">Global shortcuts</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="console.html"
-                                  title="next chapter">Interactive Console</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/options.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related">
@@ -154,17 +137,17 @@ profiling)</td></tr>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="console.html" title="Interactive Console"
+          <a href="console.html" title="Console"
              >next</a> |</li>
         <li class="right" >
-          <a href="shortcuts.html" title="Global shortcuts"
+          <a href="installation.html" title="Installation"
              >previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>

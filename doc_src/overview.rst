@@ -1,17 +1,20 @@
 Overview
 ========
 
+*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
+
 Spyder is a Python development environment with the following features:
 
 :doc:`editor`:
-    Multi-language editor with function/class browser, code
-    analysis (pyflakes and pylint are currently supported), horizontal/vertical
+    Source editor with outline explorer (functions, classes, ...), code
+    analysis (pyflakes and pylint are currently supported), code completion, 
+    go-to-definition, calltips, cursor position history, horizontal/vertical 
     splitting, etc.
     
 :doc:`inspector`:
-    Automatically show documentation (if available, or 
-    source code otherwise) for any class instantiation or function call made
-    in a Python shell (interactive/external console, see below)
+    Automatically show documentation (if available, or source code otherwise) 
+    for any class instantiation or function call made in a Python console or 
+    in the source editor
     
 :doc:`onlinehelp`:
     Open an internal web browser to explore dynamically-generated Python 
@@ -19,14 +22,11 @@ Spyder is a Python development environment with the following features:
     is using a pydoc server)
     
 :doc:`console`:
-    Python shell with workspace support (variable explorer with GUI based 
-    editors: dictionary editor, array editor, ...) and matplotlib figures 
-    integration
-    
-:doc:`extconsole` (separate process):
-    Run Python scripts (interactive, debugging or normal mode) or open a Python 
-    interpreter with variable explorer and documentation viewer support (a basic
-    terminal window may also be opened with the external console)
+    Run Python scripts or open as many Python/IPython interpreters or terminals 
+    as you need.
+    Python/IPython interpreters: variable explorer (list supported variables 
+    with GUI based editors: dictionary editor, array editor, ...), debugging 
+    with `pdb`, code completion, calltips, etc.
     
 :doc:`explorer`:
     File/directory explorer

@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,22 +7,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Editor &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Editor &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="index.html" />
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
     <link rel="next" title="Find in files" href="findinfiles.html" />
     <link rel="prev" title="Project Explorer" href="projectexplorer.html" /> 
   </head>
@@ -37,9 +40,40 @@
         <li class="right" >
           <a href="projectexplorer.html" title="Project Explorer"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="projectexplorer.html"
+                        title="previous chapter">Project Explorer</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="findinfiles.html"
+                        title="next chapter">Find in files</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/editor.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -48,6 +82,7 @@
             
   <div class="section" id="editor">
 <h1>Editor<a class="headerlink" href="#editor" title="Permalink to this headline">¶</a></h1>
+<p><em>DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0</em></p>
 <p>Spyder&#8217;s text editor is a multi-language editor with features such as syntax
 coloring, code completion, code analysis (real-time code analysis powered by
 <cite>pyflakes</cite> and advanced code analysis using <cite>pylint</cite>), function/class browser,
@@ -61,10 +96,9 @@ horizontal/vertical splitting features, etc.</p>
 <dl class="docutils">
 <dt>Related plugins:</dt>
 <dd><ul class="first last simple">
-<li><a class="reference external" href="console.html"><em>Interactive Console</em></a></li>
-<li><a class="reference external" href="extconsole.html"><em>External Console</em></a></li>
-<li><a class="reference external" href="explorer.html"><em>Explorer</em></a></li>
-<li><a class="reference external" href="findinfiles.html"><em>Find in files</em></a></li>
+<li><a class="reference internal" href="console.html"><em>Console</em></a></li>
+<li><a class="reference internal" href="explorer.html"><em>Explorer</em></a></li>
+<li><a class="reference internal" href="findinfiles.html"><em>Find in files</em></a></li>
 </ul>
 </dd>
 </dl>
@@ -72,37 +106,6 @@ horizontal/vertical splitting features, etc.</p>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="index.html">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h4>Previous topic</h4>
-            <p class="topless"><a href="projectexplorer.html"
-                                  title="previous chapter">Project Explorer</a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="findinfiles.html"
-                                  title="next chapter">Find in files</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/editor.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -119,12 +122,12 @@ horizontal/vertical splitting features, etc.</p>
         <li class="right" >
           <a href="projectexplorer.html" title="Project Explorer"
              >previous</a> |</li>
-        <li><a href="index.html">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>

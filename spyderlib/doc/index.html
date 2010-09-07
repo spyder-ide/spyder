@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -5,22 +7,23 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to Spyder’s documentation! &mdash; Spyder v1.1 documentation</title>
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <title>Welcome to Spyder’s documentation! &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '#',
-        VERSION:     '1.1',
-        COLLAPSE_MODINDEX: false,
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
       };
     </script>
     <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
-    <link rel="top" title="Spyder v1.1 documentation" href="#" />
+    <link rel="top" title="Spyder v2.0 documentation" href="#" />
     <link rel="next" title="Overview" href="overview.html" /> 
   </head>
   <body>
@@ -33,9 +36,37 @@
         <li class="right" >
           <a href="overview.html" title="Overview"
              accesskey="N">next</a> |</li>
-        <li><a href="#">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="#">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="next chapter">Overview</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -47,10 +78,10 @@
 <p>Spyder is a Python development environment with advanced editing, interactive
 testing, debugging and introspection features. It is especially recommended for
 scientific computing thanks to <cite>NumPy</cite> (linear algebra), <cite>SciPy</cite> (signal and
-image processing), <cite>matplotlib</cite> (interactive 2D/3D plotting) and MayaVi&#8217;s
-<cite>mlab</cite> (interactive 3D visualization) support.</p>
-<p>Spyder may also be used as an extension library providing powerful
-console-related PyQt4 widgets.</p>
+image processing), <cite>matplotlib</cite> (interactive 2D/3D plotting), MayaVi&#8217;s
+<cite>mlab</cite> (interactive 3D visualization) and -of course- <cite>IPython</cite> support.</p>
+<p>Spyder may also be used as a library providing powerful console-related PyQt4
+widgets.</p>
 <dl class="docutils">
 <dt>Spyder websites:</dt>
 <dd><ul class="first last simple">
@@ -59,72 +90,42 @@ console-related PyQt4 widgets.</p>
 </ul>
 </dd>
 </dl>
-<div align="center" class="align-center"><img alt="_images/spyder.png" class="align-center" src="_images/spyder.png" /></div>
 <p>Contents:</p>
+<div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference external" href="overview.html">Overview</a></li>
-<li class="toctree-l1"><a class="reference external" href="installation.html">Installation</a><ul>
-<li class="toctree-l2"><a class="reference external" href="installation.html#dependencies">Dependencies</a></li>
-<li class="toctree-l2"><a class="reference external" href="installation.html#id1">Installation</a></li>
-<li class="toctree-l2"><a class="reference external" href="installation.html#help-and-support">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#id1">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#help-and-support">Help and support</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="shortcuts.html">Global shortcuts</a></li>
-<li class="toctree-l1"><a class="reference external" href="options.html">Command line options</a></li>
-<li class="toctree-l1"><a class="reference external" href="console.html">Interactive Console</a><ul>
-<li class="toctree-l2"><a class="reference external" href="console.html#the-thread-safe-issue">The thread safe issue</a></li>
-<li class="toctree-l2"><a class="reference external" href="console.html#reloading-modules">Reloading modules</a></li>
-<li class="toctree-l2"><a class="reference external" href="console.html#special-commands">Special commands</a></li>
-<li class="toctree-l2"><a class="reference external" href="console.html#the-workspace">The Workspace</a></li>
+<li class="toctree-l1"><a class="reference internal" href="options.html">Command line options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="console.html">Console</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="console.html#reloading-modules-the-user-module-deleter-umd">Reloading modules: the User Module Deleter (UMD)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="console.html#special-commands">Special commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="console.html#the-workspace">The Workspace</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference external" href="inspector.html">Object inspector</a></li>
-<li class="toctree-l1"><a class="reference external" href="onlinehelp.html">Online help</a></li>
-<li class="toctree-l1"><a class="reference external" href="historylog.html">History log</a></li>
-<li class="toctree-l1"><a class="reference external" href="extconsole.html">External Console</a></li>
-<li class="toctree-l1"><a class="reference external" href="explorer.html">Explorer</a></li>
-<li class="toctree-l1"><a class="reference external" href="projectexplorer.html">Project Explorer</a></li>
-<li class="toctree-l1"><a class="reference external" href="editor.html">Editor</a></li>
-<li class="toctree-l1"><a class="reference external" href="findinfiles.html">Find in files</a></li>
-<li class="toctree-l1"><a class="reference external" href="pylint.html">Pylint extension</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inspector.html">Object inspector</a></li>
+<li class="toctree-l1"><a class="reference internal" href="onlinehelp.html">Online help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="historylog.html">History log</a></li>
+<li class="toctree-l1"><a class="reference internal" href="explorer.html">Explorer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="projectexplorer.html">Project Explorer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="editor.html">Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="findinfiles.html">Find in files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pylint.html">Pylint extension</a></li>
 </ul>
+</div>
 <p>Indices and tables:</p>
 <ul class="simple">
-<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
-<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
 </div>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-            <p class="logo"><a href="#">
-              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
-            </a></p>
-            <h4>Next topic</h4>
-            <p class="topless"><a href="overview.html"
-                                  title="next chapter">Overview</a></p>
-            <h3>This Page</h3>
-            <ul class="this-page-menu">
-              <li><a href="_sources/index.txt"
-                     rel="nofollow">Show Source</a></li>
-            </ul>
-          <div id="searchbox" style="display: none">
-            <h3>Quick search</h3>
-              <form class="search" action="search.html" method="get">
-                <input type="text" name="q" size="18" />
-                <input type="submit" value="Go" />
-                <input type="hidden" name="check_keywords" value="yes" />
-                <input type="hidden" name="area" value="default" />
-              </form>
-              <p class="searchtip" style="font-size: 90%">
-              Enter search terms or a module, class or function name.
-              </p>
-          </div>
-          <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -138,12 +139,12 @@ console-related PyQt4 widgets.</p>
         <li class="right" >
           <a href="overview.html" title="Overview"
              >next</a> |</li>
-        <li><a href="#">Spyder v1.1 documentation</a> &raquo;</li> 
+        <li><a href="#">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Pierre Raybaut.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
     </div>
   </body>
 </html>
