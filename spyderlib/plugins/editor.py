@@ -1223,6 +1223,12 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
+            basedir = os.getcwdu()
+            if CONF.get('workingdir', 'editor/new/browse_scriptdir'):
+                c_fname = self.get_current_filename()
+                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                    basedir = osp.dirname(c_fname)
+            fname = osp.abspath(osp.join(basedir, fname))
             editorstack.new(fname, enc, text)
         else:
             # QString when triggered by a Qt signal
@@ -1287,9 +1293,10 @@ class Editor(SpyderPluginWidget):
                 filenames = unicode(action.data().toString())
         if not filenames:
             basedir = os.getcwdu()
-            fname = self.get_current_filename()
-            if fname is not None and fname != self.TEMPFILE_PATH:
-                basedir = osp.dirname(fname)
+            if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
+                c_fname = self.get_current_filename()
+                if c_fname is not None and c_fname != self.TEMPFILE_PATH:
+                    basedir = osp.dirname(c_fname)
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             editorstack = self.get_current_editorstack()
             filenames = QFileDialog.getOpenFileNames(editorstack,

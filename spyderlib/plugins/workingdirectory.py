@@ -12,7 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QToolBar, QLabel, QFileDialog, QGroupBox, QVBoxLayout,
-                         QHBoxLayout)
+                         QHBoxLayout, QButtonGroup)
 from PyQt4.QtCore import SIGNAL
 
 import os, sys
@@ -35,6 +35,7 @@ from spyderlib.plugins.explorer import Explorer
 class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
         startup_group = QGroupBox(self.tr("Startup"))
+        startup_bg = QButtonGroup(startup_group)
         startup_label = QLabel(self.tr("At startup, the global working "
                                        "directory is:"))
         startup_label.setWordWrap(True)
@@ -42,12 +43,14 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                 self.tr("the same as in last session"),
                                 'startup/use_last_directory', True,
                                 self.tr("At startup, Spyder will restore the "
-                                        "global directory from last session"))
+                                        "global directory from last session"),
+                                button_group=startup_bg)
         thisdir_radio = self.create_radiobutton(
                                 self.tr("the following directory:"),
                                 'startup/use_fixed_directory', False,
                                 self.tr("At startup, the global working "
-                                        "directory will be the specified path"))
+                                        "directory will be the specified path"),
+                                button_group=startup_bg)
         thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
                                            os.getcwdu())
         self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
@@ -57,15 +60,53 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         thisdir_layout = QHBoxLayout()
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
+
+        editor_group = QGroupBox(self.tr("Editor"))
+        editor_bg1 = QButtonGroup(editor_group)
+        editor_bg2 = QButtonGroup(editor_group)
+        editor_o_label = QLabel(self.tr("When opening a file:"))
+        editor_o_label.setWordWrap(True)
+        editor_o_radio1 = self.create_radiobutton(
+                                self.tr("browse the current file directory"),
+                                'editor/open/browse_scriptdir', True,
+                                button_group=editor_bg1)
+        editor_o_radio2 = self.create_radiobutton(
+                                self.tr("browse the global working directory"),
+                                'editor/open/browse_workdir', False,
+                                button_group=editor_bg1)
+        editor_n_label = QLabel(self.tr("When creating a new file, set its "
+                                        "base directory to:"))
+        editor_n_label.setWordWrap(True)
+        editor_n_radio1 = self.create_radiobutton(
+                                self.tr("the current file directory"),
+                                'editor/new/browse_scriptdir', False,
+                                button_group=editor_bg2)
+        editor_n_radio2 = self.create_radiobutton(
+                                self.tr("the global working directory"),
+                                'editor/new/browse_workdir', True,
+                                button_group=editor_bg2)
+        # Note: default values for the options above are set in plugin's
+        #       constructor (see below)
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(startup_label)
         startup_layout.addWidget(lastdir_radio)
         startup_layout.addLayout(thisdir_layout)
         startup_group.setLayout(startup_layout)
+
+        editor_layout = QVBoxLayout()
+        editor_layout.addWidget(editor_o_label)
+        editor_layout.addWidget(editor_o_radio1)
+        editor_layout.addWidget(editor_o_radio2)
+        editor_layout.addSpacing(10)
+        editor_layout.addWidget(editor_n_label)
+        editor_layout.addWidget(editor_n_radio1)
+        editor_layout.addWidget(editor_n_radio2)
+        editor_group.setLayout(editor_layout)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(startup_group)
+        vlayout.addWidget(editor_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -80,6 +121,12 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
+        
+        # Setting default values for editor-related options
+        self.get_option('editor/open/browse_scriptdir', True)
+        self.get_option('editor/open/browse_workdir', False)
+        self.get_option('editor/new/browse_scriptdir', False)
+        self.get_option('editor/new/browse_workdir', True)
         
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state
