@@ -1142,8 +1142,9 @@ class Editor(SpyderPluginWidget):
             enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
                 if action is self.winpdb_action:
-                    enable = enable and is_winpdb_installed()
-                action.setEnabled(enable)
+                    action.setEnabled(enable and is_winpdb_installed())
+                else:
+                    action.setEnabled(enable)
                 
     def update_code_analysis_actions(self):
         editorstack = self.get_current_editorstack()
