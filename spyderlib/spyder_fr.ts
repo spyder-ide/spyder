@@ -6549,22 +6549,22 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>WorkingDirectory</name>
     <message>
-        <location filename="plugins/workingdirectory.py" line="188"/>
+        <location filename="plugins/workingdirectory.py" line="201"/>
         <source>Browse a working directory</source>
         <translation>Sélectionner un répertoire de travail</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="202"/>
+        <location filename="plugins/workingdirectory.py" line="215"/>
         <source>Change to parent directory</source>
         <translation>Aller au répertoire parent</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="268"/>
+        <location filename="plugins/workingdirectory.py" line="281"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="166"/>
+        <location filename="plugins/workingdirectory.py" line="179"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
@@ -6574,17 +6574,17 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Répertoire de travail :</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="145"/>
+        <location filename="plugins/workingdirectory.py" line="158"/>
         <source>Back</source>
         <translation>Retour</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="153"/>
+        <location filename="plugins/workingdirectory.py" line="166"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="138"/>
+        <location filename="plugins/workingdirectory.py" line="151"/>
         <source>This is the working directory for newly
 opened consoles (Python interpreters and
 terminals), for the file explorer, for the
@@ -6597,17 +6597,17 @@ de fichiers, pour la recherche dans les fichiers
 et pour les fichiers créés dans l&apos;éditeur</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="195"/>
+        <location filename="plugins/workingdirectory.py" line="208"/>
         <source>Set as current console&apos;s working directory</source>
         <translation>Changer le répertoire de travail de la console actuelle</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="133"/>
+        <location filename="plugins/workingdirectory.py" line="146"/>
         <source>Global working directory:</source>
         <translation>Répertoire de travail global :</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="211"/>
+        <location filename="plugins/workingdirectory.py" line="224"/>
         <source>Global working directory</source>
         <translation>Répertoire de travail global</translation>
     </message>
@@ -6615,22 +6615,22 @@ et pour les fichiers créés dans l&apos;éditeur</translation>
 <context>
     <name>WorkingDirectoryConfigPage</name>
     <message>
-        <location filename="plugins/workingdirectory.py" line="36"/>
+        <location filename="plugins/workingdirectory.py" line="43"/>
         <source>Startup</source>
         <translation>Démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="39"/>
+        <location filename="plugins/workingdirectory.py" line="46"/>
         <source>At startup, the global working directory is:</source>
         <translation>Au démarrage, le répertoire de travail global est :</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="42"/>
+        <location filename="plugins/workingdirectory.py" line="49"/>
         <source>the same as in last session</source>
         <translation>celui utilisé lors de la dernière session</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="45"/>
+        <location filename="plugins/workingdirectory.py" line="52"/>
         <source>At startup, Spyder will restore the global directory from last session</source>
         <translation>Au démarrage, Spyder reprendra le répertoire de travail global de la dernière session</translation>
     </message>
@@ -6640,49 +6640,74 @@ et pour les fichiers créés dans l&apos;éditeur</translation>
         <translation type="obsolete">ce répertoire :</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="51"/>
+        <location filename="plugins/workingdirectory.py" line="58"/>
         <source>At startup, the global working directory will be the specified path</source>
         <translation>Au démarrage, le répertoire de travail global sera le chemin d&apos;accès spécifié ici</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="48"/>
+        <location filename="plugins/workingdirectory.py" line="55"/>
         <source>the following directory:</source>
         <translation>le répertoire suivant :</translation>
     </message>
     <message>
         <location filename="plugins/workingdirectory.py" line="63"/>
         <source>Editor</source>
-        <translation>Éditeur</translation>
+        <translation type="obsolete">Éditeur</translation>
     </message>
     <message>
         <location filename="plugins/workingdirectory.py" line="66"/>
         <source>When opening a file:</source>
-        <translation>Lors de l&apos;ouverture d&apos;un fichier :</translation>
+        <translation type="obsolete">Lors de l&apos;ouverture d&apos;un fichier :</translation>
     </message>
     <message>
         <location filename="plugins/workingdirectory.py" line="77"/>
         <source>When creating a new file, set its base directory to:</source>
-        <translation>Lors de la création d&apos;un nouveau fichier, choisir :</translation>
+        <translation type="obsolete">Lors de la création d&apos;un nouveau fichier, choisir :</translation>
     </message>
     <message>
         <location filename="plugins/workingdirectory.py" line="69"/>
         <source>browse the current file directory</source>
-        <translation>parcourir le répertoire du fichier en cours d&apos;édition</translation>
+        <translation type="obsolete">parcourir le répertoire du fichier en cours d&apos;édition</translation>
     </message>
     <message>
         <location filename="plugins/workingdirectory.py" line="73"/>
         <source>browse the global working directory</source>
-        <translation>parcourir le répertoire de travail global</translation>
+        <translation type="obsolete">parcourir le répertoire de travail global</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="80"/>
+        <location filename="plugins/workingdirectory.py" line="88"/>
         <source>the current file directory</source>
         <translation>le répertoire du fichier en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="plugins/workingdirectory.py" line="84"/>
+        <location filename="plugins/workingdirectory.py" line="92"/>
         <source>the global working directory</source>
         <translation>le répertoire de travail global</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="40"/>
+        <source>The &lt;b&gt;global working directory&lt;/b&gt; is the working directory for newly opened &lt;i&gt;consoles&lt;/i&gt; (Python/IPython interpreters and terminals), for the &lt;i&gt;file explorer&lt;/i&gt;, for the &lt;i&gt;find in files&lt;/i&gt; plugin and for new files created in the &lt;i&gt;editor&lt;/i&gt;.</source>
+        <translation>Le &lt;b&gt;répertoire de travail global&lt;/b&gt; est le répertoire de travail utilisé pour les nouvelles &lt;i&gt;consoles&lt;/i&gt; (interpréteurs Python/IPython et terminaux), pour l&apos;&lt;i&gt;explorateur de fichiers&lt;/i&gt;, pour la &lt;i&gt;recherche dans les fichiers&lt;/i&gt; et pour les fichiers créés dans l&apos;&lt;i&gt;éditeur&lt;/i&gt;.</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="70"/>
+        <source>Open file</source>
+        <translation>Ouvrir un fichier</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="71"/>
+        <source>Files are opened from:</source>
+        <translation>Les fichiers sont ouverts depuis :</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="83"/>
+        <source>New file</source>
+        <translation>Nouveau fichier</translation>
+    </message>
+    <message>
+        <location filename="plugins/workingdirectory.py" line="84"/>
+        <source>Files are created in:</source>
+        <translation>Les fichiers sont créés dans :</translation>
     </message>
 </context>
 <context>

@@ -34,6 +34,13 @@ from spyderlib.plugins.explorer import Explorer
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
     def setup_page(self):
+        about_label = QLabel(self.tr("The <b>global working directory</b> is "
+                    "the working directory for newly opened <i>consoles</i> "
+                    "(Python/IPython interpreters and terminals), for the "
+                    "<i>file explorer</i>, for the <i>find in files</i> "
+                    "plugin and for new files created in the <i>editor</i>."))
+        about_label.setWordWrap(True)
+        
         startup_group = QGroupBox(self.tr("Startup"))
         startup_bg = QButtonGroup(startup_group)
         startup_label = QLabel(self.tr("At startup, the global working "
@@ -61,30 +68,31 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         thisdir_layout.addWidget(thisdir_radio)
         thisdir_layout.addWidget(thisdir_bd)
 
-        editor_group = QGroupBox(self.tr("Editor"))
-        editor_bg1 = QButtonGroup(editor_group)
-        editor_bg2 = QButtonGroup(editor_group)
-        editor_o_label = QLabel(self.tr("When opening a file:"))
+        editor_o_group = QGroupBox(self.tr("Open file"))
+        editor_o_label = QLabel(self.tr("Files are opened from:"))
         editor_o_label.setWordWrap(True)
+        editor_o_bg = QButtonGroup(editor_o_group)
         editor_o_radio1 = self.create_radiobutton(
-                                self.tr("browse the current file directory"),
+                                self.tr("the current file directory"),
                                 'editor/open/browse_scriptdir', True,
-                                button_group=editor_bg1)
+                                button_group=editor_o_bg)
         editor_o_radio2 = self.create_radiobutton(
-                                self.tr("browse the global working directory"),
+                                self.tr("the global working directory"),
                                 'editor/open/browse_workdir', False,
-                                button_group=editor_bg1)
-        editor_n_label = QLabel(self.tr("When creating a new file, set its "
-                                        "base directory to:"))
+                                button_group=editor_o_bg)
+        
+        editor_n_group = QGroupBox(self.tr("New file"))
+        editor_n_label = QLabel(self.tr("Files are created in:"))
         editor_n_label.setWordWrap(True)
+        editor_n_bg = QButtonGroup(editor_n_group)
         editor_n_radio1 = self.create_radiobutton(
                                 self.tr("the current file directory"),
                                 'editor/new/browse_scriptdir', False,
-                                button_group=editor_bg2)
+                                button_group=editor_n_bg)
         editor_n_radio2 = self.create_radiobutton(
                                 self.tr("the global working directory"),
                                 'editor/new/browse_workdir', True,
-                                button_group=editor_bg2)
+                                button_group=editor_n_bg)
         # Note: default values for the options above are set in plugin's
         #       constructor (see below)
         
@@ -94,19 +102,24 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         startup_layout.addLayout(thisdir_layout)
         startup_group.setLayout(startup_layout)
 
-        editor_layout = QVBoxLayout()
-        editor_layout.addWidget(editor_o_label)
-        editor_layout.addWidget(editor_o_radio1)
-        editor_layout.addWidget(editor_o_radio2)
-        editor_layout.addSpacing(10)
-        editor_layout.addWidget(editor_n_label)
-        editor_layout.addWidget(editor_n_radio1)
-        editor_layout.addWidget(editor_n_radio2)
-        editor_group.setLayout(editor_layout)
+        editor_o_layout = QVBoxLayout()
+        editor_o_layout.addWidget(editor_o_label)
+        editor_o_layout.addWidget(editor_o_radio1)
+        editor_o_layout.addWidget(editor_o_radio2)
+        editor_o_group.setLayout(editor_o_layout)
+
+        editor_n_layout = QVBoxLayout()
+        editor_n_layout.addWidget(editor_n_label)
+        editor_n_layout.addWidget(editor_n_radio1)
+        editor_n_layout.addWidget(editor_n_radio2)
+        editor_n_group.setLayout(editor_n_layout)
         
         vlayout = QVBoxLayout()
+        vlayout.addWidget(about_label)
+        vlayout.addSpacing(10)
         vlayout.addWidget(startup_group)
-        vlayout.addWidget(editor_group)
+        vlayout.addWidget(editor_o_group)
+        vlayout.addWidget(editor_n_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
