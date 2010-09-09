@@ -430,6 +430,7 @@ class EditorStack(QWidget):
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
+        self.highlight_current_line_enabled = False
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
         self.fullpath_sorting_enabled = None
@@ -765,6 +766,12 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_occurence_highlighting(state)
+                
+    def set_highlight_current_line_enabled(self, state):
+        self.highlight_current_line_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_highlight_current_line(state)
         
     def set_checkeolchars_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'check_eol_chars')
@@ -1480,6 +1487,7 @@ class EditorStack(QWidget):
                 todo_list=self.todolist_enabled, font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+                highlight_current_line=self.highlight_current_line_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,

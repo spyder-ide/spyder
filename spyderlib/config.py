@@ -201,6 +201,7 @@ DEFAULTS = [
               'codecompletion/enter-key': False,
               'check_eol_chars': True,
               'tab_always_indent': False,
+              'highlight_current_line': True,
               'occurence_highlighting': True,
               'fullpath_sorting': True,
               'show_tab_bar': True,
@@ -296,7 +297,7 @@ DEV = False
 from spyderlib import __version__
 _subfolder = '.spyder%s' % __version__.split('.')[0]
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
-                  version='2.0.1', subfolder=_subfolder)
+                  version='2.0.2', subfolder=_subfolder)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):

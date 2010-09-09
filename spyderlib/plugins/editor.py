@@ -99,6 +99,8 @@ class EditorConfigPage(PluginConfigPage):
         
         display_group = QGroupBox(self.tr("Source code"))
         linenumbers_box = newcb(self.tr("Show line numbers"), 'line_numbers')
+        currentline_box = newcb(self.tr("Highlight current line"),
+                                'highlight_current_line', default=True)
         occurence_box = newcb(self.tr("Highlight occurences"),
                               'occurence_highlighting', default=True)
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
@@ -109,6 +111,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(linenumbers_box)
+        display_layout.addWidget(currentline_box)
         display_layout.addWidget(occurence_box)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
@@ -839,6 +842,7 @@ class Editor(SpyderPluginWidget):
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
@@ -1754,6 +1758,8 @@ class Editor(SpyderPluginWidget):
             tabbar_o = self.get_option(tabbar_n)
             linenb_n = 'line_numbers'
             linenb_o = self.get_option(linenb_n)
+            currentline_n = 'highlight_current_line'
+            currentline_o = self.get_option(currentline_n)
             occurence_n = 'occurence_highlighting'
             occurence_o = self.get_option(occurence_n)
             wrap_n = 'wrap'
@@ -1794,6 +1800,9 @@ class Editor(SpyderPluginWidget):
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
+                if currentline_n in options:
+                    editorstack.set_highlight_current_line_enabled(
+                                                                currentline_o)
                 if occurence_n in options:
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
                 if wrap_n in options:

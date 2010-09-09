@@ -127,6 +127,7 @@ class CodeEditor(TextEditBaseWidget):
         
         #  Background colors: current line, occurences
         self.currentline_color = QColor(Qt.red).lighter(190)
+        self.highlight_current_line_enabled = False
         
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -236,10 +237,10 @@ class CodeEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
-                     occurence_highlighting=True, scrollflagarea=True,
-                     todo_list=True, codecompletion_auto=False,
-                     codecompletion_enter=False, calltips=None,
-                     go_to_definition=False, cloned_from=None):
+                     highlight_current_line=True, occurence_highlighting=True,
+                     scrollflagarea=True, todo_list=True,
+                     codecompletion_auto=False, codecompletion_enter=False,
+                     calltips=None, go_to_definition=False, cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_enter(codecompletion_enter)
@@ -256,6 +257,9 @@ class CodeEditor(TextEditBaseWidget):
         
         # Lexer
         self.set_language(language)
+        
+        # Highlight current line
+        self.set_highlight_current_line(highlight_current_line)
                 
         # Occurence highlighting
         self.set_occurence_highlighting(occurence_highlighting)
@@ -290,6 +294,11 @@ class CodeEditor(TextEditBaseWidget):
         self.occurence_highlighting = enable
         if not enable:
             self.__clear_occurences()
+            
+    def set_highlight_current_line(self, enable):
+        """Enable/disable current line highlighting"""
+        self.highlight_current_line_enabled = enable
+        self.highlight_current_line()
 
     def set_language(self, language):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
@@ -417,8 +426,6 @@ class CodeEditor(TextEditBaseWidget):
         """Cursor position has changed"""
         line, column = self.get_cursor_line_column()
         self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, column)
-        if self.isReadOnly():
-            return
         self.highlight_current_line()
         if self.occurence_highlighting:
             self.occurence_timer.stop()
@@ -776,12 +783,15 @@ class CodeEditor(TextEditBaseWidget):
     #-----highlight current line
     def highlight_current_line(self):
         """Highlight current line"""
-        selection = QTextEdit.ExtraSelection()
-        selection.format.setProperty(QTextFormat.FullWidthSelection, True)
-        selection.format.setBackground(self.currentline_color)
-        selection.cursor = self.textCursor()
-        selection.cursor.clearSelection()
-        self.set_extra_selections('current_line', [selection])
+        if self.highlight_current_line_enabled:
+            selection = QTextEdit.ExtraSelection()
+            selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+            selection.format.setBackground(self.currentline_color)
+            selection.cursor = self.textCursor()
+            selection.cursor.clearSelection()
+            self.set_extra_selections('current_line', [selection])
+        else:
+            self.clear_extra_selections('current_line')
         self.update_extra_selections()
         
     
