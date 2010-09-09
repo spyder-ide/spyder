@@ -318,6 +318,7 @@ class ObjectInspector(ReadOnlyEditor):
         else:
             doc_text = None
             source_text = None
+        is_code = False
         if self.docstring:
             hlp_text = doc_text
             if hlp_text is None:
@@ -330,5 +331,9 @@ class ObjectInspector(ReadOnlyEditor):
                 hlp_text = doc_text
                 if hlp_text is None:
                     hlp_text = self.tr("No source code available.")
+            else:
+                is_code = True
+        self.editor.set_highlight_current_line(is_code)
+        self.editor.set_occurence_highlighting(is_code)
         self.editor.set_text(hlp_text)
         self.editor.set_cursor_position('sof')
