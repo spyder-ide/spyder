@@ -335,5 +335,9 @@ class ObjectInspector(ReadOnlyEditor):
                 is_code = True
         self.editor.set_highlight_current_line(is_code)
         self.editor.set_occurence_highlighting(is_code)
+        if is_code:
+            self.editor.set_language('py')
+        else:
+            self.editor.set_language(None)
         self.editor.set_text(hlp_text)
         self.editor.set_cursor_position('sof')

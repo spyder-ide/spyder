@@ -304,7 +304,12 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.supported_language = False
         self.comment_string = ''
-        if language is not None:
+        if language is None:
+            if self.highlighter is not None:
+                self.highlighter.setDocument(None)
+            self.highlighter = None
+            self.highlighter_class = None
+        else:
             for key in self.LANGUAGES:
                 if language.lower() in key:
                     self.supported_language = True
