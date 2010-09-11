@@ -23,6 +23,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
+from spyderlib.config import get_icon
 
 
 class FindReplace(QWidget):
@@ -53,6 +54,12 @@ class FindReplace(QWidget):
         self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
                      self.text_has_changed)
         
+        self.re_button = create_toolbutton(self, get_icon("advanced.png"),
+                                           tip=self.tr("Regular expression"))
+        self.re_button.setCheckable(True)
+        self.connect(self.re_button, SIGNAL("toggled(bool)"),
+                     lambda state: self.find())
+        
         self.previous_button = create_toolbutton(self,
                                              text=self.tr("Previous"),
                                              triggered=self.find_previous,
@@ -67,13 +74,16 @@ class FindReplace(QWidget):
                      self.update_search_combo)
 
         self.case_check = QCheckBox(self.tr("Case Sensitive"))
-        self.connect(self.case_check, SIGNAL("stateChanged(int)"), self.find)
+        self.connect(self.case_check, SIGNAL("stateChanged(int)"),
+                     lambda state: self.find())
         self.words_check = QCheckBox(self.tr("Whole words"))
-        self.connect(self.words_check, SIGNAL("stateChanged(int)"), self.find)
+        self.connect(self.words_check, SIGNAL("stateChanged(int)"),
+                     lambda state: self.find())
 
         hlayout = QHBoxLayout()
-        self.widgets = [self.close_button, self.search_text, self.previous_button,
-                        self.next_button, self.case_check, self.words_check]
+        self.widgets = [self.close_button, self.search_text, self.re_button,
+                        self.previous_button, self.next_button,
+                        self.case_check, self.words_check]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -231,7 +241,8 @@ class FindReplace(QWidget):
         else:
             found = self.editor.find_text(text, changed, forward,
                                           case=self.case_check.isChecked(),
-                                          words=self.words_check.isChecked())
+                                          words=self.words_check.isChecked(),
+                                          regexp=self.re_button.isChecked())
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
             return found
             

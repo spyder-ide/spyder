@@ -2135,7 +2135,7 @@ class FakePlugin(QSplitter):
             editorstack.add_widget_to_header(oe_btn, space_before=True)
             
         action = QAction(self)
-        editorstack.set_io_actions(action, action, action)
+        editorstack.set_io_actions(action, action, action, action)
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')

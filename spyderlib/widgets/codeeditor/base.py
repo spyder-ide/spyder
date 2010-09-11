@@ -548,7 +548,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.removeSelectedText()
 
     def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False):
+                  forward=True, case=False, words=False, regexp=False):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
@@ -566,7 +566,9 @@ class TextEditBaseWidget(QPlainTextEdit):
                     cursor.setPosition(new_position)
         else:
             moves += [QTextCursor.End]
-        regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text) if words else text,
+        if not regexp:
+            text = re.escape(unicode(text))
+        regexp = QRegExp(r"\b%s\b" % text if words else text,
                          Qt.CaseSensitive if case else Qt.CaseInsensitive)
         for move in moves:
             cursor.movePosition(move)

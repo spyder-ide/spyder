@@ -205,12 +205,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>CodeEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="966"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="971"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1020"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1025"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -3604,17 +3604,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/findreplace.py" line="68"/>
+        <location filename="widgets/findreplace.py" line="72"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="70"/>
+        <location filename="widgets/findreplace.py" line="74"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="94"/>
+        <location filename="widgets/findreplace.py" line="99"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
@@ -3629,12 +3629,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="56"/>
+        <location filename="widgets/findreplace.py" line="60"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="60"/>
+        <location filename="widgets/findreplace.py" line="64"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
@@ -3649,7 +3649,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">par :</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="86"/>
+        <location filename="widgets/findreplace.py" line="91"/>
         <source>Replace/find</source>
         <translation>Remplacer/rechercher</translation>
     </message>
@@ -3659,12 +3659,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="50"/>
+        <location filename="widgets/findreplace.py" line="51"/>
         <source>Search string</source>
         <translation>Chaîne de caractères à rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="83"/>
+        <location filename="widgets/findreplace.py" line="88"/>
         <source>Replace string</source>
         <translation>Chaîne de caractères de remplacement</translation>
     </message>
@@ -3679,9 +3679,14 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Rechercher le précédent</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="81"/>
+        <location filename="widgets/findreplace.py" line="86"/>
         <source>Replace with:</source>
         <translation>Remplacer par :</translation>
+    </message>
+    <message>
+        <location filename="widgets/findreplace.py" line="57"/>
+        <source>Regular expression</source>
+        <translation>Expression régulière</translation>
     </message>
 </context>
 <context>
@@ -6300,32 +6305,32 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1320"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1325"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1324"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1329"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1328"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1333"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1332"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1337"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1336"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1341"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1340"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1345"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
@@ -6335,17 +6340,17 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1345"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1350"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="640"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="645"/>
         <source>Breakpoint</source>
         <translation>Point d&apos;arrêt</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="641"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="646"/>
         <source>Condition:</source>
         <translation>Condition :</translation>
     </message>
