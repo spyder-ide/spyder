@@ -689,8 +689,7 @@ class ExternalConsole(SpyderPluginWidget):
         default_options = []
         if programs.is_module_installed('matplotlib'):
             default_options.append("-pylab")
-        else:
-            default_options.append("-q4thread")
+        default_options.append("-q4thread")
         default_options.append("-colors LightBG")
         default_options.append("-xmode Plain")
         for editor_name in ("scite", "gedit"):
