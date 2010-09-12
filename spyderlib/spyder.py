@@ -289,7 +289,8 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'current_version', '') != __version__:
                 CONF.set('main', 'current_version', __version__)
                 run_python_script(module="compileall",
-                                  args='-q '+spyderlib.__path__[0], p_args='-O')
+                                  args=['-q', spyderlib.__path__[0]],
+                                  p_args=['-O'])
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
@@ -496,7 +497,7 @@ class MainWindow(QMainWindow):
                                            'qtdesigner.png', "designer")
             qtlact = create_program_action(self, self.tr("Qt Linguist"),
                                            'qtlinguist.png', "linguist")
-            args = '-no-opengl' if os.name == 'nt' else ''
+            args = ['-no-opengl'] if os.name == 'nt' else []
             qteact = create_python_script_action(self,
                                    self.tr("Qt examples"), 'qt.png', "PyQt4",
                                    osp.join("examples", "demos",

@@ -1531,7 +1531,7 @@ class Editor(SpyderPluginWidget):
         """Run winpdb to debug current file"""
         if self.save():
             fname = self.get_current_filename()
-            programs.run_program(WINPDB_PATH, fname)
+            programs.run_program(WINPDB_PATH, [fname])
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()

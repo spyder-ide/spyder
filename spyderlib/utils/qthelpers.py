@@ -245,8 +245,7 @@ def create_program_action(parent, text, icon, name, nt_name=None):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
         
-def create_python_script_action(parent, text, icon,
-                                    package, module, args=''):
+def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
     if isinstance(icon, basestring):
         icon = get_icon(icon)

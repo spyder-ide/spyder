@@ -31,17 +31,13 @@ def is_program_installed(basename, get_path=False):
     else:
         return False
     
-def run_program(name, args=''):
+def run_program(name, args=[]):
     """Run program in a separate process"""
+    assert isinstance(args, (tuple, list))
     path = is_program_installed(name, get_path=True)
     if not path:
         raise RuntimeError("Program %s was not found" % name)
-    command = [path]
-    if args:
-        if isinstance(args, basestring):
-            args = args.split(' ')
-        command += args
-    subprocess.Popen(command)
+    subprocess.Popen([path]+args)
     
 def python_script_exists(package=None, module=None, get_path=False):
     """
@@ -64,24 +60,15 @@ def python_script_exists(package=None, module=None, get_path=False):
         else:
             return True
     
-def run_python_script(package=None, module=None, args='', p_args=''):
+def run_python_script(package=None, module=None, args=[], p_args=[]):
     """
     Run Python script in a separate process
     package=None -> module is in sys.path (standard library modules)
     """
     assert module is not None
+    assert isinstance(args, (tuple, list)) and isinstance(p_args, (tuple, list))
     path = python_script_exists(package, module, get_path=True)
-    command = [sys.executable]
-    if p_args:
-        if isinstance(p_args, basestring):
-            p_args = p_args.split(' ')
-        command += p_args
-    command.append(path)
-    if args:
-        if isinstance(args, basestring):
-            args = args.split(' ')
-        command += args
-    subprocess.Popen(command)
+    subprocess.Popen([sys.executable]+p_args+[path]+args)
 
 def is_module_installed(module_name):
     """Return True if module *module_name* is installed"""
