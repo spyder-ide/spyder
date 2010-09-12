@@ -17,6 +17,7 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString
 
 # Local imports
 from spyderlib.utils import encoding
+from spyderlib.utils.programs import split_clo
 from spyderlib.config import get_icon
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
@@ -59,7 +60,7 @@ class ExternalSystemShell(ExternalShellBase):
             p_args = ['-i']
             
         if self.arguments:
-            p_args.extend( self.arguments.split(' ') )
+            p_args.extend( split_clo(self.arguments) )
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)

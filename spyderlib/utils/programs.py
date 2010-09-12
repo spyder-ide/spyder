@@ -77,3 +77,20 @@ def is_module_installed(module_name):
         return True
     except ImportError:
         return False
+
+def split_clo(args):
+    """Split command line options without breaking double-quoted strings"""
+    assert isinstance(args, basestring)
+    out = []
+    quoted = False
+    for txt in args.split('"'):
+        if quoted:
+            out.append('"'+txt.strip()+'"')
+        else:
+            out += txt.strip().split(' ')
+        quoted = not quoted
+    return out
+
+if __name__ == '__main__':
+    print split_clo('-q -o -a')
+    print split_clo('-q "d:\\Python de xxxx\\t.txt" -o -a')

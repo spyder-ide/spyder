@@ -19,6 +19,7 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt, QTimer
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon)
+from spyderlib.utils.programs import split_clo
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
@@ -366,7 +367,7 @@ class ExternalPythonShell(ExternalShellBase):
         #-------------------------Python specific-------------------------------
             
         if self.arguments:
-            p_args.extend( self.arguments.split(' ') )
+            p_args.extend( split_clo(self.arguments) )
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
