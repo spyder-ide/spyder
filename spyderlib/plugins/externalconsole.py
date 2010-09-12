@@ -173,13 +173,31 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
+        # ETS Group
+        ets_group = QGroupBox(self.tr("Enthought Tool Suite"))
+        ets_label = QLabel(self.tr("Enthought Tool Suite (ETS) supports "
+                                   "PyQt4 (qt4) and wxPython (wx) graphical "
+                                   "user interfaces."))
+        ets_label.setWordWrap(True)
+        ets_edit = self.create_lineedit(self.tr("ETS_TOOLKIT "
+                                                "(default value: qt4):"),
+                                        'ets_backend', default='qt4',
+                                        alignment=Qt.Vertical)
+        
+        ets_layout = QVBoxLayout()
+        ets_layout.addWidget(ets_label)
+        ets_layout.addWidget(ets_edit)
+        ets_group.setLayout(ets_layout)
+        ets_group.setEnabled(programs.is_module_installed(
+                                                    "enthought.etsconfig.api"))
+        
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
                     self.tr("Display"))
         tabs.addTab(self.create_tab(source_group, startup_group, umd_group),
                     self.tr("Advanced settings"))
-        tabs.addTab(self.create_tab(ipython_group, mpl_group),
+        tabs.addTab(self.create_tab(ipython_group, mpl_group, ets_group),
                     self.tr("External modules"))
         
         vlayout = QVBoxLayout()
@@ -397,6 +415,7 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         if python:
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
+            ets_backend = self.get_option('ets_backend', 'qt4')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
@@ -411,7 +430,7 @@ class ExternalConsole(SpyderPluginWidget):
                            python_args=python_args, ipython=ipython,
                            arguments=args, stand_alone=sa_settings,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
-                           umd_verbose=umd_verbose,
+                           umd_verbose=umd_verbose, ets_backend=ets_backend,
                            mpl_patch_enabled=mpl_patch_enabled,
                            autorefresh_timeout=ar_timeout,
                            light_background=light_background)

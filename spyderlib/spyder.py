@@ -455,7 +455,7 @@ class MainWindow(QMainWindow):
             
             
             # Tools + External Tools
-            prefs_action = create_action(self, self.tr("Preferences..."),
+            prefs_action = create_action(self, self.tr("Preferences"),
                                          icon='configure.png',
                                          triggered=self.edit_preferences)
             spyder_path_action = create_action(self,
@@ -467,12 +467,12 @@ class MainWindow(QMainWindow):
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
-                    self.tr("Current user environment variables..."),
-                    icon = 'win_env.png',
-                    tip = self.tr("Show and edit current user environment "
-                                  "variables in Windows registry "
-                                  "(i.e. for all sessions)"),
-                    triggered=self.win_env)
+                        self.tr("Current user environment variables..."),
+                        icon='win_env.png',
+                        tip=self.tr("Show and edit current user environment "
+                                    "variables in Windows registry "
+                                    "(i.e. for all sessions)"),
+                        triggered=self.win_env)
                 self.tools_menu_actions.append(winenv_action)
             
             # External Tools submenu

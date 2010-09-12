@@ -121,8 +121,8 @@ class ExternalPythonShell(ExternalShellBase):
                  interact=False, debug=False, path=[], python_args='',
                  ipython=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
-                 mpl_patch_enabled=True, autorefresh_timeout=3000,
-                 light_background=True):
+                 mpl_patch_enabled=True, ets_backend='qt4',
+                 autorefresh_timeout=3000, light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
         startup_file = startup.__file__
@@ -136,6 +136,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
         self.mpl_patch_enabled = mpl_patch_enabled
+        self.ets_backend = ets_backend
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -333,9 +334,12 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
         
+        # External modules options
+        env.append('ETS_TOOLKIT=%s' % self.ets_backend)
+        env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
+        
         # User Module Deleter
         if self.interpreter:
-            env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
