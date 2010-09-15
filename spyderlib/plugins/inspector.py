@@ -7,7 +7,7 @@
 """Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
-                         QToolButton, QGroupBox, QFontComboBox)
+                         QToolButton, QGroupBox, QFontComboBox, QActionGroup)
 from PyQt4.QtCore import SIGNAL
 
 import sys, re, os.path as osp, socket
@@ -114,11 +114,23 @@ class ObjectInspector(ReadOnlyEditor):
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
         
-        # Doc/source option
-        help_or_doc = create_action(self, self.tr("Show source"),
-                                    toggled=self.toggle_help)
-        help_or_doc.setChecked(False)
+        # Plain text docstring option
+        plain_text = create_action(self, self.tr("Plain Text"),
+                                   toggled=self.toggle_plain_text)
+        plain_text.setChecked(True)
         self.docstring = True
+        
+        # Source code option
+        show_source = create_action(self, self.tr("Show Source"),
+                                    toggled=self.toggle_show_source)
+        show_source.setChecked(False)
+        
+        
+        # Add the help actions to an exclusive QActionGroup
+        help_actions = QActionGroup(self)
+        help_actions.setExclusive(True)
+        help_actions.addAction(plain_text)
+        help_actions.addAction(show_source)
         
         # Automatic import option
         auto_import = create_action(self, self.tr("Automatic import"),
@@ -137,7 +149,7 @@ class ObjectInspector(ReadOnlyEditor):
                                            icon=get_icon('tooloptions.png'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
-        add_actions(menu, [help_or_doc, auto_import])
+        add_actions(menu, [plain_text, show_source, auto_import])
         options_button.setMenu(menu)
         layout_edit.addWidget(options_button)
 
@@ -147,6 +159,7 @@ class ObjectInspector(ReadOnlyEditor):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
+        
             
     #------ ReadOnlyEditor API -------------------------------------------------    
     def get_plugin_title(self):
@@ -247,8 +260,13 @@ class ObjectInspector(ReadOnlyEditor):
             [ unicode( self.combo.itemText(index) )
                 for index in range(self.combo.count()) ] ))
         
-    def toggle_help(self, checked):
-        """Toggle between docstring and help()"""
+    def toggle_plain_text(self, checked):
+        """Toggle plain text docstring"""
+        self.docstring = checked
+        self.force_refresh()
+        
+    def toggle_show_source(self, checked):
+        """Toggle show source code"""
         self.docstring = not checked
         self.force_refresh()
         
