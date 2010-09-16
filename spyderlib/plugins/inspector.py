@@ -9,6 +9,7 @@
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
                          QToolButton, QGroupBox, QFontComboBox, QActionGroup)
 from PyQt4.QtCore import SIGNAL
+from PyQt4.QtWebKit import QWebView
 
 import sys, re, os.path as osp, socket
 
@@ -85,7 +86,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class ObjectInspector(ReadOnlyEditor):
+class ObjectInspector(ReadOnlyEditor, QWebView):
     """
     Docstrings viewer widget
     """
@@ -95,6 +96,11 @@ class ObjectInspector(ReadOnlyEditor):
     def __init__(self, parent):
         self.set_default_color_scheme()
         ReadOnlyEditor.__init__(self, parent)
+        QWebView.__init__(self, parent)
+        
+        # Add a widget to render the rich (i.e. html) help
+        self.render_rich_text = QWebView(self)
+        self.render_rich_text.hide()
         
         self.shell = None
         
@@ -115,22 +121,25 @@ class ObjectInspector(ReadOnlyEditor):
                      lambda valid: self.force_refresh())
         
         # Plain text docstring option
+        self.docstring = True
         plain_text = create_action(self, self.tr("Plain Text"),
                                    toggled=self.toggle_plain_text)
         plain_text.setChecked(True)
-        self.docstring = True
         
         # Source code option
         show_source = create_action(self, self.tr("Show Source"),
                                     toggled=self.toggle_show_source)
-        show_source.setChecked(False)
         
+        # Rich text option
+        rich_text = create_action(self, self.tr("Rich Text"),
+                                  toggled=self.toggle_rich_text)
         
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
         help_actions.setExclusive(True)
         help_actions.addAction(plain_text)
         help_actions.addAction(show_source)
+        help_actions.addAction(rich_text)
         
         # Automatic import option
         auto_import = create_action(self, self.tr("Automatic import"),
@@ -149,7 +158,7 @@ class ObjectInspector(ReadOnlyEditor):
                                            icon=get_icon('tooloptions.png'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
-        add_actions(menu, [plain_text, show_source, auto_import])
+        add_actions(menu, [rich_text, plain_text, show_source, auto_import])
         options_button.setMenu(menu)
         layout_edit.addWidget(options_button)
 
@@ -157,6 +166,7 @@ class ObjectInspector(ReadOnlyEditor):
         layout = QVBoxLayout()
         layout.addLayout(layout_edit)
         layout.addWidget(self.editor)
+        layout.addWidget(self.render_rich_text)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
@@ -263,11 +273,30 @@ class ObjectInspector(ReadOnlyEditor):
     def toggle_plain_text(self, checked):
         """Toggle plain text docstring"""
         self.docstring = checked
+        
+        if self.editor.isHidden():
+            self.editor.show()
+            self.render_rich_text.hide()
+        
         self.force_refresh()
         
     def toggle_show_source(self, checked):
         """Toggle show source code"""
         self.docstring = not checked
+        
+        if self.editor.isHidden():
+            self.editor.show()
+            self.render_rich_text.hide()
+        
+        self.force_refresh()
+        
+    def toggle_rich_text(self, checked):
+        """Toggle between sphinxified docstrings or plain ones"""
+        
+        if self.render_rich_text.isHidden():
+            self.editor.hide()
+            self.render_rich_text.show()
+        
         self.force_refresh()
         
     def toggle_auto_import(self, checked):
