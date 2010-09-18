@@ -23,6 +23,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import ReadOnlyEditor, PluginConfigPage
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyderlib.plugins.sphinxify import sphinxify
 
 
 class ObjectComboBox(EditableComboBox):
@@ -133,6 +134,7 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
         # Rich text option
         rich_text = create_action(self, self.tr("Rich Text"),
                                   toggled=self.toggle_rich_text)
+        self.rich_help = False
         
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
@@ -272,32 +274,36 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
         
     def toggle_plain_text(self, checked):
         """Toggle plain text docstring"""
-        self.docstring = checked
+        if checked:
+            self.docstring = checked
+            self.rich_help = not checked
         
-        if self.editor.isHidden():
-            self.editor.show()
-            self.render_rich_text.hide()
-        
-        self.force_refresh()
+            if self.editor.isHidden():
+                self.editor.show()
+                self.render_rich_text.hide()
+            self.force_refresh()
         
     def toggle_show_source(self, checked):
         """Toggle show source code"""
-        self.docstring = not checked
+        if checked:
+            self.docstring = not checked
+            self.rich_help = not checked
         
-        if self.editor.isHidden():
-            self.editor.show()
-            self.render_rich_text.hide()
-        
-        self.force_refresh()
+            if self.editor.isHidden():
+                self.editor.show()
+                self.render_rich_text.hide()
+            self.force_refresh()
         
     def toggle_rich_text(self, checked):
         """Toggle between sphinxified docstrings or plain ones"""
-        
-        if self.render_rich_text.isHidden():
-            self.editor.hide()
-            self.render_rich_text.show()
-        
-        self.force_refresh()
+        if checked:
+            self.rich_help = checked
+            self.docstring = not checked
+            
+            if self.render_rich_text.isHidden():
+                self.editor.hide()
+                self.render_rich_text.show()
+            self.force_refresh()
         
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
@@ -366,7 +372,16 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
             doc_text = None
             source_text = None
         is_code = False
-        if self.docstring:
+        
+        if self.rich_help:
+            if doc_text is not None:
+                html_text = sphinxify(doc_text)
+            else:
+                html_text = self.tr("No documentation available.")
+            
+            self.render_rich_text.setHtml(html_text)
+        
+        elif self.docstring:
             hlp_text = doc_text
             if hlp_text is None:
                 hlp_text = source_text
@@ -380,11 +395,13 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
                     hlp_text = self.tr("No source code available.")
             else:
                 is_code = True
-        self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurence_highlighting(is_code)
-        if is_code:
-            self.editor.set_language('py')
-        else:
-            self.editor.set_language(None)
-        self.editor.set_text(hlp_text)
-        self.editor.set_cursor_position('sof')
+        
+        if self.editor.isVisible():
+            self.editor.set_highlight_current_line(is_code)
+            self.editor.set_occurence_highlighting(is_code)
+            if is_code:
+                self.editor.set_language('py')
+            else:
+                self.editor.set_language(None)
+            self.editor.set_text(hlp_text)
+            self.editor.set_cursor_position('sof')
