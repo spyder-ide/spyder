@@ -8,7 +8,7 @@
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
                          QToolButton, QGroupBox, QFontComboBox, QActionGroup)
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, QUrl
 from PyQt4.QtWebKit import QWebView
 
 import sys, re, os.path as osp, socket
@@ -125,7 +125,6 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
         self.docstring = True
         plain_text = create_action(self, self.tr("Plain Text"),
                                    toggled=self.toggle_plain_text)
-        plain_text.setChecked(True)
         
         # Source code option
         show_source = create_action(self, self.tr("Show Source"),
@@ -134,8 +133,23 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
         # Rich text option
         rich_text = create_action(self, self.tr("Rich Text"),
                                   toggled=self.toggle_rich_text)
-        self.rich_help = False
+        rich_text.setChecked(True)
+        self.rich_help = True
         
+        # Html parts neccesary to properly render the rich help
+        self.path = osp.dirname(__file__)
+        
+        self.html_head = '<html> \
+        <head> \
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
+        <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
+        <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
+        </head> \
+        <body>' % (self.path, self.path)
+        
+        self.html_tail = '</body> \
+        </html>'
+                
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
         help_actions.setExclusive(True)
@@ -373,13 +387,16 @@ class ObjectInspector(ReadOnlyEditor, QWebView):
             source_text = None
         is_code = False
         
+        
         if self.rich_help:
             if doc_text is not None:
                 html_text = sphinxify(doc_text)
             else:
                 html_text = self.tr("No documentation available.")
             
-            self.render_rich_text.setHtml(html_text)
+            html_text = self.html_head + html_text + self.html_tail
+            
+            self.render_rich_text.setHtml(html_text, baseUrl=QUrl.fromLocalFile(self.path))
         
         elif self.docstring:
             hlp_text = doc_text

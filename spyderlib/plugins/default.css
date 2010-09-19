@@ -1,0 +1,115 @@
+div.docstring {
+    background-color: transparent;
+    color: black;
+    padding: 4px;
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: normal;
+    font-size: 10pt;
+}
+
+a.headerlink {
+    color: transparent;
+    font-size: 0.8em;
+    padding: 0 4px 0 4px;
+    text-decoration: none;
+}
+
+a.headerlink:hover {
+    background-color: transparent;
+    color: transparent;
+}
+
+div.section {
+    margin: 20px 0px 0px 0px;
+}
+
+div.section h1 {
+    background-color: #F2F2F2;
+    border: 1px solid #CCC;
+    color: #20435C;
+    font-weight: bold;
+    padding: 4px 0px 4px 8px;
+    font-size: 200%;
+}
+
+dl.docutils {
+    padding: 0px 10px 0px;
+}
+
+div.section p {
+    padding: 0px 10px 0px;
+}
+
+div#parameters.section h1 {
+    background-color: #EDE;
+    border: 1px solid #AAA !important;
+    color: #06C;
+    font-size: 135%;
+}
+
+div#returns.section h1 {
+    background-color: #EDE;
+    border: 1px solid #AAA !important;
+    color: #06C;
+    font-size: 135%;
+}
+
+div#see-also.section h1 {
+    background-color: #ffc;
+    border: transparent;
+    color: black;
+    /*margin-top: 4px;*/
+    margin: 4px 0px 0px 0px;
+    padding: 0px 0px 0px 8px;
+    font-size: 135%;
+}
+
+div#see-also.section {
+    background-color: #ffc;
+    color: black;
+    padding: 1px;
+    border: 1px solid #FF6 !important;
+}
+
+div#notes.section h1 {
+    background-color: #E6E6E6;
+    border: 1px solid #CCC;
+    color: #355F7C;
+    font-size: 135%;
+}
+
+div#examples.section h1 {
+    background-color: #E6E6E6;
+    border: 1px solid #CCC;
+    color: #355F7C;
+    font-size: 135%;
+}
+
+/* spacing around example code */
+div.highlight pre {
+    padding: 2px 0px 2px 0px;
+    background-color: #EFC;
+    border: 1px solid #AC9;
+    border-left: None;
+    border-right: None;
+}
+
+div.highlight {
+    padding: 0px 10px 0px;
+}
+
+dt {
+    font-weight: bold;
+    /*font-size: 16px;*/
+}
+
+.classifier {
+    /*font-size: 10pt;*/
+    font-weight: normal;
+}
+
+tt {
+    background-color: #ECF0F3;
+    font-size: 0,95em;
+    padding: 0px 1px;
+}
