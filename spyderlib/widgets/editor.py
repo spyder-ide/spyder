@@ -1173,12 +1173,15 @@ class EditorStack(QWidget):
     
     #------ Update UI
     def start_stop_analysis_timer(self):
-        if self.realtime_analysis_enabled and not self.is_analysis_done:
+        self.is_analysis_done = False
+        if self.realtime_analysis_enabled:
             self.analysis_timer.stop()
             self.analysis_timer.start()
     
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes + find todos"""
+        if self.is_analysis_done:
+            return
         if index is None:
             index = self.get_stack_index()
         if self.data:
@@ -1458,8 +1461,6 @@ class EditorStack(QWidget):
         eol_chars = finfo.editor.get_line_separator()
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
-        # Analysis
-        self.is_analysis_done = not state
         
 
     #------ Load, reload
@@ -1528,7 +1529,7 @@ class EditorStack(QWidget):
                                fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
-        self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
+        self.connect(editor, SIGNAL('textChanged()'),
                      self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
