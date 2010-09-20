@@ -919,6 +919,10 @@ class CodeEditor(TextEditBaseWidget):
             data.code_analysis = []
             if data.is_empty():
                 del data
+        # When the new code analysis results are empty, it is necessary 
+        # to update manually the scrollflag area (otherwise, the old flags 
+        # will still be displayed):
+        self.scrollflagarea.update()
         
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
