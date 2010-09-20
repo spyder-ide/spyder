@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
                          QAbstractPrintDialog, QGroupBox, QTabWidget, QLabel,
-                         QFontComboBox)
+                         QFontComboBox, QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -135,14 +135,6 @@ class EditorConfigPage(PluginConfigPage):
                           "will automatically show informations on functions\n"
                           "entered in editor (this is triggered when entering\n"
                           "a left parenthesis after a valid function name)"))
-        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
-              'code_analysis', default=True,
-              tip=self.tr("If enabled, Python source code will be analyzed\n"
-                          "using pyflakes, lines containing errors or \n"
-                          "warnings will be highlighted"))
-        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
-        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
-                             'todo_list', default=True)
         tab_mode_box = newcb(self.tr("Tab always indent"),
               'tab_always_indent', default=False,
               tip=self.tr("If enabled, pressing Tab will always indent,\n"
@@ -157,6 +149,32 @@ class EditorConfigPage(PluginConfigPage):
                                     "code completion and go-to-definition "
                                     "features won't be available."))
         rope_label.setWordWrap(True)
+
+        analysis_group = QGroupBox(self.tr("Analysis"))
+        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
+              'code_analysis', default=True,
+              tip=self.tr("If enabled, Python source code will be analyzed\n"
+                          "using pyflakes, lines containing errors or \n"
+                          "warnings will be highlighted"))
+        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
+        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
+                             'todo_list', default=True)
+        ancb_layout = QHBoxLayout()
+        ancb_layout.addWidget(codeanalysis_box)
+        ancb_layout.addWidget(todolist_box)
+        realtime_radio = self.create_radiobutton(
+                                            self.tr("Perform analysis when "
+                                                    "saving file and every"),
+                                            'realtime_analysis', True)
+        saveonly_radio = self.create_radiobutton(
+                                            self.tr("Perform analysis only "
+                                                    "when saving file"),
+                                            'onsave_analysis', False)
+        af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
+                                      min_=100, max_=1000000, step=100)
+        af_layout = QHBoxLayout()
+        af_layout.addWidget(realtime_radio)
+        af_layout.addWidget(af_spin)
         
         sourcecode_layout = QVBoxLayout()
         if programs.is_module_installed('rope'):
@@ -167,10 +185,14 @@ class EditorConfigPage(PluginConfigPage):
             sourcecode_layout.addWidget(inspector_box)
         else:
             sourcecode_layout.addWidget(rope_label)
-        sourcecode_layout.addWidget(codeanalysis_box)
-        sourcecode_layout.addWidget(todolist_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_group.setLayout(sourcecode_layout)
+        
+        analysis_layout = QVBoxLayout()
+        analysis_layout.addLayout(ancb_layout)
+        analysis_layout.addLayout(af_layout)
+        analysis_layout.addWidget(saveonly_radio)
+        analysis_group.setLayout(analysis_layout)
 
         eol_group = QGroupBox(self.tr("End-of-line characters"))
         eol_label = QLabel(self.tr("When opening a text file containing "
@@ -191,7 +213,8 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group),
                     self.tr("Display"))
-        tabs.addTab(self.create_tab(template_btn, sourcecode_group, eol_group),
+        tabs.addTab(self.create_tab(template_btn, sourcecode_group,
+                                    analysis_group, eol_group),
                     self.tr("Advanced settings"))
         
         vlayout = QVBoxLayout()
@@ -833,6 +856,8 @@ class Editor(SpyderPluginWidget):
         settings = (
             ('set_codeanalysis_enabled',            'code_analysis'),
             ('set_todolist_enabled',                'todo_list'),
+            ('set_realtime_analysis_enabled',       'realtime_analysis'),
+            ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
@@ -1780,6 +1805,10 @@ class Editor(SpyderPluginWidget):
             todo_o = self.get_option(todo_n)
             analysis_n = 'code_analysis'
             analysis_o = self.get_option(analysis_n)
+            rt_analysis_n = 'realtime_analysis'
+            rt_analysis_o = self.get_option(rt_analysis_n)
+            rta_timeout_n = 'realtime_analysis/timeout'
+            rta_timeout_o = self.get_option(rta_timeout_n)
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
                 if self.outlineexplorer is not None:
@@ -1825,6 +1854,10 @@ class Editor(SpyderPluginWidget):
                 if analysis_n in options:
                     editorstack.set_codeanalysis_enabled(analysis_o,
                                                          current_finfo=finfo)
+                if rt_analysis_n in options:
+                    editorstack.set_realtime_analysis_enabled(rt_analysis_o)
+                if rta_timeout_n in options:
+                    editorstack.set_realtime_analysis_timeout(rta_timeout_o)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)

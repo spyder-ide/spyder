@@ -27,13 +27,14 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 #===============================================================================
 import compiler
 
-def check(filename):
+def check(source_code, filename=None):
     try:
         import pyflakes.checker, pyflakes.messages
     except ImportError:
         return []
     try:
-        tree = compiler.parse(file(filename, 'U').read() + '\n')
+#        tree = compiler.parse(file(filename, 'U').read() + '\n')
+        tree = compiler.parse(source_code+'\n')
     except (SyntaxError, IndentationError), e:
         message = e.args[0]
         value = sys.exc_info()[1]
@@ -45,6 +46,8 @@ def check(filename):
         return [ (message, lineno, True) ]
     else:
         results = []
+        if filename is None:
+            filename = '(none)'
         w = pyflakes.checker.Checker(tree, filename)
         w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
         

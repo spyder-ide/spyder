@@ -191,6 +191,8 @@ DEFAULTS = [
               'wrapflag': True,
               'code_analysis': True,
               'todo_list': True,
+              'realtime_analysis': True,
+              'realtime_analysis/timeout': 2000,
               'outline_explorer': True,
               'line_numbers': True,
               'toolbox_panel': True,

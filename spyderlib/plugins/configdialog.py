@@ -427,8 +427,14 @@ class SpyderConfigPage(ConfigPage):
     
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
-        plabel = QLabel(prefix)
-        slabel = QLabel(suffix)
+        if prefix:
+            plabel = QLabel(prefix)
+        else:
+            plabel = None
+        if suffix:
+            slabel = QLabel(suffix)
+        else:
+            slabel = None
         spinbox = QSpinBox()
         if min_ is not None:
             spinbox.setMinimum(min_)
@@ -441,7 +447,8 @@ class SpyderConfigPage(ConfigPage):
         self.spinboxes[spinbox] = (option, default)
         layout = QHBoxLayout()
         for subwidget in (plabel, spinbox, slabel):
-            layout.addWidget(subwidget)
+            if subwidget is not None:
+                layout.addWidget(subwidget)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)

@@ -18,7 +18,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QDialog, QLineEdit, QIntValidator, QDialogButtonBox,
                          QGridLayout)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
-                          PYQT_VERSION_STR, QSize, QPoint, SLOT)
+                          PYQT_VERSION_STR, QSize, QPoint, SLOT, QTimer)
 
 import os, sys, re
 import os.path as osp
@@ -195,8 +195,9 @@ class FileListDialog(QDialog):
 
 class CodeAnalysisThread(QThread):
     """Pyflakes code analysis thread"""
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
+    def __init__(self, editor):
+        QThread.__init__(self, editor)
+        self.editor = editor
         self.filename = None
         self.analysis_results = []
         
@@ -204,7 +205,8 @@ class CodeAnalysisThread(QThread):
         self.filename = filename
         
     def run(self):
-        self.analysis_results = check(self.filename)
+        source_code = unicode(self.editor.toPlainText()).encode('utf-8')
+        self.analysis_results = check(source_code, filename=self.filename)
         
     def get_results(self):
         return self.analysis_results
@@ -256,7 +258,7 @@ class FileInfo(QObject):
         self.connect(editor, SIGNAL('textChanged()'),
                      self.text_changed)
             
-        self.analysis_thread = CodeAnalysisThread(self)
+        self.analysis_thread = CodeAnalysisThread(self.editor)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
                      self.code_analysis_finished)
         
@@ -420,6 +422,8 @@ class EditorStack(QWidget):
         self.valid_types = None
         self.codeanalysis_enabled = True
         self.todolist_enabled = True
+        self.realtime_analysis_enabled = False
+        self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = False
@@ -446,6 +450,13 @@ class EditorStack(QWidget):
                                       plugin.emit(SIGNAL("focus_changed()"))
         
         self.__file_status_flag = False
+        
+        # Real-time code analysis
+        self.analysis_timer = QTimer(self)
+        self.analysis_timer.setSingleShot(True)
+        self.analysis_timer.setInterval(2000)
+        self.connect(self.analysis_timer, SIGNAL("timeout()"), 
+                     self.analyze_script)
         
         # Accepting drops
         self.setAcceptDrops(True)
@@ -688,6 +699,12 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
+                        
+    def set_realtime_analysis_enabled(self, state):
+        self.realtime_analysis_enabled = state
+
+    def set_realtime_analysis_timeout(self, timeout):
+        self.analysis_timer.setInterval(timeout)
     
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
@@ -1155,6 +1172,11 @@ class EditorStack(QWidget):
             self.emit(SIGNAL("refresh_explorer(QString)"), folder)
     
     #------ Update UI
+    def start_stop_analysis_timer(self):
+        if self.realtime_analysis_enabled and not self.is_analysis_done:
+            self.analysis_timer.stop()
+            self.analysis_timer.start()
+    
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes + find todos"""
         if index is None:
@@ -1165,6 +1187,7 @@ class EditorStack(QWidget):
                 finfo.run_code_analysis()
             if self.todolist_enabled:
                 finfo.run_todo_finder()
+        self.is_analysis_done = True
                 
     def set_analysis_results(self, index, analysis_results):
         """Synchronize analysis results between editorstacks"""
@@ -1435,6 +1458,8 @@ class EditorStack(QWidget):
         eol_chars = finfo.editor.get_line_separator()
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
         self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
+        # Analysis
+        self.is_analysis_done = not state
         
 
     #------ Load, reload
@@ -1503,6 +1528,8 @@ class EditorStack(QWidget):
                                fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
+        self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
+                     self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
