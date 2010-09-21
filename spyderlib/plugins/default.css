@@ -54,6 +54,13 @@ div#returns.section h1 {
     font-size: 135%;
 }
 
+div#raises.section h1 {
+    background-color: #EDE;
+    border: 1px solid #AAA !important;
+    color: #06C;
+    font-size: 135%;
+}
+
 div#see-also.section h1 {
     background-color: #ffc;
     border: transparent;
