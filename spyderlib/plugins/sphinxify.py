@@ -10,6 +10,7 @@ Processes docstrings with Sphinx. Can also be used as a commandline script:
 AUTHORS:
 
 - Tim Joseph Dumol (2009-09-29): initial version
+- Carlos Cordoba (2010-09-21): Some changes to make it work with spyderlib
 """
 #**************************************************
 # Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
@@ -22,13 +23,14 @@ import shutil
 from tempfile import mkdtemp
 
 # We import Sphinx on demand, to reduce Sage startup time.
-Sphinx = None
+# Sphinx = None
+from sphinx.application import Sphinx
+from pygments import plugin
 
 try:
     from sage.misc.misc import SAGE_DOC
 except ImportError:
     SAGE_DOC = ''  # used to be None
-
 
 def is_sphinx_markup(docstring):
     """
@@ -65,16 +67,16 @@ def sphinxify(docstring, format='html'):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.sphinxify import sphinxify
-        sage: sphinxify('A test')
-        '<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
-        sage: sphinxify('**Testing**\n`monospace`')
-        '<div class="docstring"...<strong>Testing</strong>\n<span class="math"...</p>\n\n\n</div>'
-        sage: sphinxify('`x=y`')
-        '<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
-        sage: sphinxify('`x=y`', format='text')
+        >>> from spyderlib.plugins.sphinxify import sphinxify
+        >>> sphinxify('A test')
+        '\n<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
+        >>> sphinxify('**Testing**\n`monospace`')
+        '\n<div class="docstring">\n    \n  <p><strong>Testing</strong>\n<span class="math">monospace</span></p>\n\n\n</div>'
+        >>> sphinxify('`x=y`')
+        '\n<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
+        >>> sphinxify('`x=y`', format='text')
         'x=y\n'
-        sage: sphinxify(':math:`x=y`', format='text')
+        >>> sphinxify(':math:`x=y`', format='text')
         'x=y\n'
     """
     global Sphinx
@@ -152,11 +154,11 @@ def generate_configuration(directory):
 
     EXAMPLES::
 
-        sage: from sagenb.misc.sphinxify import generate_configuration
-        sage: import tempfile, os
-        sage: tmpdir = tempfile.mkdtemp()
-        sage: generate_configuration(tmpdir)
-        sage: open(os.path.join(tmpdir, 'conf.py')).read()
+        >>> from spyderlib.plugins.sphinxify import generate_configuration
+        >>> import tempfile, os
+        >>> tmpdir = tempfile.mkdtemp()
+        >>> generate_configuration(tmpdir)
+        >>> open(os.path.join(tmpdir, 'conf.py')).read()
         '\n...extensions =...templates_path...source = False\n...'
     """
     conf = r'''
