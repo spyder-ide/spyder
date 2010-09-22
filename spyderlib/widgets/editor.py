@@ -863,17 +863,16 @@ class EditorStack(QWidget):
         self.update_filelistdialog()
         
     def __repopulate_stack(self):
-        self.combo.blockSignals(True)
-        for _i in range(self.tabs.count()):
-            self.tabs.removeTab(_i)
-        self.combo.clear()
-        for _i, _fi in enumerate(self.data):
-            fname, editor = _fi.filename, _fi.editor
-            self.tabs.insertTab(_i, editor, get_filetype_icon(fname),
-                                self.get_tab_title(fname))
-            self.combo.insertItem(_i, get_filetype_icon(fname),
-                                  self.get_combo_title(fname))
-        self.combo.blockSignals(False)
+        for widget in (self.combo, self.tabs):
+            widget.blockSignals(True)
+            widget.clear()
+        for finfo in self.data:
+            icon = get_filetype_icon(finfo.filename)
+            self.tabs.addTab(finfo.editor, icon,
+                             self.get_tab_title(finfo.filename))
+            self.combo.addItem(icon, self.get_combo_title(finfo.filename))
+        for widget in (self.combo, self.tabs):
+            widget.blockSignals(False)
         self.update_filelistdialog()
         
     def rename_in_data(self, index, new_filename):
