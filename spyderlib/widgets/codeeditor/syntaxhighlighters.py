@@ -319,7 +319,14 @@ class PythonSH(BaseSH):
                         state = self.INSIDE_DQSTRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
-                        if key == "keyword":
+                        if key == "comment":
+                            if text.lstrip().startswith('#---'):
+                                oedata = OutlineExplorerData()
+                                oedata.text = unicode(text).strip()
+                                oedata.fold_level = start
+                                oedata.def_type = None
+                                oedata.def_name = text.strip()
+                        elif key == "keyword":
                             if value in ("def", "class"):
                                 match1 = self.IDPROG.match(text, end)
                                 if match1:
