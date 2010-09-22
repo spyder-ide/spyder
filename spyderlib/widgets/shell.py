@@ -698,6 +698,7 @@ class PythonShellWidget(ShellBaseWidget):
         ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
         
         self.inspector = None
+        self.inspector_enabled = True
         
         # Allow raw_input support:
         self.input_loop = None
@@ -705,7 +706,7 @@ class PythonShellWidget(ShellBaseWidget):
         
         # Mouse cursor
         self.__cursor_changed = False
-
+        
 
     #------ Context menu
     def setup_context_menu(self):
@@ -994,12 +995,9 @@ class PythonShellWidget(ShellBaseWidget):
     
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        
         text = unicode(text) # Useful only for ExternalShellBase
         
-        if (self.inspector is not None) and \
+        if self.inspector_enabled and (self.inspector is not None) and \
            (self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
             self.inspector.set_object_text(text)
@@ -1007,7 +1005,7 @@ class PythonShellWidget(ShellBaseWidget):
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell
-            if call:
+            if call and self.calltips:
                 # Display argument list if this is function call
                 iscallable = self.iscallable(text)
                 if iscallable is not None:
@@ -1017,7 +1015,7 @@ class PythonShellWidget(ShellBaseWidget):
                             self.show_calltip(translate("PythonShellWidget",
                                                         "Arguments"),
                                               arglist, '#129625')
-        else: # inspector is not visible
+        elif self.calltips: # inspector is not visible or link is disabled
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(translate("PythonShellWidget",
@@ -1035,6 +1033,9 @@ class PythonShellWidget(ShellBaseWidget):
         """Set ObjectInspector DockWidget reference"""
         self.inspector = inspector
         self.inspector.set_shell(self)
+
+    def set_inspector_enabled(self, state):
+        self.inspector_enabled = state
             
             
     #------ Drag'n Drop

@@ -76,16 +76,24 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
         # Advanced settings
         source_group = QGroupBox(self.tr("Source code"))
-        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
                                'codecompletion/enter-key')
+        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
+        inspector_box = newcb(
+              self.tr("Automatic notification to object inspector"),
+              'object_inspector', default=True,
+              tip=self.tr("If this option is enabled, object inspector\n"
+                      "will automatically show informations on functions\n"
+                      "entered in console (this is triggered when entering\n"
+                      "a left parenthesis after a valid function name)"))
         
         source_layout = QVBoxLayout()
-        source_layout.addWidget(calltips_box)
         source_layout.addWidget(completion_box)
         source_layout.addWidget(comp_enter_box)
+        source_layout.addWidget(calltips_box)
+        source_layout.addWidget(inspector_box)
         source_group.setLayout(source_layout)
 
         # UMD Group
@@ -455,6 +463,8 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.shell.set_font( self.get_plugin_font() )
         shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
         shellwidget.shell.set_calltips( self.get_option('calltips') )
+        shellwidget.shell.set_inspector_enabled( self.get_option(
+                                                        'object_inspector') )
         shellwidget.shell.set_codecompletion_auto(
                                 self.get_option('codecompletion/auto') )
         shellwidget.shell.set_codecompletion_enter(
@@ -655,6 +665,7 @@ class ExternalConsole(SpyderPluginWidget):
         font = self.get_plugin_font()
         icontext = self.get_option('show_icontext')
         calltips = self.get_option('calltips')
+        inspector = self.get_option('object_inspector')
         wrap = self.get_option('wrap')
         compauto = self.get_option('codecompletion/auto')
         compenter = self.get_option('codecompletion/enter-key')
@@ -663,6 +674,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.set_font(font)
             shellwidget.set_icontext_visible(icontext)
             shellwidget.shell.set_calltips(calltips)
+            shellwidget.shell.set_inspector_enabled(inspector)
             shellwidget.shell.toggle_wrap_mode(wrap)
             shellwidget.shell.set_codecompletion_auto(compauto)
             shellwidget.shell.set_codecompletion_enter(compenter)

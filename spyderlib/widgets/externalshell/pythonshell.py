@@ -90,7 +90,7 @@ class ExtPythonShellWidget(PythonShellWidget):
             
     def iscallable(self, objtxt):
         """Is object callable?"""
-        return self.ask_monitor("iscallable(%s)" % objtxt)
+        return self.ask_monitor("callable(%s)" % objtxt)
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
