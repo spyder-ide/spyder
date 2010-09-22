@@ -36,7 +36,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, OutlineExplorer
-from spyderlib.widgets.codeeditor.codeeditor import CodeEditor
+from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
@@ -302,12 +302,10 @@ class FileInfo(QObject):
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
         if textlist:
-            text = textlist[0]
-            parpos = text.find('(')
-            if parpos:
-                text = text[:parpos]
-                self.emit(SIGNAL("send_to_inspector(QString)"), text)
             self.editor.show_calltip("rope", textlist)
+        text = get_primary_at(source_code, offset)
+        if text:
+            self.emit(SIGNAL("send_to_inspector(QString)"), text)
                     
     def go_to_definition(self, position):
         if self.project is None:
@@ -466,6 +464,9 @@ class EditorStack(QWidget):
         self.setAcceptDrops(True)
 
         # Local shortcuts
+        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), parent,
+                                   self.inspect_current_object)
+        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
         self.breakpointsc = QShortcut(QKeySequence("F12"), parent,
                                       self.set_or_clear_breakpoint)
         self.breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -496,6 +497,7 @@ class EditorStack(QWidget):
         default (string): default key sequence
         """
         return [
+                (self.inspectsc, "Inspect current object", "Ctrl+I"),
                 (self.breakpointsc, "Breakpoint", "F12"),
                 (self.cbreakpointsc, "Conditional breakpoint", "Shift+F12"),
                 (self.gotolinesc, "Go to line", "Ctrl+L"),
@@ -632,6 +634,12 @@ class EditorStack(QWidget):
         if self.data:
             editor = self.get_current_editor()
             editor.add_remove_breakpoint(edit_condition=True)
+            
+    def inspect_current_object(self):
+        """Inspect current object in Object Inspector"""
+        text = self.get_current_editor().get_current_object()
+        if text:
+            self.send_to_inspector(text)
         
         
     #------ Editor Widget Settings

@@ -61,6 +61,15 @@ class BlockUserData(QTextBlockUserData):
         bud_list = self.editor.blockuserdata_list
         bud_list.pop(bud_list.index(self))
 
+def get_primary_at(source_code, offset):
+    """Return Python object in *source_code* at *offset*"""
+    try:
+        import rope.base.worder
+        word_finder = rope.base.worder.Worder(source_code, True)
+        return word_finder.get_primary_at(offset)
+    except ImportError:
+        return
+
 class CodeEditor(TextEditBaseWidget):
     """
     Source Code Editor Widget based exclusively on Qt
@@ -369,6 +378,12 @@ class CodeEditor(TextEditBaseWidget):
         if text_before != text_after:
             self.setPlainText(text_after)
             self.document().setModified(True)
+
+    def get_current_object(self):
+        """Return current object (string) -- requires 'rope'"""
+        source_code = unicode(self.toPlainText())
+        offset = self.get_position('cursor')
+        return get_primary_at(source_code, offset)
     
     #------EOL characters
     def set_eol_mode(self, text):
