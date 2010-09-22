@@ -322,8 +322,6 @@ class NamespaceBrowser(QWidget):
 
             
         for filename in filenames:
-            QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
-            QApplication.processEvents()
             
             self.filename = unicode(filename)
             ext = osp.splitext(self.filename)[1].lower()
@@ -356,7 +354,11 @@ class NamespaceBrowser(QWidget):
                 except Exception, error:
                     error_message = str(error)
             else:
+                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+                QApplication.processEvents()
                 error_message = monitor_load_globals(sock, self.filename)
+                QApplication.restoreOverrideCursor()
+                QApplication.processEvents()
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
@@ -365,8 +367,6 @@ class NamespaceBrowser(QWidget):
                                              ).arg(self.filename
                                                    ).arg(error_message))
             self.refresh_table()
-            QApplication.restoreOverrideCursor()
-            QApplication.processEvents()
             
     
     def save_data(self, filename=None):
