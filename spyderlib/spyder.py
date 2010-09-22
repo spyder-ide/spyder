@@ -288,9 +288,9 @@ class MainWindow(QMainWindow):
             self.set_splash(self.tr("Initializing..."))
             if CONF.get('main', 'current_version', '') != __version__:
                 CONF.set('main', 'current_version', __version__)
-                run_python_script(module="compileall",
-                                  args=['-q', spyderlib.__path__[0]],
-                                  p_args=['-O'])
+                # Execute here the actions to be performed only once after
+                # each update (there is nothing there for now, but it could 
+                # be useful some day...)
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
@@ -1263,6 +1263,10 @@ def get_options():
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Reset to default session")
+    parser.add_option('--optimize', dest="optimize",
+                      action='store_true', default=False,
+                      help="Optimize Spyder bytecode (this may require "
+                           "administrative privileges)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
@@ -1356,6 +1360,10 @@ def main():
     if options.reset_session:
         reset_session()
 #        CONF.reset_to_defaults(save=True)
+        return
+    elif options.optimize:
+        run_python_script(module="compileall", args=[spyderlib.__path__[0]],
+                          p_args=['-O'])
         return
 
     if CONF.get('main', 'crash', False):
