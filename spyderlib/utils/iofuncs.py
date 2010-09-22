@@ -331,9 +331,9 @@ class IOFunctions(QObject):
                 print >>STDERR, "%s: %s" % (mod, str(error))
         return other_funcs
     
-    def get_open_filename(self, parent, filename, title):
-        return QFileDialog.getOpenFileName(parent, title, filename,
-                                           self.load_filters)
+    def get_open_filenames(self, parent, filename, title):
+        return QFileDialog.getOpenFileNames(parent, title, filename,
+                                            self.load_filters)
     
     def get_save_filename(self, parent, filename, title):
         return QFileDialog.getSaveFileName(parent, title, filename,
