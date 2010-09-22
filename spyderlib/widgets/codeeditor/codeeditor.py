@@ -360,6 +360,7 @@ class CodeEditor(TextEditBaseWidget):
         text_after = sourcecode.remove_trailing_spaces(text_before)
         if text_before != text_after:
             self.setPlainText(text_after)
+            self.document().setModified(True)
             
     def fix_indentation(self):
         """Replace tabs by spaces"""
@@ -367,6 +368,7 @@ class CodeEditor(TextEditBaseWidget):
         text_after = sourcecode.fix_indentation(text_before)
         if text_before != text_after:
             self.setPlainText(text_after)
+            self.document().setModified(True)
     
     #------EOL characters
     def set_eol_mode(self, text):
