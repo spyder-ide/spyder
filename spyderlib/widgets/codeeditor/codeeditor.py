@@ -653,6 +653,11 @@ class CodeEditor(TextEditBaseWidget):
                 data.breakpoint_condition = condition
             else:
                 return
+        if data.breakpoint:
+            text = unicode(block.text()).strip()
+            if len(text) == 0 or text.startswith('#') or text.startswith('"') \
+               or text.startswith("'"):
+                data.breakpoint = False
         block.setUserData(data)
         self.linenumberarea.update()
         self.scrollflagarea.update()
