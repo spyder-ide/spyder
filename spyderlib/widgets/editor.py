@@ -96,6 +96,8 @@ class FileListDialog(QDialog):
     def __init__(self, parent, combo, fullpath_sorting):
         QDialog.__init__(self, parent)
         
+        self.indexes = None
+        
         self.setWindowIcon(get_icon('filelist.png'))
         self.setWindowTitle(translate("Editor", "File list management"))
         
@@ -132,7 +134,7 @@ class FileListDialog(QDialog):
               text=translate("Editor", "&Close file"),
               icon=get_icon("fileclose.png"), autoraise=False,
               triggered=lambda: self.emit(SIGNAL("close_file(int)"),
-                                          self.listwidget.currentRow()))
+                                  self.indexes[self.listwidget.currentRow()]))
         close_btn.setMinimumHeight(28)
         btn_layout.addWidget(close_btn)
 
@@ -154,7 +156,7 @@ class FileListDialog(QDialog):
     def edit_file(self):
         row = self.listwidget.currentRow()
         if self.listwidget.count() > 0 and row >= 0:
-            self.emit(SIGNAL("edit_file(int)"), row)
+            self.emit(SIGNAL("edit_file(int)"), self.indexes[row])
             self.accept()
             
     def item_selection_changed(self):
@@ -174,6 +176,7 @@ class FileListDialog(QDialog):
         else:
             current_text = ""
         self.listwidget.clear()
+        self.indexes = []
         new_current_index = stack_index
         filter_text = unicode(self.edit.text())
         lw_index = 0
@@ -187,6 +190,7 @@ class FileListDialog(QDialog):
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
+                self.indexes.append(index)
         if new_current_index < self.listwidget.count():
             self.listwidget.setCurrentRow(new_current_index)
         for btn in self.buttons:
