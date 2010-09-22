@@ -1268,10 +1268,10 @@ def get_options():
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
-    parser.add_option('--onethread', dest="multithreaded",
-                      action='store_false', default=True,
-                      help="Internal console run in the same thread as main "
-                           "application")
+    parser.add_option('--multithread', dest="multithreaded",
+                      action='store_true', default=False,
+                      help="Internal console is executed in another thread "
+                           "(separate from main application thread)")
     parser.add_option('--profile', dest="profile", action='store_true',
                       default=False,
                       help="Profile mode (internal test, "
