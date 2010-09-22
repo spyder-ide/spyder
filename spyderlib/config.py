@@ -174,7 +174,7 @@ DEFAULTS = [
               'exclude_unsupported': True,
               'inplace': False,
               'truncate': True,
-              'minmax': True,
+              'minmax': False,
               'collvalue': False,
               }),
             ('editor',
