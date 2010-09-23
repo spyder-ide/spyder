@@ -1193,8 +1193,9 @@ class EditorStack(QWidget):
         """Save all opened files"""
         folders = set()
         for index in range(self.get_stack_count()):
-            folders.add(osp.dirname(self.data[index].filename))
-            self.save(index, refresh_explorer=False)
+            if self.data[index].editor.document().isModified():
+                folders.add(osp.dirname(self.data[index].filename))
+                self.save(index, refresh_explorer=False)
         for folder in folders:
             self.emit(SIGNAL("refresh_explorer(QString)"), folder)
     

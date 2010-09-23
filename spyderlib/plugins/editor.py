@@ -116,11 +116,12 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
         display_group.setLayout(display_layout)
+
+        run_group = QGroupBox(self.tr("Run"))
+        saveall_box = newcb(self.tr("Save all files before running script"),
+                            'save_all_before_run')
         
-        sourcecode_group = QGroupBox(self.tr("Source code"))
-        closepar_box = newcb(self.tr("Automatic parentheses, braces and "
-                                     "brackets insertion"),
-                             'close_parentheses')
+        introspection_group = QGroupBox(self.tr("Introspection"))
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
@@ -138,6 +139,19 @@ class EditorConfigPage(PluginConfigPage):
                           "will automatically show informations on functions\n"
                           "entered in editor (this is triggered when entering\n"
                           "a left parenthesis after a valid function name)"))
+        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
+                                    "The Python module <i>rope</i> is not "
+                                    "installed on this computer: calltips, "
+                                    "code completion and go-to-definition "
+                                    "features won't be available."))
+        rope_label.setWordWrap(True)
+        
+        sourcecode_group = QGroupBox(self.tr("Source code"))
+        closepar_box = newcb(self.tr("Automatic parentheses, braces and "
+                                     "brackets insertion"),
+                             'close_parentheses')
+        autounindent_box = newcb(self.tr("Automatic indentation after 'else', "
+                                         "'elif', etc."), 'auto_unindent')
         tab_mode_box = newcb(self.tr("Tab always indent"),
               'tab_always_indent', default=False,
               tip=self.tr("If enabled, pressing Tab will always indent,\n"
@@ -146,13 +160,6 @@ class EditorConfigPage(PluginConfigPage):
                           "completion may be triggered using the alternate\n"
                           "shortcut: Ctrl+Space)"))
         
-        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
-                                    "The Python module <i>rope</i> is not "
-                                    "installed on this computer: calltips, "
-                                    "code completion and go-to-definition "
-                                    "features won't be available."))
-        rope_label.setWordWrap(True)
-
         analysis_group = QGroupBox(self.tr("Analysis"))
         codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
               'code_analysis', default=True,
@@ -179,24 +186,32 @@ class EditorConfigPage(PluginConfigPage):
         af_layout.addWidget(realtime_radio)
         af_layout.addWidget(af_spin)
         
-        sourcecode_layout = QVBoxLayout()
+        run_layout = QVBoxLayout()
+        run_layout.addWidget(saveall_box)
+        run_group.setLayout(run_layout)
+        
+        introspection_layout = QVBoxLayout()
         if programs.is_module_installed('rope'):
-            sourcecode_layout.addWidget(closepar_box)
-            sourcecode_layout.addWidget(calltips_box)
-            sourcecode_layout.addWidget(completion_box)
-            sourcecode_layout.addWidget(comp_enter_box)
-            sourcecode_layout.addWidget(gotodef_box)
-            sourcecode_layout.addWidget(inspector_box)
+            introspection_layout.addWidget(calltips_box)
+            introspection_layout.addWidget(completion_box)
+            introspection_layout.addWidget(comp_enter_box)
+            introspection_layout.addWidget(gotodef_box)
+            introspection_layout.addWidget(inspector_box)
         else:
-            sourcecode_layout.addWidget(rope_label)
-        sourcecode_layout.addWidget(tab_mode_box)
-        sourcecode_group.setLayout(sourcecode_layout)
+            introspection_layout.addWidget(rope_label)
+        introspection_group.setLayout(introspection_layout)
         
         analysis_layout = QVBoxLayout()
         analysis_layout.addLayout(ancb_layout)
         analysis_layout.addLayout(af_layout)
         analysis_layout.addWidget(saveonly_radio)
         analysis_group.setLayout(analysis_layout)
+        
+        sourcecode_layout = QVBoxLayout()
+        sourcecode_layout.addWidget(closepar_box)
+        sourcecode_layout.addWidget(autounindent_box)
+        sourcecode_layout.addWidget(tab_mode_box)
+        sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(self.tr("End-of-line characters"))
         eol_label = QLabel(self.tr("When opening a text file containing "
@@ -217,8 +232,10 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group),
                     self.tr("Display"))
-        tabs.addTab(self.create_tab(template_btn, sourcecode_group,
-                                    analysis_group, eol_group),
+        tabs.addTab(self.create_tab(introspection_group, analysis_group),
+                    self.tr("Code Introspection/Analysis"))
+        tabs.addTab(self.create_tab(template_btn, run_group, sourcecode_group,
+                                    eol_group),
                     self.tr("Advanced settings"))
         
         vlayout = QVBoxLayout()
@@ -869,6 +886,7 @@ class Editor(SpyderPluginWidget):
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
+            ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
@@ -1742,6 +1760,8 @@ class Editor(SpyderPluginWidget):
         
     def re_run_file(self):
         """Re-run last script"""
+        if self.get_option('save_all_before_run', True):
+            self.get_current_editorstack().save_all()
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
@@ -1806,6 +1826,8 @@ class Editor(SpyderPluginWidget):
             gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
+            autounindent_n = 'auto_unindent'
+            autounindent_o = self.get_option(autounindent_n)
             inspector_n = 'object_inspector'
             inspector_o = self.get_option(inspector_n)
             todo_n = 'todo_list'
@@ -1855,6 +1877,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
+                if autounindent_n in options:
+                    editorstack.set_auto_unindent_enabled(autounindent_o)
                 if inspector_n in options:
                     editorstack.set_inspector_enabled(inspector_o)
                 if todo_n in options:
