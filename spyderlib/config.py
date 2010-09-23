@@ -200,6 +200,7 @@ DEFAULTS = [
               'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
+              'auto_unindent': True,
               'object_inspector': True,
               'codecompletion/auto': False,
               'codecompletion/enter-key': False,

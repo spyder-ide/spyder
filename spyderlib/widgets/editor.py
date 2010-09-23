@@ -433,6 +433,7 @@ class EditorStack(QWidget):
         self.calltips_enabled = False
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.auto_unindent_enabled = True
         self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -760,6 +761,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_close_parentheses_enabled(state)
+                
+    def set_auto_unindent_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'auto_unindent')
+        self.auto_unindent_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_auto_unindent_enabled(state)
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
@@ -1539,6 +1547,7 @@ class EditorStack(QWidget):
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
+                auto_unindent=self.auto_unindent_enabled,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)

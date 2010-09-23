@@ -183,6 +183,7 @@ class CodeEditor(TextEditBaseWidget):
         
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.auto_unindent_enabled = True
         
         # Mouse tracking
         self.setMouseTracking(True)
@@ -251,13 +252,15 @@ class CodeEditor(TextEditBaseWidget):
                      scrollflagarea=True, todo_list=True,
                      codecompletion_auto=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
-                     close_parentheses=True, cloned_from=None):
+                     close_parentheses=True, auto_unindent=True,
+                     cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_enter(codecompletion_enter)
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
+        self.set_auto_unindent_enabled(auto_unindent)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -304,6 +307,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+        
+    def set_auto_unindent_enabled(self, enable):
+        """Enable/disable automatic unindent after else/elif/finally/except"""
+        self.auto_unindent_enabled = enable
         
     def set_occurence_highlighting(self, enable):
         """Enable/disable occurence highlighting"""
@@ -1203,7 +1210,8 @@ class CodeEditor(TextEditBaseWidget):
         if prevtext.endswith(':'):
             # Indent            
             correct_indent += 4
-        elif prevtext.endswith('continue') or prevtext.endswith('break'):
+        elif prevtext.endswith('continue') or prevtext.endswith('break') \
+             or prevtext.endswith('pass'):
             # Unindent
             correct_indent -= 4
         elif prevtext.endswith(',') \
@@ -1470,6 +1478,24 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousCharacter)
             self.setTextCursor(cursor)
             event.accept()
+        elif key == Qt.Key_Colon and not self.has_selected_text() \
+             and self.auto_unindent_enabled:
+            leading_text = self.get_text('sol', 'cursor')
+            if leading_text.lstrip() in ('else', 'finally'):
+                ind = lambda txt: len(txt)-len(txt.lstrip())
+                prevtxt = unicode(self.textCursor().block().previous().text())
+                if ind(leading_text) == ind(prevtxt):
+                    self.unindent()
+            QPlainTextEdit.keyPressEvent(self, event)
+        elif key == Qt.Key_Space and not shift and not ctrl \
+             and not self.has_selected_text() and self.auto_unindent_enabled:
+            leading_text = self.get_text('sol', 'cursor')
+            if leading_text.lstrip() in ('elif', 'except'):
+                ind = lambda txt: len(txt)-len(txt.lstrip())
+                prevtxt = unicode(self.textCursor().block().previous().text())
+                if ind(leading_text) == ind(prevtxt):
+                    self.unindent()
+            QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
