@@ -798,8 +798,9 @@ class CodeEditor(TextEditBaseWidget):
     def viewportEvent(self, event):
         # 80-column edge line
         cr = self.contentsRect()
+        offset = self.contentOffset()
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
-            .translated(self.contentOffset()).left() \
+            .translated(offset.x(), offset.y()).left() \
             +self.get_linenumberarea_width() \
             +self.fontMetrics().width('9')*self.edge_line.column+5
         self.edge_line.setGeometry(\
