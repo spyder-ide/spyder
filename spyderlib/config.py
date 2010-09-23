@@ -199,6 +199,7 @@ DEFAULTS = [
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,
+              'close_parentheses': True,
               'object_inspector': True,
               'codecompletion/auto': False,
               'codecompletion/enter-key': False,

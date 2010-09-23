@@ -118,6 +118,9 @@ class EditorConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
         
         sourcecode_group = QGroupBox(self.tr("Source code"))
+        closepar_box = newcb(self.tr("Automatic parentheses, braces and "
+                                     "brackets insertion"),
+                             'close_parentheses')
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
@@ -178,6 +181,7 @@ class EditorConfigPage(PluginConfigPage):
         
         sourcecode_layout = QVBoxLayout()
         if programs.is_module_installed('rope'):
+            sourcecode_layout.addWidget(closepar_box)
             sourcecode_layout.addWidget(calltips_box)
             sourcecode_layout.addWidget(completion_box)
             sourcecode_layout.addWidget(comp_enter_box)
@@ -864,6 +868,7 @@ class Editor(SpyderPluginWidget):
             ('set_codecompletion_enter_enabled',    'codecompletion/enter-key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
+            ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
@@ -1799,6 +1804,8 @@ class Editor(SpyderPluginWidget):
             calltips_o = self.get_option(calltips_n)
             gotodef_n = 'go_to_definition'
             gotodef_o = self.get_option(gotodef_n)
+            closepar_n = 'close_parentheses'
+            closepar_o = self.get_option(closepar_n)
             inspector_n = 'object_inspector'
             inspector_o = self.get_option(inspector_n)
             todo_n = 'todo_list'
@@ -1846,6 +1853,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_calltips_enabled(calltips_o)
                 if gotodef_n in options:
                     editorstack.set_go_to_definition_enabled(gotodef_o)
+                if closepar_n in options:
+                    editorstack.set_close_parentheses_enabled(closepar_o)
                 if inspector_n in options:
                     editorstack.set_inspector_enabled(inspector_o)
                 if todo_n in options:

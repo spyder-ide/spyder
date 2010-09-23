@@ -432,6 +432,7 @@ class EditorStack(QWidget):
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = False
         self.go_to_definition_enabled = False
+        self.close_parentheses_enabled = True
         self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -752,6 +753,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_go_to_definition_enabled(state)
+                
+    def set_close_parentheses_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'close_parentheses')
+        self.close_parentheses_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_close_parentheses_enabled(state)
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
@@ -1530,6 +1538,7 @@ class EditorStack(QWidget):
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
+                close_parentheses=self.close_parentheses_enabled,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)

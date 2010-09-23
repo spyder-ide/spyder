@@ -182,6 +182,7 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_mode = True # see CodeEditor.set_tab_mode
         
         self.go_to_definition_enabled = False
+        self.close_parentheses_enabled = True
         
         # Mouse tracking
         self.setMouseTracking(True)
@@ -249,12 +250,14 @@ class CodeEditor(TextEditBaseWidget):
                      highlight_current_line=True, occurence_highlighting=True,
                      scrollflagarea=True, todo_list=True,
                      codecompletion_auto=False, codecompletion_enter=False,
-                     calltips=None, go_to_definition=False, cloned_from=None):
+                     calltips=None, go_to_definition=False,
+                     close_parentheses=True, cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_enter(codecompletion_enter)
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
+        self.set_close_parentheses_enabled(close_parentheses)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -297,6 +300,10 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/Disable go-to-definition feature, which is implemented in 
         child class -> Editor widget"""
         self.go_to_definition_enabled = enable
+        
+    def set_close_parentheses_enabled(self, enable):
+        """Enable/disable automatic parentheses insertion feature"""
+        self.close_parentheses_enabled = enable
         
     def set_occurence_highlighting(self, enable):
         """Enable/disable occurence highlighting"""
@@ -1414,14 +1421,21 @@ class CodeEditor(TextEditBaseWidget):
             if self.has_selected_text():
                 QPlainTextEdit.keyPressEvent(self, event)
             else:
+                trailing_text = self.get_text('cursor', 'eol')
                 if leading_length > 4 and not leading_text.strip():
                     if leading_length % 4 == 0:
                         self.unindent()
                     else:
                         QPlainTextEdit.keyPressEvent(self, event)
-                elif trailing_spaces and not self.get_text('cursor',
-                                                           'eol').strip():
+                elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(" "*trailing_spaces)
+                elif leading_text and trailing_text and \
+                     leading_text[-1]+trailing_text[0] in ('()', '[]', '{}'):
+                    cursor = self.textCursor()
+                    cursor.movePosition(QTextCursor.PreviousCharacter)
+                    cursor.movePosition(QTextCursor.NextCharacter,
+                                        QTextCursor.KeepAnchor, 2)
+                    cursor.removeSelectedText()
                 else:
                     QPlainTextEdit.keyPressEvent(self, event)
                     if self.is_completion_widget_visible():
@@ -1440,7 +1454,21 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_completion_widget()
             if self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip()'))
-            self.insert_text(text)
+            if self.close_parentheses_enabled:
+                self.insert_text('()')
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter)
+                self.setTextCursor(cursor)
+            else:
+                self.insert_text(text)
+            event.accept()
+        elif key in (Qt.Key_BraceLeft, Qt.Key_BracketLeft) and \
+             not self.has_selected_text() and self.close_parentheses_enabled:
+            self.insert_text({Qt.Key_BraceLeft: '{}',
+                              Qt.Key_BracketLeft: '[]'}[key])
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
             event.accept()
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
