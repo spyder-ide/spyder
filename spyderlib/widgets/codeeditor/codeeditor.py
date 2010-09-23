@@ -1478,6 +1478,20 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.PreviousCharacter)
             self.setTextCursor(cursor)
             event.accept()
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
+             and not self.has_selected_text() and self.close_parentheses_enabled \
+             and not self.textCursor().atBlockEnd():
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.NextCharacter,
+                                QTextCursor.KeepAnchor)
+            text = unicode(cursor.selectedText())
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']'}[key]:
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
+                event.accept()
+            else:
+                QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_Colon and not self.has_selected_text() \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
