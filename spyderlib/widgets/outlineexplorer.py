@@ -73,7 +73,7 @@ class OutlineExplorer(OneColumnTree):
         """Populate classes"""
         self.lines = {}
         for lineno, c_name, methods in self.classes:
-            item = QTreeWidgetItem(self, [c_name])
+            item = QTreeWidgetItem(self, [c_name], QTreeWidgetItem.Type)
             self.lines[item] = lineno
             if methods is None:
                 item.setIcon(0, get_icon('function.png'))
@@ -88,7 +88,7 @@ class OutlineExplorer(OneColumnTree):
             decorator = m_name.startswith('@')
             if decorator:
                 m_name = m_name[1:]
-            item = QTreeWidgetItem(parent, [m_name])
+            item = QTreeWidgetItem(parent, [m_name], QTreeWidgetItem.Type)
             self.lines[item] = lineno
             if m_name.startswith('__'):
                 item.setIcon(0, get_icon('private2.png'))

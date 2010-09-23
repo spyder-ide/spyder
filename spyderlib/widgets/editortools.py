@@ -98,7 +98,7 @@ class PythonCFM(object):
 
 class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
-        QTreeWidgetItem.__init__(self, treewidget)
+        QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
         self.setIcon(0, get_icon('python.png'))
         self.setToolTip(0, path)
