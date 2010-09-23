@@ -254,7 +254,7 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('trigger_code_completion()'),
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_calltip()'),
+        self.connect(editor, SIGNAL('trigger_calltip(int)'),
                      self.trigger_calltip)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
@@ -294,18 +294,24 @@ class FileInfo(QObject):
             completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
             self.editor.show_completion_list(textlist, completion_text)
         
-    def trigger_calltip(self):
+    def trigger_calltip(self, position):
         if self.project is None:
             return
         source_code = unicode(self.editor.toPlainText())
-        offset = self.editor.get_position('cursor')
+        offset = position
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
+        text = ''
+        if textlist:
+            parpos = textlist[0].find('(')
+            if parpos:
+                text = textlist[0][:parpos]
+        if not text:
+            text = get_primary_at(source_code, offset)
+        if text and not text.startswith('self.'):
+            self.emit(SIGNAL("send_to_inspector(QString)"), text)
         if textlist:
             self.editor.show_calltip("rope", textlist)
-        text = get_primary_at(source_code, offset)
-        if text:
-            self.emit(SIGNAL("send_to_inspector(QString)"), text)
                     
     def go_to_definition(self, position):
         if self.project is None:
