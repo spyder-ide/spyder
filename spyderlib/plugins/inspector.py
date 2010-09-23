@@ -208,17 +208,19 @@ class ObjectInspector(ReadOnlyEditor):
     def force_refresh(self):
         self.set_object_text(None, force_refresh=True)
     
-    def set_object_text(self, text, force_refresh=False):
+    def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Object Inspector"""
         if (self.locked and not force_refresh):
+            return
+            
+        found = self.show_help(text, ignore_unknown=ignore_unknown)
+        if ignore_unknown and not found:
             return
         
         if text is None:
             text = self.combo.currentText()
         else:
             self.combo.add_text(text)
-            
-        self.show_help(text)
         
         self.save_history()
         if hasattr(self.main, 'tabifiedDockWidgets'):
@@ -302,7 +304,7 @@ class ObjectInspector(ReadOnlyEditor):
            and not self.shell.externalshell.is_running():
             self.shell = self.get_running_python_shell()
         
-    def show_help(self, obj_text):
+    def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
         if self.shell is None:
             return
@@ -318,19 +320,25 @@ class ObjectInspector(ReadOnlyEditor):
         else:
             doc_text = None
             source_text = None
+            
         is_code = False
+        found = True
         if self.docstring:
             hlp_text = doc_text
             if hlp_text is None:
                 hlp_text = source_text
                 if hlp_text is None:
                     hlp_text = self.tr("No documentation available.")
+                    if ignore_unknown:
+                        return False
         else:
             hlp_text = source_text
             if hlp_text is None:
                 hlp_text = doc_text
                 if hlp_text is None:
                     hlp_text = self.tr("No source code available.")
+                    if ignore_unknown:
+                        return False
             else:
                 is_code = True
         self.editor.set_highlight_current_line(is_code)
@@ -341,3 +349,5 @@ class ObjectInspector(ReadOnlyEditor):
             self.editor.set_language(None)
         self.editor.set_text(hlp_text)
         self.editor.set_cursor_position('sof')
+        
+        return found

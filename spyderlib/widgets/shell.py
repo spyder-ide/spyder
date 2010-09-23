@@ -1000,7 +1000,7 @@ class PythonShellWidget(ShellBaseWidget):
         if self.inspector_enabled and (self.inspector is not None) and \
            (self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
-            self.inspector.set_object_text(text)
+            self.inspector.set_object_text(text, ignore_unknown=True)
             self.setFocus() # if inspector was not at top level, raising it to
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
