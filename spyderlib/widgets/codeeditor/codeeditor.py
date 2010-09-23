@@ -1462,7 +1462,9 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_completion_widget()
             if self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip()'))
-            if self.close_parentheses_enabled:
+            s_trailing_text = self.get_text('cursor', 'eol').strip()
+            if self.close_parentheses_enabled and \
+               (len(s_trailing_text) == 0 or s_trailing_text.startswith(',')):
                 self.insert_text('()')
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
@@ -1472,12 +1474,16 @@ class CodeEditor(TextEditBaseWidget):
             event.accept()
         elif key in (Qt.Key_BraceLeft, Qt.Key_BracketLeft) and \
              not self.has_selected_text() and self.close_parentheses_enabled:
-            self.insert_text({Qt.Key_BraceLeft: '{}',
-                              Qt.Key_BracketLeft: '[]'}[key])
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.PreviousCharacter)
-            self.setTextCursor(cursor)
-            event.accept()
+            s_trailing_text = self.get_text('cursor', 'eol').strip()
+            if len(s_trailing_text) == 0 or s_trailing_text.startswith(','):
+                self.insert_text({Qt.Key_BraceLeft: '{}',
+                                  Qt.Key_BracketLeft: '[]'}[key])
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter)
+                self.setTextCursor(cursor)
+                event.accept()
+            else:
+                QPlainTextEdit.keyPressEvent(self, event)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
              and not self.has_selected_text() and self.close_parentheses_enabled \
              and not self.textCursor().atBlockEnd():
