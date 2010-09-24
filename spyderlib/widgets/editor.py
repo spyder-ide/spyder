@@ -1122,11 +1122,7 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            filename = self.select_savename(finfo.filename)
-            if filename:
-                finfo.filename = filename
-            else:
-                return False
+            return self.save_as(index=index)
         txt = unicode(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
@@ -1178,9 +1174,11 @@ class EditorStack(QWidget):
         if filename:
             return osp.normpath(unicode(filename))
     
-    def save_as(self):
+    def save_as(self, index=None):
         """Save file as..."""
-        index = self.get_stack_index()
+        if index is None:
+            # Save the currently edited file
+            index = self.get_stack_index()
         finfo = self.data[index]
         filename = self.select_savename(finfo.filename)
         if filename:
@@ -1191,9 +1189,12 @@ class EditorStack(QWidget):
                 if ao_index < index:
                     index -= 1
             new_index = self.rename_in_data(index, new_filename=filename)
-            self.save(index=new_index, force=True)
+            ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
             self.set_stack_index(new_index)
+            return ok
+        else:
+            return False
         
     def save_all(self):
         """Save all opened files"""
@@ -1600,10 +1601,9 @@ class EditorStack(QWidget):
         """
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=True, new=True)
-        editor = finfo.editor
-        editor.set_cursor_position('eof')
-        editor.insert_text(os.linesep)
-        return editor
+        finfo.editor.set_cursor_position('eof')
+        finfo.editor.insert_text(os.linesep)
+        return finfo.editor
         
     def load(self, filename, set_current=True):
         """
