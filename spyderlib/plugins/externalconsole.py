@@ -463,14 +463,14 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.shell.set_font( self.get_plugin_font() )
         shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
         shellwidget.shell.set_calltips( self.get_option('calltips') )
-        shellwidget.shell.set_inspector_enabled( self.get_option(
-                                                        'object_inspector') )
         shellwidget.shell.set_codecompletion_auto(
                                 self.get_option('codecompletion/auto') )
         shellwidget.shell.set_codecompletion_enter(
                                 self.get_option('codecompletion/enter-key') )
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
+            shellwidget.shell.set_inspector_enabled(
+                                            self.get_option('object_inspector'))
         if self.historylog is not None:
             self.historylog.add_history(shellwidget.shell.history_filename)
             self.connect(shellwidget.shell,
