@@ -314,6 +314,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor_id in self.editor_ids.values():
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
+            self.__sort_toplevel_items()
         
     def update_all(self):
         self.save_expanded_state()
