@@ -336,6 +336,7 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features|QDockWidget.DockWidgetVerticalTitleBar
             child.dockwidget.setFeatures(features)
+            child.update_margins()
         
     def setup(self):
         """Setup main window"""

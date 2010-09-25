@@ -77,12 +77,23 @@ class SpyderPluginMixin(object):
         super(SpyderPluginMixin, self).__init__()
         assert self.CONF_SECTION is not None
         self.main = main
+        self.default_margins = None
         self.plugin_actions = self.get_plugin_actions()
         self.dockwidget = None
         self.ismaximized = False
         QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
+        
+    def update_margins(self):
+        layout = self.layout()
+        if self.default_margins is None:
+            self.default_margins = layout.getContentsMargins()
+        if CONF.get('main', 'use_custom_margin', True):
+            margin = CONF.get('main', 'custom_margin', 0)
+            layout.setContentsMargins(*[margin]*4)
+        else:
+            layout.setContentsMargins(*self.default_margins)
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
@@ -91,6 +102,7 @@ class SpyderPluginMixin(object):
         dock.setAllowedAreas(self.ALLOWED_AREAS)
         dock.setFeatures(self.FEATURES)
         dock.setWidget(self)
+        self.update_margins()
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.dockwidget = dock

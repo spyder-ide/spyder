@@ -588,20 +588,28 @@ class MainConfigPage(GeneralConfigPage):
     
     def setup_page(self):
         interface_group = QGroupBox(self.tr("Interface"))
-        vertdock_box = self.create_checkbox(
-                                    self.tr("Vertical dockwidget title bars"),
-                                    'vertical_dockwidget_titlebars')
-        verttabs_box = self.create_checkbox(
-                                    self.tr("Vertical dockwidget tabs"),
-                                    'vertical_tabs')
-        animated_box = self.create_checkbox(
-                                self.tr("Animated toolbars and dockwidgets"),
-                                'animated_docks')
+        newcb = self.create_checkbox
+        vertdock_box = newcb(self.tr("Vertical dockwidget title bars"),
+                             'vertical_dockwidget_titlebars')
+        verttabs_box = newcb(self.tr("Vertical dockwidget tabs"),
+                             'vertical_tabs')
+        animated_box = newcb(self.tr("Animated toolbars and dockwidgets"),
+                             'animated_docks')
+        margin_box = newcb(self.tr("Custom dockwidget margin:"),
+                           'use_custom_margin')
+        margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
+                                          0, 0, 30)
+        self.connect(margin_box, SIGNAL("toggled(bool)"),
+                     margin_spin.setEnabled)
+        margins_layout = QHBoxLayout()
+        margins_layout.addWidget(margin_box)
+        margins_layout.addWidget(margin_spin)
         
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
+        interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
         
         vlayout = QVBoxLayout()

@@ -314,7 +314,6 @@ class Editor(SpyderPluginWidget):
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
@@ -368,6 +367,7 @@ class Editor(SpyderPluginWidget):
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
+        self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(editor_widgets)
         self.splitter.addWidget(self.outlineexplorer)
         self.splitter.setStretchFactor(0, 5)

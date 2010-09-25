@@ -394,6 +394,7 @@ class EditorStack(QWidget):
         self.__get_split_actions()
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         self.header_layout = None
@@ -2012,6 +2013,7 @@ class EditorWidget(QSplitter):
         editor_layout.addWidget(self.find_widget)
         
         splitter = QSplitter(self)
+        splitter.setContentsMargins(0, 0, 0, 0)
         splitter.addWidget(editor_widgets)
         splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
@@ -2176,6 +2178,7 @@ class FakePlugin(QSplitter):
                                                first=True))
         editor_layout.addWidget(self.find_widget)
         
+        self.setContentsMargins(0, 0, 0, 0)
         self.addWidget(editor_widgets)
         self.addWidget(self.outlineexplorer)
         
