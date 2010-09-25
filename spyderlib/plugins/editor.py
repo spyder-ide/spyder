@@ -119,7 +119,7 @@ class EditorConfigPage(PluginConfigPage):
 
         run_group = QGroupBox(self.tr("Run"))
         saveall_box = newcb(self.tr("Save all files before running script"),
-                            'save_all_before_run')
+                            'save_all_before_run', True)
         
         introspection_group = QGroupBox(self.tr("Introspection"))
         completion_box = newcb(self.tr("Automatic code completion"),
