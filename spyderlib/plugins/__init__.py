@@ -151,7 +151,8 @@ class SpyderPluginMixin(object):
     def switch_to_plugin(self):
         """Switch to plugin
         This method is called when pressing plugin's shortcut key"""
-        self.dockwidget.show()
+        if not self.ismaximized:
+            self.dockwidget.show()
         self.visibility_changed(True)
 
     def visibility_changed(self, enable):
