@@ -251,7 +251,8 @@ class TextEditBaseWidget(QPlainTextEdit):
             if position > self.get_position('eof'):
                 return
             selection = QTextEdit.ExtraSelection()
-#            selection.format.setProperty(QTextFormat.OutlinePen, QPen(color))
+#            selection.format.setProperty(QTextFormat.OutlinePen,
+#                                         QVariant(QPen(color)))
             selection.format.setBackground(color)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()

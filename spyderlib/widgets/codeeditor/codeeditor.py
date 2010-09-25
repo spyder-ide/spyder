@@ -23,7 +23,7 @@ from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
                          QPixmap, QPrinter, QToolTip, QCursor, QInputDialog,
                          QTextBlockUserData, QLineEdit, QShortcut, QKeySequence)
 from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
-                          PYQT_VERSION_STR)
+                          PYQT_VERSION_STR, QVariant)
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -488,10 +488,11 @@ class CodeEditor(TextEditBaseWidget):
             selection.format.setBackground(background_color)
         if underline_color is not None:
             selection.format.setProperty(QTextFormat.TextUnderlineStyle,
-                                         underline_style)
+                                         QVariant(underline_style))
             selection.format.setProperty(QTextFormat.TextUnderlineColor,
-                                         underline_color)
-        selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+                                         QVariant(underline_color))
+        selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                     QVariant(True))
         selection.cursor = cursor
         extra_selections.append(selection)
         self.set_extra_selections(key, extra_selections)
@@ -830,7 +831,8 @@ class CodeEditor(TextEditBaseWidget):
         """Highlight current line"""
         if self.highlight_current_line_enabled:
             selection = QTextEdit.ExtraSelection()
-            selection.format.setProperty(QTextFormat.FullWidthSelection, True)
+            selection.format.setProperty(QTextFormat.FullWidthSelection,
+                                         QVariant(True))
             selection.format.setBackground(self.currentline_color)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
