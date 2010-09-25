@@ -1316,6 +1316,37 @@ def initialize(debug):
         ETSConfig.toolkit = 'qt4'
     except ImportError:
         pass
+
+    #----Monkey patching rope (if installed)
+    #       Compatibility with new Mercurial API (>= 1.3).
+    #       New versions of rope (> 0.9.2) already handle this issue
+    try:
+        import rope
+        if rope.VERSION == '0.9.2':
+            import rope.base.fscommands
+            
+            class MercurialCommands(rope.base.fscommands.MercurialCommands):
+                def __init__(self, root):
+                    self.hg = self._import_mercurial()
+                    self.normal_actions = rope.base.fscommands.FileSystemCommands()
+                    try:
+                        self.ui = self.hg.ui.ui(
+                            verbose=False, debug=False, quiet=True,
+                            interactive=False, traceback=False,
+                            report_untrusted=False)
+                    except:
+                        self.ui = self.hg.ui.ui()
+                        self.ui.setconfig('ui', 'interactive', 'no')
+                        self.ui.setconfig('ui', 'debug', 'no')
+                        self.ui.setconfig('ui', 'traceback', 'no')
+                        self.ui.setconfig('ui', 'verbose', 'no')
+                        self.ui.setconfig('ui', 'report_untrusted', 'no')
+                        self.ui.setconfig('ui', 'quiet', 'yes')
+                    self.repo = self.hg.hg.repository(self.ui, root)
+                
+            rope.base.fscommands.MercurialCommands = MercurialCommands
+    except ImportError:
+        pass
     
     return app
 
