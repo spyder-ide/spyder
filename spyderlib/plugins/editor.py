@@ -124,8 +124,12 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group = QGroupBox(self.tr("Introspection"))
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
+        case_comp_box = newcb(self.tr("Case sensitive code completion"),
+                              'codecompletion/case_sensitive')
+        show_single_box = newcb(self.tr("Show single completion"),
+                                'codecompletion/show_single')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
-                               'codecompletion/enter-key')
+                               'codecompletion/enter_key')
         calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
         gotodef_box = newcb(self.tr("Link to object definition"),
               'go_to_definition',
@@ -194,6 +198,8 @@ class EditorConfigPage(PluginConfigPage):
         if programs.is_module_installed('rope'):
             introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
+            introspection_layout.addWidget(case_comp_box)
+            introspection_layout.addWidget(show_single_box)
             introspection_layout.addWidget(comp_enter_box)
             introspection_layout.addWidget(gotodef_box)
             introspection_layout.addWidget(inspector_box)
@@ -882,7 +888,9 @@ class Editor(SpyderPluginWidget):
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
-            ('set_codecompletion_enter_enabled',    'codecompletion/enter-key'),
+            ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
+            ('set_codecompletion_single_enabled',   'codecompletion/show_single'),
+            ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
@@ -1818,7 +1826,11 @@ class Editor(SpyderPluginWidget):
             tabindent_o = self.get_option(tabindent_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
-            enter_key_n = 'codecompletion/enter-key'
+            case_comp_n = 'codecompletion/case_sensitive'
+            case_comp_o = self.get_option(case_comp_n)
+            show_single_n = 'codecompletion/show_single'
+            show_single_o = self.get_option(show_single_n)
+            enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
             calltips_n = 'calltips'
             calltips_o = self.get_option(calltips_n)
@@ -1869,6 +1881,10 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_tabmode_enabled(tabindent_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
+                if case_comp_n in options:
+                    editorstack.set_codecompletion_case_enabled(case_comp_o)
+                if show_single_n in options:
+                    editorstack.set_codecompletion_single_enabled(show_single_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
                 if calltips_n in options:

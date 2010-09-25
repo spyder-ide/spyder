@@ -78,8 +78,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_group = QGroupBox(self.tr("Source code"))
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
+        case_comp_box = newcb(self.tr("Case sensitive code completion"),
+                              'codecompletion/case_sensitive')
+        show_single_box = newcb(self.tr("Show single completion"),
+                               'codecompletion/show_single')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
-                               'codecompletion/enter-key')
+                               'codecompletion/enter_key')
         calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
         inspector_box = newcb(
               self.tr("Automatic notification to object inspector"),
@@ -91,6 +95,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
+        source_layout.addWidget(case_comp_box)
+        source_layout.addWidget(show_single_box)
         source_layout.addWidget(comp_enter_box)
         source_layout.addWidget(calltips_box)
         source_layout.addWidget(inspector_box)
@@ -452,21 +458,19 @@ class ExternalConsole(SpyderPluginWidget):
                                               light_background=light_background)
         
         # Code completion / calltips
-        case_sensitive = self.get_option('codecompletion/case-sensitivity')
-        show_single = self.get_option('codecompletion/select-single')
-        from_document = self.get_option('codecompletion/from-document')
-        shellwidget.shell.setup_code_completion(case_sensitive, show_single,
-                                                 from_document)
-        
         shellwidget.shell.setMaximumBlockCount(
                                             self.get_option('max_line_count') )
         shellwidget.shell.set_font( self.get_plugin_font() )
         shellwidget.shell.toggle_wrap_mode( self.get_option('wrap') )
         shellwidget.shell.set_calltips( self.get_option('calltips') )
         shellwidget.shell.set_codecompletion_auto(
-                                self.get_option('codecompletion/auto') )
+                            self.get_option('codecompletion/auto') )
+        shellwidget.shell.set_codecompletion_case(
+                            self.get_option('codecompletion/case_sensitive') )
+        shellwidget.shell.set_codecompletion_single(
+                            self.get_option('codecompletion/show_single') )
         shellwidget.shell.set_codecompletion_enter(
-                                self.get_option('codecompletion/enter-key') )
+                            self.get_option('codecompletion/enter_key') )
         if python and self.inspector is not None:
             shellwidget.shell.set_inspector(self.inspector)
             shellwidget.shell.set_inspector_enabled(
@@ -668,7 +672,9 @@ class ExternalConsole(SpyderPluginWidget):
         inspector = self.get_option('object_inspector')
         wrap = self.get_option('wrap')
         compauto = self.get_option('codecompletion/auto')
-        compenter = self.get_option('codecompletion/enter-key')
+        case_comp = self.get_option('codecompletion/case_sensitive')
+        show_single = self.get_option('codecompletion/show_single')
+        compenter = self.get_option('codecompletion/enter_key')
         mlc = self.get_option('max_line_count')
         for shellwidget in self.shellwidgets:
             shellwidget.shell.set_font(font)
@@ -677,6 +683,8 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.set_inspector_enabled(inspector)
             shellwidget.shell.toggle_wrap_mode(wrap)
             shellwidget.shell.set_codecompletion_auto(compauto)
+            shellwidget.shell.set_codecompletion_case(case_comp)
+            shellwidget.shell.set_codecompletion_single(show_single)
             shellwidget.shell.set_codecompletion_enter(compenter)
             shellwidget.shell.setMaximumBlockCount(mlc)
     

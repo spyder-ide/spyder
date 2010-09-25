@@ -38,7 +38,7 @@ class CompletionWidget(QListWidget):
         self.textedit = parent
         self.completion_list = None
         self.case_sensitive = False
-        self.show_single = None # see note in method 'setup'
+        self.show_single = None
         self.enter_select = None
         desktop = QApplication.desktop()
         srect = desktop.availableGeometry(desktop.screenNumber(self))
@@ -47,19 +47,15 @@ class CompletionWidget(QListWidget):
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
                      self.item_selected)
         
-    def setup_options(self, case_sensitive, show_single):
-        self.case_sensitive = case_sensitive
-        self.show_single = show_single # not implemented yet because it would
-        # require to know if the completion has been triggered manually or not
-        
     def setup_appearance(self, size, font):
         self.resize(*size)
         self.setFont(font)
         
-    def set_enter_select(self, state):
-        self.enter_select = state        
+    def show_list(self, completion_list, automatic=True):
+        if not self.show_single and len(completion_list) == 1 and not automatic:
+            self.textedit.insert_completion(completion_list[0])
+            return
         
-    def show_list(self, completion_list):
         self.completion_list = completion_list
         self.clear()
         self.addItems(completion_list)
@@ -159,6 +155,8 @@ class TextEditBaseWidget(QPlainTextEdit):
         # Code completion / calltips
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
+        self.codecompletion_case = True
+        self.codecompletion_single = False
         self.codecompletion_enter = False
         self.calltips = True
         self.completion_text = ""
@@ -305,10 +303,20 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Set code completion state"""
         self.codecompletion_auto = state
         
+    def set_codecompletion_case(self, state):
+        """Case sensitive completion"""
+        self.codecompletion_case = state
+        self.completion_widget.case_sensitive = state
+        
+    def set_codecompletion_single(self, state):
+        """Show single completion"""
+        self.codecompletion_single = state
+        self.completion_widget.show_single = state
+        
     def set_codecompletion_enter(self, state):
         """Enable Enter key to select completion"""
         self.codecompletion_enter = state
-        self.completion_widget.set_enter_select(state)
+        self.completion_widget.enter_select = state
         
     def set_calltips(self, state):
         """Set calltips state"""
@@ -702,27 +710,22 @@ class TextEditBaseWidget(QPlainTextEdit):
         except (IndexError, TypeError):
             QToolTip.hideText()
 
-    def setup_code_completion(self, case_sensitive, show_single, from_document):
-        """
-        Setup code completion feature
-        Argument 'from_document' is ignored: compat. with QScintilla's API
-        """
-        self.completion_widget.setup_options(case_sensitive, show_single)
-    
-    def show_completion_widget(self, textlist):
+    def show_completion_widget(self, textlist, automatic=True):
         """Show completion widget"""
-        self.completion_widget.show_list(textlist)
+        self.completion_widget.show_list(textlist, automatic=automatic)
         
     def hide_completion_widget(self):
         """Hide completion widget"""
         self.completion_widget.hide()
 
-    def show_completion_list(self, completions, completion_text=""):
+    def show_completion_list(self, completions, completion_text="",
+                             automatic=True):
         """Display the possible completions"""
         if len(completions) == 0 or completions == [completion_text]:
             return
         self.completion_text = completion_text
-        self.show_completion_widget(sorted(completions, key=string.lower))
+        self.show_completion_widget(sorted(completions, key=string.lower),
+                                    automatic=automatic)
         
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""

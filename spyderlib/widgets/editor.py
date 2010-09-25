@@ -252,7 +252,7 @@ class FileInfo(QObject):
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
         
-        self.connect(editor, SIGNAL('trigger_code_completion()'),
+        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
         self.connect(editor, SIGNAL('trigger_calltip(int)'),
                      self.trigger_calltip)
@@ -282,7 +282,7 @@ class FileInfo(QObject):
             return []
         self.project.validate_rope_project()
         
-    def trigger_code_completion(self):
+    def trigger_code_completion(self, automatic):
         if self.project is None:
             return []
         source_code = unicode(self.editor.toPlainText())
@@ -292,7 +292,8 @@ class FileInfo(QObject):
         if textlist:
             text = self.editor.get_text('sol', 'cursor')
             completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-            self.editor.show_completion_list(textlist, completion_text)
+            self.editor.show_completion_list(textlist, completion_text,
+                                             automatic)
         
     def trigger_calltip(self, position):
         if self.project is None:
@@ -435,6 +436,8 @@ class EditorStack(QWidget):
         self.linenumbers_enabled = True
         self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = False
+        self.codecompletion_case_enabled = False
+        self.codecompletion_single_enabled = False
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = False
         self.go_to_definition_enabled = False
@@ -739,9 +742,20 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_auto(state)
+                
+    def set_codecompletion_case_enabled(self, state):
+        self.codecompletion_case_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_case(state)
+                
+    def set_codecompletion_single_enabled(self, state):
+        self.codecompletion_single_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_single(state)
                     
     def set_codecompletion_enter_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'codecompletion_enter')
         self.codecompletion_enter_enabled = state
         if self.data:
             for finfo in self.data:
@@ -1551,6 +1565,8 @@ class EditorStack(QWidget):
                 highlight_current_line=self.highlight_current_line_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
+                codecompletion_case=self.codecompletion_case_enabled,
+                codecompletion_single=self.codecompletion_single_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,

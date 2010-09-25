@@ -250,12 +250,15 @@ class CodeEditor(TextEditBaseWidget):
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      highlight_current_line=True, occurence_highlighting=True,
                      scrollflagarea=True, todo_list=True,
-                     codecompletion_auto=False, codecompletion_enter=False,
+                     codecompletion_auto=False, codecompletion_case=True,
+                     codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, auto_unindent=True,
                      cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
+        self.set_codecompletion_case(codecompletion_case)
+        self.set_codecompletion_single(codecompletion_single)
         self.set_codecompletion_enter(codecompletion_enter)
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
@@ -719,7 +722,7 @@ class CodeEditor(TextEditBaseWidget):
     #-----Code introspection
     def do_code_completion(self):
         if not self.is_completion_widget_visible():
-            self.emit(SIGNAL('trigger_code_completion()'))
+            self.emit(SIGNAL('trigger_code_completion(bool)'), False)
             
     def do_go_to_definition(self):
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
@@ -1454,7 +1457,7 @@ class CodeEditor(TextEditBaseWidget):
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
-                    self.emit(SIGNAL('trigger_code_completion()'))
+                    self.emit(SIGNAL('trigger_code_completion(bool)'), True)
         elif key == Qt.Key_Home and not ctrl:
             self.stdkey_home(shift)
             event.accept()
