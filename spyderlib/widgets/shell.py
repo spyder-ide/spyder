@@ -1017,6 +1017,8 @@ class PythonShellWidget(ShellBaseWidget):
                 if iscallable is not None:
                     if iscallable:
                         arglist = self.get_arglist(text)
+                        if isinstance(arglist, bool):
+                            arglist = []
                         if arglist:
                             self.show_calltip(translate("PythonShellWidget",
                                                         "Arguments"),

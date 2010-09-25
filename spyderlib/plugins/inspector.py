@@ -316,6 +316,8 @@ class ObjectInspector(ReadOnlyEditor):
         
         if self.shell.is_defined(obj_text):
             doc_text = self.shell.get_doc(obj_text)
+            if isinstance(doc_text, bool):
+                doc_text = None
             source_text = self.shell.get_source(obj_text)
         else:
             doc_text = None
