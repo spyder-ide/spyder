@@ -1024,14 +1024,14 @@ class CodeEditor(TextEditBaseWidget):
         block = self.textCursor().block()
         line_count = self.document().blockCount()
         while True:
-            line_number = block.blockNumber()+1
-            if line_number < line_count:
+            if block.blockNumber()+1 < line_count:
                 block = block.next()
             else:
                 block = self.document().firstBlock()
             data = block.userData()
             if data and data.code_analysis:
                 break
+        line_number = block.blockNumber()+1
         self.go_to_line(line_number)
         self.__show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
@@ -1041,14 +1041,14 @@ class CodeEditor(TextEditBaseWidget):
         and return new cursor position"""
         block = self.textCursor().block()
         while True:
-            line_number = block.blockNumber()+1
-            if line_number > 1:
+            if block.blockNumber() > 0:
                 block = block.previous()
             else:
                 block = self.document().lastBlock()
             data = block.userData()
             if data and data.code_analysis:
                 break
+        line_number = block.blockNumber()+1
         self.go_to_line(line_number)
         self.__show_code_analysis_results(line_number, data.code_analysis)
         return self.get_position('cursor')
@@ -1060,14 +1060,14 @@ class CodeEditor(TextEditBaseWidget):
         block = self.textCursor().block()
         line_count = self.document().blockCount()
         while True:
-            line_number = block.blockNumber()+1
-            if line_number < line_count:
+            if block.blockNumber()+1 < line_count:
                 block = block.next()
             else:
                 block = self.document().firstBlock()
             data = block.userData()
             if data and data.todo:
                 break
+        line_number = block.blockNumber()+1
         self.go_to_line(line_number)
         self.show_calltip(self.tr("To do"), data.todo,
                           color='#3096FC', at_line=line_number)
