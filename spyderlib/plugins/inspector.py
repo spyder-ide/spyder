@@ -8,7 +8,7 @@
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
                          QToolButton, QGroupBox, QFontComboBox)
-from PyQt4.QtCore import SIGNAL
+from PyQt4.QtCore import SIGNAL, QTimer
 
 import sys, re, os.path as osp, socket
 
@@ -147,6 +147,8 @@ class ObjectInspector(ReadOnlyEditor):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
+        
+        QTimer.singleShot(8000, self.refresh_plugin)
             
     #------ ReadOnlyEditor API -------------------------------------------------    
     def get_plugin_title(self):
@@ -212,14 +214,17 @@ class ObjectInspector(ReadOnlyEditor):
         """Set object analyzed by Object Inspector"""
         if (self.locked and not force_refresh):
             return
+
+        add_to_combo = True
+        if text is None:
+            text = unicode(self.combo.currentText())
+            add_to_combo = False
             
         found = self.show_help(text, ignore_unknown=ignore_unknown)
         if ignore_unknown and not found:
             return
         
-        if text is None:
-            text = self.combo.currentText()
-        else:
+        if add_to_combo:
             self.combo.add_text(text)
         
         self.save_history()
