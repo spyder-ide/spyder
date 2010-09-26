@@ -904,10 +904,10 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.prompt_format = QTextCharFormat()
         self.error_format = QTextCharFormat()
         self.traceback_link_format = QTextCharFormat()
-        self.formats = {self.default_format: 'DEFAULT_STYLE',
-                        self.prompt_format: 'PROMPT_STYLE',
-                        self.error_format: 'ERROR_STYLE',
-                        self.traceback_link_format: 'TRACEBACK_LINK_STYLE'}
+        self.formats = {'DEFAULT_STYLE': self.default_format,
+                        'PROMPT_STYLE': self.prompt_format,
+                        'ERROR_STYLE': self.error_format,
+                        'TRACEBACK_LINK_STYLE': self.traceback_link_format}
         self.set_pythonshell_font()
         self.setMouseTracking(True)
         
@@ -1014,14 +1014,14 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         if font is None:
             font = QFont()
 
-        for format in self.formats:
+        for format in self.formats.values():
             format.setFont(font)
         
         getstyleconf = lambda name, prop: CONF.get('shell_appearance',
                                                    name+'/'+prop)
         def inverse_color(color):
             color.setHsv(color.hue(), color.saturation(), 255-color.value())
-        for format, stylestr in self.formats.items():
+        for stylestr, format in self.formats.items():
             foreground = QColor(getstyleconf(stylestr, 'foregroundcolor'))
             if not self.light_background and format is self.default_format:
                 inverse_color(foreground)
