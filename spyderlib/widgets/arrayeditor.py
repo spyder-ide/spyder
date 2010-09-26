@@ -166,6 +166,7 @@ class ArrayModel(QAbstractTableModel):
             return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
             hue = self.hue0+self.dhue*(self.vmax-value)/(self.vmax-self.vmin)
+            hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return QVariant(color)
         elif role == Qt.FontRole:
