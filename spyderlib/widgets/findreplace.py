@@ -213,6 +213,7 @@ class FindReplace(QWidget):
         self.editor = editor
         from PyQt4.QtWebKit import QWebView
         self.words_check.setVisible(not isinstance(editor, QWebView))
+        self.re_button.setVisible(not isinstance(editor, QWebView))
         if refresh:
             self.refresh()
         
