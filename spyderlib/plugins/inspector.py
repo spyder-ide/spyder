@@ -395,9 +395,10 @@ class ObjectInspector(RichAndPlainText):
                 html_text = sphinxify(doc_text)
             else:
                 html_text = self.tr("No documentation available.")
+                if ignore_unknown:
+                    return False
             
             html_text = self.html_head + html_text + self.html_tail
-            
             self.rich_text.webview.setHtml(html_text, baseUrl=QUrl.fromLocalFile(self.path))
         
         elif self.docstring:
