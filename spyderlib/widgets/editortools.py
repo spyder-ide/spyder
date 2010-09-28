@@ -27,13 +27,14 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 #===============================================================================
 import compiler
 
-def check(filename):
+def check(source_code, filename=None):
     try:
         import pyflakes.checker, pyflakes.messages
     except ImportError:
         return []
     try:
-        tree = compiler.parse(file(filename, 'U').read() + '\n')
+#        tree = compiler.parse(file(filename, 'U').read() + '\n')
+        tree = compiler.parse(source_code+'\n')
     except (SyntaxError, IndentationError), e:
         message = e.args[0]
         value = sys.exc_info()[1]
@@ -45,6 +46,8 @@ def check(filename):
         return [ (message, lineno, True) ]
     else:
         results = []
+        if filename is None:
+            filename = '(none)'
         w = pyflakes.checker.Checker(tree, filename)
         w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
         
@@ -95,7 +98,7 @@ class PythonCFM(object):
 
 class FileRootItem(QTreeWidgetItem):
     def __init__(self, path, treewidget):
-        QTreeWidgetItem.__init__(self, treewidget)
+        QTreeWidgetItem.__init__(self, treewidget, QTreeWidgetItem.Type)
         self.path = path
         self.setIcon(0, get_icon('python.png'))
         self.setToolTip(0, path)
@@ -311,6 +314,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         if editor_id in self.editor_ids.values():
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
+            self.__sort_toplevel_items()
         
     def update_all(self):
         self.save_expanded_state()

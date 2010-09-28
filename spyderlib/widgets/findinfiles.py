@@ -633,7 +633,8 @@ class ResultsBrowser(OneColumnTree):
                 displayed_name = osp.basename(dirname)
             else:
                 displayed_name = dirname
-            item = QTreeWidgetItem(parent, [displayed_name])
+            item = QTreeWidgetItem(parent, [displayed_name],
+                                   QTreeWidgetItem.Type)
             item.setIcon(0, get_std_icon('DirClosedIcon'))
             return item
         dirs = {}
@@ -664,11 +665,13 @@ class ResultsBrowser(OneColumnTree):
         # Populating tree: files
         for filename in sorted(self.results.keys()):
             parent_item = dirs[osp.dirname(filename)]
-            file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)])
+            file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)],
+                                        QTreeWidgetItem.Type)
             file_item.setIcon(0, get_filetype_icon(filename))
             for lineno, colno, line in self.results[filename]:
                 item = QTreeWidgetItem(file_item,
-                           ["%d (%d): %s" % (lineno, colno, line.rstrip())])
+                           ["%d (%d): %s" % (lineno, colno, line.rstrip())],
+                           QTreeWidgetItem.Type)
                 item.setIcon(0, get_icon('arrow.png'))
                 self.data[item] = (filename, lineno)
         # Removing empty directories

@@ -13,7 +13,7 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton,
-                         QMessageBox)
+                         QMessageBox, QApplication, QCursor)
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
@@ -305,56 +305,69 @@ class NamespaceBrowser(QWidget):
     def collapse(self):
         self.emit(SIGNAL('collapse()'))
         
-    def import_data(self, filename=None):
+    def import_data(self, filenames=None):
         sock = self.shellwidget.monitor_socket
         
         title = self.tr("Import data")
-        if filename is None:
+        if filenames is None:
             if self.filename is None:
                 basedir = os.getcwdu()
             else:
                 basedir = osp.dirname(self.filename)
-            filename = iofunctions.get_open_filename(self, basedir, title)
-            if not filename:
+            filenames = iofunctions.get_open_filenames(self, basedir, title)
+            if not filenames:
                 return
-        self.filename = unicode(filename)
-        ext = osp.splitext(self.filename)[1].lower()
-        
-        if ext not in iofunctions.load_funcs:
-            buttons = QMessageBox.Yes | QMessageBox.Cancel
-            answer = QMessageBox.question(self, title,
+        elif isinstance(filenames, basestring):
+            filenames = [filenames]
+
+            
+        for filename in filenames:
+            
+            self.filename = unicode(filename)
+            ext = osp.splitext(self.filename)[1].lower()
+            
+            if ext not in iofunctions.load_funcs:
+                buttons = QMessageBox.Yes | QMessageBox.Cancel
+                answer = QMessageBox.question(self, title,
                        self.tr("<b>Unsupported file type '%1'</b><br><br>"
                                "Would you like to import it as a text file?") \
                        .arg(ext), buttons)
-            if answer == QMessageBox.Cancel:
-                return
+                if answer == QMessageBox.Cancel:
+                    return
+                else:
+                    load_func = 'import_wizard'
             else:
-                load_func = 'import_wizard'
-        else:
-            load_func = iofunctions.load_funcs[ext]
+                load_func = iofunctions.load_funcs[ext]
+                
+            # 'import_wizard' (self.setup_io)
+            if isinstance(load_func, basestring):
+                # Import data with import wizard
+                error_message = None
+                try:
+                    text, _encoding = encoding.read(self.filename)
+                    base_name = osp.basename(self.filename)
+                    editor = ImportWizard(self, text, title=base_name,
+                                          varname=fix_reference_name(base_name))
+                    if editor.exec_():
+                        var_name, clip_data = editor.get_data()
+                        monitor_set_global(sock, var_name, clip_data)
+                except Exception, error:
+                    error_message = str(error)
+            else:
+                QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+                QApplication.processEvents()
+                error_message = monitor_load_globals(sock, self.filename)
+                QApplication.restoreOverrideCursor()
+                QApplication.processEvents()
+    
+            if error_message is not None:
+                QMessageBox.critical(self, title,
+                                     self.tr("<b>Unable to load '%1'</b>"
+                                             "<br><br>Error message:<br>%2"
+                                             ).arg(self.filename
+                                                   ).arg(error_message))
+            self.refresh_table()
             
-        if isinstance(load_func, basestring): # 'import_wizard' (self.setup_io)
-            # Import data with import wizard
-            error_message = None
-            try:
-                text, _encoding = encoding.read(self.filename)
-                base_name = osp.basename(self.filename)
-                editor = ImportWizard(self, text, title=base_name,
-                                      varname=fix_reference_name(base_name))
-                if editor.exec_():
-                    var_name, clip_data = editor.get_data()
-                    monitor_set_global(sock, var_name, clip_data)
-            except Exception, error:
-                error_message = str(error)
-        else:
-            error_message = monitor_load_globals(sock, self.filename)
-
-        if error_message is not None:
-            QMessageBox.critical(self, title,
-                                 self.tr("<b>Unable to load '%1'</b>"
-                                         "<br><br>Error message:<br>%2") \
-                                         .arg(self.filename).arg(error_message))
-        self.refresh_table()
     
     def save_data(self, filename=None):
         """Save data"""

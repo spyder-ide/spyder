@@ -163,7 +163,7 @@ class Console(SpyderPluginWidget):
                                     self.tr("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked(self.get_option(
-                                                    'codecompletion/enter-key'))
+                                                    'codecompletion/enter_key'))
         
         option_menu = QMenu(self.tr("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
@@ -290,7 +290,7 @@ class Console(SpyderPluginWidget):
     def toggle_codecompletion_enter(self, checked):
         """Toggle Enter key for code completion"""
         self.shell.set_codecompletion_enter(checked)
-        self.set_option('codecompletion/enter-key', checked)
+        self.set_option('codecompletion/enter_key', checked)
                 
     #----Drag and drop                    
     def dragEnterEvent(self, event):

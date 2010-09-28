@@ -61,11 +61,9 @@ class FindReplace(QWidget):
                      lambda state: self.find())
         
         self.previous_button = create_toolbutton(self,
-                                             text=self.tr("Previous"),
                                              triggered=self.find_previous,
                                              icon=get_std_icon("ArrowBack"))
         self.next_button = create_toolbutton(self,
-                                             text=self.tr("Next"),
                                              triggered=self.find_next,
                                              icon=get_std_icon("ArrowForward"))
         self.connect(self.next_button, SIGNAL('clicked()'),

@@ -8,8 +8,7 @@
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
                          QToolButton, QGroupBox, QFontComboBox, QActionGroup)
-from PyQt4.QtCore import SIGNAL, QUrl
-from PyQt4.QtWebKit import QWebView
+from PyQt4.QtCore import SIGNAL, QUrl, QTimer
 
 import sys, re, os.path as osp, socket
 
@@ -180,6 +179,7 @@ class ObjectInspector(RichAndPlainText):
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
         
+        QTimer.singleShot(8000, self.refresh_plugin)
             
     #------ ReadOnlyEditor API -------------------------------------------------    
     def get_plugin_title(self):
@@ -241,17 +241,22 @@ class ObjectInspector(RichAndPlainText):
     def force_refresh(self):
         self.set_object_text(None, force_refresh=True)
     
-    def set_object_text(self, text, force_refresh=False):
+    def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Object Inspector"""
         if (self.locked and not force_refresh):
             return
-        
+
+        add_to_combo = True
         if text is None:
-            text = self.combo.currentText()
-        else:
-            self.combo.add_text(text)
+            text = unicode(self.combo.currentText())
+            add_to_combo = False
             
-        self.show_help(text)
+        found = self.show_help(text, ignore_unknown=ignore_unknown)
+        if ignore_unknown and not found:
+            return
+        
+        if add_to_combo:
+            self.combo.add_text(text)
         
         self.save_history()
         if hasattr(self.main, 'tabifiedDockWidgets'):
@@ -363,7 +368,7 @@ class ObjectInspector(RichAndPlainText):
            and not self.shell.externalshell.is_running():
             self.shell = self.get_running_python_shell()
         
-    def show_help(self, obj_text):
+    def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
         if self.shell is None:
             return
@@ -375,12 +380,15 @@ class ObjectInspector(RichAndPlainText):
         
         if self.shell.is_defined(obj_text):
             doc_text = self.shell.get_doc(obj_text)
+            if isinstance(doc_text, bool):
+                doc_text = None
             source_text = self.shell.get_source(obj_text)
         else:
             doc_text = None
             source_text = None
+            
         is_code = False
-        
+        found = True
         
         if self.rich_help:
             if doc_text is not None:
@@ -398,12 +406,16 @@ class ObjectInspector(RichAndPlainText):
                 hlp_text = source_text
                 if hlp_text is None:
                     hlp_text = self.tr("No documentation available.")
+                    if ignore_unknown:
+                        return False
         else:
             hlp_text = source_text
             if hlp_text is None:
                 hlp_text = doc_text
                 if hlp_text is None:
                     hlp_text = self.tr("No source code available.")
+                    if ignore_unknown:
+                        return False
             else:
                 is_code = True
         
@@ -416,3 +428,5 @@ class ObjectInspector(RichAndPlainText):
                 self.plain_text.editor.set_language(None)
             self.plain_text.editor.set_text(hlp_text)
             self.plain_text.editor.set_cursor_position('sof')
+        
+        return found

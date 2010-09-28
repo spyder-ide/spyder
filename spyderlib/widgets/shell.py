@@ -698,6 +698,7 @@ class PythonShellWidget(ShellBaseWidget):
         ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
         
         self.inspector = None
+        self.inspector_enabled = True
         
         # Allow raw_input support:
         self.input_loop = None
@@ -705,7 +706,7 @@ class PythonShellWidget(ShellBaseWidget):
         
         # Mouse cursor
         self.__cursor_changed = False
-
+        
 
     #------ Context menu
     def setup_context_menu(self):
@@ -816,12 +817,12 @@ class PythonShellWidget(ShellBaseWidget):
             if empty_line:
                 self.stdkey_tab()
             else:
-                self.show_code_completion()
+                self.show_code_completion(automatic=False)
                 
     def _key_ctrl_space(self):
         """Action for Ctrl+Space"""
         if not self.is_completion_widget_visible():
-            self.show_code_completion()
+            self.show_code_completion(automatic=False)
                 
     def _key_home(self, shift):
         """Action for Home key"""
@@ -871,7 +872,7 @@ class PythonShellWidget(ShellBaseWidget):
             # Enable auto-completion only if last token isn't a float
             last_obj = self.get_last_obj()
             if last_obj and not last_obj.isdigit():
-                self.show_code_completion()
+                self.show_code_completion(automatic=True)
 
 
     #------ Paste
@@ -925,7 +926,7 @@ class PythonShellWidget(ShellBaseWidget):
         """Return True if object is defined"""
         raise NotImplementedError
         
-    def show_code_completion(self):
+    def show_code_completion(self, automatic):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
         text = unicode(self.get_current_line_to_cursor())
@@ -937,24 +938,27 @@ class PythonShellWidget(ShellBaseWidget):
             try1 = text.split(' ')[-1]
             obj_list = self.get_completion(try1)
             if obj_list:
-                self.show_completion_list(obj_list, completion_text=try1)
+                self.show_completion_list(obj_list, completion_text=try1,
+                                          automatic=automatic)
                 return
         elif text.startswith('%'):
             # IPython magic commands
             obj_list = self.get_completion(text)
             if obj_list:
-                self.show_completion_list(obj_list, completion_text=text)
+                self.show_completion_list(obj_list, completion_text=text,
+                                          automatic=automatic)
             # There is no point continuing the process when text starts with '%'
             return
         obj_list = self.get_completion(last_obj)
         if not text.endswith('.') and last_obj and obj_list:
-            self.show_completion_list(obj_list, completion_text=last_obj)
+            self.show_completion_list(obj_list, completion_text=last_obj,
+                                      automatic=automatic)
             return
         #-----------------------------------------------------------------------
         
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir and text.endswith('.'):
-            self.show_completion_list(obj_dir)
+            self.show_completion_list(obj_dir, automatic=automatic)
             return
         
         # Builtins and globals
@@ -964,7 +968,8 @@ class PythonShellWidget(ShellBaseWidget):
             b_k_g = dir(__builtin__)+self.get_globals_keys()+keyword.kwlist
             for objname in b_k_g:
                 if objname.startswith(last_obj) and objname != last_obj:
-                    self.show_completion_list(b_k_g, completion_text=last_obj)
+                    self.show_completion_list(b_k_g, completion_text=last_obj,
+                                              automatic=automatic)
                     return
             else:
                 return
@@ -982,42 +987,44 @@ class PythonShellWidget(ShellBaseWidget):
             completions = self.get_dir(last_obj)
             if completions is not None:
                 self.show_completion_list(completions,
-                                          completion_text=completion_text)
+                                          completion_text=completion_text,
+                                          automatic=automatic)
                 return
         
         # Looking for ' or ": filename completion
         q_pos = max([text.rfind("'"), text.rfind('"')])
         if q_pos != -1:
             self.show_completion_list(self.get_cdlistdir(),
-                                      completion_text=text[q_pos+1:])
+                                      completion_text=text[q_pos+1:],
+                                      automatic=automatic)
             return
     
     def show_docstring(self, text, call=False):
         """Show docstring or arguments"""
-        if not self.calltips:
-            return
-        
         text = unicode(text) # Useful only for ExternalShellBase
         
-        if (self.inspector is not None) and \
+        if self.inspector_enabled and (self.inspector is not None) and \
            (self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
-            self.inspector.set_object_text(text)
+            self.inspector.set_shell(self)
+            self.inspector.set_object_text(text, ignore_unknown=True)
             self.setFocus() # if inspector was not at top level, raising it to
                             # top will automatically give it focus because of
                             # the visibility_changed signal, so we must give
                             # focus back to shell
-            if call:
+            if call and self.calltips:
                 # Display argument list if this is function call
                 iscallable = self.iscallable(text)
                 if iscallable is not None:
                     if iscallable:
                         arglist = self.get_arglist(text)
+                        if isinstance(arglist, bool):
+                            arglist = []
                         if arglist:
                             self.show_calltip(translate("PythonShellWidget",
                                                         "Arguments"),
                                               arglist, '#129625')
-        else: # inspector is not visible
+        elif self.calltips: # inspector is not visible or link is disabled
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(translate("PythonShellWidget",
@@ -1035,6 +1042,9 @@ class PythonShellWidget(ShellBaseWidget):
         """Set ObjectInspector DockWidget reference"""
         self.inspector = inspector
         self.inspector.set_shell(self)
+
+    def set_inspector_enabled(self, state):
+        self.inspector_enabled = state
             
             
     #------ Drag'n Drop

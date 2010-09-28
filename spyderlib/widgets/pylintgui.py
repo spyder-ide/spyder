@@ -84,7 +84,7 @@ class ResultsTree(OneColumnTree):
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
                                           's' if len(messages)>1 else '')
-            title_item = QTreeWidgetItem(self, [title])
+            title_item = QTreeWidgetItem(self, [title], QTreeWidgetItem.Type)
             title_item.setIcon(0, icon)
             if not messages:
                 title_item.setDisabled(True)
@@ -109,14 +109,16 @@ class ResultsTree(OneColumnTree):
                 if osp.isdir(self.filename):
                     parent = modules.get(modname)
                     if parent is None:
-                        item = QTreeWidgetItem(title_item, [module])
+                        item = QTreeWidgetItem(title_item, [module],
+                                               QTreeWidgetItem.Type)
                         item.setIcon(0, get_icon('py.png'))
                         modules[modname] = item
                         parent = item
                 else:
                     parent = title_item
                 msg_item = QTreeWidgetItem(parent,
-                                           ["%d : %s" % (lineno, message)])
+                                           ["%d : %s" % (lineno, message)],
+                                           QTreeWidgetItem.Type)
                 msg_item.setIcon(0, get_icon('arrow.png'))
                 self.data[msg_item] = (modname, lineno)
 

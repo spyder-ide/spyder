@@ -18,7 +18,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
                          QDialog, QLineEdit, QIntValidator, QDialogButtonBox,
                          QGridLayout)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
-                          PYQT_VERSION_STR, QSize, QPoint, SLOT)
+                          PYQT_VERSION_STR, QSize, QPoint, SLOT, QTimer)
 
 import os, sys, re
 import os.path as osp
@@ -36,7 +36,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import check, OutlineExplorer
-from spyderlib.widgets.codeeditor.codeeditor import CodeEditor
+from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
@@ -96,6 +96,8 @@ class FileListDialog(QDialog):
     def __init__(self, parent, combo, fullpath_sorting):
         QDialog.__init__(self, parent)
         
+        self.indexes = None
+        
         self.setWindowIcon(get_icon('filelist.png'))
         self.setWindowTitle(translate("Editor", "File list management"))
         
@@ -132,7 +134,7 @@ class FileListDialog(QDialog):
               text=translate("Editor", "&Close file"),
               icon=get_icon("fileclose.png"), autoraise=False,
               triggered=lambda: self.emit(SIGNAL("close_file(int)"),
-                                          self.listwidget.currentRow()))
+                                  self.indexes[self.listwidget.currentRow()]))
         close_btn.setMinimumHeight(28)
         btn_layout.addWidget(close_btn)
 
@@ -154,7 +156,7 @@ class FileListDialog(QDialog):
     def edit_file(self):
         row = self.listwidget.currentRow()
         if self.listwidget.count() > 0 and row >= 0:
-            self.emit(SIGNAL("edit_file(int)"), row)
+            self.emit(SIGNAL("edit_file(int)"), self.indexes[row])
             self.accept()
             
     def item_selection_changed(self):
@@ -174,6 +176,7 @@ class FileListDialog(QDialog):
         else:
             current_text = ""
         self.listwidget.clear()
+        self.indexes = []
         new_current_index = stack_index
         filter_text = unicode(self.edit.text())
         lw_index = 0
@@ -187,6 +190,7 @@ class FileListDialog(QDialog):
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
+                self.indexes.append(index)
         if new_current_index < self.listwidget.count():
             self.listwidget.setCurrentRow(new_current_index)
         for btn in self.buttons:
@@ -195,8 +199,9 @@ class FileListDialog(QDialog):
 
 class CodeAnalysisThread(QThread):
     """Pyflakes code analysis thread"""
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
+    def __init__(self, editor):
+        QThread.__init__(self, editor)
+        self.editor = editor
         self.filename = None
         self.analysis_results = []
         
@@ -204,7 +209,8 @@ class CodeAnalysisThread(QThread):
         self.filename = filename
         
     def run(self):
-        self.analysis_results = check(self.filename)
+        source_code = unicode(self.editor.toPlainText()).encode('utf-8')
+        self.analysis_results = check(source_code, filename=self.filename)
         
     def get_results(self):
         return self.analysis_results
@@ -246,9 +252,9 @@ class FileInfo(QObject):
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
         
-        self.connect(editor, SIGNAL('trigger_code_completion()'),
+        self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_calltip()'),
+        self.connect(editor, SIGNAL('trigger_calltip(int)'),
                      self.trigger_calltip)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
@@ -256,7 +262,7 @@ class FileInfo(QObject):
         self.connect(editor, SIGNAL('textChanged()'),
                      self.text_changed)
             
-        self.analysis_thread = CodeAnalysisThread(self)
+        self.analysis_thread = CodeAnalysisThread(self.editor)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
                      self.code_analysis_finished)
         
@@ -276,7 +282,7 @@ class FileInfo(QObject):
             return []
         self.project.validate_rope_project()
         
-    def trigger_code_completion(self):
+    def trigger_code_completion(self, automatic):
         if self.project is None:
             return []
         source_code = unicode(self.editor.toPlainText())
@@ -286,21 +292,26 @@ class FileInfo(QObject):
         if textlist:
             text = self.editor.get_text('sol', 'cursor')
             completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-            self.editor.show_completion_list(textlist, completion_text)
+            self.editor.show_completion_list(textlist, completion_text,
+                                             automatic)
         
-    def trigger_calltip(self):
+    def trigger_calltip(self, position):
         if self.project is None:
             return
         source_code = unicode(self.editor.toPlainText())
-        offset = self.editor.get_position('cursor')
+        offset = position
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
+        text = ''
         if textlist:
-            text = textlist[0]
-            parpos = text.find('(')
+            parpos = textlist[0].find('(')
             if parpos:
-                text = text[:parpos]
-                self.emit(SIGNAL("send_to_inspector(QString)"), text)
+                text = textlist[0][:parpos]
+        if not text:
+            text = get_primary_at(source_code, offset)
+        if text and not text.startswith('self.'):
+            self.emit(SIGNAL("send_to_inspector(QString)"), text)
+        if textlist:
             self.editor.show_calltip("rope", textlist)
                     
     def go_to_definition(self, position):
@@ -383,6 +394,7 @@ class EditorStack(QWidget):
         self.__get_split_actions()
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
         self.header_layout = None
@@ -420,12 +432,18 @@ class EditorStack(QWidget):
         self.valid_types = None
         self.codeanalysis_enabled = True
         self.todolist_enabled = True
+        self.realtime_analysis_enabled = False
+        self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = False
+        self.codecompletion_case_enabled = False
+        self.codecompletion_single_enabled = False
         self.codecompletion_enter_enabled = False
         self.calltips_enabled = False
         self.go_to_definition_enabled = False
+        self.close_parentheses_enabled = True
+        self.auto_unindent_enabled = True
         self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -447,10 +465,20 @@ class EditorStack(QWidget):
         
         self.__file_status_flag = False
         
+        # Real-time code analysis
+        self.analysis_timer = QTimer(self)
+        self.analysis_timer.setSingleShot(True)
+        self.analysis_timer.setInterval(2000)
+        self.connect(self.analysis_timer, SIGNAL("timeout()"), 
+                     self.analyze_script)
+        
         # Accepting drops
         self.setAcceptDrops(True)
 
         # Local shortcuts
+        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), parent,
+                                   self.inspect_current_object)
+        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
         self.breakpointsc = QShortcut(QKeySequence("F12"), parent,
                                       self.set_or_clear_breakpoint)
         self.breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -481,6 +509,7 @@ class EditorStack(QWidget):
         default (string): default key sequence
         """
         return [
+                (self.inspectsc, "Inspect current object", "Ctrl+I"),
                 (self.breakpointsc, "Breakpoint", "F12"),
                 (self.cbreakpointsc, "Conditional breakpoint", "Shift+F12"),
                 (self.gotolinesc, "Go to line", "Ctrl+L"),
@@ -617,6 +646,12 @@ class EditorStack(QWidget):
         if self.data:
             editor = self.get_current_editor()
             editor.add_remove_breakpoint(edit_condition=True)
+            
+    def inspect_current_object(self):
+        """Inspect current object in Object Inspector"""
+        text = self.get_current_editor().get_current_object()
+        if text:
+            self.send_to_inspector(text)
         
         
     #------ Editor Widget Settings
@@ -688,6 +723,12 @@ class EditorStack(QWidget):
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
                         finfo.run_todo_finder()
+                        
+    def set_realtime_analysis_enabled(self, state):
+        self.realtime_analysis_enabled = state
+
+    def set_realtime_analysis_timeout(self, timeout):
+        self.analysis_timer.setInterval(timeout)
     
     def set_linenumbers_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'line_numbers')
@@ -702,9 +743,20 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_codecompletion_auto(state)
+                
+    def set_codecompletion_case_enabled(self, state):
+        self.codecompletion_case_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_case(state)
+                
+    def set_codecompletion_single_enabled(self, state):
+        self.codecompletion_single_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_codecompletion_single(state)
                     
     def set_codecompletion_enter_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'codecompletion_enter')
         self.codecompletion_enter_enabled = state
         if self.data:
             for finfo in self.data:
@@ -723,6 +775,20 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_go_to_definition_enabled(state)
+                
+    def set_close_parentheses_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'close_parentheses')
+        self.close_parentheses_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_close_parentheses_enabled(state)
+                
+    def set_auto_unindent_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'auto_unindent')
+        self.auto_unindent_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_auto_unindent_enabled(state)
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
@@ -842,17 +908,16 @@ class EditorStack(QWidget):
         self.update_filelistdialog()
         
     def __repopulate_stack(self):
-        self.combo.blockSignals(True)
-        for _i in range(self.tabs.count()):
-            self.tabs.removeTab(_i)
-        self.combo.clear()
-        for _i, _fi in enumerate(self.data):
-            fname, editor = _fi.filename, _fi.editor
-            self.tabs.insertTab(_i, editor, get_filetype_icon(fname),
-                                self.get_tab_title(fname))
-            self.combo.insertItem(_i, get_filetype_icon(fname),
-                                  self.get_combo_title(fname))
-        self.combo.blockSignals(False)
+        for widget in (self.combo, self.tabs):
+            widget.blockSignals(True)
+            widget.clear()
+        for finfo in self.data:
+            icon = get_filetype_icon(finfo.filename)
+            self.tabs.addTab(finfo.editor, icon,
+                             self.get_tab_title(finfo.filename))
+            self.combo.addItem(icon, self.get_combo_title(finfo.filename))
+        for widget in (self.combo, self.tabs):
+            widget.blockSignals(False)
         self.update_filelistdialog()
         
     def rename_in_data(self, index, new_filename):
@@ -1072,11 +1137,7 @@ class EditorStack(QWidget):
             return True
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
-            filename = self.select_savename(finfo.filename)
-            if filename:
-                finfo.filename = filename
-            else:
-                return False
+            return self.save_as(index=index)
         txt = unicode(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
@@ -1128,9 +1189,11 @@ class EditorStack(QWidget):
         if filename:
             return osp.normpath(unicode(filename))
     
-    def save_as(self):
+    def save_as(self, index=None):
         """Save file as..."""
-        index = self.get_stack_index()
+        if index is None:
+            # Save the currently edited file
+            index = self.get_stack_index()
         finfo = self.data[index]
         filename = self.select_savename(finfo.filename)
         if filename:
@@ -1141,22 +1204,34 @@ class EditorStack(QWidget):
                 if ao_index < index:
                     index -= 1
             new_index = self.rename_in_data(index, new_filename=filename)
-            self.save(index=new_index, force=True)
+            ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
             self.set_stack_index(new_index)
+            return ok
+        else:
+            return False
         
     def save_all(self):
         """Save all opened files"""
         folders = set()
         for index in range(self.get_stack_count()):
-            folders.add(osp.dirname(self.data[index].filename))
-            self.save(index, refresh_explorer=False)
+            if self.data[index].editor.document().isModified():
+                folders.add(osp.dirname(self.data[index].filename))
+                self.save(index, refresh_explorer=False)
         for folder in folders:
             self.emit(SIGNAL("refresh_explorer(QString)"), folder)
     
     #------ Update UI
+    def start_stop_analysis_timer(self):
+        self.is_analysis_done = False
+        if self.realtime_analysis_enabled:
+            self.analysis_timer.stop()
+            self.analysis_timer.start()
+    
     def analyze_script(self, index=None):
         """Analyze current script with pyflakes + find todos"""
+        if self.is_analysis_done:
+            return
         if index is None:
             index = self.get_stack_index()
         if self.data:
@@ -1165,6 +1240,7 @@ class EditorStack(QWidget):
                 finfo.run_code_analysis()
             if self.todolist_enabled:
                 finfo.run_todo_finder()
+        self.is_analysis_done = True
                 
     def set_analysis_results(self, index, analysis_results):
         """Synchronize analysis results between editorstacks"""
@@ -1490,9 +1566,13 @@ class EditorStack(QWidget):
                 highlight_current_line=self.highlight_current_line_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
+                codecompletion_case=self.codecompletion_case_enabled,
+                codecompletion_single=self.codecompletion_single_enabled,
                 codecompletion_enter=self.codecompletion_enter_enabled,
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
+                close_parentheses=self.close_parentheses_enabled,
+                auto_unindent=self.auto_unindent_enabled,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)
@@ -1503,6 +1583,8 @@ class EditorStack(QWidget):
                                fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursor_position_changed_callback)
+        self.connect(editor, SIGNAL('textChanged()'),
+                     self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      self.modification_changed)
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
@@ -1526,7 +1608,7 @@ class EditorStack(QWidget):
             return
         if self.inspector is not None and self.inspector.dockwidget.isVisible():
             # ObjectInspector widget exists and is visible
-            self.inspector.set_object_text(qstr)
+            self.inspector.set_object_text(qstr, ignore_unknown=True)
             editor = self.get_current_editor()
             editor.setFocus()
     
@@ -1536,10 +1618,9 @@ class EditorStack(QWidget):
         """
         finfo = self.create_new_editor(filename, encoding, text,
                                        set_current=True, new=True)
-        editor = finfo.editor
-        editor.set_cursor_position('eof')
-        editor.insert_text(os.linesep)
-        return editor
+        finfo.editor.set_cursor_position('eof')
+        finfo.editor.insert_text(os.linesep)
+        return finfo.editor
         
     def load(self, filename, set_current=True):
         """
@@ -1932,6 +2013,7 @@ class EditorWidget(QSplitter):
         editor_layout.addWidget(self.find_widget)
         
         splitter = QSplitter(self)
+        splitter.setContentsMargins(0, 0, 0, 0)
         splitter.addWidget(editor_widgets)
         splitter.addWidget(self.outlineexplorer)
         splitter.setStretchFactor(0, 5)
@@ -2096,6 +2178,7 @@ class FakePlugin(QSplitter):
                                                first=True))
         editor_layout.addWidget(self.find_widget)
         
+        self.setContentsMargins(0, 0, 0, 0)
         self.addWidget(editor_widgets)
         self.addWidget(self.outlineexplorer)
         

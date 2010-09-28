@@ -150,7 +150,6 @@ class Monitor(threading.Thread):
                        "getdoc": getdoc,
                        "getsource": getsource,
                        "isdefined": isdefined,
-                       "iscallable": callable,
                        "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
                        "__get_global__": self.getglobal,

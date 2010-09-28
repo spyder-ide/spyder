@@ -288,9 +288,9 @@ class MainWindow(QMainWindow):
             self.set_splash(self.tr("Initializing..."))
             if CONF.get('main', 'current_version', '') != __version__:
                 CONF.set('main', 'current_version', __version__)
-                run_python_script(module="compileall",
-                                  args=['-q', spyderlib.__path__[0]],
-                                  p_args=['-O'])
+                # Execute here the actions to be performed only once after
+                # each update (there is nothing there for now, but it could 
+                # be useful some day...)
         
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
@@ -336,6 +336,7 @@ class MainWindow(QMainWindow):
             if CONF.get('main', 'vertical_dockwidget_titlebars'):
                 features = features|QDockWidget.DockWidgetVerticalTitleBar
             child.dockwidget.setFeatures(features)
+            child.update_margins()
         
     def setup(self):
         """Setup main window"""
@@ -1263,15 +1264,19 @@ def get_options():
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Reset to default session")
+    parser.add_option('--optimize', dest="optimize",
+                      action='store_true', default=False,
+                      help="Optimize Spyder bytecode (this may require "
+                           "administrative privileges)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
-    parser.add_option('--onethread', dest="multithreaded",
-                      action='store_false', default=True,
-                      help="Internal console run in the same thread as main "
-                           "application")
+    parser.add_option('--multithread', dest="multithreaded",
+                      action='store_true', default=False,
+                      help="Internal console is executed in another thread "
+                           "(separate from main application thread)")
     parser.add_option('--profile', dest="profile", action='store_true',
                       default=False,
                       help="Profile mode (internal test, "
@@ -1309,6 +1314,37 @@ def initialize(debug):
     try:
         from enthought.etsconfig.api import ETSConfig
         ETSConfig.toolkit = 'qt4'
+    except ImportError:
+        pass
+
+    #----Monkey patching rope (if installed)
+    #       Compatibility with new Mercurial API (>= 1.3).
+    #       New versions of rope (> 0.9.2) already handle this issue
+    try:
+        import rope
+        if rope.VERSION == '0.9.2':
+            import rope.base.fscommands
+            
+            class MercurialCommands(rope.base.fscommands.MercurialCommands):
+                def __init__(self, root):
+                    self.hg = self._import_mercurial()
+                    self.normal_actions = rope.base.fscommands.FileSystemCommands()
+                    try:
+                        self.ui = self.hg.ui.ui(
+                            verbose=False, debug=False, quiet=True,
+                            interactive=False, traceback=False,
+                            report_untrusted=False)
+                    except:
+                        self.ui = self.hg.ui.ui()
+                        self.ui.setconfig('ui', 'interactive', 'no')
+                        self.ui.setconfig('ui', 'debug', 'no')
+                        self.ui.setconfig('ui', 'traceback', 'no')
+                        self.ui.setconfig('ui', 'verbose', 'no')
+                        self.ui.setconfig('ui', 'report_untrusted', 'no')
+                        self.ui.setconfig('ui', 'quiet', 'yes')
+                    self.repo = self.hg.hg.repository(self.ui, root)
+                
+            rope.base.fscommands.MercurialCommands = MercurialCommands
     except ImportError:
         pass
     
@@ -1356,6 +1392,10 @@ def main():
     if options.reset_session:
         reset_session()
 #        CONF.reset_to_defaults(save=True)
+        return
+    elif options.optimize:
+        run_python_script(module="compileall", args=[spyderlib.__path__[0]],
+                          p_args=['-O'])
         return
 
     if CONF.get('main', 'crash', False):

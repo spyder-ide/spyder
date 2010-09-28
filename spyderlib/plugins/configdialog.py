@@ -427,8 +427,14 @@ class SpyderConfigPage(ConfigPage):
     
     def create_spinbox(self, prefix, suffix, option, default=NoDefault,
                        min_=None, max_=None, step=None, tip=None):
-        plabel = QLabel(prefix)
-        slabel = QLabel(suffix)
+        if prefix:
+            plabel = QLabel(prefix)
+        else:
+            plabel = None
+        if suffix:
+            slabel = QLabel(suffix)
+        else:
+            slabel = None
         spinbox = QSpinBox()
         if min_ is not None:
             spinbox.setMinimum(min_)
@@ -441,7 +447,8 @@ class SpyderConfigPage(ConfigPage):
         self.spinboxes[spinbox] = (option, default)
         layout = QHBoxLayout()
         for subwidget in (plabel, spinbox, slabel):
-            layout.addWidget(subwidget)
+            if subwidget is not None:
+                layout.addWidget(subwidget)
         layout.addStretch(1)
         layout.setContentsMargins(0, 0, 0, 0)
         widget = QWidget(self)
@@ -581,20 +588,28 @@ class MainConfigPage(GeneralConfigPage):
     
     def setup_page(self):
         interface_group = QGroupBox(self.tr("Interface"))
-        vertdock_box = self.create_checkbox(
-                                    self.tr("Vertical dockwidget title bars"),
-                                    'vertical_dockwidget_titlebars')
-        verttabs_box = self.create_checkbox(
-                                    self.tr("Vertical dockwidget tabs"),
-                                    'vertical_tabs')
-        animated_box = self.create_checkbox(
-                                self.tr("Animated toolbars and dockwidgets"),
-                                'animated_docks')
+        newcb = self.create_checkbox
+        vertdock_box = newcb(self.tr("Vertical dockwidget title bars"),
+                             'vertical_dockwidget_titlebars')
+        verttabs_box = newcb(self.tr("Vertical dockwidget tabs"),
+                             'vertical_tabs')
+        animated_box = newcb(self.tr("Animated toolbars and dockwidgets"),
+                             'animated_docks')
+        margin_box = newcb(self.tr("Custom dockwidget margin:"),
+                           'use_custom_margin')
+        margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
+                                          0, 0, 30)
+        self.connect(margin_box, SIGNAL("toggled(bool)"),
+                     margin_spin.setEnabled)
+        margins_layout = QHBoxLayout()
+        margins_layout.addWidget(margin_box)
+        margins_layout.addWidget(margin_spin)
         
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
+        interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
         
         vlayout = QVBoxLayout()

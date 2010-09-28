@@ -230,7 +230,8 @@ class Project(object):
         try:
             import rope.contrib.codeassist
             cts = rope.contrib.codeassist.get_calltip(self.rope_project,
-                                source_code, offset, resource, remove_self=True)
+                                        source_code, offset, resource,
+                                        ignore_unknown=True, remove_self=True)
             if cts is not None:
                 return [cts]
             else:

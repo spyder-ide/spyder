@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
                          QSplitter, QToolBar, QAction, QApplication, QDialog,
                          QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
                          QAbstractPrintDialog, QGroupBox, QTabWidget, QLabel,
-                         QFontComboBox)
+                         QFontComboBox, QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -116,12 +116,20 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
         display_group.setLayout(display_layout)
+
+        run_group = QGroupBox(self.tr("Run"))
+        saveall_box = newcb(self.tr("Save all files before running script"),
+                            'save_all_before_run', True)
         
-        sourcecode_group = QGroupBox(self.tr("Source code"))
+        introspection_group = QGroupBox(self.tr("Introspection"))
         completion_box = newcb(self.tr("Automatic code completion"),
                                'codecompletion/auto')
+        case_comp_box = newcb(self.tr("Case sensitive code completion"),
+                              'codecompletion/case_sensitive')
+        show_single_box = newcb(self.tr("Show single completion"),
+                                'codecompletion/show_single')
         comp_enter_box = newcb(self.tr("Enter key selects completion"),
-                               'codecompletion/enter-key')
+                               'codecompletion/enter_key')
         calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
         gotodef_box = newcb(self.tr("Link to object definition"),
               'go_to_definition',
@@ -135,14 +143,19 @@ class EditorConfigPage(PluginConfigPage):
                           "will automatically show informations on functions\n"
                           "entered in editor (this is triggered when entering\n"
                           "a left parenthesis after a valid function name)"))
-        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
-              'code_analysis', default=True,
-              tip=self.tr("If enabled, Python source code will be analyzed\n"
-                          "using pyflakes, lines containing errors or \n"
-                          "warnings will be highlighted"))
-        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
-        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
-                             'todo_list', default=True)
+        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
+                                    "The Python module <i>rope</i> is not "
+                                    "installed on this computer: calltips, "
+                                    "code completion and go-to-definition "
+                                    "features won't be available."))
+        rope_label.setWordWrap(True)
+        
+        sourcecode_group = QGroupBox(self.tr("Source code"))
+        closepar_box = newcb(self.tr("Automatic parentheses, braces and "
+                                     "brackets insertion"),
+                             'close_parentheses')
+        autounindent_box = newcb(self.tr("Automatic indentation after 'else', "
+                                         "'elif', etc."), 'auto_unindent')
         tab_mode_box = newcb(self.tr("Tab always indent"),
               'tab_always_indent', default=False,
               tip=self.tr("If enabled, pressing Tab will always indent,\n"
@@ -151,24 +164,58 @@ class EditorConfigPage(PluginConfigPage):
                           "completion may be triggered using the alternate\n"
                           "shortcut: Ctrl+Space)"))
         
-        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
-                                    "The Python module <i>rope</i> is not "
-                                    "installed on this computer: calltips, "
-                                    "code completion and go-to-definition "
-                                    "features won't be available."))
-        rope_label.setWordWrap(True)
+        analysis_group = QGroupBox(self.tr("Analysis"))
+        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
+              'code_analysis', default=True,
+              tip=self.tr("If enabled, Python source code will be analyzed\n"
+                          "using pyflakes, lines containing errors or \n"
+                          "warnings will be highlighted"))
+        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
+        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
+                             'todo_list', default=True)
+        ancb_layout = QHBoxLayout()
+        ancb_layout.addWidget(codeanalysis_box)
+        ancb_layout.addWidget(todolist_box)
+        realtime_radio = self.create_radiobutton(
+                                            self.tr("Perform analysis when "
+                                                    "saving file and every"),
+                                            'realtime_analysis', True)
+        saveonly_radio = self.create_radiobutton(
+                                            self.tr("Perform analysis only "
+                                                    "when saving file"),
+                                            'onsave_analysis', False)
+        af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
+                                      min_=100, max_=1000000, step=100)
+        af_layout = QHBoxLayout()
+        af_layout.addWidget(realtime_radio)
+        af_layout.addWidget(af_spin)
+        
+        run_layout = QVBoxLayout()
+        run_layout.addWidget(saveall_box)
+        run_group.setLayout(run_layout)
+        
+        introspection_layout = QVBoxLayout()
+        if programs.is_module_installed('rope'):
+            introspection_layout.addWidget(calltips_box)
+            introspection_layout.addWidget(completion_box)
+            introspection_layout.addWidget(case_comp_box)
+            introspection_layout.addWidget(show_single_box)
+            introspection_layout.addWidget(comp_enter_box)
+            introspection_layout.addWidget(gotodef_box)
+            introspection_layout.addWidget(inspector_box)
+        else:
+            introspection_layout.addWidget(rope_label)
+        introspection_group.setLayout(introspection_layout)
+        
+        analysis_layout = QVBoxLayout()
+        analysis_layout.addLayout(ancb_layout)
+        analysis_layout.addLayout(af_layout)
+        analysis_layout.addWidget(saveonly_radio)
+        analysis_group.setLayout(analysis_layout)
         
         sourcecode_layout = QVBoxLayout()
-        if programs.is_module_installed('rope'):
-            sourcecode_layout.addWidget(calltips_box)
-            sourcecode_layout.addWidget(completion_box)
-            sourcecode_layout.addWidget(comp_enter_box)
-            sourcecode_layout.addWidget(gotodef_box)
-            sourcecode_layout.addWidget(inspector_box)
-        else:
-            sourcecode_layout.addWidget(rope_label)
-        sourcecode_layout.addWidget(codeanalysis_box)
-        sourcecode_layout.addWidget(todolist_box)
+        sourcecode_layout.addWidget(closepar_box)
+        sourcecode_layout.addWidget(autounindent_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_group.setLayout(sourcecode_layout)
 
@@ -191,7 +238,10 @@ class EditorConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group),
                     self.tr("Display"))
-        tabs.addTab(self.create_tab(template_btn, sourcecode_group, eol_group),
+        tabs.addTab(self.create_tab(introspection_group, analysis_group),
+                    self.tr("Code Introspection/Analysis"))
+        tabs.addTab(self.create_tab(template_btn, run_group, sourcecode_group,
+                                    eol_group),
                     self.tr("Advanced settings"))
         
         vlayout = QVBoxLayout()
@@ -264,7 +314,6 @@ class Editor(SpyderPluginWidget):
         self.cursorpos_status = CursorPositionStatus(self, statusbar)
         
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
@@ -318,6 +367,7 @@ class Editor(SpyderPluginWidget):
 
         # Splitter: editor widgets (see above) + outline explorer
         self.splitter = QSplitter(self)
+        self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(editor_widgets)
         self.splitter.addWidget(self.outlineexplorer)
         self.splitter.setStretchFactor(0, 5)
@@ -833,12 +883,18 @@ class Editor(SpyderPluginWidget):
         settings = (
             ('set_codeanalysis_enabled',            'code_analysis'),
             ('set_todolist_enabled',                'todo_list'),
+            ('set_realtime_analysis_enabled',       'realtime_analysis'),
+            ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_linenumbers_enabled',             'line_numbers'),
             ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
-            ('set_codecompletion_enter_enabled',    'codecompletion/enter-key'),
+            ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
+            ('set_codecompletion_single_enabled',   'codecompletion/show_single'),
+            ('set_codecompletion_enter_enabled',    'codecompletion/enter_key'),
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
+            ('set_close_parentheses_enabled',       'close_parentheses'),
+            ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
@@ -1712,6 +1768,8 @@ class Editor(SpyderPluginWidget):
         
     def re_run_file(self):
         """Re-run last script"""
+        if self.get_option('save_all_before_run', True):
+            self.get_current_editorstack().save_all()
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
@@ -1768,18 +1826,30 @@ class Editor(SpyderPluginWidget):
             tabindent_o = self.get_option(tabindent_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
-            enter_key_n = 'codecompletion/enter-key'
+            case_comp_n = 'codecompletion/case_sensitive'
+            case_comp_o = self.get_option(case_comp_n)
+            show_single_n = 'codecompletion/show_single'
+            show_single_o = self.get_option(show_single_n)
+            enter_key_n = 'codecompletion/enter_key'
             enter_key_o = self.get_option(enter_key_n)
             calltips_n = 'calltips'
             calltips_o = self.get_option(calltips_n)
             gotodef_n = 'go_to_definition'
             gotodef_o = self.get_option(gotodef_n)
+            closepar_n = 'close_parentheses'
+            closepar_o = self.get_option(closepar_n)
+            autounindent_n = 'auto_unindent'
+            autounindent_o = self.get_option(autounindent_n)
             inspector_n = 'object_inspector'
             inspector_o = self.get_option(inspector_n)
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
             analysis_n = 'code_analysis'
             analysis_o = self.get_option(analysis_n)
+            rt_analysis_n = 'realtime_analysis'
+            rt_analysis_o = self.get_option(rt_analysis_n)
+            rta_timeout_n = 'realtime_analysis/timeout'
+            rta_timeout_o = self.get_option(rta_timeout_n)
             finfo = self.get_current_finfo()
             if fpsorting_n in options:
                 if self.outlineexplorer is not None:
@@ -1811,12 +1881,20 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_tabmode_enabled(tabindent_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
+                if case_comp_n in options:
+                    editorstack.set_codecompletion_case_enabled(case_comp_o)
+                if show_single_n in options:
+                    editorstack.set_codecompletion_single_enabled(show_single_o)
                 if enter_key_n in options:
                     editorstack.set_codecompletion_enter_enabled(enter_key_o)
                 if calltips_n in options:
                     editorstack.set_calltips_enabled(calltips_o)
                 if gotodef_n in options:
                     editorstack.set_go_to_definition_enabled(gotodef_o)
+                if closepar_n in options:
+                    editorstack.set_close_parentheses_enabled(closepar_o)
+                if autounindent_n in options:
+                    editorstack.set_auto_unindent_enabled(autounindent_o)
                 if inspector_n in options:
                     editorstack.set_inspector_enabled(inspector_o)
                 if todo_n in options:
@@ -1825,6 +1903,10 @@ class Editor(SpyderPluginWidget):
                 if analysis_n in options:
                     editorstack.set_codeanalysis_enabled(analysis_o,
                                                          current_finfo=finfo)
+                if rt_analysis_n in options:
+                    editorstack.set_realtime_analysis_enabled(rt_analysis_o)
+                if rta_timeout_n in options:
+                    editorstack.set_realtime_analysis_timeout(rta_timeout_o)
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
