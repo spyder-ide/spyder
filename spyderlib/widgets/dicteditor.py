@@ -73,25 +73,24 @@ def datestr_to_datetime(value):
 
 #----Background colors for supported types 
 COLORS = {
-          bool: Qt.magenta,
-          (int, float, long): Qt.blue,
-          list: Qt.yellow,
-          dict: Qt.cyan,
-          tuple: Qt.lightGray,
-          (str, unicode): Qt.darkRed,
-          ndarray: Qt.green,
-          Image: Qt.darkGreen,
-          datetime.date: Qt.darkYellow,
+          bool:               "#ff00ff",
+          (int, float, long): "#0000ff",
+          list:               "#ffff00",
+          dict:               "#00ffff",
+          tuple:              "#c0c0c0",
+          (str, unicode):     "#800000",
+          ndarray:            "#00ff00",
+          Image:              "#008000",
+          datetime.date:      "#808000",
           }
 
-def get_color(value, alpha=.2):
-    """Return color depending on value type"""
-    color = QColor()
-    for typ in COLORS:
+def get_color_name(value):
+    """Return color name depending on value type"""
+    for typ, name in COLORS.iteritems():
         if isinstance(value, typ):
-            color = QColor(COLORS[typ])
-    color.setAlphaF(alpha)
-    return color
+            return name
+    else:
+        return "#ffffff"
 
 #----Sorting
 def sort_against(lista, listb, reverse=False):
@@ -378,9 +377,11 @@ class DictModel(ReadOnlyDictModel):
             color = ReadOnlyDictModel.get_bgcolor(self, index)
         else:
             if self.remote:
-                color = value['color']
+                color_name = value['color']
             else:
-                color = get_color(value)
+                color_name = get_color_name(value)
+            color = QColor(color_name)
+            color.setAlphaF(.2)
         return color
 
     def setData(self, index, value, role=Qt.EditRole):
