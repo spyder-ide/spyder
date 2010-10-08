@@ -88,12 +88,12 @@ def get_idx_rect(index_list):
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, changes,
-                 format="%.3f", xy_mode=False, readonly=False, parent=None):
+    def __init__(self, data, format="%.3f",
+                 xy_mode=False, readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
         self.dialog = parent
-        self.changes = changes
+        self.changes = {}
         self.readonly = readonly
         self.test_array = np.array([0], dtype=data.dtype)
 
@@ -367,10 +367,8 @@ class ArrayEditorWidget(QWidget):
             self.old_data_shape = self.data.shape
             self.data.shape = (1, 1)
 
-        self.changes = {}
-       
         format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
-        self.model = ArrayModel(self.data, self.changes, format=format,
+        self.model = ArrayModel(self.data, format=format,
                                 xy_mode=xy, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
         
@@ -397,7 +395,7 @@ class ArrayEditorWidget(QWidget):
         
     def accept_changes(self):
         """Accept changes"""
-        for (i, j), value in self.changes.iteritems():
+        for (i, j), value in self.model.changes.iteritems():
             self.data[i, j] = value
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape

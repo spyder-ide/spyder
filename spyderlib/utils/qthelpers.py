@@ -31,13 +31,16 @@ from spyderlib.utils import programs
 
 TRANSLATORS = []
 
+QAPPLICATION = None
+
 def qapplication(translate=True):
     """
     Return QApplication instance
     Creates it if it doesn't already exist
     """
+    global QAPPLICATION, TRANSLATORS
     if QApplication.startingUp():
-        app = QApplication([])
+        QAPPLICATION = QApplication([])
         if translate:
             locale = QLocale.system().name()
             # Qt-specific translator
@@ -45,21 +48,21 @@ def qapplication(translate=True):
             TRANSLATORS.append(qt_translator) # Keep reference alive
             paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
             if qt_translator.load("qt_"+locale, paths):
-                app.installTranslator(qt_translator)
+                QAPPLICATION.installTranslator(qt_translator)
             # Spyder-specific translator
             app_translator = QTranslator()
             TRANSLATORS.append(app_translator) # Keep reference alive
             if app_translator.load("spyder_"+locale, DATA_PATH):
-                app.installTranslator(app_translator)
+                QAPPLICATION.installTranslator(app_translator)
             # Load 3rd-party plugin translators
             for modname in get_spyderplugins(prefix='p_', extension='.py'):
                 plugin_translator = QTranslator()
                 TRANSLATORS.append(plugin_translator)
                 if plugin_translator.load(modname+"_"+locale, PLUGIN_PATH):
-                    app.installTranslator(plugin_translator)
-    else:
-        app = QApplication.instance()
-    return app
+                    QAPPLICATION.installTranslator(plugin_translator)
+    elif QAPPLICATION is None:
+        QAPPLICATION = QApplication.instance()
+    return QAPPLICATION
 
 def translate(context, string):
     """Translation"""

@@ -11,7 +11,7 @@ from spyderlib.utils import select_port, fix_reference_name
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
 from spyderlib.utils.iofuncs import iofunctions
-from spyderlib.widgets.dicteditor import (get_type, get_size, get_color,
+from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
                                           value_to_display, globalsfilter)
 
 DEBUG = False
@@ -46,7 +46,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
                                 collvalue=settings['collvalue'])
         remote[key] = {'type': get_type(value),
                        'size': get_size(value),
-                       'color': get_color(value),
+                       'color': get_color_name(value),
                        'view': view}
     return remote
     

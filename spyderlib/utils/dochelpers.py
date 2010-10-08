@@ -117,7 +117,8 @@ def getargtxt(obj, one_arg_per_line=True):
     if inspect.isclass(obj) or inspect.ismethod(obj):
         if len(textlist) == 1:
             return None
-        textlist.remove('self'+sep)
+        if 'self'+sep in textlist:
+            textlist.remove('self'+sep)
     return textlist
 
 
