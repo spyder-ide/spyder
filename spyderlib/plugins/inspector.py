@@ -29,7 +29,7 @@ class ObjectComboBox(EditableComboBox):
     QComboBox handling object names
     """
     def __init__(self, parent):
-        super(ObjectComboBox, self).__init__(parent)
+        EditableComboBox.__init__(self, parent)
         self.object_inspector = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.tips = {True: self.tr("Press enter to validate this object name"),

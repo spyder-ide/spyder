@@ -279,7 +279,7 @@ class ShowStdIcons(QWidget):
     Dialog showing standard icons
     """
     def __init__(self, parent):
-        super(ShowStdIcons, self).__init__(parent)
+        QWidget.__init__(self, parent)
         layout = QHBoxLayout()
         row_nb = 14
         cindex = 0

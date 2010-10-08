@@ -803,7 +803,7 @@ class ExplorerTreeWidget(OneColumnTree):
             self.rename(self.currentItem())
             event.accept()
         else:
-            super(ExplorerTreeWidget, self).keyPressEvent(event)
+            OneColumnTree.keyPressEvent(self, event)
 
     def activated(self):
         """Reimplement OneColumnTree method"""
@@ -1359,7 +1359,7 @@ class ExplorerTreeWidget(OneColumnTree):
     
     def mimeData(self, items):
         """Reimplement Qt method"""
-        data = super(ExplorerTreeWidget, self).mimeData(items)
+        data = OneColumnTree.mimeData(self, items)
         data.setUrls([QUrl(get_item_path(item)) for item in items])
         return data
     

@@ -597,7 +597,7 @@ class EditorStack(QWidget):
         self.header_layout.addWidget(widget)
         
     def closeEvent(self, event):
-        super(EditorStack, self).closeEvent(event)
+        QWidget.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))        
             
@@ -1786,7 +1786,7 @@ class EditorSplitter(QSplitter):
         self.addWidget(self.editorstack)
 
     def closeEvent(self, event):
-        super(EditorSplitter, self).closeEvent(event)
+        QSplitter.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))
                                 
@@ -1979,7 +1979,7 @@ class CursorPositionStatus(StatusBarWidget):
 class EditorWidget(QSplitter):
     def __init__(self, parent, plugin, menu_actions,
                  show_fullpath, fullpath_sorting, show_all_files):
-        super(EditorWidget, self).__init__(parent)
+        QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         statusbar = parent.statusBar() # Create a status bar
@@ -2068,7 +2068,7 @@ class EditorWidget(QSplitter):
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
                  show_fullpath, fullpath_sorting, show_all_files):
-        super(EditorMainWindow, self).__init__()
+        QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.window_size = None
@@ -2118,7 +2118,7 @@ class EditorMainWindow(QMainWindow):
                 
     def closeEvent(self, event):
         """Reimplement Qt method"""
-        super(EditorMainWindow, self).closeEvent(event)
+        QMainWindow.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))
             for editorstack in self.editorwidget.editorstacks[:]:

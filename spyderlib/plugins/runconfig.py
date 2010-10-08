@@ -100,7 +100,7 @@ def get_run_configuration(fname):
 
 class RunConfigOptions(QWidget):
     def __init__(self, parent=None):
-        super(RunConfigOptions, self).__init__(parent)
+        QWidget.__init__(self, parent)
         self.runconf = RunConfiguration()
         
         common_group = QGroupBox(self.tr("General settings"))
@@ -214,7 +214,7 @@ class RunConfigOptions(QWidget):
 
 class RunConfigOneDialog(QDialog):
     def __init__(self, parent=None):
-        super(RunConfigOneDialog, self).__init__(parent)
+        QDialog.__init__(self, parent)
         
         self.filename = None
         
@@ -257,7 +257,7 @@ class RunConfigOneDialog(QDialog):
 
 class RunConfigDialog(QDialog):
     def __init__(self, parent=None):
-        super(RunConfigDialog, self).__init__(parent)
+        QDialog.__init__(self, parent)
         
         self.file_to_run = None
         

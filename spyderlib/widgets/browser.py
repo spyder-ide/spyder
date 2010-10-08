@@ -25,7 +25,7 @@ from spyderlib.widgets.findreplace import FindReplace
 class WebView(QWebView):
     """Web page"""
     def __init__(self, parent):
-        super(WebView, self).__init__(parent)
+        QWebView.__init__(self, parent)
         
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False):

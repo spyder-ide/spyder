@@ -90,7 +90,7 @@ class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
     def __init__(self, data, changes,
                  format="%.3f", xy_mode=False, readonly=False, parent=None):
-        super(ArrayModel, self).__init__()
+        QAbstractTableModel.__init__(self)
 
         self.dialog = parent
         self.changes = changes
@@ -246,7 +246,7 @@ class ArrayModel(QAbstractTableModel):
 class ArrayDelegate(QItemDelegate):
     """Array Editor Item Delegate"""
     def __init__(self, dtype, parent=None):
-        super(ArrayDelegate, self).__init__(parent)
+        QItemDelegate.__init__(self, parent)
         self.dtype = dtype
 
     def createEditor(self, parent, option, index):
@@ -428,7 +428,7 @@ class ArrayEditorWidget(QWidget):
 class ArrayEditor(QDialog):
     """Array Editor Dialog"""    
     def __init__(self, parent=None):
-        super(ArrayEditor, self).__init__(parent)
+        QDialog.__init__(self, parent)
     
     def setup_and_check(self, data, title='', xy=False, readonly=False):
         """

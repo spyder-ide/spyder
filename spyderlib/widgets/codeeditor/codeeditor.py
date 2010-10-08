@@ -231,7 +231,7 @@ class CodeEditor(TextEditBaseWidget):
                 ]
 
     def closeEvent(self, event):
-        super(CodeEditor, self).closeEvent(event)
+        TextEditBaseWidget.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))
             
@@ -789,7 +789,7 @@ class CodeEditor(TextEditBaseWidget):
                     
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
-        super(CodeEditor, self).resizeEvent(event)
+        TextEditBaseWidget.resizeEvent(self, event)
         cr = self.contentsRect()
         self.linenumberarea.setGeometry(\
                         QRect(cr.left(), cr.top(),
@@ -824,7 +824,7 @@ class CodeEditor(TextEditBaseWidget):
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
-        return super(CodeEditor, self).viewportEvent(event)
+        return TextEditBaseWidget.viewportEvent(self, event)
 
     #-----highlight current line
     def highlight_current_line(self):
@@ -1610,7 +1610,7 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
         if event.mimeData().hasText():
-            super(CodeEditor, self).dragEnterEvent(event)
+            TextEditBaseWidget.dragEnterEvent(self, event)
         else:
             event.ignore()
             
@@ -1618,7 +1618,7 @@ class CodeEditor(TextEditBaseWidget):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
         if event.mimeData().hasText():
-            super(CodeEditor, self).dropEvent(event)
+            TextEditBaseWidget.dropEvent(self, event)
         else:
             event.ignore()
 
@@ -1656,7 +1656,7 @@ class Printer(QPrinter):
 #===============================================================================
 class TestEditor(CodeEditor):
     def __init__(self, parent):
-        super(TestEditor, self).__init__(parent)
+        CodeEditor.__init__(self, parent)
         self.setup_editor(linenumbers=True, code_analysis=False,
                           todo_list=False)
         
@@ -1669,7 +1669,7 @@ class TestEditor(CodeEditor):
 
 class TestWidget(QSplitter):
     def __init__(self, parent):
-        super(TestWidget, self).__init__(parent)
+        QSplitter.__init__(self, parent)
         self.editor = TestEditor(self)
         self.addWidget(self.editor)
         self.classtree = OutlineExplorer(self)

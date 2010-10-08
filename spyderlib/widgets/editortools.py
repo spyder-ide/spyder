@@ -144,7 +144,7 @@ class ClassItem(TreeItem):
 
 class FunctionItem(TreeItem):
     def __init__(self, name, line, parent, preceding):
-        super(FunctionItem, self).__init__(name, line, parent, preceding)
+        TreeItem.__init__(self, name, line, parent, preceding)
         self.decorator = None
         
     def set_decorator(self, decorator):
@@ -584,7 +584,7 @@ class OutlineExplorer(QWidget):
 #===============================================================================
 class LineNumberArea(QWidget):
     def __init__(self, editor):
-        super(LineNumberArea, self).__init__(editor)
+        QWidget.__init__(self, editor)
         self.code_editor = editor
         
     def sizeHint(self):
@@ -602,7 +602,7 @@ class LineNumberArea(QWidget):
 class ScrollFlagArea(QWidget):
     WIDTH = 12
     def __init__(self, editor):
-        super(ScrollFlagArea, self).__init__(editor)
+        QWidget.__init__(self, editor)
         self.code_editor = editor
         
     def sizeHint(self):
@@ -620,7 +620,7 @@ class ScrollFlagArea(QWidget):
 
 class EdgeLine(QWidget):
     def __init__(self, editor):
-        super(EdgeLine, self).__init__(editor)
+        QWidget.__init__(self, editor)
         self.code_editor = editor
         self.column = 80
         

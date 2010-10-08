@@ -19,7 +19,7 @@ class TextEditor(QDialog):
     """Array Editor Dialog"""
     def __init__(self, text, title='', font=None, parent=None,
                  readonly=False, size=(400, 300)):
-        super(TextEditor, self).__init__(parent)
+        QDialog.__init__(self, parent)
         
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)

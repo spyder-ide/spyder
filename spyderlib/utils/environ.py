@@ -34,9 +34,8 @@ def listdict2envdict(listdict):
 class EnvDialog(DictEditor):
     """Environment variables Dialog"""
     def __init__(self):
-        super(EnvDialog, self).__init__(envdict2listdict( dict(os.environ) ),
-                                        title="os.environ", width=600,
-                                        icon='environ.png')
+        DictEditor.__init__(self, envdict2listdict( dict(os.environ) ),
+                            title="os.environ", width=600, icon='environ.png')
     def accept(self):
         """Reimplement Qt method"""
         os.environ = listdict2envdict( self.get_copy() )
@@ -91,8 +90,9 @@ try:
     class WinUserEnvDialog(DictEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
-            super(WinUserEnvDialog, self).__init__(get_user_env(),
-               title="HKEY_CURRENT_USER\Environment", width=600)
+            DictEditor.__init__(self, get_user_env(),
+                                title="HKEY_CURRENT_USER\Environment",
+                                width=600)
             if parent is None:
                 parent = self
             QMessageBox.warning(parent,

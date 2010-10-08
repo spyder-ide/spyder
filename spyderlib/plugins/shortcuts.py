@@ -104,7 +104,7 @@ CONTEXT, NAME, MOD1, MOD2, MOD3, KEY = range(6)
 
 class ShortcutsModel(QAbstractTableModel):
     def __init__(self):
-        super(ShortcutsModel, self).__init__()
+        QAbstractTableModel.__init__(self)
         self.shortcuts = []
 
     def sortByName(self):
@@ -197,7 +197,7 @@ class ShortcutsModel(QAbstractTableModel):
 
 class ShortcutsDelegate(QItemDelegate):
     def __init__(self, parent=None):
-        super(ShortcutsDelegate, self).__init__(parent)
+        QItemDelegate.__init__(self, parent)
         self.modifiers = sorted(Key.MODIFIERS.values())
         self.mod = None
         self.keys = sorted(Key.KEYS.values())

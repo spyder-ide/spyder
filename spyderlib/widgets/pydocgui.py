@@ -22,7 +22,7 @@ from spyderlib.utils import select_port
 class PydocServer(QThread):
     """Pydoc server"""
     def __init__(self, port=7464):
-        super(PydocServer, self).__init__()
+        QThread.__init__(self)
         self.port = port
         self.server = None
         self.complete = False
@@ -48,7 +48,7 @@ class PydocBrowser(WebBrowser):
     DEFAULT_PORT = 30128
     
     def __init__(self, parent):
-        super(PydocBrowser, self).__init__(parent)
+        WebBrowser.__init__(self, parent)
         self.server = None
         self.port = None
         
@@ -89,7 +89,7 @@ class PydocBrowser(WebBrowser):
     def reload(self):
         """Reload page"""
         self.start_server()
-        super(PydocBrowser, self).reload()
+        WebBrowser.reload(self)
         
     def text_to_url(self, text):
         """Convert text address into QUrl object"""

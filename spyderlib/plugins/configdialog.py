@@ -78,7 +78,7 @@ class ConfigPage(QWidget):
 
 class ConfigDialog(QDialog):
     def __init__(self, parent=None):
-        super(ConfigDialog, self).__init__(parent)
+        QDialog.__init__(self, parent)
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)

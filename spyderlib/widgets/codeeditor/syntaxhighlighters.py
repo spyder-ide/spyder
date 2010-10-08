@@ -117,7 +117,7 @@ class BaseSH(QSyntaxHighlighter):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
-        super(BaseSH, self).__init__(parent)
+        QSyntaxHighlighter.__init__(self, parent)
         
         self.outlineexplorer_data = {}
         
@@ -270,7 +270,7 @@ class PythonSH(BaseSH):
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     def __init__(self, parent, font=None, color_scheme=None):
-        super(PythonSH, self).__init__(parent, font, color_scheme)
+        BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
 
     def highlightBlock(self, text):
@@ -381,7 +381,7 @@ class PythonSH(BaseSH):
             
     def rehighlight(self):
         self.import_statements = {}
-        super(PythonSH, self).rehighlight()
+        BaseSH.rehighlight(self)
 
 
 #===============================================================================
@@ -432,7 +432,7 @@ class CppSH(BaseSH):
     NORMAL = 0
     INSIDE_COMMENT = 1
     def __init__(self, parent, font=None, color_scheme=None):
-        super(CppSH, self).__init__(parent, font, color_scheme)
+        BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
         inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
@@ -499,7 +499,7 @@ class FortranSH(BaseSH):
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
-        super(FortranSH, self).__init__(parent, font, color_scheme)
+        BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
         self.setFormat(0, text.length(), self.formats["normal"])

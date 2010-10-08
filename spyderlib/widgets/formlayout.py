@@ -221,7 +221,7 @@ def is_edit_valid(edit):
 
 class FormWidget(QWidget):
     def __init__(self, data, comment="", parent=None):
-        super(FormWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         from copy import deepcopy
         self.data = deepcopy(data)
         self.widgets = []
@@ -341,7 +341,7 @@ class FormWidget(QWidget):
 
 class FormComboWidget(QWidget):
     def __init__(self, datalist, comment="", parent=None):
-        super(FormComboWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.combobox = QComboBox()
@@ -369,7 +369,7 @@ class FormComboWidget(QWidget):
 
 class FormTabWidget(QWidget):
     def __init__(self, datalist, comment="", parent=None):
-        super(FormTabWidget, self).__init__(parent)
+        QWidget.__init__(self, parent)
         layout = QVBoxLayout()
         self.tabwidget = QTabWidget()
         layout.addWidget(self.tabwidget)
@@ -396,7 +396,7 @@ class FormDialog(QDialog):
     """Form Dialog"""
     def __init__(self, data, title="", comment="",
                  icon=None, parent=None, apply=None):
-        super(FormDialog, self).__init__(parent)
+        QDialog.__init__(self, parent)
 
         self.apply_callback = apply
         

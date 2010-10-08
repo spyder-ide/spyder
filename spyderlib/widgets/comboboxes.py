@@ -24,7 +24,7 @@ STDOUT = sys.stdout
 class BaseComboBox(QComboBox):
     """Editable combo box base class"""
     def __init__(self, parent):
-        super(BaseComboBox, self).__init__(parent)
+        QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
         
@@ -65,7 +65,7 @@ class PatternComboBox(BaseComboBox):
     """Search pattern combo box"""
     def __init__(self, parent, items=None, tip=None,
                  adjust_to_minimum=True):
-        super(PatternComboBox, self).__init__(parent)
+        BaseComboBox.__init__(self, parent)
         if adjust_to_minimum:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -80,7 +80,7 @@ class EditableComboBox(BaseComboBox):
     Editable combo box + Validate
     """
     def __init__(self, parent):
-        super(EditableComboBox, self).__init__(parent)
+        BaseComboBox.__init__(self, parent)
         self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
         self.font = QFont()
         self.connect(self, SIGNAL("editTextChanged(QString)"), self.validate)
@@ -103,7 +103,7 @@ class EditableComboBox(BaseComboBox):
         
     def selected(self):
         """Action to be executed when a valid item has been selected"""
-        super(EditableComboBox, self).selected()        
+        BaseComboBox.selected(self)
         self.set_default_style()
         
     def validate(self, qstr, editing=True):
@@ -135,7 +135,7 @@ class PathComboBox(EditableComboBox):
     QComboBox handling path locations
     """
     def __init__(self, parent, adjust_to_contents=False):
-        super(PathComboBox, self).__init__(parent)
+        EditableComboBox.__init__(self, parent)
         if adjust_to_contents:
             self.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         else:
@@ -163,7 +163,7 @@ class UrlComboBox(PathComboBox):
     QComboBox handling urls
     """
     def __init__(self, parent, adjust_to_contents=False):
-        super(UrlComboBox, self).__init__(parent, adjust_to_contents)
+        PathComboBox.__init__(self, parent, adjust_to_contents)
         self.disconnect(self, SIGNAL("editTextChanged(QString)"), self.validate)
         
     def is_valid(self, qstr=None):

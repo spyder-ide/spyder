@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
                 )
     
     def __init__(self, options=None):
-        super(MainWindow, self).__init__()
+        QMainWindow.__init__(self)
         
         self.init_workdir = options.working_directory
         self.debug = options.debug
