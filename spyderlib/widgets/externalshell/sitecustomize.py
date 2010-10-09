@@ -3,12 +3,26 @@
 
 import sys, os, os.path as osp
 
+if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
+    try:
+        from spyderlib import mpl_patch
+        mpl_patch.set_backend(os.environ.get("MATPLOTLIB_BACKEND", "Qt4Agg"))
+        mpl_patch.apply()
+    except ImportError:
+        pass
+
 if os.name == 'nt':
     # Windows platforms
     
-    # Removing PyQt4 input hook which is not working well on Windows
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
+    try:
+        import matplotlib
+        backend = matplotlib.get_backend()
+    except Exception:
+        backend = None
+    if backend is None or backend == 'Qt4Agg':
+        # Removing PyQt4 input hook which is not working well on Windows
+        from PyQt4.QtCore import pyqtRemoveInputHook
+        pyqtRemoveInputHook()
     
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:
@@ -36,14 +50,6 @@ if os.name == 'nt':
         except ImportError:
             # Unfortunately, pywin32 is not installed...
             pass
-
-if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
-    try:
-        from spyderlib import mpl_patch
-        mpl_patch.set_backend(os.environ.get("MATPLOTLIB_BACKEND", "Qt4Agg"))
-        mpl_patch.apply()
-    except ImportError:
-        pass
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)

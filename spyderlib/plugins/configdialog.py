@@ -82,7 +82,7 @@ class ConfigDialog(QDialog):
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setMaximumWidth(170)
+        self.contents_widget.setMaximumWidth(200)
         self.contents_widget.setSpacing(1)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
