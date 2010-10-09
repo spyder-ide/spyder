@@ -4,37 +4,37 @@
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="520"/>
+        <location filename="widgets/arrayeditor.py" line="519"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="411"/>
+        <location filename="widgets/arrayeditor.py" line="410"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="382"/>
+        <location filename="widgets/arrayeditor.py" line="381"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="385"/>
+        <location filename="widgets/arrayeditor.py" line="384"/>
         <source>Background color</source>
         <translation>Couleur de fond</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="412"/>
+        <location filename="widgets/arrayeditor.py" line="411"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="419"/>
+        <location filename="widgets/arrayeditor.py" line="418"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="421"/>
+        <location filename="widgets/arrayeditor.py" line="420"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
@@ -44,12 +44,12 @@
         <translation type="obsolete">Attention : les tableaux de type %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="459"/>
+        <location filename="widgets/arrayeditor.py" line="458"/>
         <source>read only</source>
         <translation>lecture seule</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="315"/>
+        <location filename="widgets/arrayeditor.py" line="316"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
@@ -59,34 +59,34 @@
         <translation type="obsolete">Attention : %1 ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="443"/>
+        <location filename="widgets/arrayeditor.py" line="442"/>
         <source>Arrays with more than 2 dimensions are not supported</source>
         <translation>Les tableaux de plus de deux dimensions ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="479"/>
+        <location filename="widgets/arrayeditor.py" line="478"/>
         <source>Record array fields:</source>
         <translation>Champs du tableau : </translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="449"/>
+        <location filename="widgets/arrayeditor.py" line="448"/>
         <source>%1 arrays</source>
         <translation>Les tableaux %1</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="305"/>
+        <location filename="widgets/arrayeditor.py" line="306"/>
         <source>Resizing cells of a table of such size could take a long time.
 Do you want to continue anyway?</source>
         <translation>Redimensionner les cellules d&apos;un tableau d&apos;une telle taille peut prendre du temps.
 Souhaitez-vous néanmoins continuer ?</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="450"/>
+        <location filename="widgets/arrayeditor.py" line="449"/>
         <source>%1 are currently not supported</source>
         <translation>%1 ne sont actuellement pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="439"/>
+        <location filename="widgets/arrayeditor.py" line="438"/>
         <source>Array is empty</source>
         <translation>Ce tableau est vide</translation>
     </message>
@@ -205,12 +205,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>CodeEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1015"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1017"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1069"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1071"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -590,57 +590,57 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="347"/>
+        <location filename="widgets/dicteditor.py" line="346"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="348"/>
+        <location filename="widgets/dicteditor.py" line="347"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="349"/>
+        <location filename="widgets/dicteditor.py" line="348"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="219"/>
+        <location filename="widgets/dicteditor.py" line="218"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="222"/>
+        <location filename="widgets/dicteditor.py" line="221"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="225"/>
+        <location filename="widgets/dicteditor.py" line="224"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="230"/>
+        <location filename="widgets/dicteditor.py" line="229"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="615"/>
+        <location filename="widgets/dicteditor.py" line="616"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="572"/>
+        <location filename="widgets/dicteditor.py" line="573"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="879"/>
+        <location filename="widgets/dicteditor.py" line="880"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="819"/>
+        <location filename="widgets/dicteditor.py" line="820"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
@@ -650,67 +650,67 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Souhaitez-vous supprimer l&apos;élément %1 ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="870"/>
+        <location filename="widgets/dicteditor.py" line="871"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="880"/>
+        <location filename="widgets/dicteditor.py" line="881"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="837"/>
+        <location filename="widgets/dicteditor.py" line="838"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="627"/>
+        <location filename="widgets/dicteditor.py" line="628"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="562"/>
+        <location filename="widgets/dicteditor.py" line="563"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="214"/>
+        <location filename="widgets/dicteditor.py" line="213"/>
         <source>Index</source>
         <translation>Indice</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="216"/>
+        <location filename="widgets/dicteditor.py" line="215"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="227"/>
+        <location filename="widgets/dicteditor.py" line="226"/>
         <source>Key</source>
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="171"/>
+        <location filename="widgets/dicteditor.py" line="170"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="599"/>
+        <location filename="widgets/dicteditor.py" line="600"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="604"/>
+        <location filename="widgets/dicteditor.py" line="605"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="973"/>
+        <location filename="widgets/dicteditor.py" line="974"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="975"/>
+        <location filename="widgets/dicteditor.py" line="976"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
@@ -720,77 +720,77 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="970"/>
+        <location filename="widgets/dicteditor.py" line="971"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="954"/>
+        <location filename="widgets/dicteditor.py" line="955"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="568"/>
+        <location filename="widgets/dicteditor.py" line="569"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="609"/>
+        <location filename="widgets/dicteditor.py" line="610"/>
         <source>Show collection contents</source>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="916"/>
+        <location filename="widgets/dicteditor.py" line="917"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="581"/>
+        <location filename="widgets/dicteditor.py" line="582"/>
         <source>Show image</source>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="892"/>
+        <location filename="widgets/dicteditor.py" line="893"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="894"/>
+        <location filename="widgets/dicteditor.py" line="895"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.</source>
         <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="923"/>
+        <location filename="widgets/dicteditor.py" line="924"/>
         <source>Save array</source>
         <translation>Enregistrer le tableau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="927"/>
+        <location filename="widgets/dicteditor.py" line="928"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="938"/>
+        <location filename="widgets/dicteditor.py" line="939"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="906"/>
+        <location filename="widgets/dicteditor.py" line="907"/>
         <source>&lt;b&gt;Unable to plot data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher les données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="918"/>
+        <location filename="widgets/dicteditor.py" line="919"/>
         <source>&lt;b&gt;Unable to show image.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher l&apos;image&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="816"/>
+        <location filename="widgets/dicteditor.py" line="817"/>
         <source>Do you want to remove selected item?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément sélectionné ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="818"/>
+        <location filename="widgets/dicteditor.py" line="819"/>
         <source>Do you want to remove all selected items?</source>
         <translation>Souhaitez-vous supprimer les éléments sélectionnés ?</translation>
     </message>
@@ -2846,22 +2846,22 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Console externe</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="577"/>
+        <location filename="plugins/externalconsole.py" line="589"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="578"/>
+        <location filename="plugins/externalconsole.py" line="590"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="589"/>
+        <location filename="plugins/externalconsole.py" line="601"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="590"/>
+        <location filename="plugins/externalconsole.py" line="602"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
@@ -2881,12 +2881,12 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="740"/>
+        <location filename="plugins/externalconsole.py" line="752"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="741"/>
+        <location filename="plugins/externalconsole.py" line="753"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
@@ -2901,19 +2901,19 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation type="obsolete">Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="415"/>
+        <location filename="plugins/externalconsole.py" line="425"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="582"/>
+        <location filename="plugins/externalconsole.py" line="594"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="583"/>
+        <location filename="plugins/externalconsole.py" line="595"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
@@ -2943,22 +2943,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Entrée valide la complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="506"/>
+        <location filename="plugins/externalconsole.py" line="518"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="508"/>
+        <location filename="plugins/externalconsole.py" line="520"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="585"/>
+        <location filename="plugins/externalconsole.py" line="597"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="586"/>
+        <location filename="plugins/externalconsole.py" line="598"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
@@ -2993,12 +2993,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="598"/>
+        <location filename="plugins/externalconsole.py" line="610"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="600"/>
+        <location filename="plugins/externalconsole.py" line="612"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
@@ -3027,7 +3027,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Options de l&apos;interpréteur IPython...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="563"/>
+        <location filename="plugins/externalconsole.py" line="575"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
@@ -3082,19 +3082,19 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Modifie la liste des modules non rechargés par l&apos;User Module Deleter</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="764"/>
+        <location filename="plugins/externalconsole.py" line="776"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="751"/>
+        <location filename="plugins/externalconsole.py" line="763"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="763"/>
+        <location filename="plugins/externalconsole.py" line="775"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
@@ -3111,7 +3111,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Afficher les modules rechargés</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="767"/>
+        <location filename="plugins/externalconsole.py" line="779"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -3273,7 +3273,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation type="obsolete">Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées via une boîte de dialogue</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="180"/>
+        <location filename="plugins/externalconsole.py" line="179"/>
         <source>Patch Matplotlib figures</source>
         <translation>Patcher les figures Matplotlib</translation>
     </message>
@@ -3291,7 +3291,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <location filename="plugins/externalconsole.py" line="178"/>
         <source>Patching Matplotlib library will add a button to customize figure options (curves/images plot parameters) through a simple dialog box.
 This Spyder feature has been integrated in Matplotlib v1.0 and later versions.</source>
-        <translation>Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées via une boîte de dialogue.
+        <translation type="obsolete">Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées via une boîte de dialogue.
 Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1.0.</translation>
     </message>
     <message>
@@ -3305,7 +3305,7 @@ Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1
         <translation>Modifier la liste des modules non rechargés par l&apos;UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="214"/>
+        <location filename="plugins/externalconsole.py" line="224"/>
         <source>External modules</source>
         <translation>Modules externes</translation>
     </message>
@@ -3330,22 +3330,22 @@ Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1
         <translation>Fond blanc</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="210"/>
+        <location filename="plugins/externalconsole.py" line="220"/>
         <source>Display</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="212"/>
+        <location filename="plugins/externalconsole.py" line="222"/>
         <source>Advanced settings</source>
         <translation>Options avancées</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="190"/>
+        <location filename="plugins/externalconsole.py" line="200"/>
         <source>Enthought Tool Suite</source>
         <translation>Enthought Tool Suite</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="193"/>
+        <location filename="plugins/externalconsole.py" line="203"/>
         <source>Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) graphical user interfaces.</source>
         <translation>Le logiciel Enthought Tool Suite (ETS) prend en charge les interfaces graphiques PyQt4 (qt4) et wxPython (wx).</translation>
     </message>
@@ -3360,7 +3360,7 @@ Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1
         <translation type="obsolete">ETS_TOOLKIT (par défaut : qt4) :</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="196"/>
+        <location filename="plugins/externalconsole.py" line="206"/>
         <source>ETS_TOOLKIT (default value: qt4):</source>
         <translation>ETS_TOOLKIT (valeur par défaut: qt4) :</translation>
     </message>
@@ -3387,26 +3387,41 @@ a left parenthesis after a valid function name)</source>
         <source>Case sensitive code completion</source>
         <translation>Complétion de code sensible à la casse</translation>
     </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="177"/>
+        <source>Patching Matplotlib library will add a button to customize figure options (curves/images plot parameters). This Spyder feature has been integrated in Matplotlib v1.0.</source>
+        <translation>Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées. Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1.0.</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="182"/>
+        <source>Matplotlib backend (default: Qt4Agg):</source>
+        <translation>Backend Matplotlib (valeur par défaut: Qt4Agg) :</translation>
+    </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="186"/>
+        <source>Set the GUI toolkit used by Matplotlib to show figures</source>
+        <translation>Spécifie la bibliothèque d&apos;interfaces graphiques à utiliser pour l&apos;affichage des figures Matplotlib</translation>
+    </message>
 </context>
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="198"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="200"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="199"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="201"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="208"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="210"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="213"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="215"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -3415,27 +3430,27 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="222"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="224"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="224"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="226"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="394"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="397"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="395"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="398"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="277"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="279"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
@@ -3445,27 +3460,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="272"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="274"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="275"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="277"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="203"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="205"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="204"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="206"/>
         <source>Set current working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="454"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="457"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -3722,17 +3737,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindReplace</name>
     <message>
-        <location filename="widgets/findreplace.py" line="75"/>
+        <location filename="widgets/findreplace.py" line="73"/>
         <source>Case Sensitive</source>
         <translation>Respecter la casse</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="78"/>
+        <location filename="widgets/findreplace.py" line="76"/>
         <source>Whole words</source>
         <translation>Mots entiers</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="104"/>
+        <location filename="widgets/findreplace.py" line="102"/>
         <source>Replace all</source>
         <translation>Remplacer tout</translation>
     </message>
@@ -3749,12 +3764,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
     <message>
         <location filename="widgets/findreplace.py" line="63"/>
         <source>Previous</source>
-        <translation>Précédent</translation>
+        <translation type="obsolete">Précédent</translation>
     </message>
     <message>
         <location filename="widgets/findreplace.py" line="67"/>
         <source>Next</source>
-        <translation>Suivant</translation>
+        <translation type="obsolete">Suivant</translation>
     </message>
     <message>
         <location filename="widgets/findreplace.py" line="81"/>
@@ -3767,7 +3782,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation type="obsolete">par :</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="96"/>
+        <location filename="widgets/findreplace.py" line="94"/>
         <source>Replace/find</source>
         <translation>Remplacer/rechercher</translation>
     </message>
@@ -3782,7 +3797,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Chaîne de caractères à rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="93"/>
+        <location filename="widgets/findreplace.py" line="91"/>
         <source>Replace string</source>
         <translation>Chaîne de caractères de remplacement</translation>
     </message>
@@ -3797,7 +3812,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Rechercher le précédent</translation>
     </message>
     <message>
-        <location filename="widgets/findreplace.py" line="91"/>
+        <location filename="widgets/findreplace.py" line="89"/>
         <source>Replace with:</source>
         <translation>Remplacer par :</translation>
     </message>
@@ -5248,27 +5263,27 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Aide</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="274"/>
+        <location filename="plugins/inspector.py" line="279"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="275"/>
+        <location filename="plugins/inspector.py" line="280"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="331"/>
+        <location filename="plugins/inspector.py" line="338"/>
         <source>No documentation available.</source>
         <translation>Aucune documentation disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="339"/>
+        <location filename="plugins/inspector.py" line="346"/>
         <source>No source code available.</source>
         <translation>Aucun code source disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="155"/>
+        <location filename="plugins/inspector.py" line="157"/>
         <source>Object inspector</source>
         <translation>Inspecteur d&apos;objets</translation>
     </message>
@@ -6137,7 +6152,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Effacer le contenu de la console</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="1021"/>
+        <location filename="widgets/shell.py" line="1024"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
@@ -6152,7 +6167,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">L&apos;objet `%1` ne peut pas être appelé (ce n&apos;est ni une fonction, ni une méthode, ni une classe)</translation>
     </message>
     <message>
-        <location filename="widgets/shell.py" line="1027"/>
+        <location filename="widgets/shell.py" line="1030"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
@@ -6453,32 +6468,32 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1370"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1372"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1374"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1376"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1378"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1380"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1382"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1384"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1386"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1388"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1390"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1392"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
@@ -6488,17 +6503,17 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation type="obsolete">Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1395"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1397"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="679"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="680"/>
         <source>Breakpoint</source>
         <translation>Point d&apos;arrêt</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="680"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="681"/>
         <source>Condition:</source>
         <translation>Condition :</translation>
     </message>
@@ -6694,7 +6709,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Attention</translation>
     </message>
     <message>
-        <location filename="utils/environ.py" line="88"/>
+        <location filename="utils/environ.py" line="87"/>
         <source>Module &lt;b&gt;pywin32 was not found&lt;/b&gt;.&lt;br&gt;Please restart this Windows &lt;i&gt;session&lt;/i&gt; (not the computer) for changes to take effect.</source>
         <translation>Le module &lt;b&gt;pywin32 n&apos;est pas installé&lt;/b&gt;.&lt;br&gt;Merci de redémarrer la &lt;i&gt;session&lt;/i&gt; en cours (et non l&apos;ordinateur) pour que les changements effectués prennent effet.</translation>
     </message>

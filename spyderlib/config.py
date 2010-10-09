@@ -154,6 +154,7 @@ DEFAULTS = [
               'codecompletion/show_single': False,
               'show_icontext': False,
               'mpl_patch/enabled': True,
+              'mpl_patch/backend': 'Qt4Agg',
               'umd/enabled': True,
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],

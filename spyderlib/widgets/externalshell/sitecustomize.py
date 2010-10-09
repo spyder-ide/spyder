@@ -37,6 +37,14 @@ if os.name == 'nt':
             # Unfortunately, pywin32 is not installed...
             pass
 
+if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
+    try:
+        from spyderlib import mpl_patch
+        mpl_patch.set_backend(os.environ.get("MATPLOTLIB_BACKEND", "Qt4Agg"))
+        mpl_patch.apply()
+    except ImportError:
+        pass
+
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
 encoding = None

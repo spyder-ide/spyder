@@ -173,17 +173,27 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group = QGroupBox(self.tr("Matplotlib"))
         mpl_label = QLabel(self.tr("Patching Matplotlib library will add a "
                                    "button to customize figure options "
-                                   "(curves/images plot parameters) through a "
-                                   "simple dialog box.\n"
-                                   "This Spyder feature has been integrated in "
-                                   "Matplotlib v1.0 and later versions."))
+                                   "(curves/images plot parameters). This "
+                                   "Spyder feature has been integrated in "
+                                   "Matplotlib v1.0."))
         mpl_label.setWordWrap(True)
         mpl_patch_box = newcb(self.tr("Patch Matplotlib figures"),
                               'mpl_patch/enabled')
+        mpl_backend_edit = self.create_lineedit(self.tr("Matplotlib backend "
+                                                        "(default: Qt4Agg):"),
+                                                'mpl_patch/backend', "Qt4Agg",
+                                                self.tr("Set the GUI toolkit "
+                                                        "used by Matplotlib to "
+                                                        "show figures"),
+                                                alignment=Qt.Vertical)
+        self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
+                     mpl_backend_edit.setEnabled)
+        mpl_backend_edit.setEnabled(self.get_option('mpl_patch/enabled'))
         
         mpl_layout = QVBoxLayout()
         mpl_layout.addWidget(mpl_label)
         mpl_layout.addWidget(mpl_patch_box)
+        mpl_layout.addWidget(mpl_backend_edit)
         mpl_group.setLayout(mpl_layout)
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
@@ -429,6 +439,7 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         if python:
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
+            mpl_backend = self.get_option('mpl_patch/backend')
             ets_backend = self.get_option('ets_backend', 'qt4')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
@@ -446,6 +457,7 @@ class ExternalConsole(SpyderPluginWidget):
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            mpl_patch_enabled=mpl_patch_enabled,
+                           mpl_backend=mpl_backend,
                            autorefresh_timeout=ar_timeout,
                            light_background=light_background)
             if self.variableexplorer is not None:

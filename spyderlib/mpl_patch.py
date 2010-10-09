@@ -16,8 +16,8 @@ from spyderlib.config import get_icon
 
 def set_backend(backend):
     """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
-    from matplotlib import rcParams
-    rcParams["backend"] = backend
+    import matplotlib
+    matplotlib.use(backend)
 
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
