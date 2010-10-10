@@ -26,6 +26,7 @@ from tempfile import mkdtemp
 # Sphinx = None
 from sphinx.application import Sphinx
 from pygments import plugin
+from docutils.utils import SystemMessage as SystemMessage
 
 try:
     from sage.misc.misc import SAGE_DOC
@@ -115,7 +116,12 @@ def sphinxify(docstring, format='html'):
 
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
                         confoverrides, None, None, True)
-    sphinx_app.build(None, [rst_name])
+    try:
+        sphinx_app.build(None, [rst_name])
+    except SystemMessage:
+        output = 'It\'s not possible to generate rich text help for this object. \
+        Please see it in plain text'
+        return output
 
     if os.path.exists(output_name):
         output = open(output_name, 'r').read()
