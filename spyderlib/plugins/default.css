@@ -1,4 +1,4 @@
-div.docstring {
+body {
     background-color: transparent;
     color: black;
     padding: 4px;
@@ -90,6 +90,14 @@ div#examples.section h1 {
     border: 1px solid #CCC;
     color: #355F7C;
     font-size: 135%;
+}
+
+div#warning {
+    margin-top: 5px;
+    background-color: #FFE4E4;
+    border: 1px solid #F66;
+    padding: 4px 8px 4px 8px;
+    text-align: center;
 }
 
 /* spacing around example code */

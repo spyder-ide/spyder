@@ -394,7 +394,9 @@ class ObjectInspector(RichAndPlainText):
             if doc_text is not None:
                 html_text = sphinxify(doc_text)
             else:
-                html_text = self.tr("No documentation available.")
+                html_text = '<div id=\"warning\"> \
+                No documentation available \
+                </div>'
                 if ignore_unknown:
                     return False
             

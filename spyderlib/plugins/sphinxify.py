@@ -119,8 +119,10 @@ def sphinxify(docstring, format='html'):
     try:
         sphinx_app.build(None, [rst_name])
     except SystemMessage:
-        output = 'It\'s not possible to generate rich text help for this object. \
-        Please see it in plain text'
+        output = '<div id=\"warning\"> \
+        It\'s not possible to generate rich text help for this object. \
+        Please see it in plain text. \
+        </div>'
         return output
 
     if os.path.exists(output_name):
