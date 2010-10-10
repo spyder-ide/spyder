@@ -40,28 +40,14 @@ div.section p {
     padding: 0px 10px 0px;
 }
 
-div#parameters.section h1 {
+#parameters h1, #returns h1, #raises h1 {
     background-color: #EDE;
     border: 1px solid #AAA !important;
     color: #06C;
     font-size: 135%;
 }
 
-div#returns.section h1 {
-    background-color: #EDE;
-    border: 1px solid #AAA !important;
-    color: #06C;
-    font-size: 135%;
-}
-
-div#raises.section h1 {
-    background-color: #EDE;
-    border: 1px solid #AAA !important;
-    color: #06C;
-    font-size: 135%;
-}
-
-div#see-also.section h1 {
+#see-also h1 {
     background-color: #ffc;
     border: transparent;
     color: black;
@@ -71,28 +57,21 @@ div#see-also.section h1 {
     font-size: 135%;
 }
 
-div#see-also.section {
+#see-also {
     background-color: #ffc;
     color: black;
     padding: 1px;
     border: 1px solid #FF6 !important;
 }
 
-div#notes.section h1 {
+#notes h1, #examples h1 {
     background-color: #E6E6E6;
     border: 1px solid #CCC;
     color: #355F7C;
     font-size: 135%;
 }
 
-div#examples.section h1 {
-    background-color: #E6E6E6;
-    border: 1px solid #CCC;
-    color: #355F7C;
-    font-size: 135%;
-}
-
-div#warning {
+#warning {
     margin-top: 5px;
     background-color: #FFE4E4;
     border: 1px solid #F66;
