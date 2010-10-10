@@ -5390,17 +5390,17 @@ Souhaitez-vous continuer ?</translation>
         <translation>Structure</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="543"/>
+        <location filename="widgets/editortools.py" line="557"/>
         <source>Go to cursor position</source>
         <translation>Aller à la position du curseur</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="231"/>
+        <location filename="widgets/editortools.py" line="232"/>
         <source>Show absolute path</source>
         <translation>Afficher les chemins complets</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="235"/>
+        <location filename="widgets/editortools.py" line="236"/>
         <source>Show all files</source>
         <translation>Afficher tous les fichiers</translation>
     </message>
@@ -5410,9 +5410,14 @@ Souhaitez-vous continuer ?</translation>
         <translation type="obsolete">Afficher/masquer l&apos;explorateur de classes</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="516"/>
+        <location filename="widgets/editortools.py" line="530"/>
         <source>Show/hide outline explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de structure</translation>
+    </message>
+    <message>
+        <location filename="widgets/editortools.py" line="241"/>
+        <source>Show special comments</source>
+        <translation>Afficher les commentaires spéciaux</translation>
     </message>
 </context>
 <context>

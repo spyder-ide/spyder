@@ -206,10 +206,11 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
 
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
-                 show_all_files=True):
+                 show_all_files=True, show_comments=True):
         self.show_fullpath = show_fullpath
         self.fullpath_sorting = fullpath_sorting
         self.show_all_files = show_all_files
+        self.show_comments = show_comments
         OneColumnTree.__init__(self, parent)
         self.freeze = False # Freezing widget to avoid any unwanted update
         self.editor_items = {}
@@ -236,7 +237,12 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         text=translate('OutlineExplorer', 'Show all files'),
                         toggled=self.toggle_show_all_files)
         allfiles_act.setChecked(self.show_all_files)
-        actions = [fullpath_act, allfiles_act, fromcursor_act]
+        comment_act = create_action(self,
+                        text=translate('OutlineExplorer',
+                                       'Show special comments'),
+                        toggled=self.toggle_show_comments)
+        comment_act.setChecked(self.show_comments)
+        actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act]
         return actions
     
     def toggle_fullpath_mode(self, state):
@@ -259,6 +265,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             editor_id = self.editor_ids[self.current_editor]
             item = self.editor_items[editor_id]
             self.__hide_or_show_root_items(item)
+            
+    def toggle_show_comments(self, state):
+        self.show_comments = state
+        self.update_all()
             
     def set_fullpath_sorting(self, state):
         self.fullpath_sorting = state
@@ -407,6 +417,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 
             preceding = root_item if previous_item is None else previous_item
             if not_class_nor_function:
+                if data.is_comment() and not self.show_comments:
+                    if citem is not None:
+                        remove_from_tree_cache(tree_cache, line=line_nb)
+                    continue
                 if citem is not None:
                     if data.text == cname and level == clevel:
                         previous_level = clevel
@@ -505,13 +519,14 @@ class OutlineExplorer(QWidget):
         SIGNAL("edit_goto(QString,int,QString)")
     """
     def __init__(self, parent=None, show_fullpath=True, fullpath_sorting=True,
-                 show_all_files=True):
+                 show_all_files=True, show_comments=True):
         QWidget.__init__(self, parent)
 
         self.treewidget = OutlineExplorerTreeWidget(self,
                                             show_fullpath=show_fullpath,
                                             fullpath_sorting=fullpath_sorting,
-                                            show_all_files=show_all_files)
+                                            show_all_files=show_all_files,
+                                            show_comments=show_comments)
 
         self.visibility_action = create_action(self,
                                            self.tr("Show/hide outline explorer"),
@@ -565,6 +580,7 @@ class OutlineExplorer(QWidget):
         """
         return dict(show_fullpath=self.treewidget.show_fullpath,
                     show_all_files=self.treewidget.show_all_files,
+                    show_comments=self.treewidget.show_comments,
                     expanded_state=self.treewidget.get_expanded_state(),
                     scrollbar_position=self.treewidget.get_scrollbar_position(),
                     visibility=self.isVisible())

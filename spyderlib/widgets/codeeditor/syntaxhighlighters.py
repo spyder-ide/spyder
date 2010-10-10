@@ -239,8 +239,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
            "|" + string + "|" + number + "|" + any("SYNC", [r"\n"])
 
 class OutlineExplorerData(object):
-    CLASS = 0
-    FUNCTION = 1
+    CLASS, FUNCTION, STATEMENT, COMMENT = range(4)
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -249,6 +248,9 @@ class OutlineExplorerData(object):
         
     def is_not_class_nor_function(self):
         return self.def_type not in (self.CLASS, self.FUNCTION)
+    
+    def is_comment(self):
+        return self.def_type == self.COMMENT
         
     def get_class_name(self):
         if self.def_type == self.CLASS:
@@ -324,7 +326,7 @@ class PythonSH(BaseSH):
                                 oedata = OutlineExplorerData()
                                 oedata.text = unicode(text).strip()
                                 oedata.fold_level = start
-                                oedata.def_type = None
+                                oedata.def_type = OutlineExplorerData.COMMENT
                                 oedata.def_name = text.strip()
                         elif key == "keyword":
                             if value in ("def", "class"):
@@ -345,7 +347,7 @@ class PythonSH(BaseSH):
                                     oedata = OutlineExplorerData()
                                     oedata.text = unicode(text).strip()
                                     oedata.fold_level = start
-                                    oedata.def_type = None
+                                    oedata.def_type = OutlineExplorerData.STATEMENT
                                     oedata.def_name = text.strip()
                             elif value == "import":
                                 import_stmt = text.strip()

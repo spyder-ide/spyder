@@ -324,7 +324,9 @@ class Editor(SpyderPluginWidget):
                                     'outline_explorer/show_fullpath', False),
                    fullpath_sorting=self.get_option('fullpath_sorting', True),
                    show_all_files=self.get_option(
-                                    'outline_explorer/show_all_files', True))
+                                    'outline_explorer/show_all_files', True),
+                   show_comments=self.get_option(
+                                    'outline_explorer/show_comments', True))
         self.connect(self.outlineexplorer,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
         oe_enabled = self.get_option('outline_explorer')
@@ -1036,7 +1038,9 @@ class Editor(SpyderPluginWidget):
                                          False),
            fullpath_sorting=self.get_option('fullpath_sorting', True),
            show_all_files=self.get_option('outline_explorer/show_all_files',
-                                          True))
+                                          True),
+           show_comments=self.get_option('outline_explorer/show_comments',
+                                         True))
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)

@@ -1977,8 +1977,8 @@ class CursorPositionStatus(StatusBarWidget):
 
 
 class EditorWidget(QSplitter):
-    def __init__(self, parent, plugin, menu_actions,
-                 show_fullpath, fullpath_sorting, show_all_files):
+    def __init__(self, parent, plugin, menu_actions, show_fullpath,
+                 fullpath_sorting, show_all_files, show_comments):
         QSplitter.__init__(self, parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
@@ -1997,7 +1997,8 @@ class EditorWidget(QSplitter):
         self.find_widget.hide()
         self.outlineexplorer = OutlineExplorer(self, show_fullpath=show_fullpath,
                                             fullpath_sorting=fullpath_sorting,
-                                            show_all_files=show_all_files)
+                                            show_all_files=show_all_files,
+                                            show_comments=show_comments)
         self.connect(self.outlineexplorer,
                      SIGNAL("edit_goto(QString,int,QString)"), plugin.load)
         
@@ -2067,7 +2068,7 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, fullpath_sorting, show_all_files):
+                 show_fullpath, fullpath_sorting, show_all_files, show_comments):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2075,7 +2076,7 @@ class EditorMainWindow(QMainWindow):
         
         self.editorwidget = EditorWidget(self, plugin, menu_actions,
                                          show_fullpath, fullpath_sorting,
-                                         show_all_files)
+                                         show_all_files, show_comments)
         self.setCentralWidget(self.editorwidget)
 
         # Give focus to current editor to update/show all status bar widgets
