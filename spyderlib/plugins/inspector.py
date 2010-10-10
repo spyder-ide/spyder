@@ -33,8 +33,7 @@ class ObjectComboBox(EditableComboBox):
         super(ObjectComboBox, self).__init__(parent)
         self.object_inspector = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: self.tr("Press enter to validate this object name"),
-                     False: self.tr('This object name is incorrect')}
+        self.tips = {True: self.tr(''), False: self.tr('')}
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
