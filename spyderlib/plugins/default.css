@@ -86,7 +86,7 @@ div.section p {
     text-align: center;
 }
 
-/* Table style */
+/* Docutils table style */
 table.docutils {
     font-size: 80%;
     /*margin: 20px 10px 0px;*/
@@ -107,7 +107,7 @@ table.docutils td {
     border-color: transparent;
 }
 
-/* Table headers */
+/* Docutils table headers */
 table.docutils th {
     background-color: #5AC8E2;
     /*background-color: #D6EBF0;*/
@@ -118,6 +118,28 @@ table.docutils th {
     font-weight: bold;
     text-align: center;
     padding: 6px 0px 6px 8px;
+}
+
+/* Field-list table style */
+table.docutils.field-list {
+    font-size: 80%;
+    border-collapse: collapse;
+    border-left: transparent;
+    border-right: transparent;
+    margin-top: 15px;
+    margin-left: 40px;
+    width: 83%;
+}
+
+/* Field-list table headers */
+table.docutils.field-list th {
+    background-color: transparent;
+    border-top: transparent;
+    border-bottom: transparent;
+    color: black;
+    font-weight: bold;
+    text-align: left;
+    padding: 4px 0px 4px 8px;
 }
 
 /* spacing around example code */
