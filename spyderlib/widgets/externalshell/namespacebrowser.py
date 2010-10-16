@@ -57,7 +57,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action = None
         
         self.filename = None
-        
+            
     def setup(self, filters=None, itermax=None, exclude_private=None,
               exclude_upper=None, exclude_unsupported=None, excluded_names=None,
               truncate=None, minmax=None, collvalue=None, inplace=None,
@@ -208,6 +208,9 @@ class NamespaceBrowser(QWidget):
     def auto_refresh(self):
         if self.autorefresh:
             self.refresh_table()
+            
+    def _get_sock(self):
+        return self.shellwidget.monitor_socket
         
     def _get_settings(self):
         settings = {}
@@ -219,66 +222,63 @@ class NamespaceBrowser(QWidget):
         if self.is_visible and self.isVisible() \
            and self.shellwidget.is_running():
 #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
-            sock = self.shellwidget.monitor_socket
+            sock = self._get_sock()
             if sock is None:
                 return
             settings = self._get_settings()
             try:
                 self.set_data( monitor_get_remote_view(sock, settings) )
-            except socket.error, EOFError:
+            except (socket.timeout, socket.error, EOFError):
                 # Process was terminated before calling this methods
                 pass
         
     def get_value(self, name):
-        return monitor_get_global(self.shellwidget.monitor_socket, name)
+        return monitor_get_global(self._get_sock(), name)
         
     def set_value(self, name, value):
-        sock = self.shellwidget.monitor_socket
-        monitor_set_global(sock, name, value)
+        monitor_set_global(self._get_sock(), name, value)
         self.refresh_table()
         
     def remove_values(self, names):
-        sock = self.shellwidget.monitor_socket
         for name in names:
-            monitor_del_global(sock, name)
+            monitor_del_global(self._get_sock(), name)
         self.refresh_table()
         
     def copy_value(self, orig_name, new_name):
-        sock = self.shellwidget.monitor_socket
-        monitor_copy_global(sock, orig_name, new_name)
+        monitor_copy_global(self._get_sock(), orig_name, new_name)
         self.refresh_table()
         
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
-        return communicate(self.shellwidget.monitor_socket,
+        return communicate(self._get_sock(),
                            "isinstance(globals()['%s'], (tuple, list))" % name,
                            pickle_try=True)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return communicate(self.shellwidget.monitor_socket,
+        return communicate(self._get_sock(),
                            "isinstance(globals()['%s'], dict)" % name,
                            pickle_try=True)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self.shellwidget.monitor_socket,
+        return communicate(self._get_sock(),
                            "len(globals()['%s'])" % name,
                            pickle_try=True)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return monitor_is_array(self.shellwidget.monitor_socket, name)
+        return monitor_is_array(self._get_sock(), name)
         
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self.shellwidget.monitor_socket,
+        return communicate(self._get_sock(),
                            "globals()['%s'].shape" % name,
                            pickle_try=True)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self.shellwidget.monitor_socket,
+        return communicate(self._get_sock(),
                            "globals()['%s'].ndim" % name,
                            pickle_try=True)
         
@@ -306,7 +306,7 @@ class NamespaceBrowser(QWidget):
         self.emit(SIGNAL('collapse()'))
         
     def import_data(self, filenames=None):
-        sock = self.shellwidget.monitor_socket
+        sock = self._get_sock()
         
         title = self.tr("Import data")
         if filenames is None:
@@ -382,7 +382,7 @@ class NamespaceBrowser(QWidget):
                 self.filename = filename
             else:
                 return False
-        sock = self.shellwidget.monitor_socket
+        sock = self._get_sock()
         settings = self._get_settings()
         error_message = monitor_save_globals(sock, settings, filename)
         if error_message is not None:

@@ -6,7 +6,7 @@ import cPickle as pickle
 
 from PyQt4.QtCore import QThread, SIGNAL
 
-from spyderlib.config import str2type
+from spyderlib.config import str2type, get_conf_path
 from spyderlib.utils import select_port, fix_reference_name
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
@@ -14,7 +14,8 @@ from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
                                           value_to_display, globalsfilter)
 
-DEBUG = False
+DEBUG = True
+LOG_FILENAME = get_conf_path('monitor_errors.txt')
 
 REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
@@ -44,10 +45,10 @@ def make_remote_view(data, settings, more_excluded_names=None):
         view = value_to_display(value, truncate=settings['truncate'],
                                 minmax=settings['minmax'],
                                 collvalue=settings['collvalue'])
-        remote[key] = {'type': get_type(value),
-                       'size': get_size(value),
+        remote[key] = {'type':  get_type(value),
+                       'size':  get_size(value),
                        'color': get_color_name(value),
-                       'view': view}
+                       'view':  view}
     return remote
     
 
@@ -57,13 +58,17 @@ def write_packet(sock, data):
     """Write *data* to socket *sock*"""
     sock.send(struct.pack("l", len(data)) + data)
 
-def read_packet(sock):
+def read_packet(sock, timeout=None):
     """Read data from socket *sock*"""
-    datalen = sock.recv(SZ)
-    dlen, = struct.unpack("l", datalen)
-    data = ''
-    while len(data) < dlen:
-        data += sock.recv(dlen)
+    sock.settimeout(timeout)
+    try:
+        datalen = sock.recv(SZ)
+        dlen, = struct.unpack("l", datalen)
+        data = ''
+        while len(data) < dlen:
+            data += sock.recv(dlen)
+    finally:
+        sock.settimeout(None)
     return data
 
 def communicate(sock, input, pickle_try=False):
@@ -280,13 +285,12 @@ class Monitor(threading.Thread):
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
                 write_packet(self.request, output)
-            except StandardError:
+            except Exception:
                 out = StringIO.StringIO()
                 traceback.print_exc(file=out)
                 if DEBUG:
-                    from spyderlib.config import get_conf_path
                     import time
-                    errors = open(get_conf_path('monitor_errors.txt'), 'a')
+                    errors = open(LOG_FILENAME, 'a')
                     print >>errors, "*"*5, time.ctime(time.time()), "*"*49
                     print >>errors, "command:", command
                     print >>errors, "error:"
