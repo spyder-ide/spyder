@@ -26,13 +26,17 @@ div.section {
     margin: 20px 0px 0px 0px;
 }
 
-div.section h1 {
+div.section h1, h2 {
     background-color: #F2F2F2;
     border: 1px solid #CCC;
     color: #20435C;
     font-weight: bold;
     padding: 4px 0px 4px 8px;
     font-size: 200%;
+}
+
+div.section h2 {
+    font-size: 135%;
 }
 
 dl.docutils {
