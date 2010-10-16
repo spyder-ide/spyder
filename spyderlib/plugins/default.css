@@ -1,7 +1,10 @@
 body {
     background-color: transparent;
     color: black;
-    padding: 4px;
+    margin-left: 30px;
+    margin-right: 30px;
+    margin-top: 20px;
+    margin-bottom: 20px;
     font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
     font-size: 10pt;
