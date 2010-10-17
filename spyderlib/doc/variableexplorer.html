@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Variable Explorer &mdash; Spyder v2.0 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '2.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
+    <link rel="next" title="Object inspector" href="inspector.html" />
+    <link rel="prev" title="Console" href="console.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="inspector.html" title="Object inspector"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="console.html" title="Console"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/spyder_bbg.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Variable Explorer</a><ul>
+<li><a class="reference internal" href="#the-thread-safe-issue">The thread safe issue</a></li>
+<li><a class="reference internal" href="#reloading-modules">Reloading modules</a></li>
+<li><a class="reference internal" href="#special-commands">Special commands</a></li>
+<li><a class="reference internal" href="#the-workspace">The Workspace</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="console.html"
+                        title="previous chapter">Console</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="inspector.html"
+                        title="next chapter">Object inspector</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/variableexplorer.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="variable-explorer">
+<h1>Variable Explorer<a class="headerlink" href="#variable-explorer" title="Permalink to this headline">¶</a></h1>
+<p><em>DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0</em></p>
+<p>The variable explorer is a global variable browser with the features described
+below.</p>
+<img alt="_images/workspace1.png" src="_images/workspace1.png" />
+<p>The following screenshots show some interesting features such as editing
+lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
+data.</p>
+<img alt="_images/listeditor.png" src="_images/listeditor.png" />
+<img alt="_images/texteditor.png" src="_images/texteditor.png" />
+<img alt="_images/dicteditor.png" src="_images/dicteditor.png" />
+<img alt="_images/arrayeditor.png" src="_images/arrayeditor.png" />
+<img alt="_images/workspace-plot.png" src="_images/workspace-plot.png" />
+<img alt="_images/workspace-imshow.png" src="_images/workspace-imshow.png" />
+<p>The default variable explorer configuration allows to browse global variables
+without slowing the console even with very large NumPy arrays, lists or
+dictionaries. The trick is to truncate values, to hide collection contents
+(i.e. showing &#8216;&lt;list &#64; address&gt;&#8217; instead of list contents) and to show only
+mininum and maximum values for NumPy arrays (see context menu options on the
+screenshot at the top of this page).</p>
+<p>However, most of the time, choosing the opposite options won&#8217;t have too much
+effect on console&#8217;s performance:</p>
+<img alt="_images/workspace2.png" src="_images/workspace2.png" />
+<dl class="docutils">
+<dt>Related plugins:</dt>
+<dd><ul class="first last simple">
+<li><a class="reference internal" href="inspector.html"><em>Object inspector</em></a></li>
+<li><a class="reference internal" href="historylog.html"><em>History log</em></a></li>
+<li><a class="reference internal" href="editor.html"><em>Editor</em></a></li>
+<li><a class="reference internal" href="explorer.html"><em>Explorer</em></a></li>
+</ul>
+</dd>
+</dl>
+<div class="section" id="the-thread-safe-issue">
+<h2>The thread safe issue<a class="headerlink" href="#the-thread-safe-issue" title="Permalink to this headline">¶</a></h2>
+<p>The interactive console being not thread safe, one must be conscious that <strong>any
+blocking command send to the console will freeze the whole application</strong>, i.e.
+the whole GUI (Graphical User Interface) will be unavailable until command
+interpretation is over: events will not be processed by the GUI main loop,
+including keyboard events - meaning that not only the interface will be freezed
+but it won&#8217;t be possible to interrupt the process by pressing <tt class="docutils literal"><span class="pre">Ctrl+C</span></tt>.</p>
+<p>However, there is one exception to this behaviour: standard output or error
+streams will automatically refresh interactive console&#8217;s widget by asking the
+GUI event loop to process queued events. This will also give the opportunity
+to the rest of Spyder&#8217;s GUI to refresh. In other words, an infinite loop with
+<tt class="docutils literal"><span class="pre">print</span></tt> statements will not freeze Spyder&#8217;s GUI and it will even be possible
+to interrupt it with <tt class="docutils literal"><span class="pre">Ctrl+C</span></tt>.</p>
+<p>To sum up, when using the interactive console, please keep in my mind this
+thread-safe issue and eventually think about writing <tt class="docutils literal"><span class="pre">print</span></tt> statements in
+loops if you want to be able to interrupt them (when debugging for example).</p>
+<p>Of course, Spyder has a solution to this thread-safe issue: the
+<tt class="xref doc docutils literal"><span class="pre">extconsole</span></tt>, a Python interpreter executed in a separate process.
+But there is a price to pay: more safety, less interactivity
+(no <tt class="docutils literal"><span class="pre">matplotlib</span></tt> integration).</p>
+</div>
+<div class="section" id="reloading-modules">
+<h2>Reloading modules<a class="headerlink" href="#reloading-modules" title="Permalink to this headline">¶</a></h2>
+<p>The interactive console can force the Python interpreter to reload modules
+completely when executing import statements. This feature is however disabled
+by default because some modules may be not work properly with it (see
+Interactive console option submenu in the menu bar &#8220;Source&#8221; entry).</p>
+<p>When enabled, this option will systematically reload imported modules since its
+activation. In other words, if you would like some modules to be loaded only
+once, you may import them before enabling the option.</p>
+</div>
+<div class="section" id="special-commands">
+<h2>Special commands<a class="headerlink" href="#special-commands" title="Permalink to this headline">¶</a></h2>
+<p>The following special commands are supported by the interactive console.</p>
+<ul>
+<li><p class="first">Edit script</p>
+<p><tt class="docutils literal"><span class="pre">edit</span> <span class="pre">foobar.py</span></tt> will open <tt class="docutils literal"><span class="pre">foobar.py</span></tt> with Spyder&#8217;s editor.
+<tt class="docutils literal"><span class="pre">xedit</span> <span class="pre">foobar.py</span></tt> will open <tt class="docutils literal"><span class="pre">foobar.py</span></tt> with the external editor.</p>
+</li>
+<li><p class="first">Execute script</p>
+<p><tt class="docutils literal"><span class="pre">run</span> <span class="pre">foobar.py</span></tt> will execute <tt class="docutils literal"><span class="pre">foobar.py</span></tt> in interactive console.</p>
+</li>
+<li><p class="first">Remove references</p>
+<p><tt class="docutils literal"><span class="pre">clear</span> <span class="pre">x,</span> <span class="pre">y</span></tt> will remove references named <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt>.</p>
+</li>
+<li><p class="first">Shell commands</p>
+<p><tt class="docutils literal"><span class="pre">!cmd</span></tt> will execute system command <tt class="docutils literal"><span class="pre">cmd</span></tt> (example <tt class="docutils literal"><span class="pre">!ls</span></tt> on Linux or
+<tt class="docutils literal"><span class="pre">!dir</span></tt> on Windows).</p>
+</li>
+<li><p class="first">Python help</p>
+<p><tt class="docutils literal"><span class="pre">object?</span></tt> will show <tt class="docutils literal"><span class="pre">object</span></tt>&#8216;s help in documentation viewer.</p>
+</li>
+<li><p class="first">GUI-based editor</p>
+<p><tt class="docutils literal"><span class="pre">oedit(object)</span></tt> will open an appropriate GUI-based editor to modify object
+<tt class="docutils literal"><span class="pre">object</span></tt> and will return the result.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="the-workspace">
+<h2>The Workspace<a class="headerlink" href="#the-workspace" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="inspector.html" title="Object inspector"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="console.html" title="Console"
+             >previous</a> |</li>
+        <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2009, Pierre Raybaut.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.3.
+    </div>
+  </body>
+</html>

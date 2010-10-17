@@ -25,6 +25,7 @@ Contents:
     installation
     options
     console
+    variableexplorer
     inspector
     onlinehelp
     historylog
@@ -33,6 +34,9 @@ Contents:
     editor
     findinfiles
     pylint
+    
+    internal_console
+    
 
 Indices and tables:
 

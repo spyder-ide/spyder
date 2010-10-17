@@ -1,24 +1,29 @@
 Console
 =======
 
-*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
+The **Console** is where you may enter, interact with and visualize data, 
+inside a command interpreter (Python or IPython).
+All the commands entered in the console are executed in a separate process,
+thus allowing the user to interrupt any process at any time.
 
-The Spyder console run programs (Python interpreter or system terminal) in a 
-separate process:
+Many command windows may be created in the **Console**:
 
-    * Run Python scripts
-    * Open Python interpreters
-    * Open IPython interpreters
-    * Open terminals (terminals have quite limited features so GNU/Linux users 
-      will certainly prefer to use the system terminal instead)
+    * Python interpreter
+    * IPython interpreter (the external module `IPython` is required)
+    * Running Python script
+    * System command window (this terminal emulation window has quite limited 
+      features compared to a real terminal, so GNU/Linux users will certainly 
+      prefer to use the system terminal instead, i.e. outside Spyder)
 
-Python/IPython interpreters (or running Python scripts) support the following 
-features:
+Python-based command windows support the following features:
 
-    * Variable explorer
-    * Debugging with `pdb`
     * Code completion and calltips
-    * User Module Deleter
+    * Variable explorer with GUI-based editors for arrays, lists, 
+      dictionaries, strings, etc.
+    * Debugging with standard Python debugger (`pdb`): at each breakpoint 
+      the corresponding script is opened in the **Editor** at the breakpoint 
+      line number
+    * User Module Deleter (see below)
 
 
 Related plugins:
@@ -31,82 +36,17 @@ Related plugins:
 Reloading modules: the User Module Deleter (UMD)
 ------------------------------------------------
 
+When working with Python scripts interactively, one must keep in mind that 
+Python import modules from the source code on disk only at the first import: 
+during this first import, the byte code is generated (.pyc file) if necessary, 
+and when re-importing the same module, the byte code will be directly used 
+even if the source code file (.py[w] file) has changed meanwhile.
+For example, when running two times a module named for example 'mod_a' which 
+is importing a module named 'mod_b'
+
 When enabled, the User Module Deleter (UMD) force the Python interpreter to 
-reload modules completely when executing import statements. This feature is 
-however disabled by default because some modules may be not work properly with 
-it.
+reload modules completely when executing a Python script.
 
 When enabled, this option will systematically reload imported modules since its 
 activation. In other words, if you would like some modules to be loaded only 
 once, you may import them before enabling the option.
-
-
-Special commands
-----------------
-
-The following special commands are supported by the interactive console.
-
-- Edit script
-
-  ``edit foobar.py`` will open ``foobar.py`` with Spyder's editor.
-  ``xedit foobar.py`` will open ``foobar.py`` with the external editor.
-
-- Execute script
-
-  ``run foobar.py`` will execute ``foobar.py`` in interactive console.
-
-- Remove references
-
-  ``clear x, y`` will remove references named ``x`` and ``y``.
-  
-- Shell commands
-
-  ``!cmd`` will execute system command ``cmd`` (example ``!ls`` on Linux or
-  ``!dir`` on Windows).
-  
-- Python help
-
-  ``object?`` will show ``object``'s help in documentation viewer.
-  
-- GUI-based editor
-
-  ``oedit(object)`` will open an appropriate GUI-based editor to modify object
-  ``object`` and will return the result.
-
-
-The Workspace
--------------
-
-The workspace is a global variable browser for the interactive console with the 
-features described below.
-
-.. image:: images/workspace1.png
-
-The following screenshots show some interesting features such as editing 
-lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
-data.
-
-.. image:: images/listeditor.png
-
-.. image:: images/texteditor.png
-
-.. image:: images/dicteditor.png
-
-.. image:: images/arrayeditor.png
-
-.. image:: images/workspace-plot.png
-
-.. image:: images/workspace-imshow.png
-
-The default Workspace configuration allows to browse global variables without 
-slowing the interactive console even with very large NumPy arrays, lists or 
-dictionaries. The trick is to truncate values, to hide collection contents 
-(i.e. showing '<list @ address>' instead of list contents) and to show only 
-mininum and maximum values for NumPy arrays (see context menu options on the 
-screenshot at the top of this page).
-
-However, most of the time, choosing the opposite options won't have too much 
-effect on interactive console's performance:
-
-.. image:: images/workspace2.png
-

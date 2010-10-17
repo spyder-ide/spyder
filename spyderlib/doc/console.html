@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
-    <link rel="next" title="Object inspector" href="inspector.html" />
+    <link rel="next" title="Variable Explorer" href="variableexplorer.html" />
     <link rel="prev" title="Command line options" href="options.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="inspector.html" title="Object inspector"
+          <a href="variableexplorer.html" title="Variable Explorer"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="options.html" title="Command line options"
@@ -52,8 +52,6 @@
   <ul>
 <li><a class="reference internal" href="#">Console</a><ul>
 <li><a class="reference internal" href="#reloading-modules-the-user-module-deleter-umd">Reloading modules: the User Module Deleter (UMD)</a></li>
-<li><a class="reference internal" href="#special-commands">Special commands</a></li>
-<li><a class="reference internal" href="#the-workspace">The Workspace</a></li>
 </ul>
 </li>
 </ul>
@@ -62,8 +60,8 @@
   <p class="topless"><a href="options.html"
                         title="previous chapter">Command line options</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="inspector.html"
-                        title="next chapter">Object inspector</a></p>
+  <p class="topless"><a href="variableexplorer.html"
+                        title="next chapter">Variable Explorer</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/console.txt"
@@ -92,26 +90,31 @@
             
   <div class="section" id="console">
 <h1>Console<a class="headerlink" href="#console" title="Permalink to this headline">¶</a></h1>
-<p><em>DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0</em></p>
-<p>The Spyder console run programs (Python interpreter or system terminal) in a
-separate process:</p>
+<p>The <strong>Console</strong> is where you may enter, interact with and visualize data,
+inside a command interpreter (Python or IPython).
+All the commands entered in the console are executed in a separate process,
+thus allowing the user to interrupt any process at any time.</p>
+<p>Many command windows may be created in the <strong>Console</strong>:</p>
 <blockquote>
 <ul class="simple">
-<li>Run Python scripts</li>
-<li>Open Python interpreters</li>
-<li>Open IPython interpreters</li>
-<li>Open terminals (terminals have quite limited features so GNU/Linux users
-will certainly prefer to use the system terminal instead)</li>
+<li>Python interpreter</li>
+<li>IPython interpreter (the external module <cite>IPython</cite> is required)</li>
+<li>Running Python script</li>
+<li>System command window (this terminal emulation window has quite limited
+features compared to a real terminal, so GNU/Linux users will certainly
+prefer to use the system terminal instead, i.e. outside Spyder)</li>
 </ul>
 </blockquote>
-<p>Python/IPython interpreters (or running Python scripts) support the following
-features:</p>
+<p>Python-based command windows support the following features:</p>
 <blockquote>
 <ul class="simple">
-<li>Variable explorer</li>
-<li>Debugging with <cite>pdb</cite></li>
 <li>Code completion and calltips</li>
-<li>User Module Deleter</li>
+<li>Variable explorer with GUI-based editors for arrays, lists,
+dictionaries, strings, etc.</li>
+<li>Debugging with standard Python debugger (<cite>pdb</cite>): at each breakpoint
+the corresponding script is opened in the <strong>Editor</strong> at the breakpoint
+line number</li>
+<li>User Module Deleter (see below)</li>
 </ul>
 </blockquote>
 <dl class="docutils">
@@ -126,64 +129,18 @@ features:</p>
 </dl>
 <div class="section" id="reloading-modules-the-user-module-deleter-umd">
 <h2>Reloading modules: the User Module Deleter (UMD)<a class="headerlink" href="#reloading-modules-the-user-module-deleter-umd" title="Permalink to this headline">¶</a></h2>
+<p>When working with Python scripts interactively, one must keep in mind that
+Python import modules from the source code on disk only at the first import:
+during this first import, the byte code is generated (.pyc file) if necessary,
+and when re-importing the same module, the byte code will be directly used
+even if the source code file (.py[w] file) has changed meanwhile.
+For example, when running two times a module named for example &#8216;mod_a&#8217; which
+is importing a module named &#8216;mod_b&#8217;</p>
 <p>When enabled, the User Module Deleter (UMD) force the Python interpreter to
-reload modules completely when executing import statements. This feature is
-however disabled by default because some modules may be not work properly with
-it.</p>
+reload modules completely when executing a Python script.</p>
 <p>When enabled, this option will systematically reload imported modules since its
 activation. In other words, if you would like some modules to be loaded only
 once, you may import them before enabling the option.</p>
-</div>
-<div class="section" id="special-commands">
-<h2>Special commands<a class="headerlink" href="#special-commands" title="Permalink to this headline">¶</a></h2>
-<p>The following special commands are supported by the interactive console.</p>
-<ul>
-<li><p class="first">Edit script</p>
-<p><tt class="docutils literal"><span class="pre">edit</span> <span class="pre">foobar.py</span></tt> will open <tt class="docutils literal"><span class="pre">foobar.py</span></tt> with Spyder&#8217;s editor.
-<tt class="docutils literal"><span class="pre">xedit</span> <span class="pre">foobar.py</span></tt> will open <tt class="docutils literal"><span class="pre">foobar.py</span></tt> with the external editor.</p>
-</li>
-<li><p class="first">Execute script</p>
-<p><tt class="docutils literal"><span class="pre">run</span> <span class="pre">foobar.py</span></tt> will execute <tt class="docutils literal"><span class="pre">foobar.py</span></tt> in interactive console.</p>
-</li>
-<li><p class="first">Remove references</p>
-<p><tt class="docutils literal"><span class="pre">clear</span> <span class="pre">x,</span> <span class="pre">y</span></tt> will remove references named <tt class="docutils literal"><span class="pre">x</span></tt> and <tt class="docutils literal"><span class="pre">y</span></tt>.</p>
-</li>
-<li><p class="first">Shell commands</p>
-<p><tt class="docutils literal"><span class="pre">!cmd</span></tt> will execute system command <tt class="docutils literal"><span class="pre">cmd</span></tt> (example <tt class="docutils literal"><span class="pre">!ls</span></tt> on Linux or
-<tt class="docutils literal"><span class="pre">!dir</span></tt> on Windows).</p>
-</li>
-<li><p class="first">Python help</p>
-<p><tt class="docutils literal"><span class="pre">object?</span></tt> will show <tt class="docutils literal"><span class="pre">object</span></tt>&#8216;s help in documentation viewer.</p>
-</li>
-<li><p class="first">GUI-based editor</p>
-<p><tt class="docutils literal"><span class="pre">oedit(object)</span></tt> will open an appropriate GUI-based editor to modify object
-<tt class="docutils literal"><span class="pre">object</span></tt> and will return the result.</p>
-</li>
-</ul>
-</div>
-<div class="section" id="the-workspace">
-<h2>The Workspace<a class="headerlink" href="#the-workspace" title="Permalink to this headline">¶</a></h2>
-<p>The workspace is a global variable browser for the interactive console with the
-features described below.</p>
-<img alt="_images/workspace1.png" src="_images/workspace1.png" />
-<p>The following screenshots show some interesting features such as editing
-lists, strings, dictionaries, NumPy arrays, or plotting/showing NumPy arrays
-data.</p>
-<img alt="_images/listeditor.png" src="_images/listeditor.png" />
-<img alt="_images/texteditor.png" src="_images/texteditor.png" />
-<img alt="_images/dicteditor.png" src="_images/dicteditor.png" />
-<img alt="_images/arrayeditor.png" src="_images/arrayeditor.png" />
-<img alt="_images/workspace-plot.png" src="_images/workspace-plot.png" />
-<img alt="_images/workspace-imshow.png" src="_images/workspace-imshow.png" />
-<p>The default Workspace configuration allows to browse global variables without
-slowing the interactive console even with very large NumPy arrays, lists or
-dictionaries. The trick is to truncate values, to hide collection contents
-(i.e. showing &#8216;&lt;list &#64; address&gt;&#8217; instead of list contents) and to show only
-mininum and maximum values for NumPy arrays (see context menu options on the
-screenshot at the top of this page).</p>
-<p>However, most of the time, choosing the opposite options won&#8217;t have too much
-effect on interactive console&#8217;s performance:</p>
-<img alt="_images/workspace2.png" src="_images/workspace2.png" />
 </div>
 </div>
 
@@ -200,7 +157,7 @@ effect on interactive console&#8217;s performance:</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="inspector.html" title="Object inspector"
+          <a href="variableexplorer.html" title="Variable Explorer"
              >next</a> |</li>
         <li class="right" >
           <a href="options.html" title="Command line options"
