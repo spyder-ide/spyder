@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread, StringIO, struct
-import cPickle as pickle
+import threading, socket, traceback, thread, StringIO, struct, cPickle as pickle
 
 from PyQt4.QtCore import QThread, SIGNAL
 
@@ -87,7 +86,7 @@ def monitor_get_remote_view(sock, settings):
     """Get globals() remote view"""
     write_packet(sock, "__make_remote_view__(globals())")
     write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
-    return pickle.loads( read_packet(sock) )
+    return pickle.loads( read_packet(sock, .5) )
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -276,6 +275,7 @@ class Monitor(threading.Thread):
         self.ipython_shell = None
         from __main__ import __dict__ as glbs
         while True:
+            output = ''
             try:
                 command = read_packet(self.request)
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
@@ -284,8 +284,8 @@ class Monitor(threading.Thread):
                 result = eval(command, glbs, self.locals)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
-                write_packet(self.request, output)
-            except Exception:
+            except (Exception, struct.error):
+                # struct.error is related to Issue 336
                 out = StringIO.StringIO()
                 traceback.print_exc(file=out)
                 if DEBUG:
@@ -296,8 +296,8 @@ class Monitor(threading.Thread):
                     print >>errors, "error:"
                     traceback.print_exc(file=errors)
                     print >>errors, " "
-                data = out.getvalue()
-                write_packet(self.request, data)
+            finally:
+                write_packet(self.request, output)
 
 
 SPYDER_PORT = 20128

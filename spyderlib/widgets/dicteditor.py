@@ -1250,15 +1250,16 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
                   exclude_private=None, exclude_upper=None,
                   exclude_unsupported=None, excluded_names=None):
     """Keep only objects that can be pickled"""
-    output_dict = input_dict.copy() # Shallow copy
-    for key in input_dict:
-        if (exclude_private and key.startswith('_')) or \
-           (exclude_upper and key[0].isupper()) or \
-           (key in excluded_names) or \
-           (exclude_unsupported and not is_supported(input_dict[key],
-                                                     itermax=itermax,
-                                                     filters=filters)):
-            output_dict.pop(key)
+    output_dict = {}
+    for key, value in input_dict.items():
+        excluded = (exclude_private and key.startswith('_')) or \
+                   (exclude_upper and key[0].isupper()) or \
+                   (key in excluded_names) or \
+                   (exclude_unsupported and not is_supported(value,
+                                                             itermax=itermax,
+                                                             filters=filters))
+        if not excluded:
+            output_dict[key] = value
     return output_dict
 
 

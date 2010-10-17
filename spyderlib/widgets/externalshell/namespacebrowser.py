@@ -6,7 +6,7 @@
 
 """Namespace browser widget"""
 
-import sys, os, os.path as osp, socket
+import sys, os, os.path as osp, socket, cPickle
 
 # Debug
 STDOUT = sys.stdout
@@ -228,7 +228,8 @@ class NamespaceBrowser(QWidget):
             settings = self._get_settings()
             try:
                 self.set_data( monitor_get_remote_view(sock, settings) )
-            except (socket.timeout, socket.error, EOFError):
+            except (socket.timeout, socket.error, EOFError,
+                    cPickle.UnpicklingError):
                 # Process was terminated before calling this methods
                 pass
         
