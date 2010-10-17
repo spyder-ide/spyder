@@ -1468,7 +1468,8 @@ class CodeEditor(TextEditBaseWidget):
             position = self.get_position('cursor')
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if self.close_parentheses_enabled and \
-               (len(s_trailing_text) == 0 or s_trailing_text.startswith(',')):
+               (len(s_trailing_text) == 0 or \
+                s_trailing_text[0] in (',', ')', ']', '}')):
                 self.insert_text('()')
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
@@ -1481,7 +1482,8 @@ class CodeEditor(TextEditBaseWidget):
         elif key in (Qt.Key_BraceLeft, Qt.Key_BracketLeft) and \
              not self.has_selected_text() and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
-            if len(s_trailing_text) == 0 or s_trailing_text.startswith(','):
+            if len(s_trailing_text) == 0 or \
+               s_trailing_text[0] in (',', ')', ']', '}'):
                 self.insert_text({Qt.Key_BraceLeft: '{}',
                                   Qt.Key_BracketLeft: '[]'}[key])
                 cursor = self.textCursor()
