@@ -15,6 +15,9 @@ from code import InteractiveConsole
 from spyderlib.utils.dochelpers import isdefined
 from spyderlib.utils import encoding
 
+# Force Python to search modules in the current directory first:
+sys.path.insert(0, '')
+
 # For debugging purpose
 STDOUT, STDERR = sys.stdout, sys.stderr
 
@@ -23,11 +26,9 @@ def guess_filename(filename):
     """Guess filename"""
     if osp.isfile(filename):
         return filename
-    pathlist = sys.path
-    pathlist[0] = os.getcwdu()
     if not filename.endswith('.py'):
         filename += '.py'
-    for path in pathlist:
+    for path in [os.getcwdu()]+sys.path:
         fname = osp.join(path, filename)
         if osp.isfile(fname):
             return fname
