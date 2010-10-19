@@ -258,7 +258,7 @@ class Console(SpyderPluginWidget):
         mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
                                            self.tr('Maximum line count'),
                                            self.get_option('max_line_count'),
-                                           10, 1000000)
+                                           0, 1000000)
         if valid:
             self.shell.setMaximumBlockCount(mlc)
             self.set_option('max_line_count', mlc)

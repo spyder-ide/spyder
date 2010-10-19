@@ -53,7 +53,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         display_group = QGroupBox(self.tr("Source code"))
         buffer_spin = self.create_spinbox(
                             self.tr("Buffer: "), self.tr(" lines"),
-                            'max_line_count', min_=100, max_=1000000, step=100,
+                            'max_line_count', min_=0, max_=1000000, step=100,
                             tip=self.tr("Set maximum line count"))
         wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
         
