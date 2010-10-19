@@ -21,15 +21,19 @@ STDERR = sys.stderr
 
 # Local imports
 from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
-                             programs)
+                             programs, log_last_error)
 from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
 from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
-from spyderlib.config import get_icon, get_image_path
+from spyderlib.config import get_icon, get_image_path, get_conf_path
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
+
+
+DEBUG = False
+LOG_FILENAME = get_conf_path('rope_errors.txt')
 
 
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
@@ -186,10 +190,16 @@ class Project(object):
                                                           **ROPE_PREFS)
         except ImportError:
             self.rope_project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % self.root_path)
         except TypeError:
             # Compatibility with new Mercurial API (>= 1.3).
             # New versions of rope (> 0.9.2) already handle this issue
             self.rope_project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % self.root_path)
         self.validate_rope_project()
         
     def close_rope_project(self):
@@ -208,6 +218,8 @@ class Project(object):
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
             import rope.contrib.codeassist
@@ -216,6 +228,8 @@ class Project(object):
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
             return [proposal.name for proposal in proposals]
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_completion_list")
             return []
 
     def get_calltip_text(self, source_code, offset, filename):
@@ -226,6 +240,8 @@ class Project(object):
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
             import rope.contrib.codeassist
@@ -237,6 +253,8 @@ class Project(object):
             else:
                 return []
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
     
     def get_definition_location(self, source_code, offset, filename):
@@ -247,6 +265,8 @@ class Project(object):
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
             import rope.contrib.codeassist
@@ -256,6 +276,8 @@ class Project(object):
                 filename = resource.real_path
             return filename, lineno
         except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
         
     #------Misc.

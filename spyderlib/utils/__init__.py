@@ -12,7 +12,7 @@ Spyder's utilities
 """
 
 from __future__ import with_statement
-import os, os.path as osp, shutil, sys
+import os, os.path as osp, shutil, sys, StringIO, traceback, time
 STDERR = sys.stderr
 
 
@@ -144,3 +144,27 @@ def remove_trailing_single_backslash(text):
     if text.endswith('\\') and not text.endswith('\\\\'):
         text = text[:-1]
     return text
+
+
+def log_last_error(fname, context=None):
+    """Log last error in filename *fname* -- *context*: string (optional)"""
+    out = StringIO.StringIO()
+    traceback.print_exc(file=out)
+    errors = open(fname, 'a')
+    timestr = "Logging time: %s" % time.ctime(time.time())
+    print >>errors, "="*len(timestr)
+    print >>errors, timestr
+    print >>errors, "="*len(timestr)
+    print >>errors, ""
+    if context:
+        print >>errors, "Context"
+        print >>errors, "-------"
+        print >>errors, ""
+        print >>errors, context
+        print >>errors, ""
+        print >>errors, "Traceback"
+        print >>errors, "---------"
+        print >>errors, ""
+    traceback.print_exc(file=errors)
+    print >>errors, ""
+    print >>errors, ""

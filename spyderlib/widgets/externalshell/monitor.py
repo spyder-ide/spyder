@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, traceback, thread, StringIO, struct, cPickle as pickle
+import threading, socket, thread, struct, cPickle as pickle
 
 from PyQt4.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type, get_conf_path
-from spyderlib.utils import select_port, fix_reference_name
+from spyderlib.utils import select_port, fix_reference_name, log_last_error
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
 from spyderlib.utils.iofuncs import iofunctions
@@ -286,16 +286,8 @@ class Monitor(threading.Thread):
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
             except (Exception, struct.error):
                 # struct.error is related to Issue 336
-                out = StringIO.StringIO()
-                traceback.print_exc(file=out)
                 if DEBUG:
-                    import time
-                    errors = open(LOG_FILENAME, 'a')
-                    print >>errors, "*"*5, time.ctime(time.time()), "*"*49
-                    print >>errors, "command:", command
-                    print >>errors, "error:"
-                    traceback.print_exc(file=errors)
-                    print >>errors, " "
+                    log_last_error(LOG_FILENAME, command)
             finally:
                 write_packet(self.request, output)
 
