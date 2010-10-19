@@ -25,19 +25,31 @@ def check_requirement(package, module_name, version_attr, required_str):
             return wng+" (found v%s)" % actual_str
         else:
             return ''
+    
+def show_warning(message):
+    try:
+        # If Tkinter is installed (highly probable), showing an error pop-up
+        import Tkinter, tkMessageBox
+        root = Tkinter.Tk()
+        root.withdraw()
+        tkMessageBox.showerror("Spyder", message)
+    except ImportError:
+        pass
+    raise RuntimeError, message
+    
+def check_path():
+    import sys, os.path as osp
+    dirname = osp.abspath(osp.join(osp.dirname(__file__), osp.pardir))
+    if dirname not in sys.path:
+        show_warning("Spyder must be installed properly "
+                     "(e.g. from source: 'python setup.py install'),\n"
+                     "or directory '%s' must be in PYTHONPATH "
+                     "environment variable" % dirname)
 
 def check_pyqt():
     wng = check_requirement("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
     if wng:
-        try:
-            # If Tkinter is installed (highly probable), showing an error pop-up
-            import Tkinter, tkMessageBox
-            root = Tkinter.Tk()
-            root.withdraw()
-            tkMessageBox.showerror("Spyder",
-                           "Please check Spyder installation requirements:"+wng)
-        except ImportError:
-            pass
-        raise ImportError, wng
+        show_warning("Please check Spyder installation requirements:"+wng)
 
 check_pyqt()
+check_path()
