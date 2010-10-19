@@ -25,6 +25,14 @@ original_sys_exit = sys.exit
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
+# Workaround: importing rope.base.project here, otherwise this module can't
+# be imported if Spyder was executed from another folder than spyderlib
+# (see spyderlib.widgets.projectexplorer.Project.create_rope_project)
+try:
+    import rope.base.project #@UnusedImport
+except ImportError:
+    pass
+
 from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
                          QMessageBox, QMenu, QColor, QFileDialog, QShortcut,
                          QKeySequence, QDockWidget, QAction)
