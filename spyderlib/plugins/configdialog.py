@@ -289,7 +289,7 @@ class SpyderConfigPage(ConfigPage):
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = fontbox.currentFont()
             font.setPointSize(sizebox.value())
-            self.set_font(font)
+            self.set_font(font, option)
         for clayout, (option, _default) in self.coloredits.items():
             self.set_option(option, unicode(clayout.lineedit.text()))
         for (clayout, cb_bold, cb_italic), (option, _default) in self.scedits.items():
