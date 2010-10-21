@@ -396,14 +396,13 @@ class ObjectInspector(RichAndPlainText):
             
         is_code = False
         found = True
+        no_doc = self.tr("No documentation available")
         
         if self.rich_help:
             if doc_text is not None:
                 html_text = sphinxify(doc_text)
             else:
-                html_text = '<div id=\"warning\"> \
-                No documentation available \
-                </div>'
+                html_text = '<div id=\"warning\">' + no_doc + '</div>'
                 if ignore_unknown:
                     return False
             
@@ -415,7 +414,7 @@ class ObjectInspector(RichAndPlainText):
             if hlp_text is None:
                 hlp_text = source_text
                 if hlp_text is None:
-                    hlp_text = self.tr("No documentation available.")
+                    hlp_text = no_doc
                     if ignore_unknown:
                         return False
         else:
