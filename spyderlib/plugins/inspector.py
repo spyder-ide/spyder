@@ -64,9 +64,11 @@ class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
         sourcecode_group = QGroupBox(self.tr("Source code"))
         wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
-        font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Font style"),
+        plain_text_font_group = self.create_fontgroup(option=None,
+                                    text=self.tr("Plain text font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
+        rich_text_font_group = self.create_fontgroup(option='rich_text',
+                                text=self.tr("Rich text font style"))
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
@@ -78,7 +80,8 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(font_group)
+        vlayout.addWidget(rich_text_font_group)
+        vlayout.addWidget(plain_text_font_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -94,6 +97,7 @@ class ObjectInspector(RichAndPlainText):
     def __init__(self, parent):
         self.set_default_color_scheme()
         RichAndPlainText.__init__(self, parent)
+        self.rich_text.webview.set_font(self.get_plugin_font('rich_text'))
         
         self.shell = None
         
@@ -222,12 +226,16 @@ class ObjectInspector(RichAndPlainText):
         color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
+        rich_font_n = 'rich_text'
+        rich_font_o = self.get_plugin_font('rich_text')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
             self.plain_text.editor.set_font(font_o, scs)
+        if rich_font_n in options:
+            self.rich_text.webview.set_font(rich_font_o)
         elif color_scheme_n in options:
             self.plain_text.editor.set_color_scheme(color_scheme_o)
         if wrap_n in options:
