@@ -9,6 +9,8 @@
 ^doctmp/
 ^pyflakes/
 ^rope/
+^Rpyc/
+^Pyro4/
 ^spyder.egg-info/
 \pypi.txt
 \Thumbs.db

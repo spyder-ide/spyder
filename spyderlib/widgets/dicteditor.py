@@ -225,7 +225,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = translate("DictEditor", "Key")
         else:
-            raise RuntimeError("Invalid data type")
+            raise TypeError("Invalid data type")
         self.title += ' ('+str(len(self.keys))+' '+ \
                       translate("DictEditor", "elements")+')'
         if self.remote:
