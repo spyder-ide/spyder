@@ -28,7 +28,8 @@ class WebView(QWebView):
         QWebView.__init__(self, parent)
         
     def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False):
+                  forward=True, case=False, words=False,
+                  regexp=False):
         """Find text"""
         findflag = QWebPage.FindWrapsAroundDocument
         if not forward:
@@ -36,6 +37,20 @@ class WebView(QWebView):
         if case:
             findflag = findflag | QWebPage.FindCaseSensitively
         return self.findText(text, findflag)
+    
+    def get_selected_text(self):
+        """Return text selected by current text cursor"""
+        return self.selectedText()
+        
+    def set_font(self, font):
+        family = font.family()
+        self.page().settings().setFontFamily(0, family) # Standard
+        self.page().settings().setFontFamily(2, family) # Serif
+        self.page().settings().setFontFamily(3, family) # SansSerif
+        self.page().settings().setFontFamily(4, family) # Cursive
+        size = font.pointSize()
+        self.page().settings().setFontSize(2, size) # Default
+        self.page().settings().setFontSize(3, size) # DefaultFixed
     
     #------ QWebView API -------------------------------------------------------
     def createWindow(self, webwindowtype):

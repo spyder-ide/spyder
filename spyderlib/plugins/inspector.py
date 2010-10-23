@@ -7,8 +7,8 @@
 """Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
-                         QToolButton, QGroupBox, QFontComboBox)
-from PyQt4.QtCore import SIGNAL, QTimer
+                         QToolButton, QGroupBox, QFontComboBox, QActionGroup)
+from PyQt4.QtCore import SIGNAL, QUrl, QTimer
 
 import sys, re, os.path as osp, socket
 
@@ -20,8 +20,9 @@ from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.plugins import ReadOnlyEditor, PluginConfigPage
+from spyderlib.plugins import RichAndPlainText, PluginConfigPage
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyderlib.plugins.sphinxify import sphinxify
 
 
 class ObjectComboBox(EditableComboBox):
@@ -32,8 +33,7 @@ class ObjectComboBox(EditableComboBox):
         EditableComboBox.__init__(self, parent)
         self.object_inspector = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: self.tr("Press enter to validate this object name"),
-                     False: self.tr('This object name is incorrect')}
+        self.tips = {True: self.tr(''), False: self.tr('')}
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -60,14 +60,15 @@ class ObjectComboBox(EditableComboBox):
     def validate_current_text(self):
         self.validate(self.currentText())
 
-
 class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
         sourcecode_group = QGroupBox(self.tr("Source code"))
         wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
-        font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Font style"),
+        plain_text_font_group = self.create_fontgroup(option=None,
+                                    text=self.tr("Plain text font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
+        rich_text_font_group = self.create_fontgroup(option='rich_text',
+                                text=self.tr("Rich text font style"))
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
@@ -79,13 +80,14 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_group.setLayout(sourcecode_layout)
         
         vlayout = QVBoxLayout()
-        vlayout.addWidget(font_group)
+        vlayout.addWidget(rich_text_font_group)
+        vlayout.addWidget(plain_text_font_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
 
-class ObjectInspector(ReadOnlyEditor):
+class ObjectInspector(RichAndPlainText):
     """
     Docstrings viewer widget
     """
@@ -94,7 +96,8 @@ class ObjectInspector(ReadOnlyEditor):
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         self.set_default_color_scheme()
-        ReadOnlyEditor.__init__(self, parent)
+        RichAndPlainText.__init__(self, parent)
+        self.rich_text.webview.set_font(self.get_plugin_font('rich_text'))
         
         self.shell = None
         
@@ -114,11 +117,42 @@ class ObjectInspector(ReadOnlyEditor):
         self.connect(self.combo, SIGNAL("valid(bool)"),
                      lambda valid: self.force_refresh())
         
-        # Doc/source option
-        help_or_doc = create_action(self, self.tr("Show source"),
-                                    toggled=self.toggle_help)
-        help_or_doc.setChecked(False)
+        # Plain text docstring option
         self.docstring = True
+        self.plain_text.hide()
+        plain_text_action = create_action(self, self.tr("Plain Text"),
+                                          toggled=self.toggle_plain_text)
+        
+        # Source code option
+        show_source = create_action(self, self.tr("Show Source"),
+                                    toggled=self.toggle_show_source)
+        
+        # Rich text option
+        rich_text_action = create_action(self, self.tr("Rich Text"),
+                                         toggled=self.toggle_rich_text)
+        rich_text_action.setChecked(True)
+        self.rich_help = True
+        
+        # Html parts neccesary to properly render the rich help
+        self.path = osp.dirname(__file__)
+        
+        self.html_head = '<html> \
+        <head> \
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
+        <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
+        <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
+        </head> \
+        <body>' % (self.path, self.path)
+        
+        self.html_tail = '</body> \
+        </html>'
+                
+        # Add the help actions to an exclusive QActionGroup
+        help_actions = QActionGroup(self)
+        help_actions.setExclusive(True)
+        help_actions.addAction(plain_text_action)
+        help_actions.addAction(show_source)
+        help_actions.addAction(rich_text_action)
         
         # Automatic import option
         auto_import = create_action(self, self.tr("Automatic import"),
@@ -137,15 +171,15 @@ class ObjectInspector(ReadOnlyEditor):
                                            icon=get_icon('tooloptions.png'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
-        add_actions(menu, [help_or_doc, auto_import])
+        add_actions(menu, [rich_text_action, plain_text_action, show_source, auto_import])
         options_button.setMenu(menu)
         layout_edit.addWidget(options_button)
 
         # Main layout
         layout = QVBoxLayout()
         layout.addLayout(layout_edit)
-        layout.addWidget(self.editor)
-        layout.addWidget(self.find_widget)
+        layout.addWidget(self.plain_text)
+        layout.addWidget(self.rich_text)
         self.setLayout(layout)
         
         QTimer.singleShot(8000, self.refresh_plugin)
@@ -192,16 +226,20 @@ class ObjectInspector(ReadOnlyEditor):
         color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
         font_n = 'plugin_font'
         font_o = self.get_plugin_font()
+        rich_font_n = 'rich_text'
+        rich_font_o = self.get_plugin_font('rich_text')
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
-            self.editor.set_font(font_o, scs)
+            self.plain_text.editor.set_font(font_o, scs)
+        if rich_font_n in options:
+            self.rich_text.webview.set_font(rich_font_o)
         elif color_scheme_n in options:
-            self.editor.set_color_scheme(color_scheme_o)
+            self.plain_text.editor.set_color_scheme(color_scheme_o)
         if wrap_n in options:
-            self.editor.toggle_wrap_mode(wrap_o)
+            self.plain_text.editor.toggle_wrap_mode(wrap_o)
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):
@@ -254,10 +292,38 @@ class ObjectInspector(ReadOnlyEditor):
             [ unicode( self.combo.itemText(index) )
                 for index in range(self.combo.count()) ] ))
         
-    def toggle_help(self, checked):
-        """Toggle between docstring and help()"""
-        self.docstring = not checked
-        self.force_refresh()
+    def toggle_plain_text(self, checked):
+        """Toggle plain text docstring"""
+        if checked:
+            self.docstring = checked
+            self.rich_help = not checked
+        
+            if self.plain_text.isHidden():
+                self.plain_text.show()
+                self.rich_text.hide()
+            self.force_refresh()
+        
+    def toggle_show_source(self, checked):
+        """Toggle show source code"""
+        if checked:
+            self.docstring = not checked
+            self.rich_help = not checked
+        
+            if self.plain_text.isHidden():
+                self.plain_text.show()
+                self.rich_text.hide()
+            self.force_refresh()
+        
+    def toggle_rich_text(self, checked):
+        """Toggle between sphinxified docstrings or plain ones"""
+        if checked:
+            self.rich_help = checked
+            self.docstring = not checked
+            
+            if self.rich_text.isHidden():
+                self.plain_text.hide()
+                self.rich_text.show()
+            self.force_refresh()
         
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
@@ -330,12 +396,25 @@ class ObjectInspector(ReadOnlyEditor):
             
         is_code = False
         found = True
-        if self.docstring:
+        no_doc = self.tr("No documentation available")
+        
+        if self.rich_help:
+            if doc_text is not None:
+                html_text = sphinxify(doc_text)
+            else:
+                html_text = '<div id=\"warning\">' + no_doc + '</div>'
+                if ignore_unknown:
+                    return False
+            
+            html_text = self.html_head + html_text + self.html_tail
+            self.rich_text.webview.setHtml(html_text, baseUrl=QUrl.fromLocalFile(self.path))
+        
+        elif self.docstring:
             hlp_text = doc_text
             if hlp_text is None:
                 hlp_text = source_text
                 if hlp_text is None:
-                    hlp_text = self.tr("No documentation available.")
+                    hlp_text = no_doc
                     if ignore_unknown:
                         return False
         else:
@@ -348,13 +427,15 @@ class ObjectInspector(ReadOnlyEditor):
                         return False
             else:
                 is_code = True
-        self.editor.set_highlight_current_line(is_code)
-        self.editor.set_occurence_highlighting(is_code)
-        if is_code:
-            self.editor.set_language('py')
-        else:
-            self.editor.set_language(None)
-        self.editor.set_text(hlp_text)
-        self.editor.set_cursor_position('sof')
+        
+        if self.plain_text.editor.isVisible():
+            self.plain_text.editor.set_highlight_current_line(is_code)
+            self.plain_text.editor.set_occurence_highlighting(is_code)
+            if is_code:
+                self.plain_text.editor.set_language('py')
+            else:
+                self.plain_text.editor.set_language(None)
+            self.plain_text.editor.set_text(hlp_text)
+            self.plain_text.editor.set_cursor_position('sof')
         
         return found
