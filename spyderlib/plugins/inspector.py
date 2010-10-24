@@ -22,7 +22,21 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.plugins import RichAndPlainText, PluginConfigPage
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
-from spyderlib.plugins.sphinxify import sphinxify
+
+try:
+    from spyderlib.utils.sphinxify import CSS_PATH, sphinxify
+    HTML_HEAD = '<html> \
+    <head> \
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
+    <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
+    <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
+    </head> \
+    <body>' % (CSS_PATH, CSS_PATH)
+    
+    HTML_TAIL = '</body> \
+    </html>'
+except ImportError:
+    sphinxify = None
 
 
 class ObjectComboBox(EditableComboBox):
@@ -119,9 +133,12 @@ class ObjectInspector(RichAndPlainText):
         
         # Plain text docstring option
         self.docstring = True
-        self.plain_text.hide()
+        self.rich_help = sphinxify is not None
+        self.rich_text.setVisible(self.rich_help)
+        self.plain_text.setVisible(not self.rich_help)        
         plain_text_action = create_action(self, self.tr("Plain Text"),
                                           toggled=self.toggle_plain_text)
+        plain_text_action.setChecked(not self.rich_help)
         
         # Source code option
         show_source = create_action(self, self.tr("Show Source"),
@@ -130,23 +147,9 @@ class ObjectInspector(RichAndPlainText):
         # Rich text option
         rich_text_action = create_action(self, self.tr("Rich Text"),
                                          toggled=self.toggle_rich_text)
-        rich_text_action.setChecked(True)
-        self.rich_help = True
-        
-        # Html parts neccesary to properly render the rich help
-        self.path = osp.dirname(__file__)
-        
-        self.html_head = '<html> \
-        <head> \
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
-        <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
-        <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
-        </head> \
-        <body>' % (self.path, self.path)
-        
-        self.html_tail = '</body> \
-        </html>'
-                
+        rich_text_action.setChecked(self.rich_help)
+        rich_text_action.setEnabled(sphinxify is not None)
+                        
         # Add the help actions to an exclusive QActionGroup
         help_actions = QActionGroup(self)
         help_actions.setExclusive(True)
@@ -171,7 +174,8 @@ class ObjectInspector(RichAndPlainText):
                                            icon=get_icon('tooloptions.png'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
-        add_actions(menu, [rich_text_action, plain_text_action, show_source, auto_import])
+        add_actions(menu, [rich_text_action, plain_text_action, show_source,
+                           None, auto_import])
         options_button.setMenu(menu)
         layout_edit.addWidget(options_button)
 
@@ -406,8 +410,9 @@ class ObjectInspector(RichAndPlainText):
                 if ignore_unknown:
                     return False
             
-            html_text = self.html_head + html_text + self.html_tail
-            self.rich_text.webview.setHtml(html_text, baseUrl=QUrl.fromLocalFile(self.path))
+            html_text = HTML_HEAD + html_text + HTML_TAIL
+            self.rich_text.webview.setHtml(html_text,
+                                           QUrl.fromLocalFile(CSS_PATH))
         
         elif self.docstring:
             hlp_text = doc_text

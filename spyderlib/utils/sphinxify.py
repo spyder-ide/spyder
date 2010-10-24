@@ -17,21 +17,23 @@ AUTHORS:
 #
 # Distributed under the terms of the BSD License
 #**************************************************
-import os
-import re
-import shutil
+import os, re, shutil, os.path as osp
 from tempfile import mkdtemp
 
 # We import Sphinx on demand, to reduce Sage startup time.
 # Sphinx = None
-from sphinx.application import Sphinx
-from pygments import plugin
+from sphinx.application import Sphinx #@UnusedImport
+from pygments import plugin #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
 
 try:
     from sage.misc.misc import SAGE_DOC
 except ImportError:
     SAGE_DOC = ''  # used to be None
+
+
+CSS_PATH = osp.join(osp.dirname(__file__), 'css')
+
 
 def is_sphinx_markup(docstring):
     """
