@@ -126,28 +126,23 @@ class NamespaceBrowser(QWidget):
 
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
                                            icon=get_icon('reload.png'),
-                                           triggered=self.refresh_table,
-                                           text_beside_icon=False)
+                                           triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
                                            text=self.tr("Refresh periodically"),
                                            icon=get_icon('auto_reload.png'),
-                                           toggled=self.toggle_auto_refresh,
-                                           text_beside_icon=False)
+                                           toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
         load_button = create_toolbutton(self, text=self.tr("Import data"),
                                         icon=get_icon('fileimport.png'),
-                                        triggered=self.import_data,
-                                        text_beside_icon=False)
+                                        triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=self.tr("Save data"),
                                 icon=get_icon('filesave.png'),
-                                triggered=lambda: self.save_data(self.filename),
-                                text_beside_icon=False)
+                                triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=self.tr("Save data as..."),
                                            icon=get_icon('filesaveas.png'),
-                                           triggered=self.save_data,
-                                           text_beside_icon=False)
+                                           triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
         
@@ -176,8 +171,7 @@ class NamespaceBrowser(QWidget):
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
         options_button = create_toolbutton(self, text=self.tr("Options"),
-                                           icon=get_icon('tooloptions.png'),
-                                           text_beside_icon=False)
+                                           icon=get_icon('tooloptions.png'))
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)

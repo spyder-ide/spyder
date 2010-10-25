@@ -156,11 +156,12 @@ class PylintWidget(QWidget):
         self.start_button = create_toolbutton(self, get_icon('run.png'),
                                     translate('Pylint', "Analyze"),
                                     tip=translate('Pylint', "Run analysis"),
-                                    triggered=self.start)
+                                    triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self, get_icon('terminate.png'),
                                     translate('Pylint', "Stop"),
                                     tip=translate('Pylint',
-                                                  "Stop current analysis"))
+                                                  "Stop current analysis"),
+                                    text_beside_icon=True)
         self.connect(self.filecombo, SIGNAL('valid(bool)'),
                      self.start_button.setEnabled)
         self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
@@ -173,6 +174,7 @@ class PylintWidget(QWidget):
         self.datelabel = QLabel()
         self.log_button = create_toolbutton(self, get_icon('log.png'),
                                     translate('Pylint', "Output"),
+                                    text_beside_icon=True,
                                     tip=translate('Pylint',
                                                   "Complete Pylint output"),
                                     triggered=self.show_log)

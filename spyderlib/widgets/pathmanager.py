@@ -75,22 +75,26 @@ class PathManager(QDialog):
         movetop_button = create_toolbutton(self,
                                     text=self.tr("Move to top"),
                                     icon=get_icon('2uparrow.png'),
-                                    triggered=lambda: self.move_to(absolute=0))
+                                    triggered=lambda: self.move_to(absolute=0),
+                                    text_beside_icon=True)
         toolbar.append(movetop_button)
         moveup_button = create_toolbutton(self,
                                     text=self.tr("Move up"),
                                     icon=get_icon('1uparrow.png'),
-                                    triggered=lambda: self.move_to(relative=-1))
+                                    triggered=lambda: self.move_to(relative=-1),
+                                    text_beside_icon=True)
         toolbar.append(moveup_button)
         movedown_button = create_toolbutton(self,
                                     text=self.tr("Move down"),
                                     icon=get_icon('1downarrow.png'),
-                                    triggered=lambda: self.move_to(relative=1))
+                                    triggered=lambda: self.move_to(relative=1),
+                                    text_beside_icon=True)
         toolbar.append(movedown_button)
         movebottom_button = create_toolbutton(self,
                                     text=self.tr("Move to bottom"),
                                     icon=get_icon('2downarrow.png'),
-                                    triggered=lambda: self.move_to(absolute=1))
+                                    triggered=lambda: self.move_to(absolute=1),
+                                    text_beside_icon=True)
         toolbar.append(movebottom_button)
         self.selection_widgets.extend(toolbar)
         self._add_widgets_to_layout(layout, toolbar)
@@ -100,11 +104,13 @@ class PathManager(QDialog):
         toolbar = []
         add_button = create_toolbutton(self, text=self.tr("Add path"),
                                        icon=get_icon('edit_add.png'),
-                                       triggered=self.add_path)
+                                       triggered=self.add_path,
+                                       text_beside_icon=True)
         toolbar.append(add_button)
         remove_button = create_toolbutton(self, text=self.tr("Remove path"),
                                           icon=get_icon('edit_remove.png'),
-                                          triggered=self.remove_path)
+                                          triggered=self.remove_path,
+                                          text_beside_icon=True)
         toolbar.append(remove_button)
         self.selection_widgets.append(remove_button)
         self._add_widgets_to_layout(layout, toolbar)
@@ -114,7 +120,8 @@ class PathManager(QDialog):
                   text=self.tr("Synchronize..."),
                   icon=get_icon('synchronize.png'), triggered=self.synchronize,
                   tip=self.tr("Synchronize Spyder's path list with PYTHONPATH "
-                              "environment variable"))
+                              "environment variable"),
+                  text_beside_icon=True)
             layout.addWidget(self.sync_button)
         return toolbar
     

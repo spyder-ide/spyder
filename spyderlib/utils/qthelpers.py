@@ -120,7 +120,7 @@ def restore_keyevent(event):
 
 def create_toolbutton(parent, icon=None, text=None,
                       triggered=None, tip=None, toggled=None, shortcut=None,
-                      autoraise=True, text_beside_icon=True):
+                      autoraise=True, text_beside_icon=False):
     """Create a QToolButton"""
     button = QToolButton(parent)
     if text is not None:

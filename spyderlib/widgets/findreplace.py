@@ -94,7 +94,8 @@ class FindReplace(QWidget):
         self.replace_button = create_toolbutton(self,
                                      text=self.tr("Replace/find"),
                                      triggered=self.replace_find,
-                                     icon=get_std_icon("DialogApplyButton"))
+                                     icon=get_std_icon("DialogApplyButton"),
+                                     text_beside_icon=True)
         self.connect(self.replace_button, SIGNAL('clicked()'),
                      self.update_replace_combo)
         self.connect(self.replace_button, SIGNAL('clicked()'),

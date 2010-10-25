@@ -556,14 +556,14 @@ class OutlineExplorer(QWidget):
         
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
-                         tip=translate('OutlineExplorer',
-                                       'Go to cursor position'),
-                         triggered=self.treewidget.go_to_cursor_position)
-        collapse_btn = create_toolbutton(self, text_beside_icon=False)
+                             tip=translate('OutlineExplorer',
+                                           'Go to cursor position'),
+                             triggered=self.treewidget.go_to_cursor_position)
+        collapse_btn = create_toolbutton(self)
         collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
-        expand_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_btn = create_toolbutton(self)
         expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
-        restore_btn = create_toolbutton(self, text_beside_icon=False)
+        restore_btn = create_toolbutton(self)
         restore_btn.setDefaultAction(self.treewidget.restore_action)
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         

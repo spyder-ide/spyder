@@ -871,7 +871,7 @@ class Editor(SpyderPluginWidget):
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                          self.eol_status.eol_changed)
-            oe_btn = create_toolbutton(self, text_beside_icon=False)
+            oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_widget_to_header(oe_btn, space_before=True)
             

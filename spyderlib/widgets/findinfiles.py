@@ -339,13 +339,15 @@ class FindOptions(QWidget):
                                 text=translate('FindInFiles', "Search"),
                                 triggered=lambda: self.emit(SIGNAL('find()')),
                                 icon=get_std_icon("DialogApplyButton"),
-                                tip=translate('FindInFiles', "Start search"))
+                                tip=translate('FindInFiles', "Start search"),
+                                text_beside_icon=True)
         self.connect(self.ok_button, SIGNAL('clicked()'), self.update_combos)
         self.stop_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Stop"),
                                 triggered=lambda: self.emit(SIGNAL('stop()')),
                                 icon=get_icon("terminate.png"),
-                                tip=translate('FindInFiles', "Stop search"))
+                                tip=translate('FindInFiles', "Stop search"),
+                                text_beside_icon=True)
         self.stop_button.setEnabled(False)
         for widget in [self.search_text, self.edit_regexp,
                        self.ok_button, self.stop_button, self.more_options]:
@@ -713,16 +715,16 @@ class FindInFilesWidget(QWidget):
         
         self.result_browser = ResultsBrowser(self)
         
-        collapse_btn = create_toolbutton(self, text_beside_icon=False)
+        collapse_btn = create_toolbutton(self)
         collapse_btn.setDefaultAction(self.result_browser.collapse_all_action)
-        expand_btn = create_toolbutton(self, text_beside_icon=False)
+        expand_btn = create_toolbutton(self)
         expand_btn.setDefaultAction(self.result_browser.expand_all_action)
-        restore_btn = create_toolbutton(self, text_beside_icon=False)
+        restore_btn = create_toolbutton(self)
         restore_btn.setDefaultAction(self.result_browser.restore_action)
-#        collapse_sel_btn = create_toolbutton(self, text_beside_icon=False)
+#        collapse_sel_btn = create_toolbutton(self)
 #        collapse_sel_btn.setDefaultAction(
 #                                self.result_browser.collapse_selection_action)
-#        expand_sel_btn = create_toolbutton(self, text_beside_icon=False)
+#        expand_sel_btn = create_toolbutton(self)
 #        expand_sel_btn.setDefaultAction(
 #                                self.result_browser.expand_selection_action)
         

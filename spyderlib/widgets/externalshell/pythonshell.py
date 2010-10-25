@@ -200,12 +200,13 @@ class ExternalPythonShell(ExternalShellBase):
             self.namespacebrowser_button = create_toolbutton(self,
                           get_icon('dictedit.png'), self.tr("Variables"),
                           tip=self.tr("Show/hide global variables explorer"),
-                          toggled=self.toggle_globals_explorer)
+                          toggled=self.toggle_globals_explorer,
+                          text_beside_icon=True)
         if self.cwd_button is None:
             self.cwd_button = create_toolbutton(self,
-                          get_std_icon('DirOpenIcon'), self.tr("Working directory"),
-                          tip=self.tr("Set current working directory"),
-                          triggered=self.set_current_working_directory)
+                      get_std_icon('DirOpenIcon'), self.tr("Working directory"),
+                      tip=self.tr("Set current working directory"),
+                      triggered=self.set_current_working_directory)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
                           get_icon('terminate.png'), self.tr("Terminate"),

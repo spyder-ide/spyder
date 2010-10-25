@@ -171,7 +171,8 @@ class ObjectInspector(RichAndPlainText):
         
         # Option menu
         options_button = create_toolbutton(self, text=self.tr("Options"),
-                                           icon=get_icon('tooloptions.png'))
+                                           icon=get_icon('tooloptions.png'),
+                                           text_beside_icon=True)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, [rich_text_action, plain_text_action, show_source,

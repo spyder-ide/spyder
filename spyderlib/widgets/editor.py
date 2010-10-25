@@ -121,8 +121,8 @@ class FileListDialog(QDialog):
         
         btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, get_icon('edit.png'),
-             text=translate("Editor", "&Edit file"), autoraise=False,
-             triggered=self.edit_file)
+                     text=translate("Editor", "&Edit file"), autoraise=False,
+                     triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
         btn_layout.addWidget(edit_btn)
         
@@ -132,7 +132,8 @@ class FileListDialog(QDialog):
         
         close_btn = create_toolbutton(self,
               text=translate("Editor", "&Close file"),
-              icon=get_icon("fileclose.png"), autoraise=False,
+              icon=get_icon("fileclose.png"),
+              autoraise=False, text_beside_icon=True,
               triggered=lambda: self.emit(SIGNAL("close_file(int)"),
                                   self.indexes[self.listwidget.currentRow()]))
         close_btn.setMinimumHeight(28)
@@ -2047,7 +2048,7 @@ class EditorWidget(QSplitter):
         self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
                      self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
-        oe_btn = create_toolbutton(self, text_beside_icon=False)
+        oe_btn = create_toolbutton(self)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         editorstack.add_widget_to_header(oe_btn, space_before=True)
         
@@ -2214,7 +2215,7 @@ class FakePlugin(QSplitter):
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
-            oe_btn = create_toolbutton(self, text_beside_icon=False)
+            oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_widget_to_header(oe_btn, space_before=True)
             
