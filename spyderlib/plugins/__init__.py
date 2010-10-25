@@ -361,7 +361,8 @@ class RichAndPlainText(SpyderPluginWidget):
                                          toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked(self.get_option('wrap'))
         self.plain_text.editor.readonly_menu.addSeparator()
-        add_actions(self.plain_text.editor.readonly_menu, (font_action, self.wrap_action))
+        add_actions(self.plain_text.editor.readonly_menu,
+                    (font_action, self.wrap_action))
         
         # <!> Layout will have to be implemented in child class!
     

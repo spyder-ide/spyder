@@ -49,6 +49,7 @@ class PydocBrowser(WebBrowser):
     
     def __init__(self, parent):
         WebBrowser.__init__(self, parent)
+        self.register_widget_shortcuts("Editor", self.find_widget)
         self.server = None
         self.port = None
         

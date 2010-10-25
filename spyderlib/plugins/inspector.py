@@ -20,8 +20,8 @@ from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.plugins import RichAndPlainText, PluginConfigPage
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyderlib.plugins import RichAndPlainText, PluginConfigPage
 
 try:
     from spyderlib.utils.sphinxify import CSS_PATH, sphinxify

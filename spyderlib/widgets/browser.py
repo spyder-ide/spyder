@@ -121,7 +121,6 @@ class WebBrowser(QWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.webview)
         self.find_widget.hide()
-        self.register_widget_shortcuts("Editor", self.find_widget)
 
         find_button = create_toolbutton(self, icon='find.png',
                                     tip=translate("FindReplace", "Find text"),
