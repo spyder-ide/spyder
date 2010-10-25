@@ -143,6 +143,17 @@ def create_toolbutton(parent, icon=None, text=None,
         button.setShortcut(shortcut)
     return button
 
+def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
+    """Create a QToolButton directly from a QAction object"""
+    if parent is None:
+        parent = action.parent()
+    button = QToolButton(parent)
+    button.setDefaultAction(action)
+    button.setAutoRaise(autoraise)
+    if text_beside_icon:
+        button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+    return button
+
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
     if actions is not None:

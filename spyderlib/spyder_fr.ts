@@ -887,7 +887,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Ouvrir un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="377"/>
+        <location filename="plugins/__init__.py" line="378"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
@@ -3752,7 +3752,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Remplacer tout</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="126"/>
+        <location filename="widgets/browser.py" line="169"/>
         <source>Find text</source>
         <translation>Rechercher</translation>
     </message>
@@ -5998,7 +5998,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>PydocBrowser</name>
     <message>
-        <location filename="widgets/pydocgui.py" line="88"/>
+        <location filename="widgets/pydocgui.py" line="89"/>
         <source>Module or package:</source>
         <translation>Module ou paquet :</translation>
     </message>
@@ -6691,47 +6691,60 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>WebBrowser</name>
     <message>
-        <location filename="widgets/browser.py" line="78"/>
+        <location filename="widgets/browser.py" line="122"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="81"/>
+        <location filename="widgets/browser.py" line="125"/>
         <source>Next</source>
         <translation>Suivant</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="84"/>
+        <location filename="widgets/browser.py" line="128"/>
         <source>Home</source>
         <translation>Accueil</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="93"/>
+        <location filename="widgets/browser.py" line="137"/>
         <source>Reload</source>
         <translation>Actualiser</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="96"/>
+        <location filename="widgets/browser.py" line="140"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="211"/>
+        <location filename="widgets/browser.py" line="222"/>
         <source>Unable to load page</source>
         <translation>Impossible de charger la page</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="147"/>
+        <location filename="widgets/browser.py" line="190"/>
         <source>Address:</source>
         <translation>Adresse :</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="87"/>
+        <location filename="widgets/browser.py" line="131"/>
         <source>Zoom out</source>
         <translation>Agrandir</translation>
     </message>
     <message>
-        <location filename="widgets/browser.py" line="90"/>
+        <location filename="widgets/browser.py" line="134"/>
+        <source>Zoom in</source>
+        <translation>Réduire</translation>
+    </message>
+</context>
+<context>
+    <name>WebView</name>
+    <message>
+        <location filename="widgets/browser.py" line="31"/>
+        <source>Zoom out</source>
+        <translation>Agrandir</translation>
+    </message>
+    <message>
+        <location filename="widgets/browser.py" line="34"/>
         <source>Zoom in</source>
         <translation>Réduire</translation>
     </message>

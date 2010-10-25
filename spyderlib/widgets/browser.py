@@ -6,7 +6,8 @@
 
 """Simple web browser widget"""
 
-from PyQt4.QtGui import QHBoxLayout, QWidget, QVBoxLayout, QProgressBar, QLabel
+from PyQt4.QtGui import (QHBoxLayout, QWidget, QVBoxLayout, QProgressBar,
+                         QLabel, QMenu)
 from PyQt4.QtWebKit import QWebView, QWebPage
 from PyQt4.QtCore import SIGNAL, QUrl
 
@@ -16,7 +17,8 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton, translate
+from spyderlib.utils.qthelpers import (translate, create_action, add_actions,
+                                       create_toolbutton, action2button)
 from spyderlib.config import get_icon
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
@@ -26,6 +28,13 @@ class WebView(QWebView):
     """Web page"""
     def __init__(self, parent):
         QWebView.__init__(self, parent)
+        self.zoom_factor = 1.
+        self.zoom_out_action = create_action(self, self.tr("Zoom out"),
+                                             icon=get_icon('zoom_out.png'),
+                                             triggered=self.zoom_out)
+        self.zoom_in_action = create_action(self, self.tr("Zoom in"),
+                                            icon=get_icon('zoom_in.png'),
+                                            triggered=self.zoom_in)
         
     def find_text(self, text, changed=True,
                   forward=True, case=False, words=False,
@@ -51,12 +60,47 @@ class WebView(QWebView):
         size = font.pointSize()
         self.page().settings().setFontSize(2, size) # Default
         self.page().settings().setFontSize(3, size) # DefaultFixed
+            
+    def apply_zoom_factor(self):
+        """Apply zoom factor"""
+        if hasattr(self, 'setZoomFactor'):
+            # Assuming Qt >=v4.5
+            self.setZoomFactor(self.zoom_factor)
+        else:
+            # Qt v4.4
+            self.setTextSizeMultiplier(self.zoom_factor)
+        
+    def set_zoom_factor(self, zoom_factor):
+        """Set zoom factor"""
+        self.zoom_factor = zoom_factor
+        self.apply_zoom_factor()
+    
+    def get_zoom_factor(self):
+        """Return zoom factor"""
+        return self.zoom_factor
+            
+    def zoom_out(self):
+        """Zoom out"""
+        self.zoom_factor = max(.1, self.zoom_factor-.1)
+        self.apply_zoom_factor()
+    
+    def zoom_in(self):
+        """Zoom in"""
+        self.zoom_factor += .1
+        self.apply_zoom_factor()
     
     #------ QWebView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
         webbrowser.open(unicode(self.url().toString()))
         
+    def contextMenuEvent(self, event):
+        menu = QMenu(self)
+        add_actions( menu, (self.pageAction(QWebPage.Reload), None,
+                            self.zoom_in_action, self.zoom_out_action) )
+        menu.popup(event.globalPos())
+        event.accept()
+                
 
 class WebBrowser(QWidget):
     """
@@ -66,7 +110,6 @@ class WebBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.home_url = None
-        self.zoom_factor = 1.
         
         self.webview = WebView(self)
         self.connect(self.webview, SIGNAL("loadFinished(bool)"),
@@ -74,28 +117,21 @@ class WebBrowser(QWidget):
         self.connect(self.webview, SIGNAL("titleChanged(QString)"),
                      self.setWindowTitle)
         self.connect(self.webview, SIGNAL("urlChanged(QUrl)"), self.url_changed)
-        
-        previous_button = create_toolbutton(self, get_icon('previous.png'),
-                                            tip=self.tr("Previous"),
-                                            triggered=self.webview.back)
-        next_button = create_toolbutton(self, get_icon('next.png'),
-                                        tip=self.tr("Next"),
-                                        triggered=self.webview.forward)
+                
         home_button = create_toolbutton(self, get_icon('home.png'),
                                         tip=self.tr("Home"),
                                         triggered=self.go_home)
-        zoom_out_button = create_toolbutton(self, get_icon('zoom_out.png'),
-                                            tip=self.tr("Zoom out"),
-                                            triggered=self.zoom_out)
-        zoom_in_button = create_toolbutton(self, get_icon('zoom_in.png'),
-                                           tip=self.tr("Zoom in"),
-                                           triggered=self.zoom_in)
-        refresh_button = create_toolbutton(self, get_icon('reload.png'),
-                                           tip=self.tr("Reload"),
-                                           triggered=self.reload)
-        stop_button = create_toolbutton(self, get_icon('stop.png'),
-                                        tip=self.tr("Stop"),
-                                        triggered=self.webview.stop)
+        
+        zoom_out_button = action2button(self.webview.zoom_out_action)
+        zoom_in_button = action2button(self.webview.zoom_in_action)
+        
+        pageact2btn = lambda prop: action2button(self.webview.pageAction(prop),
+                                                 parent=self.webview)
+        refresh_button = pageact2btn(QWebPage.Reload)
+        stop_button = pageact2btn(QWebPage.Stop)
+        previous_button = pageact2btn(QWebPage.Back)
+        next_button = pageact2btn(QWebPage.Forward)
+        
         stop_button.setEnabled(False)
         self.connect(self.webview, SIGNAL("loadStarted()"),
                      lambda: stop_button.setEnabled(True))
@@ -144,34 +180,6 @@ class WebBrowser(QWidget):
         """Return address label text"""
         return self.tr("Address:")
             
-    def apply_zoom_factor(self):
-        """Apply zoom factor"""
-        if hasattr(self.webview, 'setZoomFactor'):
-            # Assuming Qt >=v4.5
-            self.webview.setZoomFactor(self.zoom_factor)
-        else:
-            # Qt v4.4
-            self.webview.setTextSizeMultiplier(self.zoom_factor)
-        
-    def set_zoom_factor(self, zoom_factor):
-        """Set zoom factor"""
-        self.zoom_factor = zoom_factor
-        self.apply_zoom_factor()
-    
-    def get_zoom_factor(self):
-        """Return zoom factor"""
-        return self.zoom_factor
-            
-    def zoom_out(self):
-        """Zoom out"""
-        self.zoom_factor = max(.1, self.zoom_factor-.1)
-        self.apply_zoom_factor()
-    
-    def zoom_in(self):
-        """Zoom in"""
-        self.zoom_factor += .1
-        self.apply_zoom_factor()
-                
     def set_home_url(self, text):
         """Set home URL"""
         self.home_url = QUrl(text)
@@ -193,10 +201,6 @@ class WebBrowser(QWidget):
         """Go to home page"""
         if self.home_url is not None:
             self.set_url(self.home_url)
-            
-    def reload(self):
-        """Reload page"""
-        self.webview.reload()
         
     def text_to_url(self, text):
         """Convert text address into QUrl object"""

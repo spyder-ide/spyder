@@ -28,7 +28,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         PydocBrowser.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
         
-        self.set_zoom_factor(self.get_option('zoom_factor'))
+        self.webview.set_zoom_factor(self.get_option('zoom_factor'))
         self.url_combo.setMaxCount(self.get_option('max_history_entries'))
         self.url_combo.addItems( self.load_history() )
         
@@ -71,7 +71,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         self.save_history()
-        self.set_option('zoom_factor', self.get_zoom_factor())
+        self.set_option('zoom_factor', self.webview.get_zoom_factor())
         return True
         
     def refresh_plugin(self):
