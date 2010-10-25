@@ -89,17 +89,10 @@ def read_packet(sock, use_pickle=False, timeout=None):
     else:
         return data
 
-def communicate(sock, input, pickle_try=False):
+def communicate(sock, input):
     """Communicate with monitor"""
     write_packet(sock, input)
-    output = read_packet(sock)
-    if output is not None and pickle_try:
-        try:
-            return pickle.loads(output)
-        except (EOFError, pickle.UnpicklingError):
-            pass
-    else:
-        return output
+    return read_packet(sock, use_pickle=True)
 
 def monitor_get_remote_view(sock, settings):
     """Get globals() remote view"""

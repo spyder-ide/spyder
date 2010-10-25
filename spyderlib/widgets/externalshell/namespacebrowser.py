@@ -247,20 +247,16 @@ class NamespaceBrowser(QWidget):
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
         return communicate(self._get_sock(),
-                           "isinstance(globals()['%s'], (tuple, list))" % name,
-                           pickle_try=True)
+                           "isinstance(globals()['%s'], (tuple, list))" % name)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
         return communicate(self._get_sock(),
-                           "isinstance(globals()['%s'], dict)" % name,
-                           pickle_try=True)
+                           "isinstance(globals()['%s'], dict)" % name)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self._get_sock(),
-                           "len(globals()['%s'])" % name,
-                           pickle_try=True)
+        return communicate(self._get_sock(), "len(globals()['%s'])" % name)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
@@ -268,15 +264,11 @@ class NamespaceBrowser(QWidget):
         
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self._get_sock(),
-                           "globals()['%s'].shape" % name,
-                           pickle_try=True)
+        return communicate(self._get_sock(), "globals()['%s'].shape" % name)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self._get_sock(),
-                           "globals()['%s'].ndim" % name,
-                           pickle_try=True)
+        return communicate(self._get_sock(), "globals()['%s'].ndim" % name)
         
     def plot(self, name):
         command = "import spyderlib.pyplot as plt; " \

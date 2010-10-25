@@ -62,7 +62,7 @@ class ExtPythonShellWidget(PythonShellWidget):
         sock = self.externalshell.monitor_socket
         if sock is None:
             return
-        return communicate(sock, command, pickle_try=True)
+        return communicate(sock, command)
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
