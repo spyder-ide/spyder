@@ -13,11 +13,13 @@ from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
                                           value_to_display, globalsfilter)
 
+
 LOG_FILENAME = get_conf_path('monitor.log')
 
 REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
                    'truncate', 'minmax', 'collvalue', 'inplace')
+
 
 def get_remote_data(data, settings, more_excluded_names=None):
     """Return globals according to filter described in *settings*"""
@@ -52,15 +54,15 @@ def make_remote_view(data, settings, more_excluded_names=None):
 
 SZ = struct.calcsize("l")
 
-def write_packet(sock, data, use_pickle=False):
+def write_packet(sock, data, already_pickled=False):
     """Write *data* to socket *sock*"""
-    if use_pickle:
-        sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-    else:
+    if already_pickled:
         sent_data = data
+    else:
+        sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
     sock.send(struct.pack("l", len(sent_data)) + sent_data)
 
-def read_packet(sock, use_pickle=False, timeout=None):
+def read_packet(sock, timeout=None):
     """
     Read data from socket *sock*
     Returns None if something went wrong
@@ -80,49 +82,46 @@ def read_packet(sock, use_pickle=False, timeout=None):
         if dlen is not None and len(data) != dlen:
             #XXX: this should not be necessary with the 'except' statement above
             data = None
-    if use_pickle:
-        if data is not None:
-            try:
-                return pickle.loads(data)
-            except (EOFError, pickle.UnpicklingError):
-                return
-    else:
-        return data
+    if data is not None:
+        try:
+            return pickle.loads(data)
+        except (EOFError, pickle.UnpicklingError):
+            return
 
 def communicate(sock, input):
     """Communicate with monitor"""
     write_packet(sock, input)
-    return read_packet(sock, use_pickle=True)
+    return read_packet(sock)
+
 
 def monitor_get_remote_view(sock, settings):
     """Get globals() remote view"""
     write_packet(sock, "__make_remote_view__(globals())")
-    write_packet(sock, settings, use_pickle=True)
-    return read_packet(sock, use_pickle=True,
-                       timeout=5.) # timeout in case something went wrong
+    write_packet(sock, settings)
+    return read_packet(sock, timeout=5.) # timeout in case something went wrong
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
     write_packet(sock, '__save_globals__(globals())')
-    write_packet(sock, settings, use_pickle=True)
-    write_packet(sock, filename, use_pickle=True)
-    return read_packet(sock, use_pickle=True)
+    write_packet(sock, settings)
+    write_packet(sock, filename)
+    return read_packet(sock)
 
 def monitor_load_globals(sock, filename):
     """Load globals() from file"""
     write_packet(sock, '__load_globals__(globals())')
-    write_packet(sock, filename, use_pickle=True)
-    return read_packet(sock, use_pickle=True)
+    write_packet(sock, filename)
+    return read_packet(sock)
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
     write_packet(sock, '__get_global__(globals(), "%s")' % name)
-    return read_packet(sock, use_pickle=True)
+    return read_packet(sock)
 
 def monitor_set_global(sock, name, value):
     """Set global variable *name* value to *value*"""
     write_packet(sock, '__set_global__(globals(), "%s")' % name)
-    write_packet(sock, value, use_pickle=True)
+    write_packet(sock, value)
     read_packet(sock)
 
 def monitor_del_global(sock, name):
@@ -139,7 +138,7 @@ def monitor_copy_global(sock, orig_name, new_name):
 def monitor_is_array(sock, name):
     """Return True if object is an instance of class numpy.ndarray"""
     write_packet(sock, 'is_array(globals(), "%s")' % name)
-    return read_packet(sock, use_pickle=True)
+    return read_packet(sock)
 
 
 def _getcdlistdir():
@@ -226,27 +225,27 @@ class Monitor(threading.Thread):
             self.refresh()
         self.request.send("p", socket.MSG_OOB)
         write_packet(self.request, fname)
-        write_packet(self.request, str(lineno))
+        write_packet(self.request, lineno)
         
     def make_remote_view(self, glbs):
         """
         Return remote view of globals()
         """
-        settings = pickle.loads( read_packet(self.request) )
+        settings = read_packet(self.request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         return make_remote_view(glbs, settings, more_excluded_names)
         
     def saveglobals(self, glbs):
         """Save globals() into filename"""
-        settings = pickle.loads( read_packet(self.request) )
-        filename = pickle.loads( read_packet(self.request) )
+        settings = read_packet(self.request)
+        filename = read_packet(self.request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         data = get_remote_data(glbs, settings, more_excluded_names).copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self, glbs):
         """Load globals() from filename"""
-        filename = pickle.loads( read_packet(self.request) )
+        filename = read_packet(self.request)
         data, error_message = iofunctions.load(filename)
         if error_message:
             return error_message
@@ -269,8 +268,7 @@ class Monitor(threading.Thread):
         """
         Set global reference value
         """
-        value = pickle.loads( read_packet(self.request) )
-        glbs[name] = value
+        glbs[name] = read_packet(self.request)
         
     def delglobal(self, glbs, name):
         """
@@ -300,7 +298,7 @@ class Monitor(threading.Thread):
             except:
                 log_last_error(LOG_FILENAME, command)
             finally:
-                write_packet(self.request, output)
+                write_packet(self.request, output, already_pickled=True)
 
 
 SPYDER_PORT = 20128
@@ -350,10 +348,11 @@ class NotificationThread(QThread):
         while True:
             try:
                 try:
-                    msg1 = self.shell.monitor_socket.recv(1, socket.MSG_OOB)
+                    sock = self.shell.monitor_socket
+                    msg1 = sock.recv(1, socket.MSG_OOB)
                     if msg1 == 'p':
-                        fname = read_packet(self.shell.monitor_socket)
-                        lineno = int(read_packet(self.shell.monitor_socket))
+                        fname = read_packet(sock)
+                        lineno = read_packet(sock)
                         self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
                     else:
                         self.emit(SIGNAL('refresh_namespace_browser()'))
