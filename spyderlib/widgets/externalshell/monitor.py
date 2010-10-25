@@ -13,8 +13,7 @@ from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
                                           value_to_display, globalsfilter)
 
-DEBUG = True
-LOG_FILENAME = get_conf_path('monitor_errors.txt')
+LOG_FILENAME = get_conf_path('monitor.log')
 
 REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
@@ -53,31 +52,51 @@ def make_remote_view(data, settings, more_excluded_names=None):
 
 SZ = struct.calcsize("l")
 
-def write_packet(sock, data):
+def write_packet(sock, data, use_pickle=False):
     """Write *data* to socket *sock*"""
-    sock.send(struct.pack("l", len(data)) + data)
+    if use_pickle:
+        sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
+    else:
+        sent_data = data
+    sock.send(struct.pack("l", len(sent_data)) + sent_data)
 
-def read_packet(sock, timeout=None):
-    """Read data from socket *sock*"""
+def read_packet(sock, use_pickle=False, timeout=None):
+    """
+    Read data from socket *sock*
+    Returns None if something went wrong
+    """
     sock.settimeout(timeout)
+    dlen, data = None, None
     try:
         datalen = sock.recv(SZ)
         dlen, = struct.unpack("l", datalen)
         data = ''
         while len(data) < dlen:
             data += sock.recv(dlen)
+    except (socket.timeout, socket.error):
+        data = None
     finally:
         sock.settimeout(None)
-    return data
+        if dlen is not None and len(data) != dlen:
+            #XXX: this should not be necessary with the 'except' statement above
+            data = None
+    if use_pickle:
+        if data is not None:
+            try:
+                return pickle.loads(data)
+            except (EOFError, pickle.UnpicklingError):
+                return
+    else:
+        return data
 
 def communicate(sock, input, pickle_try=False):
     """Communicate with monitor"""
     write_packet(sock, input)
     output = read_packet(sock)
-    if pickle_try:
+    if output is not None and pickle_try:
         try:
             return pickle.loads(output)
-        except EOFError:
+        except (EOFError, pickle.UnpicklingError):
             pass
     else:
         return output
@@ -85,31 +104,32 @@ def communicate(sock, input, pickle_try=False):
 def monitor_get_remote_view(sock, settings):
     """Get globals() remote view"""
     write_packet(sock, "__make_remote_view__(globals())")
-    write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
-    return pickle.loads( read_packet(sock, .5) )
+    write_packet(sock, settings, use_pickle=True)
+    return read_packet(sock, use_pickle=True,
+                       timeout=5.) # timeout in case something went wrong
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
     write_packet(sock, '__save_globals__(globals())')
-    write_packet(sock, pickle.dumps(settings, pickle.HIGHEST_PROTOCOL))
-    write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
-    return pickle.loads( read_packet(sock) )
+    write_packet(sock, settings, use_pickle=True)
+    write_packet(sock, filename, use_pickle=True)
+    return read_packet(sock, use_pickle=True)
 
 def monitor_load_globals(sock, filename):
     """Load globals() from file"""
     write_packet(sock, '__load_globals__(globals())')
-    write_packet(sock, pickle.dumps(filename, pickle.HIGHEST_PROTOCOL))
-    return pickle.loads( read_packet(sock) )
+    write_packet(sock, filename, use_pickle=True)
+    return read_packet(sock, use_pickle=True)
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
     write_packet(sock, '__get_global__(globals(), "%s")' % name)
-    return pickle.loads( read_packet(sock) )
+    return read_packet(sock, use_pickle=True)
 
 def monitor_set_global(sock, name, value):
     """Set global variable *name* value to *value*"""
     write_packet(sock, '__set_global__(globals(), "%s")' % name)
-    write_packet(sock, pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
+    write_packet(sock, value, use_pickle=True)
     read_packet(sock)
 
 def monitor_del_global(sock, name):
@@ -125,8 +145,8 @@ def monitor_copy_global(sock, orig_name, new_name):
 
 def monitor_is_array(sock, name):
     """Return True if object is an instance of class numpy.ndarray"""
-    return communicate(sock, 'is_array(globals(), "%s")' % name,
-                       pickle_try=True)
+    write_packet(sock, 'is_array(globals(), "%s")' % name)
+    return read_packet(sock, use_pickle=True)
 
 
 def _getcdlistdir():
@@ -275,7 +295,7 @@ class Monitor(threading.Thread):
         self.ipython_shell = None
         from __main__ import __dict__ as glbs
         while True:
-            output = ''
+            output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
             try:
                 command = read_packet(self.request)
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
@@ -284,10 +304,8 @@ class Monitor(threading.Thread):
                 result = eval(command, glbs, self.locals)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
-            except (Exception, struct.error):
-                # struct.error is related to Issue 336
-                if DEBUG:
-                    log_last_error(LOG_FILENAME, command)
+            except:
+                log_last_error(LOG_FILENAME, command)
             finally:
                 write_packet(self.request, output)
 

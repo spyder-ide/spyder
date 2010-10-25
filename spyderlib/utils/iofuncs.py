@@ -190,7 +190,8 @@ from spyderlib.config import get_conf_path, get_spyderplugins_mods
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
                       '.projects', '.history.py', '.history_internal.py',
-                      '.spyderproject', '.ropeproject', '.workingdir')
+                      '.spyderproject', '.ropeproject', '.workingdir',
+                      'monitor.log', 'rope.log')
 
 def reset_session():
     """Remove all config files"""

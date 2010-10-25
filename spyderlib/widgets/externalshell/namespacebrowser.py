@@ -221,13 +221,11 @@ class NamespaceBrowser(QWidget):
                 return
             settings = self._get_settings()
             try:
-                self.set_data( monitor_get_remote_view(sock, settings) )
-            except (socket.timeout, socket.error, EOFError,
-                    cPickle.UnpicklingError, TypeError):
+                data = monitor_get_remote_view(sock, settings)
+                if data is not None:
+                    self.set_data(data)
+            except socket.error:
                 # Process was terminated before calling this methods
-                # (TypeError: occuring when the 'get remote view' method fails
-                #  and monitor returns a string containing the error message,
-                #  that's happening here: spyderlib.widgets.dicteditor.set_data)
                 pass
         
     def get_value(self, name):

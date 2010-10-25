@@ -33,7 +33,7 @@ from spyderlib.widgets.pathmanager import PathManager
 
 
 DEBUG = False
-LOG_FILENAME = get_conf_path('rope_errors.txt')
+LOG_FILENAME = get_conf_path('rope.log')
 
 
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
