@@ -156,18 +156,20 @@ class Monitor(threading.Thread):
         self.request.connect( (host, port) )
         write_packet(self.request, shell_id)
         self.locals = {"setlocal": self.setlocal,
-                       "getobjdir": getobjdir,
                        "is_array": self.is_array,
                        "getcomplist": self.getcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
                        "setcwd": self.setcwd,
-                       "getargtxt": getargtxt,
-                       "getdoc": getdoc,
-                       "getsource": getsource,
                        "isdefined": isdefined,
                        "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
+                       "__get_dir__": self.get_dir,
+                       "__iscallable__": self.iscallable,
+                       "__get_arglist__": self.get_arglist,
+                       "__get__doc____": self.get__doc__,
+                       "__get_doc__": self.get_doc,
+                       "__get_source__": self.get_source,
                        "__get_global__": self.getglobal,
                        "__set_global__": self.setglobal,
                        "__del_global__": self.delglobal,
@@ -176,16 +178,66 @@ class Monitor(threading.Thread):
                        "__load_globals__": self.loadglobals,
                        "_" : None}
 
+    #------ Code completion / Calltips
+    def _eval(self, text, glbs):
+        """
+        Evaluate text and return (obj, valid)
+        where *obj* is the object represented by *text*
+        and *valid* is True if object evaluation did not raise any exception
+        """
+        assert isinstance(text, (str, unicode))
+        try:
+            return eval(text, glbs), True
+        except:
+            return None, False
+            
+    def get_dir(self, objtxt, glbs):
+        """Return dir(object)"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return getobjdir(obj)
+                
+    def iscallable(self, objtxt, glbs):
+        """Is object callable?"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return callable(obj)
+    
+    def get_arglist(self, objtxt, glbs):
+        """Get func/method argument list"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return getargtxt(obj)
+    
+    def get__doc__(self, objtxt, glbs):
+        """Get object __doc__"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return obj.__doc__
+    
+    def get_doc(self, objtxt, glbs):
+        """Get object documentation"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return getdoc(obj)
+    
+    def get_source(self, objtxt, glbs):
+        """Get object source"""
+        obj, valid = self._eval(objtxt, glbs)
+        if valid:
+            return getsource(obj)
+    
+    def getcomplist(self, name):
+        """Return completion list for object named *name*
+        ** IPython only **"""
+        if self.ipython_shell:
+            return self.ipython_shell.complete(name)
+                
+    #------ Other
     def is_array(self, glbs, name):
         """Return True if object is an instance of class numpy.ndarray"""
         import numpy
         return isinstance(glbs[name], numpy.ndarray)
-    
-    def getcomplist(self, name):
-        """Return completion list for object named *name*
-        IPython only"""
-        if self.ipython_shell:
-            return self.ipython_shell.complete(name)
 
     def getcwd(self):
         """Return current working directory"""
