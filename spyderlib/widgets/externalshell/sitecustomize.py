@@ -14,15 +14,9 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
 if os.name == 'nt':
     # Windows platforms
     
-    try:
-        import matplotlib
-        backend = matplotlib.get_backend()
-    except Exception:
-        backend = None
-    if backend is None or backend == 'Qt4Agg':
-        # Removing PyQt4 input hook which is not working well on Windows
-        from PyQt4.QtCore import pyqtRemoveInputHook
-        pyqtRemoveInputHook()
+    # Removing PyQt4 input hook which is not working well on Windows
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    pyqtRemoveInputHook()
     
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:

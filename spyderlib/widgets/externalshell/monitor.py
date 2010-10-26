@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, thread, struct, cPickle as pickle, logging
+import threading, socket, thread, struct, cPickle as pickle
 
 from PyQt4.QtCore import QThread, SIGNAL
 
@@ -9,7 +9,6 @@ from spyderlib.config import str2type, get_conf_path
 from spyderlib.utils import select_port, fix_reference_name, log_last_error
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
                                         isdefined)
-from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
                                           value_to_display, globalsfilter)
 
@@ -19,6 +18,7 @@ LOG_FILENAME = get_conf_path('monitor.log')
 DEBUG = False
 
 if DEBUG:
+    import logging
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
@@ -298,6 +298,7 @@ class Monitor(threading.Thread):
         
     def saveglobals(self, glbs):
         """Save globals() into filename"""
+        from spyderlib.utils.iofuncs import iofunctions
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
@@ -306,6 +307,7 @@ class Monitor(threading.Thread):
         
     def loadglobals(self, glbs):
         """Load globals() from filename"""
+        from spyderlib.utils.iofuncs import iofunctions
         filename = read_packet(self.i_request)
         data, error_message = iofunctions.load(filename)
         if error_message:
