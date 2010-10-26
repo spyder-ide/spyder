@@ -230,6 +230,7 @@ class MainWindow(QMainWindow):
         self.prefs_index = None
         
         # Actions
+        self.close_dockwidget_action = None
         self.find_action = None
         self.find_next_action = None
         self.find_previous_action = None
@@ -350,6 +351,13 @@ class MainWindow(QMainWindow):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
         if not self.light:
+            self.close_dockwidget_action = create_action(self,
+                                        self.tr("Close current dockwidget"),
+                                        triggered=self.close_current_dockwidget,
+                                        context=Qt.ApplicationShortcut)
+            self.register_shortcut(self.close_dockwidget_action,
+                                   "_", "Close dockwidget", "Shift+Ctrl+F4")
+            
             _text = translate("FindReplace", "Find text")
             self.find_action = create_action(self, _text, icon='find.png',
                                              tip=_text, triggered=self.find,
@@ -691,7 +699,8 @@ class MainWindow(QMainWindow):
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(self.tr("&View"))
             add_actions(self.view_menu, (None, self.maximize_action,
-                                         self.fullscreen_action))
+                                         self.fullscreen_action, None,
+                                         self.close_dockwidget_action))
             self.menuBar().insertMenu(self.help_menu.menuAction(),
                                       self.view_menu)
             
@@ -945,6 +954,13 @@ class MainWindow(QMainWindow):
                                    QDockWidget.DockWidgetVerticalTitleBar)
         self.addDockWidget(location, dockwidget)
         self.widgetlist.append(child)
+        
+    def close_current_dockwidget(self):
+        widget = QApplication.focusWidget()
+        for plugin in self.widgetlist:
+            if plugin.isAncestorOf(widget):
+                plugin.dockwidget.hide()
+                break
         
     def __update_maximize_action(self):
         if self.last_window_state is None:
