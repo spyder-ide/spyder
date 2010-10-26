@@ -1227,6 +1227,28 @@ class Editor(SpyderPluginWidget):
         state = self.get_option('todo_list') \
                 and results is not None and len(results)
         self.todo_list_action.setEnabled(state)
+
+            
+    #------ Breakpoints
+    def save_breakpoints(self, filename, breakpoints):
+        filename, breakpoints = unicode(filename), unicode(breakpoints)
+        filename = osp.normpath(osp.abspath(filename))
+        if breakpoints:
+            breakpoints = [int(bp) for bp in breakpoints.split(',')]
+        else:
+            breakpoints = []
+        save_breakpoints(filename, breakpoints)
+        
+    def save_all_breakpoints(self):
+        """
+        Save all opened files breakpoints
+        This method is called from the external console before debugging
+        (see attribute 'breakpoints_cb' in ExternalConsole)
+        """
+        editorstack = self.get_current_editorstack()
+        for finfo in editorstack.data:
+            breakpoints = finfo.editor.get_breakpoints()
+            save_breakpoints(finfo.filename, breakpoints)
         
                 
     #------ File I/O
@@ -1419,15 +1441,6 @@ class Editor(SpyderPluginWidget):
             current_editor.setFocus()
             current_editor.window().raise_()
             QApplication.processEvents()
-            
-    def save_breakpoints(self, filename, breakpoints):
-        filename, breakpoints = unicode(filename), unicode(breakpoints)
-        filename = osp.normpath(osp.abspath(filename))
-        if breakpoints:
-            breakpoints = [int(bp) for bp in breakpoints.split(',')]
-        else:
-            breakpoints = []
-        save_breakpoints(filename, breakpoints)
 
     def print_file(self):
         """Print current file"""
@@ -1778,11 +1791,6 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current) = self.__last_ec_exec
-        if debug:
-            editorstack = self.get_current_editorstack()
-            for finfo in editorstack.data:
-                breakpoints = finfo.editor.get_breakpoints()
-                save_breakpoints(finfo.filename, breakpoints)
         if current:
             self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)

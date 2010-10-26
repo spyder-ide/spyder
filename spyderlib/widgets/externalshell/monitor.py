@@ -200,6 +200,10 @@ class Monitor(threading.Thread):
         communicate(self.n_request,
                     dict(command="pdb_step", data=(fname, lineno)))
         
+    def notify_pdb_breakpoints(self):
+        """Notify the ExternalPythonShell to save all breakpoints"""
+        communicate(self.n_request, dict(command="pdb_breakpoints"))
+        
     #------ Code completion / Calltips
     def _eval(self, text, glbs):
         """
@@ -488,6 +492,10 @@ class NotificationThread(QThread):
                 if command == 'pdb_step':
                     fname, lineno = data
                     self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
+                elif command == 'pdb_breakpoints':
+                    # We must *not* use a SIGNAL here because we need this 
+                    # to be done immediately (before running pdb)
+                    self.shell.save_all_breakpoints()
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
                 else:

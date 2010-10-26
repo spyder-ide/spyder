@@ -240,9 +240,12 @@ class ExternalConsole(SpyderPluginWidget):
         self.commands = []
         self.tabwidget = None
         self.menu_actions = None
-        self.inspector = None
-        self.historylog = None
-        self.variableexplorer = None # variable explorer plugin
+        
+        self.inspector = None # Object inspector plugin
+        self.historylog = None # History log plugin
+        self.variableexplorer = None # Variable explorer plugin
+
+        self.breakpoints_cb = None # Editor plugin method (see below)
         
         self.ipython_count = 0
         self.python_count = 0
@@ -313,15 +316,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
-        
-    def set_historylog(self, historylog):
-        """Bind historylog instance to this console"""
-        self.historylog = historylog
-        
-    def set_inspector(self, inspector):
-        """Bind inspector instance to this console"""
-        self.inspector = inspector
-        inspector.set_external_console(self)
         
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -460,6 +454,7 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend,
                            autorefresh_timeout=ar_timeout,
                            light_background=light_background)
+            shellwidget.set_breakpoints_cb(self.breakpoints_cb)
             if self.variableexplorer is not None:
                 self.variableexplorer.add_shellwidget(shellwidget)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
@@ -628,8 +623,10 @@ class ExternalConsole(SpyderPluginWidget):
             self.main.widgetlist.append(self)
         else:
             self.main.add_dockwidget(self)
-            self.set_inspector(self.main.inspector)
-            self.set_historylog(self.main.historylog)
+            self.inspector = self.main.inspector
+            self.inspector.set_external_console(self)
+            self.historylog = self.main.historylog
+            self.breakpoints_cb = self.main.editor.save_all_breakpoints
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
             self.connect(self.main.editor,

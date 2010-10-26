@@ -127,6 +127,8 @@ class ExternalPythonShell(ExternalShellBase):
                  autorefresh_timeout=3000, light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
+        self.breakpoints_cb = None
+        
         startup_file = startup.__file__
         if 'library.zip' in startup_file:
             # py2exe distribution
@@ -187,6 +189,15 @@ class ExternalPythonShell(ExternalShellBase):
         
     def set_introspection_socket(self, introspection_socket):
         self.introspection_socket = introspection_socket
+        
+    def set_breakpoints_cb(self, callback):
+        self.breakpoints_cb = callback
+        
+    def save_all_breakpoints(self):
+        """Save all opened files breakpoints in Spyder configuration file
+        -- used by the patched pdb"""
+        if self.breakpoints_cb is not None:
+            return self.breakpoints_cb()
         
     def set_autorefresh_timeout(self, interval):
         self.nsb_timer.setInterval(interval)

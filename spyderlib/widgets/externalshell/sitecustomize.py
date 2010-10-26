@@ -141,6 +141,7 @@ class SpyderPdb(pdb.Pdb):
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         #------
+        monitor.notify_pdb_breakpoints() # save all breakpoints in edited files
         from spyderlib.config import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):
