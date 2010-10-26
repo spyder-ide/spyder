@@ -353,6 +353,7 @@ class Monitor(threading.Thread):
             try:
                 if DEBUG:
                     logging.debug("****** Introspection request /Begin ******")
+                command = '<command_not_received!>'
                 command = read_packet(self.i_request)
                 if DEBUG:
                     logging.debug("received command: %r" % command)
@@ -386,6 +387,7 @@ class IntrospectionServer(threading.Thread):
         self.setDaemon(True)
         global SPYDER_PORT
         self.port = SPYDER_PORT = select_port(default_port=SPYDER_PORT)
+        SPYDER_PORT += 1
         
     def register(self, shell):
         shell_id = str(id(shell))
