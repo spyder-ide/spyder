@@ -1234,7 +1234,7 @@ class Editor(SpyderPluginWidget):
         filename, breakpoints = unicode(filename), unicode(breakpoints)
         filename = osp.normpath(osp.abspath(filename))
         if breakpoints:
-            breakpoints = [int(bp) for bp in breakpoints.split(',')]
+            breakpoints = eval(breakpoints)
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)

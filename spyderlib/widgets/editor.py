@@ -1055,7 +1055,7 @@ class EditorStack(QWidget):
             # Saving breakpoints
             breakpoints = finfo.editor.get_breakpoints()
             self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                      finfo.filename, ",".join([str(bp) for bp in breakpoints]))
+                      finfo.filename, repr(breakpoints))
             
             self.remove_from_data(index)
             self.emit(SIGNAL('close_file(int)'), index)
