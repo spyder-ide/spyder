@@ -59,7 +59,7 @@ class ExtPythonShellWidget(PythonShellWidget):
 
     #------ Code completion / Calltips
     def ask_monitor(self, command):
-        sock = self.externalshell.monitor_socket
+        sock = self.externalshell.introspection_socket
         if sock is None:
             return
         return communicate(sock, command)
@@ -174,7 +174,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.interact_action.setChecked(interact)
         self.debug_action.setChecked(debug)
         
-        self.monitor_socket = None
+        self.introspection_socket = None
         self.interpreter = fname is None
         
         if self.interpreter:
@@ -184,6 +184,9 @@ class ExternalPythonShell(ExternalShellBase):
         
         # Additional python path list
         self.path = path
+        
+    def set_introspection_socket(self, introspection_socket):
+        self.introspection_socket = introspection_socket
         
     def set_autorefresh_timeout(self, interval):
         self.nsb_timer.setInterval(interval)
@@ -322,16 +325,19 @@ class ExternalPythonShell(ExternalShellBase):
         
         # Monitor
         env.append('SHELL_ID=%s' % id(self))
-        from spyderlib.widgets.externalshell.monitor import start_server
-        server, port = start_server()
-        self.notification_thread = server.register(str(id(self)), self)
+        from spyderlib.widgets.externalshell import monitor
+        introspection_server = monitor.start_introspection_server()
+        introspection_server.register(self)
+        notification_server = monitor.start_notification_server()
+        self.notification_thread = notification_server.register(self)
         self.connect(self.notification_thread,
                      SIGNAL('refresh_namespace_browser()'),
                      self.namespacebrowser.refresh_table)
         self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
                      lambda fname, lineno:
                      self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
-        env.append('SPYDER_PORT=%d' % port)
+        env.append('SPYDER_I_PORT=%d' % introspection_server.port)
+        env.append('SPYDER_N_PORT=%d' % notification_server.port)
         
         # Python init commands (interpreter only)
         if self.commands and self.interpreter:
@@ -434,7 +440,7 @@ class ExternalPythonShell(ExternalShellBase):
             self.write_error()
         
     def keyboard_interrupt(self):
-        communicate(self.monitor_socket, "thread.interrupt_main()")
+        communicate(self.introspection_socket, "thread.interrupt_main()")
             
 #===============================================================================
 #    Globals explorer

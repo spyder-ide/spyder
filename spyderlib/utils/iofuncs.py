@@ -191,7 +191,7 @@ SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
                       '.projects', '.history.py', '.history_internal.py',
                       '.spyderproject', '.ropeproject', '.workingdir',
-                      'monitor.log', 'rope.log')
+                      'monitor.log', 'monitor_debug.log', 'rope.log')
 
 def reset_session():
     """Remove all config files"""

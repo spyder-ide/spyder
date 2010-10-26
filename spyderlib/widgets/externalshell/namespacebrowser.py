@@ -204,7 +204,7 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
             
     def _get_sock(self):
-        return self.shellwidget.monitor_socket
+        return self.shellwidget.introspection_socket
         
     def _get_settings(self):
         settings = {}

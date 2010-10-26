@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, thread, struct, cPickle as pickle
+import threading, socket, thread, struct, cPickle as pickle, logging
 
 from PyQt4.QtCore import QThread, SIGNAL
 
@@ -15,6 +15,12 @@ from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
 
 
 LOG_FILENAME = get_conf_path('monitor.log')
+
+DEBUG = False
+
+if DEBUG:
+    logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
+                        level=logging.DEBUG)
 
 REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
@@ -79,9 +85,6 @@ def read_packet(sock, timeout=None):
         data = None
     finally:
         sock.settimeout(None)
-        if dlen is not None and len(data) != dlen:
-            #XXX: this should not be necessary with the 'except' statement above
-            data = None
     if data is not None:
         try:
             return pickle.loads(data)
@@ -148,13 +151,21 @@ def _getcdlistdir():
 
 class Monitor(threading.Thread):
     """Monitor server"""
-    def __init__(self, host, port, shell_id):
+    def __init__(self, host, introspection_port, notification_port, shell_id):
         threading.Thread.__init__(self)
         self.ipython_shell = None
         self.setDaemon(True)
-        self.request = socket.socket( socket.AF_INET )
-        self.request.connect( (host, port) )
-        write_packet(self.request, shell_id)
+        
+        # Connecting to introspection server
+        self.i_request = socket.socket( socket.AF_INET )
+        self.i_request.connect( (host, introspection_port) )
+        write_packet(self.i_request, shell_id)
+        
+        # Connecting to notification server
+        self.n_request = socket.socket( socket.AF_INET )
+        self.n_request.connect( (host, notification_port) )
+        write_packet(self.n_request, shell_id)
+        
         self.locals = {"setlocal": self.setlocal,
                        "is_array": self.is_array,
                        "getcomplist": self.getcomplist,
@@ -178,6 +189,17 @@ class Monitor(threading.Thread):
                        "__load_globals__": self.loadglobals,
                        "_" : None}
 
+    #------ Notifications
+    def refresh(self):
+        """Refresh variable explorer in ExternalPythonShell"""
+        communicate(self.n_request, dict(command="refresh"))
+        
+    def notify_pdb_step(self, fname, lineno):
+        """Notify the ExternalPythonShell regarding pdb current frame"""
+        self.refresh()
+        communicate(self.n_request,
+                    dict(command="pdb_step", data=(fname, lineno)))
+        
     #------ Code completion / Calltips
     def _eval(self, text, glbs):
         """
@@ -262,42 +284,25 @@ class Monitor(threading.Thread):
         """
         self.locals[name] = value
         
-    def refresh(self):
-        """
-        Refresh Globals explorer in ExternalPythonShell
-        """
-        self.request.send("x", socket.MSG_OOB)
-        
-    def notify_pdb_step(self, fname, lineno):
-        """
-        Notify the ExternalPythonShell regarding pdb current frame
-        """
-        if not self.ipython_shell:
-            # Because it crashes with ipdb...
-            self.refresh()
-        self.request.send("p", socket.MSG_OOB)
-        write_packet(self.request, fname)
-        write_packet(self.request, lineno)
-        
     def make_remote_view(self, glbs):
         """
         Return remote view of globals()
         """
-        settings = read_packet(self.request)
+        settings = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         return make_remote_view(glbs, settings, more_excluded_names)
         
     def saveglobals(self, glbs):
         """Save globals() into filename"""
-        settings = read_packet(self.request)
-        filename = read_packet(self.request)
+        settings = read_packet(self.i_request)
+        filename = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         data = get_remote_data(glbs, settings, more_excluded_names).copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self, glbs):
         """Load globals() from filename"""
-        filename = read_packet(self.request)
+        filename = read_packet(self.i_request)
         data, error_message = iofunctions.load(filename)
         if error_message:
             return error_message
@@ -320,7 +325,7 @@ class Monitor(threading.Thread):
         """
         Set global reference value
         """
-        glbs[name] = read_packet(self.request)
+        glbs[name] = read_packet(self.i_request)
         
     def delglobal(self, glbs, name):
         """
@@ -340,77 +345,161 @@ class Monitor(threading.Thread):
         while True:
             output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
             try:
-                command = read_packet(self.request)
+                if DEBUG:
+                    logging.debug("****** Introspection request /Begin ******")
+                command = read_packet(self.i_request)
+                if DEBUG:
+                    logging.debug("received command: %r" % command)
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     glbs = self.ipython_shell.user_ns
                 result = eval(command, glbs, self.locals)
+                if DEBUG:
+                    logging.debug("result: %r" % result)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
             except:
+                if DEBUG:
+                    logging.debug("error!")
                 log_last_error(LOG_FILENAME, command)
             finally:
-                write_packet(self.request, output, already_pickled=True)
+                if DEBUG:
+                    logging.debug("sending result")
+                    logging.debug("****** Introspection request /End ******")
+                write_packet(self.i_request, output, already_pickled=True)
 
 
 SPYDER_PORT = 20128
 
-class Server(threading.Thread):
+class IntrospectionServer(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
-        self.setDaemon(True)
         self.shells = {}
+        self.setDaemon(True)
         global SPYDER_PORT
-        SPYDER_PORT = select_port(default_port=SPYDER_PORT)
+        self.port = SPYDER_PORT = select_port(default_port=SPYDER_PORT)
         
-    def register(self, shell_id, shell):
-        nt = NotificationThread(shell)
-        self.shells[shell_id] = nt
-        return nt
+    def register(self, shell):
+        shell_id = str(id(shell))
+        self.shells[shell_id] = shell
+    
+    def send_socket(self, shell_id, sock):
+        """Send socket to the appropriate object for later communication"""
+        shell = self.shells[shell_id]
+        shell.set_introspection_socket(sock)
+        if DEBUG:
+            logging.debug('Introspection server: shell [%r] port [%r]'
+                          % (shell, self.port))
         
     def run(self):
         s = socket.socket(socket.AF_INET)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind( ("127.0.0.1", SPYDER_PORT) )
+        s.bind( ("127.0.0.1", self.port) )
         
         while True:
             s.listen(2)
             s2, _addr = s.accept()
             shell_id = read_packet(s2)
-            self.shells[shell_id].shell.monitor_socket = s2
-            self.shells[shell_id].start()
+            self.send_socket(shell_id, s2)
 
-SERVER = None
+class NotificationServer(IntrospectionServer):
+    def __init__(self):
+        IntrospectionServer.__init__(self)
+        self.notification_threads = {}
+        
+    def register(self, shell):
+        IntrospectionServer.register(self, shell)
+        shell_id = str(id(shell))
+        nt = self.notification_threads[shell_id] = NotificationThread(shell)
+        return nt
+    
+    def send_socket(self, shell_id, sock):
+        """Send socket to the appropriate object for later communication"""
+        nt = self.notification_threads[shell_id]
+        nt.set_notify_socket(sock)
+        nt.start()
+        if DEBUG:
+            logging.debug('Notification server: shell [%r] port [%r]'
+                          % (self.shells[shell_id], self.port))
 
-def start_server():
-    """Start server only one time"""
-    global SERVER
-    if SERVER is None:
-        SERVER = Server()
-        SERVER.start()
-    return SERVER, SPYDER_PORT
+INTROSPECTION_SERVER = None
+
+def start_introspection_server():
+    """
+    Start introspection server (only one time)
+    This server is dedicated to introspection features, i.e. Spyder is calling 
+    it to retrieve informations on remote objects
+    """
+    global INTROSPECTION_SERVER
+    if INTROSPECTION_SERVER is None:
+        if DEBUG:
+            import time
+            TIME_STR = "Logging time: %s" % time.ctime(time.time())
+            logging.debug("="*len(TIME_STR))
+            logging.debug(TIME_STR)
+            logging.debug("="*len(TIME_STR))
+        INTROSPECTION_SERVER = IntrospectionServer()
+        INTROSPECTION_SERVER.start()
+    return INTROSPECTION_SERVER
+
+NOTIFICATION_SERVER = None
+
+def start_notification_server():
+    """
+    Start notify server (only one time)
+    This server is dedicated to notification features, i.e. remote objects 
+    are notifying Spyder about anything relevant like debugging data (pdb) 
+    or "this is the right moment to refresh variable explorer" (syshook)
+    """
+    global NOTIFICATION_SERVER
+    if NOTIFICATION_SERVER is None:
+        NOTIFICATION_SERVER = NotificationServer()
+        NOTIFICATION_SERVER.start()
+    return NOTIFICATION_SERVER
 
 
 class NotificationThread(QThread):
     def __init__(self, shell):
         QThread.__init__(self, shell)
         self.shell = shell
+        self.notify_socket = None
+        
+    def set_notify_socket(self, notify_socket):
+        self.notify_socket = notify_socket
         
     def run(self):
         while True:
+            if self.notify_socket is None:
+                continue
+            output = None
             try:
                 try:
-                    sock = self.shell.monitor_socket
-                    msg1 = sock.recv(1, socket.MSG_OOB)
-                    if msg1 == 'p':
-                        fname = read_packet(sock)
-                        lineno = read_packet(sock)
-                        self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
-                    else:
-                        self.emit(SIGNAL('refresh_namespace_browser()'))
-                except socket.error:
-                    # Connection closed: socket error during recv()
+                    cdict = read_packet(self.notify_socket)
+                except:
+                    # This except statement is intended to handle a struct.error
+                    # (but when writing 'except struct.error', it doesn't work)
+                    # Note: struct.error is raised when the communication has 
+                    # been interrupted and the received data is not a string 
+                    # of length 8 as required by struct.unpack (see read_packet)
                     break
-            except AttributeError:
-                # Socket has been closed before recv()
-                break
+                assert isinstance(cdict, dict)
+                command = cdict['command']
+                data = cdict.get('data')
+                if command == 'pdb_step':
+                    fname, lineno = data
+                    self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
+                elif command == 'refresh':
+                    self.emit(SIGNAL('refresh_namespace_browser()'))
+                else:
+                    raise RuntimeError('Unsupported command: %r' % command)
+                if DEBUG:
+                    logging.debug("received command: %r" % command)
+            except:
+                log_last_error(LOG_FILENAME, "notification thread")
+            finally:
+                try:
+                    write_packet(self.notify_socket, output)
+                except:
+                    # The only reason why it should fail is that Spyder is 
+                    # closing while this thread is still alive
+                    break
