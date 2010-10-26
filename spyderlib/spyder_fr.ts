@@ -1086,7 +1086,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
     <message>
         <location filename="plugins/editor.py" line="606"/>
         <source>Show TODO/FIXME/XXX comments list</source>
-        <translation>Afficher la liste des commentaires du type TODO/FIXME/XXX</translation>
+        <translation type="obsolete">Afficher la liste des commentaires du type TODO/FIXME/XXX</translation>
     </message>
     <message>
         <location filename="widgets/editor.py" line="1644"/>
@@ -1285,6 +1285,11 @@ dans l&apos;interpréteur de la console externe active</translation>
         <source>All changes to &lt;b&gt;%1&lt;/b&gt; will be lost.&lt;br&gt;Do you want to revert file from disk?</source>
         <translation>Toutes les modifications effectuées sur &lt;b&gt;%1&lt;/b&gt; seront perdues.&lt;br&gt;Souhaitez-vous revenir à la version du fichier enregistrée sur le disque ?</translation>
     </message>
+    <message>
+        <location filename="plugins/editor.py" line="606"/>
+        <source>Show TODO/FIXME/XXX/HINT/TIP comments list</source>
+        <translation>Afficher la liste des commentaires du type TODO/FIXME/XXX/HINT/TIP</translation>
+    </message>
 </context>
 <context>
     <name>EditorConfigPage</name>
@@ -1326,7 +1331,7 @@ dans l&apos;interpréteur de la console externe active</translation>
     <message>
         <location filename="plugins/editor.py" line="174"/>
         <source>Tasks (TODO, FIXME, XXX)</source>
-        <translation>Tâches (TODO, FIXME, XXX)</translation>
+        <translation type="obsolete">Tâches (TODO, FIXME, XXX)</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="153"/>
@@ -1514,6 +1519,11 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <location filename="plugins/editor.py" line="127"/>
         <source>Case sensitive code completion</source>
         <translation>Complétion de code sensible à la casse</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="174"/>
+        <source>Tasks (TODO, FIXME, XXX, HINT, TIP)</source>
+        <translation>Tâches (TODO, FIXME, XXX, HINT, TIP)</translation>
     </message>
 </context>
 <context>
@@ -2831,7 +2841,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>À propos de %1...</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1051"/>
+        <location filename="spyder.py" line="1048"/>
         <source>About %1</source>
         <translation>À propos de %1</translation>
     </message>
@@ -2901,22 +2911,22 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Documentation de Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="970"/>
+        <location filename="spyder.py" line="967"/>
         <source>Maximize current plugin</source>
         <translation>Agrandir la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="971"/>
+        <location filename="spyder.py" line="968"/>
         <source>Maximize current plugin to fit the whole application window</source>
         <translation>Agrandir la fenêtre courante sur toute la surface de la fenêtre principale</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="975"/>
+        <location filename="spyder.py" line="972"/>
         <source>Restore current plugin</source>
         <translation>Réduire la fenêtre courante</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="976"/>
+        <location filename="spyder.py" line="973"/>
         <source>Restore current plugin to its original size and position within the application window</source>
         <translation>Réduire la fenêtre courante à sa taille et position d&apos;origine au sein de la fenêtre principale</translation>
     </message>
@@ -3001,17 +3011,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Enregistrer la session en cours et quitter l&apos;application</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1256"/>
+        <location filename="spyder.py" line="1253"/>
         <source>Open session</source>
         <translation>Ouvrir une session</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1270"/>
+        <location filename="spyder.py" line="1267"/>
         <source>Spyder sessions</source>
         <translation>Sessions Spyder</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1270"/>
+        <location filename="spyder.py" line="1267"/>
         <source>Save session</source>
         <translation>Enregistrer la session</translation>
     </message>
@@ -3046,7 +3056,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Barre d&apos;outil de recherche</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1042"/>
+        <location filename="spyder.py" line="1039"/>
         <source>(not installed)</source>
         <translation>(non installé)</translation>
     </message>
@@ -3156,7 +3166,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Préférences</translation>
     </message>
     <message>
-        <location filename="spyder.py" line="1051"/>
+        <location filename="spyder.py" line="354"/>
+        <source>Close current dockwidget</source>
+        <translation>Fermer le panneau actif</translation>
+    </message>
+    <message>
+        <location filename="spyder.py" line="1048"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
             &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
@@ -3181,11 +3196,6 @@ mais cela permet au programme en cours de quitter proprement.</translation>
             &lt;a href=&quot;http://www.pythonxy.com&quot;&gt;Python(x,y) distribution&lt;/a&gt;
             &lt;p&gt;Python %3, Qt %4, PyQt %5 on %6</source>
         <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="spyder.py" line="354"/>
-        <source>Close current dockwidget</source>
-        <translation>Fermer le panneau actif</translation>
     </message>
 </context>
 <context>

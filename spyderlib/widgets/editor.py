@@ -219,7 +219,7 @@ class CodeAnalysisThread(QThread):
 
 class ToDoFinderThread(QThread):
     """TODO finder thread"""
-    PATTERN = r"# ?TODO ?:[^#]*|# ?FIXME ?:[^#]*|# ?XXX ?:?[^#]*"
+    PATTERN = r"# ?TODO ?:[^#]*|# ?FIXME ?:[^#]*|# ?XXX ?:?[^#]*|# ?HINT ?:?[^#]*|# ?TIP ?:?[^#]*"
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.text = None

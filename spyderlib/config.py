@@ -297,7 +297,7 @@ DEFAULTS = [
               'exclude_regexp': True,
               'search_text_regexp': True,
               'search_text': [''],
-              'search_text_samples': [r'# ?TODO|# ?FIXME|# ?XXX'],
+              'search_text_samples': [r'# ?TODO|# ?FIXME|# ?XXX|# ?HINT|# ?TIP'],
               'in_python_path': False,
               'more_options': True,
               }),

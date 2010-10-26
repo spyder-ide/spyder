@@ -171,7 +171,7 @@ class EditorConfigPage(PluginConfigPage):
                           "using pyflakes, lines containing errors or \n"
                           "warnings will be highlighted"))
         codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
-        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX)"),
+        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
                              'todo_list', default=True)
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(codeanalysis_box)
@@ -605,7 +605,7 @@ class Editor(SpyderPluginWidget):
         
         self.todo_list_action = create_action(self,
                 self.tr("Show todo list"), icon='todo_list.png',
-                tip=self.tr("Show TODO/FIXME/XXX comments list"),
+                tip=self.tr("Show TODO/FIXME/XXX/HINT/TIP comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
