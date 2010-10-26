@@ -362,6 +362,8 @@ class Monitor(threading.Thread):
                     logging.debug("result: %r" % result)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+            except SystemExit:
+                break
             except:
                 if DEBUG:
                     logging.debug("error!")

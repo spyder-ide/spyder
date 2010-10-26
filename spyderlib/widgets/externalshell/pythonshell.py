@@ -24,7 +24,7 @@ from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
-from spyderlib.widgets.externalshell.monitor import communicate
+from spyderlib.widgets.externalshell.monitor import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 
@@ -203,9 +203,10 @@ class ExternalPythonShell(ExternalShellBase):
         self.nsb_timer.setInterval(interval)
         
     def closeEvent(self, event):
-        ExternalShellBase.closeEvent(self, event)
         self.disconnect(self.nsb_timer, SIGNAL("timeout()"),
                         self.namespacebrowser.refresh_table)
+        self.quit_monitor()
+        ExternalShellBase.closeEvent(self, event)
         
     def get_toolbar_buttons(self):
         ExternalShellBase.get_toolbar_buttons(self)
@@ -452,6 +453,9 @@ class ExternalPythonShell(ExternalShellBase):
         
     def keyboard_interrupt(self):
         communicate(self.introspection_socket, "thread.interrupt_main()")
+        
+    def quit_monitor(self):
+        write_packet(self.introspection_socket, "thread.exit()")
             
 #===============================================================================
 #    Globals explorer

@@ -661,7 +661,7 @@ class ExternalConsole(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         for shellwidget in self.shellwidgets:
-            shellwidget.process.kill()
+            shellwidget.close()
         return True
     
     def refresh_plugin(self):
