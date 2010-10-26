@@ -96,6 +96,13 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         # Note: default values for the options above are set in plugin's
         #       constructor (see below)
         
+        other_group = QGroupBox(self.tr("Change to file base directory"))
+        newcb = self.create_checkbox
+        open_box = newcb(self.tr("When opening a file"),
+                         'editor/open/auto_set_to_basedir', False)
+        save_box = newcb(self.tr("When saving a file"),
+                         'editor/save/auto_set_to_basedir', False)
+        
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(startup_label)
         startup_layout.addWidget(lastdir_radio)
@@ -114,12 +121,18 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
         editor_n_layout.addWidget(editor_n_radio2)
         editor_n_group.setLayout(editor_n_layout)
         
+        other_layout = QVBoxLayout()
+        other_layout.addWidget(open_box)
+        other_layout.addWidget(save_box)
+        other_group.setLayout(other_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(startup_group)
         vlayout.addWidget(editor_o_group)
         vlayout.addWidget(editor_n_group)
+        vlayout.addWidget(other_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 
@@ -140,6 +153,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.get_option('editor/open/browse_workdir', False)
         self.get_option('editor/new/browse_scriptdir', False)
         self.get_option('editor/new/browse_workdir', True)
+        self.get_option('editor/open/auto_set_to_basedir', False)
+        self.get_option('editor/save/auto_set_to_basedir', False)
         
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state

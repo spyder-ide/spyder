@@ -1392,6 +1392,10 @@ class Editor(SpyderPluginWidget):
             if len(filenames):
                 filenames = [osp.normpath(unicode(fname)) \
                              for fname in filenames]
+                if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
+                    directory = osp.dirname(filenames[0])
+                    self.emit(SIGNAL("open_dir(QString)"), directory)
+
             else:
                 return
             
@@ -1505,8 +1509,11 @@ class Editor(SpyderPluginWidget):
     def save_as(self):
         """Save *as* the currently edited file"""
         editorstack = self.get_current_editorstack()
-        editorstack.save_as()
-        self.__add_recent_file(editorstack.get_current_filename())
+        if editorstack.save_as():
+            fname = editorstack.get_current_filename()
+            if CONF.get('workingdir', 'editor/save/auto_set_to_basedir'):
+                self.emit(SIGNAL("open_dir(QString)"), osp.dirname(fname))
+            self.__add_recent_file(fname)
         
     def save_all(self):
         """Save all opened files"""
