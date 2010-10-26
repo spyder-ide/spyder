@@ -33,11 +33,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.11'
+__version__ = '1.0.12'
 __license__ = __doc__
 
-import os, re
-import os.path as osp
+import os, re, os.path as osp, shutil
 from ConfigParser import ConfigParser, MissingSectionHeaderError
 
 
@@ -77,7 +76,7 @@ class UserConfig(ConfigParser):
     default_section_name = 'main'
     
     def __init__(self, name, defaults=None, load=True, version=None,
-                 subfolder=None):
+                 subfolder=None, backup=False):
         ConfigParser.__init__(self)
         self.subfolder = subfolder
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
@@ -88,6 +87,11 @@ class UserConfig(ConfigParser):
         self.defaults = defaults
         if defaults is not None:
             self.reset_to_defaults(save=False)
+        if backup:
+            try:
+                shutil.copyfile(self.filename(), self.filename()+".bak")
+            except IOError:
+                pass
         if load:
             # If config file already exists, it overrides Default options:
             self.load_from_ini()
