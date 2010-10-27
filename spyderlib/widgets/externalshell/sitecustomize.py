@@ -11,6 +11,11 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     except ImportError:
         pass
 
+if os.name not in ('posix', 'mac') and os.environ.get('IPYTHON', False):
+    # If we don't import matplotlib before importing IPython, the latter will 
+    # complain about the fact that the standard module 'fcntl' is not available
+    import matplotlib #@UnusedImport
+
 if os.name == 'nt':
     # Windows platforms
     
