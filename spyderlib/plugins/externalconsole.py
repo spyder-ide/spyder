@@ -485,8 +485,22 @@ class ExternalConsole(SpyderPluginWidget):
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))
         else:
+            if os.name == 'posix':
+                cmd = 'gnome-terminal'
+                args = []
+                if programs.is_program_installed(cmd):
+                    if wdir:
+                        args.extend(['--working-directory=%s' % wdir])
+                    programs.run_program(cmd, args)
+                    return
+                cmd = 'konsole'
+                if programs.is_program_installed(cmd):
+                    if wdir:
+                        args.extend(['--workdir', wdir])
+                    programs.run_program(cmd, args)
+                    return
             shellwidget = ExternalSystemShell(self, wdir, path=pythonpath,
-                                              light_background=light_background)
+                                          light_background=light_background)
         
         # Code completion / calltips
         shellwidget.shell.setMaximumBlockCount(
