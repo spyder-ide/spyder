@@ -62,11 +62,14 @@ if encoding is None:
 
 sys.setdefaultencoding(encoding)
 
-import spyderlib.widgets.externalshell as extsh
-scpath = osp.dirname(osp.abspath(extsh.__file__))
-if scpath in sys.path:
-    sys.path.remove(scpath)
 
+scpath = osp.join("spyderlib", "widgets", "externalshell")
+for path in sys.path[:]:
+    if path.endswith(scpath):
+        sys.path.remove(path)
+        break
+
+    
 try:
     import sitecustomize #@UnusedImport
 except ImportError:
