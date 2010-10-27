@@ -6,23 +6,18 @@
 
 """Patching matplotlib's FigureManager"""
 
-import os.path as osp
-
-from PyQt4.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
-from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
-
-# Local imports
-from spyderlib.config import get_icon
 
 def set_backend(backend):
     """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
     import matplotlib
     matplotlib.use(backend)
 
+
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
+    from PyQt4.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
+    from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
     from matplotlib.backends import backend_qt4
-    import matplotlib
     
     # Class added to matplotlib to fix a bug with PyQt4 v4.6+
     class FigureWindow(QMainWindow):
@@ -41,6 +36,8 @@ def apply():
         Patching matplotlib...
         """
         def __init__(self, canvas, num):
+            import matplotlib
+            
             if backend_qt4.DEBUG:
                 print 'FigureManagerQT.%s' % backend_qt4.fn_name()
             backend_qt4.FigureManagerBase.__init__(self, canvas, num)
@@ -49,7 +46,8 @@ def apply():
             self.window = FigureWindow()
             self.window.setWindowTitle("Figure %d" % num)
             self.window.setAttribute(Qt.WA_DeleteOnClose)
-    
+
+            import os.path as osp
             image = osp.join(matplotlib.rcParams['datapath'],
                              'images', 'matplotlib.png' )
             self.window.setWindowIcon(QIcon(image))
@@ -98,6 +96,7 @@ def apply():
         def _init_toolbar(self):
             super(NavigationToolbar2QT, self)._init_toolbar()
             if edit_parameters is None:
+                from spyderlib.config import get_icon
                 a = self.addAction(get_icon("options.svg"),
                                    'Customize', self.edit_parameters)
                 a.setToolTip('Edit curves line and axes parameters')
