@@ -8,7 +8,7 @@
 Text Editor Dialog based on PyQt4
 """
 
-from PyQt4.QtCore import Qt, SIGNAL, SLOT
+from PyQt4.QtCore import Qt, SIGNAL, SLOT, PYQT_VERSION_STR
 from PyQt4.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
@@ -20,6 +20,8 @@ class TextEditor(QDialog):
     def __init__(self, text, title='', font=None, parent=None,
                  readonly=False, size=(400, 300)):
         QDialog.__init__(self, parent)
+        
+        self._conv = str if isinstance(text, str) else unicode
         
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -50,21 +52,23 @@ class TextEditor(QDialog):
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])
         
-    def get_copy(self):
+    def get_value(self):
         """Return modified text"""
-        return unicode(self.edit.toPlainText())
+        return self._conv(self.edit.toPlainText())
     
     
 def test():
     """Text editor demo"""
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    app = qapplication()
     dialog = TextEditor("""
     01234567890123456789012345678901234567890123456789012345678901234567890123456789
     dedekdh elkd ezd ekjd lekdj elkdfjelfjk e
     """)
-    if dialog.exec_():
-        text = dialog.get_copy()
+    dialog.show()
+    app.exec_()
+    if dialog.result():
+        text = dialog.get_value()
         print "Accepted:", text
         dialog = TextEditor(text)
         dialog.exec_()

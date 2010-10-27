@@ -274,6 +274,12 @@ class ReadOnlyDictModel(QAbstractTableModel):
         """Array row number"""
         return len(self.keys)
     
+    def get_index_from_key(self, key):
+        try:
+            return self.createIndex(self.keys.index(key), 0)
+        except ValueError:
+            return QModelIndex()
+    
     def get_key(self, index):
         """Return current key"""
         return self.keys[index.row()]
@@ -402,6 +408,7 @@ class DictDelegate(QItemDelegate):
     def __init__(self, parent=None, inplace=False):
         QItemDelegate.__init__(self, parent)
         self.inplace = inplace
+        self._editors = {} # keep references on opened editors
         
     def get_value(self, index):
         if index.isValid():
@@ -422,8 +429,8 @@ class DictDelegate(QItemDelegate):
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
             editor = DictEditor(value, key, icon=self.parent().windowIcon(),
                                 readonly=readonly)
-            if editor.exec_() and not readonly:
-                self.set_value(index, editor.get_copy())
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly))
             return None
         #---editor = ArrayEditor
         elif isinstance(value, ndarray) and ndarray is not FakeObject \
@@ -431,11 +438,10 @@ class DictDelegate(QItemDelegate):
             if value.size == 0:
                 return None
             editor = ArrayEditor(parent)
-            if editor.setup_and_check(value, title=key, readonly=readonly):
-                if editor.exec_():
-                    # Only necessary for child class RemoteDictDelegate:
-                    # (ArrayEditor does not make a copy of value)
-                    self.set_value(index, value)
+            if not editor.setup_and_check(value, title=key, readonly=readonly):
+                return
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly))
             return None
         #---showing image
         elif isinstance(value, Image) and ndarray is not FakeObject \
@@ -461,9 +467,8 @@ class DictDelegate(QItemDelegate):
         #---editor = QTextEdit
         elif isinstance(value, (str, unicode)) and len(value)>40:
             editor = TextEditor(value, key)
-            if editor.exec_() and not readonly:
-                conv = str if isinstance(value, str) else unicode
-                self.set_value(index, conv(editor.get_copy()))
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly))
             return None
         #---editor = QLineEdit
         else:
@@ -473,6 +478,25 @@ class DictDelegate(QItemDelegate):
             self.connect(editor, SIGNAL("returnPressed()"),
                          self.commitAndCloseEditor)
             return editor
+            
+    def create_dialog(self, editor, data):
+        self._editors[id(editor)] = data
+        self.connect(editor, SIGNAL('accepted()'),
+                     lambda eid=id(editor): self.editor_accepted(eid))
+        self.connect(editor, SIGNAL('rejected()'),
+                     lambda eid=id(editor): self.editor_rejected(eid))
+        editor.show()
+        
+    def editor_accepted(self, editor_id):
+        data = self._editors[editor_id]
+        if not data['readonly']:
+            index = data['model'].get_index_from_key(data['key'])
+            value = data['editor'].get_value()
+            self.set_value(index, value)
+        self._editors.pop(editor_id)
+        
+    def editor_rejected(self, editor_id):
+        self._editors.pop(editor_id)
 
     def commitAndCloseEditor(self):
         """Overriding method commitAndCloseEditor"""
@@ -800,8 +824,8 @@ class BaseTableView(QTableView):
         if not index.isValid():
             return
         key = self.model.get_key(index)
-        if (self.delegate is None or not self.delegate.inplace) \
-            and (self.is_list(key) or self.is_dict(key) or self.is_array(key)):
+        if self.delegate is None \
+           and (self.is_list(key) or self.is_dict(key) or self.is_array(key)):
             self.oedit(key)
         else:
             self.edit(index)
@@ -1147,7 +1171,7 @@ class DictEditor(QDialog):
         # Make the dialog act as a window
         self.setWindowFlags(Qt.Window)
         
-    def get_copy(self):
+    def get_value(self):
         """Return modified copy of dictionary or list"""
         return self.data_copy
     
@@ -1162,10 +1186,12 @@ def dedit(seq):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    _app = qapplication()
+    app = qapplication()
     dialog = DictEditor(seq)
-    if dialog.exec_():
-        return dialog.get_copy()
+    dialog.show()
+    app.exec_()
+    if dialog.result():
+        return dialog.get_value()
 
 
 #----Remote versions of DictDelegate and DictEditorTableView
@@ -1178,12 +1204,14 @@ class RemoteDictDelegate(DictDelegate):
         self.set_value_func = set_value_func
         
     def get_value(self, index):
-        name = index.model().keys[index.row()]
-        return self.get_value_func(name)
+        if index.isValid():
+            name = index.model().keys[index.row()]
+            return self.get_value_func(name)
     
     def set_value(self, index, value):
-        name = index.model().keys[index.row()]
-        self.set_value_func(name, value)
+        if index.isValid():
+            name = index.model().keys[index.row()]
+            self.set_value_func(name, value)
         
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
@@ -1295,10 +1323,12 @@ def remote_editor_test():
     remote = make_remote_view(get_test_data(), VariableExplorer.get_settings())
     from pprint import pprint
     pprint(remote)
-    _app = qapplication()
+    app = qapplication()
     dialog = DictEditor(remote, remote=True)
-    if dialog.exec_():
-        print dialog.get_copy()
+    dialog.show()
+    app.exec_()
+    if dialog.result():
+        print dialog.get_value()
 
 if __name__ == "__main__":
     test()

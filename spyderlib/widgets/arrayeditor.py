@@ -427,12 +427,14 @@ class ArrayEditor(QDialog):
     """Array Editor Dialog"""    
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        self.data = None
     
     def setup_and_check(self, data, title='', xy=False, readonly=False):
         """
         Setup ArrayEditor:
         return False if data is not supported, True otherwise
         """
+        self.data = data
         self.arraywidget = None
         self.is_record_array = data.dtype.names is not None
         if data.size == 0:
@@ -514,6 +516,10 @@ class ArrayEditor(QDialog):
         for index in range(self.stack.count()):
             self.stack.widget(index).accept_changes()
         QDialog.accept(self)
+        
+    def get_value(self):
+        """Return modified array -- this is *not* a copy"""
+        return self.data
 
     def error(self, message):
         """An error occured, closing the dialog box"""
@@ -536,11 +542,13 @@ def aedit(data, title="", xy=False, readonly=False, parent=None):
     (instantiate a new QApplication if necessary,
     so it can be called directly from the interpreter)
     """
-    _app = qapplication()
+    app = qapplication()
     dialog = ArrayEditor(parent)
     if dialog.setup_and_check(data, title, xy=xy, readonly=readonly):
-        if dialog.exec_():
-            return data
+        dialog.show()
+        app.exec_()
+        if dialog.result():
+            return dialog.get_value()
 
 
 def test():

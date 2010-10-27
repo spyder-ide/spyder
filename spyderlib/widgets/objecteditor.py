@@ -27,23 +27,23 @@ def oedit(obj):
     from spyderlib.widgets.dicteditor import DictEditor, ndarray, FakeObject
     from spyderlib.widgets.arrayeditor import ArrayEditor
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    app = qapplication()
 
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
         dialog = ArrayEditor()
-        if dialog.setup_and_check(obj):
-            if dialog.exec_():
-                return obj
+        if not dialog.setup_and_check(obj):
+            return
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj)
-        if dialog.exec_():
-            return dialog.get_copy()
     elif isinstance(obj, (dict, tuple, list)):
         dialog = DictEditor(obj)
-        if dialog.exec_():
-            return dialog.get_copy()
     else:
         raise RuntimeError("Unsupported datatype")
+    
+    dialog.show()
+    app.exec_()
+    if dialog.result():
+        return dialog.get_value()
 
 
 def test():

@@ -23,7 +23,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import create_action, add_actions, mimedata2url
+from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
+                                       DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.shellhelpers import get_error_match
@@ -32,12 +33,6 @@ from spyderlib.widgets.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget
 
     
-def show_syspath():
-    """Show sys.path"""
-    dlg = DictEditor(sys.path, title="sys.path",
-                     width=600, icon='syspath.png', readonly=True)
-    dlg.exec_()
-
 class Console(SpyderPluginWidget):
     """
     Console widget
@@ -45,6 +40,9 @@ class Console(SpyderPluginWidget):
     CONF_SECTION = 'internal_console'
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False, multithreaded=True):
+        
+        self.dialog_manager = DialogManager()
+
         # Shell
         light_background = self.get_option('light_background')
         self.shell = InternalShell(parent, namespace, commands, message,
@@ -110,6 +108,7 @@ class Console(SpyderPluginWidget):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        self.dialog_manager.close_all()
         self.shell.exit_interpreter()
         return True
         
@@ -135,7 +134,7 @@ class Console(SpyderPluginWidget):
                             self.tr("Show sys.path contents..."),
                             icon = 'syspath.png',
                             tip=self.tr("Show (read-only) sys.path"),
-                            triggered=show_syspath)
+                            triggered=self.show_syspath)
         buffer_action = create_action(self,
                             self.tr("Buffer..."), None,
                             tip=self.tr("Set maximum line count"),
@@ -192,8 +191,13 @@ class Console(SpyderPluginWidget):
         
     def show_env(self):
         """Show environment variables"""
-        dlg = EnvDialog()
-        dlg.exec_()
+        self.dialog_manager.show(EnvDialog())
+
+    def show_syspath(self):
+        """Show sys.path"""
+        self.dialog_manager.show(DictEditor(sys.path, title="sys.path",
+                                            width=600, icon='syspath.png',
+                                            readonly=True))
         
     def run_script(self, filename=None, silent=False, set_focus=False,
                    args=None):

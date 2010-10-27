@@ -38,7 +38,7 @@ class EnvDialog(DictEditor):
                             title="os.environ", width=600, icon='environ.png')
     def accept(self):
         """Reimplement Qt method"""
-        os.environ = listdict2envdict( self.get_copy() )
+        os.environ = listdict2envdict( self.get_value() )
         QDialog.accept(self)
 
 
@@ -110,7 +110,7 @@ try:
             
         def accept(self):
             """Reimplement Qt method"""
-            set_user_env( listdict2envdict(self.get_copy()) )
+            set_user_env( listdict2envdict(self.get_value()) )
             QDialog.accept(self)
 
 except ImportError:
@@ -121,9 +121,10 @@ except ImportError:
 def main():
     """Run Windows environment variable editor"""
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    app = qapplication()
     dialog = WinUserEnvDialog()
-    dialog.exec_()
+    dialog.show()
+    app.exec_()
 
 if __name__ == "__main__":
     main()

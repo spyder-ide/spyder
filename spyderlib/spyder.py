@@ -69,7 +69,7 @@ from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
-                                       create_program_action,
+                                       create_program_action, DialogManager,
                                        keybinding, translate, qapplication,
                                        create_python_script_action)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
@@ -172,6 +172,8 @@ class MainWindow(QMainWindow):
     
     def __init__(self, options=None):
         QMainWindow.__init__(self)
+        
+        self.dialog_manager = DialogManager()
         
         self.init_workdir = options.working_directory
         self.debug = options.debug
@@ -943,6 +945,7 @@ class MainWindow(QMainWindow):
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
+        self.dialog_manager.close_all()
         self.already_closed = True
         return True
         
@@ -1196,8 +1199,7 @@ class MainWindow(QMainWindow):
     
     def win_env(self):
         """Show Windows current user environment variables"""
-        dlg = WinUserEnvDialog(self)
-        dlg.exec_()
+        self.dialog_manager.show(WinUserEnvDialog(self))
         
     def edit_preferences(self):
         """Edit Spyder preferences"""
