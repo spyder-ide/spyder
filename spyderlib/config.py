@@ -153,6 +153,7 @@ DEFAULTS = [
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
               'show_icontext': False,
+              'monitor/enabled': True,
               'mpl_patch/enabled': True,
               'mpl_patch/backend': 'Qt4Agg',
               'umd/enabled': True,

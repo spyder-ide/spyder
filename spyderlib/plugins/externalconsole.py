@@ -156,6 +156,26 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_layout.addWidget(ipystartup_box)
         startup_group.setLayout(startup_layout)
         
+        # Monitor Group
+        monitor_group = QGroupBox(self.tr("Monitor"))
+        monitor_label = QLabel(self.tr("The monitor provides introspection "
+                                       "features to console: code completion, "
+                                       "calltips and variable explorer. "
+                                       "Because it relies on several modules, "
+                                       "disabling the monitor may be useful "
+                                       "to accelerate console startup."))
+        monitor_label.setWordWrap(True)
+        monitor_box = newcb(self.tr("Enable monitor"), 'monitor/enabled')
+        for obj in (completion_box, case_comp_box, show_single_box,
+                    comp_enter_box, calltips_box):
+            self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
+            obj.setEnabled(self.get_option('monitor/enabled'))
+        
+        monitor_layout = QVBoxLayout()
+        monitor_layout.addWidget(monitor_label)
+        monitor_layout.addWidget(monitor_box)
+        monitor_group.setLayout(monitor_layout)
+        
         # IPython Group
         ipython_group = QGroupBox(self.tr("IPython"))
         ipython_edit = self.create_lineedit(self.tr(
@@ -219,7 +239,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
                     self.tr("Display"))
-        tabs.addTab(self.create_tab(source_group, startup_group, umd_group),
+        tabs.addTab(self.create_tab(monitor_group, source_group),
+                    self.tr("Introspection"))
+        tabs.addTab(self.create_tab(startup_group, umd_group),
                     self.tr("Advanced settings"))
         tabs.addTab(self.create_tab(ipython_group, mpl_group, ets_group),
                     self.tr("External modules"))
@@ -432,6 +454,7 @@ class ExternalConsole(SpyderPluginWidget):
         pythonpath = self.main.get_spyder_pythonpath()
         light_background = self.get_option('light_background')
         if python:
+            monitor_enabled = self.get_option('monitor/enabled')
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
             mpl_backend = self.get_option('mpl_patch/backend')
             ets_backend = self.get_option('ets_backend', 'qt4')
@@ -450,6 +473,7 @@ class ExternalConsole(SpyderPluginWidget):
                            arguments=args, stand_alone=sa_settings,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
+                           monitor_enabled=monitor_enabled,
                            mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
                            autorefresh_timeout=ar_timeout,

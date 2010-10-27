@@ -73,18 +73,22 @@ except ImportError:
     pass
 
 # Communication between ExternalShell and the QProcess
-from spyderlib.widgets.externalshell.monitor import Monitor
-monitor = Monitor("127.0.0.1", int(os.environ['SPYDER_I_PORT']),
-                  int(os.environ['SPYDER_N_PORT']), os.environ['SHELL_ID'])
-monitor.start()
+SHELL_ID = os.environ.get('SHELL_ID')
+if SHELL_ID is None:
+    monitor = None
+else:
+    from spyderlib.widgets.externalshell.monitor import Monitor
+    monitor = Monitor("127.0.0.1", int(os.environ['SPYDER_I_PORT']),
+                      int(os.environ['SPYDER_N_PORT']), os.environ['SHELL_ID'])
+    monitor.start()
+    
+    # Quite limited feature: notify only when a result is displayed in console
+    # (does not notify at every prompt)
+    def displayhook(obj):
+        sys.__displayhook__(obj)
+        monitor.refresh()
 
-# Quite limited feature: notify only when a result is displayed in console
-# (does not notify at every prompt)
-def displayhook(obj):
-    sys.__displayhook__(obj)
-    monitor.refresh()
-
-sys.displayhook = displayhook
+    sys.displayhook = displayhook
 
 # Patching pdb
 import pdb, bdb
@@ -122,7 +126,7 @@ class SpyderPdb(pdb.Pdb):
         fname = self.canonic(frame.f_code.co_filename)
         lineno = frame.f_lineno
         if isinstance(fname, basestring) and isinstance(lineno, int):
-            if osp.isfile(fname):
+            if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
 
     def set_spyder_breakpoints(self):
@@ -135,7 +139,9 @@ class SpyderPdb(pdb.Pdb):
         bdb.Breakpoint.bplist = {}
         bdb.Breakpoint.bpbynumber = [None]
         #------
-        monitor.notify_pdb_breakpoints() # save all breakpoints in edited files
+        if monitor is not None:
+            # save all breakpoints in edited files
+            monitor.notify_pdb_breakpoints()
         from spyderlib.config import CONF
         CONF.load_from_ini()
         if CONF.get('run', 'breakpoints/enabled', True):

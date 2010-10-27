@@ -6,8 +6,7 @@
 
 """External Python Shell widget: execute Python script in a separate process"""
 
-import sys, os
-import os.path as osp
+import sys, os, os.path as osp, socket
 
 # Debug
 STDOUT = sys.stdout
@@ -122,8 +121,8 @@ class ExternalPythonShell(ExternalShellBase):
                  interact=False, debug=False, path=[], python_args='',
                  ipython=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
-                 mpl_patch_enabled=True, mpl_backend='Qt4Agg',
-                 ets_backend='qt4',
+                 monitor_enabled=True, mpl_patch_enabled=True,
+                 mpl_backend='Qt4Agg', ets_backend='qt4',
                  autorefresh_timeout=3000, light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
@@ -139,6 +138,7 @@ class ExternalPythonShell(ExternalShellBase):
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
+        self.monitor_enabled = monitor_enabled
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
@@ -336,20 +336,21 @@ class ExternalPythonShell(ExternalShellBase):
         env = self.process.systemEnvironment()
         
         # Monitor
-        env.append('SHELL_ID=%s' % id(self))
-        from spyderlib.widgets.externalshell import monitor
-        introspection_server = monitor.start_introspection_server()
-        introspection_server.register(self)
-        notification_server = monitor.start_notification_server()
-        self.notification_thread = notification_server.register(self)
-        self.connect(self.notification_thread,
-                     SIGNAL('refresh_namespace_browser()'),
-                     self.namespacebrowser.refresh_table)
-        self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
-                     lambda fname, lineno:
-                     self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
-        env.append('SPYDER_I_PORT=%d' % introspection_server.port)
-        env.append('SPYDER_N_PORT=%d' % notification_server.port)
+        if self.monitor_enabled:
+            env.append('SHELL_ID=%s' % id(self))
+            from spyderlib.widgets.externalshell import monitor
+            introspection_server = monitor.start_introspection_server()
+            introspection_server.register(self)
+            notification_server = monitor.start_notification_server()
+            self.notification_thread = notification_server.register(self)
+            self.connect(self.notification_thread,
+                         SIGNAL('refresh_namespace_browser()'),
+                         self.namespacebrowser.refresh_table)
+            self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
+                         lambda fname, lineno:
+                         self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
+            env.append('SPYDER_I_PORT=%d' % introspection_server.port)
+            env.append('SPYDER_N_PORT=%d' % notification_server.port)
         
         # Python init commands (interpreter only)
         if self.commands and self.interpreter:
@@ -452,10 +453,15 @@ class ExternalPythonShell(ExternalShellBase):
             self.write_error()
         
     def keyboard_interrupt(self):
-        communicate(self.introspection_socket, "thread.interrupt_main()")
+        if self.introspection_socket is not None:
+            communicate(self.introspection_socket, "thread.interrupt_main()")
         
     def quit_monitor(self):
-        write_packet(self.introspection_socket, "thread.exit()")
+        if self.introspection_socket is not None:
+            try:
+                write_packet(self.introspection_socket, "thread.exit()")
+            except socket.error:
+                pass
             
 #===============================================================================
 #    Globals explorer
