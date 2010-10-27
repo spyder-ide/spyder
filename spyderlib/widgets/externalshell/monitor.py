@@ -492,7 +492,13 @@ class NotificationThread(QThread):
                     # been interrupted and the received data is not a string 
                     # of length 8 as required by struct.unpack (see read_packet)
                     break
-                assert isinstance(cdict, dict)
+                if cdict is None:
+                    # Another notification thread has just terminated and 
+                    # then wrote 'None' in the notification socket
+                    # (see the 'finally' statement below)
+                    continue
+                if not isinstance(cdict, dict):
+                    raise TypeError("Invalid data type: %r" % cdict)
                 command = cdict['command']
                 data = cdict.get('data')
                 if command == 'pdb_step':
