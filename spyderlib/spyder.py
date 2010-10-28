@@ -610,8 +610,13 @@ class MainWindow(QMainWindow):
             self.variableexplorer.register_plugin()
 
         self.extconsole.open_interpreter_at_startup()
-            
+
         if not self.light:
+            nsb = self.variableexplorer.add_shellwidget(self.console.shell)
+            self.connect(self.console.shell, SIGNAL('refresh()'),
+                         nsb.refresh_table)
+            nsb.auto_refresh_button.setEnabled(False)
+            
             self.set_splash(self.tr("Setting up main window..."))
             
             # ? menu
@@ -825,7 +830,10 @@ class MainWindow(QMainWindow):
         shell = self.__focus_shell()
         if shell is not None and self.inspector is not None:
             self.inspector.set_shell(shell)
-            self.variableexplorer.set_shellwidget(shell.parent())
+            from spyderlib.widgets.externalshell import pythonshell
+            if isinstance(shell, pythonshell.ExtPythonShellWidget):
+                shell = shell.parent()
+            self.variableexplorer.set_shellwidget(shell)
         
     def update_file_menu(self):
         """Update file menu"""

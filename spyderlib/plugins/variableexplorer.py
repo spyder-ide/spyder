@@ -103,19 +103,21 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row 
         # by the External console plugin (dev. convenience)
-        from spyderlib.widgets.externalshell import systemshell
+        from spyderlib.widgets.externalshell import systemshell, pythonshell
         if isinstance(shellwidget, systemshell.ExternalSystemShell):
             return
         if shellwidget_id not in self.shellwidgets:
             nsb = NamespaceBrowser(self)
-            nsb.setup(**VariableExplorer.get_settings())
             nsb.set_shellwidget(shellwidget)
+            nsb.setup(**VariableExplorer.get_settings())
             self.connect(nsb, SIGNAL('option_changed'),
                          lambda option, value:
                          self.emit(SIGNAL('option_changed'), option, value))
             self.addWidget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
-            shellwidget.set_namespacebrowser(nsb)
+            if isinstance(shellwidget, pythonshell.ExternalPythonShell):
+                shellwidget.set_namespacebrowser(nsb)
+            return nsb
         
     def remove_shellwidget(self, shellwidget_id):
         # If shellwidget_id is not in self.shellwidgets, it simply means
@@ -128,7 +130,9 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     def set_shellwidget(self, shellwidget):
         shellwidget_id = id(shellwidget)
         if shellwidget_id in self.shellwidgets:
-            self.setCurrentWidget(self.shellwidgets[shellwidget_id])
+            nsb = self.shellwidgets[shellwidget_id]
+            self.setCurrentWidget(nsb)
+            nsb.visibility_changed(True)
             
     def import_data(self, fname):
         """Import data in current namespace"""

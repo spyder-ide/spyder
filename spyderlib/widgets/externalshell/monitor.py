@@ -95,6 +95,11 @@ def communicate(sock, input):
     """Communicate with monitor"""
     write_packet(sock, input)
     return read_packet(sock)
+    
+class PacketNotReceived(object):
+    pass
+
+PACKET_NOT_RECEIVED = PacketNotReceived()
 
 
 def monitor_get_remote_view(sock, settings):
@@ -353,7 +358,7 @@ class Monitor(threading.Thread):
             try:
                 if DEBUG:
                     logging.debug("****** Introspection request /Begin ******")
-                command = '<command_not_received!>'
+                command = PACKET_NOT_RECEIVED
                 command = read_packet(self.i_request)
                 if DEBUG:
                     logging.debug("received command: %r" % command)
@@ -375,7 +380,8 @@ class Monitor(threading.Thread):
                 if DEBUG:
                     logging.debug("sending result")
                     logging.debug("****** Introspection request /End ******")
-                write_packet(self.i_request, output, already_pickled=True)
+                if command is not PACKET_NOT_RECEIVED:
+                    write_packet(self.i_request, output, already_pickled=True)
 
 
 SPYDER_PORT = 20128

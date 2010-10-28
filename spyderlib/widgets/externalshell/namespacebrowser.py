@@ -6,7 +6,7 @@
 
 """Namespace browser widget"""
 
-import sys, os, os.path as osp, socket, cPickle
+import sys, os, os.path as osp, socket
 
 # Debug
 STDOUT = sys.stdout
@@ -21,14 +21,15 @@ from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
                 monitor_is_array, communicate, REMOTE_SETTINGS)
-from spyderlib.widgets.dicteditor import RemoteDictEditorTableView
+from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
+                                          DictEditorTableView, globalsfilter)
 from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, str2type
 
 
 class NamespaceBrowser(QWidget):
@@ -36,6 +37,7 @@ class NamespaceBrowser(QWidget):
         QWidget.__init__(self, parent)
         
         self.shellwidget = None
+        self.is_internal_shell = None
         self.is_visible = True
         
         # Remote dict editor settings
@@ -62,6 +64,8 @@ class NamespaceBrowser(QWidget):
               exclude_upper=None, exclude_unsupported=None, excluded_names=None,
               truncate=None, minmax=None, collvalue=None, inplace=None,
               autorefresh=None):
+        assert self.shellwidget is not None
+        
         self.filters = filters
         self.itermax = itermax
         self.exclude_private = exclude_private
@@ -84,20 +88,25 @@ class NamespaceBrowser(QWidget):
             return
         
         # Dict editor:
-        self.editor = RemoteDictEditorTableView(self, None,
-                        truncate=truncate, inplace=inplace, minmax=minmax,
-                        collvalue=collvalue,
-                        get_value_func=self.get_value,
-                        set_value_func=self.set_value,
-                        new_value_func=self.set_value,
-                        remove_values_func=self.remove_values,
-                        copy_value_func=self.copy_value,
-                        is_list_func=self.is_list, get_len_func=self.get_len,
-                        is_array_func=self.is_array, is_dict_func=self.is_dict,
-                        get_array_shape_func=self.get_array_shape,
-                        get_array_ndim_func=self.get_array_ndim,
-                        oedit_func=self.oedit,
-                        plot_func=self.plot, imshow_func=self.imshow)
+        if self.is_internal_shell:
+            self.editor = DictEditorTableView(self, None, truncate=truncate,
+                                              inplace=inplace, minmax=minmax,
+                                              collvalue=collvalue)
+        else:
+            self.editor = RemoteDictEditorTableView(self, None,
+                            truncate=truncate, inplace=inplace, minmax=minmax,
+                            collvalue=collvalue,
+                            get_value_func=self.get_value,
+                            set_value_func=self.set_value,
+                            new_value_func=self.set_value,
+                            remove_values_func=self.remove_values,
+                            copy_value_func=self.copy_value,
+                            is_list_func=self.is_list, get_len_func=self.get_len,
+                            is_array_func=self.is_array, is_dict_func=self.is_dict,
+                            get_array_shape_func=self.get_array_shape,
+                            get_array_ndim_func=self.get_array_ndim,
+                            oedit_func=self.oedit,
+                            plot_func=self.plot, imshow_func=self.imshow)
         self.connect(self.editor, SIGNAL('option_changed'),
                      lambda option, value:
                      self.emit(SIGNAL('option_changed'), option, value))
@@ -119,6 +128,9 @@ class NamespaceBrowser(QWidget):
         
     def set_shellwidget(self, shellwidget):
         self.shellwidget = shellwidget
+        from spyderlib.widgets import internalshell
+        self.is_internal_shell = isinstance(self.shellwidget,
+                                            internalshell.InternalShell)
         
     def setup_toolbar(self, exclude_private, exclude_upper,
                       exclude_unsupported, autorefresh):
@@ -211,23 +223,45 @@ class NamespaceBrowser(QWidget):
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
         return settings
+    
+    def get_internal_shell_filter(self, itermax=None):
+        if itermax is None:
+            itermax = self.itermax
+        def wsfilter(input_dict, itermax=itermax,
+                     filters=str2type(self.filters)):
+            """Keep only objects that can be pickled"""
+            return globalsfilter(
+                         input_dict, itermax=itermax, filters=filters,
+                         exclude_private=self.exclude_private,
+                         exclude_upper=self.exclude_upper,
+                         exclude_unsupported=self.exclude_unsupported,
+                         excluded_names=self.excluded_names)
+        return wsfilter
         
     def refresh_table(self):
-        if self.is_visible and self.isVisible() \
-           and self.shellwidget.is_running():
-#            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
-            sock = self._get_sock()
-            if sock is None:
-                return
-            settings = self._get_settings()
-            try:
-                data = monitor_get_remote_view(sock, settings)
-                if data is not None:
-                    self.set_data(data)
-            except socket.error:
-                # Process was terminated before calling this methods
-                pass
+        if self.is_visible and self.isVisible():
+            if self.is_internal_shell:
+                # Internal shell
+                self.editor.set_filter(self.get_internal_shell_filter())
+                interpreter = self.shellwidget.interpreter
+                if interpreter is not None:
+                    self.editor.set_data(interpreter.namespace)
+                    self.editor.adjust_columns()
+            elif self.shellwidget.is_running():
+    #            import time; print >>STDOUT, time.ctime(time.time()), "Refreshing namespace browser"
+                sock = self._get_sock()
+                if sock is None:
+                    return
+                settings = self._get_settings()
+                try:
+                    data = monitor_get_remote_view(sock, settings)
+                    if data is not None:
+                        self.set_data(data)
+                except socket.error:
+                    # Process was terminated before calling this method
+                    pass
         
+    #------ Remote Python process commands -------------------------------------
     def get_value(self, name):
         return monitor_get_global(self._get_sock(), name)
         
@@ -285,6 +319,7 @@ class NamespaceBrowser(QWidget):
                   "oedit(%s);" % name
         self.shellwidget.send_to_process(command)
         
+    #------ Set, load and save data --------------------------------------------
     def set_data(self, data):
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
@@ -294,8 +329,6 @@ class NamespaceBrowser(QWidget):
         self.emit(SIGNAL('collapse()'))
         
     def import_data(self, filenames=None):
-        sock = self._get_sock()
-        
         title = self.tr("Import data")
         if filenames is None:
             if self.filename is None:
@@ -333,18 +366,34 @@ class NamespaceBrowser(QWidget):
                 error_message = None
                 try:
                     text, _encoding = encoding.read(self.filename)
-                    base_name = osp.basename(self.filename)
-                    editor = ImportWizard(self, text, title=base_name,
+                    if self.is_internal_shell:
+                        self.editor.import_from_string(text)
+                    else:
+                        base_name = osp.basename(self.filename)
+                        editor = ImportWizard(self, text, title=base_name,
                                           varname=fix_reference_name(base_name))
-                    if editor.exec_():
-                        var_name, clip_data = editor.get_data()
-                        monitor_set_global(sock, var_name, clip_data)
+                        if editor.exec_():
+                            var_name, clip_data = editor.get_data()
+                            monitor_set_global(self._get_sock(),
+                                               var_name, clip_data)
                 except Exception, error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
                 QApplication.processEvents()
-                error_message = monitor_load_globals(sock, self.filename)
+                if self.is_internal_shell:
+                    namespace, error_message = load_func(self.filename)
+                    interpreter = self.shellwidget.interpreter
+                    for key in namespace.keys():
+                        new_key = fix_reference_name(key,
+                                         blacklist=interpreter.namespace.keys())
+                        if new_key != key:
+                            namespace[new_key] = namespace.pop(key)
+                    if error_message is None:
+                        interpreter.namespace.update(namespace)
+                else:
+                    error_message = monitor_load_globals(self._get_sock(),
+                                                         self.filename)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -370,9 +419,18 @@ class NamespaceBrowser(QWidget):
                 self.filename = filename
             else:
                 return False
-        sock = self._get_sock()
-        settings = self._get_settings()
-        error_message = monitor_save_globals(sock, settings, filename)
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+        if self.is_internal_shell:
+            wsfilter = self.get_internal_shell_filter(itermax=-1)
+            namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
+            error_message = iofunctions.save(namespace, filename)
+        else:
+            settings = self._get_settings()
+            error_message = monitor_save_globals(self._get_sock(),
+                                                 settings, filename)
+        QApplication.restoreOverrideCursor()
+        QApplication.processEvents()
         if error_message is not None:
             QMessageBox.critical(self, self.tr("Save data"),
                             self.tr("<b>Unable to save current workspace</b>"
