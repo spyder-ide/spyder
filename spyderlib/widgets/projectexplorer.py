@@ -145,7 +145,7 @@ class Project(object):
         return osp.join(self.root_path, self.CONFIG_NAME)
         
     def load(self):
-        data = cPickle.load(file(self.__get_project_config_path()))
+        data = cPickle.loads(file(self.__get_project_config_path(), 'U').read())
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
             print >>STDERR, "Warning: converting old configuration file " \
@@ -161,8 +161,7 @@ class Project(object):
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
-        cPickle.dump(data, file(self.__get_project_config_path(), 'w'),
-                     cPickle.HIGHEST_PROTOCOL)
+        cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
         
     def delete(self):
         os.remove(self.__get_project_config_path())

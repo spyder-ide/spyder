@@ -156,12 +156,13 @@ def load_dictionary(filename):
     filename = osp.abspath(filename)
     old_cwd = os.getcwdu()
     os.chdir(osp.dirname(filename))
+    data = None
     error_message = None
     try:
         tar = tarfile.open(filename, "r")
         tar.extractall()
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
-        data = cPickle.load(file(pickle_filename))
+        data = cPickle.loads(file(pickle_filename, 'U').read())
         saved_arrays = {}
         if load_array is not None:
             # Loading numpy arrays saved with np.save

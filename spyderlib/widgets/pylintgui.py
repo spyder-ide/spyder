@@ -142,7 +142,7 @@ class PylintWidget(QWidget):
         self.data = [self.VERSION]
         if osp.isfile(self.DATAPATH):
             try:
-                data = cPickle.load(file(self.DATAPATH))
+                data = cPickle.loads(file(self.DATAPATH, 'U').read())
                 if data[0] == self.VERSION:
                     self.data = data
             except EOFError:

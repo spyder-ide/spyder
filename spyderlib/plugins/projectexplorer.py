@@ -133,7 +133,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
-        data = cPickle.load(file(self.DATAPATH))
+        data = cPickle.loads(file(self.DATAPATH, 'U').read())
         self.set_project_config(data)
         expanded_state = self.get_option('expanded_state', None)
         # Sometimes the expanded state option may be truncated in .ini file
