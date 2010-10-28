@@ -341,6 +341,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.stdin_write.write(cmd + '\n')
         if not self.multithreaded:
             self.interpreter.run_line()
+            self.emit(SIGNAL("refresh()"))
     
     
     #------ Code completion / Calltips
