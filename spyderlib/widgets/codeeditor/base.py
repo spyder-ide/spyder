@@ -11,7 +11,7 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, re, string
+import sys, re, string, os
 
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
@@ -485,10 +485,27 @@ class TextEditBaseWidget(QPlainTextEdit):
     def has_selected_text(self):
         """Returns True if some text is selected"""
         return not self.textCursor().selectedText().isEmpty()
+
+    def get_line_separator(self):
+        """Return line separator (reimplemented in child class)"""
+        return os.linesep
     
     def get_selected_text(self):
-        """Return text selected by current text cursor, converted in unicode"""
-        return unicode(self.textCursor().selectedText())
+        """
+        Return text selected by current text cursor, converted in unicode
+        
+        Replace the unicode line separator character \u2029 by 
+        the line separator characters returned by get_line_separator
+        """
+        return unicode(self.textCursor().selectedText()).replace(u"\u2029",
+                                                     self.get_line_separator())
+
+    def copy(self):
+        """
+        Reimplement Qt method
+        Copy text to clipboard with correct EOL chars
+        """
+        QApplication.clipboard().setText(self.get_selected_text())
     
     def remove_selected_text(self):
         """Delete selected text"""

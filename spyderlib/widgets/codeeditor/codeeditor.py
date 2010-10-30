@@ -423,12 +423,6 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return os.linesep
 
-    def copy(self):
-        """Copy text to clipboard with correct EOL chars"""
-        text = self.get_selected_text().replace(u"\u2029",
-                                                self.get_line_separator())
-        QApplication.clipboard().setText(text)
-
     def get_text_with_eol(self):
         """
         Same as 'toPlainText', replace '\n' by correct end-of-line characters
