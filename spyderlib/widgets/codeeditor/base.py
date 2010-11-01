@@ -169,7 +169,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         
     def set_background_color(self, color):
         """Set text editor background color"""
-        self.setPalette(QPalette(color))
+        palette = QPalette()
+        palette.setColor(QPalette.Base, color)
+        self.setPalette(palette)
         
     #------Line number area
     def get_linenumberarea_width(self):
