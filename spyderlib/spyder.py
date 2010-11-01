@@ -1209,6 +1209,16 @@ class MainWindow(QMainWindow):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
         
+    def show_hide_project_explorer(self):
+        """Show/hide project explorer plugin (called from the editor plugin)"""
+        if self.projectexplorer is not None:
+            dw = self.projectexplorer.dockwidget
+            if dw.isVisible():
+                dw.hide()
+            else:
+                dw.show()
+            self.editor.switch_to_plugin()
+        
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)

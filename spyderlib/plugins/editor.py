@@ -503,6 +503,22 @@ class Editor(SpyderPluginWidget):
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
+        self.toggle_outline_action = create_action(self,
+                                self.tr("Show/hide outline explorer"),
+                                triggered=lambda: self.emit(
+                                        SIGNAL('show_hide_outline_explorer()')),
+                                context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(self.toggle_outline_action, context="Editor",
+                               name="Show/hide outline", default="Ctrl+Alt+O")
+        self.toggle_project_action = create_action(self,
+                                self.tr("Show/hide project explorer"),
+                                triggered=self.main.show_hide_project_explorer,
+                                context=Qt.WidgetWithChildrenShortcut)
+        self.register_shortcut(self.toggle_project_action, context="Editor",
+                               name="Show/hide project explorer",
+                               default="Ctrl+Alt+P")
+        self.addActions([self.toggle_outline_action, self.toggle_project_action])
+        
         self.new_action = create_action(self, self.tr("New file..."),
                 icon='filenew.png', tip=self.tr("Create a new Python script"),
                 triggered=self.new)
@@ -874,6 +890,8 @@ class Editor(SpyderPluginWidget):
             oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
             editorstack.add_widget_to_header(oe_btn, space_before=True)
+            self.connect(self, SIGNAL('show_hide_outline_explorer()'),
+                         editorstack.outlineexplorer.visibility_action.toggle)
             
         editorstack.set_projectexplorer(self.projectexplorer)
         editorstack.set_inspector(self.inspector)
