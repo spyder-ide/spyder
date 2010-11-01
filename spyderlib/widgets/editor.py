@@ -598,6 +598,8 @@ class EditorStack(QWidget):
         self.header_layout.addWidget(widget)
         
     def closeEvent(self, event):
+        self.disconnect(self.analysis_timer, SIGNAL("timeout()"),
+                        self.analyze_script)
         QWidget.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))        
