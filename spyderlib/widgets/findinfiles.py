@@ -282,7 +282,7 @@ class SearchThread(QThread):
                             self.results[osp.abspath(fname)] = res
                             for text in self.texts:
                                 found = line.find(text, found+1)
-                                if found>-1:
+                                if found > -1:
                                     break
                             self.nb += 1
             except IOError, (_errno, _strerror):
@@ -670,9 +670,16 @@ class ResultsBrowser(OneColumnTree):
             file_item = QTreeWidgetItem(parent_item, [osp.basename(filename)],
                                         QTreeWidgetItem.Type)
             file_item.setIcon(0, get_filetype_icon(filename))
+            colno_dict = {}
+            fname_res = []
             for lineno, colno, line in self.results[filename]:
+                if lineno not in colno_dict:
+                    fname_res.append((lineno, colno, line))
+                colno_dict[lineno] = colno_dict.get(lineno, [])+[str(colno)]
+            for lineno, colno, line in fname_res:
+                colno_str = ",".join(colno_dict[lineno])
                 item = QTreeWidgetItem(file_item,
-                           ["%d (%d): %s" % (lineno, colno, line.rstrip())],
+                           ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
                 item.setIcon(0, get_icon('arrow.png'))
                 self.data[item] = (filename, lineno)
