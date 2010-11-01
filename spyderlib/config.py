@@ -424,7 +424,7 @@ def set_shortcut(context, name, keystr):
 def iter_shortcuts():
     """Iterate over keyboard shortcuts"""
     for option in CONF.options('shortcuts'):
-        context, name = option.split("/")
+        context, name = option.split("/", 1)
         yield context, name, get_shortcut(context, name)
         
 def reset_shortcuts():
