@@ -185,6 +185,7 @@ class FindReplace(QWidget):
         
     def show_replace(self):
         """Show replace widgets"""
+        self.show()
         for widget in self.replace_widgets:
             widget.show()
             
