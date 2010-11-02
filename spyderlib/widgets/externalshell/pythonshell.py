@@ -61,7 +61,11 @@ class ExtPythonShellWidget(PythonShellWidget):
         sock = self.externalshell.introspection_socket
         if sock is None:
             return
-        return communicate(sock, command)
+        try:
+            return communicate(sock, command)
+        except socket.error:
+            # Process was just closed            
+            pass
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
