@@ -831,9 +831,9 @@ class CodeEditor(TextEditBaseWidget):
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
             self.set_extra_selections('current_line', [selection])
+            self.update_extra_selections()
         else:
             self.clear_extra_selections('current_line')
-        self.update_extra_selections()
         
     
     def delete(self):

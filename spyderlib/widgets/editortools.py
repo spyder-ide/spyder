@@ -620,6 +620,7 @@ class ScrollFlagArea(QWidget):
     WIDTH = 12
     def __init__(self, editor):
         QWidget.__init__(self, editor)
+        self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.code_editor = editor
         
     def sizeHint(self):
