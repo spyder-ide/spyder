@@ -662,7 +662,8 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             self.main.add_dockwidget(self)
             self.inspector = self.main.inspector
-            self.inspector.set_external_console(self)
+            if self.inspector is not None:
+                self.inspector.set_external_console(self)
             self.historylog = self.main.historylog
             self.breakpoints_cb = self.main.editor.save_all_breakpoints
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
