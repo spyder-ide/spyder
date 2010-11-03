@@ -133,7 +133,8 @@ class ObjectInspector(RichAndPlainText):
         
         # Plain text docstring option
         self.docstring = True
-        self.rich_help = sphinxify is not None
+        self.rich_help = sphinxify is not None \
+                         and self.get_option('rich_mode', True)
         self.rich_text.setVisible(self.rich_help)
         self.plain_text.setVisible(not self.rich_help)        
         plain_text_action = create_action(self, self.tr("Plain Text"),
@@ -307,6 +308,7 @@ class ObjectInspector(RichAndPlainText):
                 self.plain_text.show()
                 self.rich_text.hide()
             self.force_refresh()
+        self.set_option('rich_mode', not checked)
         
     def toggle_show_source(self, checked):
         """Toggle show source code"""
@@ -318,6 +320,7 @@ class ObjectInspector(RichAndPlainText):
                 self.plain_text.show()
                 self.rich_text.hide()
             self.force_refresh()
+        self.set_option('rich_mode', not checked)
         
     def toggle_rich_text(self, checked):
         """Toggle between sphinxified docstrings or plain ones"""
@@ -329,6 +332,7 @@ class ObjectInspector(RichAndPlainText):
                 self.plain_text.hide()
                 self.rich_text.show()
             self.force_refresh()
+        self.set_option('rich_mode', checked)
         
     def toggle_auto_import(self, checked):
         """Toggle automatic import feature"""
