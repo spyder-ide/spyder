@@ -52,7 +52,6 @@ def getdoc(obj):
     doc = inspect.getdoc(obj) or inspect.getcomments(obj) or ''
     if callable(obj):
         name = obj.__name__
-        note = '\n    Function of %s module' % obj.__module__
         if inspect.ismethod(obj):
             imclass = obj.im_class
             if obj.im_self is not None:
@@ -61,6 +60,10 @@ def getdoc(obj):
             else:
                 note = '\n    Unbound %s method' % imclass.__name__
             obj = obj.im_func
+        elif hasattr(obj, '__module__'):
+            note = '\n    Function of %s module' % obj.__module__
+        else:
+            note = '\n    Function'
         title = obj.__name__
         if inspect.isfunction(obj):
             args, varargs, varkw, defaults = inspect.getargspec(obj)
