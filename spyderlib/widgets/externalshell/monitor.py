@@ -59,7 +59,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     
 
 SZ = struct.calcsize("l")
-
+    
 def write_packet(sock, data, already_pickled=False):
     """Write *data* to socket *sock*"""
     if already_pickled:
@@ -91,11 +91,13 @@ def read_packet(sock, timeout=None):
         except (EOFError, pickle.UnpicklingError):
             return
 
-def communicate(sock, input):
+def communicate(sock, command, settings=[], timeout=None):
     """Communicate with monitor"""
-    write_packet(sock, input)
-    return read_packet(sock)
-    
+    write_packet(sock, command)
+    for option in settings:
+        write_packet(sock, option)
+    return read_packet(sock, timeout=timeout)
+
 class PacketNotReceived(object):
     pass
 
@@ -104,49 +106,40 @@ PACKET_NOT_RECEIVED = PacketNotReceived()
 
 def monitor_get_remote_view(sock, settings):
     """Get globals() remote view"""
-    write_packet(sock, "__make_remote_view__(globals())")
-    write_packet(sock, settings)
-    return read_packet(sock, timeout=5.) # timeout in case something went wrong
+    return communicate(sock, "__make_remote_view__(globals())",
+                       settings=[settings], timeout=5.)
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
-    write_packet(sock, '__save_globals__(globals())')
-    write_packet(sock, settings)
-    write_packet(sock, filename)
-    return read_packet(sock)
+    return communicate(sock, '__save_globals__(globals())',
+                       settings=[settings, filename])
 
 def monitor_load_globals(sock, filename):
     """Load globals() from file"""
-    write_packet(sock, '__load_globals__(globals())')
-    write_packet(sock, filename)
-    return read_packet(sock)
+    return communicate(sock, '__load_globals__(globals())',
+                       settings=[filename])
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
-    write_packet(sock, '__get_global__(globals(), "%s")' % name)
-    return read_packet(sock)
+    return communicate(sock, '__get_global__(globals(), "%s")' % name)
 
 def monitor_set_global(sock, name, value):
     """Set global variable *name* value to *value*"""
-    write_packet(sock, '__set_global__(globals(), "%s")' % name)
-    write_packet(sock, value)
-    read_packet(sock)
+    return communicate(sock, '__set_global__(globals(), "%s")' % name,
+                       settings=[value])
 
 def monitor_del_global(sock, name):
     """Del global variable *name*"""
-    write_packet(sock, '__del_global__(globals(), "%s")' % name)
-    read_packet(sock)
+    return communicate(sock, '__del_global__(globals(), "%s")' % name)
 
 def monitor_copy_global(sock, orig_name, new_name):
     """Copy global variable *orig_name* to *new_name*"""
-    write_packet(sock, '__copy_global__(globals(), "%s", "%s")' % (orig_name,
-                                                                   new_name))
-    read_packet(sock)
+    return communicate(sock, '__copy_global__(globals(), "%s", "%s")' \
+                       % (orig_name, new_name))
 
 def monitor_is_array(sock, name):
     """Return True if object is an instance of class numpy.ndarray"""
-    write_packet(sock, 'is_array(globals(), "%s")' % name)
-    return read_packet(sock)
+    return communicate(sock, 'is_array(globals(), "%s")' % name)
 
 
 def _getcdlistdir():
@@ -360,14 +353,16 @@ class Monitor(threading.Thread):
                     logging.debug("****** Introspection request /Begin ******")
                 command = PACKET_NOT_RECEIVED
                 command = read_packet(self.i_request)
+                if command is None:
+                    continue
                 if DEBUG:
-                    logging.debug("received command: %r" % command)
+                    logging.debug("command: %r" % command)
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     glbs = self.ipython_shell.user_ns
                 result = eval(command, glbs, self.locals)
                 if DEBUG:
-                    logging.debug("result: %r" % result)
+                    logging.debug(" result: %r" % result)
                 self.locals["_"] = result
                 output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
             except SystemExit:
