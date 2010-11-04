@@ -96,7 +96,26 @@ def communicate(sock, command, settings=[], timeout=None):
     write_packet(sock, command)
     for option in settings:
         write_packet(sock, option)
-    return read_packet(sock, timeout=timeout)
+#    # old com implementation: (see solution (1) in Issue 434)
+#    return read_packet(sock, timeout=timeout)
+    # new com implementation: (see solution (2) in Issue 434)
+    if timeout == 0.:
+        # non blocking socket is not really supported:
+        # setting timeout to 0. here is equivalent (in current monitor's 
+        # implementation) to say 'I don't need to receive anything in return'
+        return
+    while True:
+        output = read_packet(sock, timeout=timeout)
+        if output is None:
+            return
+        output_command, output_data = output
+        if command == output_command:
+            return output_data
+        elif DEBUG:
+            logging.debug("###### communicate/warning /Begin ######")
+            logging.debug("was expecting '%s', received '%s'" \
+                          % (command, output_command))
+            logging.debug("###### communicate/warning /End   ######")
 
 class PacketNotReceived(object):
     pass
@@ -104,10 +123,15 @@ class PacketNotReceived(object):
 PACKET_NOT_RECEIVED = PacketNotReceived()
 
 
-def monitor_get_remote_view(sock, settings):
-    """Get globals() remote view"""
+def monitor_make_remote_view(sock, settings):
+    """
+    Ask to the monitor to create the globals() remote view
+    The monitor will notify Spyder once this object is ready to be sent back
+    (avoid blocking Spyder when running CPU intensive operations
+     in external shell)
+    """
     return communicate(sock, "__make_remote_view__(globals())",
-                       settings=[settings], timeout=5.)
+                       settings=[settings], timeout=0.)
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -292,7 +316,9 @@ class Monitor(threading.Thread):
         """
         settings = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-        return make_remote_view(glbs, settings, more_excluded_names)
+        remote_view = make_remote_view(glbs, settings, more_excluded_names)
+        communicate(self.n_request,
+                    dict(command="remote_view", data=remote_view))
         
     def saveglobals(self, glbs):
         """Save globals() into filename"""
@@ -364,7 +390,11 @@ class Monitor(threading.Thread):
                 if DEBUG:
                     logging.debug(" result: %r" % result)
                 self.locals["_"] = result
-                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+#                # old com implementation: (see solution (1) in Issue 434)
+#                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+                # new com implementation: (see solution (2) in Issue 434)
+                output = pickle.dumps((command, result),
+                                      pickle.HIGHEST_PROTOCOL)
             except SystemExit:
                 break
             except:
@@ -511,6 +541,9 @@ class NotificationThread(QThread):
                     self.shell.save_all_breakpoints()
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
+                elif command == 'remote_view':
+                    self.emit(SIGNAL('process_remote_view(PyQt_PyObject)'),
+                              data)
                 else:
                     raise RuntimeError('Unsupported command: %r' % command)
                 if DEBUG:

@@ -57,12 +57,12 @@ class ExtPythonShellWidget(PythonShellWidget):
             self.flush()
 
     #------ Code completion / Calltips
-    def ask_monitor(self, command):
+    def ask_monitor(self, command, timeout=None):
         sock = self.externalshell.introspection_socket
         if sock is None:
             return
         try:
-            return communicate(sock, command)
+            return communicate(sock, command, timeout=timeout)
         except socket.error:
             # Process was just closed            
             pass
@@ -115,7 +115,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     
     def set_cwd(self, dirname):
         """Set shell current working directory"""
-        return self.ask_monitor("setcwd(r'%s')" % dirname)
+        return self.ask_monitor("setcwd(r'%s')" % dirname, timeout=0.)
 
 
 class ExternalPythonShell(ExternalShellBase):
@@ -353,6 +353,9 @@ class ExternalPythonShell(ExternalShellBase):
             self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno:
                          self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
+            self.connect(self.notification_thread,
+                         SIGNAL('process_remote_view(PyQt_PyObject)'),
+                         self.namespacebrowser.process_remote_view)
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
         
@@ -458,7 +461,8 @@ class ExternalPythonShell(ExternalShellBase):
         
     def keyboard_interrupt(self):
         if self.introspection_socket is not None:
-            communicate(self.introspection_socket, "thread.interrupt_main()")
+            communicate(self.introspection_socket, "thread.interrupt_main()",
+                        timeout=0.)
         
     def quit_monitor(self):
         if self.introspection_socket is not None:

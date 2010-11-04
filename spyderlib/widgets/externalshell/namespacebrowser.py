@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton,
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
-from spyderlib.widgets.externalshell.monitor import (monitor_get_remote_view,
+from spyderlib.widgets.externalshell.monitor import (monitor_make_remote_view,
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
                 monitor_is_array, communicate, REMOTE_SETTINGS)
@@ -254,12 +254,18 @@ class NamespaceBrowser(QWidget):
                     return
                 settings = self._get_settings()
                 try:
-                    data = monitor_get_remote_view(sock, settings)
-                    if data is not None:
-                        self.set_data(data)
+                    # Ask (gently) the monitor to create the remote view of
+                    # namespace dictionary (the data will be sent afterwards 
+                    # by the monitor -through the notification thread- to the
+                    # 'process_remote_view' method below
+                    monitor_make_remote_view(sock, settings)
                 except socket.error:
                     # Process was terminated before calling this method
                     pass
+                
+    def process_remote_view(self, remote_view):
+        if remote_view is not None:
+            self.set_data(remote_view)
         
     #------ Remote Python process commands -------------------------------------
     def get_value(self, name):
