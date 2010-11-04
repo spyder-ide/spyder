@@ -13,7 +13,7 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QFileDialog
-from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt, QTimer
+from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
@@ -57,12 +57,12 @@ class ExtPythonShellWidget(PythonShellWidget):
             self.flush()
 
     #------ Code completion / Calltips
-    def ask_monitor(self, command, timeout=None):
+    def ask_monitor(self, command):
         sock = self.externalshell.introspection_socket
         if sock is None:
             return
         try:
-            return communicate(sock, command, timeout=timeout)
+            return communicate(sock, command)
         except socket.error:
             # Process was just closed            
             pass
@@ -115,7 +115,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     
     def set_cwd(self, dirname):
         """Set shell current working directory"""
-        return self.ask_monitor("setcwd(r'%s')" % dirname, timeout=0.)
+        return self.ask_monitor("setcwd(r'%s')" % dirname)
 
 
 class ExternalPythonShell(ExternalShellBase):
@@ -127,7 +127,8 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4',
-                 autorefresh_timeout=3000, light_background=True):
+                 autorefresh_timeout=3000, autorefresh_state=True,
+                 light_background=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.breakpoints_cb = None
@@ -150,6 +151,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
         self.autorefresh_timeout = autorefresh_timeout
+        self.autorefresh_state = autorefresh_state
         
         self.namespacebrowser_button = None
         self.cwd_button = None
@@ -158,9 +160,6 @@ class ExternalPythonShell(ExternalShellBase):
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history.py',
                                    light_background=light_background)
-
-        self.nsb_timer = QTimer(self) # Namespace browser auto-refresh timer
-        self.set_autorefresh_timeout(autorefresh_timeout)
         
         self.python_args = None
         if python_args:
@@ -204,11 +203,10 @@ class ExternalPythonShell(ExternalShellBase):
             return self.breakpoints_cb()
         
     def set_autorefresh_timeout(self, interval):
-        self.nsb_timer.setInterval(interval)
+        communicate(self.introspection_socket,
+                    "set_monitor_timeout(%d)" % interval)
         
     def closeEvent(self, event):
-        self.disconnect(self.nsb_timer, SIGNAL("timeout()"),
-                        self.namespacebrowser.refresh_table)
         self.quit_monitor()
         ExternalShellBase.closeEvent(self, event)
         
@@ -341,7 +339,9 @@ class ExternalPythonShell(ExternalShellBase):
         
         # Monitor
         if self.monitor_enabled:
-            env.append('SHELL_ID=%s' % id(self))
+            env.append('SPYDER_SHELL_ID=%s' % id(self))
+            env.append('SPYDER_AR_TIMEOUT=%d' % self.autorefresh_timeout)
+            env.append('SPYDER_AR_STATE=%r' % self.autorefresh_state)
             from spyderlib.widgets.externalshell import monitor
             introspection_server = monitor.start_introspection_server()
             introspection_server.register(self)
@@ -427,9 +427,6 @@ class ExternalPythonShell(ExternalShellBase):
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
-            self.connect(self.nsb_timer, SIGNAL("timeout()"),
-                         self.namespacebrowser.auto_refresh)
-            self.nsb_timer.start()
             
         return self.process
     
@@ -461,8 +458,7 @@ class ExternalPythonShell(ExternalShellBase):
         
     def keyboard_interrupt(self):
         if self.introspection_socket is not None:
-            communicate(self.introspection_socket, "thread.interrupt_main()",
-                        timeout=0.)
+            communicate(self.introspection_socket, "thread.interrupt_main()")
         
     def quit_monitor(self):
         if self.introspection_socket is not None:

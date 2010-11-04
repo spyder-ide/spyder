@@ -462,6 +462,7 @@ class ExternalConsole(SpyderPluginWidget):
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
+            ar_state = CONF.get('variable_explorer', 'autorefresh/enabled')
             if self.light_mode:
                 from spyderlib.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()
@@ -477,6 +478,7 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
                            autorefresh_timeout=ar_timeout,
+                           autorefresh_state=ar_state,
                            light_background=light_background)
             shellwidget.set_breakpoints_cb(self.breakpoints_cb)
             if self.variableexplorer is not None:

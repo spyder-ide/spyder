@@ -81,13 +81,16 @@ except ImportError:
     pass
 
 # Communication between ExternalShell and the QProcess
-SHELL_ID = os.environ.get('SHELL_ID')
-if SHELL_ID is None:
+if os.environ.get('SPYDER_SHELL_ID') is None:
     monitor = None
 else:
     from spyderlib.widgets.externalshell.monitor import Monitor
-    monitor = Monitor("127.0.0.1", int(os.environ['SPYDER_I_PORT']),
-                      int(os.environ['SPYDER_N_PORT']), os.environ['SHELL_ID'])
+    monitor = Monitor("127.0.0.1",
+                      int(os.environ['SPYDER_I_PORT']),
+                      int(os.environ['SPYDER_N_PORT']),
+                      os.environ['SPYDER_SHELL_ID'],
+                      float(os.environ['SPYDER_AR_TIMEOUT']),
+                      os.environ["SPYDER_AR_STATE"].lower() == "true")
     monitor.start()
     
     # Quite limited feature: notify only when a result is displayed in console

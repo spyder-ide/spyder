@@ -17,7 +17,7 @@ from PyQt4.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu, QToolButton,
 from PyQt4.QtCore import SIGNAL, Qt
 
 # Local imports
-from spyderlib.widgets.externalshell.monitor import (monitor_make_remote_view,
+from spyderlib.widgets.externalshell.monitor import (
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
                 monitor_is_array, communicate, REMOTE_SETTINGS)
@@ -39,6 +39,8 @@ class NamespaceBrowser(QWidget):
         self.shellwidget = None
         self.is_internal_shell = None
         self.is_visible = True
+        
+        self.setup_in_progress = None
         
         # Remote dict editor settings
         self.filters = None
@@ -134,6 +136,8 @@ class NamespaceBrowser(QWidget):
         
     def setup_toolbar(self, exclude_private, exclude_upper,
                       exclude_unsupported, autorefresh):
+        self.setup_in_progress = True                          
+                          
         toolbar = []
 
         refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
@@ -197,6 +201,8 @@ class NamespaceBrowser(QWidget):
         add_actions(menu, actions)
         options_button.setMenu(menu)
         
+        self.setup_in_progress = False
+        
         return toolbar
 
     def option_changed(self, option, value):
@@ -210,15 +216,14 @@ class NamespaceBrowser(QWidget):
         
     def toggle_auto_refresh(self, state):
         self.autorefresh = state
-        
-    def auto_refresh(self):
-        if self.autorefresh:
-            self.refresh_table()
+        if not self.setup_in_progress and not self.is_internal_shell:
+            communicate(self._get_sock(),
+                        "set_monitor_auto_refresh(%r)" % state)
             
     def _get_sock(self):
         return self.shellwidget.introspection_socket
         
-    def _get_settings(self):
+    def get_settings(self):
         settings = {}
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
@@ -252,17 +257,11 @@ class NamespaceBrowser(QWidget):
                 sock = self._get_sock()
                 if sock is None:
                     return
-                settings = self._get_settings()
                 try:
-                    # Ask (gently) the monitor to create the remote view of
-                    # namespace dictionary (the data will be sent afterwards 
-                    # by the monitor -through the notification thread- to the
-                    # 'process_remote_view' method below
-                    monitor_make_remote_view(sock, settings)
+                    communicate(sock, "None")
                 except socket.error:
                     # Process was terminated before calling this method
-                    pass
-                
+                    pass                
     def process_remote_view(self, remote_view):
         if remote_view is not None:
             self.set_data(remote_view)
@@ -432,7 +431,7 @@ class NamespaceBrowser(QWidget):
             namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
             error_message = iofunctions.save(namespace, filename)
         else:
-            settings = self._get_settings()
+            settings = self.get_settings()
             error_message = monitor_save_globals(self._get_sock(),
                                                  settings, filename)
         QApplication.restoreOverrideCursor()

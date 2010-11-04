@@ -81,7 +81,9 @@ def read_packet(sock, timeout=None):
         data = ''
         while len(data) < dlen:
             data += sock.recv(dlen)
-    except (socket.timeout, socket.error):
+    except socket.timeout:
+        raise
+    except socket.error:
         data = None
     finally:
         sock.settimeout(None)
@@ -91,47 +93,40 @@ def read_packet(sock, timeout=None):
         except (EOFError, pickle.UnpicklingError):
             return
 
-def communicate(sock, command, settings=[], timeout=None):
+# old com implementation: (see solution (1) in Issue 434)
+def communicate(sock, command, settings=[]):
+## new com implementation: (see solution (2) in Issue 434)
+#def communicate(sock, command, settings=[], timeout=None):
     """Communicate with monitor"""
     write_packet(sock, command)
     for option in settings:
         write_packet(sock, option)
-#    # old com implementation: (see solution (1) in Issue 434)
-#    return read_packet(sock, timeout=timeout)
-    # new com implementation: (see solution (2) in Issue 434)
-    if timeout == 0.:
-        # non blocking socket is not really supported:
-        # setting timeout to 0. here is equivalent (in current monitor's 
-        # implementation) to say 'I don't need to receive anything in return'
-        return
-    while True:
-        output = read_packet(sock, timeout=timeout)
-        if output is None:
-            return
-        output_command, output_data = output
-        if command == output_command:
-            return output_data
-        elif DEBUG:
-            logging.debug("###### communicate/warning /Begin ######")
-            logging.debug("was expecting '%s', received '%s'" \
-                          % (command, output_command))
-            logging.debug("###### communicate/warning /End   ######")
+    # old com implementation: (see solution (1) in Issue 434)
+    return read_packet(sock)
+#    # new com implementation: (see solution (2) in Issue 434)
+#    if timeout == 0.:
+#        # non blocking socket is not really supported:
+#        # setting timeout to 0. here is equivalent (in current monitor's 
+#        # implementation) to say 'I don't need to receive anything in return'
+#        return
+#    while True:
+#        output = read_packet(sock, timeout=timeout)
+#        if output is None:
+#            return
+#        output_command, output_data = output
+#        if command == output_command:
+#            return output_data
+#        elif DEBUG:
+#            logging.debug("###### communicate/warning /Begin ######")
+#            logging.debug("was expecting '%s', received '%s'" \
+#                          % (command, output_command))
+#            logging.debug("###### communicate/warning /End   ######")
 
 class PacketNotReceived(object):
     pass
 
 PACKET_NOT_RECEIVED = PacketNotReceived()
 
-
-def monitor_make_remote_view(sock, settings):
-    """
-    Ask to the monitor to create the globals() remote view
-    The monitor will notify Spyder once this object is ready to be sent back
-    (avoid blocking Spyder when running CPU intensive operations
-     in external shell)
-    """
-    return communicate(sock, "__make_remote_view__(globals())",
-                       settings=[settings], timeout=0.)
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -173,10 +168,15 @@ def _getcdlistdir():
 
 class Monitor(threading.Thread):
     """Monitor server"""
-    def __init__(self, host, introspection_port, notification_port, shell_id):
+    def __init__(self, host, introspection_port, notification_port,
+                 shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
         self.ipython_shell = None
         self.setDaemon(True)
+        
+        self.timeout = None
+        self.set_timeout(timeout)
+        self.auto_refresh = auto_refresh
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -195,8 +195,9 @@ class Monitor(threading.Thread):
                        "getcwd": self.getcwd,
                        "setcwd": self.setcwd,
                        "isdefined": isdefined,
-                       "__make_remote_view__": self.make_remote_view,
                        "thread": thread,
+                       "set_monitor_timeout": self.set_timeout,
+                       "set_monitor_auto_refresh": self.set_auto_refresh,
                        "__get_dir__": self.get_dir,
                        "__iscallable__": self.iscallable,
                        "__get_arglist__": self.get_arglist,
@@ -210,6 +211,14 @@ class Monitor(threading.Thread):
                        "__save_globals__": self.saveglobals,
                        "__load_globals__": self.loadglobals,
                        "_" : None}
+        
+    def set_timeout(self, timeout):
+        """Set monitor timeout (in milliseconds!)"""
+        self.timeout = float(timeout)/1000.
+        
+    def set_auto_refresh(self, state):
+        """Enable/disable namespace browser auto refresh feature"""
+        self.auto_refresh = state
 
     #------ Notifications
     def refresh(self):
@@ -310,11 +319,12 @@ class Monitor(threading.Thread):
         """
         self.locals[name] = value
         
-    def make_remote_view(self, glbs):
+    def update_remote_view(self, glbs):
         """
         Return remote view of globals()
         """
-        settings = read_packet(self.i_request)
+        settings = communicate(self.n_request,
+                               dict(command="get_remote_view_settings"))
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
         remote_view = make_remote_view(glbs, settings, more_excluded_names)
         communicate(self.n_request,
@@ -378,23 +388,35 @@ class Monitor(threading.Thread):
                 if DEBUG:
                     logging.debug("****** Introspection request /Begin ******")
                 command = PACKET_NOT_RECEIVED
-                command = read_packet(self.i_request)
-                if command is None:
-                    continue
-                if DEBUG:
-                    logging.debug("command: %r" % command)
+                try:
+                    timeout = self.timeout if self.auto_refresh else None
+                    command = read_packet(self.i_request, timeout=timeout)
+                    if command is None:
+                        continue
+                    timed_out = False
+                except socket.timeout:
+                    timed_out = True
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     glbs = self.ipython_shell.user_ns
+                if timed_out:
+                    if DEBUG:
+                        logging.debug("connection timed out -> updating remote view")
+                    self.update_remote_view(glbs)
+                    if DEBUG:
+                        logging.debug("****** Introspection request /End ******")
+                    continue
+                if DEBUG:
+                    logging.debug("command: %r" % command)
                 result = eval(command, glbs, self.locals)
                 if DEBUG:
                     logging.debug(" result: %r" % result)
                 self.locals["_"] = result
-#                # old com implementation: (see solution (1) in Issue 434)
-#                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
-                # new com implementation: (see solution (2) in Issue 434)
-                output = pickle.dumps((command, result),
-                                      pickle.HIGHEST_PROTOCOL)
+                # old com implementation: (see solution (1) in Issue 434)
+                output = pickle.dumps(result, pickle.HIGHEST_PROTOCOL)
+#                # new com implementation: (see solution (2) in Issue 434)
+#                output = pickle.dumps((command, result),
+#                                      pickle.HIGHEST_PROTOCOL)
             except SystemExit:
                 break
             except:
@@ -402,6 +424,9 @@ class Monitor(threading.Thread):
                     logging.debug("error!")
                 log_last_error(LOG_FILENAME, command)
             finally:
+                if DEBUG:
+                    logging.debug("updating remote view")
+                self.update_remote_view(glbs)
                 if DEBUG:
                     logging.debug("sending result")
                     logging.debug("****** Introspection request /End ******")
@@ -541,6 +566,8 @@ class NotificationThread(QThread):
                     self.shell.save_all_breakpoints()
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
+                elif command == 'get_remote_view_settings':
+                    output = self.shell.namespacebrowser.get_settings()
                 elif command == 'remote_view':
                     self.emit(SIGNAL('process_remote_view(PyQt_PyObject)'),
                               data)

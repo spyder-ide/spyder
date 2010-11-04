@@ -164,7 +164,7 @@ DEFAULTS = [
             ('variable_explorer',
              {
               'shortcut': "Ctrl+Shift+V",
-              'autorefresh/enable': True,
+              'autorefresh/enabled': True,
               'autorefresh/timeout': 3000,
               'filters': type2str(FILTERS),
               'itermax': ITERMAX,
