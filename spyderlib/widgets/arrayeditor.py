@@ -97,6 +97,13 @@ class ArrayModel(QAbstractTableModel):
         self.readonly = readonly
         self.test_array = np.array([0], dtype=data.dtype)
 
+        # for complex numbers, shading will be based on absolute value
+        # but for all other types it will be the real part
+        if data.dtype in (np.complex64, np.complex128):
+            self.color_func = np.abs
+        else:
+            self.color_func = np.real
+        
         # Backgroundcolor settings
         huerange = [.66, .99] # Hue
         self.sat = .7 # Saturation
@@ -108,8 +115,8 @@ class ArrayModel(QAbstractTableModel):
         self._xy = xy_mode
         
         try:
-            self.vmin = data.min()
-            self.vmax = data.max()
+            self.vmin = self.color_func(data).min()
+            self.vmax = self.color_func(data).max()
             if self.vmax == self.vmin:
                 self.vmin -= 1
             self.hue0 = huerange[0]
@@ -165,7 +172,7 @@ class ArrayModel(QAbstractTableModel):
         elif role == Qt.TextAlignmentRole:
             return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
-            hue = self.hue0+self.dhue*(self.vmax-value)/(self.vmax-self.vmin)
+            hue = self.hue0+self.dhue*(self.vmax-self.color_func(value))/(self.vmax-self.vmin)
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return QVariant(color)
