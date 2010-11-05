@@ -258,7 +258,7 @@ class NamespaceBrowser(QWidget):
                 if sock is None:
                     return
                 try:
-                    communicate(sock, "None")
+                    communicate(sock, "refresh()")
                 except socket.error:
                     # Process was terminated before calling this method
                     pass                

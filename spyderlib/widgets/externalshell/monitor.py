@@ -177,6 +177,7 @@ class Monitor(threading.Thread):
         self.timeout = None
         self.set_timeout(timeout)
         self.auto_refresh = auto_refresh
+        self.refresh_after_eval = False
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -188,7 +189,8 @@ class Monitor(threading.Thread):
         self.n_request.connect( (host, notification_port) )
         write_packet(self.n_request, shell_id)
         
-        self.locals = {"setlocal": self.setlocal,
+        self.locals = {"refresh": self.enable_refresh_after_eval,
+                       "setlocal": self.setlocal,
                        "is_array": self.is_array,
                        "getcomplist": self.getcomplist,
                        "getcdlistdir": _getcdlistdir,
@@ -219,15 +221,17 @@ class Monitor(threading.Thread):
     def set_auto_refresh(self, state):
         """Enable/disable namespace browser auto refresh feature"""
         self.auto_refresh = state
-
+        
+    def enable_refresh_after_eval(self):
+        self.refresh_after_eval = True
+        
     #------ Notifications
     def refresh(self):
         """Refresh variable explorer in ExternalPythonShell"""
         communicate(self.n_request, dict(command="refresh"))
-        
+
     def notify_pdb_step(self, fname, lineno):
         """Notify the ExternalPythonShell regarding pdb current frame"""
-        self.refresh()
         communicate(self.n_request,
                     dict(command="pdb_step", data=(fname, lineno)))
         
@@ -354,6 +358,7 @@ class Monitor(threading.Thread):
             glbs.update(data)
         except Exception, error:
             return str(error)
+        self.refresh_after_eval = True
         
     def getglobal(self, glbs, name):
         """
@@ -366,18 +371,21 @@ class Monitor(threading.Thread):
         Set global reference value
         """
         glbs[name] = read_packet(self.i_request)
+        self.refresh_after_eval = True
         
     def delglobal(self, glbs, name):
         """
         Del global reference
         """
         glbs.pop(name)
+        self.refresh_after_eval = True
         
     def copyglobal(self, glbs, orig_name, new_name):
         """
         Copy global reference
         """
         glbs[new_name] = glbs[orig_name]
+        self.refresh_after_eval = True
         
     def run(self):
         self.ipython_shell = None
@@ -426,7 +434,9 @@ class Monitor(threading.Thread):
             finally:
                 if DEBUG:
                     logging.debug("updating remote view")
-                self.update_remote_view(glbs)
+                if self.refresh_after_eval:
+                    self.update_remote_view(glbs)
+                    self.refresh_after_eval = False
                 if DEBUG:
                     logging.debug("sending result")
                     logging.debug("****** Introspection request /End ******")
