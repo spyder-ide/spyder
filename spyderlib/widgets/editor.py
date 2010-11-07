@@ -1650,6 +1650,7 @@ class EditorStack(QWidget):
                                       "automatically.").arg(name),
                             QMessageBox.Ok)
             self.set_os_eol_chars(index)
+        self.is_analysis_done = False
         return finfo.editor
     
     def set_os_eol_chars(self, index=None):
