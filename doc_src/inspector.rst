@@ -14,13 +14,19 @@ Of course, one can use the documentation viewer directly by entering an object
 name in the editable combo box field, or by selecting old documentation requests
 in the combo box.
 
-.. image:: images/inspector1.png
+Plain text mode:
+
+.. image:: images/inspector_plain.png
+
+Rich text mode:
+
+.. image:: images/inspector_rich.png
 
 Sometimes, when docstrings are not available or not sufficient to document the 
 object, the documentation viewer can show the source code (if available, i.e. 
 if the object is pure Python):
 
-.. image:: images/inspector2.png
+.. image:: images/inspector_source.png
 
 Related plugins:
     * :doc:`console`

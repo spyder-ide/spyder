@@ -7,6 +7,8 @@ All the commands entered in the internal console are executed in the same
 process as Spyder's, but the Internal Console may be executed in a separate 
 thread (this is optional and for example this is not the case in Spyder itself).
 
+.. image:: images/internalconsole.png
+
 The internal console support the following features:
 
     * Code completion and calltips

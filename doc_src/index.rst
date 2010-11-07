@@ -40,9 +40,9 @@ Contents:
     editor
     findinfiles
     pylint
-    
-    internal_console
-    
+
+    internalconsole
+
 
 Indices and tables:
 

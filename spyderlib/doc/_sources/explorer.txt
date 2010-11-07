@@ -1,8 +1,6 @@
 Explorer
 ========
 
-*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
-
 The explorer plugin is a file/directory browser allowing the user to open files
 with the internal editor or with the appropriate application (Windows only).
 

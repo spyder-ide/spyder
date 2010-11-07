@@ -1,40 +1,79 @@
 Overview
 ========
 
-*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
+Spyder is a Python development environment with the following key features:
 
-Spyder is a Python development environment with the following features:
+Key features:
 
-:doc:`editor`:
-    Source editor with outline explorer (functions, classes, ...), code
-    analysis (pyflakes and pylint are currently supported), code completion, 
-    go-to-definition, calltips, cursor position history, horizontal/vertical 
-    splitting, etc.
+  * general features:
+  
+    * MATLAB-like PYTHONPATH management dialog box (works with all consoles)
+    * Windows only: current user environment variables editor
+    * direct links to documentation (Python, Matplotlib, !NumPy, !Scipy, etc.)
+    * direct link to Python(x,y) launcher
+    * direct links to !QtDesigner, !QtLinguist and !QtAssistant (Qt documentation)
     
-:doc:`inspector`:
-    Automatically show documentation (if available, or source code otherwise) 
-    for any class instantiation or function call made in a Python console or 
-    in the source editor
+  * *preferences* dialog box:
+  
+    * keyboard shortcuts
+    * syntax coloring schemes (source editor, history log, object inspector)
+    * console: background color (black/white), automatic code completion, etc.
+    * and a lot more...
     
-:doc:`onlinehelp`:
-    Open an internal web browser to explore dynamically-generated Python 
-    documentation on installed module, including your own modules (this feature 
-    is using a pydoc server)
+  * :doc:`editor`:
+  
+    * syntax coloring (Python, C/C++, Fortran)
+    * *breakpoints* and *conditional breakpoints* (debugger: `pdb`)
+    * run or debug Python scripts (see console features)
+    * *run configuration* dialog box:
     
-:doc:`console`:
-    Run Python scripts or open as many Python/IPython interpreters or terminals 
-    as you need.
-    Python/IPython interpreters: variable explorer (list supported variables 
-    with GUI based editors: dictionary editor, array editor, ...), debugging 
-    with `pdb`, code completion, calltips, etc.
+      * working directory
+      * command line options
+      * run in a new Python interpreter or in an existing Python/IPython interpreter
+      * Python interpreter command line options
+      
+    * *code outline explorer*: functions, classes, if/else/try/... statements
+    * *powerful code introspection features* (powered by `rope`):
     
-:doc:`explorer`:
-    File/directory explorer
+      * *code completion*
+      * *calltips*
+      * *go-to-definition*: go to object (any symbol: function, class, attribute, etc.) definition by pressing Ctrl+Left mouse click on word or Ctrl+G (default shortcut)
+      
+    * *occurence highlighting*
+    * typing helpers (optional):
     
-Find in files feature:
-    Supporting regular expressions and mercurial repositories
+      * automatically insert closing parentheses, braces and brackets
+      * automatically unindent after 'else', 'elif', 'finally', etc.
+      
+    * *to-do* lists (TODO, FIXME, XXX)
+    * errors/warnings (real-time *code analysis* provided by `pyflakes`)
+    * integrated *`pylint` code analysis*
+    * direct link to `winpdb` external debugger
     
-:doc:`historylog`
+  * :doc:`console`:
+  
+    * *all consoles are executed in a separate process*
+    * *code completion*/calltips and automatic link to object inspector (see below)
+    * open Python interpreters, *IPython* interpreters or basic terminal command windows
+    * run Python scripts (see source editor features)
+    * *variable explorer*:
+    
+      * *GUI-based editors* for a lot of data types (numbers, strings, lists, arrays, dictionaries, ...)
+      * *import/export data* from/to a lot of file types (text files, !NumPy files, MATLAB files)
+      * multiple array/list/dict editor instances at once, thus allowing to compare variable contents
+      * data visualization
+      
+  * :doc:`historylog`
+  * :doc:`inspector`:
+  
+    * provide documentation or source code on any Python object (class, function, module, ...)
+    * documentation may be displayed as an html page thanks to the rich text mode (powered by `sphinx`)
+    
+  * :doc:`onlinehelp`: automatically generated html documentation on installed Python modules
+  * :doc:`findinfiles`: find string occurences in a directory, a mercurial repository or directly in PYTHONPATH (support for regular expressions and  included/excluded string lists)
+  * :doc:`explorer`
+  * :doc:`projectexplorer` (support Pydev project import)
+
 
 Spyder may also be used as a PyQt4 extension library (module 'spyderlib').
 For example, the Python interactive shell widget used in Spyder may be
