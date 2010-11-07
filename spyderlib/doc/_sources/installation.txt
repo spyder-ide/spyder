@@ -11,6 +11,7 @@ Requirements:
 Recommended modules:
     * pyflakes >v0.3.0 (real-time code analysis)
     * rope >=v0.9.2 (editor code completion, calltips and go-to-definition)
+    * sphinx >=v0.6 (object inspector's rich text mode)
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
     * matplotlib (2D/3D plotting)

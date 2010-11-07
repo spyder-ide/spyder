@@ -1,12 +1,11 @@
 Editor
 ======
 
-*DRAFT: this page has not been completely updated from Spyder v1.1 to v2.0*
-
 Spyder's text editor is a multi-language editor with features such as syntax 
-coloring, code completion, code analysis (real-time code analysis powered by
-`pyflakes` and advanced code analysis using `pylint`), function/class browser,
-horizontal/vertical splitting features, etc.
+coloring, code analysis (real-time code analysis powered by `pyflakes` and 
+advanced code analysis using `pylint`), introspection capabilities such as 
+code completion, calltips and go-to-definition features (powered by `rope`), 
+function/class browser, horizontal/vertical splitting features, etc.
 
 Function/class/method browser:
 

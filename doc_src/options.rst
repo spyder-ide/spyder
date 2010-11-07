@@ -10,10 +10,12 @@ Options:
   --session=STARTUP_SESSION
                         Startup session
   --reset               Reset to default session
+  --optimize            Optimize Spyder bytecode (this may require
+                        administrative privileges)
   -w WORKING_DIRECTORY, --workdir=WORKING_DIRECTORY
                         Default working directory
   -d, --debug           Debug mode (stds are not redirected)
-  --onethread           Internal console run in the same thread as main
-                        application
+  --multithread         Internal console is executed in another thread
+                        (separate from main application thread)
   --profile             Profile mode (internal test, not related with Python
                         profiling)

@@ -25,7 +25,7 @@
     <link rel="shortcut icon" href="_static/favicon.ico"/>
     <link rel="top" title="Spyder v2.0 documentation" href="index.html" />
     <link rel="next" title="Variable Explorer" href="variableexplorer.html" />
-    <link rel="prev" title="Command line options" href="options.html" /> 
+    <link rel="prev" title="Light mode" href="lightmode.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
           <a href="variableexplorer.html" title="Variable Explorer"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="options.html" title="Command line options"
+          <a href="lightmode.html" title="Light mode"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
@@ -57,8 +57,8 @@
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="options.html"
-                        title="previous chapter">Command line options</a></p>
+  <p class="topless"><a href="lightmode.html"
+                        title="previous chapter">Light mode</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="variableexplorer.html"
                         title="next chapter">Variable Explorer</a></p>
@@ -91,9 +91,10 @@
   <div class="section" id="console">
 <h1>Console<a class="headerlink" href="#console" title="Permalink to this headline">¶</a></h1>
 <p>The <strong>Console</strong> is where you may enter, interact with and visualize data,
-inside a command interpreter (Python or IPython).
-All the commands entered in the console are executed in a separate process,
-thus allowing the user to interrupt any process at any time.</p>
+inside a command interpreter. All the commands entered in the console are
+executed in a separate process, thus allowing the user to interrupt any
+process at any time.</p>
+<img alt="_images/console.png" src="_images/console.png" />
 <p>Many command windows may be created in the <strong>Console</strong>:</p>
 <blockquote>
 <ul class="simple">
@@ -101,8 +102,9 @@ thus allowing the user to interrupt any process at any time.</p>
 <li>IPython interpreter (the external module <cite>IPython</cite> is required)</li>
 <li>Running Python script</li>
 <li>System command window (this terminal emulation window has quite limited
-features compared to a real terminal, so GNU/Linux users will certainly
-prefer to use the system terminal instead, i.e. outside Spyder)</li>
+features compared to a real terminal: it may be useful on Windows
+platforms where the system terminal is not much more powerful - on the
+contrary, on GNU/Linux, a real system terminal is opened, outside Spyder)</li>
 </ul>
 </blockquote>
 <p>Python-based command windows support the following features:</p>
@@ -112,7 +114,7 @@ prefer to use the system terminal instead, i.e. outside Spyder)</li>
 <li>Variable explorer with GUI-based editors for arrays, lists,
 dictionaries, strings, etc.</li>
 <li>Debugging with standard Python debugger (<cite>pdb</cite>): at each breakpoint
-the corresponding script is opened in the <strong>Editor</strong> at the breakpoint
+the corresponding script is opened in the <a class="reference internal" href="editor.html"><em>Editor</em></a> at the breakpoint
 line number</li>
 <li>User Module Deleter (see below)</li>
 </ul>
@@ -130,17 +132,22 @@ line number</li>
 <div class="section" id="reloading-modules-the-user-module-deleter-umd">
 <h2>Reloading modules: the User Module Deleter (UMD)<a class="headerlink" href="#reloading-modules-the-user-module-deleter-umd" title="Permalink to this headline">¶</a></h2>
 <p>When working with Python scripts interactively, one must keep in mind that
-Python import modules from the source code on disk only at the first import:
-during this first import, the byte code is generated (.pyc file) if necessary,
-and when re-importing the same module, the byte code will be directly used
-even if the source code file (.py[w] file) has changed meanwhile.
-For example, when running two times a module named for example &#8216;mod_a&#8217; which
-is importing a module named &#8216;mod_b&#8217;</p>
-<p>When enabled, the User Module Deleter (UMD) force the Python interpreter to
-reload modules completely when executing a Python script.</p>
-<p>When enabled, this option will systematically reload imported modules since its
-activation. In other words, if you would like some modules to be loaded only
-once, you may import them before enabling the option.</p>
+Python import a module from its source code (on disk) only when parsing the
+first corresponding import statement. During this first import, the byte code
+is generated (.pyc file) if necessary and the imported module code object is
+cached in <cite>sys.modules</cite>. Then, when re-importing the same module, this cached
+code object will be directly used even if the source code file (.py[w] file)
+has changed meanwhile.</p>
+<p>This behavior is sometimes unexpected when working with the Python interpreter
+in interactive mode, because one must either always restart the interpreter
+or remove manually the .pyc files to be sure that changes made in imported
+modules were taken into account.</p>
+<p>The User Module Deleter (UMD) is a Spyder console&#8217;s exclusive feature that
+forces the Python interpreter to reload modules completely when executing
+a Python script.</p>
+<p>For example, when UMD is turned on, one may test complex applications
+within the same Python interpreter without having to restart it every time
+(restart time may be relatively long when testing GUI-based applications).</p>
 </div>
 </div>
 
@@ -160,7 +167,7 @@ once, you may import them before enabling the option.</p>
           <a href="variableexplorer.html" title="Variable Explorer"
              >next</a> |</li>
         <li class="right" >
-          <a href="options.html" title="Command line options"
+          <a href="lightmode.html" title="Light mode"
              >previous</a> |</li>
         <li><a href="index.html">Spyder v2.0 documentation</a> &raquo;</li> 
       </ul>
