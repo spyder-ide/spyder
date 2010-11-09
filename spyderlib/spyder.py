@@ -684,7 +684,7 @@ class MainWindow(QMainWindow):
                           [osp.join(xydoc, "SciPy", "scipy.chm"),
                            osp.join(xydoc, "SciPy", "scipy-ref.pdf")])
                 self.help_menu_actions.append(None)
-            except ImportError:
+            except (ImportError, KeyError):
                 pass
             # Online documentation
             web_resources = QMenu(self.tr("Web Resources"))
