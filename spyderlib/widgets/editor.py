@@ -1201,7 +1201,8 @@ class EditorStack(QWidget):
         filename = self.select_savename(finfo.filename)
         if filename:
             ao_index = self.has_filename(filename)
-            if ao_index:
+            # Note: ao_index == index --> saving an untitled file
+            if ao_index and ao_index != index:
                 if not self.close_file(ao_index):
                     return
                 if ao_index < index:
