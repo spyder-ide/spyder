@@ -77,8 +77,8 @@ class CodeEditor(TextEditBaseWidget):
     LANGUAGES = {
                  ('py', 'pyw', 'python', 'ipy'): (syntaxhighlighters.PythonSH,
                                                   '#', PythonCFM),
-                 ('pyx',): (syntaxhighlighters.CythonSH,
-                            '#', PythonCFM),
+                 ('pyx', 'pxi', 'pxd'): (syntaxhighlighters.CythonSH,
+                                         '#', PythonCFM),
                  ('f', 'for'): (syntaxhighlighters.Fortran77SH, 'c', None),
                  ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
                                          '!', None),

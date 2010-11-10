@@ -286,7 +286,7 @@ class Editor(SpyderPluginWidget):
         SpyderPluginWidget.__init__(self, parent)
 
         self.filetypes = ((self.tr("Python files"), ('.py', '.pyw', '.ipy')),
-                          (self.tr("Pyrex files"), ('.pyx',)),
+                          (self.tr("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
                           (self.tr("C files"), ('.c', '.h')),
                           (self.tr("C++ files"), ('.cc', '.cpp', '.h',
                                                   '.cxx', '.hpp', '.hh')),
