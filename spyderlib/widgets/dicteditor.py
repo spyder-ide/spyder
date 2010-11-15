@@ -967,7 +967,7 @@ class BaseTableView(QTableView):
         clipboard = QApplication.clipboard()
         clipl = []
         for idx in self.selectedIndexes():
-            if not idx.isValid:
+            if not idx.isValid():
                 continue
             clipl.append(unicode(self.delegate.get_value(idx)))
         clipboard.setText(u'\n'.join(clipl))
