@@ -360,24 +360,24 @@ class MainWindow(QMainWindow):
             self.register_shortcut(self.close_dockwidget_action,
                                    "_", "Close dockwidget", "Shift+Ctrl+F4")
             
-            _text = translate("FindReplace", "Find text")
+            _text = translate("FindReplace", "&Find text")
             self.find_action = create_action(self, _text, icon='find.png',
                                              tip=_text, triggered=self.find,
                                              context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_action, "Editor",
                                    "Find text", "Ctrl+F")
             self.find_next_action = create_action(self, translate("FindReplace",
-                  "Find next"), icon='findnext.png', triggered=self.find_next,
+                  "Find &next"), icon='findnext.png', triggered=self.find_next,
                   context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_next_action, "Editor",
                                    "Find next", "F3")
             self.find_previous_action = create_action(self,
-                        translate("FindReplace", "Find previous"),
+                        translate("FindReplace", "Find &previous"),
                         icon='findprevious.png', triggered=self.find_previous,
                         context=Qt.WidgetShortcut)
             self.register_shortcut(self.find_previous_action, "Editor",
                                    "Find previous", "Shift+F3")
-            _text = translate("FindReplace", "Replace text")
+            _text = translate("FindReplace", "&Replace text")
             self.replace_action = create_action(self, _text, icon='replace.png',
                                             tip=_text, triggered=self.replace,
                                             context=Qt.WidgetShortcut)
@@ -475,7 +475,7 @@ class MainWindow(QMainWindow):
             
             
             # Tools + External Tools
-            prefs_action = create_action(self, self.tr("Preferences"),
+            prefs_action = create_action(self, self.tr("Pre&ferences"),
                                          icon='configure.png',
                                          triggered=self.edit_preferences)
             spyder_path_action = create_action(self,

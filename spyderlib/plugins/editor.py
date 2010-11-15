@@ -519,43 +519,43 @@ class Editor(SpyderPluginWidget):
                                default="Ctrl+Alt+P")
         self.addActions([self.toggle_outline_action, self.toggle_project_action])
         
-        self.new_action = create_action(self, self.tr("New file..."),
+        self.new_action = create_action(self, self.tr("&New file..."),
                 icon='filenew.png', tip=self.tr("Create a new Python script"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", default="Ctrl+N")
-        self.open_action = create_action(self, self.tr("Open..."),
+        self.open_action = create_action(self, self.tr("&Open..."),
                 icon='fileopen.png', tip=self.tr("Open text file"),
                 triggered=self.load)
-        self.revert_action = create_action(self, self.tr("Revert"),
+        self.revert_action = create_action(self, self.tr("&Revert"),
                 icon='revert.png', tip=self.tr("Revert file from disk"),
                 triggered=self.revert)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", default="Ctrl+O")
-        self.save_action = create_action(self, self.tr("Save"),
+        self.save_action = create_action(self, self.tr("&Save"),
                 icon='filesave.png', tip=self.tr("Save current file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file", default="Ctrl+S")
-        self.save_all_action = create_action(self, self.tr("Save all"),
+        self.save_all_action = create_action(self, self.tr("Sav&e all"),
                 icon='save_all.png', tip=self.tr("Save all opened files"),
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all", default="Ctrl+Shift+S")
-        save_as_action = create_action(self, self.tr("Save as..."), None,
+        save_as_action = create_action(self, self.tr("Save &as..."), None,
                 'filesaveas.png', self.tr("Save current file as..."),
                 triggered=self.save_as)
         print_preview_action = create_action(self, self.tr("Print preview..."),
                 tip=self.tr("Print preview..."), triggered=self.print_preview)
-        print_action = create_action(self, self.tr("Print..."),
+        print_action = create_action(self, self.tr("&Print..."),
                 icon='print.png', tip=self.tr("Print current file..."),
                 triggered=self.print_file)
-        self.close_action = create_action(self, self.tr("Close"),
+        self.close_action = create_action(self, self.tr("&Close"),
                 icon='fileclose.png', tip=self.tr("Close current file"),
                 triggered=self.close_file)
         self.register_shortcut(self.close_action, context="Editor",
                                name="Close file", default="Ctrl+W")
-        self.close_all_action = create_action(self, self.tr("Close all"),
+        self.close_all_action = create_action(self, self.tr("C&lose all"),
                 icon='filecloseall.png', tip=self.tr("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
@@ -584,12 +584,12 @@ class Editor(SpyderPluginWidget):
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
-        run_action = create_action(self, self.tr("Run"), icon='run.png',
+        run_action = create_action(self, self.tr("&Run"), icon='run.png',
                 tip=self.tr("Run active script in a new Python interpreter"),
                 triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
-        debug_action = create_action(self, self.tr("Debug"), icon='bug.png',
+        debug_action = create_action(self, self.tr("&Debug"), icon='bug.png',
                 tip=self.tr("Debug current script in external console"
                             "\n(external console is executed in a "
                             "separate process)"),
@@ -597,13 +597,13 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(debug_action, context="Editor",
                                name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
-                self.tr("Configure..."), icon='configure.png',
+                self.tr("&Configure..."), icon='configure.png',
                 tip=self.tr("Edit run configurations"),
                 triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
         re_run_action = create_action(self,
-                self.tr("Re-run last script"), icon='run_again.png',
+                self.tr("Re-run &last script"), icon='run_again.png',
                 tip=self.tr("Run again last script in external console "
                             "with the same options"),
                 triggered=self.re_run_file)
@@ -669,25 +669,25 @@ class Editor(SpyderPluginWidget):
                                default="Ctrl+Alt+Right")
         
         self.comment_action = create_action(self,
-                self.tr("Comment"), icon='comment.png',
+                self.tr("Co&mment"), icon='comment.png',
                 tip=self.tr("Comment current line or selection"),
                 triggered=self.comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.comment_action, context="Editor",
                                name="Comment", default="Ctrl+3")
         self.uncomment_action = create_action(self,
-                self.tr("Uncomment"), icon='uncomment.png',
+                self.tr("&Uncomment"), icon='uncomment.png',
                 tip=self.tr("Uncomment current line or selection"),
                 triggered=self.uncomment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.uncomment_action, context="Editor",
                                name="Uncomment", default="Ctrl+2")
         blockcomment_action = create_action(self, self.tr("Add block comment"),
-                tip=self.tr("Add block comment around "
+                tip=self.tr("Add &block comment around "
                             "current line or selection"),
                 triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
                                name="Blockcomment", default="Ctrl+4")
         unblockcomment_action = create_action(self,
-                self.tr("Remove block comment"),
+                self.tr("R&emove block comment"),
                 tip = self.tr("Remove comment block around "
                               "current line or selection"),
                 triggered=self.unblockcomment, context=Qt.WidgetShortcut)
