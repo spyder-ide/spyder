@@ -167,10 +167,14 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         self.setup()
         
-    def set_background_color(self, color):
-        """Set text editor background color"""
+    def set_palette(self, background, foreground):
+        """
+        Set text editor palette colors:
+        background color and caret (text cursor) color
+        """
         palette = QPalette()
-        palette.setColor(QPalette.Base, color)
+        palette.setColor(QPalette.Base, background)
+        palette.setColor(QPalette.Text, foreground)
         self.setPalette(palette)
         
     #------Line number area
@@ -295,12 +299,14 @@ class TextEditBaseWidget(QPlainTextEdit):
     def setup(self):
         """Configure QPlainTextEdit"""
         # Calltips
-        self.calltip_size = CONF.get('shell_appearance', 'calltips/size')
-        self.calltip_font = get_font('shell_appearance', 'calltips')
+        self.calltip_size = CONF.get('editor_appearance', 'calltips/size')
+        self.calltip_font = get_font('editor_appearance', 'calltips')
         # Completion
-        size = CONF.get('shell_appearance', 'completion/size')
-        font = get_font('shell_appearance', 'completion')
+        size = CONF.get('editor_appearance', 'completion/size')
+        font = get_font('editor_appearance', 'completion')
         self.completion_widget.setup_appearance(size, font)
+        # Caret (text cursor)
+        self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
 
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
@@ -325,12 +331,6 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Set calltips state"""
         self.calltips = state
 
-    def set_caret(self, color=None, width=None):
-        """Set caret properties"""
-        #XXX: not possible to change caret color in QPlainTextEdit
-        if width is not None:
-            self.setCursorWidth(width)
-            
     def set_wrap_mode(self, mode=None):
         """
         Set wrap mode
@@ -933,17 +933,14 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     def set_light_background(self, state):
         self.light_background = state
         if state:
-            self.set_background_color(QColor(Qt.white))
+            self.set_palette(background=QColor(Qt.white),
+                             foreground=QColor(Qt.darkGray))
         else:
-            self.set_background_color(QColor(Qt.black))
+            self.set_palette(background=QColor(Qt.black),
+                             foreground=QColor(Qt.lightGray))
         self.ansi_handler.set_light_background(state)
         self.set_pythonshell_font()
         
-    def remove_margins(self):
-        """Suppressing Scintilla margins"""
-        #TODO: implement this method
-        pass
-
     def set_selection(self, start, end):
         cursor = self.textCursor()
         cursor.setPosition(start)

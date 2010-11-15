@@ -844,7 +844,8 @@ class CodeEditor(TextEditBaseWidget):
     def _apply_highlighter_color_scheme(self):
         hl = self.highlighter
         if hl is not None:
-            self.set_background_color(hl.get_background_color())
+            self.set_palette(background=hl.get_background_color(),
+                             foreground=hl.get_foreground_color())
             self.currentline_color = hl.get_currentline_color()
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()

@@ -85,8 +85,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def setup(self):
         """Reimplement ConsoleBaseWidget method"""
         ConsoleBaseWidget.setup(self)
-        self.set_caret(color=Qt.darkGray, width=2)
-        self.remove_margins() # Suppressing Scintilla margins
+        self.setCursorWidth( CONF.get('shell_appearance', 'cursor/width') )
         
     def toggle_wrap_mode(self, enable):
         """Reimplement ConsoleBaseWidget method: 'word' -> 'character'"""
