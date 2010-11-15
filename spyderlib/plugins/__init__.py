@@ -365,6 +365,13 @@ class RichAndPlainText(SpyderPluginWidget):
                     (font_action, self.wrap_action))
         
         # <!> Layout will have to be implemented in child class!
+        
+    @property
+    def find_widget(self):
+        if self.plain_text.isVisible():
+            return self.plain_text.find_widget
+        else:
+            return self.rich_text.find_widget
     
     def get_focus_widget(self):
         """

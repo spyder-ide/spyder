@@ -1097,23 +1097,16 @@ class MainWindow(QMainWindow):
         from spyderlib.widgets.shell import ShellBaseWidget
         if not isinstance(widget, (TextEditBaseWidget, ShellBaseWidget)):
             return
-        if widget is self.console.shell:
-            plugin = self.console
-        elif widget is self.inspector.editor:
-            plugin = self.inspector
-        elif widget in self.historylog.editors:
-            plugin = self.historylog
-        elif isinstance(widget, ShellBaseWidget):
-            plugin = self.extconsole
+        for plugin in self.widgetlist:
+            if plugin.isAncestorOf(widget):
+                return plugin
         else:
-            # Editor plugin
-            plugin = self.editor
-            if not plugin.isAncestorOf(widget):
-                plugin = widget
-                from spyderlib.widgets.editor import EditorWidget
-                while not isinstance(plugin, EditorWidget):
-                    plugin = plugin.parent()
-        return plugin
+            # External Editor window
+            plugin = widget
+            from spyderlib.widgets.editor import EditorWidget
+            while not isinstance(plugin, EditorWidget):
+                plugin = plugin.parent()
+            return plugin
     
     def find(self):
         """Global find callback"""
