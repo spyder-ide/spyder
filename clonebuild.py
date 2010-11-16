@@ -6,13 +6,10 @@
 
 """
 Cloning Spyder mercurial repository
-Building:
-    .tar.gz source distribution package
-    .exe and .egg installers
+Building source and win32 executable distribution package
 """
 
-import os, shutil, tarfile
-import os.path as osp
+import os, shutil, os.path as osp
 
 import spyderlib as mod
 name = 'spyder'
@@ -26,22 +23,15 @@ if osp.isdir(version):
 basename = osp.basename(osp.dirname(__file__))
 os.system('hg clone %s %s' % (basename, version))
 
-## Creating source distribution archive
-tar = tarfile.open("%s.tar.gz" % version, "w|gz")
-tar.add(version, recursive=True,
-        exclude=lambda fn: osp.relpath(fn, version).startswith('.hg'))
-tar.close()
-
-## Building .exe and .egg installers
+## Building source and exe dist
 os.chdir(version)
-build_cmd = 'python setup.py build_ext --compiler=mingw32'
-os.system('%s bdist_wininst' % build_cmd)
+os.system('python setup.py build sdist bdist_wininst upload')
 
 ## Moving .exe and .egg files to the parent directory
 os.chdir(parentdir)
 dist = osp.join(version, "dist")
-name = "%s.win32.exe" % version
-shutil.copy(osp.join(dist, name), osp.join(parentdir, name))
+for name in ["%s.zip" % version, "%s.win32.exe" % version]:
+    shutil.copy(osp.join(dist, name), osp.join(parentdir, name))
 
 ## Removing temporary directory
 shutil.rmtree(version)
