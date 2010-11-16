@@ -11,10 +11,8 @@ Spyder
 Interactive Python shell and related widgets based on PyQt4
 """
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from distutils.core import setup
+from distutils.command.build import build
 import os, os.path as osp
 
 def get_package_data(name, extlist):
@@ -24,9 +22,10 @@ def get_package_data(name, extlist):
     offset = len(name)+len(os.pathsep)
     for dirpath, _dirnames, filenames in os.walk(name):
         for fname in filenames:
-            if osp.splitext(fname)[1] in extlist:
+            if not fname.startswith('.') and osp.splitext(fname)[1] in extlist:
                 flist.append(osp.join(dirpath, fname)[offset:])
     return flist
+
 
 name = 'spyder'
 libname = 'spyderlib'
@@ -51,6 +50,40 @@ classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: Scientific/Engineering',
                'Topic :: Software Development :: Widget Sets',
                ]
+
+
+try:
+    import sphinx
+except ImportError:
+    sphinx = None
+    
+class MyBuild(build):
+    def has_doc(self):
+        if sphinx is None:
+            return False
+        setup_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.isdir(os.path.join(setup_dir, 'doc'))
+    sub_commands = build.sub_commands + [('build_doc', has_doc)]
+
+cmdclass = {'build': MyBuild}
+
+if sphinx:
+    from sphinx.setup_command import BuildDoc
+    import sys
+    class build_doc(BuildDoc):
+        def run(self):
+            # make sure the python path is pointing to the newly built
+            # code so that the documentation is built on this and not a
+            # previously installed version
+            build = self.get_finalized_command('build')
+            sys.path.insert(0, os.path.abspath(build.build_lib))
+            self.builder_target_dir = osp.join('build', 'lib',
+                                               'spyderlib', 'doc')
+            sphinx.setup_command.BuildDoc.run(self)
+            sys.path.pop(0)
+
+    cmdclass['build_doc'] = build_doc
+
 
 setup(
       name = name,
@@ -77,4 +110,4 @@ setup(
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         ],
-    )
+      cmdclass=cmdclass)

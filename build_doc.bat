@@ -1,5 +1,3 @@
 rmdir /S /Q doctmp
-rmdir /S /Q spyderlib\doc
-sphinx-build -b html doc_src spyderlib\doc
-sphinx-build -b htmlhelp doc_src doctmp
+sphinx-build -b htmlhelp doc doctmp
 pause
