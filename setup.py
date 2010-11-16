@@ -8,12 +8,14 @@
 Spyder
 ======
 
-Interactive Python shell and related widgets based on PyQt4
+The Scientific PYthon Development EnviRonment
 """
 
 from distutils.core import setup
 from distutils.command.build import build
-import os, os.path as osp
+from sphinx import setup_command
+import os, os.path as osp, sys
+
 
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
@@ -31,7 +33,7 @@ name = 'spyder'
 libname = 'spyderlib'
 from spyderlib import __version__ as version
 google_url = 'http://%s.googlecode.com' % libname
-download_url = '%s/files/%s-%s.tar.gz' % (google_url, name, version)
+download_url = '%s/files/%s-%s.zip' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
                                 '.widgets.codeeditor', '.plugins', '.utils']] \
            +['spyderplugins']
@@ -52,37 +54,22 @@ classifiers = ['Development Status :: 5 - Production/Stable',
                ]
 
 
-try:
-    import sphinx
-except ImportError:
-    sphinx = None
-    
+# Sphinx build (documentation)
 class MyBuild(build):
     def has_doc(self):
-        if sphinx is None:
-            return False
         setup_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.isdir(os.path.join(setup_dir, 'doc'))
     sub_commands = build.sub_commands + [('build_doc', has_doc)]
 
-cmdclass = {'build': MyBuild}
+class MyBuildDoc(setup_command.BuildDoc):
+    def run(self):
+        build = self.get_finalized_command('build')
+        sys.path.insert(0, os.path.abspath(build.build_lib))
+        self.builder_target_dir = osp.join('build', 'lib', 'spyderlib', 'doc')
+        setup_command.BuildDoc.run(self)
+        sys.path.pop(0)
 
-if sphinx:
-    from sphinx.setup_command import BuildDoc
-    import sys
-    class build_doc(BuildDoc):
-        def run(self):
-            # make sure the python path is pointing to the newly built
-            # code so that the documentation is built on this and not a
-            # previously installed version
-            build = self.get_finalized_command('build')
-            sys.path.insert(0, os.path.abspath(build.build_lib))
-            self.builder_target_dir = osp.join('build', 'lib',
-                                               'spyderlib', 'doc')
-            sphinx.setup_command.BuildDoc.run(self)
-            sys.path.pop(0)
-
-    cmdclass['build_doc'] = build_doc
+cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
 
 
 setup(
