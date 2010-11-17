@@ -37,7 +37,7 @@ download_url = '%s/files/%s-%s.zip' % (google_url, name, version)
 packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
                                 '.widgets.codeeditor', '.plugins', '.utils']] \
            +['spyderplugins']
-extensions = ('.qm', '.api', '.svg', '.png',
+extensions = ('.qm', '.svg', '.png',
               '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
 package_data={libname: get_package_data(libname, extensions),
               'spyderplugins': get_package_data('spyderplugins', extensions)}
