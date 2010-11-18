@@ -159,7 +159,7 @@ def isdefined(obj, force_import=False, namespace=None):
         return False
     import __builtin__
     if base not in __builtin__.__dict__ and base not in namespace:
-        if force_import and base != 'setup':
+        if force_import:
             try:
                 module = __import__(base, globals(), namespace)
                 if base not in globals():
@@ -171,7 +171,7 @@ def isdefined(obj, force_import=False, namespace=None):
             return False
     for attr in attr_list:
         if not hasattr(eval(base, namespace), attr):
-            if force_import and base != 'setup':
+            if force_import:
                 try:
                     __import__(base+'.'+attr, globals(), namespace)
                 except ImportError:

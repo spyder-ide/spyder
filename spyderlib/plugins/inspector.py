@@ -392,7 +392,11 @@ class ObjectInspector(RichAndPlainText):
         obj_text = unicode(obj_text)
 
         if self.get_option('automatic_import'):
-            self.shell.is_defined(obj_text, force_import=True) # force import
+#            self.shell.is_defined(obj_text, force_import=True) # force import
+            if not self.shell.is_defined(obj_text, force_import=False):
+                # Force import only if necessary and not in the remote process:
+                # in case something wrong, Spyder could freeze
+                self.main.console.shell.is_defined(obj_text, force_import=True)
         
         if self.shell.is_defined(obj_text):
             doc_text = self.shell.get_doc(obj_text)
