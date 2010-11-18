@@ -152,7 +152,7 @@ DEFAULTS = [
               'single_tab': True,
               'calltips': True,
               'object_inspector': True,
-              'codecompletion/auto': False,
+              'codecompletion/auto': True,
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
@@ -206,8 +206,8 @@ DEFAULTS = [
               'close_parentheses': True,
               'auto_unindent': True,
               'object_inspector': True,
-              'codecompletion/auto': False,
-              'codecompletion/enter_key': False,
+              'codecompletion/auto': True,
+              'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
               'check_eol_chars': True,
@@ -313,7 +313,7 @@ DEV = False
 from spyderlib import __version__
 _subfolder = '.spyder%s' % __version__.split('.')[0]
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
-                  version='2.0.3', subfolder=_subfolder, backup=True)
+                  version='2.0.4', subfolder=_subfolder, backup=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
