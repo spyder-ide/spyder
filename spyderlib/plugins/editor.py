@@ -985,10 +985,6 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("edit_goto(QString,int,QString)"),
                      self.load)
         
-        if self.main.inspector is not None:
-            self.connect(editorstack, SIGNAL("inspector_show_help(QString)"),
-                         self.main.inspector.show_help)
-        
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
         if self.last_focus_editorstack is editorstack:
