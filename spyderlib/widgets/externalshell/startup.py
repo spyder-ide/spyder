@@ -152,17 +152,14 @@ if __name__ == "__main__":
     __name__ = '__main__'
 
     if __is_ipython():
-        import sys
-        __real_platform__ = sys.platform
-        if sys.platform == 'win32':
-            # Patching readline to avoid any error
-            from pyreadline import unicode_helper
-            unicode_helper.pyreadline_codepage = "ascii"
-            # Faking non-win32 to avoid any IPython error
-            sys.platform = 'fake'
+        import os
+        if os.name == 'nt':
+            # On Windows platforms, we have to monkey-patch the pyreadline 
+            # module to make IPython work in a remote process
+            import pyreadline
+            pyreadline.GetOutputFile = lambda: None
         import IPython.Shell
-        sys.platform = __real_platform__
-        del __real_platform__, __is_ipython
+        del __is_ipython
         __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile,
                                                         'debugfile': debugfile})
         __ipythonshell__.mainloop()
