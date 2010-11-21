@@ -683,11 +683,8 @@ class TextEditBaseWidget(QPlainTextEdit):
 
     #------Code completion / Calltips
     def show_calltip(self, title, text, color='#2D62FF', at_line=None):
-        """
-        Show calltip
-        This is here because QScintilla does not implement well calltips
-        """
-        if text is None or len(text)==0:
+        """Show calltip"""
+        if text is None or len(text) == 0:
             return
         weight = 'bold' if self.calltip_font.bold() else 'normal'
         size = self.calltip_font.pointSize()

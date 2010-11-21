@@ -56,20 +56,22 @@ class ObjectComboBox(EditableComboBox):
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
         shell = self.object_inspector.shell
+        objtxt = unicode(qstr)
         if shell is not None:
             self.object_inspector._check_if_shell_is_running()
-            force_import = self.object_inspector.get_option('automatic_import')
-            try:
-                return shell.is_defined(unicode(qstr),
-                                        force_import=force_import)
-            except socket.error:
-                self.object_inspector._check_if_shell_is_running()
+            if self.object_inspector.get_option('automatic_import'):
+                shell = self.object_inspector.internal_shell
+                return shell.is_defined(objtxt, force_import=True)
+            else:
                 try:
-                    return shell.is_defined(unicode(qstr),
-                                            force_import=force_import)
+                    return shell.is_defined(objtxt)
                 except socket.error:
-                    # Well... too bad!
-                    pass
+                    self.object_inspector._check_if_shell_is_running()
+                    try:
+                        return shell.is_defined(objtxt)
+                    except socket.error:
+                        # Well... too bad!
+                        pass
         
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -217,6 +219,7 @@ class ObjectInspector(RichAndPlainText):
                      self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
         self.main.console.set_inspector(self)
+        self.internal_shell = self.main.console.shell
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -364,7 +367,7 @@ class ObjectInspector(RichAndPlainText):
         if self.external_console is not None:
             shell = self.external_console.get_running_python_shell()
         if shell is None:
-            shell = self.main.console.shell
+            shell = self.internal_shell
         return shell
         
     def shell_terminated(self, shell):
@@ -390,22 +393,22 @@ class ObjectInspector(RichAndPlainText):
             return
         self._check_if_shell_is_running()
         obj_text = unicode(obj_text)
-
-        if self.get_option('automatic_import'):
-#            self.shell.is_defined(obj_text, force_import=True) # force import
-            if not self.shell.is_defined(obj_text, force_import=False):
-                # Force import only if necessary and not in the remote process:
-                # in case something wrong, Spyder could freeze
-                self.main.console.shell.is_defined(obj_text, force_import=True)
         
         if self.shell.is_defined(obj_text):
-            doc_text = self.shell.get_doc(obj_text)
-            if isinstance(doc_text, bool):
-                doc_text = None
-            source_text = self.shell.get_source(obj_text)
+            shell = self.shell
+        elif self.get_option('automatic_import') and \
+             self.internal_shell.is_defined(obj_text, force_import=True):
+            shell = self.internal_shell
         else:
+            shell = None
             doc_text = None
             source_text = None
+            
+        if shell is not None:
+            doc_text = shell.get_doc(obj_text)
+            if isinstance(doc_text, bool):
+                doc_text = None
+            source_text = shell.get_source(obj_text)
             
         is_code = False
         found = True
