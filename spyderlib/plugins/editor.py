@@ -324,7 +324,7 @@ class Editor(SpyderPluginWidget):
                                     'outline_explorer/show_fullpath', False),
                    fullpath_sorting=self.get_option('fullpath_sorting', True),
                    show_all_files=self.get_option(
-                                    'outline_explorer/show_all_files', True),
+                                    'outline_explorer/show_all_files', False),
                    show_comments=self.get_option(
                                     'outline_explorer/show_comments', True))
         self.connect(self.outlineexplorer,
@@ -1052,7 +1052,7 @@ class Editor(SpyderPluginWidget):
                                          False),
            fullpath_sorting=self.get_option('fullpath_sorting', True),
            show_all_files=self.get_option('outline_explorer/show_all_files',
-                                          True),
+                                          False),
            show_comments=self.get_option('outline_explorer/show_comments',
                                          True))
         window.resize(self.size())
