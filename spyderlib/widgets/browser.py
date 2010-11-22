@@ -97,7 +97,11 @@ class WebView(QWebView):
         
     def contextMenuEvent(self, event):
         menu = QMenu(self)
-        add_actions( menu, (self.pageAction(QWebPage.Reload), None,
+        add_actions( menu, (self.pageAction(QWebPage.Back),
+                            self.pageAction(QWebPage.Forward), None,
+                            self.pageAction(QWebPage.SelectAll),
+                            self.pageAction(QWebPage.Copy), None,
+                            self.pageAction(QWebPage.Reload), None,
                             self.zoom_in_action, self.zoom_out_action) )
         menu.popup(event.globalPos())
         event.accept()
