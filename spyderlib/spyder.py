@@ -782,6 +782,7 @@ class MainWindow(QMainWindow):
             for plugin in (self.inspector, self.extconsole):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
+            self.extconsole.setMinimumHeight(250)
             for toolbar in (self.run_toolbar, self.edit_toolbar):
                 toolbar.close()
             self.projectexplorer.dockwidget.close()
@@ -1411,6 +1412,7 @@ def run_spyder(app, options):
         raise
     main.show()
     main.emit(SIGNAL('restore_scrollbar_position()'))
+    main.extconsole.setMinimumHeight(0)
     app.exec_()
     return main
 

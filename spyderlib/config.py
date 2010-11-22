@@ -313,7 +313,7 @@ DEV = False
 from spyderlib import __version__
 _subfolder = '.spyder%s' % __version__.split('.')[0]
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV),
-                  version='2.0.5', subfolder=_subfolder, backup=True)
+                  version='2.0.6', subfolder=_subfolder, backup=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
