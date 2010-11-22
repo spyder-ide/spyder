@@ -154,8 +154,10 @@ if __name__ == "__main__":
     if __is_ipython():
         import os
         if os.name == 'nt':
-            # On Windows platforms, we have to monkey-patch the pyreadline 
-            # module to make IPython work in a remote process
+            # Windows platforms: monkey-patching *pyreadline* module
+            # to make IPython work in a remote process
+            from pyreadline import unicode_helper
+            unicode_helper.pyreadline_codepage = "ascii"
             import pyreadline
             pyreadline.GetOutputFile = lambda: None
         import IPython.Shell
