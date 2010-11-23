@@ -383,8 +383,8 @@ class ObjectInspector(RichAndPlainText):
         Checks if bound external shell is still running.
         Otherwise, switch to internal console
         """
-        if isinstance(self.shell, ExtPythonShellWidget) \
-           and not self.shell.externalshell.is_running():
+        if not isinstance(self.shell, ExtPythonShellWidget) \
+           or not self.shell.externalshell.is_running():
             self.shell = self.get_running_python_shell()
         
     def show_help(self, obj_text, ignore_unknown=False):
@@ -392,6 +392,8 @@ class ObjectInspector(RichAndPlainText):
         if self.shell is None:
             return
         self._check_if_shell_is_running()
+        if self.shell is None:
+            return
         obj_text = unicode(obj_text)
         
         if self.shell.is_defined(obj_text):
