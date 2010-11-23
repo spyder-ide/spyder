@@ -22,8 +22,9 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.widgets.pylintgui import PylintWidget, is_pylint_installed
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+
+from spyderplugins.widgets.pylintgui import PylintWidget, is_pylint_installed
 
 
 class PylintConfigPage(PluginConfigPage):

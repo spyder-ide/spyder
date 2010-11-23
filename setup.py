@@ -28,31 +28,13 @@ def get_package_data(name, extlist):
                 flist.append(osp.join(dirpath, fname)[offset:])
     return flist
 
-
-name = 'spyder'
-libname = 'spyderlib'
-from spyderlib import __version__ as version
-google_url = 'http://%s.googlecode.com' % libname
-download_url = '%s/files/%s-%s.zip' % (google_url, name, version)
-packages = [libname+p for p in ['', '.widgets', '.widgets.externalshell',
-                                '.widgets.codeeditor', '.plugins', '.utils']] \
-           +['spyderplugins']
-extensions = ('.qm', '.svg', '.png',
-              '.html', '.js', '', '.inv', '.txt', '.css', '.ico', '.doctree')
-package_data={libname: get_package_data(libname, extensions),
-              'spyderplugins': get_package_data('spyderplugins', extensions)}
-if os.name == 'nt':
-    scripts = ['spyder.pyw', 'spyder.py']
-else:
-    scripts = ['spyder']
-description = 'Spyder development environment and its PyQt4-based IDE tools: interactive Python shell, Python code editor, variable explorer (dict/list/string/array editor), doc viewer, history log, environment variables editor, ...'
-long_description = 'spyderlib is intended to be an extension to PyQt4 providing a simple development environment named "Spyder" - a powerful alternative to IDLE (see screenshots: %s) based on independent widgets interacting with each other: variable explorer (globals explorer with dict/list editor and numpy arrays editor), docstring viewer (calltip), history log, multiline code editor (support drag and drop, autocompletion, syntax coloring, ...), environment variables editor (including a Windows-specific editor to change current user environement variables) and working directory browser.' % google_url
-keywords = 'PyQt4 shell console widgets IDE'
-classifiers = ['Development Status :: 5 - Production/Stable',
-               'Topic :: Scientific/Engineering',
-               'Topic :: Software Development :: Widget Sets',
-               ]
-
+def get_subpackages(name):
+    """Return subpackages of package *name*"""
+    splist = []
+    for dirpath, _dirnames, _filenames in os.walk(name):
+        if osp.isfile(osp.join(dirpath, '__init__.py')):
+            splist.append(".".join(dirpath.split(os.sep)))
+    return splist
 
 # Sphinx build (documentation)
 class MyBuild(build):
@@ -72,29 +54,44 @@ class MyBuildDoc(setup_command.BuildDoc):
 cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
 
 
-setup(
-      name = name,
-      version = version,
-      description = description,
-      long_description = long_description,
-      download_url = download_url,
-      author = "Pierre Raybaut",
-      url = google_url,
-      license = 'MIT',
-      keywords = keywords,
-      platforms = ['any'],
-      packages = packages,
-      package_data = package_data,
-      requires=["pyflakes (>0.3.0)", "rope (>0.9.0)", "PyQt4 (>4.3)"],
-      scripts = scripts,
-      classifiers = classifiers + [
-        'License :: OSI Approved :: MIT License',
-        'Operating System :: MacOS',
-        'Operating System :: Microsoft :: Windows',
-        'Operating System :: OS Independent',
-        'Operating System :: POSIX',
-        'Operating System :: Unix',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
-        ],
+NAME = 'spyder'
+LIBNAME = 'spyderlib'
+from spyderlib import __version__
+GOOGLE_URL = 'http://%s.googlecode.com' % LIBNAME
+
+setup(name=NAME,
+      version=__version__,
+      description='Scientific PYthon Development EnviRonment',
+      long_description="""The spyderlib module provides powerful console and 
+editor related widgets to your PyQt4 application. It also includes a 
+Scientific Python development environment named 'Spyder', an alternative to
+IDLE with powerful interactive features such as variable explorer (with 
+GUI-based editors for dictionaries, lists, NumPy arrays, etc.), object 
+inspector, online help, and a lot more.""",
+      download_url='%s/files/%s-%s.zip' % (GOOGLE_URL, NAME, __version__),
+      author="Pierre Raybaut",
+      url=GOOGLE_URL,
+      license='MIT',
+      keywords='PyQt4 editor shell console widgets IDE',
+      platforms=['any'],
+      packages=get_subpackages(LIBNAME)+get_subpackages('spyderplugins'),
+      package_data={LIBNAME:
+                    get_package_data(LIBNAME, ('.qm', '.svg', '.png', '.css')),
+                    'spyderplugins':
+                    get_package_data('spyderplugins', ('.qm', '.svg', '.png'))},
+      requires=["pyflakes (>0.3.0)", "rope (>0.9.0)", "sphinx (>0.6.0)",
+                "PyQt4 (>4.3)"],
+      scripts=['spyder.pyw', 'spyder.py'] if os.name == 'nt' else ['spyder'],
+      classifiers=['License :: OSI Approved :: MIT License',
+                   'Operating System :: MacOS',
+                   'Operating System :: Microsoft :: Windows',
+                   'Operating System :: OS Independent',
+                   'Operating System :: POSIX',
+                   'Operating System :: Unix',
+                   'Programming Language :: Python :: 2.5',
+                   'Programming Language :: Python :: 2.6',
+                   'Programming Language :: Python :: 2.7',
+                   'Development Status :: 5 - Production/Stable',
+                   'Topic :: Scientific/Engineering',
+                   'Topic :: Software Development :: Widget Sets'],
       cmdclass=cmdclass)
