@@ -1305,6 +1305,15 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
             cursor.setPosition(start_pos)
+            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+            if cursor.atBlockStart():
+                cursor.movePosition(QTextCursor.PreviousBlock,
+                                    QTextCursor.KeepAnchor)
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+                end_pos = cursor.position()
+            self.setTextCursor(cursor)
+            cursor.setPosition(start_pos)
         else:
             start_pos = end_pos = cursor.position()
         cursor.beginEditBlock()
@@ -1326,19 +1335,28 @@ class CodeEditor(TextEditBaseWidget):
     
     def unblockcomment(self):
         """Un-block comment current line or selection"""
+        def __is_comment_bar(cursor):
+            return cursor.block().text().startsWith('#' + '='*79)
         # Finding first comment bar
         cursor1 = self.textCursor()
-        if self.__is_comment_bar(cursor1):
+        if __is_comment_bar(cursor1):
             return
-        while cursor1.position() > 0 and not self.__is_comment_bar(cursor1):
+        while not __is_comment_bar(cursor1):
             cursor1.movePosition(QTextCursor.PreviousBlock)
-        if not self.__is_comment_bar(cursor1):
+            if cursor1.atStart():
+                break
+        if not __is_comment_bar(cursor1):
             return
+        def __in_block_comment(cursor):
+            return cursor.block().text().startsWith('#')
         # Finding second comment bar
-        cursor2 = self.textCursor()
-        while cursor2.position() > 0 and not self.__is_comment_bar(cursor2):
+        cursor2 = QTextCursor(cursor1)
+        cursor2.movePosition(QTextCursor.NextBlock)
+        while not __is_comment_bar(cursor2) and __in_block_comment(cursor2):
             cursor2.movePosition(QTextCursor.NextBlock)
-        if not self.__is_comment_bar(cursor2):
+            if cursor2.block() == self.document().lastBlock():
+                break
+        if not __is_comment_bar(cursor2):
             return
         # Removing block comment
         cursor3 = self.textCursor()
