@@ -1102,9 +1102,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
             # changes from the previous block
-            cursor.movePosition(QTextCursor.StartOfBlock,
-                                QTextCursor.KeepAnchor)
-            if cursor.selectedText().isEmpty():
+            if cursor.atBlockStart():
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 if cursor.position() < start_pos:
                     cursor.setPosition(start_pos)
@@ -1159,9 +1157,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
             # changes from the previous block
-            cursor.movePosition(QTextCursor.StartOfBlock,
-                                QTextCursor.KeepAnchor)
-            if cursor.selectedText().isEmpty():
+            if cursor.atBlockStart():
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 if cursor.position() < start_pos:
                     cursor.setPosition(start_pos)
