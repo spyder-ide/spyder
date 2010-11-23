@@ -139,17 +139,17 @@ class PylintWidget(QWidget):
         self.error_output = None
         
         self.max_entries = max_entries
-        self.data = [self.VERSION]
+        self.rdata = []
         if osp.isfile(self.DATAPATH):
             try:
                 data = cPickle.loads(file(self.DATAPATH, 'U').read())
                 if data[0] == self.VERSION:
-                    self.data = data
+                    self.rdata = data[1:]
             except EOFError:
                 pass
 
         self.filecombo = PythonModulesComboBox(self)
-        if self.data:
+        if self.rdata:
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
@@ -231,7 +231,7 @@ class PylintWidget(QWidget):
             self.filecombo.addItem(filename)
             self.filecombo.setCurrentIndex(self.filecombo.count()-1)
         else:
-            self.filecombo.setCurrentIndex(index)
+            self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
         self.filecombo.selected()
         if self.filecombo.is_valid():
             self.start()
@@ -247,16 +247,15 @@ class PylintWidget(QWidget):
             
     def remove_obsolete_items(self):
         """Removing obsolete items"""
-        self.data = [self.VERSION] + \
-                    [(filename, data) for filename, data in self.data[1:]
-                     if is_module_or_package(filename)]
+        self.rdata = [(filename, data) for filename, data in self.rdata
+                      if is_module_or_package(filename)]
         
     def get_filenames(self):
-        return [filename for filename, _data in self.data[1:]]
+        return [filename for filename, _data in self.rdata]
     
     def get_data(self, filename):
         filename = osp.abspath(filename)
-        for index, (fname, data) in enumerate(self.data[1:]):
+        for index, (fname, data) in enumerate(self.rdata):
             if fname == filename:
                 return index, data
         else:
@@ -266,14 +265,14 @@ class PylintWidget(QWidget):
         filename = osp.abspath(filename)
         index, _data = self.get_data(filename)
         if index is not None:
-            self.data.pop(index+1)
-        self.data.append( (filename, data) )
+            self.rdata.pop(index)
+        self.rdata.append( (filename, data) )
         self.save()
         
     def save(self):
-        while len(self.data) > self.max_entries+1:
-            self.data.pop(1)
-        cPickle.dump(self.data, file(self.DATAPATH, 'w'))
+        while len(self.rdata) > self.max_entries:
+            self.rdata.pop(0)
+        cPickle.dump([self.VERSION]+self.rdata, file(self.DATAPATH, 'w'))
         
     def show_log(self):
         if self.output:
