@@ -886,7 +886,8 @@ class CodeEditor(TextEditBaseWidget):
 
     def set_color_scheme(self, color_scheme):
         self.color_scheme = color_scheme
-        self.highlighter.set_color_scheme(color_scheme)
+        if self.highlighter is not None:
+            self.highlighter.set_color_scheme(color_scheme)
         self._apply_highlighter_color_scheme()
         
     def set_text(self, text):
