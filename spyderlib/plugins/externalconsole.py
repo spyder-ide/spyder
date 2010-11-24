@@ -486,6 +486,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))
+            self.register_widget_shortcuts("Console", shellwidget.shell)
         else:
             if os.name == 'posix':
                 cmd = 'gnome-terminal'

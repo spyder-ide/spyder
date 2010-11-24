@@ -477,28 +477,28 @@ class EditorStack(QWidget):
         self.setAcceptDrops(True)
 
         # Local shortcuts
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), parent,
+        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
                                    self.inspect_current_object)
         self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.breakpointsc = QShortcut(QKeySequence("F12"), parent,
+        self.breakpointsc = QShortcut(QKeySequence("F12"), self,
                                       self.set_or_clear_breakpoint)
         self.breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), parent,
+        self.cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), self,
                                        self.set_or_edit_conditional_breakpoint)
         self.cbreakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.gotolinesc = QShortcut(QKeySequence("Ctrl+L"), parent,
+        self.gotolinesc = QShortcut(QKeySequence("Ctrl+L"), self,
                                     self.go_to_line)
         self.gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.filelistsc = QShortcut(QKeySequence("Ctrl+E"), parent,
+        self.filelistsc = QShortcut(QKeySequence("Ctrl+E"), self,
                                     self.open_filelistdialog)
         self.filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.tabsc = QShortcut(QKeySequence("Ctrl+Tab"), parent,
+        self.tabsc = QShortcut(QKeySequence("Ctrl+Tab"), self,
                                self.go_to_previous_file)
         self.tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.closesc = QShortcut(QKeySequence("Ctrl+F4"), parent,
+        self.closesc = QShortcut(QKeySequence("Ctrl+F4"), self,
                                  self.close_file)
         self.closesc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), parent,
+        self.tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), self,
                                     self.go_to_next_file)
         self.tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
         

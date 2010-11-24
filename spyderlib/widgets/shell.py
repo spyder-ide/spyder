@@ -11,12 +11,11 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import sys, os, time
-import os.path as osp
+import sys, os, time, os.path as osp, re
 
 from PyQt4.QtGui import (QMenu, QApplication, QCursor, QToolTip, QKeySequence,
                          QFileDialog, QMessageBox, QMouseEvent, QTextCursor,
-                         QTextCharFormat)
+                         QTextCharFormat, QShortcut)
 from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
 
 # For debugging purpose:
@@ -704,7 +703,23 @@ class PythonShellWidget(ShellBaseWidget):
         
         # Mouse cursor
         self.__cursor_changed = False
+
+        # Local shortcuts
+        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
+                                   self.inspect_current_object)
+        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
         
+    def get_shortcut_data(self):
+        """
+        Returns shortcut data, a list of tuples (shortcut, text, default)
+        shortcut (QShortcut or QAction instance)
+        text (string): action/shortcut description
+        default (string): default key sequence
+        """
+        return [
+                (self.inspectsc, "Inspect current object", "Ctrl+I"),
+                ]
+
 
     #------ Context menu
     def setup_context_menu(self):
@@ -1043,7 +1058,19 @@ class PythonShellWidget(ShellBaseWidget):
 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
-            
+        
+    def inspect_current_object(self):
+        text = ''
+        text1 = self.get_text('sol', 'cursor')
+        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
+        if tl1 and text1.endswith(tl1[-1]):
+            text += tl1[-1]
+        text2 = self.get_text('cursor', 'eol')
+        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
+        if tl2 and text2.startswith(tl2[0]):
+            text += tl2[0]
+        if text:
+            self.show_docstring(text)
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):
