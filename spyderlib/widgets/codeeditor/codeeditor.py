@@ -127,7 +127,7 @@ class CodeEditor(TextEditBaseWidget):
                      self.update_linenumberarea)
 
         # Syntax highlighting
-        self.highlighter_class = None
+        self.highlighter_class = syntaxhighlighters.TextSH
         self.highlighter = None
         ccs = 'Spyder'
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
@@ -330,12 +330,8 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.supported_language = False
         self.comment_string = ''
-        if language is None:
-            if self.highlighter is not None:
-                self.highlighter.setDocument(None)
-            self.highlighter = None
-            self.highlighter_class = None
-        else:
+        sh_class = syntaxhighlighters.TextSH
+        if language is not None:
             for key in self.LANGUAGES:
                 if language.lower() in key:
                     self.supported_language = True
@@ -345,10 +341,10 @@ class CodeEditor(TextEditBaseWidget):
                         self.classfunc_match = None
                     else:
                         self.classfunc_match = CFMatch()
-                    apply_language = self.highlighter_class is not sh_class
-                    self.highlighter_class = sh_class
-                    if apply_language:
-                        self.apply_highlighter_settings()
+                    break
+        if self.highlighter_class is not sh_class:
+            self.highlighter_class = sh_class
+            self.apply_highlighter_settings()
                 
     def is_python(self):
         return self.highlighter_class is syntaxhighlighters.PythonSH
@@ -1674,7 +1670,7 @@ class TestEditor(CodeEditor):
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])
-        self.set_font(QFont("Courier New", 10), 'IDLE')
+        self.set_font(QFont("Courier New", 10), 'Emacs')
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
 #        self.setup_margins(True, True, True)

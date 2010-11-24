@@ -206,6 +206,12 @@ class BaseSH(QSyntaxHighlighter):
         QApplication.restoreOverrideCursor()
 
 
+class TextSH(BaseSH):
+    """Simple Text Syntax Highlighter Class (do nothing)"""
+    def highlightBlock(self, text):
+        pass
+
+
 #===============================================================================
 # Python syntax highlighter
 #===============================================================================
