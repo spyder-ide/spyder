@@ -87,15 +87,22 @@ class UserConfig(ConfigParser):
         self.defaults = defaults
         if defaults is not None:
             self.reset_to_defaults(save=False)
+        fname = self.filename()
         if backup:
             try:
-                shutil.copyfile(self.filename(), self.filename()+".bak")
+                shutil.copyfile(fname, "%s.bak" % fname)
             except IOError:
                 pass
         if load:
             # If config file already exists, it overrides Default options:
             self.load_from_ini()
-            if version != self.get_version(version):
+            old_ver = self.get_version(version)
+            if version != old_ver:
+                if backup:
+                    try:
+                        shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
+                    except IOError:
+                        pass
                 # Version has changed -> overwriting .ini file
                 self.reset_to_defaults(save=False)
                 self.__remove_deprecated_options()
