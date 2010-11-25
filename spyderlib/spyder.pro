@@ -40,7 +40,6 @@ SOURCES      += widgets/outlineexplorer.py
 SOURCES	     += widgets/pathmanager.py
 SOURCES	     += widgets/projectexplorer.py
 SOURCES	     += widgets/pydocgui.py
-SOURCES	     += widgets/pylintgui.py
 SOURCES	     += widgets/codeeditor/codeeditor.py
 SOURCES	     += widgets/shell.py
 SOURCES	     += widgets/tabs.py

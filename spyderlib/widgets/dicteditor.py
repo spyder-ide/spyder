@@ -38,6 +38,7 @@ class FakeObject(object):
     pass
 try:
     from numpy import ndarray
+    from numpy import array, matrix #@UnusedImport (object eval)
     from spyderlib.widgets.arrayeditor import ArrayEditor
 except ImportError:
     class ndarray(FakeObject):
@@ -132,14 +133,12 @@ def try_to_eval(value):
     except (NameError, SyntaxError, ImportError):
         return value
     
-def display_to_value(value, default_value):
+def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
     value = unicode(value.toString())
     try:
         if isinstance(default_value, str):
             value = str(value)
-        elif isinstance(default_value, (bool, list, dict, tuple)):
-            value = eval(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -148,10 +147,15 @@ def display_to_value(value, default_value):
             value = datestr_to_datetime(value)
         elif isinstance(default_value, datetime.date):
             value = datestr_to_datetime(value).date()
-        else:
+        elif ignore_errors:
             value = try_to_eval(value)
+        else:
+            value = eval(value)
     except (ValueError, SyntaxError):
-        value = try_to_eval(value)
+        if ignore_errors:
+            value = try_to_eval(value)
+        else:
+            raise
     return value
 
 def get_size(item):
@@ -396,7 +400,8 @@ class DictModel(ReadOnlyDictModel):
             return False
         if index.column()<3:
             return False
-        value = display_to_value( value, self.get_value(index) )
+        value = display_to_value(value, self.get_value(index),
+                                 ignore_errors=True)
         self.set_value(index, value)
         self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                   index, index)
@@ -510,7 +515,7 @@ class DictDelegate(QItemDelegate):
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
             if not isinstance(value, basestring):
-                value = unicode(value)
+                value = repr(value)
             editor.setText(value)
         elif isinstance(editor, QDateEdit):
             editor.setDate(value)
@@ -540,7 +545,15 @@ class DictDelegate(QItemDelegate):
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
         
-        value = display_to_value( QVariant(value), self.get_value(index) )        
+        try:
+            value = display_to_value(QVariant(value), self.get_value(index),
+                                     ignore_errors=False)
+        except Exception, msg:
+            QMessageBox.critical(editor, self.tr("Edit item"),
+                                 self.tr("<b>Unable to assign data to item.</b>"
+                                         "<br><br>Error message:<br>%1"
+                                         ).arg(str(msg)))
+            return
         self.set_value(index, value)
 
 
