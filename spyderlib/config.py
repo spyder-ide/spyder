@@ -169,7 +169,7 @@ DEFAULTS = [
              {
               'shortcut': "Ctrl+Shift+V",
               'autorefresh/enabled': True,
-              'autorefresh/timeout': 3000,
+              'autorefresh/timeout': 2000,
               'filters': type2str(FILTERS),
               'itermax': ITERMAX,
               'excluded_names': EXCLUDED,

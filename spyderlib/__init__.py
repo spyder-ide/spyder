@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.0.0rc2'
+__version__ = '2.0.0rc3'
 __license__ = __doc__
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
