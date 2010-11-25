@@ -17,6 +17,7 @@ if os.name == 'nt':
     # Removing PyQt4 input hook which is not working well on Windows
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
+    os.environ["SPYDER_PYQT_INPUTHOOK_REMOVED"] = "true"
     
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:

@@ -38,31 +38,36 @@ def qapplication(translate=True):
     Return QApplication instance
     Creates it if it doesn't already exist
     """
-    global QAPPLICATION, TRANSLATORS
+    global QAPPLICATION
     if QApplication.startingUp():
         QAPPLICATION = QApplication([])
         if translate:
-            locale = QLocale.system().name()
-            # Qt-specific translator
-            qt_translator = QTranslator()
-            TRANSLATORS.append(qt_translator) # Keep reference alive
-            paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
-            if qt_translator.load("qt_"+locale, paths):
-                QAPPLICATION.installTranslator(qt_translator)
-            # Spyder-specific translator
-            app_translator = QTranslator()
-            TRANSLATORS.append(app_translator) # Keep reference alive
-            if app_translator.load("spyder_"+locale, DATA_PATH):
-                QAPPLICATION.installTranslator(app_translator)
-            # Load 3rd-party plugin translators
-            for modname in get_spyderplugins(prefix='p_', extension='.py'):
-                plugin_translator = QTranslator()
-                TRANSLATORS.append(plugin_translator)
-                if plugin_translator.load(modname+"_"+locale, PLUGIN_PATH):
-                    QAPPLICATION.installTranslator(plugin_translator)
+            install_translators(QAPPLICATION)
     elif QAPPLICATION is None:
         QAPPLICATION = QApplication.instance()
     return QAPPLICATION
+
+def install_translators(qapp):
+    """Install translators to the QApplication instance"""
+    global TRANSLATORS
+    locale = QLocale.system().name()
+    # Qt-specific translator
+    qt_translator = QTranslator()
+    TRANSLATORS.append(qt_translator) # Keep reference alive
+    paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
+    if qt_translator.load("qt_"+locale, paths):
+        qapp.installTranslator(qt_translator)
+    # Spyder-specific translator
+    app_translator = QTranslator()
+    TRANSLATORS.append(app_translator) # Keep reference alive
+    if app_translator.load("spyder_"+locale, DATA_PATH):
+        qapp.installTranslator(app_translator)
+    # Load 3rd-party plugin translators
+    for modname in get_spyderplugins(prefix='p_', extension='.py'):
+        plugin_translator = QTranslator()
+        TRANSLATORS.append(plugin_translator)
+        if plugin_translator.load(modname+"_"+locale, PLUGIN_PATH):
+            qapp.installTranslator(plugin_translator)
 
 def translate(context, string):
     """Translation"""

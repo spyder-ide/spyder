@@ -462,8 +462,8 @@ class ArrayEditor(QDialog):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
-        title = self.tr("Array editor") + \
-                "%s" % (" - "+str(title) if str(title) else "")
+        if not title:
+            title = self.tr("Array editor")
         if readonly:
             title += ' (' + self.tr('read only') + ')'
         self.setWindowTitle(title)
