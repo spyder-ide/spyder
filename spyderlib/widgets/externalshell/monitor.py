@@ -24,7 +24,8 @@ if DEBUG:
 
 REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
-                   'truncate', 'minmax', 'collvalue', 'inplace')
+                   'truncate', 'minmax', 'collvalue', 'inplace',
+                   'remote_editing')
 
 
 def get_remote_data(data, settings, more_excluded_names=None):

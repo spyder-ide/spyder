@@ -856,16 +856,7 @@ class BaseTableView(QTableView):
         index = self.currentIndex()
         if not index.isValid():
             return
-        key = self.model.get_key(index)
-        if (self.delegate is None
-            or isinstance(self, RemoteDictEditorTableView)) \
-           and (self.is_list(key) or self.is_dict(key) 
-                or self.is_array(key) or self.is_image(key)):
-            # If this is a remote dict editor, the following avoid 
-            # transfering large amount of data through the socket
-            self.oedit(key)
-        else:
-            self.edit(index)
+        self.edit(index)
     
     def remove_item(self):
         """Remove item"""
@@ -1265,8 +1256,8 @@ class RemoteDictDelegate(DictDelegate):
         
 class RemoteDictEditorTableView(BaseTableView):
     """DictEditor table view"""
-    def __init__(self, parent, data,
-                 truncate=True, minmax=False, inplace=False, collvalue=True,
+    def __init__(self, parent, data, truncate=True, minmax=False,
+                 inplace=False, collvalue=True, remote_editing=False,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
                  copy_value_func=None, is_list_func=None, get_len_func=None,
@@ -1275,6 +1266,8 @@ class RemoteDictEditorTableView(BaseTableView):
                  oedit_func=None, plot_func=None, imshow_func=None,
                  show_image_func=None):
         BaseTableView.__init__(self, parent)
+        
+        self.remote_editing_enabled = None
         
         self.remove_values = remove_values_func
         self.copy_value = copy_value_func
@@ -1305,7 +1298,57 @@ class RemoteDictEditorTableView(BaseTableView):
         self.setItemDelegate(self.delegate)
         
         self.setup_table()
-        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue)
+        self.menu = self.setup_menu(truncate, minmax, inplace, collvalue,
+                                    remote_editing)
+
+    def setup_menu(self, truncate, minmax, inplace, collvalue, remote_editing):
+        """Setup context menu"""
+        menu = BaseTableView.setup_menu(self, truncate, minmax,
+                                        inplace, collvalue)
+        if menu is None:
+            self.remote_editing_action.setChecked(remote_editing)
+            return
+        
+        self.remote_editing_action = create_action(self,
+                translate("DictEditor", "Edit data in the remote process"),
+                tip=translate("DictEditor",
+                      "Editors are opened in the remote process for NumPy "
+                      "arrays, PIL images, lists, tuples and dictionaries.\n"
+                      "This avoids transfering large amount of data between "
+                      "the remote process and Spyder (through the socket)."),
+                toggled=self.toggle_remote_editing)
+        self.remote_editing_action.setChecked(remote_editing)
+        self.toggle_remote_editing(remote_editing)
+        add_actions(menu, (self.remote_editing_action,))
+        return menu
+            
+    def toggle_remote_editing(self, state):
+        """Toggle remote editing state"""
+        self.emit(SIGNAL('option_changed'), 'remote_editing', state)
+        self.remote_editing_enabled = state
+            
+    def edit_item(self):
+        """
+        Reimplement BaseTableView's method to edit item
+        
+        Some supported data types are directly edited in the remote process,
+        thus avoiding to transfer large amount of data through the socket from
+        the remote process to Spyder
+        """
+        if self.remote_editing_enabled:
+            index = self.currentIndex()
+            if not index.isValid():
+                return
+            key = self.model.get_key(index)
+            if (self.is_list(key) or self.is_dict(key) 
+                or self.is_array(key) or self.is_image(key)):
+                # If this is a remote dict editor, the following avoid 
+                # transfering large amount of data through the socket
+                self.oedit(key)
+            else:
+                BaseTableView.edit_item(self)
+        else:
+            BaseTableView.edit_item(self)
 
 
 #----Globals filter: filter namespace dictionaries (to be edited in DictEditor)

@@ -54,6 +54,7 @@ class NamespaceBrowser(QWidget):
         self.minmax = None
         self.collvalue = None
         self.inplace = None
+        self.remote_editing = None
         self.autorefresh = None
         
         self.editor = None
@@ -65,8 +66,8 @@ class NamespaceBrowser(QWidget):
             
     def setup(self, filters=None, itermax=None, exclude_private=None,
               exclude_upper=None, exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, collvalue=None, inplace=None,
-              autorefresh=None):
+              truncate=None, minmax=None, collvalue=None, remote_editing=None,
+              inplace=None, autorefresh=None):
         assert self.shellwidget is not None
         
         self.filters = filters
@@ -79,10 +80,15 @@ class NamespaceBrowser(QWidget):
         self.minmax = minmax
         self.collvalue = collvalue
         self.inplace = inplace
+        self.remote_editing = remote_editing
         self.autorefresh = autorefresh
         
         if self.editor is not None:
-            self.editor.setup_menu(truncate, minmax, inplace, collvalue)
+            if self.is_internal_shell:
+                self.editor.setup_menu(truncate, minmax, inplace, collvalue)
+            else:
+                self.editor.setup_menu(truncate, minmax, inplace, collvalue,
+                                       remote_editing)
             self.exclude_private_action.setChecked(exclude_private)
             self.exclude_upper_action.setChecked(exclude_upper)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
@@ -98,7 +104,7 @@ class NamespaceBrowser(QWidget):
         else:
             self.editor = RemoteDictEditorTableView(self, None,
                             truncate=truncate, inplace=inplace, minmax=minmax,
-                            collvalue=collvalue,
+                            collvalue=collvalue, remote_editing=remote_editing,
                             get_value_func=self.get_value,
                             set_value_func=self.set_value,
                             new_value_func=self.set_value,
@@ -203,6 +209,8 @@ class NamespaceBrowser(QWidget):
                    editor.collvalue_action]
         if is_module_installed('numpy'):
             actions.append(editor.minmax_action)
+        if not self.is_internal_shell:
+            actions.append(editor.remote_editing_action)
         add_actions(menu, actions)
         options_button.setMenu(menu)
         
