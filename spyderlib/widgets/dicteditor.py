@@ -48,6 +48,7 @@ except ImportError:
 #----PIL Images support
 try:
     from PIL.Image import Image
+    import PIL.Image
 except:
     class Image(FakeObject):
         """Fake PIL Image"""
@@ -451,7 +452,16 @@ class DictDelegate(QItemDelegate):
         #---showing image
         elif isinstance(value, Image) and ndarray is not FakeObject \
              and Image is not FakeObject:
-            value.show()
+            arr = array(value)
+            if arr.size == 0:
+                return None
+            editor = ArrayEditor(parent)
+            if not editor.setup_and_check(arr, title=key, readonly=readonly):
+                return
+            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly,
+                                            conv=conv_func))
             return None
         #---editor = QDateTimeEdit
         elif isinstance(value, datetime.datetime) and not self.inplace:
@@ -497,7 +507,8 @@ class DictDelegate(QItemDelegate):
         if not data['readonly']:
             index = data['model'].get_index_from_key(data['key'])
             value = data['editor'].get_value()
-            self.set_value(index, value)
+            conv_func = data.get('conv', lambda v: v)
+            self.set_value(index, conv_func(value))
         self._editors.pop(editor_id)
         
     def editor_rejected(self, editor_id):
@@ -702,6 +713,10 @@ class BaseTableView(QTableView):
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         raise NotImplementedError
+
+    def is_image(self, key):
+        """Return True if variable is a PIL.Image image"""
+        raise NotImplementedError
     
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
@@ -726,6 +741,10 @@ class BaseTableView(QTableView):
     def imshow(self, key):
         """Show item's image"""
         raise NotImplementedError
+    
+    def show_image(self, key):
+        """Show image (item is a PIL image)"""
+        raise NotImplementedError
     #---------------------------------------------------------------------------
             
     def refresh_menu(self):
@@ -743,6 +762,7 @@ class BaseTableView(QTableView):
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
+            condition_imshow = condition_imshow or self.is_image(key)
         else:
             is_array = condition_plot = condition_imshow = is_list = False
         self.plot_action.setVisible(condition_plot or is_list)
@@ -950,7 +970,10 @@ class BaseTableView(QTableView):
         if self.__prepare_plot():
             key = self.model.get_key(index)
             try:
-                self.imshow(key)
+                if self.is_image(key):
+                    self.show_image(key)
+                else:
+                    self.imshow(key)
             except ValueError, error:
                 QMessageBox.critical(self, translate("DictEditor", "Plot"),
                     translate("DictEditor", "<b>Unable to show image.</b>"
@@ -1067,6 +1090,11 @@ class DictEditorTableView(BaseTableView):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
         return isinstance(data[key], ndarray)
+        
+    def is_image(self, key):
+        """Return True if variable is a PIL.Image image"""
+        data = self.model.get_data()
+        return isinstance(data[key], Image)
     
     def is_dict(self, key):
         """Return True if variable is a dictionary"""
@@ -1104,6 +1132,11 @@ class DictEditorTableView(BaseTableView):
         plt.figure()
         plt.imshow(data[key])
         plt.show()
+            
+    def show_image(self, key):
+        """Show image (item is a PIL image)"""
+        data = self.model.get_data()
+        data[key].show()
     #---------------------------------------------------------------------------
         
     def refresh_menu(self):
@@ -1232,10 +1265,11 @@ class RemoteDictEditorTableView(BaseTableView):
                  truncate=True, minmax=False, inplace=False, collvalue=True,
                  get_value_func=None, set_value_func=None,
                  new_value_func=None, remove_values_func=None,
-                 copy_value_func=None, is_list_func=None,
-                 get_len_func=None, is_array_func=None, is_dict_func=None,
+                 copy_value_func=None, is_list_func=None, get_len_func=None,
+                 is_array_func=None, is_image_func=None, is_dict_func=None,
                  get_array_shape_func=None, get_array_ndim_func=None,
-                 oedit_func=None, plot_func=None, imshow_func=None):
+                 oedit_func=None, plot_func=None, imshow_func=None,
+                 show_image_func=None):
         BaseTableView.__init__(self, parent)
         
         self.remove_values = remove_values_func
@@ -1245,12 +1279,14 @@ class RemoteDictEditorTableView(BaseTableView):
         self.is_list = is_list_func
         self.get_len = get_len_func
         self.is_array = is_array_func
+        self.is_image = is_image_func
         self.is_dict = is_dict_func
         self.get_array_shape = get_array_shape_func
         self.get_array_ndim = get_array_ndim_func
         self.oedit = oedit_func
         self.plot = plot_func
         self.imshow = imshow_func
+        self.show_image = show_image_func
         
         self.dictfilter = None
         self.model = None
@@ -1306,8 +1342,8 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
 
 def get_test_data():
     """Create test data"""
-    import numpy as np, PIL.Image
-    image = PIL.Image.fromarray(np.random.rand(100, 100))
+    import numpy as np
+    image = PIL.Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     return {'str': 'kjkj kj k j j kj k jkj',

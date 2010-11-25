@@ -160,6 +160,10 @@ def monitor_is_array(sock, name):
     """Return True if object is an instance of class numpy.ndarray"""
     return communicate(sock, 'is_array(globals(), "%s")' % name)
 
+def monitor_is_image(sock, name):
+    """Return True if object is an instance of class PIL.Image.Image"""
+    return communicate(sock, 'is_image(globals(), "%s")' % name)
+
 
 def _getcdlistdir():
     """Return current directory list dir"""
@@ -192,6 +196,7 @@ class Monitor(threading.Thread):
         self.locals = {"refresh": self.enable_refresh_after_eval,
                        "setlocal": self.setlocal,
                        "is_array": self.is_array,
+                       "is_image": self.is_image,
                        "getcomplist": self.getcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
@@ -297,8 +302,19 @@ class Monitor(threading.Thread):
     #------ Other
     def is_array(self, glbs, name):
         """Return True if object is an instance of class numpy.ndarray"""
-        import numpy
-        return isinstance(glbs[name], numpy.ndarray)
+        try:
+            import numpy
+            return isinstance(glbs[name], numpy.ndarray)
+        except ImportError:
+            return False
+
+    def is_image(self, glbs, name):
+        """Return True if object is an instance of class PIL.Image.Image"""
+        try:
+            from PIL.Image import Image
+            return isinstance(glbs[name], Image)
+        except ImportError:
+            return False
 
     def getcwd(self):
         """Return current working directory"""

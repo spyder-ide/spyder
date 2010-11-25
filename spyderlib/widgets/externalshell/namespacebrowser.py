@@ -20,7 +20,8 @@ from PyQt4.QtCore import SIGNAL, Qt
 from spyderlib.widgets.externalshell.monitor import (
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_is_array, communicate, REMOTE_SETTINGS)
+                monitor_is_array, monitor_is_image, communicate,
+                REMOTE_SETTINGS)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView, globalsfilter)
 from spyderlib.utils import encoding, fix_reference_name
@@ -103,12 +104,16 @@ class NamespaceBrowser(QWidget):
                             new_value_func=self.set_value,
                             remove_values_func=self.remove_values,
                             copy_value_func=self.copy_value,
-                            is_list_func=self.is_list, get_len_func=self.get_len,
-                            is_array_func=self.is_array, is_dict_func=self.is_dict,
+                            is_list_func=self.is_list,
+                            get_len_func=self.get_len,
+                            is_array_func=self.is_array,
+                            is_image_func=self.is_image,
+                            is_dict_func=self.is_dict,
                             get_array_shape_func=self.get_array_shape,
                             get_array_ndim_func=self.get_array_ndim,
                             oedit_func=self.oedit,
-                            plot_func=self.plot, imshow_func=self.imshow)
+                            plot_func=self.plot, imshow_func=self.imshow,
+                            show_image_func=self.show_image)
         self.connect(self.editor, SIGNAL('option_changed'),
                      lambda option, value:
                      self.emit(SIGNAL('option_changed'), option, value))
@@ -301,6 +306,10 @@ class NamespaceBrowser(QWidget):
         """Return True if variable is a NumPy array"""
         return monitor_is_array(self._get_sock(), name)
         
+    def is_image(self, name):
+        """Return True if variable is a PIL.Image image"""
+        return monitor_is_image(self._get_sock(), name)
+        
     def get_array_shape(self, name):
         """Return array's shape"""
         return communicate(self._get_sock(), "globals()['%s'].shape" % name)
@@ -317,6 +326,10 @@ class NamespaceBrowser(QWidget):
     def imshow(self, name):
         command = "import spyderlib.pyplot as plt; " \
                   "plt.figure(); plt.imshow(%s); plt.show();" % name
+        self.shellwidget.send_to_process(command)
+        
+    def show_image(self, name):
+        command = "%s.show()" % name
         self.shellwidget.send_to_process(command)
         
     def oedit(self, name):
