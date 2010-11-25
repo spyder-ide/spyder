@@ -121,9 +121,14 @@ class TreeItem(QTreeWidgetItem):
                 # Preceding must be either the same as item's parent
                 # or have the same parent as item
                 while preceding.parent() is not parent:
+                    if preceding is None:
+                        break
                     preceding = preceding.parent()
-            QTreeWidgetItem.__init__(self, parent, preceding,
-                                     QTreeWidgetItem.Type)
+            if preceding is None:
+                QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
+            else:
+                QTreeWidgetItem.__init__(self, parent, preceding,
+                                         QTreeWidgetItem.Type)
         self.setText(0, name)
         parent_text = unicode(parent.data(0, Qt.UserRole).toString())
         set_item_user_text(self, parent_text+'/'+name)
