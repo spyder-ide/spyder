@@ -346,10 +346,11 @@ class Monitor(threading.Thread):
         """
         settings = communicate(self.n_request,
                                dict(command="get_remote_view_settings"))
-        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-        remote_view = make_remote_view(glbs, settings, more_excluded_names)
-        communicate(self.n_request,
-                    dict(command="remote_view", data=remote_view))
+        if settings:
+            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
+            remote_view = make_remote_view(glbs, settings, more_excluded_names)
+            communicate(self.n_request,
+                        dict(command="remote_view", data=remote_view))
         
     def saveglobals(self, glbs):
         """Save globals() into filename"""
