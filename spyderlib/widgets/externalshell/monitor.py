@@ -442,6 +442,11 @@ class Monitor(threading.Thread):
                     timed_out = False
                 except socket.timeout:
                     timed_out = True
+                except struct.error:
+                    if DEBUG:
+                        raise
+                    else:
+                        continue
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     glbs = self.ipython_shell.user_ns
