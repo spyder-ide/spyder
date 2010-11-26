@@ -44,7 +44,8 @@ class NamespaceBrowser(QWidget):
         self.setup_in_progress = None
         
         # Remote dict editor settings
-        self.filters = None
+        self.editable_types = None
+        self.picklable_types = None
         self.itermax = None
         self.exclude_private = None
         self.exclude_upper = None
@@ -64,13 +65,15 @@ class NamespaceBrowser(QWidget):
         
         self.filename = None
             
-    def setup(self, filters=None, itermax=None, exclude_private=None,
-              exclude_upper=None, exclude_unsupported=None, excluded_names=None,
+    def setup(self, editable_types=None, picklable_types=None, itermax=None,
+              exclude_private=None, exclude_upper=None,
+              exclude_unsupported=None, excluded_names=None,
               truncate=None, minmax=None, collvalue=None, remote_editing=None,
               inplace=None, autorefresh=None):
         assert self.shellwidget is not None
         
-        self.filters = filters
+        self.editable_types = editable_types
+        self.picklable_types = picklable_types
         self.itermax = itermax
         self.exclude_private = exclude_private
         self.exclude_upper = exclude_upper
@@ -242,11 +245,21 @@ class NamespaceBrowser(QWidget):
             settings[name] = getattr(self, name)
         return settings
     
-    def get_internal_shell_filter(self, itermax=None):
+    def get_internal_shell_filter(self, mode, itermax=None):
+        """
+        Return internal shell data types filter:
+            * itermax: maximum iterations when walking in sequences
+              (dict, list, tuple)
+            * mode (string): 'editable' or 'picklable'
+        """
+        assert mode in ('editable', 'picklable')
         if itermax is None:
             itermax = self.itermax
-        def wsfilter(input_dict, itermax=itermax,
-                     filters=str2type(self.filters)):
+        if mode == 'picklable':
+            strlist = self.picklable_types
+        else:
+            strlist = self.editable_types
+        def wsfilter(input_dict, itermax=itermax, filters=str2type(strlist)):
             """Keep only objects that can be pickled"""
             return globalsfilter(
                          input_dict, itermax=itermax, filters=filters,
@@ -260,7 +273,8 @@ class NamespaceBrowser(QWidget):
         if self.is_visible and self.isVisible():
             if self.is_internal_shell:
                 # Internal shell
-                self.editor.set_filter(self.get_internal_shell_filter())
+                wsfilter = self.get_internal_shell_filter('editable')
+                self.editor.set_filter(wsfilter)
                 interpreter = self.shellwidget.interpreter
                 if interpreter is not None:
                     self.editor.set_data(interpreter.namespace)
@@ -448,7 +462,7 @@ class NamespaceBrowser(QWidget):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         if self.is_internal_shell:
-            wsfilter = self.get_internal_shell_filter(itermax=-1)
+            wsfilter = self.get_internal_shell_filter('picklable', itermax=-1)
             namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
             error_message = iofunctions.save(namespace, filename)
         else:

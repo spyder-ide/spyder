@@ -1379,9 +1379,8 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
         excluded = (exclude_private and key.startswith('_')) or \
                    (exclude_upper and key[0].isupper()) or \
                    (key in excluded_names) or \
-                   (exclude_unsupported and not is_supported(value,
-                                                             itermax=itermax,
-                                                             filters=filters))
+                   (exclude_unsupported and \
+                    not is_supported(value, itermax=itermax, filters=filters))
         if not excluded:
             output_dict[key] = value
     return output_dict

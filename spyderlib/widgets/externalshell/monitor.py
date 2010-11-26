@@ -22,19 +22,33 @@ if DEBUG:
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
-REMOTE_SETTINGS = ('filters', 'itermax', 'exclude_private', 'exclude_upper',
+REMOTE_SETTINGS = ('editable_types', 'picklable_types', 'itermax',
+                   'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
                    'truncate', 'minmax', 'collvalue', 'inplace',
                    'remote_editing')
 
 
-def get_remote_data(data, settings, more_excluded_names=None):
-    """Return globals according to filter described in *settings*"""
+def get_remote_data(data, settings, mode, more_excluded_names=None):
+    """
+    Return globals according to filter described in *settings*:
+        * data: data to be filtered (dictionary)
+        * settings: variable explorer settings (dictionary)
+        * mode (string): 'editable' or 'picklable'
+        * more_excluded_names: additional excluded names (list)
+        * itermax: maximum iterations when walking in sequences
+          (dict, list, tuple)
+    """
+    assert mode in ('editable', 'picklable')
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
+    if mode == 'picklable':
+        fparam = 'picklable_types'
+    else:
+        fparam = 'editable_types'
     return globalsfilter(data, itermax=settings['itermax'],
-                         filters=tuple(str2type(settings['filters'])),
+                         filters=tuple(str2type(settings[fparam])),
                          exclude_private=settings['exclude_private'],
                          exclude_upper=settings['exclude_upper'],
                          exclude_unsupported=settings['exclude_unsupported'],
@@ -46,7 +60,8 @@ def make_remote_view(data, settings, more_excluded_names=None):
     -> globals explorer
     """
     assert all([name in REMOTE_SETTINGS for name in settings])
-    data = get_remote_data(data, settings, more_excluded_names)
+    data = get_remote_data(data, settings, mode='editable',
+                           more_excluded_names=more_excluded_names)
     remote = {}
     for key, value in data.iteritems():
         view = value_to_display(value, truncate=settings['truncate'],
@@ -358,7 +373,8 @@ class Monitor(threading.Thread):
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
         more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
-        data = get_remote_data(glbs, settings, more_excluded_names).copy()
+        data = get_remote_data(glbs, settings, mode='picklable',
+                               more_excluded_names=more_excluded_names).copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self, glbs):

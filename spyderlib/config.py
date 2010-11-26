@@ -31,15 +31,16 @@ DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
 DATA_PATH = DATA_DEV_PATH # @@@DATA_PATH@@@
 DOC_PATH = DOC_DEV_PATH # @@@DOC_PATH@@@
 
-FILTERS = [int, long, float, list, dict, tuple, str, unicode, date]
+EDITABLE_TYPES = [int, long, float, list, dict, tuple, str, unicode, date]
 try:
-    from numpy import ndarray
-    FILTERS.append(ndarray)
+    from numpy import ndarray, matrix
+    EDITABLE_TYPES += [ndarray, matrix]
 except ImportError:
     pass
+PICKLABLE_TYPES = EDITABLE_TYPES[:]
 try:
     from PIL.Image import Image
-    FILTERS.append(Image)
+    EDITABLE_TYPES.append(Image)
 except ImportError:
     pass
 
@@ -170,7 +171,8 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+V",
               'autorefresh/enabled': True,
               'autorefresh/timeout': 2000,
-              'filters': type2str(FILTERS),
+              'editable_types': type2str(EDITABLE_TYPES),
+              'picklable_types': type2str(PICKLABLE_TYPES),
               'itermax': ITERMAX,
               'excluded_names': EXCLUDED,
               'exclude_private': True,
