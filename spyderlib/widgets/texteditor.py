@@ -8,7 +8,7 @@
 Text Editor Dialog based on PyQt4
 """
 
-from PyQt4.QtCore import Qt, SIGNAL, SLOT, PYQT_VERSION_STR
+from PyQt4.QtCore import Qt, SIGNAL, SLOT
 from PyQt4.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import

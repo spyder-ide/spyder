@@ -55,7 +55,7 @@ def oedit(obj, modal=True, namespace=None):
     # Local import
     from spyderlib.widgets.texteditor import TextEditor
     from spyderlib.widgets.dicteditor import (DictEditor, ndarray, FakeObject,
-                                              Image)
+                                              Image, is_known_type)
     from spyderlib.widgets.arrayeditor import ArrayEditor
     
     from spyderlib.utils.qthelpers import qapplication, install_translators
@@ -73,23 +73,26 @@ def oedit(obj, modal=True, namespace=None):
         obj = namespace[obj_name]
 
     conv_func = lambda data: data
+    readonly = not is_known_type(obj)
     if isinstance(obj, ndarray) and ndarray is not FakeObject:
         dialog = ArrayEditor()
-        if not dialog.setup_and_check(obj, title=obj_name):
+        if not dialog.setup_and_check(obj, title=obj_name,
+                                      readonly=readonly):
             return
     elif isinstance(obj, Image) and Image is not FakeObject \
          and ndarray is not FakeObject:
         dialog = ArrayEditor()
         import numpy as np
         data = np.array(obj)
-        if not dialog.setup_and_check(data, title=obj_name):
+        if not dialog.setup_and_check(data, title=obj_name,
+                                      readonly=readonly):
             return
         import PIL.Image
         conv_func = lambda data: PIL.Image.fromarray(data, mode=obj.mode)
     elif isinstance(obj, (str, unicode)):
-        dialog = TextEditor(obj, title=obj_name)
+        dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     elif isinstance(obj, (dict, tuple, list)):
-        dialog = DictEditor(obj, title=obj_name)
+        dialog = DictEditor(obj, title=obj_name, readonly=readonly)
     else:
         raise RuntimeError("Unsupported datatype")
     

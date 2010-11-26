@@ -88,6 +88,8 @@ COLORS = {
 
 def get_color_name(value):
     """Return color name depending on value type"""
+    if not is_known_type(value):
+        return "#7755aa"
     for typ, name in COLORS.iteritems():
         if isinstance(value, typ):
             return name
@@ -170,16 +172,27 @@ def get_size(item):
     else:
         return 1
 
+def get_type_string(item):
+    """Return type string of an object"""
+    if isinstance(item, ndarray):
+        return item.dtype.name
+    elif isinstance(item, Image):
+        return "Image"
+    else:
+        found = re.findall(r"<type '([\S]*)'>", str(type(item)))
+        if found:
+            return found[0]
+
 def get_type(item):
     """Return type of an item"""
-    found = re.findall(r"<type '([\S]*)'>", str(type(item)))
-    text = unicode(translate('DictEditor', 'unknown')) \
-           if not found else found[0]
-    if isinstance(item, ndarray):
-        text = item.dtype.name
-    if isinstance(item, Image):
-        text = "Image"
+    text = get_type_string(item)
+    if text is None:
+        text = unicode(translate('DictEditor', 'unknown'))
     return text[text.find('.')+1:]
+
+def is_known_type(item):
+    """Return True if object has a known type"""
+    return get_type_string(item) is not None
 
 
 class ReadOnlyDictModel(QAbstractTableModel):
@@ -439,7 +452,8 @@ class DictDelegate(QItemDelegate):
                                            ).arg(unicode(msg)))
             return
         key = index.model().get_key(index)
-        readonly = isinstance(value, tuple) or self.parent().readonly
+        readonly = isinstance(value, tuple) or self.parent().readonly \
+                   or not is_known_type(value)
         #---editor = DictEditor
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
             editor = DictEditor(value, key, icon=self.parent().windowIcon(),
@@ -1414,6 +1428,8 @@ def get_test_data():
             'image': image,
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8),
+            'unsupported1': np.arccos,
+            'unsupported2': np.cast,
             }
 
 def test():
