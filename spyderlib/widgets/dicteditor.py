@@ -428,7 +428,16 @@ class DictDelegate(QItemDelegate):
         """Overriding method createEditor"""
         if index.column()<3:
             return None
-        value = self.get_value(index)
+        try:
+            value = self.get_value(index)
+        except Exception, msg:
+            QMessageBox.critical(self.parent(),
+                                 translate("DictEditor", "Edit item"),
+                                 translate("DictEditor",
+                                           "<b>Unable to retrieve data.</b>"
+                                           "<br><br>Error message:<br>%1"
+                                           ).arg(unicode(msg)))
+            return
         key = index.model().get_key(index)
         readonly = isinstance(value, tuple) or self.parent().readonly
         #---editor = DictEditor
@@ -560,10 +569,11 @@ class DictDelegate(QItemDelegate):
             value = display_to_value(QVariant(value), self.get_value(index),
                                      ignore_errors=False)
         except Exception, msg:
-            QMessageBox.critical(editor, self.tr("Edit item"),
-                                 self.tr("<b>Unable to assign data to item.</b>"
-                                         "<br><br>Error message:<br>%1"
-                                         ).arg(str(msg)))
+            QMessageBox.critical(editor, translate("DictEditor", "Edit item"),
+                                 translate("DictEditor",
+                                       "<b>Unable to assign data to item.</b>"
+                                       "<br><br>Error message:<br>%1"
+                                       ).arg(str(msg)))
             return
         self.set_value(index, value)
 
@@ -1394,7 +1404,7 @@ def get_test_data():
     testdate = datetime.date(1945, 5, 8)
     return {'str': 'kjkj kj k j j kj k jkj',
             'unicode': u'éù',
-            'list': [1, 3, [4, 5, 6], 'kjkj', None],
+            'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,

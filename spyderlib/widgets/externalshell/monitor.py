@@ -172,6 +172,10 @@ def monitor_copy_global(sock, orig_name, new_name):
     return communicate(sock, '__copy_global__(globals(), "%s", "%s")' \
                        % (orig_name, new_name))
 
+def monitor_is_none(sock, name):
+    """Return True if object is None"""
+    return communicate(sock, "globals()['%s'] is None" % name)
+
 def monitor_is_array(sock, name):
     """Return True if object is an instance of class numpy.ndarray"""
     return communicate(sock, 'is_array(globals(), "%s")' % name)

@@ -326,14 +326,19 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>DictDelegate</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="562"/>
+        <location filename="widgets/dicteditor.py" line="569"/>
         <source>Edit item</source>
-        <translation>Modifier</translation>
+        <translation type="obsolete">Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="565"/>
+        <location filename="widgets/dicteditor.py" line="572"/>
         <source>&lt;b&gt;Unable to assign data to item.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
-        <translation>&lt;b&gt;Impossible d&apos;assigner la valeur de l&apos;objet.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+        <translation type="obsolete">&lt;b&gt;Impossible d&apos;assigner la valeur de l&apos;objet.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="436"/>
+        <source>&lt;b&gt;Unable to retrieve data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
+        <translation type="obsolete">&lt;b&gt;Impossible d&apos;accéder aux données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
 </context>
 <context>
@@ -374,47 +379,47 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="664"/>
+        <location filename="widgets/dicteditor.py" line="674"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="621"/>
+        <location filename="widgets/dicteditor.py" line="631"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="932"/>
+        <location filename="widgets/dicteditor.py" line="942"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="872"/>
+        <location filename="widgets/dicteditor.py" line="882"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="923"/>
+        <location filename="widgets/dicteditor.py" line="933"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="933"/>
+        <location filename="widgets/dicteditor.py" line="943"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="890"/>
+        <location filename="widgets/dicteditor.py" line="900"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="676"/>
+        <location filename="widgets/dicteditor.py" line="686"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="611"/>
+        <location filename="widgets/dicteditor.py" line="621"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
@@ -439,97 +444,97 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="648"/>
+        <location filename="widgets/dicteditor.py" line="658"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="653"/>
+        <location filename="widgets/dicteditor.py" line="663"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1029"/>
+        <location filename="widgets/dicteditor.py" line="1039"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1031"/>
+        <location filename="widgets/dicteditor.py" line="1041"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1026"/>
+        <location filename="widgets/dicteditor.py" line="1036"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1010"/>
+        <location filename="widgets/dicteditor.py" line="1020"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="617"/>
+        <location filename="widgets/dicteditor.py" line="627"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="658"/>
+        <location filename="widgets/dicteditor.py" line="668"/>
         <source>Show collection contents</source>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="972"/>
+        <location filename="widgets/dicteditor.py" line="982"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="630"/>
+        <location filename="widgets/dicteditor.py" line="640"/>
         <source>Show image</source>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="945"/>
+        <location filename="widgets/dicteditor.py" line="955"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="947"/>
+        <location filename="widgets/dicteditor.py" line="957"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt;.</source>
         <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="979"/>
+        <location filename="widgets/dicteditor.py" line="989"/>
         <source>Save array</source>
         <translation>Enregistrer le tableau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="983"/>
+        <location filename="widgets/dicteditor.py" line="993"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="994"/>
+        <location filename="widgets/dicteditor.py" line="1004"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="959"/>
+        <location filename="widgets/dicteditor.py" line="969"/>
         <source>&lt;b&gt;Unable to plot data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher les données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="974"/>
+        <location filename="widgets/dicteditor.py" line="984"/>
         <source>&lt;b&gt;Unable to show image.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher l&apos;image&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="869"/>
+        <location filename="widgets/dicteditor.py" line="879"/>
         <source>Do you want to remove selected item?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément sélectionné ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="871"/>
+        <location filename="widgets/dicteditor.py" line="881"/>
         <source>Do you want to remove all selected items?</source>
         <translation>Souhaitez-vous supprimer les éléments sélectionnés ?</translation>
     </message>
@@ -544,7 +549,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1312"/>
+        <location filename="widgets/dicteditor.py" line="1322"/>
         <source>Edit data in the remote process</source>
         <translation>Éditeurs dans le processus distant</translation>
     </message>
@@ -554,11 +559,26 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1317"/>
+        <location filename="widgets/dicteditor.py" line="1327"/>
         <source>Editors are opened in the remote process for NumPy arrays, PIL images, lists, tuples and dictionaries.
 This avoids transfering large amount of data between the remote process and Spyder (through the socket).</source>
         <translation>Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant.
 Cela permet d&apos;éviter de transférer de gros volumes de données entre le processus distant et Spyder (à travers le socket).</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="571"/>
+        <source>Edit item</source>
+        <translation>Modifier</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="438"/>
+        <source>&lt;b&gt;Unable to retrieve data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
+        <translation>&lt;b&gt;Impossible d&apos;accéder aux données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="575"/>
+        <source>&lt;b&gt;Unable to assign data to item.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
+        <translation>&lt;b&gt;Impossible d&apos;assigner la valeur de l&apos;objet.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
 </context>
 <context>
@@ -3381,79 +3401,84 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>NamespaceBrowser</name>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="153"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="156"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="358"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="378"/>
         <source>Import data</source>
         <translation>Importer des données</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="460"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="480"/>
         <source>Save data</source>
         <translation>Enregistrer les données</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="169"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="172"/>
         <source>Save data as...</source>
         <translation>Enregistrer les données sous...</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="176"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="179"/>
         <source>Exclude private references</source>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="178"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="181"/>
         <source>Exclude references which name starts with an underscore</source>
         <translation>Exclure les références dont le nom commence par un tiret bas</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="184"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="187"/>
         <source>Exclude capitalized references</source>
         <translation>Exclure les références en capitales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="186"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="189"/>
         <source>Exclude references which name starts with an upper-case character</source>
         <translation>Exclure les références dont le nom commence par une capitale</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="192"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="195"/>
         <source>Exclude unsupported data types</source>
         <translation>Exclure les types non supportés</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="194"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="197"/>
         <source>Exclude references to unsupported data types (i.e. which won&apos;t be handled/saved correctly)</source>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="199"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="202"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="380"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="400"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Would you like to import it as a text file?</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Souhaitez-vous ouvrir ce fichier en tant que fichier texte ?</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="429"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="449"/>
         <source>&lt;b&gt;Unable to load &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;ouvrir &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="463"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="483"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="157"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="160"/>
         <source>Refresh periodically</source>
         <translation>Rafraîchir périodiquement</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="301"/>
+        <source>Object &lt;b&gt;%1&lt;/b&gt; is not picklable</source>
+        <translation>L&apos;objet &lt;b&gt;%1&lt;/b&gt; n&apos;est pas pris en charge par le protocole de sérialisation de &lt;i&gt;Pickle&lt;/i&gt;</translation>
     </message>
 </context>
 <context>
@@ -3553,22 +3578,22 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>OutlineExplorer</name>
     <message>
-        <location filename="widgets/editortools.py" line="136"/>
+        <location filename="widgets/editortools.py" line="141"/>
         <source>Line %1</source>
         <translation>Ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="142"/>
+        <location filename="widgets/editortools.py" line="147"/>
         <source>Class defined at line %1</source>
         <translation>Classe déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="158"/>
+        <location filename="widgets/editortools.py" line="163"/>
         <source>Method defined at line %1</source>
         <translation>Méthode déclarée ligne %1</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="172"/>
+        <location filename="widgets/editortools.py" line="177"/>
         <source>Function defined at line %1</source>
         <translation>Fonction déclarée ligne %1</translation>
     </message>
@@ -3578,27 +3603,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Structure</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="559"/>
+        <location filename="widgets/editortools.py" line="564"/>
         <source>Go to cursor position</source>
         <translation>Aller à la position du curseur</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="232"/>
+        <location filename="widgets/editortools.py" line="237"/>
         <source>Show absolute path</source>
         <translation>Afficher les chemins complets</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="236"/>
+        <location filename="widgets/editortools.py" line="241"/>
         <source>Show all files</source>
         <translation>Afficher tous les fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="531"/>
+        <location filename="widgets/editortools.py" line="536"/>
         <source>Show/hide outline explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de structure</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="241"/>
+        <location filename="widgets/editortools.py" line="246"/>
         <source>Show special comments</source>
         <translation>Afficher les commentaires spéciaux</translation>
     </message>
@@ -4417,7 +4442,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>VariableExplorer</name>
     <message>
-        <location filename="plugins/variableexplorer.py" line="163"/>
+        <location filename="plugins/variableexplorer.py" line="165"/>
         <source>Variable explorer</source>
         <translation>Explorateur de variables</translation>
     </message>
@@ -4465,7 +4490,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="plugins/variableexplorer.py" line="54"/>
+        <location filename="plugins/variableexplorer.py" line="49"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
@@ -4490,12 +4515,12 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation> ms</translation>
     </message>
     <message>
-        <location filename="plugins/variableexplorer.py" line="47"/>
+        <location filename="plugins/variableexplorer.py" line="51"/>
         <source>Edit data in the remote process</source>
         <translation>Éditeurs dans le processus distant</translation>
     </message>
     <message>
-        <location filename="plugins/variableexplorer.py" line="51"/>
+        <location filename="plugins/variableexplorer.py" line="55"/>
         <source>Editors are opened in the remote process for NumPy arrays, PIL images, lists, tuples and dictionaries.
 This avoids transfering large amount of data between the remote process and Spyder (through the socket).</source>
         <translation>Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant.

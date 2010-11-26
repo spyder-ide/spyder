@@ -20,8 +20,8 @@ from PyQt4.QtCore import SIGNAL, Qt
 from spyderlib.widgets.externalshell.monitor import (
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_is_array, monitor_is_image, communicate,
-                REMOTE_SETTINGS)
+                monitor_is_array, monitor_is_image, monitor_is_none,
+                communicate, REMOTE_SETTINGS)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView, globalsfilter)
 from spyderlib.utils import encoding, fix_reference_name
@@ -295,7 +295,13 @@ class NamespaceBrowser(QWidget):
         
     #------ Remote Python process commands -------------------------------------
     def get_value(self, name):
-        return monitor_get_global(self._get_sock(), name)
+        value = monitor_get_global(self._get_sock(), name)
+        if value is None and not monitor_is_none(self._get_sock(), name):
+            import pickle
+            msg = unicode(self.tr("Object <b>%1</b> is not picklable"
+                                  ).arg(name))
+            raise pickle.PicklingError(msg)
+        return value
         
     def set_value(self, name, value):
         monitor_set_global(self._get_sock(), name, value)
