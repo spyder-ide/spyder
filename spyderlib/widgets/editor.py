@@ -1725,7 +1725,7 @@ class EditorStack(QWidget):
             editor.select_current_block()
             self.__run_in_external_console( self.__process_lines() )
             editor.setFocus()
-            editor.move_cursor_to_next('block', 'down')
+            editor.clear_selection()
             
     #------ Drag and drop
     def dragEnterEvent(self, event):

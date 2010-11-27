@@ -430,6 +430,7 @@ class TextEditBaseWidget(QPlainTextEdit):
             return self.textCursor() < cursor
                 
     def __move_cursor_anchor(self, what, direction, move_mode):
+        assert what in ('character', 'word', 'line')
         if what == 'character':
             if direction == 'left':
                 self.moveCursor(QTextCursor.PreviousCharacter, move_mode)
@@ -441,11 +442,6 @@ class TextEditBaseWidget(QPlainTextEdit):
             elif direction == 'right':
                 self.moveCursor(QTextCursor.NextWord, move_mode)
         elif what == 'line':
-            if direction == 'down':
-                self.moveCursor(QTextCursor.NextRow, move_mode)
-            elif direction == 'up':
-                self.moveCursor(QTextCursor.PreviousRow, move_mode)
-        elif what == 'block':
             if direction == 'down':
                 self.moveCursor(QTextCursor.NextBlock, move_mode)
             elif direction == 'up':
@@ -479,7 +475,41 @@ class TextEditBaseWidget(QPlainTextEdit):
         Block = group of lines separated by either empty lines or commentaries
         """
         cursor = self.textCursor()
-        cursor.select(QTextCursor.BlockUnderCursor)
+        def _is_separator(cursor):
+            cursor0 = QTextCursor(cursor)
+            cursor0.select(QTextCursor.BlockUnderCursor)
+            text = unicode(cursor0.selectedText())
+            return len(text.strip()) == 0 or text.lstrip()[0] == '#'
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cur_pos = prev_pos = cursor.position()
+        while _is_separator(cursor):
+            # Moving to the next code block
+            cursor.movePosition(QTextCursor.NextBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                return
+        while not _is_separator(cursor):
+            # Moving to the previous code block
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prev_pos = cur_pos
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                if _is_separator(cursor):
+                    return
+                else:
+                    break
+        cursor.setPosition(prev_pos)
+        while not _is_separator(cursor):
+            # Moving to the next code block
+            cursor.movePosition(QTextCursor.NextBlock,
+                                QTextCursor.KeepAnchor)
+            cur_pos = cursor.position()
+            if cur_pos == prev_pos:
+                cursor.movePosition(QTextCursor.EndOfBlock,
+                                    QTextCursor.KeepAnchor)
+                break
+            prev_pos = cur_pos
         self.setTextCursor(cursor)
 
 
@@ -616,7 +646,7 @@ class TextEditBaseWidget(QPlainTextEdit):
             return match[0]
     
     def get_current_line(self):
-        """***NOT TESTED*** Return current line"""
+        """Return current line's text"""
         cursor = self.textCursor()
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText())

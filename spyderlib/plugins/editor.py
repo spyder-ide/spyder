@@ -615,7 +615,7 @@ class Editor(SpyderPluginWidget):
                 icon='run_selection.png',
                 tip=self.tr("Run selected text or current block of lines \n"
                             "inside current external console's interpreter"),
-                triggered=lambda: self.run_selection_or_block())
+                triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
         
