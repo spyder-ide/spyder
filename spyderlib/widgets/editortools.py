@@ -121,9 +121,9 @@ class TreeItem(QTreeWidgetItem):
                 # Preceding must be either the same as item's parent
                 # or have the same parent as item
                 while preceding.parent() is not parent:
+                    preceding = preceding.parent()
                     if preceding is None:
                         break
-                    preceding = preceding.parent()
             if preceding is None:
                 QTreeWidgetItem.__init__(self, parent, QTreeWidgetItem.Type)
             else:
