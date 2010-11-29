@@ -6,6 +6,8 @@
 
 """Startup file used by ExternalPythonShell"""
 
+import sys
+
 def __run_pythonstartup_script():
     import os
     filename = os.environ.get('PYTHONSTARTUP')
@@ -22,14 +24,20 @@ def __is_ipython():
 
 def __create_banner():
     """Create shell banner"""
-    import sys
     print 'Python %s on %s\nType "copyright", "credits" or "license" ' \
           'for more information.'  % (sys.version, sys.platform)
 
 def __remove_sys_argv__():
     """Remove arguments from sys.argv"""
-    import sys
     sys.argv = ['']
+    
+def __remove_from_syspath__():
+    """Remove this module's path from sys.path"""
+    import os.path as osp
+    for path in sys.path[:]:
+        if path == osp.dirname(__file__):
+            sys.path.remove(path)
+            break
 
 
 class UserModuleDeleter(object):
@@ -132,6 +140,8 @@ def debugfile(filename, args=None, wdir=None):
 
 
 if __name__ == "__main__":
+    __remove_from_syspath__()
+    
     if not __is_ipython():
         __remove_sys_argv__()
         __create_banner()
