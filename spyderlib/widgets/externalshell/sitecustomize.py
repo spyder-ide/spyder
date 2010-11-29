@@ -3,6 +3,14 @@
 
 import sys, os, os.path as osp
 
+# Prepending this spyderlib package's path to sys.path to be sure 
+# that another version of spyderlib won't be imported instead:
+spyderlib_path = osp.dirname(__file__)
+while not osp.isdir(osp.join(spyderlib_path, 'spyderlib')):
+    spyderlib_path = osp.abspath(osp.join(spyderlib_path, os.pardir))
+sys.path.insert(0, spyderlib_path)
+os.environ['SPYDER_PATH'] = spyderlib_path
+
 if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     try:
         from spyderlib import mpl_patch
@@ -62,14 +70,6 @@ if encoding is None:
     encoding = "UTF-8"
 
 sys.setdefaultencoding(encoding)
-
-
-scpath = osp.join("spyderlib", "widgets", "externalshell")
-for path in sys.path[:]:
-    if path.endswith(scpath):
-        sys.path.remove(path)
-        break
-
     
 try:
     import sitecustomize #@UnusedImport
@@ -163,6 +163,14 @@ class SpyderPdb(pdb.Pdb):
 
 pdb.Pdb = SpyderPdb
 
+# Restoring original sys.path
+for added_path in (spyderlib_path,
+                   osp.join(spyderlib_path,
+                            "spyderlib", "widgets", "externalshell")):
+    for path in sys.path[:]:
+        if path == added_path:
+            sys.path.remove(path)
+            break
 
 ## Restoring original PYTHONPATH
 #try:
