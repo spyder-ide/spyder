@@ -11,14 +11,16 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
-import sys, os, cPickle, tarfile, os.path as osp, shutil
+import sys, os, cPickle, tarfile, os.path as osp, shutil, warnings
 
 STDERR = sys.stderr
 
 
 try:
     import numpy as np
-    import scipy.io as spio
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        import scipy.io as spio
     def load_matlab(filename):
         try:
             out = spio.loadmat(filename, struct_as_record=True,
