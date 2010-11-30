@@ -11,6 +11,8 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
+from __future__ import with_statement
+
 import sys, os, cPickle, tarfile, os.path as osp, shutil, warnings
 
 STDERR = sys.stderr
