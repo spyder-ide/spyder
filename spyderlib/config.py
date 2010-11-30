@@ -165,6 +165,7 @@ DEFAULTS = [
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
+              'ipython_set_color': True,
               }),
             ('variable_explorer',
              {

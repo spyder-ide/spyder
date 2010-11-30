@@ -69,9 +69,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         bg_label.setWordWrap(True)
         lightbg_box = newcb(self.tr("Light background (white color)"),
                             'light_background')
+        ipybg_box = newcb(self.tr("Set the appropriate IPython color option"),
+                          'ipython_set_color')
+        ipybg_box.setEnabled(programs.is_module_installed("IPython"))
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(bg_label)
         bg_layout.addWidget(lightbg_box)
+        bg_layout.addWidget(ipybg_box)
         bg_group.setLayout(bg_layout)
 
         # Advanced settings
@@ -717,6 +721,22 @@ class ExternalConsole(SpyderPluginWidget):
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
+        whitebg_n = 'light_background'
+        ipybg_n = 'ipython_set_color'
+        if (whitebg_n in options or ipybg_n in options) \
+           and self.get_option(ipybg_n):
+            ipython_n = 'ipython_options'
+            args = self.get_option(ipython_n, "")
+            if args:
+                lbgo = "-colors LightBG"
+                if self.get_option(whitebg_n):
+                    # White background
+                    if lbgo not in args:
+                        self.set_option(ipython_n, args+" "+lbgo)
+                else:
+                    # Black background
+                    self.set_option(ipython_n, args.replace(" "+lbgo, ""
+                                    ).replace(lbgo+" ", ""))
         font = self.get_plugin_font()
         icontext = self.get_option('show_icontext')
         calltips = self.get_option('calltips')
