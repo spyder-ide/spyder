@@ -25,7 +25,7 @@ os.system('hg clone %s %s' % (basename, version))
 
 ## Building source and exe dist
 os.chdir(version)
-os.system('python setup.py build sdist bdist_wininst upload')
+os.system('python setup.py build sdist bdist_wininst')
 
 ## Moving .exe and .egg files to the parent directory
 os.chdir(parentdir)
