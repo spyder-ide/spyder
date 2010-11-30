@@ -168,7 +168,7 @@ def isdefined(obj, force_import=False, namespace=None):
                 if base not in globals():
                     globals()[base] = module
                 namespace[base] = module
-            except ImportError:
+            except (ImportError, SyntaxError):
                 return False
         else:
             return False
@@ -177,7 +177,7 @@ def isdefined(obj, force_import=False, namespace=None):
             if force_import:
                 try:
                     __import__(base+'.'+attr, globals(), namespace)
-                except ImportError:
+                except (ImportError, SyntaxError):
                     return False
             else:
                 return False
