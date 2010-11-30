@@ -20,8 +20,12 @@ STDERR = sys.stderr
 
 try:
     import numpy as np
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            import scipy.io as spio
+    except AttributeError:
+        # Python 2.5: warnings.catch_warnings was introduced in Python 2.6
         import scipy.io as spio
     def load_matlab(filename):
         try:
