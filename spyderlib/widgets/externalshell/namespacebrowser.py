@@ -358,13 +358,17 @@ class NamespaceBrowser(QWidget):
         return communicate(self._get_sock(), "globals()['%s'].ndim" % name)
         
     def plot(self, name):
-        command = "import spyderlib.pyplot as plt; " \
-                  "plt.figure(); plt.plot(%s); plt.show();" % name
+        command = "import spyderlib.pyplot; " \
+                  "__fig__ = spyderlib.pyplot.figure(); " \
+                  "__items__ = spyderlib.pyplot.plot(%s); " \
+                  "spyderlib.pyplot.show(); del __fig__, __items__;" % name
         self.shellwidget.send_to_process(command)
         
     def imshow(self, name):
-        command = "import spyderlib.pyplot as plt; " \
-                  "plt.figure(); plt.imshow(%s); plt.show();" % name
+        command = "import spyderlib.pyplot; " \
+                  "__fig__ = spyderlib.pyplot.figure(); " \
+                  "__items__ = spyderlib.pyplot.imshow(%s); " \
+                  "spyderlib.pyplot.show(); del __fig__, __items__;" % name
         self.shellwidget.send_to_process(command)
         
     def show_image(self, name):
