@@ -26,8 +26,7 @@ from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QMessageBox,
                          QVBoxLayout, QLabel, QFileDialog)
 from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString
 
-import sys, os, time, cPickle
-import os.path as osp
+import sys, os, time, cPickle, os.path as osp, re
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -341,10 +340,8 @@ class PylintWidget(QWidget):
                 # New module
                 module = line[len(txt_module):]
                 continue
-            for prefix in results:
-                if line.startswith(prefix):
-                    break
-            else:
+            # Supporting option include-ids: ('R3873:' instead of 'R:')
+            if not re.match('^[CRWE]+([0-9]{4})?:', line):
                 continue
             i1 = line.find(':')
             if i1 == -1:
@@ -358,7 +355,7 @@ class PylintWidget(QWidget):
             line_nb = int(line_nb)
             message = line[i2+1:]
             item = (module, line_nb, message)
-            results[line[:i1+1]].append(item)                
+            results[line[0]+':'].append(item)                
             
         # Rate
         rate = None
