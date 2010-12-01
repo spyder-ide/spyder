@@ -34,10 +34,10 @@ def __remove_sys_argv__():
 def __remove_from_syspath__():
     """Remove this module's path from sys.path"""
     import os.path as osp
-    for path in sys.path[:]:
-        if path == osp.dirname(__file__):
-            sys.path.remove(path)
-            break
+    try:
+        sys.path.remove(osp.dirname(__file__))
+    except ValueError:
+        pass
 
 
 class UserModuleDeleter(object):

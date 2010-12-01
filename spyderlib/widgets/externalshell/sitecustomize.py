@@ -8,8 +8,14 @@ import sys, os, os.path as osp
 spyderlib_path = osp.dirname(__file__)
 while not osp.isdir(osp.join(spyderlib_path, 'spyderlib')):
     spyderlib_path = osp.abspath(osp.join(spyderlib_path, os.pardir))
-sys.path.insert(0, spyderlib_path)
-os.environ['SPYDER_PATH'] = spyderlib_path
+if not spyderlib_path.startswith(sys.prefix):
+    # Spyder is not installed: moving its parent directory to the top of 
+    # sys.path to be sure that this spyderlib package will be imported in 
+    # the remote process (instead of another installed version of Spyder)
+    while spyderlib_path in sys.path:
+        sys.path.remove(spyderlib_path)
+    sys.path.insert(0, spyderlib_path)
+os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 
 if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     try:
@@ -163,14 +169,15 @@ class SpyderPdb(pdb.Pdb):
 
 pdb.Pdb = SpyderPdb
 
-# Restoring original sys.path
-for added_path in (spyderlib_path,
-                   osp.join(spyderlib_path,
-                            "spyderlib", "widgets", "externalshell")):
-    for path in sys.path[:]:
-        if path == added_path:
-            sys.path.remove(path)
-            break
+# Restoring (almost) original sys.path:
+# (Note: do not remove spyderlib_path from sys.path because if Spyder has been
+#  installed using python setup.py install, then this could remove the 
+#  'site-packages' directory from sys.path!)
+try:
+    sys.path.remove(osp.join(spyderlib_path,
+                             "spyderlib", "widgets", "externalshell"))
+except ValueError:
+    pass
 
 ## Restoring original PYTHONPATH
 #try:
