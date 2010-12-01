@@ -109,7 +109,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         shellwidget_id = id(shellwidget)
         # Add shell only once: this method may be called two times in a row 
         # by the External console plugin (dev. convenience)
-        from spyderlib.widgets.externalshell import systemshell, pythonshell
+        from spyderlib.widgets.externalshell import systemshell
         if isinstance(shellwidget, systemshell.ExternalSystemShell):
             return
         if shellwidget_id not in self.shellwidgets:
@@ -121,8 +121,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
                          self.emit(SIGNAL('option_changed'), option, value))
             self.addWidget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
-            if isinstance(shellwidget, pythonshell.ExternalPythonShell):
-                shellwidget.set_namespacebrowser(nsb)
+            self.set_shellwidget(shellwidget)
             return nsb
         
     def remove_shellwidget(self, shellwidget_id):

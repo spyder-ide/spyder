@@ -147,6 +147,8 @@ class NamespaceBrowser(QWidget):
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
                                             internalshell.InternalShell)
+        if not self.is_internal_shell:
+            shellwidget.set_namespacebrowser(self)
         
     def setup_toolbar(self, exclude_private, exclude_upper,
                       exclude_unsupported, autorefresh):
@@ -297,6 +299,7 @@ class NamespaceBrowser(QWidget):
                 except socket.error:
                     # Process was terminated before calling this method
                     pass                
+                
     def process_remote_view(self, remote_view):
         if remote_view is not None:
             self.set_data(remote_view)

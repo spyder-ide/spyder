@@ -485,8 +485,6 @@ class ExternalConsole(SpyderPluginWidget):
                            autorefresh_state=ar_state,
                            light_background=light_background)
             shellwidget.set_breakpoints_cb(self.breakpoints_cb)
-            if self.variableexplorer is not None:
-                self.variableexplorer.add_shellwidget(shellwidget)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))

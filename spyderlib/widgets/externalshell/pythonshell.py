@@ -252,12 +252,10 @@ class ExternalPythonShell(ExternalShellBase):
         """Return True if shellwidget is a Python/IPython interpreter"""
         return self.interpreter
         
-    def set_namespacebrowser(self, namespacebrowser):
-        """Set namespace browser *widget*"""
-        self.namespacebrowser = namespacebrowser
-        
     def get_shell_widget(self):
-        if self.stand_alone is not None:
+        if self.stand_alone is None:
+            return self.shell
+        else:
             self.namespacebrowser = NamespaceBrowser(self)
             settings = self.stand_alone
             self.namespacebrowser.set_shellwidget(self)
@@ -276,8 +274,6 @@ class ExternalPythonShell(ExternalShellBase):
             splitter.setHandleWidth(5)
             splitter.setSizes([2, 1])
             return splitter
-        else:
-            return self.shell
     
     def get_icon(self):
         return get_icon('python.png')
@@ -302,6 +298,23 @@ class ExternalPythonShell(ExternalShellBase):
         self.cwd_button.setEnabled(state)
         if self.namespacebrowser_button is not None:
             self.namespacebrowser_button.setEnabled(state)
+    
+    def set_namespacebrowser(self, namespacebrowser):
+        """
+        Set namespace browser *widgtet*
+        Note: this method is not used in stand alone mode
+        """
+        self.namespacebrowser = namespacebrowser
+        self.configure_namespacebrowser()
+        
+    def configure_namespacebrowser(self):
+        """Connect the namespace browser to the notification thread"""
+        self.connect(self.notification_thread,
+                     SIGNAL('refresh_namespace_browser()'),
+                     self.namespacebrowser.refresh_table)
+        self.connect(self.notification_thread,
+                     SIGNAL('process_remote_view(PyQt_PyObject)'),
+                     self.namespacebrowser.process_remote_view)
     
     def create_process(self):
         self.shell.clear()
@@ -347,15 +360,11 @@ class ExternalPythonShell(ExternalShellBase):
             introspection_server.register(self)
             notification_server = monitor.start_notification_server()
             self.notification_thread = notification_server.register(self)
-            self.connect(self.notification_thread,
-                         SIGNAL('refresh_namespace_browser()'),
-                         self.namespacebrowser.refresh_table)
             self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno:
                          self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
-            self.connect(self.notification_thread,
-                         SIGNAL('process_remote_view(PyQt_PyObject)'),
-                         self.namespacebrowser.process_remote_view)
+            if self.namespacebrowser is not None:
+                self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
         
@@ -474,7 +483,7 @@ class ExternalPythonShell(ExternalShellBase):
         if self.stand_alone is not None:
             self.splitter.setSizes([1, 1 if state else 0])
             self.namespacebrowser_button.setChecked(state)
-            if state:
+            if state and self.namespacebrowser is not None:
                 self.namespacebrowser.refresh_table()
         
     def splitter_moved(self, pos, index):
