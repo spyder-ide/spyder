@@ -466,7 +466,7 @@ class ExternalConsole(SpyderPluginWidget):
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
             ar_timeout = CONF.get('variable_explorer', 'autorefresh/timeout')
-            ar_state = CONF.get('variable_explorer', 'autorefresh/enabled')
+            ar_state = CONF.get('variable_explorer', 'autorefresh')
             if self.light_mode:
                 from spyderlib.plugins.variableexplorer import VariableExplorer
                 sa_settings = VariableExplorer.get_settings()

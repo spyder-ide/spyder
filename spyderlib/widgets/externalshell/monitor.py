@@ -26,7 +26,7 @@ REMOTE_SETTINGS = ('editable_types', 'picklable_types', 'itermax',
                    'exclude_private', 'exclude_upper',
                    'exclude_unsupported', 'excluded_names',
                    'truncate', 'minmax', 'collvalue', 'inplace',
-                   'remote_editing')
+                   'remote_editing', 'autorefresh')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):

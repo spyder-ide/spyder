@@ -170,7 +170,7 @@ DEFAULTS = [
             ('variable_explorer',
              {
               'shortcut': "Ctrl+Shift+V",
-              'autorefresh/enabled': True,
+              'autorefresh': True,
               'autorefresh/timeout': 2000,
               'editable_types': type2str(EDITABLE_TYPES),
               'picklable_types': type2str(PICKLABLE_TYPES),

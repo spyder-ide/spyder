@@ -26,7 +26,7 @@ class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
         ar_group = QGroupBox(self.tr("Autorefresh"))
         ar_box = self.create_checkbox(self.tr("Enable autorefresh"),
-                                      'autorefresh/enabled')
+                                      'autorefresh')
         ar_spin = self.create_spinbox(self.tr("Refresh interval: "),
                                       self.tr(" ms"), 'autorefresh/timeout',
                                       min_=100, max_=1000000, step=100)
@@ -99,10 +99,9 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         (i.e. namespace browser settings according to Spyder's configuration file)
         """
         settings = {}
+#        CONF.load_from_ini() # necessary only when called from another process
         for name in REMOTE_SETTINGS:
             settings[name] = CONF.get(VariableExplorer.CONF_SECTION, name)
-        settings['autorefresh'] = CONF.get(VariableExplorer.CONF_SECTION,
-                                           'autorefresh/enabled')
         return settings
         
     #------ Public API ---------------------------------------------------------
