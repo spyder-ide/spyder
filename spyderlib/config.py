@@ -451,13 +451,15 @@ def get_color_scheme(name):
 
 def set_color_scheme(name, color_scheme, replace=True):
     """Set syntax color scheme"""
+    section = "color_schemes"
     names = CONF.get("color_schemes", "names", [])
-    if not replace and name in names:
-        return
     for key in COLOR_SCHEME_KEYS:
-        CONF.set("color_schemes", "%s/%s" % (name, key), color_scheme[key])
+        option = "%s/%s" % (name, key)
+        value = CONF.get(section, option, default=None)
+        if value is None or replace or name not in names:
+            CONF.set(section, option, color_scheme[key])
     names.append(unicode(name))
-    CONF.set("color_schemes", "names", sorted(list(set(names))))
+    CONF.set(section, "names", sorted(list(set(names))))
 
 def set_default_color_scheme(name, replace=True):
     """Reset color scheme to default values"""

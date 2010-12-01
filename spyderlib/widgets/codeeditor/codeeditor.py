@@ -846,6 +846,8 @@ class CodeEditor(TextEditBaseWidget):
             self.occurence_color = hl.get_occurence_color()
             self.ctrl_click_color = hl.get_ctrlclick_color()
             self.area_background_color = hl.get_sideareas_color()
+            self.matched_p_color = hl.get_matched_p_color()
+            self.unmatched_p_color = hl.get_unmatched_p_color()
         self.highlight_current_line()
         
     def apply_highlighter_settings(self, color_scheme=None):

@@ -640,6 +640,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "occurence":      self.tr("Occurence:"),
                       "ctrlclick":      self.tr("Link:"),
                       "sideareas":      self.tr("Side areas:"),
+                      "matched_p":      self.tr("Matched parentheses:"),
+                      "unmatched_p":    self.tr("Unmatched parentheses:"),
                       "normal":         self.tr("Normal text:"),
                       "keyword":        self.tr("Keyword:"),
                       "builtin":        self.tr("Builtin:"),
