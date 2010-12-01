@@ -231,6 +231,8 @@ class NamespaceBrowser(QWidget):
         """Notify the widget whether its container (the namespace browser 
         plugin is visible or not"""
         self.is_visible = enable
+        if enable:
+            self.refresh_table()
         
     def toggle_auto_refresh(self, state):
         self.autorefresh = state
