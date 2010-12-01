@@ -47,7 +47,8 @@ class MyBuildDoc(setup_command.BuildDoc):
     def run(self):
         build = self.get_finalized_command('build')
         sys.path.insert(0, os.path.abspath(build.build_lib))
-        self.builder_target_dir = osp.join('build', 'lib', 'spyderlib', 'doc')
+        dirname = self.distribution.get_command_obj('build').build_purelib
+        self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
         setup_command.BuildDoc.run(self)
         sys.path.pop(0)
 
