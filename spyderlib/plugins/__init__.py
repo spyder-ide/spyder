@@ -82,6 +82,7 @@ class SpyderPluginMixin(object):
         self.plugin_actions = self.get_plugin_actions()
         self.dockwidget = None
         self.ismaximized = False
+        self.isvisible = False
         QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
@@ -180,6 +181,7 @@ class SpyderPluginMixin(object):
             toggle_actions(self.plugin_actions, visible)
         if visible:
             self.refresh_plugin() #XXX Is it a good idea?
+        self.isvisible = enable and visible
 
     def set_option(self, option, value):
         """

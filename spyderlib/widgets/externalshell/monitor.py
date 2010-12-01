@@ -620,7 +620,8 @@ class NotificationThread(QThread):
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
                 elif command == 'get_remote_view_settings':
-                    output = self.shell.namespacebrowser.get_settings()
+                    nsb = self.shell.namespacebrowser
+                    output = nsb.get_remote_view_settings()
                 elif command == 'remote_view':
                     self.emit(SIGNAL('process_remote_view(PyQt_PyObject)'),
                               data)

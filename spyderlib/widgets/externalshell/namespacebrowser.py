@@ -39,7 +39,7 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_internal_shell = None
-        self.is_visible = True
+        self.is_visible = False
         
         self.setup_in_progress = None
         
@@ -239,7 +239,15 @@ class NamespaceBrowser(QWidget):
     def _get_sock(self):
         return self.shellwidget.introspection_socket
         
-    def get_settings(self):
+    def get_remote_view_settings(self):
+        """Return dict editor view settings for the remote process,
+        but return None if this namespace browser is not visible (no need 
+        to refresh an invisible widget...)"""
+        if self.is_visible and self.isVisible():
+            return self.get_view_settings()
+        
+    def get_view_settings(self):
+        """Return dict editor view settings"""
         settings = {}
         for name in REMOTE_SETTINGS:
             settings[name] = getattr(self, name)
@@ -472,7 +480,7 @@ class NamespaceBrowser(QWidget):
             namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
             error_message = iofunctions.save(namespace, filename)
         else:
-            settings = self.get_settings()
+            settings = self.get_view_settings()
             error_message = monitor_save_globals(self._get_sock(),
                                                  settings, filename)
         QApplication.restoreOverrideCursor()

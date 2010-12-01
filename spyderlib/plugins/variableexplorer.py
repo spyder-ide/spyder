@@ -138,7 +138,8 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
             self.setCurrentWidget(nsb)
-            nsb.visibility_changed(True)
+            if self.isvisible:
+                nsb.visibility_changed(True)
             
     def import_data(self, fname):
         """Import data in current namespace"""
