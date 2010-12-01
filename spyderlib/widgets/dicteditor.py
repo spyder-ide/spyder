@@ -16,7 +16,7 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-import re, os
+import re, os, sys
 from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
                          QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
                          QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
@@ -962,14 +962,20 @@ class BaseTableView(QTableView):
             
     def __prepare_plot(self):
         try:
-            from spyderlib import mpl_patch
-            mpl_patch.set_backend("Qt4Agg")
-            mpl_patch.apply()
+            import guiqwt.pyplot #@UnusedImport
             return True
         except ImportError:
-            QMessageBox.warning(self, translate("DictEditor", "Import error"),
-                    translate("DictEditor",
-                              "Please install <b>matplotlib</b>."))
+            try:
+                if 'matplotlib' not in sys.modules:
+                    from spyderlib import mpl_patch
+                    mpl_patch.set_backend("Qt4Agg")
+                    mpl_patch.apply()
+                return True
+            except ImportError:
+                QMessageBox.warning(self, translate("DictEditor", "Import error"),
+                                    translate("DictEditor"
+                                              "Please install <b>matplotlib</b>"
+                                              " or <b>guiqwt</b>."))
 
     def plot_item(self):
         """Plot item"""
