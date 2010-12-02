@@ -39,7 +39,8 @@ class NamespaceBrowser(QWidget):
         
         self.shellwidget = None
         self.is_internal_shell = None
-        self.is_visible = False
+        
+        self.is_visible = True # Do not modify: light mode won't work!
         
         self.setup_in_progress = None
         
