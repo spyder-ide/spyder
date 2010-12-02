@@ -221,6 +221,9 @@ class Monitor(threading.Thread):
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
                        "setcwd": self.setcwd,
+                       "getsyspath": self.getsyspath,
+                       "getenv": self.getenv,
+                       "setenv": self.setenv,
                        "isdefined": isdefined,
                        "thread": thread,
                        "set_monitor_timeout": self.set_timeout,
@@ -351,6 +354,22 @@ class Monitor(threading.Thread):
         else:
             import os
             return os.chdir(dirname)
+            
+    def getenv(self):
+        """Return os.environ"""
+        import os
+        return os.environ.copy()
+        
+    def setenv(self):
+        """Set os.environ"""
+        env = read_packet(self.i_request)
+        import os
+        os.environ = env
+
+    def getsyspath(self):
+        """Return sys.path[:]"""
+        import sys
+        return sys.path[:]        
         
     def setlocal(self, name, value):
         """

@@ -157,7 +157,7 @@ class PathManager(QDialog):
                      if path not in (self.pathlist+self.ro_pathlist)]
             ppath.extend(self.pathlist+self.ro_pathlist)
         env['PYTHONPATH'] = ppath
-        set_user_env( listdict2envdict(env) )
+        set_user_env( listdict2envdict(env), parent=self )
         
     def get_path_list(self):
         """Return path list (does not include the read-only path list)"""

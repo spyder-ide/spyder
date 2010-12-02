@@ -31,15 +31,25 @@ def listdict2envdict(listdict):
             listdict[key] = os.path.pathsep.join(listdict[key])
     return listdict
 
-class EnvDialog(DictEditor):
-    """Environment variables Dialog"""
-    def __init__(self):
-        DictEditor.__init__(self, envdict2listdict( dict(os.environ) ),
+class RemoteEnvDialog(DictEditor):
+    """Remote process environment variables Dialog"""
+    def __init__(self, get_environ_func, set_environ_func):
+        DictEditor.__init__(self, envdict2listdict(get_environ_func()),
                             title="os.environ", width=600, icon='environ.png')
+        self.set_environ = set_environ_func
     def accept(self):
         """Reimplement Qt method"""
-        os.environ = listdict2envdict( self.get_value() )
+        self.set_environ(listdict2envdict(self.get_value()))
         QDialog.accept(self)
+
+class EnvDialog(RemoteEnvDialog):
+    """Environment variables Dialog"""
+    def __init__(self):
+        def get_environ_func():
+            return dict(os.environ)
+        def set_environ_func(env):
+            os.environ = env
+        RemoteEnvDialog.__init__(self, get_environ_func, set_environ_func)
 
 
 try:
@@ -60,7 +70,7 @@ try:
                 break
         return envdict2listdict(reg)
     
-    def set_user_env(reg):
+    def set_user_env(reg, parent=None):
         """Set HKCU (current user) environment variables"""
         reg = listdict2envdict(reg)
         types = dict()
@@ -80,7 +90,7 @@ try:
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                "Environment", SMTO_ABORTIFHUNG, 5000)
         except ImportError:
-            QMessageBox.warning(self,
+            QMessageBox.warning(parent,
                 translate("WinUserEnvDialog", "Warning"),
                 translate("WinUserEnvDialog",
                           "Module <b>pywin32 was not found</b>.<br>"
@@ -110,7 +120,7 @@ try:
             
         def accept(self):
             """Reimplement Qt method"""
-            set_user_env( listdict2envdict(self.get_value()) )
+            set_user_env( listdict2envdict(self.get_value()), parent=self )
             QDialog.accept(self)
 
 except ImportError:

@@ -17,7 +17,8 @@ from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       get_std_icon)
+                                       get_std_icon, DialogManager)
+from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
@@ -26,6 +27,7 @@ from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
+from spyderlib.widgets.dicteditor import DictEditor
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -57,12 +59,12 @@ class ExtPythonShellWidget(PythonShellWidget):
             self.flush()
 
     #------ Code completion / Calltips
-    def ask_monitor(self, command):
+    def ask_monitor(self, command, settings=[]):
         sock = self.externalshell.introspection_socket
         if sock is None:
             return
         try:
-            return communicate(sock, command)
+            return communicate(sock, command, settings=settings)
         except socket.error:
             # Process was just closed            
             pass
@@ -116,6 +118,18 @@ class ExtPythonShellWidget(PythonShellWidget):
     def set_cwd(self, dirname):
         """Set shell current working directory"""
         return self.ask_monitor("setcwd(r'%s')" % dirname)
+        
+    def get_env(self):
+        """Return environment variables: os.environ"""
+        return self.ask_monitor("getenv()")
+        
+    def set_env(self, env):
+        """Set environment variables via os.environ"""
+        return self.ask_monitor('setenv()', settings=[env])
+        
+    def get_syspath(self):
+        """Return sys.path[:]"""
+        return self.ask_monitor("getsyspath()")
 
 
 class ExternalPythonShell(ExternalShellBase):
@@ -130,6 +144,8 @@ class ExternalPythonShell(ExternalShellBase):
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True):
         self.namespacebrowser = None # namespace browser widget!
+        
+        self.dialog_manager = DialogManager()
         
         self.breakpoints_cb = None
         
@@ -155,7 +171,11 @@ class ExternalPythonShell(ExternalShellBase):
         
         self.namespacebrowser_button = None
         self.cwd_button = None
+        self.env_button = None
+        self.syspath_button = None
         self.terminate_button = None
+
+        self.notification_thread = None
         
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history.py',
@@ -224,6 +244,16 @@ class ExternalPythonShell(ExternalShellBase):
                       get_std_icon('DirOpenIcon'), self.tr("Working directory"),
                       tip=self.tr("Set current working directory"),
                       triggered=self.set_current_working_directory)
+        if self.env_button is None:
+            self.env_button = create_toolbutton(self,
+                      get_icon('environ.png'),
+                      self.tr("Environment variables"),
+                      triggered=self.show_env)
+        if self.syspath_button is None:
+            self.syspath_button = create_toolbutton(self,
+                      get_icon('syspath.png'),
+                      self.tr("Show sys.path contents"),
+                      triggered=self.show_syspath)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
                           get_icon('terminate.png'), self.tr("Terminate"),
@@ -232,7 +262,7 @@ class ExternalPythonShell(ExternalShellBase):
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
                                       "the user for any unsaved files, etc)."))        
-        buttons = [self.cwd_button]
+        buttons = [self.cwd_button, self.env_button, self.syspath_button]
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
         buttons += [self.run_button, self.options_button,
@@ -414,6 +444,8 @@ class ExternalPythonShell(ExternalShellBase):
                      self.write_error)
         self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
+                     
+        self.connect(self, SIGNAL('finished()'), self.dialog_manager.close_all)
 
         self.connect(self.terminate_button, SIGNAL("clicked()"),
                      self.process.terminate)
@@ -490,9 +522,10 @@ class ExternalPythonShell(ExternalShellBase):
         self.namespacebrowser_button.setChecked( self.splitter.sizes()[1] )
 
 #===============================================================================
-#    Current working directory
+#    Misc.
 #===============================================================================
     def set_current_working_directory(self):
+        """Set current working directory"""
         cwd = self.shell.get_cwd()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self,
@@ -500,3 +533,16 @@ class ExternalPythonShell(ExternalShellBase):
         if not directory.isEmpty():
             self.shell.set_cwd(unicode(directory))
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
+
+    def show_env(self):
+        """Show environment variables"""
+        get_func = self.shell.get_env
+        set_func = self.shell.set_env
+        self.dialog_manager.show(RemoteEnvDialog(get_func, set_func))
+        
+    def show_syspath(self):
+        """Show sys.path contents"""
+        self.dialog_manager.show(DictEditor(self.shell.get_syspath(),
+                                            title="sys.path",
+                                            width=600, icon='syspath.png',
+                                            readonly=True))
