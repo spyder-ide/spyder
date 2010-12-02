@@ -84,12 +84,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>CodeEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1010"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1009"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1064"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1063"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -102,12 +102,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="656"/>
+        <location filename="plugins/configdialog.py" line="655"/>
         <source>Color scheme</source>
         <translation>Paramètres de coloration syntaxique</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="678"/>
+        <location filename="plugins/configdialog.py" line="677"/>
         <source>Reset to default values</source>
         <translation>Rétablir les valeurs par défaut</translation>
     </message>
@@ -137,44 +137,64 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Zones latérales :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="643"/>
+        <location filename="plugins/configdialog.py" line="642"/>
         <source>Normal text:</source>
         <translation>Texte normal :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="644"/>
+        <location filename="plugins/configdialog.py" line="643"/>
         <source>Keyword:</source>
         <translation>Mot-clé :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="645"/>
+        <location filename="plugins/configdialog.py" line="644"/>
         <source>Builtin:</source>
         <translation>Objet intégré :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="646"/>
+        <location filename="plugins/configdialog.py" line="645"/>
         <source>Definition:</source>
         <translation>Définition :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="647"/>
+        <location filename="plugins/configdialog.py" line="646"/>
         <source>Comment:</source>
         <translation>Commentaire :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="648"/>
+        <location filename="plugins/configdialog.py" line="647"/>
         <source>String:</source>
         <translation>Chaîne :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="649"/>
+        <location filename="plugins/configdialog.py" line="648"/>
         <source>Number:</source>
         <translation>Nombre :</translation>
     </message>
     <message>
-        <location filename="plugins/configdialog.py" line="650"/>
+        <location filename="plugins/configdialog.py" line="649"/>
         <source>Instance:</source>
         <translation>Instance :</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="642"/>
+        <source>Matched braces:</source>
+        <translation type="obsolete">Parenthèses correspondantes:</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="643"/>
+        <source>Unmatched braces:</source>
+        <translation type="obsolete">Parenthèse isolée:</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="642"/>
+        <source>Matched parentheses:</source>
+        <translation>Parenthèse fermée :</translation>
+    </message>
+    <message>
+        <location filename="plugins/configdialog.py" line="643"/>
+        <source>Unmatched parentheses:</source>
+        <translation>Parenthèse non fermée :</translation>
     </message>
 </context>
 <context>
@@ -459,17 +479,17 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1059"/>
+        <location filename="widgets/dicteditor.py" line="1055"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1055"/>
+        <location filename="widgets/dicteditor.py" line="1050"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1039"/>
+        <location filename="widgets/dicteditor.py" line="1034"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
@@ -484,7 +504,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1003"/>
+        <location filename="widgets/dicteditor.py" line="996"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
@@ -494,7 +514,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="975"/>
+        <location filename="widgets/dicteditor.py" line="969"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
@@ -514,17 +534,17 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1023"/>
+        <location filename="widgets/dicteditor.py" line="1018"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="988"/>
+        <location filename="widgets/dicteditor.py" line="983"/>
         <source>&lt;b&gt;Unable to plot data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher les données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1003"/>
+        <location filename="widgets/dicteditor.py" line="998"/>
         <source>&lt;b&gt;Unable to show image.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher l&apos;image&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -559,7 +579,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1342"/>
+        <location filename="widgets/dicteditor.py" line="1341"/>
         <source>Editors are opened in the remote process for NumPy arrays, PIL images, lists, tuples and dictionaries.
 This avoids transfering large amount of data between the remote process and Spyder (through the socket).</source>
         <translation>Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant.
@@ -607,7 +627,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="357"/>
+        <location filename="plugins/__init__.py" line="354"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
@@ -789,7 +809,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Afficher le message d&apos;avertissement ou d&apos;erreur précédent</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="357"/>
+        <location filename="plugins/__init__.py" line="356"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
@@ -1907,7 +1927,7 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="627"/>
+        <location filename="plugins/externalconsole.py" line="629"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
@@ -1917,7 +1937,7 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="639"/>
+        <location filename="plugins/externalconsole.py" line="641"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
@@ -1927,12 +1947,12 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="809"/>
+        <location filename="plugins/externalconsole.py" line="810"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="443"/>
+        <location filename="plugins/externalconsole.py" line="444"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
@@ -1974,36 +1994,36 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="648"/>
+        <location filename="plugins/externalconsole.py" line="651"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="612"/>
+        <location filename="plugins/externalconsole.py" line="614"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="834"/>
+        <location filename="plugins/externalconsole.py" line="832"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="819"/>
+        <location filename="plugins/externalconsole.py" line="820"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="830"/>
+        <location filename="plugins/externalconsole.py" line="831"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
 %1</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="834"/>
+        <location filename="plugins/externalconsole.py" line="835"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -2041,22 +2061,22 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Afficher icônes et textes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="82"/>
+        <location filename="plugins/externalconsole.py" line="80"/>
         <source>Source code</source>
         <translation>Code source</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="91"/>
+        <location filename="plugins/externalconsole.py" line="89"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="83"/>
+        <location filename="plugins/externalconsole.py" line="81"/>
         <source>Automatic code completion</source>
         <translation>Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="89"/>
+        <location filename="plugins/externalconsole.py" line="87"/>
         <source>Enter key selects completion</source>
         <translation>Entrée valide la complétion de code</translation>
     </message>
@@ -2066,57 +2086,57 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="110"/>
+        <location filename="plugins/externalconsole.py" line="108"/>
         <source>User Module Deleter (UMD)</source>
         <translation>User Module Deleter (UMD)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="111"/>
+        <location filename="plugins/externalconsole.py" line="112"/>
         <source>UMD forces Python to reload modules imported when executing a script in the external console with the &apos;runfile&apos; function</source>
         <translation>L&apos;UMD force Python à recharger les modules importés lors de l&apos;exécution d&apos;un script dans la console interne avec la fonction &apos;runfile&apos;</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="115"/>
+        <location filename="plugins/externalconsole.py" line="113"/>
         <source>Enable UMD</source>
         <translation>Activer l&apos;UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="115"/>
+        <location filename="plugins/externalconsole.py" line="128"/>
         <source>This option will enable the User Module Deleter (UMD) in Python/IPython interpreters. UMD forces Python to reload deeply modules during import when running a Python script using the Spyder&apos;s builtin function &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD may require to restart the Python interpreter in which it will be called (otherwise only newly imported modules will be reloaded when executing scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; on your main window, using the &lt;b&gt;setAttribute&lt;/b&gt; method)</source>
         <translation>Cette option active le User Module Deleter (UMD) dans les interpréteurs Python/IPython. L&apos;UMD force Python à recharger complètement les modules lors de leur importation, dans le cadre de l&apos;exécution d&apos;un script Python avec la fonction Spyder &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD peut nécessiter le redémarrage de l&apos;interpréteur Python dans lequel il va être utilisé (dans le cas contraire, seuls les modules importés après activation de l&apos;UMD seront rechargés complètement lors de l&apos;exécution de scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; Si des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, veuillez vérifier que les objets Qt sont correctement détruits à la sortie du programme (par exemple, il sera probablement nécessaire d&apos;utiliser l&apos;attribut &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; sur votre objet fenêtre principale grâce à la méthode &lt;b&gt;setAttribute&lt;/b&gt;)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="132"/>
+        <location filename="plugins/externalconsole.py" line="130"/>
         <source>Show reloaded modules list</source>
         <translation>Afficher les modules rechargés</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="132"/>
+        <location filename="plugins/externalconsole.py" line="134"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="151"/>
+        <location filename="plugins/externalconsole.py" line="149"/>
         <source>Startup</source>
         <translation>Démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="152"/>
+        <location filename="plugins/externalconsole.py" line="150"/>
         <source>Open a Python interpreter at startup</source>
         <translation>Ouvrir un interpréteur Python au démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="154"/>
+        <location filename="plugins/externalconsole.py" line="152"/>
         <source>Open an IPython interpreter at startup</source>
         <translation>Ouvrir un interpréteur IPython au démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="184"/>
+        <location filename="plugins/externalconsole.py" line="182"/>
         <source>IPython</source>
         <translation>IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="185"/>
+        <location filename="plugins/externalconsole.py" line="186"/>
         <source>IPython interpreter command line options:
 (Qt4 support: -q4thread)
 (Qt4 and matplotlib support: -q4thread -pylab)</source>
@@ -2125,12 +2145,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 (support Qt4 et matplotlib : -q4thread -pylab)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="197"/>
+        <location filename="plugins/externalconsole.py" line="195"/>
         <source>Matplotlib</source>
         <translation>Matplotlib</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="204"/>
+        <location filename="plugins/externalconsole.py" line="202"/>
         <source>Patch Matplotlib figures</source>
         <translation>Patcher les figures Matplotlib</translation>
     </message>
@@ -2160,7 +2180,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Fond blanc</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="243"/>
+        <location filename="plugins/externalconsole.py" line="244"/>
         <source>Display</source>
         <translation>Affichage</translation>
     </message>
@@ -2170,12 +2190,12 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Options avancées</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="225"/>
+        <location filename="plugins/externalconsole.py" line="223"/>
         <source>Enthought Tool Suite</source>
         <translation>Enthought Tool Suite</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="226"/>
+        <location filename="plugins/externalconsole.py" line="227"/>
         <source>Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) graphical user interfaces.</source>
         <translation>Le logiciel Enthought Tool Suite (ETS) prend en charge les interfaces graphiques PyQt4 (qt4) et wxPython (wx).</translation>
     </message>
@@ -2190,7 +2210,7 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Notification automatique à l&apos;inspecteur d&apos;objets</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="92"/>
+        <location filename="plugins/externalconsole.py" line="96"/>
         <source>If this option is enabled, object inspector
 will automatically show informations on functions
 entered in console (this is triggered when entering
@@ -2198,17 +2218,17 @@ a left parenthesis after a valid function name)</source>
         <translation>Si cette option est activée, l&apos;inspecteur d&apos;objet affichera automatiquement des informations sur les fonctions saisies dans la console (le mécanisme est déclenché par la saisie d&apos;une parenthèse gauche après un nom valide de fonction)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="87"/>
+        <location filename="plugins/externalconsole.py" line="85"/>
         <source>Show single completion</source>
         <translation>Afficher les listes de complétion avec un choix unique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="85"/>
+        <location filename="plugins/externalconsole.py" line="83"/>
         <source>Case sensitive code completion</source>
         <translation>Complétion de code sensible à la casse</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="198"/>
+        <location filename="plugins/externalconsole.py" line="200"/>
         <source>Patching Matplotlib library will add a button to customize figure options (curves/images plot parameters). This Spyder feature has been integrated in Matplotlib v1.0.</source>
         <translation>Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées. Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1.0.</translation>
     </message>
@@ -2218,17 +2238,17 @@ a left parenthesis after a valid function name)</source>
         <translation>Backend Matplotlib (valeur par défaut: Qt4Agg) :</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="206"/>
+        <location filename="plugins/externalconsole.py" line="209"/>
         <source>Set the GUI toolkit used by Matplotlib to show figures</source>
         <translation>Spécifie la bibliothèque d&apos;interfaces graphiques à utiliser pour l&apos;affichage des figures Matplotlib</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="164"/>
+        <location filename="plugins/externalconsole.py" line="162"/>
         <source>Monitor</source>
         <translation>Moniteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="172"/>
+        <location filename="plugins/externalconsole.py" line="170"/>
         <source>Enable monitor</source>
         <translation>Activer le moniteur</translation>
     </message>
@@ -2238,7 +2258,7 @@ a left parenthesis after a valid function name)</source>
         <translation>Introspection</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="165"/>
+        <location filename="plugins/externalconsole.py" line="168"/>
         <source>The monitor provides introspection features to console: code completion, calltips and variable explorer. Because it relies on several modules, disabling the monitor may be useful to accelerate console startup.</source>
         <translation>Le moniteur fournit à la console des fonctionnalités d&apos;introspection telles que la complétion de code, les info-bulles et l&apos;explorateur de variables. Parce qu&apos;il nécessite l&apos;import de nombreux modules, désactiver le moniteur permet d&apos;accélérer le démarrage de la console.</translation>
     </message>
@@ -2285,27 +2305,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="466"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="424"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="466"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="425"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="323"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="297"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="319"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="292"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="321"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="295"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
     </message>
@@ -2320,7 +2340,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="531"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="489"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
@@ -2736,57 +2756,57 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>IOFunctions</name>
     <message>
-        <location filename="utils/iofuncs.py" line="313"/>
+        <location filename="utils/iofuncs.py" line="308"/>
         <source>Supported files</source>
         <translation>Fichiers compatibles</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="322"/>
+        <location filename="utils/iofuncs.py" line="317"/>
         <source>Spyder data files</source>
         <translation>Fichiers Spyder</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="324"/>
+        <location filename="utils/iofuncs.py" line="319"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="325"/>
+        <location filename="utils/iofuncs.py" line="320"/>
         <source>Matlab files</source>
         <translation>Fichiers Matlab</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="326"/>
+        <location filename="utils/iofuncs.py" line="321"/>
         <source>CSV text files</source>
         <translation>Fichiers texte CSV</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="327"/>
+        <location filename="utils/iofuncs.py" line="322"/>
         <source>Text files</source>
         <translation>Fichiers texte</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="328"/>
+        <location filename="utils/iofuncs.py" line="323"/>
         <source>JPEG images</source>
         <translation>Images JPEG</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="329"/>
+        <location filename="utils/iofuncs.py" line="324"/>
         <source>PNG images</source>
         <translation>Images PNG</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="330"/>
+        <location filename="utils/iofuncs.py" line="325"/>
         <source>GIF images</source>
         <translation>Images GIF</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="331"/>
+        <location filename="utils/iofuncs.py" line="326"/>
         <source>TIFF images</source>
         <translation>Images TIFF</translation>
     </message>
     <message>
-        <location filename="utils/iofuncs.py" line="364"/>
+        <location filename="utils/iofuncs.py" line="359"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
@@ -3416,7 +3436,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>NamespaceBrowser</name>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="159"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="156"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
@@ -3426,7 +3446,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Importer des données</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="498"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="480"/>
         <source>Save data</source>
         <translation>Enregistrer les données</translation>
     </message>
@@ -3441,7 +3461,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Exclure les références privées</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="181"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="183"/>
         <source>Exclude references which name starts with an underscore</source>
         <translation>Exclure les références dont le nom commence par un tiret bas</translation>
     </message>
@@ -3451,7 +3471,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Exclure les références en capitales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="189"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="191"/>
         <source>Exclude references which name starts with an upper-case character</source>
         <translation>Exclure les références dont le nom commence par une capitale</translation>
     </message>
@@ -3461,27 +3481,27 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Exclure les types non supportés</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="197"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="199"/>
         <source>Exclude references to unsupported data types (i.e. which won&apos;t be handled/saved correctly)</source>
         <translation>Exclure les références dont le type n&apos;est pas supporté par l&apos;espace de travail (en particulier, l&apos;enregistrement ne fonctionnera pas)</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="205"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="202"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="415"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="400"/>
         <source>&lt;b&gt;Unsupported file type &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Would you like to import it as a text file?</source>
         <translation>&lt;b&gt;Type de fichier non pris en charge &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Souhaitez-vous ouvrir ce fichier en tant que fichier texte ?</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="464"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="449"/>
         <source>&lt;b&gt;Unable to load &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;ouvrir &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/namespacebrowser.py" line="498"/>
+        <location filename="widgets/externalshell/namespacebrowser.py" line="483"/>
         <source>&lt;b&gt;Unable to save current workspace&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer l&apos;espace de travail&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -4388,37 +4408,37 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1378"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1380"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1382"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1384"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1386"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1388"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1390"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1392"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1394"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1396"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1398"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1400"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1403"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1405"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>
@@ -4457,7 +4477,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>VariableExplorer</name>
     <message>
-        <location filename="plugins/variableexplorer.py" line="163"/>
+        <location filename="plugins/variableexplorer.py" line="165"/>
         <source>Variable explorer</source>
         <translation>Explorateur de variables</translation>
     </message>

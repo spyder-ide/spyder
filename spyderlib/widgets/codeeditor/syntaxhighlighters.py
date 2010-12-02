@@ -23,7 +23,7 @@ STDOUT = sys.stdout
 # Syntax highlighting color schemes
 #===============================================================================
 COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
-                     "ctrlclick", "sideareas",
+                     "ctrlclick", "sideareas", "matched_p", "unmatched_p",
                      "normal", "keyword", "builtin", "definition",
                      "comment", "string", "number", "instance")
 COLORS = {
@@ -34,6 +34,8 @@ COLORS = {
            "occurence":   "#e8f2fe",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
+           "matched_p":   "#99ff99",
+           "unmatched_p": "#ff9999",
            "normal":     ("#000000", False, False),
            "keyword":    ("#ff7700", True,  False),
            "builtin":    ("#900090", False, False),
@@ -50,6 +52,8 @@ COLORS = {
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
+           "matched_p":   "#99ff99",
+           "unmatched_p": "#ff9999",
            "normal":     ("#000000", False, False),
            "keyword":    ("#0000ff", False, False),
            "builtin":    ("#900090", False, False),
@@ -66,6 +70,8 @@ COLORS = {
            "occurence":   "#abab67",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#555555",
+           "matched_p":   "#009800",
+           "unmatched_p": "#c80000",
            "normal":     ("#ffffff", False, False),
            "keyword":    ("#3c51e8", False, False),
            "builtin":    ("#900090", False, False),
@@ -82,6 +88,8 @@ COLORS = {
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
+           "matched_p":   "#99ff99",
+           "unmatched_p": "#ff9999",
            "normal":     ("#000000", False, False),
            "keyword":    ("#00007f", True,  False),
            "builtin":    ("#000000", False, False),
@@ -98,6 +106,8 @@ COLORS = {
            "occurence":   "#ffff99",
            "ctrlclick":   "#0000ff",
            "sideareas":   "#efefef",
+           "matched_p":   "#99ff99",
+           "unmatched_p": "#ff9999",
            "normal":     ("#000000", False, False),
            "keyword":    ("#0000ff", False, False),
            "builtin":    ("#900090", False, False),
@@ -133,6 +143,8 @@ class BaseSH(QSyntaxHighlighter):
         self.occurence_color = None
         self.ctrlclick_color = None
         self.sideareas_color = None
+        self.matched_p_color = None
+        self.unmatched_p_color = None
 
         self.formats = None
         self.setup_formats(font)
@@ -155,6 +167,12 @@ class BaseSH(QSyntaxHighlighter):
     
     def get_sideareas_color(self):
         return QColor(self.sideareas_color)
+    
+    def get_matched_p_color(self):
+        return QColor(self.matched_p_color)
+    
+    def get_unmatched_p_color(self):
+        return QColor(self.unmatched_p_color)
 
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
@@ -169,6 +187,8 @@ class BaseSH(QSyntaxHighlighter):
         self.occurence_color = colors.pop("occurence")
         self.ctrlclick_color = colors.pop("ctrlclick")
         self.sideareas_color = colors.pop("sideareas")
+        self.matched_p_color = colors.pop("matched_p")
+        self.unmatched_p_color = colors.pop("unmatched_p")
         for name, (color, bold, italic) in colors.iteritems():
             format = QTextCharFormat(base_format)
             format.setForeground(QColor(color))

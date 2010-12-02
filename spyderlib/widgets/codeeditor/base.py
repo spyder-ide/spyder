@@ -164,6 +164,8 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         # Brace matching
         self.bracepos = None
+        self.matched_p_color = QColor(Qt.green)
+        self.unmatched_p_color = QColor(Qt.red)
 
         self.setup()
         
@@ -289,10 +291,10 @@ class TextEditBaseWidget(QPlainTextEdit):
             return
         if pos2 is not None:
             self.bracepos = (pos1, pos2)
-            self.__highlight(self.bracepos, color=QColor(Qt.green).lighter(160))
+            self.__highlight(self.bracepos, color=self.matched_p_color)
         else:
             self.bracepos = (pos1,)
-            self.__highlight(self.bracepos, color=QColor(Qt.red).lighter(160))
+            self.__highlight(self.bracepos, color=self.unmatched_p_color)
 
 
     #-----Widget setup and options
