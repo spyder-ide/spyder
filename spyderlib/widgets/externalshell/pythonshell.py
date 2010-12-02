@@ -331,7 +331,7 @@ class ExternalPythonShell(ExternalShellBase):
     
     def set_namespacebrowser(self, namespacebrowser):
         """
-        Set namespace browser *widgtet*
+        Set namespace browser *widget*
         Note: this method is not used in stand alone mode
         """
         self.namespacebrowser = namespacebrowser
@@ -339,12 +339,13 @@ class ExternalPythonShell(ExternalShellBase):
         
     def configure_namespacebrowser(self):
         """Connect the namespace browser to the notification thread"""
-        self.connect(self.notification_thread,
-                     SIGNAL('refresh_namespace_browser()'),
-                     self.namespacebrowser.refresh_table)
-        self.connect(self.notification_thread,
-                     SIGNAL('process_remote_view(PyQt_PyObject)'),
-                     self.namespacebrowser.process_remote_view)
+        if self.notification_thread is not None:
+            self.connect(self.notification_thread,
+                         SIGNAL('refresh_namespace_browser()'),
+                         self.namespacebrowser.refresh_table)
+            self.connect(self.notification_thread,
+                         SIGNAL('process_remote_view(PyQt_PyObject)'),
+                         self.namespacebrowser.process_remote_view)
     
     def create_process(self):
         self.shell.clear()
