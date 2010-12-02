@@ -87,16 +87,18 @@ def get_python_doc_path():
     Return Python documentation path
     (Windows: return the PythonXX.chm path if available)
     """
-    python_doc = ''
-    doc_path = osp.join(sys.prefix, "Doc")
-    if osp.isdir(doc_path):
-        if os.name == 'nt':
-            python_chm = [ path for path in  os.listdir(doc_path) \
-                           if re.match(r"(?i)Python[0-9]{3}.chm", path) ]
-            if python_chm:
-                python_doc = osp.join(doc_path, python_chm[0])
-        if not python_doc:
-            python_doc = osp.join(doc_path, "index.html")
+    if os.name == 'nt':
+        doc_path = osp.join(sys.prefix, "Doc")
+        if not osp.isdir(doc_path):
+            return
+        python_chm = [path for path in os.listdir(doc_path)
+                      if re.match(r"(?i)Python[0-9]{3}.chm", path)]
+        if python_chm:
+            return osp.join(doc_path, python_chm[0])
+    else:
+        vinf = sys.version_info
+        doc_path = '/usr/share/doc/python%d.%d/html' % (vinf[0], vinf[1])
+    python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return python_doc
     
