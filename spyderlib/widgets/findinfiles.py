@@ -178,7 +178,7 @@ class SearchThread(QThread):
             self.stopped = True
 
     def find_files_in_python_path(self):
-        pathlist = os.environ['PYTHONPATH'].split(os.pathsep)
+        pathlist = os.environ.get('PYTHONPATH', '').split(os.pathsep)
         if self.get_pythonpath_callback is not None:
             pathlist += self.get_pythonpath_callback()
         if os.name == "nt":
@@ -194,6 +194,7 @@ class SearchThread(QThread):
                     lcpathlist.append(lcpath)
                     winpathlist.append(path)
             pathlist = winpathlist
+        ok = True
         for path in set(pathlist):
             if osp.isdir(path):
                 ok = self.find_files_in_path(path)
