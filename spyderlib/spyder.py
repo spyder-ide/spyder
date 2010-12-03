@@ -598,7 +598,11 @@ class MainWindow(QMainWindow):
                 self.projectexplorer.register_plugin()
             
         # External console
-        if not self.light:
+        if self.light:
+            # This is necessary to support the --working-directory option:
+            if self.init_workdir is not None:
+                os.chdir(self.init_workdir)
+        else:
             self.set_splash(self.tr("Loading external console..."))
         self.extconsole = ExternalConsole(self, light_mode=self.light)
         self.extconsole.register_plugin()
