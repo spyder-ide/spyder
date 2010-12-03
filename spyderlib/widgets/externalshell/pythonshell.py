@@ -141,6 +141,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4',
+                 remove_pyqt_inputhook=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True):
         self.namespacebrowser = None # namespace browser widget!
@@ -163,6 +164,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
+        self.remove_pyqt_inputhook = remove_pyqt_inputhook
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -408,6 +410,7 @@ class ExternalPythonShell(ExternalShellBase):
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
+        env.append('REMOVE_PYQT_INPUTHOOK=%s' % self.remove_pyqt_inputhook)
         
         # User Module Deleter
         if self.interpreter:

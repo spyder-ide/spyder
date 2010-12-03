@@ -106,7 +106,7 @@ def oedit(obj, modal=True, namespace=None):
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
         import os
-        if os.environ.get("SPYDER_PYQT_INPUTHOOK_REMOVED", None) \
+        if os.environ.get("REMOVE_PYQT_INPUTHOOK", "").lower() == "true" \
            and not os.environ.get('IPYTHON', False):
             app.exec_()
 

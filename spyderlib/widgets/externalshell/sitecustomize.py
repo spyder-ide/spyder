@@ -25,14 +25,13 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     except ImportError:
         pass
 
-if os.name == 'nt':
-    # Windows platforms
-    
-    # Removing PyQt4 input hook which is not working well on Windows
+# Removing PyQt4 input hook which is not working well on Windows
+if os.environ.get("REMOVE_PYQT_INPUTHOOK", "").lower() == "true":
     from PyQt4.QtCore import pyqtRemoveInputHook
     pyqtRemoveInputHook()
-    os.environ["SPYDER_PYQT_INPUTHOOK_REMOVED"] = "true"
-    
+
+if os.name == 'nt': # Windows platforms
+            
     # Setting console encoding (otherwise Python does not recognize encoding)
     try:
         import locale, ctypes

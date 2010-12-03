@@ -180,11 +180,26 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_layout.addWidget(monitor_box)
         monitor_group.setLayout(monitor_layout)
         
+        # PyQt Group
+        pyqt_group = QGroupBox(self.tr("PyQt"))
+        pyqt_label = QLabel(self.tr("PyQt installs an input hook that "
+                        "allows creating and interacting with widgets in an "
+                        "interactive interpreter without blocking it. It is "
+                        "strongly recommended to remove it on Windows "
+                        "platforms (it has no effect in IPython)."))
+        pyqt_label.setWordWrap(True)
+        pyqt_hook_box = newcb(self.tr("Remove PyQt input hook"),
+                              'remove_pyqt_inputhook')
+        
+        pyqt_layout = QVBoxLayout()
+        pyqt_layout.addWidget(pyqt_label)
+        pyqt_layout.addWidget(pyqt_hook_box)
+        pyqt_group.setLayout(pyqt_layout)
+        
         # IPython Group
         ipython_group = QGroupBox(self.tr("IPython"))
         ipython_edit = self.create_lineedit(self.tr(
                             "IPython interpreter command line options:\n"
-                            "(Qt4 support: -q4thread)\n"
                             "(Qt4 and matplotlib support: -q4thread -pylab)"),
                             'ipython_options', alignment=Qt.Vertical)
         
@@ -247,7 +262,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     self.tr("Introspection"))
         tabs.addTab(self.create_tab(startup_group, umd_group),
                     self.tr("Advanced settings"))
-        tabs.addTab(self.create_tab(ipython_group, mpl_group, ets_group),
+        tabs.addTab(self.create_tab(pyqt_group, ipython_group, mpl_group,
+                                    ets_group),
                     self.tr("External modules"))
         
         vlayout = QVBoxLayout()
@@ -462,6 +478,8 @@ class ExternalConsole(SpyderPluginWidget):
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
             mpl_backend = self.get_option('mpl_patch/backend')
             ets_backend = self.get_option('ets_backend', 'qt4')
+            remove_pyqt_inputhook = self.get_option('remove_pyqt_inputhook',
+                                                    os.name == 'nt')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
@@ -481,6 +499,7 @@ class ExternalConsole(SpyderPluginWidget):
                            monitor_enabled=monitor_enabled,
                            mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
+                           remove_pyqt_inputhook=remove_pyqt_inputhook,
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,
                            light_background=light_background)
