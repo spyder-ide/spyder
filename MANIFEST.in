@@ -2,6 +2,7 @@ recursive-include spyderlib *.qm *.svg *.png *.css
 recursive-include spyderlibplugins *.svg *.png
 recursive-include doc *.py *.rst *.png *.ico *.
 recursive-include img_src *.pdn *.svg *.ico *.png
+include bin/*
 include spyder
 include spyder.py
 include spyder.pyw
