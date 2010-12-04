@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009 Pierre Raybaut
+# Copyright © 2009-2010 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,7 +10,7 @@ Spyder, the Scientific PYthon Development EnviRonment
 
 Developped and maintained by Pierre Raybaut
 
-Copyright © 2009 Pierre Raybaut
+Copyright © 2009-2010 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
@@ -1071,7 +1071,7 @@ class MainWindow(QMainWindow):
             self.tr("About %1").arg("Spyder"),
             self.tr("""<b>%1 %2</b>
             <br>Scientific PYthon Development EnviRonment
-            <p>Copyright &copy; 2009 Pierre Raybaut
+            <p>Copyright &copy; 2009-2010 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
             <p>Created, developed and maintained by Pierre Raybaut
             <br>Many thanks to Christopher Brown, Alexandre Radicchi,
