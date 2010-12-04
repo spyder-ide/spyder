@@ -145,7 +145,10 @@ def display_to_value(value, default_value, ignore_errors=True):
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
-            value = int(value)
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
         elif isinstance(default_value, datetime.datetime):
             value = datestr_to_datetime(value)
         elif isinstance(default_value, datetime.date):
