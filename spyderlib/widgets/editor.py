@@ -262,6 +262,9 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('textChanged()'),
                      self.text_changed)
+        
+        self.connect(editor, SIGNAL('breakpoints_changed()'),
+                     self.breakpoints_changed)
             
         self.analysis_thread = CodeAnalysisThread(self.editor)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
@@ -362,6 +365,12 @@ class FileInfo(QObject):
         
     def cleanup_todo_results(self):
         self.todo_results = []
+        
+    def breakpoints_changed(self):
+        """Breakpoint list has changed"""
+        breakpoints = self.editor.get_breakpoints()
+        self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                  self.filename, repr(breakpoints))
 
 
 def get_file_language(filename, text=None):
@@ -1054,10 +1063,6 @@ class EditorStack(QWidget):
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor)
-            # Saving breakpoints
-            breakpoints = finfo.editor.get_breakpoints()
-            self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                      finfo.filename, repr(breakpoints))
             
             self.remove_from_data(index)
             self.emit(SIGNAL('close_file(int)'), index)
@@ -1560,6 +1565,10 @@ class EditorStack(QWidget):
                      lambda fname, lineno, name:
                      self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, name))
+        self.connect(finfo, SIGNAL("save_breakpoints(QString,QString)"),
+                     lambda s1, s2:
+                     self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                               s1, s2))
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled, language=language,

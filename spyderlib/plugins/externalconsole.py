@@ -286,8 +286,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.inspector = None # Object inspector plugin
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
-
-        self.breakpoints_cb = None # Editor plugin method (see below)
         
         self.ipython_count = 0
         self.python_count = 0
@@ -503,7 +501,6 @@ class ExternalConsole(SpyderPluginWidget):
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,
                            light_background=light_background)
-            shellwidget.set_breakpoints_cb(self.breakpoints_cb)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))
@@ -689,7 +686,6 @@ class ExternalConsole(SpyderPluginWidget):
             if self.inspector is not None:
                 self.inspector.set_external_console(self)
             self.historylog = self.main.historylog
-            self.breakpoints_cb = self.main.editor.save_all_breakpoints
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
             self.connect(self.main.editor,

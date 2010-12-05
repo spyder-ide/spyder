@@ -686,6 +686,7 @@ class CodeEditor(TextEditBaseWidget):
         block.setUserData(data)
         self.linenumberarea.update()
         self.scrollflagarea.update()
+        self.emit(SIGNAL('breakpoints_changed()'))
         
     def get_breakpoints(self):
         breakpoints = []

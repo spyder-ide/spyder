@@ -1253,17 +1253,6 @@ class Editor(SpyderPluginWidget):
             breakpoints = []
         save_breakpoints(filename, breakpoints)
         
-    def save_all_breakpoints(self):
-        """
-        Save all opened files breakpoints
-        This method is called from the external console before debugging
-        (see attribute 'breakpoints_cb' in ExternalConsole)
-        """
-        editorstack = self.get_current_editorstack()
-        for finfo in editorstack.data:
-            breakpoints = finfo.editor.get_breakpoints()
-            save_breakpoints(finfo.filename, breakpoints)
-        
                 
     #------ File I/O
     def __load_temp_file(self):
