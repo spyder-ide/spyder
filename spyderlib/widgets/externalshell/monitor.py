@@ -628,6 +628,7 @@ class NotificationThread(QThread):
                 if command == 'pdb_step':
                     fname, lineno = data
                     self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
+                    self.emit(SIGNAL('refresh_namespace_browser()'))
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
                 elif command == 'get_remote_view_settings':

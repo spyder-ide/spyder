@@ -140,7 +140,6 @@ class SpyderPdb(pdb.Pdb):
         if isinstance(fname, basestring) and isinstance(lineno, int):
             if osp.isfile(fname) and monitor is not None:
                 monitor.notify_pdb_step(fname, lineno)
-                monitor.refresh()
 
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
