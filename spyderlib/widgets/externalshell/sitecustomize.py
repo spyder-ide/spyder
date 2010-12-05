@@ -130,7 +130,8 @@ class SpyderPdb(pdb.Pdb):
     def reset(self):
         bdb.Bdb.reset(self)
         self.forget()
-        self.set_spyder_breakpoints() #-----Spyder-specific---------------------
+        monitor.register_pdb_session(self) #------Spyder-specific---------------
+        self.set_spyder_breakpoints() #-----------Spyder-specific---------------
         
     def notify_spyder(self, frame):
         if not frame:

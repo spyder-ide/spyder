@@ -198,6 +198,8 @@ class Monitor(threading.Thread):
         self.ipython_shell = None
         self.setDaemon(True)
         
+        self.pdb_obj = None
+        
         self.timeout = None
         self.set_timeout(timeout)
         self.auto_refresh = auto_refresh
@@ -257,6 +259,9 @@ class Monitor(threading.Thread):
     def refresh(self):
         """Refresh variable explorer in ExternalPythonShell"""
         communicate(self.n_request, dict(command="refresh"))
+        
+    def register_pdb_session(self, pdb_obj):
+        self.pdb_obj = pdb_obj
 
     def notify_pdb_step(self, fname, lineno):
         """Notify the ExternalPythonShell regarding pdb current frame"""
@@ -465,16 +470,31 @@ class Monitor(threading.Thread):
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     glbs = self.ipython_shell.user_ns
+                namespace = {}
+                if self.pdb_obj is not None and self.pdb_obj.curframe is None:
+                    self.pdb_obj = None
+                if self.pdb_obj is not None:
+                    namespace.update(self.pdb_obj.curframe.f_globals)
+                    namespace.update(self.pdb_obj.curframe.f_locals)
+                else:
+                    namespace.update(glbs)
                 if timed_out:
                     if DEBUG:
                         logging.debug("connection timed out -> updating remote view")
-                    self.update_remote_view(glbs)
+                    self.update_remote_view(namespace)
                     if DEBUG:
                         logging.debug("****** Introspection request /End ******")
                     continue
                 if DEBUG:
                     logging.debug("command: %r" % command)
-                result = eval(command, glbs, self.locals)
+                if self.pdb_obj and self.pdb_obj.curframe:
+                    local_ns = {}
+                    local_ns.update(self.pdb_obj.curframe.f_locals)
+                    local_ns.update(self.locals)
+                    result = eval(command,
+                                  self.pdb_obj.curframe.f_globals, local_ns)
+                else:
+                    result = eval(command, glbs, self.locals)
                 if DEBUG:
                     logging.debug(" result: %r" % result)
                 self.locals["_"] = result
@@ -493,7 +513,7 @@ class Monitor(threading.Thread):
                 if DEBUG:
                     logging.debug("updating remote view")
                 if self.refresh_after_eval:
-                    self.update_remote_view(glbs)
+                    self.update_remote_view(namespace)
                     self.refresh_after_eval = False
                 if DEBUG:
                     logging.debug("sending result")
