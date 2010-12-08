@@ -1494,20 +1494,20 @@ class ProjectExplorerWidget(QWidget):
                               show_all=show_all, valid_types=valid_types,
                               default_project_path=default_project_path)
 
-        filters_action = create_toolbutton(self, get_icon('filter.png'),
+        filters_action = create_toolbutton(self, icon=get_icon('filter.png'),
                                            tip=translate('ProjectExplorer',
                                                    "Edit filename filter..."),
                                            triggered=self.edit_filter)
         # Show all files
-        all_action = create_toolbutton(self, get_icon('show_all.png'),
+        all_action = create_toolbutton(self, icon=get_icon('show_all.png'),
                                        tip=translate('ProjectExplorer',
                                                      "Show all files"),
                                        toggled=self.toggle_all)
         all_action.setChecked(show_all)
         
         refresh_btn = create_toolbutton(self,
-                        tip=translate('ProjectExplorer', "Refresh"),
                         icon=get_icon('reload.png'),
+                        tip=translate('ProjectExplorer', "Refresh"),
                         triggered=lambda: self.treewidget.refresh(clear=True))
         
         collapse_btn = create_toolbutton(self, text_beside_icon=False)

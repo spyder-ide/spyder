@@ -326,8 +326,10 @@ class FindOptions(QWidget):
         hlayout1 = QHBoxLayout()
         self.search_text = PatternComboBox(self, search_text,
                                     translate('FindInFiles', "Search pattern"))
-        self.edit_regexp = create_toolbutton(self, get_icon("advanced.png"),
-                         tip=translate('FindInFiles', "Regular expression"))
+        self.edit_regexp = create_toolbutton(self,
+                                             icon=get_icon("advanced.png"),
+                                             tip=translate('FindInFiles',
+                                                        "Regular expression"))
         self.edit_regexp.setCheckable(True)
         self.edit_regexp.setChecked(search_text_regexp)
         self.more_widgets = ()
@@ -338,15 +340,15 @@ class FindOptions(QWidget):
         
         self.ok_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Search"),
-                                triggered=lambda: self.emit(SIGNAL('find()')),
                                 icon=get_std_icon("DialogApplyButton"),
+                                triggered=lambda: self.emit(SIGNAL('find()')),
                                 tip=translate('FindInFiles', "Start search"),
                                 text_beside_icon=True)
         self.connect(self.ok_button, SIGNAL('clicked()'), self.update_combos)
         self.stop_button = create_toolbutton(self,
                                 text=translate('FindInFiles', "Stop"),
-                                triggered=lambda: self.emit(SIGNAL('stop()')),
                                 icon=get_icon("terminate.png"),
+                                triggered=lambda: self.emit(SIGNAL('stop()')),
                                 tip=translate('FindInFiles', "Stop search"),
                                 text_beside_icon=True)
         self.stop_button.setEnabled(False)
@@ -361,7 +363,8 @@ class FindOptions(QWidget):
         if include_idx is not None and include_idx >= 0 \
            and include_idx < self.include_pattern.count():
             self.include_pattern.setCurrentIndex(include_idx)
-        self.include_regexp = create_toolbutton(self, get_icon("advanced.png"),
+        self.include_regexp = create_toolbutton(self,
+                                            icon=get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
         self.include_regexp.setCheckable(True)
@@ -373,7 +376,8 @@ class FindOptions(QWidget):
         if exclude_idx is not None and exclude_idx >= 0 \
            and exclude_idx < self.exclude_pattern.count():
             self.exclude_pattern.setCurrentIndex(exclude_idx)
-        self.exclude_regexp = create_toolbutton(self, get_icon("advanced.png"),
+        self.exclude_regexp = create_toolbutton(self,
+                                            icon=get_icon("advanced.png"),
                                             tip=translate('FindInFiles',
                                                           "Regular expression"))
         self.exclude_regexp.setCheckable(True)
@@ -411,7 +415,7 @@ class FindOptions(QWidget):
                      self.dir_combo.setDisabled)
         self.connect(self.hg_manifest, SIGNAL('toggled(bool)'),
                      self.dir_combo.setDisabled)
-        browse = create_toolbutton(self, get_std_icon('DirOpenIcon'),
+        browse = create_toolbutton(self, icon=get_std_icon('DirOpenIcon'),
                                    tip=translate('FindInFiles',
                                                  'Browse a search directory'),
                                    triggered=self.select_directory)

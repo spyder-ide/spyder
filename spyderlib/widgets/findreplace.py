@@ -54,7 +54,7 @@ class FindReplace(QWidget):
         self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
                      self.text_has_changed)
         
-        self.re_button = create_toolbutton(self, get_icon("advanced.png"),
+        self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
                                            tip=self.tr("Regular expression"))
         self.re_button.setCheckable(True)
         self.connect(self.re_button, SIGNAL("toggled(bool)"),
@@ -93,8 +93,8 @@ class FindReplace(QWidget):
         
         self.replace_button = create_toolbutton(self,
                                      text=self.tr("Replace/find"),
-                                     triggered=self.replace_find,
                                      icon=get_std_icon("DialogApplyButton"),
+                                     triggered=self.replace_find,
                                      text_beside_icon=True)
         self.connect(self.replace_button, SIGNAL('clicked()'),
                      self.update_replace_combo)

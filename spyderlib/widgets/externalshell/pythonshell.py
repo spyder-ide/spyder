@@ -226,7 +226,8 @@ class ExternalPythonShell(ExternalShellBase):
         if self.namespacebrowser_button is None \
            and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
-                          get_icon('dictedit.png'), self.tr("Variables"),
+                          text=self.tr("Variables"),
+                          icon=get_icon('dictedit.png'),
                           tip=self.tr("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer,
                           text_beside_icon=True)
@@ -247,7 +248,8 @@ class ExternalPythonShell(ExternalShellBase):
                       triggered=self.show_syspath)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                          get_icon('terminate.png'), self.tr("Terminate"),
+                          text=self.tr("Terminate"),
+                          icon=get_icon('terminate.png'),
                           tip=self.tr("Attempts to terminate the process.\n"
                                       "The process may not exit as a result of "
                                       "clicking this button\n"

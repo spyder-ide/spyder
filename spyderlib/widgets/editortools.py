@@ -560,7 +560,8 @@ class OutlineExplorer(QWidget):
                 self.emit(SIGNAL("outlineexplorer_is_visible()"))
         
     def setup_buttons(self):
-        fromcursor_btn = create_toolbutton(self, get_icon("fromcursor.png"),
+        fromcursor_btn = create_toolbutton(self,
+                             icon=get_icon("fromcursor.png"),
                              tip=translate('OutlineExplorer',
                                            'Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)

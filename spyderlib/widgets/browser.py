@@ -123,7 +123,7 @@ class WebBrowser(QWidget):
                      self.setWindowTitle)
         self.connect(self.webview, SIGNAL("urlChanged(QUrl)"), self.url_changed)
                 
-        home_button = create_toolbutton(self, get_icon('home.png'),
+        home_button = create_toolbutton(self, icon=get_icon('home.png'),
                                         tip=self.tr("Home"),
                                         triggered=self.go_home)
         

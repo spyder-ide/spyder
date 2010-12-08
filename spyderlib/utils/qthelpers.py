@@ -123,8 +123,8 @@ def restore_keyevent(event):
     shift = modifiers & Qt.ShiftModifier
     return event, text, key, ctrl, shift
 
-def create_toolbutton(parent, icon=None, text=None,
-                      triggered=None, tip=None, toggled=None, shortcut=None,
+def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
+                      toggled=None, triggered=None,
                       autoraise=True, text_beside_icon=False):
     """Create a QToolButton"""
     button = QToolButton(parent)

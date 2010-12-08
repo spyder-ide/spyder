@@ -100,17 +100,19 @@ class ExternalShellBase(QWidget):
         
     def get_toolbar_buttons(self):
         if self.run_button is None:
-            self.run_button = create_toolbutton(self, get_icon('run.png'),
-                              translate('ExternalShellBase', "Run"),
-                              tip=translate('ExternalShellBase',
-                                            "Run again this program"),
-                              triggered=self.start_shell)
+            self.run_button = create_toolbutton(self,
+                             text=translate('ExternalShellBase', "Run"),
+                             icon=get_icon('run.png'),
+                             tip=translate('ExternalShellBase',
+                                           "Run again this program"),
+                             triggered=self.start_shell)
         if self.kill_button is None:
-            self.kill_button = create_toolbutton(self, get_icon('kill.png'),
-                              translate('ExternalShellBase', "Kill"),
-                              tip=translate('ExternalShellBase',
-                                            "Kills the current process, "
-                                            "causing it to exit immediately"))
+            self.kill_button = create_toolbutton(self,
+                             text=translate('ExternalShellBase', "Kill"),
+                             icon=get_icon('kill.png'),
+                             tip=translate('ExternalShellBase',
+                                           "Kills the current process, "
+                                           "causing it to exit immediately"))
         buttons = [self.run_button, self.kill_button]
         if self.options_button is None:
             options = self.get_options_menu()

@@ -120,7 +120,7 @@ class FileListDialog(QDialog):
                      self.item_selection_changed)
         
         btn_layout = QHBoxLayout()
-        edit_btn = create_toolbutton(self, get_icon('edit.png'),
+        edit_btn = create_toolbutton(self, icon=get_icon('edit.png'),
                      text=translate("Editor", "&Edit file"), autoraise=False,
                      triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
@@ -552,19 +552,22 @@ class EditorStack(QWidget):
 #        horsplit_btn.setDefaultAction(self.horsplit_action)
 #        self.add_widget_to_header(horsplit_btn)
 
-        self.filelist_btn = create_toolbutton(self, get_icon('filelist.png'),
-                     tip=translate("Editor", "File list management"),
-                     triggered=self.open_filelistdialog)
+        self.filelist_btn = create_toolbutton(self,
+                             icon=get_icon('filelist.png'),
+                             tip=translate("Editor", "File list management"),
+                             triggered=self.open_filelistdialog)
         self.add_widget_to_header(self.filelist_btn, space_before=True)
         
-        self.previous_btn = create_toolbutton(self, get_icon('previous.png'),
-                         tip=translate("Editor", "Previous file"),
-                         triggered=self.go_to_previous_file)
+        self.previous_btn = create_toolbutton(self,
+                             icon=get_icon('previous.png'),
+                             tip=translate("Editor", "Previous file"),
+                             triggered=self.go_to_previous_file)
         self.add_widget_to_header(self.previous_btn, space_before=True)
         
-        self.next_btn = create_toolbutton(self, get_icon('next.png'),
-                         tip=translate("Editor", "Next file"),
-                         triggered=self.go_to_next_file)
+        self.next_btn = create_toolbutton(self,
+                             icon=get_icon('next.png'),
+                             tip=translate("Editor", "Next file"),
+                             triggered=self.go_to_next_file)
         self.add_widget_to_header(self.next_btn)
                 
         # File combo box

@@ -152,11 +152,12 @@ class PylintWidget(QWidget):
             self.remove_obsolete_items()
             self.filecombo.addItems(self.get_filenames())
         
-        self.start_button = create_toolbutton(self, get_icon('run.png'),
+        self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
                                     translate('Pylint', "Analyze"),
                                     tip=translate('Pylint', "Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
-        self.stop_button = create_toolbutton(self, get_icon('terminate.png'),
+        self.stop_button = create_toolbutton(self,
+                                    icon=get_icon('terminate.png'),
                                     translate('Pylint', "Stop"),
                                     tip=translate('Pylint',
                                                   "Stop current analysis"),
@@ -165,13 +166,13 @@ class PylintWidget(QWidget):
                      self.start_button.setEnabled)
         self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
 
-        browse_button = create_toolbutton(self, get_icon('fileopen.png'),
+        browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
                                tip=translate('Pylint', 'Select Python script'),
                                triggered=self.select_file)
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
-        self.log_button = create_toolbutton(self, get_icon('log.png'),
+        self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
                                     translate('Pylint', "Output"),
                                     text_beside_icon=True,
                                     tip=translate('Pylint',
