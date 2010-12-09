@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<!DOCTYPE TS><TS version="1.1" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -84,12 +83,12 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>CodeEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1011"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1012"/>
         <source>Code analysis</source>
         <translation>Analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1065"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1066"/>
         <source>To do</source>
         <translation>À faire</translation>
     </message>
@@ -364,157 +363,157 @@ Souhaitez-vous néanmoins continuer ?</translation>
 <context>
     <name>DictEditor</name>
     <message>
-        <location filename="widgets/dicteditor.py" line="370"/>
+        <location filename="widgets/dicteditor.py" line="373"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="371"/>
+        <location filename="widgets/dicteditor.py" line="374"/>
         <source>Size</source>
         <translation>Taille</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="372"/>
+        <location filename="widgets/dicteditor.py" line="375"/>
         <source>Value</source>
         <translation>Valeur</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="236"/>
+        <location filename="widgets/dicteditor.py" line="239"/>
         <source>Tuple</source>
         <translation>Tuple</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="239"/>
+        <location filename="widgets/dicteditor.py" line="242"/>
         <source>List</source>
         <translation>Liste</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="242"/>
+        <location filename="widgets/dicteditor.py" line="245"/>
         <source>Dictionary</source>
         <translation>Dictionnaire</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="247"/>
+        <location filename="widgets/dicteditor.py" line="250"/>
         <source>elements</source>
         <translation>éléments</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="688"/>
+        <location filename="widgets/dicteditor.py" line="691"/>
         <source>Always edit in-place</source>
         <translation>Édition en ligne pour tous les types</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="645"/>
+        <location filename="widgets/dicteditor.py" line="648"/>
         <source>Edit</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="956"/>
+        <location filename="widgets/dicteditor.py" line="959"/>
         <source>Insert</source>
         <translation>Insérer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="896"/>
+        <location filename="widgets/dicteditor.py" line="899"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="947"/>
+        <location filename="widgets/dicteditor.py" line="950"/>
         <source>Key:</source>
         <translation>Clé :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="957"/>
+        <location filename="widgets/dicteditor.py" line="960"/>
         <source>Value:</source>
         <translation>Valeur :</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="914"/>
+        <location filename="widgets/dicteditor.py" line="917"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="700"/>
+        <location filename="widgets/dicteditor.py" line="703"/>
         <source>Duplicate</source>
         <translation>Dupliquer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="635"/>
+        <location filename="widgets/dicteditor.py" line="638"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="231"/>
+        <location filename="widgets/dicteditor.py" line="234"/>
         <source>Index</source>
         <translation>Indice</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="233"/>
+        <location filename="widgets/dicteditor.py" line="236"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="244"/>
+        <location filename="widgets/dicteditor.py" line="247"/>
         <source>Key</source>
         <translation>Clé</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="189"/>
+        <location filename="widgets/dicteditor.py" line="192"/>
         <source>unknown</source>
         <translation>inconnu</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="672"/>
+        <location filename="widgets/dicteditor.py" line="675"/>
         <source>Truncate values</source>
         <translation>Tronquer les valeurs</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="677"/>
+        <location filename="widgets/dicteditor.py" line="680"/>
         <source>Show arrays min/max</source>
         <translation>Afficher les min/max des tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1059"/>
+        <location filename="widgets/dicteditor.py" line="1062"/>
         <source>Empty clipboard</source>
         <translation>Presse-papiers vide</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1061"/>
+        <location filename="widgets/dicteditor.py" line="1064"/>
         <source>Nothing to be imported from clipboard.</source>
         <translation>Aucune donnée ne peut être importée depuis le presse-papiers.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1056"/>
+        <location filename="widgets/dicteditor.py" line="1059"/>
         <source>Import from clipboard</source>
         <translation>Importer depuis le presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1040"/>
+        <location filename="widgets/dicteditor.py" line="1043"/>
         <source>Clipboard contents</source>
         <translation>Contenu du presse-papiers</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="641"/>
+        <location filename="widgets/dicteditor.py" line="644"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="682"/>
+        <location filename="widgets/dicteditor.py" line="685"/>
         <source>Show collection contents</source>
         <translation>Afficher le contenu des séquences</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1002"/>
+        <location filename="widgets/dicteditor.py" line="1005"/>
         <source>Plot</source>
         <translation>Tracer</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="654"/>
+        <location filename="widgets/dicteditor.py" line="657"/>
         <source>Show image</source>
         <translation>Afficher l&apos;image</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="974"/>
+        <location filename="widgets/dicteditor.py" line="977"/>
         <source>Import error</source>
         <translation>Erreur d&apos;import</translation>
     </message>
@@ -524,37 +523,37 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt;.</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1009"/>
+        <location filename="widgets/dicteditor.py" line="1012"/>
         <source>Save array</source>
         <translation>Enregistrer le tableau</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1013"/>
+        <location filename="widgets/dicteditor.py" line="1016"/>
         <source>NumPy arrays</source>
         <translation>Tableaux NumPy</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1024"/>
+        <location filename="widgets/dicteditor.py" line="1027"/>
         <source>&lt;b&gt;Unable to save array&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le tableau&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="989"/>
+        <location filename="widgets/dicteditor.py" line="992"/>
         <source>&lt;b&gt;Unable to plot data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher les données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1004"/>
+        <location filename="widgets/dicteditor.py" line="1007"/>
         <source>&lt;b&gt;Unable to show image.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;afficher l&apos;image&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="893"/>
+        <location filename="widgets/dicteditor.py" line="896"/>
         <source>Do you want to remove selected item?</source>
         <translation>Souhaitez-vous supprimer l&apos;élément sélectionné ?</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="895"/>
+        <location filename="widgets/dicteditor.py" line="898"/>
         <source>Do you want to remove all selected items?</source>
         <translation>Souhaitez-vous supprimer les éléments sélectionnés ?</translation>
     </message>
@@ -569,7 +568,7 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1342"/>
+        <location filename="widgets/dicteditor.py" line="1345"/>
         <source>Edit data in the remote process</source>
         <translation>Éditeurs dans le processus distant</translation>
     </message>
@@ -579,24 +578,24 @@ Souhaitez-vous néanmoins continuer ?</translation>
         <translation type="obsolete">Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="1347"/>
+        <location filename="widgets/dicteditor.py" line="1350"/>
         <source>Editors are opened in the remote process for NumPy arrays, PIL images, lists, tuples and dictionaries.
 This avoids transfering large amount of data between the remote process and Spyder (through the socket).</source>
         <translation>Les tableaux NumPy, images PIL, listes, tuples et dictionnaires seront modifiés dans un éditeur exécuté dans le processus distant.
 Cela permet d&apos;éviter de transférer de gros volumes de données entre le processus distant et Spyder (à travers le socket).</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="585"/>
+        <location filename="widgets/dicteditor.py" line="588"/>
         <source>Edit item</source>
         <translation>Modifier</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="451"/>
+        <location filename="widgets/dicteditor.py" line="454"/>
         <source>&lt;b&gt;Unable to retrieve data.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;accéder aux données&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
     <message>
-        <location filename="widgets/dicteditor.py" line="589"/>
+        <location filename="widgets/dicteditor.py" line="592"/>
         <source>&lt;b&gt;Unable to assign data to item.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;assigner la valeur de l&apos;objet.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
     </message>
@@ -642,17 +641,17 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1274"/>
+        <location filename="plugins/editor.py" line="1263"/>
         <source>This temporary script file is located here:</source>
         <translation>Ce script temporaire est sauvegardé ici :</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1273"/>
+        <location filename="plugins/editor.py" line="1262"/>
         <source>Spyder Editor</source>
         <translation>Éditeur de Spyder</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1169"/>
+        <location filename="widgets/editor.py" line="1177"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
@@ -672,7 +671,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Fermer tout</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1315"/>
+        <location filename="plugins/editor.py" line="1304"/>
         <source>untitled</source>
         <translation>sanstitre</translation>
     </message>
@@ -697,7 +696,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="431"/>
+        <location filename="widgets/editor.py" line="440"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
@@ -864,22 +863,22 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Tous les fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1923"/>
+        <location filename="widgets/editor.py" line="1935"/>
         <source>Permissions:</source>
         <translation>Droits d&apos;accès :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1953"/>
+        <location filename="widgets/editor.py" line="1965"/>
         <source>Encoding:</source>
         <translation>Encodage :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1967"/>
+        <location filename="widgets/editor.py" line="1979"/>
         <source>Line:</source>
         <translation>Ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1971"/>
+        <location filename="widgets/editor.py" line="1983"/>
         <source>Column:</source>
         <translation>Colonne :</translation>
     </message>
@@ -904,17 +903,17 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Imprimer le fichier en cours d&apos;édition...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1475"/>
+        <location filename="plugins/editor.py" line="1464"/>
         <source>Printing...</source>
         <translation>Impression en cours...</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1491"/>
+        <location filename="plugins/editor.py" line="1480"/>
         <source>Print</source>
         <translation>Impression</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1493"/>
+        <location filename="plugins/editor.py" line="1482"/>
         <source>&lt;b&gt;Unable to print document &apos;%1&apos;&lt;/b&gt;</source>
         <translation>&lt;b&gt;Impossible d&apos;imprimer le document &apos;%1&apos;&lt;/b&gt;</translation>
     </message>
@@ -964,7 +963,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Fichiers &amp;récents</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1375"/>
+        <location filename="plugins/editor.py" line="1364"/>
         <source>Maximum number of recent files</source>
         <translation>Nombre maximum de fichiers récents</translation>
     </message>
@@ -999,72 +998,72 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Afficher la liste des avertissements/erreurs provenant de l&apos;analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="526"/>
+        <location filename="widgets/editor.py" line="535"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="579"/>
+        <location filename="widgets/editor.py" line="591"/>
         <source>Close file</source>
         <translation>Fermer le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="970"/>
+        <location filename="widgets/editor.py" line="982"/>
         <source>Split vertically</source>
         <translation>Séparation verticale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="973"/>
+        <location filename="widgets/editor.py" line="985"/>
         <source>Split vertically this editor window</source>
         <translation>Séparer en deux verticalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="976"/>
+        <location filename="widgets/editor.py" line="988"/>
         <source>Split horizontally</source>
         <translation>Séparation horizontale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="979"/>
+        <location filename="widgets/editor.py" line="991"/>
         <source>Split horizontally this editor window</source>
         <translation>Séparer en deux horizontalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="982"/>
+        <location filename="widgets/editor.py" line="994"/>
         <source>Close this panel</source>
         <translation>Fermer ce panneau</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1114"/>
+        <location filename="widgets/editor.py" line="1122"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified.&lt;br&gt;Do you want to save changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié.&lt;br&gt;Souhaitez-vous enregistrer ces changements ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1172"/>
+        <location filename="widgets/editor.py" line="1180"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1188"/>
+        <location filename="widgets/editor.py" line="1196"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1397"/>
+        <location filename="widgets/editor.py" line="1405"/>
         <source>&lt;b&gt;%1&lt;/b&gt; is unavailable (this file may have been removed, moved or renamed outside Spyder).&lt;br&gt;Do you want to close it?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; n&apos;est pas accessible (ce fichier a peut-être été supprimé, déplacé ou renommé en dehors de Spyder).&lt;br&gt;Souhaitez-vous le fermer ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1411"/>
+        <location filename="widgets/editor.py" line="1419"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified outside Spyder.&lt;br&gt;Do you want to reload it and loose all your changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié en dehors de Spyder.&lt;br&gt;Souhaitez-vous le recharger et perdre ainsi vos modifications ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1466"/>
+        <location filename="widgets/editor.py" line="1474"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1637"/>
+        <location filename="widgets/editor.py" line="1649"/>
         <source>Loading %1...</source>
         <translation>Chargement de &quot;%1&quot; en cours...</translation>
     </message>
@@ -1084,12 +1083,12 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Déboguer avec winpdb</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="964"/>
+        <location filename="widgets/editor.py" line="976"/>
         <source>New window</source>
         <translation>Nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="966"/>
+        <location filename="widgets/editor.py" line="978"/>
         <source>Create a new editor window</source>
         <translation>Créer une nouvelle fenêtre d&apos;édition</translation>
     </message>
@@ -1134,17 +1133,17 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>?</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="1402"/>
+        <location filename="plugins/editor.py" line="1391"/>
         <source>Open file</source>
         <translation>Ouvrir un fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="2104"/>
+        <location filename="widgets/editor.py" line="2116"/>
         <source>Close window</source>
         <translation>Fermer la fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="2106"/>
+        <location filename="widgets/editor.py" line="2118"/>
         <source>Close this window</source>
         <translation>Fermer cette fenêtre d&apos;édition</translation>
     </message>
@@ -1154,7 +1153,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Barre d&apos;outil de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1938"/>
+        <location filename="widgets/editor.py" line="1950"/>
         <source>End-of-lines:</source>
         <translation>Fins de ligne :</translation>
     </message>
@@ -1169,7 +1168,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Afficher la liste des commentaires du type TODO/FIXME/XXX</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1650"/>
+        <location filename="widgets/editor.py" line="1662"/>
         <source>&lt;b&gt;%1&lt;/b&gt; contains mixed end-of-line characters.&lt;br&gt;Spyder will fix this automatically.</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; contient des caractères de fin de ligne mélangés.&lt;br&gt;Spyder va corriger ceci automatiquement.</translation>
     </message>
@@ -1206,12 +1205,12 @@ inside current external console&apos;s interpreter</source>
 dans l&apos;interpréteur de la console externe active</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="568"/>
+        <location filename="widgets/editor.py" line="580"/>
         <source>Copy path to clipboard</source>
         <translation>Copier le chemin d&apos;accès dans le presse-papier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="546"/>
+        <location filename="widgets/editor.py" line="556"/>
         <source>File list management</source>
         <translation>Gestionnaire de fichiers</translation>
     </message>
@@ -1341,12 +1340,12 @@ dans l&apos;interpréteur de la console externe active</translation>
         <translation>E&amp;xécution</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="551"/>
+        <location filename="widgets/editor.py" line="562"/>
         <source>Previous file</source>
         <translation>Fichier précédent</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="556"/>
+        <location filename="widgets/editor.py" line="568"/>
         <source>Next file</source>
         <translation>Fichier suivant</translation>
     </message>
@@ -1361,7 +1360,7 @@ dans l&apos;interpréteur de la console externe active</translation>
         <translation>Revenir à la version du fichier enregistrée sur le disque</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1536"/>
+        <location filename="widgets/editor.py" line="1544"/>
         <source>All changes to &lt;b&gt;%1&lt;/b&gt; will be lost.&lt;br&gt;Do you want to revert file from disk?</source>
         <translation>Toutes les modifications effectuées sur &lt;b&gt;%1&lt;/b&gt; seront perdues.&lt;br&gt;Souhaitez-vous revenir à la version du fichier enregistrée sur le disque ?</translation>
     </message>
@@ -1922,108 +1921,108 @@ accessible via le raccourci Ctrl+Espace)</translation>
 <context>
     <name>ExternalConsole</name>
     <message>
-        <location filename="plugins/externalconsole.py" line="646"/>
+        <location filename="plugins/externalconsole.py" line="643"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="647"/>
+        <location filename="plugins/externalconsole.py" line="644"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="658"/>
+        <location filename="plugins/externalconsole.py" line="655"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="659"/>
+        <location filename="plugins/externalconsole.py" line="656"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="828"/>
+        <location filename="plugins/externalconsole.py" line="824"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="829"/>
+        <location filename="plugins/externalconsole.py" line="825"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="461"/>
+        <location filename="plugins/externalconsole.py" line="459"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="651"/>
+        <location filename="plugins/externalconsole.py" line="648"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="652"/>
+        <location filename="plugins/externalconsole.py" line="649"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="575"/>
+        <location filename="plugins/externalconsole.py" line="572"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="577"/>
+        <location filename="plugins/externalconsole.py" line="574"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="654"/>
+        <location filename="plugins/externalconsole.py" line="651"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="655"/>
+        <location filename="plugins/externalconsole.py" line="652"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="667"/>
+        <location filename="plugins/externalconsole.py" line="664"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="669"/>
+        <location filename="plugins/externalconsole.py" line="666"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="632"/>
+        <location filename="plugins/externalconsole.py" line="629"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="852"/>
+        <location filename="plugins/externalconsole.py" line="848"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="839"/>
+        <location filename="plugins/externalconsole.py" line="835"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="851"/>
+        <location filename="plugins/externalconsole.py" line="847"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
 %1</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="855"/>
+        <location filename="plugins/externalconsole.py" line="851"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -2298,22 +2297,22 @@ a left parenthesis after a valid function name)</source>
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="239"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="230"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="240"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="232"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="260"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="237"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="265"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="243"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -2322,117 +2321,127 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="274"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="253"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="276"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="255"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="469"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="464"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="470"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="465"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="325"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="319"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="320"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="314"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="323"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="317"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="245"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="262"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="246"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="264"/>
         <source>Set current working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="535"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="530"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="251"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="266"/>
         <source>Environment variables</source>
         <translation>Variables d&apos;environnement</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="256"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="270"/>
         <source>Show sys.path contents</source>
         <translation>Afficher le contenu de sys.path</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/pythonshell.py" line="259"/>
+        <source>Run settings</source>
+        <translation>Options d&apos;exécution</translation>
     </message>
 </context>
 <context>
     <name>ExternalShellBase</name>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="87"/>
+        <location filename="widgets/externalshell/baseshell.py" line="92"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="103"/>
+        <location filename="widgets/externalshell/baseshell.py" line="112"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="105"/>
+        <location filename="widgets/externalshell/baseshell.py" line="115"/>
         <source>Run again this program</source>
         <translation>Exécuter de nouveau ce programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="109"/>
+        <location filename="widgets/externalshell/baseshell.py" line="119"/>
         <source>Kill</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="112"/>
+        <location filename="widgets/externalshell/baseshell.py" line="123"/>
         <source>Kills the current process, causing it to exit immediately</source>
         <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="170"/>
+        <location filename="widgets/externalshell/baseshell.py" line="187"/>
         <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="176"/>
+        <location filename="widgets/externalshell/baseshell.py" line="193"/>
         <source>Terminated.</source>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="192"/>
+        <location filename="widgets/externalshell/baseshell.py" line="209"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="194"/>
+        <location filename="widgets/externalshell/baseshell.py" line="211"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="118"/>
+        <location filename="widgets/externalshell/baseshell.py" line="130"/>
         <source>Options</source>
         <translation>Options</translation>
+    </message>
+    <message>
+        <location filename="widgets/externalshell/baseshell.py" line="151"/>
+        <source>Show elapsed time</source>
+        <translation>Afficher le temps écoulé</translation>
     </message>
 </context>
 <context>
@@ -2451,7 +2460,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>FindInFiles</name>
     <message>
-        <location filename="widgets/findinfiles.py" line="708"/>
+        <location filename="widgets/findinfiles.py" line="712"/>
         <source>Find in files</source>
         <translation>Recherche dans des fichiers</translation>
     </message>
@@ -2461,92 +2470,92 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Expression recherchée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="377"/>
+        <location filename="widgets/findinfiles.py" line="381"/>
         <source>Regular expression</source>
         <translation>Expression régulière</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="339"/>
+        <location filename="widgets/findinfiles.py" line="341"/>
         <source>Search</source>
         <translation>Rechercher</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="342"/>
+        <location filename="widgets/findinfiles.py" line="344"/>
         <source>Start search</source>
         <translation>Démarrer la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="349"/>
+        <location filename="widgets/findinfiles.py" line="351"/>
         <source>Stop search</source>
         <translation>Arrêter la recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="359"/>
+        <location filename="widgets/findinfiles.py" line="361"/>
         <source>Included filenames pattern</source>
         <translation>Expression des noms de fichier à inclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="368"/>
+        <location filename="widgets/findinfiles.py" line="371"/>
         <source>Include:</source>
         <translation>Inclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="371"/>
+        <location filename="widgets/findinfiles.py" line="374"/>
         <source>Excluded filenames pattern</source>
         <translation>Expression des noms de fichier à exclure</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="380"/>
+        <location filename="widgets/findinfiles.py" line="384"/>
         <source>Exclude:</source>
         <translation>Exclure :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="406"/>
+        <location filename="widgets/findinfiles.py" line="410"/>
         <source>Search recursively in this directory</source>
         <translation>Rechercher de manière récursive dans ce répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="415"/>
+        <location filename="widgets/findinfiles.py" line="419"/>
         <source>Browse a search directory</source>
         <translation>Sélectionner un répertoire de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="525"/>
+        <location filename="widgets/findinfiles.py" line="529"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="397"/>
+        <location filename="widgets/findinfiles.py" line="401"/>
         <source>Hg repository</source>
         <translation>Dépôt Mercurial</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="400"/>
+        <location filename="widgets/findinfiles.py" line="404"/>
         <source>Search in current directory hg repository</source>
         <translation>Rechercher dans le dépôt Mercurial du répertoire courant</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="595"/>
+        <location filename="widgets/findinfiles.py" line="599"/>
         <source>matches in</source>
         <translation>correspondances trouvées dans</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="596"/>
+        <location filename="widgets/findinfiles.py" line="600"/>
         <source>file</source>
         <translation>fichier</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="593"/>
+        <location filename="widgets/findinfiles.py" line="597"/>
         <source>String not found</source>
         <translation>Chaîne de caractères non trouvée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="391"/>
+        <location filename="widgets/findinfiles.py" line="395"/>
         <source>PYTHONPATH</source>
         <translation>PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="395"/>
+        <location filename="widgets/findinfiles.py" line="399"/>
         <source>Search in all directories listed in sys.path which are outside the Python installation directory</source>
         <translation>Rechercher dans tous les répertoires listés dans sys.path qui sont situés en dehors du répertoire d&apos;installation de Python</translation>
     </message>
@@ -2556,17 +2565,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>des erreurs d&apos;autorisation d&apos;accès ont été rencontrées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="346"/>
+        <location filename="widgets/findinfiles.py" line="348"/>
         <source>Stop</source>
         <translation>Arrêter</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="589"/>
+        <location filename="widgets/findinfiles.py" line="593"/>
         <source>Search canceled</source>
         <translation>Recherche annulée</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="603"/>
+        <location filename="widgets/findinfiles.py" line="607"/>
         <source>interrupted</source>
         <translation>interrompu</translation>
     </message>
@@ -2576,17 +2585,17 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>expression régulière incorrecte</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="401"/>
+        <location filename="widgets/findinfiles.py" line="405"/>
         <source>Here:</source>
         <translation>Ici :</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="448"/>
+        <location filename="widgets/findinfiles.py" line="452"/>
         <source>Hide advanced options</source>
         <translation>Masquer les options avancées</translation>
     </message>
     <message>
-        <location filename="widgets/findinfiles.py" line="451"/>
+        <location filename="widgets/findinfiles.py" line="455"/>
         <source>Show advanced options</source>
         <translation>Afficher les options avancées</translation>
     </message>
@@ -3436,7 +3445,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <location filename="spyder.py" line="1094"/>
         <source>&lt;b&gt;%1 %2&lt;/b&gt;
             &lt;br&gt;Scientific PYthon Development EnviRonment
-            &lt;p&gt;Copyright &amp;copy; 2009 Pierre Raybaut
+            &lt;p&gt;Copyright &amp;copy; 2009-2010 Pierre Raybaut
             &lt;br&gt;Licensed under the terms of the MIT License
             &lt;p&gt;Created, developed and maintained by Pierre Raybaut
             &lt;br&gt;Many thanks to Christopher Brown, Alexandre Radicchi,
@@ -3665,7 +3674,7 @@ mais cela permet au programme en cours de quitter proprement.</translation>
         <translation>Structure</translation>
     </message>
     <message>
-        <location filename="widgets/editortools.py" line="564"/>
+        <location filename="widgets/editortools.py" line="565"/>
         <source>Go to cursor position</source>
         <translation>Aller à la position du curseur</translation>
     </message>
@@ -3906,7 +3915,7 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Propriétés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1508"/>
+        <location filename="widgets/projectexplorer.py" line="1509"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
@@ -4435,37 +4444,37 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>SimpleEditor</name>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1380"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1381"/>
         <source>Undo</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1384"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1385"/>
         <source>Redo</source>
         <translation>Répéter</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1388"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1389"/>
         <source>Cut</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1392"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1393"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1396"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1397"/>
         <source>Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1400"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1401"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/codeeditor/codeeditor.py" line="1405"/>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1406"/>
         <source>Select All</source>
         <translation>Sélectionner tout</translation>
     </message>

@@ -500,7 +500,9 @@ class ExternalConsole(SpyderPluginWidget):
                            remove_pyqt_inputhook=remove_pyqt_inputhook,
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,
-                           light_background=light_background)
+                           light_background=light_background,
+                           menu_actions=self.menu_actions,
+                           show_buttons_inside=False)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))
@@ -521,7 +523,9 @@ class ExternalConsole(SpyderPluginWidget):
                     programs.run_program(cmd, args)
                     return
             shellwidget = ExternalSystemShell(self, wdir, path=pythonpath,
-                                          light_background=light_background)
+                                          light_background=light_background,
+                                          menu_actions=self.menu_actions,
+                                          show_buttons_inside=False)
         
         # Code completion / calltips
         shellwidget.shell.setMaximumBlockCount(
@@ -726,11 +730,18 @@ class ExternalConsole(SpyderPluginWidget):
     def refresh_plugin(self):
         """Refresh tabwidget"""
         if self.tabwidget.count():
-            editor = self.tabwidget.currentWidget().shell
+            shellwidget = self.tabwidget.currentWidget()
+            editor = shellwidget.shell
             editor.setFocus()
+            if shellwidget.time_label is None:
+                shellwidget.time_label = QLabel()
+            widgets = [shellwidget.time_label, 5
+                       ]+shellwidget.get_toolbar_buttons()+[5]
         else:
             editor = None
+            widgets = []
         self.find_widget.set_editor(editor)
+        self.tabwidget.set_corner_widgets(widgets)
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

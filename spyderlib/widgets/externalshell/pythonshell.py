@@ -12,12 +12,13 @@ import sys, os, os.path as osp, socket
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QApplication, QMessageBox, QSplitter, QFileDialog
+from PyQt4.QtGui import (QApplication, QMessageBox, QSplitter, QFileDialog,
+                         QMenu)
 from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       get_std_icon, DialogManager)
+                                       get_std_icon, DialogManager, add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
 from spyderlib.config import get_icon
@@ -143,7 +144,8 @@ class ExternalPythonShell(ExternalShellBase):
                  mpl_backend='Qt4Agg', ets_backend='qt4',
                  remove_pyqt_inputhook=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
-                 light_background=True):
+                 light_background=True, menu_actions=None,
+                 show_buttons_inside=True, show_elapsed_time=True):
         self.namespacebrowser = None # namespace browser widget!
         
         self.dialog_manager = DialogManager()
@@ -168,7 +170,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.umd_verbose = umd_verbose
         self.autorefresh_timeout = autorefresh_timeout
         self.autorefresh_state = autorefresh_state
-        
+                
         self.namespacebrowser_button = None
         self.cwd_button = None
         self.env_button = None
@@ -179,7 +181,10 @@ class ExternalPythonShell(ExternalShellBase):
         
         ExternalShellBase.__init__(self, parent, wdir,
                                    history_filename='.history.py',
-                                   light_background=light_background)
+                                   light_background=light_background,
+                                   menu_actions=menu_actions,
+                                   show_buttons_inside=show_buttons_inside,
+                                   show_elapsed_time=show_elapsed_time)
         
         self.python_args = None
         if python_args:
@@ -231,21 +236,6 @@ class ExternalPythonShell(ExternalShellBase):
                           tip=self.tr("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer,
                           text_beside_icon=True)
-        if self.cwd_button is None:
-            self.cwd_button = create_toolbutton(self,
-                      get_std_icon('DirOpenIcon'), self.tr("Working directory"),
-                      tip=self.tr("Set current working directory"),
-                      triggered=self.set_current_working_directory)
-        if self.env_button is None:
-            self.env_button = create_toolbutton(self,
-                      get_icon('environ.png'),
-                      self.tr("Environment variables"),
-                      triggered=self.show_env)
-        if self.syspath_button is None:
-            self.syspath_button = create_toolbutton(self,
-                      get_icon('syspath.png'),
-                      self.tr("Show sys.path contents"),
-                      triggered=self.show_syspath)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
                           text=self.tr("Terminate"),
@@ -254,8 +244,8 @@ class ExternalPythonShell(ExternalShellBase):
                                       "The process may not exit as a result of "
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
-                                      "the user for any unsaved files, etc)."))        
-        buttons = [self.cwd_button, self.env_button, self.syspath_button]
+                                      "the user for any unsaved files, etc)."))
+        buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
         buttons += [self.run_button, self.options_button,
@@ -263,13 +253,32 @@ class ExternalPythonShell(ExternalShellBase):
         return buttons
 
     def get_options_menu(self):
+        ExternalShellBase.get_options_menu(self)
         self.interact_action = create_action(self, self.tr("Interact"))
         self.interact_action.setCheckable(True)
         self.debug_action = create_action(self, self.tr("Debug"))
         self.debug_action.setCheckable(True)
         self.args_action = create_action(self, self.tr("Arguments..."),
                                          triggered=self.get_arguments)
-        return [self.interact_action, self.debug_action, self.args_action]
+        run_settings_menu = QMenu(self.tr("Run settings"), self)
+        add_actions(run_settings_menu,
+                    (self.interact_action, self.debug_action, self.args_action))
+        self.cwd_button = create_action(self, self.tr("Working directory"),
+                                icon=get_std_icon('DirOpenIcon'),
+                                tip=self.tr("Set current working directory"),
+                                triggered=self.set_current_working_directory)
+        self.env_button = create_action(self, self.tr("Environment variables"),
+                                        icon=get_icon('environ.png'),
+                                        triggered=self.show_env)
+        self.syspath_button = create_action(self,
+                                            self.tr("Show sys.path contents"),
+                                            icon=get_icon('syspath.png'),
+                                            triggered=self.show_syspath)
+        actions = [run_settings_menu, self.show_time_action, None,
+                   self.cwd_button, self.env_button, self.syspath_button]
+        if self.menu_actions is not None:
+            actions += [None]+self.menu_actions
+        return actions
 
     def is_interpreter(self):
         """Return True if shellwidget is a Python/IPython interpreter"""
@@ -315,7 +324,7 @@ class ExternalPythonShell(ExternalShellBase):
         else:
             argstr = self.tr("Arguments...")
         self.args_action.setText(argstr)
-        self.terminate_button.setEnabled(state)
+        self.terminate_button.setVisible(not self.interpreter and state)
         if not state:
             self.toggle_globals_explorer(False)
         for btn in (self.cwd_button, self.env_button, self.syspath_button):
