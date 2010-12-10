@@ -49,7 +49,10 @@ class MyBuildDoc(setup_command.BuildDoc):
         sys.path.insert(0, os.path.abspath(build.build_lib))
         dirname = self.distribution.get_command_obj('build').build_purelib
         self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
-        setup_command.BuildDoc.run(self)
+        try:
+            setup_command.BuildDoc.run(self)
+        except UnicodeDecodeError:
+            print >>sys.stderr, "ERROR: unable to build documentation because Sphinx do not handle source path with non-ASCII characters. Please try to move the source package to another location (path with *only* ASCII characters)."        
         sys.path.pop(0)
 
 cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
