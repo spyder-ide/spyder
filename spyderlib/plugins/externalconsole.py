@@ -785,7 +785,8 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.set_elapsed_time_visible(showtime)
             shellwidget.set_icontext_visible(icontext)
             shellwidget.shell.set_calltips(calltips)
-            shellwidget.shell.set_inspector_enabled(inspector)
+            if isinstance(shellwidget.shell, ExternalPythonShell):
+                shellwidget.shell.set_inspector_enabled(inspector)
             shellwidget.shell.toggle_wrap_mode(wrap)
             shellwidget.shell.set_codecompletion_auto(compauto)
             shellwidget.shell.set_codecompletion_case(case_comp)
