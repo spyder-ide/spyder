@@ -313,6 +313,8 @@ class ExternalConsole(SpyderPluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
+        if hasattr(self.tabwidget, 'setDocumentMode'):
+            self.tabwidget.setDocumentMode(True)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_plugin)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
