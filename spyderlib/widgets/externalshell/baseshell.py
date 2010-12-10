@@ -80,12 +80,10 @@ class ExternalShellBase(QWidget):
         toolbar_buttons = self.get_toolbar_buttons()
         if show_buttons_inside:
             self.state_label = QLabel()
-            self.time_label = QLabel()
-            self.time_label.setVisible(show_elapsed_time)
             hlayout = QHBoxLayout()
             hlayout.addWidget(self.state_label)
             hlayout.addStretch(0)
-            hlayout.addWidget(self.time_label)
+            hlayout.addWidget(self.create_time_label())
             hlayout.addStretch(0)
             for button in toolbar_buttons:
                 hlayout.addWidget(button)
@@ -105,11 +103,23 @@ class ExternalShellBase(QWidget):
         self.process = None
         
         self.is_closing = False
+
+        if show_buttons_inside:
+            self.update_time_label_visibility()
         
     def set_elapsed_time_visible(self, state):
         self.show_elapsed_time = state
         if self.time_label is not None:
             self.time_label.setVisible(state)
+            
+    def create_time_label(self):
+        """Create elapsed time label widget (if necessary) and return it"""
+        if self.time_label is None:
+            self.time_label = QLabel()
+        return self.time_label
+    
+    def update_time_label_visibility(self):
+        self.time_label.setVisible(self.show_elapsed_time)
         
     def is_running(self):
         if self.process is not None:

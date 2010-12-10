@@ -41,11 +41,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
         singletab_box = newcb(self.tr("One tab per script"), 'single_tab')
+        showtime_box = newcb(self.tr("Show elapsed time"), 'show_elapsed_time')
         icontext_box = newcb(self.tr("Show icons and text"), 'show_icontext')
 
         # Interface Group
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(singletab_box)
+        interface_layout.addWidget(showtime_box)
         interface_layout.addWidget(icontext_box)
         interface_group.setLayout(interface_layout)
         
@@ -473,6 +475,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
         light_background = self.get_option('light_background')
+        show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
             monitor_enabled = self.get_option('monitor/enabled')
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
@@ -504,7 +507,8 @@ class ExternalConsole(SpyderPluginWidget):
                            autorefresh_state=ar_state,
                            light_background=light_background,
                            menu_actions=self.menu_actions,
-                           show_buttons_inside=False)
+                           show_buttons_inside=False,
+                           show_elapsed_time=show_elapsed_time)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno, shell=shellwidget.shell:
                          self.pdb_has_stopped(fname, lineno, shell))
@@ -527,7 +531,8 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget = ExternalSystemShell(self, wdir, path=pythonpath,
                                           light_background=light_background,
                                           menu_actions=self.menu_actions,
-                                          show_buttons_inside=False)
+                                          show_buttons_inside=False,
+                                          show_elapsed_time=show_elapsed_time)
         
         # Code completion / calltips
         shellwidget.shell.setMaximumBlockCount(
@@ -731,19 +736,20 @@ class ExternalConsole(SpyderPluginWidget):
     
     def refresh_plugin(self):
         """Refresh tabwidget"""
+        shellwidget = None
         if self.tabwidget.count():
             shellwidget = self.tabwidget.currentWidget()
             editor = shellwidget.shell
             editor.setFocus()
-            if shellwidget.time_label is None:
-                shellwidget.time_label = QLabel()
-            widgets = [shellwidget.time_label, 5
+            widgets = [shellwidget.create_time_label(), 5
                        ]+shellwidget.get_toolbar_buttons()+[5]
         else:
             editor = None
             widgets = []
         self.find_widget.set_editor(editor)
         self.tabwidget.set_corner_widgets(widgets)
+        if shellwidget:
+            shellwidget.update_time_label_visibility()
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
@@ -764,6 +770,7 @@ class ExternalConsole(SpyderPluginWidget):
                     self.set_option(ipython_n, args.replace(" "+lbgo, ""
                                     ).replace(lbgo+" ", ""))
         font = self.get_plugin_font()
+        showtime = self.get_option('show_elapsed_time')
         icontext = self.get_option('show_icontext')
         calltips = self.get_option('calltips')
         inspector = self.get_option('object_inspector')
@@ -775,6 +782,7 @@ class ExternalConsole(SpyderPluginWidget):
         mlc = self.get_option('max_line_count')
         for shellwidget in self.shellwidgets:
             shellwidget.shell.set_font(font)
+            shellwidget.set_elapsed_time_visible(showtime)
             shellwidget.set_icontext_visible(icontext)
             shellwidget.shell.set_calltips(calltips)
             shellwidget.shell.set_inspector_enabled(inspector)

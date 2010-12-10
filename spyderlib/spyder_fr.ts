@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr_FR">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -1921,108 +1922,108 @@ accessible via le raccourci Ctrl+Espace)</translation>
 <context>
     <name>ExternalConsole</name>
     <message>
-        <location filename="plugins/externalconsole.py" line="643"/>
+        <location filename="plugins/externalconsole.py" line="654"/>
         <source>Open &amp;interpreter</source>
         <translation>Ouvrir un &amp;interpréteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="644"/>
+        <location filename="plugins/externalconsole.py" line="655"/>
         <source>Open a Python interpreter</source>
         <translation>Ouvrir un interpréteur Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="655"/>
+        <location filename="plugins/externalconsole.py" line="666"/>
         <source>&amp;Run...</source>
         <translation>Exécute&amp;r...</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="656"/>
+        <location filename="plugins/externalconsole.py" line="667"/>
         <source>Run a Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="824"/>
+        <location filename="plugins/externalconsole.py" line="846"/>
         <source>Run Python script</source>
         <translation>Exécuter un script Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="825"/>
+        <location filename="plugins/externalconsole.py" line="847"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="459"/>
+        <location filename="plugins/externalconsole.py" line="463"/>
         <source>%1 is already running in a separate process.
 Do you want to kill the process before starting a new one?</source>
         <translation>%1 est déjà en cours d&apos;exécution dans un processus séparé.
 Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="648"/>
+        <location filename="plugins/externalconsole.py" line="659"/>
         <source>Open &amp;command prompt</source>
         <translation>Ouvrir un invite de &amp;commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="649"/>
+        <location filename="plugins/externalconsole.py" line="660"/>
         <source>Open a Windows command prompt</source>
         <translation>Ouvrir un invite de commandes Windows</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="572"/>
+        <location filename="plugins/externalconsole.py" line="583"/>
         <source>Command Window</source>
         <translation>Invite de commandes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="574"/>
+        <location filename="plugins/externalconsole.py" line="585"/>
         <source>Terminal</source>
         <translation>Terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="651"/>
+        <location filename="plugins/externalconsole.py" line="662"/>
         <source>Open &amp;terminal</source>
         <translation>Ouvrir un &amp;terminal</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="652"/>
+        <location filename="plugins/externalconsole.py" line="663"/>
         <source>Open a terminal window inside Spyder</source>
         <translation>Ouvrir un terminal de commandes dans Spyder</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="664"/>
+        <location filename="plugins/externalconsole.py" line="675"/>
         <source>Open IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="666"/>
+        <location filename="plugins/externalconsole.py" line="677"/>
         <source>Open an IPython interpreter</source>
         <translation>Ouvrir un interpréteur IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="629"/>
+        <location filename="plugins/externalconsole.py" line="640"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="848"/>
+        <location filename="plugins/externalconsole.py" line="870"/>
         <source>UMD</source>
         <translation>UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="835"/>
+        <location filename="plugins/externalconsole.py" line="857"/>
         <source>UMD excluded modules:
 (example: guidata, guiqwt)</source>
         <translation>Modules non rechargés par l&apos;UMD :
 (exemple: guidata, guiqwt)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="847"/>
+        <location filename="plugins/externalconsole.py" line="869"/>
         <source>The following modules are not installed on your machine:
 %1</source>
         <translation>Les modules suivants ne sont pas installés sur votre ordinateur :
 %1</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="851"/>
+        <location filename="plugins/externalconsole.py" line="873"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
@@ -2035,17 +2036,17 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Interface</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="54"/>
+        <location filename="plugins/externalconsole.py" line="56"/>
         <source>Buffer: </source>
         <translation>Tampon : </translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="54"/>
+        <location filename="plugins/externalconsole.py" line="56"/>
         <source> lines</source>
         <translation> lignes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="56"/>
+        <location filename="plugins/externalconsole.py" line="58"/>
         <source>Set maximum line count</source>
         <translation>Modifier le nombre maximum de lignes</translation>
     </message>
@@ -2055,82 +2056,82 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
         <translation>Un onglet par script</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="43"/>
+        <location filename="plugins/externalconsole.py" line="44"/>
         <source>Show icons and text</source>
         <translation>Afficher icônes et textes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="81"/>
+        <location filename="plugins/externalconsole.py" line="83"/>
         <source>Source code</source>
         <translation>Code source</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="90"/>
+        <location filename="plugins/externalconsole.py" line="92"/>
         <source>Balloon tips</source>
         <translation>Info-bulles</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="82"/>
+        <location filename="plugins/externalconsole.py" line="84"/>
         <source>Automatic code completion</source>
         <translation>Complétion de code automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="88"/>
+        <location filename="plugins/externalconsole.py" line="90"/>
         <source>Enter key selects completion</source>
         <translation>Entrée valide la complétion de code</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="57"/>
+        <location filename="plugins/externalconsole.py" line="59"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="109"/>
+        <location filename="plugins/externalconsole.py" line="111"/>
         <source>User Module Deleter (UMD)</source>
         <translation>User Module Deleter (UMD)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="112"/>
+        <location filename="plugins/externalconsole.py" line="114"/>
         <source>UMD forces Python to reload modules imported when executing a script in the external console with the &apos;runfile&apos; function</source>
         <translation>L&apos;UMD force Python à recharger les modules importés lors de l&apos;exécution d&apos;un script dans la console interne avec la fonction &apos;runfile&apos;</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="114"/>
+        <location filename="plugins/externalconsole.py" line="116"/>
         <source>Enable UMD</source>
         <translation>Activer l&apos;UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="129"/>
+        <location filename="plugins/externalconsole.py" line="131"/>
         <source>This option will enable the User Module Deleter (UMD) in Python/IPython interpreters. UMD forces Python to reload deeply modules during import when running a Python script using the Spyder&apos;s builtin function &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD may require to restart the Python interpreter in which it will be called (otherwise only newly imported modules will be reloaded when executing scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; If errors occur when re-running a PyQt-based program, please check that the Qt objects are properly destroyed (e.g. you may have to use the attribute &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; on your main window, using the &lt;b&gt;setAttribute&lt;/b&gt; method)</source>
         <translation>Cette option active le User Module Deleter (UMD) dans les interpréteurs Python/IPython. L&apos;UMD force Python à recharger complètement les modules lors de leur importation, dans le cadre de l&apos;exécution d&apos;un script Python avec la fonction Spyder &lt;b&gt;runfile&lt;/b&gt;.&lt;br&gt;&lt;br&gt;&lt;b&gt;1.&lt;/b&gt; UMD peut nécessiter le redémarrage de l&apos;interpréteur Python dans lequel il va être utilisé (dans le cas contraire, seuls les modules importés après activation de l&apos;UMD seront rechargés complètement lors de l&apos;exécution de scripts).&lt;br&gt;&lt;br&gt;&lt;b&gt;2.&lt;/b&gt; Si des erreurs survenaient lors de la réexécution de programmes utilisant PyQt, veuillez vérifier que les objets Qt sont correctement détruits à la sortie du programme (par exemple, il sera probablement nécessaire d&apos;utiliser l&apos;attribut &lt;b&gt;Qt.WA_DeleteOnClose&lt;/b&gt; sur votre objet fenêtre principale grâce à la méthode &lt;b&gt;setAttribute&lt;/b&gt;)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="131"/>
+        <location filename="plugins/externalconsole.py" line="133"/>
         <source>Show reloaded modules list</source>
         <translation>Afficher les modules rechargés</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="135"/>
+        <location filename="plugins/externalconsole.py" line="137"/>
         <source>Please note that these changes will be applied only to new Python/IPython interpreters</source>
         <translation>Veuillez noter que ces changements ne seront pris en compte que par les nouveaux interpréteurs Python/IPython</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="150"/>
+        <location filename="plugins/externalconsole.py" line="152"/>
         <source>Startup</source>
         <translation>Démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="151"/>
+        <location filename="plugins/externalconsole.py" line="153"/>
         <source>Open a Python interpreter at startup</source>
         <translation>Ouvrir un interpréteur Python au démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="153"/>
+        <location filename="plugins/externalconsole.py" line="155"/>
         <source>Open an IPython interpreter at startup</source>
         <translation>Ouvrir un interpréteur IPython au démarrage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="199"/>
+        <location filename="plugins/externalconsole.py" line="201"/>
         <source>IPython</source>
         <translation>IPython</translation>
     </message>
@@ -2144,72 +2145,72 @@ Souhaitez-vous tuer ce processus avant d&apos;en démarrer un autre ?</translati
 (support Qt4 et matplotlib : -q4thread -pylab)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="211"/>
+        <location filename="plugins/externalconsole.py" line="213"/>
         <source>Matplotlib</source>
         <translation>Matplotlib</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="218"/>
+        <location filename="plugins/externalconsole.py" line="220"/>
         <source>Patch Matplotlib figures</source>
         <translation>Patcher les figures Matplotlib</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="138"/>
+        <location filename="plugins/externalconsole.py" line="140"/>
         <source>Set UMD excluded (not reloaded) modules</source>
         <translation>Modifier la liste des modules non rechargés par l&apos;UMD</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="266"/>
+        <location filename="plugins/externalconsole.py" line="268"/>
         <source>External modules</source>
         <translation>Modules externes</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="65"/>
+        <location filename="plugins/externalconsole.py" line="67"/>
         <source>Background color</source>
         <translation>Couleur de fond</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="67"/>
+        <location filename="plugins/externalconsole.py" line="69"/>
         <source>This option will be applied the next time a Python console or a terminal is opened.</source>
         <translation>Cette option sera prise en compte lors de la prochaine ouverture de console (interpréteur Python ou terminal).</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="69"/>
+        <location filename="plugins/externalconsole.py" line="71"/>
         <source>Light background (white color)</source>
         <translation>Fond blanc</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="259"/>
+        <location filename="plugins/externalconsole.py" line="261"/>
         <source>Display</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="263"/>
+        <location filename="plugins/externalconsole.py" line="265"/>
         <source>Advanced settings</source>
         <translation>Options avancées</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="239"/>
+        <location filename="plugins/externalconsole.py" line="241"/>
         <source>Enthought Tool Suite</source>
         <translation>Enthought Tool Suite</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="242"/>
+        <location filename="plugins/externalconsole.py" line="244"/>
         <source>Enthought Tool Suite (ETS) supports PyQt4 (qt4) and wxPython (wx) graphical user interfaces.</source>
         <translation>Le logiciel Enthought Tool Suite (ETS) prend en charge les interfaces graphiques PyQt4 (qt4) et wxPython (wx).</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="245"/>
+        <location filename="plugins/externalconsole.py" line="247"/>
         <source>ETS_TOOLKIT (default value: qt4):</source>
         <translation>ETS_TOOLKIT (valeur par défaut: qt4) :</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="92"/>
+        <location filename="plugins/externalconsole.py" line="94"/>
         <source>Automatic notification to object inspector</source>
         <translation>Notification automatique à l&apos;inspecteur d&apos;objets</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="97"/>
+        <location filename="plugins/externalconsole.py" line="99"/>
         <source>If this option is enabled, object inspector
 will automatically show informations on functions
 entered in console (this is triggered when entering
@@ -2217,57 +2218,57 @@ a left parenthesis after a valid function name)</source>
         <translation>Si cette option est activée, l&apos;inspecteur d&apos;objet affichera automatiquement des informations sur les fonctions saisies dans la console (le mécanisme est déclenché par la saisie d&apos;une parenthèse gauche après un nom valide de fonction)</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="86"/>
+        <location filename="plugins/externalconsole.py" line="88"/>
         <source>Show single completion</source>
         <translation>Afficher les listes de complétion avec un choix unique</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="84"/>
+        <location filename="plugins/externalconsole.py" line="86"/>
         <source>Case sensitive code completion</source>
         <translation>Complétion de code sensible à la casse</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="216"/>
+        <location filename="plugins/externalconsole.py" line="218"/>
         <source>Patching Matplotlib library will add a button to customize figure options (curves/images plot parameters). This Spyder feature has been integrated in Matplotlib v1.0.</source>
         <translation>Appliquer un patch à la bibliothèque Matplotlib permet d&apos;ajouter un bouton pour modifier les options des courbes et images affichées. Cette fonctionnalité de Spyder a été ajoutée à Matplotlib dès la version 1.0.</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="221"/>
+        <location filename="plugins/externalconsole.py" line="223"/>
         <source>Matplotlib backend (default: Qt4Agg):</source>
         <translation>Backend Matplotlib (valeur par défaut: Qt4Agg) :</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="225"/>
+        <location filename="plugins/externalconsole.py" line="227"/>
         <source>Set the GUI toolkit used by Matplotlib to show figures</source>
         <translation>Spécifie la bibliothèque d&apos;interfaces graphiques à utiliser pour l&apos;affichage des figures Matplotlib</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="163"/>
+        <location filename="plugins/externalconsole.py" line="165"/>
         <source>Monitor</source>
         <translation>Moniteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="171"/>
+        <location filename="plugins/externalconsole.py" line="173"/>
         <source>Enable monitor</source>
         <translation>Activer le moniteur</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="261"/>
+        <location filename="plugins/externalconsole.py" line="263"/>
         <source>Introspection</source>
         <translation>Introspection</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="169"/>
+        <location filename="plugins/externalconsole.py" line="171"/>
         <source>The monitor provides introspection features to console: code completion, calltips and variable explorer. Because it relies on several modules, disabling the monitor may be useful to accelerate console startup.</source>
         <translation>Le moniteur fournit à la console des fonctionnalités d&apos;introspection telles que la complétion de code, les info-bulles et l&apos;explorateur de variables. Parce qu&apos;il nécessite l&apos;import de nombreux modules, désactiver le moniteur permet d&apos;accélérer le démarrage de la console.</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="71"/>
+        <location filename="plugins/externalconsole.py" line="73"/>
         <source>Set the appropriate IPython color option</source>
         <translation>Utiliser le réglage de couleur IPython approprié</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="183"/>
+        <location filename="plugins/externalconsole.py" line="185"/>
         <source>PyQt</source>
         <translation>PyQt</translation>
     </message>
@@ -2277,42 +2278,47 @@ a left parenthesis after a valid function name)</source>
         <translation type="obsolete">PyQt installe un mécanisme (&quot;input hook&quot;) qui permet d&apos;interagir avec des widgets dans un interpréteur Python sans bloquer ce dernier. Malheureusement, ce mécanisme ne fonctionne pas parfaitement sous Windows.</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="190"/>
+        <location filename="plugins/externalconsole.py" line="192"/>
         <source>Remove PyQt input hook</source>
         <translation>Supprimer le &quot;input hook&quot; de PyQt</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="188"/>
+        <location filename="plugins/externalconsole.py" line="190"/>
         <source>PyQt installs an input hook that allows creating and interacting with widgets in an interactive interpreter without blocking it. It is strongly recommended to remove it on Windows platforms (it has no effect in IPython).</source>
         <translation>PyQt installe un &quot;input hook&quot; qui permet d&apos;interagir avec des widgets dans un interpréteur Python sans bloquer ce dernier. Il est fortement conseillé de le supprimer sous Windows.</translation>
     </message>
     <message>
-        <location filename="plugins/externalconsole.py" line="202"/>
+        <location filename="plugins/externalconsole.py" line="204"/>
         <source>IPython interpreter command line options:
 (Qt4 and matplotlib support: -q4thread -pylab)</source>
         <translation>Options en ligne de commande de IPython :
 (support Qt4 et matplotlib : -q4thread -pylab)</translation>
     </message>
+    <message>
+        <location filename="plugins/externalconsole.py" line="43"/>
+        <source>Show elapsed time</source>
+        <translation>Afficher le temps écoulé</translation>
+    </message>
 </context>
 <context>
     <name>ExternalPythonShell</name>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="230"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="233"/>
         <source>Variables</source>
         <translation>Variables</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="232"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="235"/>
         <source>Show/hide global variables explorer</source>
         <translation>Afficher/masquer l&apos;explorateur de variables globales</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="237"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="240"/>
         <source>Terminate</source>
         <translation>Quitter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="243"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="246"/>
         <source>Attempts to terminate the process.
 The process may not exit as a result of clicking this button
 (it is given the chance to prompt the user for any unsaved files, etc).</source>
@@ -2321,67 +2327,67 @@ Le processus peut ne pas s&apos;arrêter suite à cette tentative,
 mais cela permet au programme en cours de quitter proprement.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="253"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="256"/>
         <source>Interact</source>
         <translation>Interagir</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="255"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="258"/>
         <source>Debug</source>
         <translation>Déboguer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="464"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="470"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="465"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="471"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="319"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="325"/>
         <source>Arguments...</source>
         <translation>Arguments...</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="314"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="320"/>
         <source>Arguments: %1</source>
         <translation>Arguments : %1</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="317"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="323"/>
         <source>No argument</source>
         <translation>Aucun argument</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="262"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="265"/>
         <source>Working directory</source>
         <translation>Répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="264"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="267"/>
         <source>Set current working directory</source>
         <translation>Changer le répertoire de travail</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="530"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="536"/>
         <source>Select directory</source>
         <translation>Sélectionner un répertoire</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="266"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="269"/>
         <source>Environment variables</source>
         <translation>Variables d&apos;environnement</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="270"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="273"/>
         <source>Show sys.path contents</source>
         <translation>Afficher le contenu de sys.path</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/pythonshell.py" line="259"/>
+        <location filename="widgets/externalshell/pythonshell.py" line="262"/>
         <source>Run settings</source>
         <translation>Options d&apos;exécution</translation>
     </message>
@@ -2389,57 +2395,57 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ExternalShellBase</name>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="92"/>
+        <location filename="widgets/externalshell/baseshell.py" line="98"/>
         <source>Console</source>
         <translation>Console</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="112"/>
+        <location filename="widgets/externalshell/baseshell.py" line="128"/>
         <source>Run</source>
         <translation>Exécuter</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="115"/>
+        <location filename="widgets/externalshell/baseshell.py" line="131"/>
         <source>Run again this program</source>
         <translation>Exécuter de nouveau ce programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="119"/>
+        <location filename="widgets/externalshell/baseshell.py" line="135"/>
         <source>Kill</source>
         <translation>Terminer</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="123"/>
+        <location filename="widgets/externalshell/baseshell.py" line="139"/>
         <source>Kills the current process, causing it to exit immediately</source>
         <translation>Tue le processus, entraînant une sortie brutale et immédiate du programme</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="187"/>
+        <location filename="widgets/externalshell/baseshell.py" line="210"/>
         <source>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;Running...&lt;/b&gt;&lt;/span&gt;</source>
         <translation>&lt;span style=&apos;color: #44AA44&apos;&gt;&lt;b&gt;En cours d&apos;exécution...&lt;/b&gt;&lt;/span&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="193"/>
+        <location filename="widgets/externalshell/baseshell.py" line="217"/>
         <source>Terminated.</source>
         <translation>Terminé.</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="209"/>
+        <location filename="widgets/externalshell/baseshell.py" line="233"/>
         <source>Arguments</source>
         <translation>Arguments</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="211"/>
+        <location filename="widgets/externalshell/baseshell.py" line="235"/>
         <source>Command line arguments:</source>
         <translation>Arguments en ligne de commande :</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="130"/>
+        <location filename="widgets/externalshell/baseshell.py" line="146"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/baseshell.py" line="151"/>
+        <location filename="widgets/externalshell/baseshell.py" line="168"/>
         <source>Show elapsed time</source>
         <translation>Afficher le temps écoulé</translation>
     </message>
@@ -2447,12 +2453,12 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ExternalSystemShell</name>
     <message>
-        <location filename="widgets/externalshell/systemshell.py" line="82"/>
+        <location filename="widgets/externalshell/systemshell.py" line="87"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/externalshell/systemshell.py" line="83"/>
+        <location filename="widgets/externalshell/systemshell.py" line="88"/>
         <source>Process failed to start</source>
         <translation>Le processus n&apos;a pas pu démarrer</translation>
     </message>
@@ -4492,12 +4498,12 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>Tabs</name>
     <message>
-        <location filename="widgets/tabs.py" line="145"/>
+        <location filename="widgets/tabs.py" line="146"/>
         <source>Close current tab</source>
         <translation>Fermer l&apos;onglet</translation>
     </message>
     <message>
-        <location filename="widgets/tabs.py" line="170"/>
+        <location filename="widgets/tabs.py" line="172"/>
         <source>Browse tabs</source>
         <translation>Naviguer dans les onglets</translation>
     </message>

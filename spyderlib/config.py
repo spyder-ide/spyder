@@ -157,6 +157,7 @@ DEFAULTS = [
               'codecompletion/enter_key': True,
               'codecompletion/case_sensitive': True,
               'codecompletion/show_single': False,
+              'show_elapsed_time': True,
               'show_icontext': False,
               'monitor/enabled': True,
               'mpl_patch/enabled': True,
