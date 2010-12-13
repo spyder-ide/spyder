@@ -243,6 +243,7 @@ class FileInfo(QObject):
     """File properties"""
     def __init__(self, filename, encoding, editor, new):
         QObject.__init__(self)
+        self.is_closing = False
         self.project = None
         self.filename = filename
         self.newly_created = new
@@ -273,6 +274,13 @@ class FileInfo(QObject):
         self.todo_thread = ToDoFinderThread(self)
         self.connect(self.todo_thread, SIGNAL('finished()'),
                      self.todo_finished)
+        
+    def close_threads(self):
+        self.is_closing = True
+        while self.analysis_thread.isRunning():
+            pass
+        while self.todo_thread.isRunning():
+            pass
         
     def set_project(self, project):
         self.project = project
@@ -330,7 +338,7 @@ class FileInfo(QObject):
                       fname, lineno, "")
     
     def run_code_analysis(self):
-        if self.editor.is_python():
+        if self.editor.is_python() and not self.is_closing:
             self.analysis_thread.set_filename(self.filename)
             self.analysis_thread.start()
         
@@ -349,7 +357,7 @@ class FileInfo(QObject):
         self.editor.cleanup_code_analysis()
             
     def run_todo_finder(self):
-        if self.editor.is_python():
+        if self.editor.is_python() and not self.is_closing:
             self.todo_thread.set_text(self.editor.toPlainText())
             self.todo_thread.start()
         
@@ -1063,6 +1071,7 @@ class EditorStack(QWidget):
         is_ok = self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
+            finfo.close_threads()
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor)
