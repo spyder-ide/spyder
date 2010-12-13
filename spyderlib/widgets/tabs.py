@@ -12,8 +12,7 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QTabWidget, QMenu, QDrag, QApplication, QTabBar,
-                         QShortcut, QKeySequence, QWidget, QHBoxLayout,
-                         QSizePolicy)
+                         QShortcut, QKeySequence, QWidget, QHBoxLayout)
 from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
@@ -87,14 +86,84 @@ class TabBar(QTabBar):
         
         
 class BaseTabs(QTabWidget):
-    def __init__(self, parent, actions=None, menu=None):
+    """TabWidget with context menu and corner widgets"""
+    def __init__(self, parent, actions=None, menu=None,
+                 corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
+        
+        self.corner_widgets = {}
+        self.menu_use_tooltips = menu_use_tooltips
+        
         if menu is None:
             self.menu = QMenu(self)
             if actions:
                 add_actions(self.menu, actions)
         else:
             self.menu = menu
+            
+        # Corner widgets
+        if corner_widgets is None:
+            corner_widgets = {}
+        corner_widgets.setdefault(Qt.TopLeftCorner, [])
+        corner_widgets.setdefault(Qt.TopRightCorner, [])
+        self.browse_button = create_toolbutton(self,
+                                          icon=get_icon("browse_tab.png"),
+                                          tip=translate("Tabs", "Browse tabs"))
+        self.browse_tabs_menu = QMenu(self)
+        self.browse_button.setMenu(self.browse_tabs_menu)
+        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
+        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
+                     self.update_browse_tabs_menu)
+        corner_widgets[Qt.TopLeftCorner] += [self.browse_button]
+
+        self.set_corner_widgets(corner_widgets)
+        
+    def update_browse_tabs_menu(self):
+        """Update browse tabs menu"""
+        self.browse_tabs_menu.clear()
+        for index in range(self.count()):
+            if self.menu_use_tooltips:
+                text = self.tabToolTip(index)
+            else:
+                text = self.tabText(index)
+            tab_action = create_action(self, text, icon=self.tabIcon(index),
+                                       toggled=lambda state, index=index:
+                                               self.setCurrentIndex(index),
+                                       tip=self.tabToolTip(index))
+            tab_action.setChecked(index == self.currentIndex())
+            self.browse_tabs_menu.addAction(tab_action)
+        
+    def set_corner_widgets(self, corner_widgets):
+        """
+        Set tabs corner widgets
+        corner_widgets: dictionary of (corner, widgets)
+        corner: Qt.TopLeftCorner or Qt.TopRightCorner
+        widgets: list of widgets (may contains integers to add spacings)
+        """
+        assert isinstance(corner_widgets, dict)
+        assert all(key in (Qt.TopLeftCorner, Qt.TopRightCorner)
+                   for key in corner_widgets)
+        self.corner_widgets.update(corner_widgets)
+        for corner, widgets in self.corner_widgets.iteritems():
+            cwidget = QWidget()
+            cwidget.hide()
+            prev_widget = self.cornerWidget(corner)
+            if prev_widget:
+                prev_widget.close()
+            self.setCornerWidget(cwidget, corner)
+            clayout = QHBoxLayout()
+            clayout.setContentsMargins(0, 0, 0, 0)
+            for widget in widgets:
+                if isinstance(widget, int):
+                    clayout.addSpacing(widget)
+                else:
+                    clayout.addWidget(widget)
+            cwidget.setLayout(clayout)
+            cwidget.show()
+            
+    def add_corner_widgets(self, widgets, corner=Qt.TopRightCorner):
+        self.set_corner_widgets({corner:
+                                 self.corner_widgets.get(corner, [])+widgets})
         
     def contextMenuEvent(self, event):
         """Override Qt method"""
@@ -149,9 +218,11 @@ class BaseTabs(QTabWidget):
 
         
 class Tabs(BaseTabs):
-    """TabWidget with a context-menu"""
-    def __init__(self, parent, actions=None, corner_widgets=[]):
-        BaseTabs.__init__(self, parent, actions)
+    """BaseTabs widget with movable tabs and tab navigation shortcuts"""
+    def __init__(self, parent, actions=None, menu=None,
+                 corner_widgets=None, menu_use_tooltips=False):
+        BaseTabs.__init__(self, parent, actions, menu,
+                          corner_widgets, menu_use_tooltips)
         tab_bar = TabBar(self, parent)
         self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
         self.connect(tab_bar, SIGNAL('move_tab(long,int,int)'),
@@ -166,52 +237,6 @@ class Tabs(BaseTabs):
                             lambda: self.emit(SIGNAL("close_tab(int)"),
                                               self.currentIndex()))
         closesc.setContext(Qt.WidgetWithChildrenShortcut)
-        
-        # Corner widget
-        self.browse_button = create_toolbutton(self,
-                                          icon=get_icon("browse_tab.png"),
-                                          tip=translate("Tabs", "Browse tabs"))
-        self.browse_tabs_menu = QMenu(self)
-        self.browse_button.setMenu(self.browse_tabs_menu)
-        self.browse_button.setPopupMode(self.browse_button.InstantPopup)
-        self.connect(self.browse_tabs_menu, SIGNAL("aboutToShow()"),
-                     self.update_browse_tabs_menu)
-        self.setCornerWidget(self.browse_button, Qt.TopLeftCorner)
-        
-        self.set_corner_widgets(corner_widgets)
-        
-    def set_corner_widgets(self, widgets):
-        """
-        Set additionnal tabs corner widgets
-        widgets: list of widgets (may contains integers to add spacings)
-        """
-        cwidget = QWidget()
-        cwidget.hide()
-        prev_widget = self.cornerWidget(Qt.TopRightCorner)
-        if prev_widget:
-            prev_widget.close()
-        self.setCornerWidget(cwidget, Qt.TopRightCorner)
-        clayout = QHBoxLayout()
-        clayout.setContentsMargins(0, 0, 0, 0)
-        for btn in widgets:
-            if isinstance(btn, int):
-                clayout.addSpacing(btn)
-            else:
-                clayout.addWidget(btn)
-        cwidget.setLayout(clayout)
-        cwidget.show()
-        
-    def update_browse_tabs_menu(self):
-        """Update browse tabs menu"""
-        self.browse_tabs_menu.clear()
-        for index in range(self.count()):
-            tab_action = create_action(self, self.tabText(index),
-                                       icon=self.tabIcon(index),
-                                       toggled=lambda state, index=index:
-                                               self.setCurrentIndex(index),
-                                       tip=self.tabToolTip(index))
-            tab_action.setChecked(index == self.currentIndex())
-            self.browse_tabs_menu.addAction(tab_action)
         
     def __current_changed(self, index):
         for _i in self.index_history[:]:

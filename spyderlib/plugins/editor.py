@@ -889,7 +889,7 @@ class Editor(SpyderPluginWidget):
                          self.eol_status.eol_changed)
             oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-            editorstack.add_widget_to_header(oe_btn, space_before=True)
+            editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
             self.connect(self, SIGNAL('show_hide_outline_explorer()'),
                          editorstack.outlineexplorer.visibility_action.toggle)
             

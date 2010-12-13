@@ -12,11 +12,10 @@
 # pylint: disable-msg=R0201
 
 from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu, QFont,
-                         QAction, QApplication, QWidget, QHBoxLayout, QSplitter,
-                         QComboBox, QKeySequence, QShortcut, QSizePolicy,
-                         QMainWindow, QLabel, QListWidget, QListWidgetItem,
-                         QDialog, QLineEdit, QIntValidator, QDialogButtonBox,
-                         QGridLayout)
+                         QAction, QApplication, QWidget, QHBoxLayout, QLabel,
+                         QKeySequence, QShortcut, QMainWindow, QSplitter,
+                         QListWidget, QListWidgetItem, QDialog, QLineEdit, 
+                         QIntValidator, QDialogButtonBox, QGridLayout)
 from PyQt4.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject, QByteArray,
                           PYQT_VERSION_STR, QSize, QPoint, SLOT, QTimer)
 
@@ -93,7 +92,7 @@ class GoToLineDialog(QDialog):
         
 
 class FileListDialog(QDialog):
-    def __init__(self, parent, combo, fullpath_sorting):
+    def __init__(self, parent, tabs, fullpath_sorting):
         QDialog.__init__(self, parent)
         
         self.indexes = None
@@ -150,7 +149,7 @@ class FileListDialog(QDialog):
         vlayout.addWidget(hint)
         self.setLayout(vlayout)
         
-        self.combo = combo
+        self.tabs = tabs
         self.fullpath_sorting = fullpath_sorting
         self.buttons = (edit_btn, close_btn)
         
@@ -165,7 +164,7 @@ class FileListDialog(QDialog):
             btn.setEnabled(self.listwidget.currentRow() >= 0)
         
     def synchronize(self, stack_index):
-        count = self.combo.count()
+        count = self.tabs.count()
         if count == 0:
             self.accept()
             return
@@ -182,12 +181,12 @@ class FileListDialog(QDialog):
         filter_text = unicode(self.edit.text())
         lw_index = 0
         for index in range(count):
-            text = unicode(self.combo.itemText(index))
+            text = unicode(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text:
                 if text == current_text:
                     new_current_index = lw_index
                 lw_index += 1
-                item = QListWidgetItem(self.combo.itemIcon(index),
+                item = QListWidgetItem(self.tabs.tabIcon(index),
                                        text, self.listwidget)
                 item.setSizeHint(QSize(0, 25))
                 self.listwidget.addItem(item)
@@ -415,26 +414,27 @@ class EditorStack(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-        self.header_layout = None
         self.menu = None
-        self.combo = None
-        self.default_combo_font = None
         self.filelist_btn = None
         self.filelist_dlg = None
         self.previous_btn = None
         self.next_btn = None
         self.tabs = None
-        self.close_btn = None
 
         self.stack_history = []
         
-        self.setup_editorstack(parent, layout, actions)
+        self.setup_editorstack(parent, layout)
 
         self.find_widget = None
 
         self.data = []
         
-        self.menu_actions = actions
+        copy_to_cb_action = create_action(self,
+                translate("Editor", "Copy path to clipboard"),
+                icon="editcopy.png",
+                triggered=lambda:
+                QApplication.clipboard().setText(self.get_current_filename()))
+        self.menu_actions = actions+[None, copy_to_cb_action]
         self.outlineexplorer = None
         self.projectexplorer = None
         self.inspector = None
@@ -534,88 +534,45 @@ class EditorStack(QWidget):
                 (self.filelistsc, "File list management", "Ctrl+E"),
                 ]
         
-    def setup_editorstack(self, parent, layout, actions):
+    def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
-        self.header_layout = QHBoxLayout()
-        self.header_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Buttons to the left of file combo box
         menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
                                      tip=translate("Editor", "Options"))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
-        self.add_widget_to_header(menu_btn)
-
-#        newwin_btn = create_toolbutton(self, text_beside_icon=False)
-#        newwin_btn.setDefaultAction(self.newwindow_action)
-#        self.add_widget_to_header(newwin_btn)
-        
-#        versplit_btn = create_toolbutton(self, text_beside_icon=False)
-#        versplit_btn.setDefaultAction(self.versplit_action)
-#        self.add_widget_to_header(versplit_btn)
-        
-#        horsplit_btn = create_toolbutton(self, text_beside_icon=False)
-#        horsplit_btn.setDefaultAction(self.horsplit_action)
-#        self.add_widget_to_header(horsplit_btn)
 
         self.filelist_btn = create_toolbutton(self,
                              icon=get_icon('filelist.png'),
                              tip=translate("Editor", "File list management"),
                              triggered=self.open_filelistdialog)
-        self.add_widget_to_header(self.filelist_btn, space_before=True)
         
         self.previous_btn = create_toolbutton(self,
                              icon=get_icon('previous.png'),
                              tip=translate("Editor", "Previous file"),
                              triggered=self.go_to_previous_file)
-        self.add_widget_to_header(self.previous_btn, space_before=True)
         
         self.next_btn = create_toolbutton(self,
                              icon=get_icon('next.png'),
                              tip=translate("Editor", "Next file"),
                              triggered=self.go_to_next_file)
-        self.add_widget_to_header(self.next_btn)
                 
-        # File combo box
-        self.combo = QComboBox(self)
-        self.default_combo_font = self.combo.font()
-        self.combo.setMaxVisibleItems(20)
-        self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
-        self.combo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.combo.setContextMenuPolicy(Qt.ActionsContextMenu)
-        self.combo.addAction(create_action(self,
-                translate("Editor", "Copy path to clipboard"),
-                icon="editcopy.png",
-                triggered=lambda:
-                QApplication.clipboard().setText(self.get_current_filename())))
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.current_changed)
-        self.add_widget_to_header(self.combo)
-
-        # Buttons to the right of file combo box
-        self.close_btn = create_toolbutton(self, triggered=self.close_file,
-                                       icon=get_icon("fileclose.png"),
-                                       tip=translate("Editor", "Close file"))
-        self.add_widget_to_header(self.close_btn)
-        layout.addLayout(self.header_layout)
-        
         # Optional tabs
-        self.tabs = BaseTabs(self, menu=self.menu)
+        corner_widgets = {Qt.TopRightCorner: [self.previous_btn,
+                                              self.filelist_btn, self.next_btn,
+                                              5, menu_btn]}
+        self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
+                             corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
         if hasattr(self.tabs, 'setDocumentMode'):
             self.tabs.setDocumentMode(True)
-        self.connect(self.combo, SIGNAL('currentIndexChanged(int)'),
-                     self.tabs.setCurrentIndex)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
-                     self.combo.setCurrentIndex)
+                     self.current_changed)
         layout.addWidget(self.tabs)
         
-    def add_widget_to_header(self, widget, space_before=False):
-        if space_before:
-            self.header_layout.addSpacing(7)
-        self.header_layout.addWidget(widget)
+    def add_corner_widgets_to_tabbar(self, widgets):
+        self.tabs.add_corner_widgets(widgets)
         
     def closeEvent(self, event):
         self.disconnect(self.analysis_timer, SIGNAL("timeout()"),
@@ -637,7 +594,7 @@ class EditorStack(QWidget):
         
     def open_filelistdialog(self):
         """Open file list management dialog box"""
-        self.filelist_dlg = dlg = FileListDialog(self, self.combo,
+        self.filelist_dlg = dlg = FileListDialog(self, self.tabs,
                                                  self.fullpath_sorting_enabled)
         self.connect(dlg, SIGNAL("edit_file(int)"), self.set_stack_index)
         self.connect(dlg, SIGNAL("close_file(int)"), self.close_file)
@@ -646,7 +603,7 @@ class EditorStack(QWidget):
         self.filelist_dlg = None
         
     def update_filelistdialog(self):
-        """Synchronize file list dialog box with file selection combo box"""
+        """Synchronize file list dialog box with editor widget tabs"""
         if self.filelist_dlg is not None:
             self.filelist_dlg.synchronize(self.get_stack_index())
             
@@ -892,8 +849,7 @@ class EditorStack(QWidget):
         return self.tabs.count()
     
     def set_stack_index(self, index):
-        for widget in (self.tabs, self.combo):
-            widget.setCurrentIndex(index)
+        self.tabs.setCurrentIndex(index)
             
     def set_tabbar_visible(self, state):
         self.tabs.tabBar().setVisible(state)
@@ -901,7 +857,6 @@ class EditorStack(QWidget):
     def remove_from_data(self, index):
         self.tabs.removeTab(index)
         self.data.pop(index)
-        self.combo.removeItem(index)
         self.update_actions()
         self.update_filelistdialog()
     
@@ -917,30 +872,23 @@ class EditorStack(QWidget):
         self.data.sort(key=self.__get_sorting_func())
         index = self.data.index(finfo)
         fname, editor = finfo.filename, finfo.editor
-        self.combo.blockSignals(True)
         self.tabs.insertTab(index, editor, get_filetype_icon(fname),
-                            self.get_tab_title(fname))
-        self.combo.insertItem(index, get_filetype_icon(fname),
-                              self.get_combo_title(fname))
+                            self.get_tab_text(fname))
         if set_current:
             self.set_stack_index(index)
-        self.combo.blockSignals(False)
         if set_current:
             self.current_changed(index)
         self.update_actions()
         self.update_filelistdialog()
         
     def __repopulate_stack(self):
-        for widget in (self.combo, self.tabs):
-            widget.blockSignals(True)
-            widget.clear()
+        self.tabs.blockSignals(True)
+        self.tabs.clear()
         for finfo in self.data:
             icon = get_filetype_icon(finfo.filename)
             self.tabs.addTab(finfo.editor, icon,
-                             self.get_tab_title(finfo.filename))
-            self.combo.addItem(icon, self.get_combo_title(finfo.filename))
-        for widget in (self.combo, self.tabs):
-            widget.blockSignals(False)
+                             self.get_tab_text(finfo.filename))
+        self.tabs.blockSignals(False)
         self.update_filelistdialog()
         
     def rename_in_data(self, index, new_filename):
@@ -960,9 +908,9 @@ class EditorStack(QWidget):
             self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
         return new_index
         
-    def set_stack_title(self, index, combo_title, tab_title):
-        self.combo.setItemText(index, combo_title)
-        self.tabs.setTabText(index, tab_title)
+    def set_stack_title(self, index, tab_text, tab_tip):
+        self.tabs.setTabText(index, tab_text)
+        self.tabs.setTabToolTip(index, tab_tip)
         
         
     #------ Context menu
@@ -1282,8 +1230,6 @@ class EditorStack(QWidget):
     def current_changed(self, index):
         """Stack index has changed"""
         count = self.get_stack_count()
-        if self.close_btn is not None:
-            self.close_btn.setEnabled(count > 0)
         for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
             btn.setEnabled(count > 1)
         
@@ -1467,13 +1413,13 @@ class EditorStack(QWidget):
             title = "(%s)" % title
         return title
     
-    def get_tab_title(self, filename, is_modified=None, is_readonly=None):
+    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
         """Return tab title"""
         return self.__modified_readonly_title(osp.basename(filename),
                                               is_modified, is_readonly)
                 
-    def get_combo_title(self, filename, is_modified=None, is_readonly=None):
-        """Return combo box title"""
+    def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
+        """Return tab menu title"""
         if self.fullpath_sorting_enabled:
             text = filename
         else:
@@ -1493,12 +1439,12 @@ class EditorStack(QWidget):
                 return text % (osp.basename(filename), osp.dirname(filename))
         
     def get_titles(self, is_modified, finfo):
-        """Return combo box and tab titles"""
+        """Return tab text and tool tip"""
         fname = finfo.filename
         is_readonly = finfo.editor.isReadOnly()
-        combo_title = self.get_combo_title(fname, is_modified, is_readonly)
-        tab_title = self.get_tab_title(fname, is_modified, is_readonly)
-        return combo_title, tab_title
+        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
+        return tab_text, tab_tip
     
     def modification_changed(self, state=None, index=None):
         """
@@ -1522,8 +1468,8 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         if state is None:
             state = finfo.editor.document().isModified()
-        combo_title, tab_title = self.get_titles(state, finfo)
-        self.set_stack_title(index, combo_title, tab_title)
+        tab_text, tab_tip = self.get_titles(state, finfo)
+        self.set_stack_title(index, tab_text, tab_tip)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
         self.revert_action.setEnabled(state)
@@ -2075,7 +2021,7 @@ class EditorWidget(QSplitter):
         self.plugin.register_editorstack(editorstack)
         oe_btn = create_toolbutton(self)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-        editorstack.add_widget_to_header(oe_btn, space_before=True)
+        editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
         
     def __print_editorstacks(self):
         print >>STDOUT, "%d editorstack(s) in editorwidget:" \
@@ -2094,7 +2040,8 @@ class EditorWidget(QSplitter):
 
 class EditorMainWindow(QMainWindow):
     def __init__(self, plugin, menu_actions, toolbar_list, menu_list,
-                 show_fullpath, fullpath_sorting, show_all_files, show_comments):
+                 show_fullpath, fullpath_sorting, show_all_files,
+                 show_comments):
         QMainWindow.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -2242,7 +2189,7 @@ class FakePlugin(QSplitter):
             editorstack.set_find_widget(self.find_widget)
             oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-            editorstack.add_widget_to_header(oe_btn, space_before=True)
+            editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
             
         action = QAction(self)
         editorstack.set_io_actions(action, action, action, action)
@@ -2272,7 +2219,7 @@ class FakePlugin(QSplitter):
         window = EditorMainWindow(self, self.menu_actions,
                                   self.toolbar_list, self.menu_list,
                                   show_fullpath=False, fullpath_sorting=True,
-                                  show_all_files=False)
+                                  show_all_files=False, show_comments=True)
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -2299,6 +2246,10 @@ class FakePlugin(QSplitter):
                 editorstack.blockSignals(True)
                 editorstack.close_file(index)
                 editorstack.blockSignals(False)
+                
+    def register_widget_shortcuts(self, context, widget):
+        """Fake!"""
+        pass
     
 
 def test():

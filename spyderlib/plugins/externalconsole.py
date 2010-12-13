@@ -747,7 +747,7 @@ class ExternalConsole(SpyderPluginWidget):
             editor = None
             widgets = []
         self.find_widget.set_editor(editor)
-        self.tabwidget.set_corner_widgets(widgets)
+        self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
     
