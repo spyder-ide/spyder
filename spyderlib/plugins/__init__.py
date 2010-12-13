@@ -307,6 +307,7 @@ class RichText(QWidget):
         self.find_widget.hide()
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.webview)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
@@ -333,6 +334,7 @@ class PlainText(QWidget):
         self.find_widget.hide()
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)

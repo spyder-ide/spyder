@@ -125,6 +125,7 @@ class ObjectInspector(RichAndPlainText):
         
         # Object name
         layout_edit = QHBoxLayout()
+        layout_edit.setContentsMargins(0, 0, 0, 0)
         layout_edit.addWidget(QLabel(self.tr("Object")))
         self.combo = ObjectComboBox(self)
         layout_edit.addWidget(self.combo)
@@ -185,6 +186,7 @@ class ObjectInspector(RichAndPlainText):
 
         # Main layout
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(layout_edit)
         layout.addWidget(self.plain_text)
         layout.addWidget(self.rich_text)
