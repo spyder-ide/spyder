@@ -415,10 +415,10 @@ class EditorStack(QWidget):
         self.setLayout(layout)
 
         self.menu = None
-        self.filelist_btn = None
         self.filelist_dlg = None
-        self.previous_btn = None
-        self.next_btn = None
+#        self.filelist_btn = None
+#        self.previous_btn = None
+#        self.next_btn = None
         self.tabs = None
 
         self.stack_history = []
@@ -429,12 +429,16 @@ class EditorStack(QWidget):
 
         self.data = []
         
+        filelist_action = create_action(self,
+                                 translate("Editor", "File list management"),
+                                 icon=get_icon('filelist.png'),
+                                 triggered=self.open_filelistdialog)
         copy_to_cb_action = create_action(self,
                 translate("Editor", "Copy path to clipboard"),
                 icon="editcopy.png",
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
-        self.menu_actions = actions+[None, copy_to_cb_action]
+        self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
         self.outlineexplorer = None
         self.projectexplorer = None
         self.inspector = None
@@ -543,25 +547,26 @@ class EditorStack(QWidget):
         menu_btn.setPopupMode(menu_btn.InstantPopup)
         self.connect(self.menu, SIGNAL("aboutToShow()"), self.__setup_menu)
 
-        self.filelist_btn = create_toolbutton(self,
-                             icon=get_icon('filelist.png'),
-                             tip=translate("Editor", "File list management"),
-                             triggered=self.open_filelistdialog)
-        
-        self.previous_btn = create_toolbutton(self,
-                             icon=get_icon('previous.png'),
-                             tip=translate("Editor", "Previous file"),
-                             triggered=self.go_to_previous_file)
-        
-        self.next_btn = create_toolbutton(self,
-                             icon=get_icon('next.png'),
-                             tip=translate("Editor", "Next file"),
-                             triggered=self.go_to_next_file)
+#        self.filelist_btn = create_toolbutton(self,
+#                             icon=get_icon('filelist.png'),
+#                             tip=translate("Editor", "File list management"),
+#                             triggered=self.open_filelistdialog)
+#        
+#        self.previous_btn = create_toolbutton(self,
+#                             icon=get_icon('previous.png'),
+#                             tip=translate("Editor", "Previous file"),
+#                             triggered=self.go_to_previous_file)
+#        
+#        self.next_btn = create_toolbutton(self,
+#                             icon=get_icon('next.png'),
+#                             tip=translate("Editor", "Next file"),
+#                             triggered=self.go_to_next_file)
                 
         # Optional tabs
-        corner_widgets = {Qt.TopRightCorner: [self.previous_btn,
-                                              self.filelist_btn, self.next_btn,
-                                              5, menu_btn]}
+#        corner_widgets = {Qt.TopRightCorner: [self.previous_btn,
+#                                              self.filelist_btn, self.next_btn,
+#                                              5, menu_btn]}
+        corner_widgets = {Qt.TopRightCorner: [menu_btn]}
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
@@ -1229,9 +1234,9 @@ class EditorStack(QWidget):
         
     def current_changed(self, index):
         """Stack index has changed"""
-        count = self.get_stack_count()
-        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
-            btn.setEnabled(count > 1)
+#        count = self.get_stack_count()
+#        for btn in (self.filelist_btn, self.previous_btn, self.next_btn):
+#            btn.setEnabled(count > 1)
         
         editor = self.get_current_editor()
         if index != -1:
