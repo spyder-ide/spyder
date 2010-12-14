@@ -651,7 +651,8 @@ class Editor(SpyderPluginWidget):
                 triggered=self.go_to_last_edit_location)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
-                               name="Last edit location", default="Ctrl+Alt+Up")
+                               name="Last edit location",
+                               default="Ctrl+Alt+Shift+Left")
         self.previous_cursor_action = create_action(self,
                 self.tr("Previous cursor position"), icon='prev_cursor.png',
                 tip=self.tr("Go to previous cursor position"),

@@ -194,7 +194,7 @@ class CodeEditor(TextEditBaseWidget):
         self.codecomp_sc = QShortcut(QKeySequence("Ctrl+Space"), self,
                                      self.do_code_completion)
         self.codecomp_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.duplicate_sc = QShortcut(QKeySequence("Ctrl+D"), self,
+        self.duplicate_sc = QShortcut(QKeySequence("Ctrl+Alt+Up"), self,
                                       self.duplicate_line)
         self.duplicate_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.gotodef_sc = QShortcut(QKeySequence("Ctrl+G"), self,
@@ -222,7 +222,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         return [
                 (self.codecomp_sc, "Code completion", "Ctrl+Space"),
-                (self.duplicate_sc, "Duplicate line", "Ctrl+D"),
+                (self.duplicate_sc, "Duplicate line", "Ctrl+Alt+Up"),
                 (self.gotodef_sc, "Go to definition", "Ctrl+G"),
                 (self.comment_sc, "Comment", "Ctrl+3"),
                 (self.uncomment_sc, "Uncomment", "Ctrl+2"),
