@@ -860,8 +860,10 @@ class EditorStack(QWidget):
         self.tabs.tabBar().setVisible(state)
     
     def remove_from_data(self, index):
+        self.tabs.blockSignals(True)
         self.tabs.removeTab(index)
         self.data.pop(index)
+        self.tabs.blockSignals(False)
         self.update_actions()
         self.update_filelistdialog()
     
