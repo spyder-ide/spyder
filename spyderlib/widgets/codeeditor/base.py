@@ -712,6 +712,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.insertText(text)
         cursor.endEditBlock()
         
+    def delete_line(self):
+        """Delete current line"""
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.StartOfBlock)
+        cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+        cursor.removeSelectedText()
+        
 
     #------Code completion / Calltips
     def show_calltip(self, title, text, color='#2D62FF', at_line=None):
