@@ -75,6 +75,7 @@ if encoding is None:
     encoding = "UTF-8"
 
 sys.setdefaultencoding(encoding)
+os.environ['SPYDER_ENCODING'] = encoding
     
 try:
     import sitecustomize #@UnusedImport

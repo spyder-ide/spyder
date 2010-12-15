@@ -174,4 +174,5 @@ if __name__ == "__main__":
         del __is_ipython
         __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile,
                                                         'debugfile': debugfile})
+        __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
         __ipythonshell__.mainloop()
