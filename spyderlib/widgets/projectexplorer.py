@@ -10,7 +10,7 @@ from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QMenu,
                          QWidget, QTreeWidgetItem, QFileIconProvider,
                          QMessageBox, QInputDialog, QLineEdit, QFileDialog)
 from PyQt4.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
-                          QUrl)
+                          QUrl, QTimer)
 
 import os, sys, re, shutil, cPickle
 import os.path as osp
@@ -1146,6 +1146,7 @@ class ExplorerTreeWidget(OneColumnTree):
         title = translate('ProjectExplorer', 'New folder')
         subtitle = translate('ProjectExplorer', 'Folder name:')
         self.__create_new_folder(item, title, subtitle, is_package=False)
+        QTimer.singleShot(500, self.refresh)
     
     def new_module(self, item):
         title = translate('ProjectExplorer', "New module")
@@ -1153,11 +1154,13 @@ class ExplorerTreeWidget(OneColumnTree):
         create_func = lambda fname: self.parent_widget.emit( \
                                      SIGNAL("create_module(QString)"), fname)
         self.__create_new_file(item, title, filters, create_func)
+        QTimer.singleShot(500, self.refresh)
     
     def new_package(self, item):
         title = translate('ProjectExplorer', 'New package')
         subtitle = translate('ProjectExplorer', 'Package name:')
         self.__create_new_folder(item, title, subtitle, is_package=True)
+        QTimer.singleShot(500, self.refresh)
     
     def open_file_from_menu(self, items):
         if not isinstance(items, (tuple, list)):
@@ -1268,6 +1271,7 @@ class ExplorerTreeWidget(OneColumnTree):
                                   "<b>Unable to %1 <i>%2</i></b>"
                                   "<br><br>Error message:<br>%3") \
                         .arg(action_str).arg(fname).arg(str(error)))
+        QTimer.singleShot(500, self.refresh)
     
     def add_path_to_project_pythonpath(self, project, path):
         pathlist = project.get_pythonpath()
