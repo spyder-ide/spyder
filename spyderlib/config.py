@@ -217,6 +217,7 @@ DEFAULTS = [
               'codecompletion/show_single': False,
               'check_eol_chars': True,
               'tab_always_indent': False,
+              'intelligent_backspace': True,
               'highlight_current_line': True,
               'occurence_highlighting': True,
               'fullpath_sorting': True,

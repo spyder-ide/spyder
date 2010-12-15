@@ -181,6 +181,9 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = None
         self.tab_mode = True # see CodeEditor.set_tab_mode
         
+        # Intelligent backspace mode
+        self.intelligent_backspace = True
+        
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
         self.auto_unindent_enabled = True
@@ -252,6 +255,7 @@ class CodeEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
+                     intelligent_backspace=True,
                      highlight_current_line=True, occurence_highlighting=True,
                      scrollflagarea=True, todo_list=True,
                      codecompletion_auto=False, codecompletion_case=True,
@@ -289,6 +293,9 @@ class CodeEditor(TextEditBaseWidget):
         # Tab always indents (even when cursor is not at the begin of line)
         self.set_tab_mode(tab_mode)
         
+        # Intelligent backspace
+        self.toggle_intelligent_backspace(intelligent_backspace)
+        
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
             self.update_linenumberarea_width(0)
@@ -305,6 +312,9 @@ class CodeEditor(TextEditBaseWidget):
         (otherwise tab indents only when cursor is at the beginning of a line)
         """
         self.tab_mode = enable
+        
+    def toggle_intelligent_backspace(self, state):
+        self.intelligent_backspace = state
         
     def set_go_to_definition_enabled(self, enable):
         """Enable/Disable go-to-definition feature, which is implemented in 
@@ -1444,7 +1454,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
-            if self.has_selected_text():
+            if self.has_selected_text() or not self.intelligent_backspace:
                 QPlainTextEdit.keyPressEvent(self, event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')

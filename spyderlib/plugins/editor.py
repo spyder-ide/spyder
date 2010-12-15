@@ -163,6 +163,8 @@ class EditorConfigPage(PluginConfigPage):
                           "of a line (when this option is enabled, code\n"
                           "completion may be triggered using the alternate\n"
                           "shortcut: Ctrl+Space)"))
+        ibackspace_box = newcb(self.tr("Intelligent backspace"),
+                               'intelligent_backspace', default=True)
         
         analysis_group = QGroupBox(self.tr("Analysis"))
         codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
@@ -217,6 +219,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(closepar_box)
         sourcecode_layout.addWidget(autounindent_box)
         sourcecode_layout.addWidget(tab_mode_box)
+        sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(self.tr("End-of-line characters"))
@@ -919,6 +922,7 @@ class Editor(SpyderPluginWidget):
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
+            ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
@@ -1847,6 +1851,8 @@ class Editor(SpyderPluginWidget):
             wrap_o = self.get_option(wrap_n)
             tabindent_n = 'tab_always_indent'
             tabindent_o = self.get_option(tabindent_n)
+            ibackspace_n = 'intelligent_backspace'
+            ibackspace_o = self.get_option(ibackspace_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -1902,6 +1908,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
                     editorstack.set_tabmode_enabled(tabindent_o)
+                if ibackspace_n in options:
+                    editorstack.set_intelligent_backspace_enabled(ibackspace_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

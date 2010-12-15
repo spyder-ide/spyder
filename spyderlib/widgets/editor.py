@@ -470,6 +470,7 @@ class EditorStack(QWidget):
         self.default_font = None
         self.wrap_enabled = False
         self.tabmode_enabled = False
+        self.intelligent_backspace_enabled = True
         self.highlight_current_line_enabled = False
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
@@ -805,14 +806,21 @@ class EditorStack(QWidget):
                 finfo.editor.toggle_wrap_mode(state)
         
     def set_tabmode_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'tab_always_indent'))
+        # CONF.get(self.CONF_SECTION, 'tab_always_indent')
         self.tabmode_enabled = state
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_tab_mode(state)
+                
+    def set_intelligent_backspace_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'intelligent_backspace')
+        self.intelligent_backspace_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.toggle_intelligent_backspace(state)
         
     def set_occurence_highlighting_enabled(self, state):
-        # CONF.get(self.CONF_SECTION, 'occurence_highlighting'))
+        # CONF.get(self.CONF_SECTION, 'occurence_highlighting')
         self.occurence_highlighting_enabled = state
         if self.data:
             for finfo in self.data:
@@ -1541,6 +1549,7 @@ class EditorStack(QWidget):
                 todo_list=self.todolist_enabled, font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
+                intelligent_backspace=self.intelligent_backspace_enabled,
                 highlight_current_line=self.highlight_current_line_enabled,
                 occurence_highlighting=self.occurence_highlighting_enabled,
                 codecompletion_auto=self.codecompletion_auto_enabled,
