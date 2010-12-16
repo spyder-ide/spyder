@@ -328,7 +328,7 @@ class ExternalPythonShell(ExternalShellBase):
         if not state:
             self.toggle_globals_explorer(False)
         for btn in (self.cwd_button, self.env_button, self.syspath_button):
-            btn.setEnabled(state)
+            btn.setEnabled(state and self.monitor_enabled)
         if self.namespacebrowser_button is not None:
             self.namespacebrowser_button.setEnabled(state)
     
