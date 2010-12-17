@@ -918,14 +918,14 @@ class ExternalConsole(SpyderPluginWidget):
         if source.hasText():
             qstr = source.text()
             if self.__is_python_script(qstr):
-                self.start(qstr, ask_for_arguments=True)
+                self.start(qstr)
             elif shellwidget:
                 shellwidget.shell.insert_text(qstr)
         elif source.hasUrls():
             pathlist = mimedata2url(source)
             if all([self.__is_python_script(qstr) for qstr in pathlist]):
                 for fname in pathlist:
-                    self.start(fname, ask_for_arguments=True)
+                    self.start(fname)
             elif shellwidget:
                 shellwidget.shell.drop_pathlist(pathlist)
         event.acceptProposedAction()
