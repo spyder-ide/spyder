@@ -289,7 +289,9 @@ class ShortcutsTable(QWidget):
             for sh2 in self.model.shortcuts[index+1:]:
                 if sh2 is sh1:
                     continue
-                if str(sh2.key) == str(sh1.key) and sh1.context == sh2.context:
+                if str(sh2.key) == str(sh1.key) \
+                   and (sh1.context == sh2.context or sh1.context == '_'
+                        or sh2.context == '_'):
                     conflicts.append((sh1, sh2))
         if conflicts:
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
