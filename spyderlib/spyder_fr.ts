@@ -736,12 +736,12 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
     <message>
         <location filename="plugins/editor.py" line="696"/>
         <source>Add block comment</source>
-        <translation>Ajouter un bloc de commentaires</translation>
+        <translation type="obsolete">Ajouter un bloc de commentaires</translation>
     </message>
     <message>
-        <location filename="plugins/editor.py" line="668"/>
+        <location filename="plugins/editor.py" line="698"/>
         <source>Add block comment around current line or selection</source>
-        <translation type="obsolete">Ajouter un bloc de commentaires autour de la sélection ou de la ligne en cours d&apos;édition</translation>
+        <translation>Ajouter un bloc de commentaires autour de la sélection ou de la ligne en cours d&apos;édition</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="673"/>
@@ -1458,12 +1458,17 @@ dans l&apos;interpréteur de la console externe active</translation>
     <message>
         <location filename="plugins/editor.py" line="698"/>
         <source>Add &amp;block comment around current line or selection</source>
-        <translation>Ajouter un &amp;bloc de commentaires autour de la sélection ou de la ligne en cours d&apos;édition</translation>
+        <translation type="obsolete">Ajouter un &amp;bloc de commentaires autour de la sélection ou de la ligne en cours d&apos;édition</translation>
     </message>
     <message>
         <location filename="plugins/editor.py" line="703"/>
         <source>R&amp;emove block comment</source>
         <translation>&amp;Supprimer un bloc de commentaires</translation>
+    </message>
+    <message>
+        <location filename="plugins/editor.py" line="696"/>
+        <source>Add &amp;block comment</source>
+        <translation>Ajouter un &amp;bloc de commentaires</translation>
     </message>
 </context>
 <context>
@@ -4508,6 +4513,26 @@ puis appuyer sur Entrée pour le valider</translation>
         <location filename="widgets/codeeditor/codeeditor.py" line="690"/>
         <source>Condition:</source>
         <translation>Condition :</translation>
+    </message>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1440"/>
+        <source>Comment</source>
+        <translation>Commenter</translation>
+    </message>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1444"/>
+        <source>Uncomment</source>
+        <translation>Décommenter</translation>
+    </message>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1448"/>
+        <source>Add &amp;block comment</source>
+        <translation>Ajouter un &amp;bloc de commentaires</translation>
+    </message>
+    <message>
+        <location filename="widgets/codeeditor/codeeditor.py" line="1451"/>
+        <source>R&amp;emove block comment</source>
+        <translation>&amp;Supprimer un bloc de commentaires</translation>
     </message>
 </context>
 <context>

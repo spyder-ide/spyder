@@ -1437,11 +1437,20 @@ class CodeEditor(TextEditBaseWidget):
                            shortcut=keybinding('SelectAll'),
                            icon=get_icon('selectall.png'),
                            triggered=self.selectAll)
+        comment_action = create_action(self,
+                           translate("SimpleEditor", "Comment"),
+                           icon=get_icon("comment.png"),
+                           triggered=self.comment)
+        uncomment_action = create_action(self,
+                           translate("SimpleEditor", "Uncomment"),
+                           icon=get_icon("uncomment.png"),
+                           triggered=self.uncomment)
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
-                                None, selectall_action))        
+                                None, selectall_action, None,
+                                comment_action, uncomment_action))        
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,

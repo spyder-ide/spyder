@@ -694,8 +694,8 @@ class Editor(SpyderPluginWidget):
                 triggered=self.uncomment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.uncomment_action, context="Editor",
                                name="Uncomment", default="Ctrl+2")
-        blockcomment_action = create_action(self, self.tr("Add block comment"),
-                tip=self.tr("Add &block comment around "
+        blockcomment_action = create_action(self, self.tr("Add &block comment"),
+                tip=self.tr("Add block comment around "
                             "current line or selection"),
                 triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
