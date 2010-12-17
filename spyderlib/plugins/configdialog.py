@@ -615,6 +615,7 @@ class MainConfigPage(GeneralConfigPage):
                                           0, 0, 30)
         self.connect(margin_box, SIGNAL("toggled(bool)"),
                      margin_spin.setEnabled)
+        margin_spin.setEnabled(self.get_option('use_custom_margin'))
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)

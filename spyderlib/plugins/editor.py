@@ -99,6 +99,15 @@ class EditorConfigPage(PluginConfigPage):
         
         display_group = QGroupBox(self.tr("Source code"))
         linenumbers_box = newcb(self.tr("Show line numbers"), 'line_numbers')
+        edgeline_box = newcb(self.tr("Show vertical line after"), 'edge_line')
+        edgeline_spin = self.create_spinbox("", self.tr("characters"),
+                                            'edge_line_column', 80, 1, 500)
+        self.connect(edgeline_box, SIGNAL("toggled(bool)"),
+                     edgeline_spin.setEnabled)
+        edgeline_spin.setEnabled(self.get_option('edge_line'))
+        edgeline_layout = QHBoxLayout()
+        edgeline_layout.addWidget(edgeline_box)
+        edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(self.tr("Highlight current line"),
                                 'highlight_current_line', default=True)
         occurence_box = newcb(self.tr("Highlight occurences"),
@@ -111,6 +120,7 @@ class EditorConfigPage(PluginConfigPage):
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(linenumbers_box)
+        display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
         display_layout.addWidget(occurence_box)
         display_layout.addWidget(wrap_mode_box)
@@ -910,6 +920,8 @@ class Editor(SpyderPluginWidget):
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
             ('set_linenumbers_enabled',             'line_numbers'),
+            ('set_edgeline_enabled',                'edge_line'),
+            ('set_edgeline_column',                 'edge_line_column'),
             ('set_outlineexplorer_enabled',         'outline_explorer'),
             ('set_codecompletion_auto_enabled',     'codecompletion/auto'),
             ('set_codecompletion_case_enabled',     'codecompletion/case_sensitive'),
@@ -1843,6 +1855,10 @@ class Editor(SpyderPluginWidget):
             tabbar_o = self.get_option(tabbar_n)
             linenb_n = 'line_numbers'
             linenb_o = self.get_option(linenb_n)
+            edgeline_n = 'edge_line'
+            edgeline_o = self.get_option(edgeline_n)
+            edgelinecol_n = 'edge_line_column'
+            edgelinecol_o = self.get_option(edgelinecol_n)
             currentline_n = 'highlight_current_line'
             currentline_o = self.get_option(currentline_n)
             occurence_n = 'occurence_highlighting'
@@ -1899,6 +1915,10 @@ class Editor(SpyderPluginWidget):
                 if linenb_n in options:
                     editorstack.set_linenumbers_enabled(linenb_o,
                                                         current_finfo=finfo)
+                if edgeline_n in options:
+                    editorstack.set_edgeline_enabled(edgeline_o)
+                if edgelinecol_n in options:
+                    editorstack.set_edgeline_column(edgelinecol_o)
                 if currentline_n in options:
                     editorstack.set_highlight_current_line_enabled(
                                                                 currentline_o)

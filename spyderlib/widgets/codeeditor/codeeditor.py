@@ -106,6 +106,7 @@ class CodeEditor(TextEditBaseWidget):
         self.area_background_color = QColor(Qt.white)
         
         # 80-col edge line
+        self.edge_line_enabled = True
         self.edge_line = EdgeLine(self)
         
         # Markers
@@ -255,9 +256,9 @@ class CodeEditor(TextEditBaseWidget):
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
-                     intelligent_backspace=True,
-                     highlight_current_line=True, occurence_highlighting=True,
-                     scrollflagarea=True, todo_list=True,
+                     intelligent_backspace=True, highlight_current_line=True,
+                     occurence_highlighting=True, scrollflagarea=True,
+                     edge_line=True, edge_line_column=80, todo_list=True,
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
@@ -275,6 +276,10 @@ class CodeEditor(TextEditBaseWidget):
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
+        
+        # Edge line
+        self.set_edge_line_enabled(edge_line)
+        self.set_edge_line_column(edge_line_column)
         
         # Line number area
         if cloned_from:
@@ -732,6 +737,16 @@ class CodeEditor(TextEditBaseWidget):
             
     def do_go_to_definition(self):
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
+        
+        
+    #-----edge line
+    def set_edge_line_enabled(self, state):
+        self.edge_line_enabled = state
+        self.edge_line.setVisible(state)
+        
+    def set_edge_line_column(self, column):
+        self.edge_line.column = column
+        self.edge_line.update()
             
 
     #-----scrollflagarea
