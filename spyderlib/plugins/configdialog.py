@@ -151,6 +151,10 @@ class ConfigDialog(QDialog):
         self.apply_btn.setEnabled(widget.is_modified)
         
     def add_page(self, widget):
+        self.connect(self, SIGNAL('check_settings()'), widget.check_settings)
+        self.connect(widget, SIGNAL('show_this_page()'),
+                     lambda row=self.contents_widget.count():
+                     self.contents_widget.setCurrentRow(row))
         self.connect(widget, SIGNAL("apply_button_enabled(bool)"),
                      self.apply_btn.setEnabled)
         self.pages_widget.addWidget(widget)
@@ -159,6 +163,11 @@ class ConfigDialog(QDialog):
         item.setText(widget.get_name())
         item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsEnabled)
         item.setSizeHint(QSize(0, 25))
+        
+    def check_all_settings(self):
+        """This method is called to check all configuration page settings
+        after configuration dialog has been shown"""
+        self.emit(SIGNAL('check_settings()'))
 
 
 class SpyderConfigPage(ConfigPage):
@@ -181,6 +190,11 @@ class SpyderConfigPage(ConfigPage):
         
     def apply_settings(self, options):
         raise NotImplementedError
+    
+    def check_settings(self):
+        """This method is called to check settings after configuration 
+        dialog has been shown"""
+        pass
         
     def set_modified(self, state):
         ConfigPage.set_modified(self, state)

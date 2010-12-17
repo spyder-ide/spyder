@@ -1240,6 +1240,8 @@ class MainWindow(QMainWindow):
                     dlg.add_page(widget)
         if self.prefs_index is not None:
             dlg.set_current_index(self.prefs_index)
+        dlg.show()
+        dlg.check_all_settings()
         dlg.exec_()
         self.prefs_index = dlg.get_current_index()
 

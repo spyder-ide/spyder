@@ -280,8 +280,9 @@ class ShortcutsTable(QWidget):
         self.model.shortcuts = shortcuts
         self.model.reset()
         self.view.resizeColumnsToContents()
-        
-    def save_shortcuts(self):
+
+    def check_shortcuts(self):
+        """Check shortcuts for conflicts"""
         conflicts = []
         for index, sh1 in enumerate(self.model.shortcuts):
             if index == len(self.model.shortcuts)-1:
@@ -294,6 +295,7 @@ class ShortcutsTable(QWidget):
                         or sh2.context == '_'):
                     conflicts.append((sh1, sh2))
         if conflicts:
+            self.parent().emit(SIGNAL('show_this_page()'))
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
                               for sh1, sh2 in conflicts])
             QMessageBox.warning(self,
@@ -302,6 +304,9 @@ class ShortcutsTable(QWidget):
                                           "The following conflicts have been "
                                           "detected:")+"\n"+cstr,
                                 QMessageBox.Ok)
+        
+    def save_shortcuts(self):
+        self.check_shortcuts()
         for shortcut in self.model.shortcuts:
             shortcut.save()
         
@@ -326,6 +331,9 @@ class ShortcutsConfigPage(GeneralConfigPage):
         vlayout.addWidget(reset_btn)
         self.setLayout(vlayout)
         
+    def check_settings(self):
+        self.table.check_shortcuts()
+        
     def reset_to_default(self):
         reset_shortcuts()
         self.main.apply_shortcuts()
@@ -345,7 +353,7 @@ def test():
     table.show()
     app.exec_()
     print [str(s) for s in table.model.shortcuts]
-    table.save_shortcuts()
+    table.check_shortcuts()
 
 if __name__ == '__main__':
     test()
