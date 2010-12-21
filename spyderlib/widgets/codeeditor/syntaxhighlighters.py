@@ -6,7 +6,7 @@
 
 """
 Editor widget syntax highlighters based on PyQt4.QtGui.QSyntaxHighlighter
-Syntax highlighting rules are inspired from idlelib
+(Python syntax highlighting rules are inspired from idlelib)
 """
 
 import sys, re, keyword, __builtin__

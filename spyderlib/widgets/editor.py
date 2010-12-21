@@ -34,11 +34,11 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import check, OutlineExplorer
-from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
+from spyderlib.widgets.editortools import OutlineExplorer, check
 from spyderlib.widgets.codeeditor import syntaxhighlighters
-from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
+from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
+from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 
 
 class GoToLineDialog(QDialog):

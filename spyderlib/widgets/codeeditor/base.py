@@ -18,12 +18,9 @@ from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QPlainTextEdit, QPalette)
 from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp
 
+
 # Local imports
-#TODO: remove the CONF object and make it work anyway
-# In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
-# which should not contain anything directly related to Spyder's main app
-from spyderlib.config import CONF, get_font
-from spyderlib.widgets.shellhelpers import ANSIEscapeCodeHandler
+from spyderlib.widgets.codeeditor.terminal import ANSIEscapeCodeHandler
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -159,15 +156,22 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.codecompletion_single = False
         self.codecompletion_enter = False
         self.calltips = True
-        self.completion_text = ""
         self.calltip_position = None
+        self.calltip_size = 600
+        self.calltip_font = QFont()
+        self.completion_text = ""
 
         # Brace matching
         self.bracepos = None
         self.matched_p_color = QColor(Qt.green)
         self.unmatched_p_color = QColor(Qt.red)
-
-        self.setup()
+        
+    def setup_calltips(self, size=None, font=None):
+        self.calltip_size = size
+        self.calltip_font = font
+    
+    def setup_completion(self, size=None, font=None):
+        self.completion_widget.setup_appearance(size, font)
         
     def set_palette(self, background, foreground):
         """
@@ -298,18 +302,6 @@ class TextEditBaseWidget(QPlainTextEdit):
 
 
     #-----Widget setup and options
-    def setup(self):
-        """Configure QPlainTextEdit"""
-        # Calltips
-        self.calltip_size = CONF.get('editor_appearance', 'calltips/size')
-        self.calltip_font = get_font('editor_appearance', 'calltips')
-        # Completion
-        size = CONF.get('editor_appearance', 'completion/size')
-        font = get_font('editor_appearance', 'completion')
-        self.completion_widget.setup_appearance(size, font)
-        # Caret (text cursor)
-        self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
-
     def set_codecompletion_auto(self, state):
         """Set code completion state"""
         self.codecompletion_auto = state
@@ -959,10 +951,32 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         self.prompt_format = QTextCharFormat()
         self.error_format = QTextCharFormat()
         self.traceback_link_format = QTextCharFormat()
-        self.formats = {'DEFAULT_STYLE': self.default_format,
-                        'PROMPT_STYLE': self.prompt_format,
-                        'ERROR_STYLE': self.error_format,
-                        'TRACEBACK_LINK_STYLE': self.traceback_link_format}
+        self.styles = {
+                       'default_style/foregroundcolor': 0x000000,
+                       'default_style/backgroundcolor': 0xFFFFFF,
+                       'default_style/bold': False,
+                       'default_style/italic': False,
+                       'default_style/underline': False,
+                       'error_style/foregroundcolor': 0xFF0000,
+                       'error_style/backgroundcolor': 0xFFFFFF,
+                       'error_style/bold': False,
+                       'error_style/italic': False,
+                       'error_style/underline': False,
+                       'traceback_link_style/foregroundcolor': 0x0000FF,
+                       'traceback_link_style/backgroundcolor': 0xFFFFFF,
+                       'traceback_link_style/bold': True,
+                       'traceback_link_style/italic': False,
+                       'traceback_link_style/underline': True,
+                       'prompt_style/foregroundcolor': 0x00AA00,
+                       'prompt_style/backgroundcolor': 0xFFFFFF,
+                       'prompt_style/bold': True,
+                       'prompt_style/italic': False,
+                       'prompt_style/underline': False,
+                       }
+        self.formats = {'default_style': self.default_format,
+                        'prompt_style': self.prompt_format,
+                        'error_style': self.error_format,
+                        'traceback_link_style': self.traceback_link_format}
         self.set_pythonshell_font()
         self.setMouseTracking(True)
         
@@ -1069,23 +1083,21 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         for format in self.formats.values():
             format.setFont(font)
         
-        getstyleconf = lambda name, prop: CONF.get('shell_appearance',
-                                                   name+'/'+prop)
         def inverse_color(color):
             color.setHsv(color.hue(), color.saturation(), 255-color.value())
         for stylestr, format in self.formats.items():
-            foreground = QColor(getstyleconf(stylestr, 'foregroundcolor'))
+            foreground = QColor(self.styles[stylestr+'/foregroundcolor'])
             if not self.light_background and format is self.default_format:
                 inverse_color(foreground)
             format.setForeground(foreground)
-            background = QColor(getstyleconf(stylestr, 'backgroundcolor'))
+            background = QColor(self.styles[stylestr+'/backgroundcolor'])
             if not self.light_background:
                 inverse_color(background)
             format.setBackground(background)
             font = format.font()
-            font.setBold(getstyleconf(stylestr, 'bold'))
-            font.setItalic(getstyleconf(stylestr, 'italic'))
-            font.setUnderline(getstyleconf(stylestr, 'underline'))
+            font.setBold(self.styles[stylestr+'/bold'])
+            font.setItalic(self.styles[stylestr+'/italic'])
+            font.setUnderline(self.styles[stylestr+'/underline'])
             format.setFont(font)
             
         self.ansi_handler.set_base_format(self.default_format)

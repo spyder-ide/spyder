@@ -29,16 +29,18 @@ from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
 STDOUT = sys.stdout
 
 # Local import
-from spyderlib.config import get_icon, get_image_path
+#TODO: Try to separate this module from spyderlib to create a self 
+#      consistent editor module (Qt source code and shell widgets library)
+from spyderlib.config import CONF, get_font, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        translate)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
-from spyderlib.widgets.codeeditor import syntaxhighlighters
+from spyderlib.utils import sourcecode, is_keyword
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
                                            ScrollFlagArea, check,
                                            OutlineExplorer)
-from spyderlib.utils import sourcecode, is_keyword
+from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
+from spyderlib.widgets.codeeditor import syntaxhighlighters
 
 
 #===============================================================================
@@ -99,6 +101,19 @@ class CodeEditor(TextEditBaseWidget):
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
+        
+        # Calltips
+        calltip_size = CONF.get('editor_appearance', 'calltips/size')
+        calltip_font = get_font('editor_appearance', 'calltips')
+        self.setup_calltips(calltip_size, calltip_font)
+        
+        # Completion
+        completion_size = CONF.get('editor_appearance', 'completion/size')
+        completion_font = get_font('editor_appearance', 'completion')
+        self.completion_widget.setup_appearance(completion_size, completion_font)
+        
+        # Caret (text cursor)
+        self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
         
         self.eol_mode = None
         
@@ -380,10 +395,6 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.rehighlight()
         
         
-    def setup(self):
-        """Reimplement TextEditBaseWidget method"""
-        TextEditBaseWidget.setup(self)
-
     def setup_margins(self, linenumbers=True, code_analysis=False,
                       todo_list=True):
         """

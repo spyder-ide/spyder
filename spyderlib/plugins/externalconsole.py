@@ -24,12 +24,12 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import get_icon, CONF
-from spyderlib.utils import programs, remove_trailing_single_backslash
+from spyderlib.utils import (programs, remove_trailing_single_backslash,
+                             get_error_match)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
-from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 

@@ -21,13 +21,14 @@ import os.path as osp
 # For debugging purpose:
 STDOUT = sys.stdout
 
+
 # Local imports
 from spyderlib.config import get_icon
+from spyderlib.utils import get_error_match
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
-from spyderlib.widgets.shellhelpers import get_error_match
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget

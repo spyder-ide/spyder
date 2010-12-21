@@ -146,6 +146,12 @@ def remove_trailing_single_backslash(text):
     return text
 
 
+def get_error_match(text):
+    """Return error match"""
+    import re
+    return re.match(r'  File "(.*)", line (\d*)', text)
+
+
 def log_last_error(fname, context=None):
     """Log last error in filename *fname* -- *context*: string (optional)"""
     out = StringIO.StringIO()

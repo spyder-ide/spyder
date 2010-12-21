@@ -33,11 +33,11 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorer
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
                                       EditorMainWindow, CodeEditor, Printer)
+from spyderlib.widgets.editortools import OutlineExplorer
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)

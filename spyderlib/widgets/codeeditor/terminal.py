@@ -4,17 +4,9 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Shell helpers"""
-
+"""Terminal emulation tools"""
 
 import os
-
-
-def get_error_match(text):
-    """Return error match"""
-    import re
-    return re.match(r'  File "(.*)", line (\d*)', text)
-
 
 class ANSIEscapeCodeHandler(object):
     """ANSI Escape sequences handler"""
