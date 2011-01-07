@@ -594,11 +594,14 @@ class ExplorerTreeWidget(OneColumnTree):
 
     def get_source_project(self, fname):
         """Return project which contains source *fname*"""
-        for project in self.projects:
-            if project.is_file_in_project(fname):
-                return project
-        else:
-            return self.default_project
+        return self.default_project # See Issue 490
+        # See Issue 490: always using the default project to avoid performance 
+        # issues with 'rope' when dealing with projects containing large files
+#        for project in self.projects:
+#            if project.is_file_in_project(fname):
+#                return project
+#        else:
+#            return self.default_project
         
     def get_project_from_name(self, name):
         for project in self.projects:
