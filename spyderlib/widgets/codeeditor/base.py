@@ -1036,9 +1036,16 @@ class ConsoleBaseWidget(TextEditBaseWidget):
         
         Handles error messages and show blue underlined links
         Handles ANSI color sequences
+        Handles ANSI FF sequence
         """
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.End)
+        while True:
+            index = text.find(chr(12))
+            if index == -1:
+                break
+            text = text[index+1:]
+            self.clear()
         if error:
             for text in text.splitlines(True):
                 if text.startswith('  File') \
