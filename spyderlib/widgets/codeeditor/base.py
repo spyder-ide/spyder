@@ -704,12 +704,37 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.insertText(text)
         cursor.endEditBlock()
         
+    def extend_selection_to_complete_lines(self):
+        """Extend current selection to complete lines"""
+        cursor = self.textCursor()
+        start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+        cursor.setPosition(start_pos)
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        if cursor.atBlockStart():
+            cursor.movePosition(QTextCursor.PreviousBlock,
+                                QTextCursor.KeepAnchor)
+            cursor.movePosition(QTextCursor.EndOfBlock,
+                                QTextCursor.KeepAnchor)
+            end_pos = cursor.position()
+        self.setTextCursor(cursor)
+        
     def delete_line(self):
         """Delete current line"""
         cursor = self.textCursor()
+        if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            cursor.setPosition(start_pos)
+        else:
+            start_pos = end_pos = cursor.position()
+        cursor.beginEditBlock()
+        cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
-        cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
+        while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
         cursor.removeSelectedText()
+        cursor.endEditBlock()
+        self.ensureCursorVisible()
         
 
     #------Code completion / Calltips

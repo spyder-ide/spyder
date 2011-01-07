@@ -1343,16 +1343,8 @@ class CodeEditor(TextEditBaseWidget):
                   + self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():
+            self.extend_selection_to_complete_lines()
             start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            cursor.setPosition(start_pos)
-            cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
-            if cursor.atBlockStart():
-                cursor.movePosition(QTextCursor.PreviousBlock,
-                                    QTextCursor.KeepAnchor)
-                cursor.movePosition(QTextCursor.EndOfBlock,
-                                    QTextCursor.KeepAnchor)
-                end_pos = cursor.position()
-            self.setTextCursor(cursor)
             cursor.setPosition(start_pos)
         else:
             start_pos = end_pos = cursor.position()
