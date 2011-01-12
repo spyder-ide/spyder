@@ -423,7 +423,8 @@ C_TYPES = 'bool char double enum float int long mutable short signed struct unsi
 
 class CythonSH(PythonSH):
     """Cython Syntax Highlighter"""
-    ADDITIONAL_KEYWORDS = ["cdef", "ctypedef"]
+    ADDITIONAL_KEYWORDS = ["cdef", "ctypedef", "cpdef", "inline", "cimport",
+                           "DEF"]
     ADDITIONAL_BUILTINS = C_TYPES.split()
     PROG = re.compile(make_python_patterns(ADDITIONAL_KEYWORDS,
                                            ADDITIONAL_BUILTINS), re.S)
