@@ -8,6 +8,8 @@
 \.orig$
 ^build/
 ^dist/
+app_example/build/
+app_example/dist/
 ^doctmp/
 ^pyflakes/
 ^rope/
