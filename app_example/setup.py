@@ -29,6 +29,8 @@ add_module_data_files("spyderlib", ("", ),
 add_modules(('PyQt4', ), # add 'matplotlib' after 'PyQt4' if you need it
             DATA_FILES, INCLUDES, EXCLUDES)
 
+EXCLUDES += ['IPython']
+
 setup(
       options={
                "py2exe": {"compressed": 2, "optimize": 2, 'bundle_files': 1,
