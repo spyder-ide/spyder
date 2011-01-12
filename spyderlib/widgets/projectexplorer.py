@@ -1113,7 +1113,7 @@ class ExplorerTreeWidget(OneColumnTree):
     
     def new_file(self, item):
         title = translate('ProjectExplorer', "New file")
-        filters = translate('Explorer', "All files")+" (*.*)"
+        filters = translate('Explorer', "All files")+" (*)"
         create_func = lambda fname: file(fname, 'wb').write('')
         self.__create_new_file(item, title, filters, create_func)
     

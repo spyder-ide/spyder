@@ -521,7 +521,7 @@ class ExplorerTreeWidget(DirView):
         fname = QFileDialog.getSaveFileName(self,
             translate('Explorer', "New Python script"), self.get_dirname(),
             translate('Explorer', "Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
-            "\n"+translate('Explorer', "All files")+" (*.*)")
+            "\n"+translate('Explorer', "All files")+" (*)")
         sys.stdout = _temp
         if not fname.isEmpty():
             fname = unicode(fname)

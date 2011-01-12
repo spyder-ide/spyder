@@ -318,7 +318,7 @@ class Editor(SpyderPluginWidget):
                           (self.tr("Configuration files"),
                            ('.properties', '.session', '.ini', '.inf',
                             '.reg', '.cfg')),
-                          (self.tr("All files"), ('.*',)))
+                          (self.tr("All files"), ('',)))
         
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)

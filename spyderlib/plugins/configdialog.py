@@ -433,7 +433,7 @@ class SpyderConfigPage(ConfigPage):
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
         if filters is None:
-            filters = translate("PluginConfigPage", "All files (*.*)")
+            filters = translate("PluginConfigPage", "All files (*)")
         title = translate("PluginConfigPage", "Select file")
         filename = QFileDialog.getOpenFileName(self, title, basedir, filters)
         if filename:
