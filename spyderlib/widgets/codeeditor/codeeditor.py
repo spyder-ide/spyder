@@ -94,10 +94,6 @@ class CodeEditor(TextEditBaseWidget):
 #                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
                  }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
-    EOL_WINDOWS = 0
-    EOL_UNIX = 1
-    EOL_MAC = 2
-    EOL_MODES = {"\r\n": EOL_WINDOWS, "\n": EOL_UNIX, "\r": EOL_MAC}
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -114,8 +110,6 @@ class CodeEditor(TextEditBaseWidget):
         
         # Caret (text cursor)
         self.setCursorWidth( CONF.get('editor_appearance', 'cursor/width') )
-        
-        self.eol_mode = None
         
         # Side areas background color
         self.area_background_color = QColor(Qt.white)
@@ -427,39 +421,6 @@ class CodeEditor(TextEditBaseWidget):
         source_code = unicode(self.toPlainText())
         offset = self.get_position('cursor')
         return get_primary_at(source_code, offset)
-    
-    #------EOL characters
-    def set_eol_mode(self, text):
-        """
-        Set widget EOL mode based on *text* EOL characters
-        """
-        if isinstance(text, QString):
-            text = unicode(text)
-        eol_chars = sourcecode.get_eol_chars(text)
-        if eol_chars is not None:
-            if self.eol_mode is not None:
-                self.document().setModified(True)
-            self.eol_mode = self.EOL_MODES[eol_chars]
-        
-    def get_line_separator(self):
-        """Return line separator based on current EOL mode"""
-        for eol_chars, mode in self.EOL_MODES.iteritems():
-            if self.eol_mode == mode:
-                return eol_chars
-        else:
-            return os.linesep
-
-    def get_text_with_eol(self):
-        """
-        Same as 'toPlainText', replace '\n' by correct end-of-line characters
-        """
-        utext = unicode(self.toPlainText())
-        lines = utext.splitlines()
-        linesep = self.get_line_separator()
-        txt = linesep.join(lines)
-        if utext.endswith('\n'):
-            txt += linesep
-        return txt
     
     #------Find occurences
     def __find_first(self, text):
@@ -932,7 +893,7 @@ class CodeEditor(TextEditBaseWidget):
     def set_text(self, text):
         """Set the text of the editor"""
         self.setPlainText(text)
-        self.set_eol_mode(text)
+        self.set_eol_chars(text)
 #        if self.supported_language:
 #            self.highlighter.rehighlight()
 

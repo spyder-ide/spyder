@@ -16,11 +16,12 @@ import sys, re, string, os
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
                          QPlainTextEdit, QPalette)
-from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp
+from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp, QString
 
 
 # Local imports
 from spyderlib.widgets.codeeditor.terminal import ANSIEscapeCodeHandler
+from spyderlib.utils import sourcecode
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -149,6 +150,8 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.connect(self, SIGNAL('cursorPositionChanged()'),
                      self.cursor_position_changed)
 
+        self.eol_chars = None
+        
         # Code completion / calltips
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
@@ -507,15 +510,43 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.setTextCursor(cursor)
 
 
+    #------EOL characters
+    def set_eol_chars(self, text):
+        """
+        Set widget end-of-line (EOL) characters from text (analyzes text)
+        """
+        if isinstance(text, QString):
+            text = unicode(text)
+        eol_chars = sourcecode.get_eol_chars(text)
+        if eol_chars is not None and self.eol_chars is not None:
+            self.document().setModified(True)
+        self.eol_chars = eol_chars
+        
+    def get_line_separator(self):
+        """Return line separator based on current EOL mode"""
+        if self.eol_chars is not None:
+            return self.eol_chars
+        else:
+            return os.linesep
+
+    def get_text_with_eol(self):
+        """
+        Same as 'toPlainText', replace '\n' by correct end-of-line characters
+        """
+        utext = unicode(self.toPlainText())
+        lines = utext.splitlines()
+        linesep = self.get_line_separator()
+        txt = linesep.join(lines)
+        if utext.endswith('\n'):
+            txt += linesep
+        return txt
+            
+
     #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected"""
         return not self.textCursor().selectedText().isEmpty()
 
-    def get_line_separator(self):
-        """Return line separator (reimplemented in child class)"""
-        return os.linesep
-    
     def get_selected_text(self):
         """
         Return text selected by current text cursor, converted in unicode
@@ -735,7 +766,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.removeSelectedText()
         cursor.endEditBlock()
         self.ensureCursorVisible()
-        
+
 
     #------Code completion / Calltips
     def show_calltip(self, title, text, color='#2D62FF', at_line=None):

@@ -1508,7 +1508,7 @@ class EditorStack(QWidget):
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
         os_name = sourcecode.get_os_name_from_eol_chars(eol_chars)
-        self.emit(SIGNAL('refresh_eol_mode(QString)'), os_name)
+        self.emit(SIGNAL('refresh_eol_chars(QString)'), os_name)
         
 
     #------ Load, reload
@@ -1659,8 +1659,8 @@ class EditorStack(QWidget):
         if index is None:
             index = self.get_stack_index()
         finfo = self.data[index]
-        eol_mode = sourcecode.get_eol_chars_from_os_name(os.name)
-        finfo.editor.set_eol_mode(eol_mode)
+        eol_chars = sourcecode.get_eol_chars_from_os_name(os.name)
+        finfo.editor.set_eol_chars(eol_chars)
         finfo.editor.document().setModified(True)
         
     def remove_trailing_spaces(self, index=None):
@@ -2050,7 +2050,7 @@ class EditorWidget(QSplitter):
                      self.encoding_status.encoding_changed)
         self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
-        self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
+        self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                      self.eol_status.eol_changed)
         self.plugin.register_editorstack(editorstack)
         oe_btn = create_toolbutton(self)

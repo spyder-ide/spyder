@@ -272,7 +272,7 @@ class Editor(SpyderPluginWidget):
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):
-        self.__set_eol_mode = True
+        self.__set_eol_chars = True
         
         self.set_default_color_scheme()
         
@@ -899,7 +899,7 @@ class Editor(SpyderPluginWidget):
                          self.encoding_status.encoding_changed)
             self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
                          self.cursorpos_status.cursor_position_changed)
-            self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
+            self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                          self.eol_status.eol_changed)
             oe_btn = create_toolbutton(self)
             oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
@@ -987,8 +987,8 @@ class Editor(SpyderPluginWidget):
                      self.refresh_file_dependent_actions)
         self.connect(editorstack, SIGNAL('refresh_save_all_action()'),
                      self.refresh_save_all_action)
-        self.connect(editorstack, SIGNAL('refresh_eol_mode(QString)'),
-                     self.refresh_eol_mode)
+        self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
+                     self.refresh_eol_chars)
         
         self.connect(editorstack, SIGNAL("save_breakpoints(QString,QString)"),
                      self.save_breakpoints)
@@ -1211,16 +1211,16 @@ class Editor(SpyderPluginWidget):
                     other_editorstack.set_todo_results(index, results)
         self.update_todo_actions()
             
-    def refresh_eol_mode(self, os_name):
+    def refresh_eol_chars(self, os_name):
         os_name = unicode(os_name)
-        self.__set_eol_mode = False
+        self.__set_eol_chars = False
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
         elif os_name == 'posix':
             self.linux_eol_action.setChecked(True)
         else:
             self.mac_eol_action.setChecked(True)
-        self.__set_eol_mode = True
+        self.__set_eol_chars = True
     
     
     #------ Slots
@@ -1635,8 +1635,8 @@ class Editor(SpyderPluginWidget):
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
-        if self.__set_eol_mode:
-            editor.set_eol_mode(sourcecode.get_eol_chars_from_os_name(os_name))
+        if self.__set_eol_chars:
+            editor.set_eol_chars(sourcecode.get_eol_chars_from_os_name(os_name))
         
     def remove_trailing_spaces(self):
         editorstack = self.get_current_editorstack()
