@@ -247,8 +247,12 @@ class Project(object):
             cts = rope.contrib.codeassist.get_calltip(self.rope_project,
                                         source_code, offset, resource,
                                         ignore_unknown=True, remove_self=True)
+            while '..' in cts:
+                cts = cts.replace('..', '.')
+            doc_text = rope.contrib.codeassist.get_doc(self.rope_project,
+                                               source_code, offset, resource)
             if cts is not None:
-                return [cts]
+                return [cts, doc_text]
             else:
                 return []
         except Exception, _error:
