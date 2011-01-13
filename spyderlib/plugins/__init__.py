@@ -18,8 +18,8 @@ These plugins inherit the following classes
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QDockWidget, QWidget, QFontDialog, QShortcut, QCursor,
-                         QKeySequence, QMainWindow, QApplication, QAction, QVBoxLayout)
+from PyQt4.QtGui import (QDockWidget, QWidget, QShortcut, QCursor, QKeySequence,
+                         QMainWindow, QApplication)
 from PyQt4.QtCore import SIGNAL, Qt, QObject
 
 import sys
@@ -28,15 +28,10 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import (toggle_actions, create_action,
-                                       add_actions, translate)
-from spyderlib.config import (CONF, get_font, set_font, get_icon,
-                              get_color_scheme, get_shortcut)
+from spyderlib.utils.qthelpers import toggle_actions
+from spyderlib.config import CONF, get_font, set_font, get_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.plugins.configdialog import SpyderConfigPage
-from spyderlib.widgets.editor import CodeEditor
-from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.browser import WebView
     
 
 class PluginConfigPage(SpyderConfigPage):
@@ -292,107 +287,3 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         raise NotImplementedError
-
-
-class RichText(QWidget):
-    """
-    WebView widget with find dialog
-    """
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        
-        self.webview = WebView(self)
-        self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.webview)
-        self.find_widget.hide()
-        
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.webview)
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-        
-class PlainText(QWidget):
-    """
-    Read-only editor widget with find dialog
-    """
-    def __init__(self, parent):
-        QWidget.__init__(self, parent)
-        self.editor = None
-
-        # Read-only editor
-        self.editor = CodeEditor(self)
-        self.editor.setup_editor(linenumbers=False, language='py',
-                                 scrollflagarea=False)
-        self.connect(self.editor, SIGNAL("focus_changed()"),
-                     lambda: self.emit(SIGNAL("focus_changed()")))
-        self.editor.setReadOnly(True)
-        
-        # Find/replace widget
-        self.find_widget = FindReplace(self)
-        self.find_widget.set_editor(self.editor)
-        self.find_widget.hide()
-        
-        layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.editor)
-        layout.addWidget(self.find_widget)
-        self.setLayout(layout)
-        
-class RichAndPlainText(SpyderPluginWidget):
-    """
-    Plugin widget to view docstrings as html or
-    plain text
-    (see example of child class in inspector.py)
-    """
-    def __init__(self, parent):
-        SpyderPluginWidget.__init__(self, parent)
-        
-        self.plain_text = PlainText(self)
-        self.rich_text = RichText(self)
-        
-        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        self.plain_text.editor.set_font(self.get_plugin_font(), color_scheme)
-        self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
-        
-        # Add entries to read-only editor context-menu
-        font_action = create_action(self, translate("Editor", "&Font..."), None,
-                                    'font.png',
-                                    translate("Editor", "Set font style"),
-                                    triggered=self.change_font)
-        self.wrap_action = create_action(self,
-                                         translate("Editor", "Wrap lines"),
-                                         toggled=self.toggle_wrap_mode)
-        self.wrap_action.setChecked(self.get_option('wrap'))
-        self.plain_text.editor.readonly_menu.addSeparator()
-        add_actions(self.plain_text.editor.readonly_menu,
-                    (font_action, self.wrap_action))
-        
-        # <!> Layout will have to be implemented in child class!
-        
-    @property
-    def find_widget(self):
-        if self.plain_text.isVisible():
-            return self.plain_text.find_widget
-        else:
-            return self.rich_text.find_widget
-    
-    def get_focus_widget(self):
-        """
-        Return the widget to give focus to when
-        this plugin's dockwidget is raised on top-level
-        """
-        return self.rich_text
-        
-    def change_font(self):
-        """Change console font"""
-        font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
-                                      translate("Editor", "Select a new font"))
-        if valid:
-            self.plain_text.editor.set_font(font)
-            set_font(font, self.CONF_SECTION)
-            
-    def toggle_wrap_mode(self, checked):
-        """Toggle wrap mode"""
-        self.plain_text.editor.toggle_wrap_mode(checked)
-        self.set_option('wrap', checked)

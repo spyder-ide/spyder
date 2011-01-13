@@ -7,7 +7,8 @@
 """Object Inspector Plugin"""
 
 from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
-                         QToolButton, QGroupBox, QFontComboBox, QActionGroup)
+                         QToolButton, QGroupBox, QFontComboBox, QActionGroup,
+                         QFontDialog, QWidget)
 from PyQt4.QtCore import SIGNAL, QUrl, QTimer
 
 import sys, re, os.path as osp, socket
@@ -16,12 +17,16 @@ import sys, re, os.path as osp, socket
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
+from spyderlib.config import (get_conf_path, get_icon, CONF, get_color_scheme,
+                              get_font, set_font)
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action)
+                                       create_action, translate)
 from spyderlib.widgets.comboboxes import EditableComboBox
+from spyderlib.widgets.editor import CodeEditor
+from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
-from spyderlib.plugins import RichAndPlainText, PluginConfigPage
+from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
     from spyderlib.utils.sphinxify import CSS_PATH, sphinxify
@@ -103,7 +108,80 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class ObjectInspector(RichAndPlainText):
+class RichText(QWidget):
+    """
+    WebView widget with find dialog
+    """
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+        
+        self.webview = WebView(self)
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.webview)
+        self.find_widget.hide()
+        
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.webview)
+        layout.addWidget(self.find_widget)
+        self.setLayout(layout)
+        
+    def set_font(self, font):
+        """Set font"""
+        self.webview.set_font(font)
+        
+    def set_html(self, html_text, base_url):
+        """Set html text"""
+        self.webview.setHtml(html_text, base_url)
+        
+        
+class PlainText(QWidget):
+    """
+    Read-only editor widget with find dialog
+    """
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+        self.editor = None
+
+        # Read-only editor
+        self.editor = CodeEditor(self)
+        self.editor.setup_editor(linenumbers=False, language='py',
+                                 scrollflagarea=False)
+        self.connect(self.editor, SIGNAL("focus_changed()"),
+                     lambda: self.emit(SIGNAL("focus_changed()")))
+        self.editor.setReadOnly(True)
+        
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.set_editor(self.editor)
+        self.find_widget.hide()
+        
+        layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.editor)
+        layout.addWidget(self.find_widget)
+        self.setLayout(layout)
+        
+    def set_font(self, font, color_scheme=None):
+        """Set font"""
+        self.editor.set_font(font, color_sheme=color_scheme)
+        
+    def set_color_scheme(self, color_scheme):
+        """Set color scheme"""
+        self.editor.set_color_scheme(color_scheme)
+        
+    def set_text(self, text, is_code):
+        self.editor.set_highlight_current_line(is_code)
+        self.editor.set_occurence_highlighting(is_code)
+        if is_code:
+            self.editor.set_language('py')
+        else:
+            self.editor.set_language(None)
+        self.editor.set_text(text)
+        self.editor.set_cursor_position('sof')
+
+
+class ObjectInspector(SpyderPluginWidget):
     """
     Docstrings viewer widget
     """
@@ -111,9 +189,31 @@ class ObjectInspector(RichAndPlainText):
     CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
+        SpyderPluginWidget.__init__(self, parent)
+
         self.set_default_color_scheme()
-        RichAndPlainText.__init__(self, parent)
-        self.rich_text.webview.set_font(self.get_plugin_font('rich_text'))
+
+        self.plain_text = PlainText(self)
+        self.rich_text = RichText(self)
+        
+        color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
+        self.plain_text.editor.set_font(self.get_plugin_font(), color_scheme)
+        self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
+        
+        # Add entries to read-only editor context-menu
+        font_action = create_action(self, translate("Editor", "&Font..."), None,
+                                    'font.png',
+                                    translate("Editor", "Set font style"),
+                                    triggered=self.change_font)
+        self.wrap_action = create_action(self,
+                                         translate("Editor", "Wrap lines"),
+                                         toggled=self.toggle_wrap_mode)
+        self.wrap_action.setChecked(self.get_option('wrap'))
+        self.plain_text.editor.readonly_menu.addSeparator()
+        add_actions(self.plain_text.editor.readonly_menu,
+                    (font_action, self.wrap_action))
+
+        self.set_rich_text_font(self.get_plugin_font('rich_text'))
         
         self.shell = None
         
@@ -138,8 +238,10 @@ class ObjectInspector(RichAndPlainText):
         self.docstring = True
         self.rich_help = sphinxify is not None \
                          and self.get_option('rich_mode', True)
-        self.rich_text.setVisible(self.rich_help)
-        self.plain_text.setVisible(not self.rich_help)        
+        if self.rich_help:
+            self.switch_to_rich_text()
+        else:
+            self.switch_to_plain_text()
         plain_text_action = create_action(self, self.tr("Plain Text"),
                                           toggled=self.toggle_plain_text)
         plain_text_action.setChecked(not self.rich_help)
@@ -194,7 +296,7 @@ class ObjectInspector(RichAndPlainText):
         
         QTimer.singleShot(8000, self.refresh_plugin)
             
-    #------ ReadOnlyEditor API -------------------------------------------------    
+    #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
         return self.tr('Object inspector')
@@ -244,13 +346,72 @@ class ObjectInspector(RichAndPlainText):
         self.wrap_action.setChecked(wrap_o)
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
-            self.plain_text.editor.set_font(font_o, scs)
+            self.set_plain_text_font(font_o, color_scheme=scs)
         if rich_font_n in options:
-            self.rich_text.webview.set_font(rich_font_o)
+            self.set_rich_text_font(rich_font_o)
         elif color_scheme_n in options:
-            self.plain_text.editor.set_color_scheme(color_scheme_o)
+            self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
-            self.plain_text.editor.toggle_wrap_mode(wrap_o)
+            self.toggle_wrap_mode(wrap_o)
+        
+    #------ Public API (related to rich/plain text widgets) --------------------
+    @property
+    def find_widget(self):
+        if self.plain_text.isVisible():
+            return self.plain_text.find_widget
+        else:
+            return self.rich_text.find_widget
+    
+    def set_rich_text_font(self, font):
+        """Set rich text mode font"""
+        self.rich_text.set_font(font)
+        
+    def set_plain_text_font(self, font, color_sheme=None):
+        """Set plain text mode font"""
+        self.plain_text.set_font(font)
+
+    def set_plain_text_color_scheme(self, color_scheme):
+        """Set plain text mode color scheme"""
+        self.plain_text.set_color_scheme(color_scheme)
+        
+    def change_font(self):
+        """Change console font"""
+        font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
+                                      translate("Editor", "Select a new font"))
+        if valid:
+            self.set_plain_text_font(font)
+            set_font(font, self.CONF_SECTION)
+            
+    def toggle_wrap_mode(self, checked):
+        """Toggle wrap mode"""
+        self.plain_text.editor.toggle_wrap_mode(checked)
+        self.set_option('wrap', checked)
+        
+    def is_plain_text_mode(self):
+        """Return True if plain text mode is active"""
+        return self.plain_text.isVisible()
+
+    def is_rich_text_mode(self):
+        """Return True if rich text mode is active"""
+        return self.rich_text.isVisible()
+
+    def switch_to_plain_text(self):
+        """Switch to plain text mode"""
+        self.plain_text.show()
+        self.rich_text.hide()
+        
+    def switch_to_rich_text(self):
+        """Switch to rich text mode"""
+        self.plain_text.hide()
+        self.rich_text.show()
+            
+    def set_plain_text(self, text, is_code):
+        """Set plain text"""
+        self.plain_text.set_text(text, is_code)
+        
+    def set_rich_text_html(self, html_text, base_url):
+        """Set rich text"""
+        self.rich_text.set_html(html_text, base_url)
         
     #------ Public API ---------------------------------------------------------
     def set_external_console(self, external_console):
@@ -308,10 +469,7 @@ class ObjectInspector(RichAndPlainText):
         if checked:
             self.docstring = checked
             self.rich_help = not checked
-        
-            if self.plain_text.isHidden():
-                self.plain_text.show()
-                self.rich_text.hide()
+            self.switch_to_plain_text()
             self.force_refresh()
         self.set_option('rich_mode', not checked)
         
@@ -320,10 +478,7 @@ class ObjectInspector(RichAndPlainText):
         if checked:
             self.docstring = not checked
             self.rich_help = not checked
-        
-            if self.plain_text.isHidden():
-                self.plain_text.show()
-                self.rich_text.hide()
+            self.switch_to_plain_text()
             self.force_refresh()
         self.set_option('rich_mode', not checked)
         
@@ -332,10 +487,7 @@ class ObjectInspector(RichAndPlainText):
         if checked:
             self.rich_help = checked
             self.docstring = not checked
-            
-            if self.rich_text.isHidden():
-                self.plain_text.hide()
-                self.rich_text.show()
+            self.switch_to_rich_text()
             self.force_refresh()
         self.set_option('rich_mode', checked)
         
@@ -415,7 +567,6 @@ class ObjectInspector(RichAndPlainText):
             source_text = shell.get_source(obj_text)
             
         is_code = False
-        found = True
         no_doc = self.tr("No documentation available")
         
         if self.rich_help:
@@ -427,8 +578,7 @@ class ObjectInspector(RichAndPlainText):
                     return False
             
             html_text = HTML_HEAD + html_text + HTML_TAIL
-            self.rich_text.webview.setHtml(html_text,
-                                           QUrl.fromLocalFile(CSS_PATH))
+            self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
         elif self.docstring:
             hlp_text = doc_text
@@ -449,14 +599,7 @@ class ObjectInspector(RichAndPlainText):
             else:
                 is_code = True
         
-        if self.plain_text.editor.isVisible():
-            self.plain_text.editor.set_highlight_current_line(is_code)
-            self.plain_text.editor.set_occurence_highlighting(is_code)
-            if is_code:
-                self.plain_text.editor.set_language('py')
-            else:
-                self.plain_text.editor.set_language(None)
-            self.plain_text.editor.set_text(hlp_text)
-            self.plain_text.editor.set_cursor_position('sof')
+        if self.is_plain_text_mode():
+            self.set_plain_text(hlp_text, is_code=is_code)
         
-        return found
+        return True
