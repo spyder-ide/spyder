@@ -27,7 +27,7 @@ STDOUT = sys.stdout
 DEBUG = False
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils import encoding, sourcecode, programs
 from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, translate,
@@ -321,7 +321,11 @@ class FileInfo(QObject):
         if not text:
             text = get_primary_at(source_code, offset)
         if text and not text.startswith('self.'):
-            self.emit(SIGNAL("send_to_inspector(QString)"), text)
+            doc_text = ''
+            if len(textlist) == 2:
+                doc_text = textlist.pop(1)
+            self.emit(SIGNAL("send_to_inspector(QString,QString)"),
+                      text, doc_text)
         if textlist:
             self.editor.show_calltip("rope", textlist)
                     
@@ -637,9 +641,14 @@ class EditorStack(QWidget):
             
     def inspect_current_object(self):
         """Inspect current object in Object Inspector"""
-        text = self.get_current_editor().get_current_object()
-        if text:
-            self.send_to_inspector(text)
+        if programs.is_module_installed('rope'):
+            editor = self.get_current_editor()
+            position = editor.get_position('cursor')
+            editor.emit(SIGNAL('trigger_calltip(int)'), position)
+        else:
+            text = self.get_current_editor().get_current_object()
+            if text:
+                self.send_to_inspector(text)
         
         
     #------ Editor Widget Settings
@@ -1544,7 +1553,7 @@ class EditorStack(QWidget):
         if self.projectexplorer is not None:
             finfo.set_project(self.projectexplorer.get_source_project(fname))
         self.add_to_data(finfo, set_current)
-        self.connect(finfo, SIGNAL("send_to_inspector(QString)"),
+        self.connect(finfo, SIGNAL("send_to_inspector(QString,QString)"),
                      self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
@@ -1608,12 +1617,16 @@ class EditorStack(QWidget):
         
         return finfo
     
-    def send_to_inspector(self, qstr):
+    def send_to_inspector(self, qstr1, qstr2=None):
+        """qstr1: obj_text, qstr2: doc_text"""
         if not self.inspector_enabled:
             return
         if self.inspector is not None and self.inspector.dockwidget.isVisible():
             # ObjectInspector widget exists and is visible
-            self.inspector.set_object_text(qstr, ignore_unknown=True)
+            if qstr2 is None:
+                self.inspector.set_object_text(qstr1, ignore_unknown=True)
+            else:
+                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2))
             editor = self.get_current_editor()
             editor.setFocus()
     

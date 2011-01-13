@@ -627,17 +627,17 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Enregistrer sous...</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="358"/>
+        <location filename="plugins/inspector.py" line="215"/>
         <source>&amp;Font...</source>
         <translation>&amp;Police...</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="389"/>
+        <location filename="plugins/inspector.py" line="461"/>
         <source>Select a new font</source>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="363"/>
+        <location filename="plugins/inspector.py" line="220"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
@@ -652,7 +652,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Éditeur de Spyder</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1165"/>
+        <location filename="widgets/editor.py" line="1174"/>
         <source>Save</source>
         <translation>Enregistrer</translation>
     </message>
@@ -697,7 +697,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Décommenter la sélection ou la ligne en cours d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="452"/>
+        <location filename="widgets/editor.py" line="456"/>
         <source>Editor</source>
         <translation>Éditeur</translation>
     </message>
@@ -809,7 +809,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Afficher le message d&apos;avertissement ou d&apos;erreur précédent</translation>
     </message>
     <message>
-        <location filename="plugins/__init__.py" line="360"/>
+        <location filename="plugins/inspector.py" line="217"/>
         <source>Set font style</source>
         <translation>Changer la police d&apos;écriture</translation>
     </message>
@@ -864,22 +864,22 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Tous les fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1924"/>
+        <location filename="widgets/editor.py" line="1937"/>
         <source>Permissions:</source>
         <translation>Droits d&apos;accès :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1954"/>
+        <location filename="widgets/editor.py" line="1967"/>
         <source>Encoding:</source>
         <translation>Encodage :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1968"/>
+        <location filename="widgets/editor.py" line="1981"/>
         <source>Line:</source>
         <translation>Ligne :</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1972"/>
+        <location filename="widgets/editor.py" line="1985"/>
         <source>Column:</source>
         <translation>Colonne :</translation>
     </message>
@@ -999,7 +999,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Afficher la liste des avertissements/erreurs provenant de l&apos;analyse de code</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="546"/>
+        <location filename="widgets/editor.py" line="550"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
@@ -1009,62 +1009,62 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Fermer le fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="969"/>
+        <location filename="widgets/editor.py" line="978"/>
         <source>Split vertically</source>
         <translation>Séparation verticale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="972"/>
+        <location filename="widgets/editor.py" line="981"/>
         <source>Split vertically this editor window</source>
         <translation>Séparer en deux verticalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="975"/>
+        <location filename="widgets/editor.py" line="984"/>
         <source>Split horizontally</source>
         <translation>Séparation horizontale</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="978"/>
+        <location filename="widgets/editor.py" line="987"/>
         <source>Split horizontally this editor window</source>
         <translation>Séparer en deux horizontalement cette fenêtre d&apos;édition</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="981"/>
+        <location filename="widgets/editor.py" line="990"/>
         <source>Close this panel</source>
         <translation>Fermer ce panneau</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1110"/>
+        <location filename="widgets/editor.py" line="1119"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified.&lt;br&gt;Do you want to save changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié.&lt;br&gt;Souhaitez-vous enregistrer ces changements ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1168"/>
+        <location filename="widgets/editor.py" line="1177"/>
         <source>&lt;b&gt;Unable to save script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;enregistrer le script &apos;%1&apos;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1184"/>
+        <location filename="widgets/editor.py" line="1193"/>
         <source>Save Python script</source>
         <translation>Enregistrer le script Python</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1391"/>
+        <location filename="widgets/editor.py" line="1400"/>
         <source>&lt;b&gt;%1&lt;/b&gt; is unavailable (this file may have been removed, moved or renamed outside Spyder).&lt;br&gt;Do you want to close it?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; n&apos;est pas accessible (ce fichier a peut-être été supprimé, déplacé ou renommé en dehors de Spyder).&lt;br&gt;Souhaitez-vous le fermer ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1405"/>
+        <location filename="widgets/editor.py" line="1414"/>
         <source>&lt;b&gt;%1&lt;/b&gt; has been modified outside Spyder.&lt;br&gt;Do you want to reload it and loose all your changes?</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; a été modifié en dehors de Spyder.&lt;br&gt;Souhaitez-vous le recharger et perdre ainsi vos modifications ?</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1460"/>
+        <location filename="widgets/editor.py" line="1469"/>
         <source>Temporary file</source>
         <translation>Fichier temporaire</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1638"/>
+        <location filename="widgets/editor.py" line="1651"/>
         <source>Loading %1...</source>
         <translation>Chargement de &quot;%1&quot; en cours...</translation>
     </message>
@@ -1084,12 +1084,12 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Déboguer avec winpdb</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="963"/>
+        <location filename="widgets/editor.py" line="972"/>
         <source>New window</source>
         <translation>Nouvelle fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="965"/>
+        <location filename="widgets/editor.py" line="974"/>
         <source>Create a new editor window</source>
         <translation>Créer une nouvelle fenêtre d&apos;édition</translation>
     </message>
@@ -1139,12 +1139,12 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Ouvrir un fichier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="2106"/>
+        <location filename="widgets/editor.py" line="2119"/>
         <source>Close window</source>
         <translation>Fermer la fenêtre</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="2108"/>
+        <location filename="widgets/editor.py" line="2121"/>
         <source>Close this window</source>
         <translation>Fermer cette fenêtre d&apos;édition</translation>
     </message>
@@ -1154,7 +1154,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation>Barre d&apos;outil de recherche</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1939"/>
+        <location filename="widgets/editor.py" line="1952"/>
         <source>End-of-lines:</source>
         <translation>Fins de ligne :</translation>
     </message>
@@ -1169,7 +1169,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <translation type="obsolete">Afficher la liste des commentaires du type TODO/FIXME/XXX</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1651"/>
+        <location filename="widgets/editor.py" line="1664"/>
         <source>&lt;b&gt;%1&lt;/b&gt; contains mixed end-of-line characters.&lt;br&gt;Spyder will fix this automatically.</source>
         <translation>&lt;b&gt;%1&lt;/b&gt; contient des caractères de fin de ligne mélangés.&lt;br&gt;Spyder va corriger ceci automatiquement.</translation>
     </message>
@@ -1206,12 +1206,12 @@ inside current external console&apos;s interpreter</source>
 dans l&apos;interpréteur de la console externe active</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="436"/>
+        <location filename="widgets/editor.py" line="440"/>
         <source>Copy path to clipboard</source>
         <translation>Copier le chemin d&apos;accès dans le presse-papier</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="432"/>
+        <location filename="widgets/editor.py" line="436"/>
         <source>File list management</source>
         <translation>Gestionnaire de fichiers</translation>
     </message>
@@ -1361,7 +1361,7 @@ dans l&apos;interpréteur de la console externe active</translation>
         <translation>Revenir à la version du fichier enregistrée sur le disque</translation>
     </message>
     <message>
-        <location filename="widgets/editor.py" line="1530"/>
+        <location filename="widgets/editor.py" line="1539"/>
         <source>All changes to &lt;b&gt;%1&lt;/b&gt; will be lost.&lt;br&gt;Do you want to revert file from disk?</source>
         <translation>Toutes les modifications effectuées sur &lt;b&gt;%1&lt;/b&gt; seront perdues.&lt;br&gt;Souhaitez-vous revenir à la version du fichier enregistrée sur le disque ?</translation>
     </message>
@@ -1884,12 +1884,12 @@ accessible via le raccourci Ctrl+Espace)</translation>
         <translation>Nouveau script Python</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1155"/>
+        <location filename="widgets/projectexplorer.py" line="1159"/>
         <source>Python scripts</source>
         <translation>Scripts Python</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1115"/>
+        <location filename="widgets/projectexplorer.py" line="1119"/>
         <source>All files</source>
         <translation>Tous les fichiers</translation>
     </message>
@@ -3581,85 +3581,100 @@ mais cela permet au programme en cours de quitter proprement.</translation>
 <context>
     <name>ObjectInspector</name>
     <message>
-        <location filename="plugins/inspector.py" line="128"/>
+        <location filename="plugins/inspector.py" line="252"/>
         <source>Object</source>
         <translation>Objet</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="164"/>
+        <location filename="plugins/inspector.py" line="287"/>
         <source>Automatic import</source>
         <translation>Import automatique</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="359"/>
+        <location filename="plugins/inspector.py" line="624"/>
         <source>Unlock</source>
         <translation>Déverrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="360"/>
+        <location filename="plugins/inspector.py" line="625"/>
         <source>Lock</source>
         <translation>Verrouiller</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="446"/>
+        <location filename="plugins/inspector.py" line="710"/>
         <source>No source code available.</source>
         <translation>Aucun code source disponible.</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="201"/>
+        <location filename="plugins/inspector.py" line="334"/>
         <source>Object inspector</source>
         <translation>Inspecteur d&apos;objets</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="176"/>
+        <location filename="plugins/inspector.py" line="299"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="142"/>
+        <location filename="plugins/inspector.py" line="268"/>
         <source>Plain Text</source>
         <translation>Texte brut</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="147"/>
+        <location filename="plugins/inspector.py" line="272"/>
         <source>Show Source</source>
         <translation>Afficher les sources</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="151"/>
+        <location filename="plugins/inspector.py" line="276"/>
         <source>Rich Text</source>
         <translation>Texte enrichi</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="420"/>
+        <location filename="plugins/inspector.py" line="202"/>
         <source>No documentation available</source>
         <translation>Aucune documentation disponible</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="241"/>
+        <source>Source</source>
+        <translation>Source</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="244"/>
+        <source>Console</source>
+        <translation>Console</translation>
+    </message>
+    <message>
+        <location filename="plugins/inspector.py" line="244"/>
+        <source>Editor</source>
+        <translation>Éditeur</translation>
     </message>
 </context>
 <context>
     <name>ObjectInspectorConfigPage</name>
     <message>
-        <location filename="plugins/inspector.py" line="80"/>
+        <location filename="plugins/inspector.py" line="86"/>
         <source>Source code</source>
         <translation>Code source</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="81"/>
+        <location filename="plugins/inspector.py" line="87"/>
         <source>Wrap lines</source>
         <translation>Retour à la ligne automatique</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="89"/>
+        <location filename="plugins/inspector.py" line="95"/>
         <source>Syntax color scheme: </source>
         <translation>Thème de coloration syntaxique : </translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="83"/>
+        <location filename="plugins/inspector.py" line="89"/>
         <source>Plain text font style</source>
         <translation>Police d&apos;écriture du texte brut</translation>
     </message>
     <message>
-        <location filename="plugins/inspector.py" line="86"/>
+        <location filename="plugins/inspector.py" line="92"/>
         <source>Rich text font style</source>
         <translation>Police d&apos;écriture du texte enrichi</translation>
     </message>
@@ -3876,302 +3891,302 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>ProjectExplorer</name>
     <message>
-        <location filename="widgets/projectexplorer.py" line="657"/>
+        <location filename="widgets/projectexplorer.py" line="661"/>
         <source>Project...</source>
         <translation>Projet...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="662"/>
+        <location filename="widgets/projectexplorer.py" line="666"/>
         <source>File...</source>
         <translation>Fichier...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="666"/>
+        <location filename="widgets/projectexplorer.py" line="670"/>
         <source>Folder...</source>
         <translation>Dossier...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="670"/>
+        <location filename="widgets/projectexplorer.py" line="674"/>
         <source>Module...</source>
         <translation>Module...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="675"/>
+        <location filename="widgets/projectexplorer.py" line="679"/>
         <source>Package...</source>
         <translation>Paquet...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="677"/>
+        <location filename="widgets/projectexplorer.py" line="681"/>
         <source>New</source>
         <translation>Nouveau</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="705"/>
+        <location filename="widgets/projectexplorer.py" line="709"/>
         <source>Open project</source>
         <translation>Ouvrir le projet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="709"/>
+        <location filename="widgets/projectexplorer.py" line="713"/>
         <source>Close project</source>
         <translation>Fermer le projet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="713"/>
+        <location filename="widgets/projectexplorer.py" line="717"/>
         <source>Close unrelated projects</source>
         <translation>Fermer les projets non associés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="731"/>
+        <location filename="widgets/projectexplorer.py" line="735"/>
         <source>Rename...</source>
         <translation>Renommer...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1248"/>
+        <location filename="widgets/projectexplorer.py" line="1252"/>
         <source>Delete</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="742"/>
+        <location filename="widgets/projectexplorer.py" line="746"/>
         <source>Add to PYTHONPATH</source>
         <translation>Ajouter à PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="747"/>
+        <location filename="widgets/projectexplorer.py" line="751"/>
         <source>Remove from PYTHONPATH</source>
         <translation>Retirer de PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="751"/>
+        <location filename="widgets/projectexplorer.py" line="755"/>
         <source>Properties</source>
         <translation>Propriétés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1516"/>
+        <location filename="widgets/projectexplorer.py" line="1520"/>
         <source>Refresh</source>
         <translation>Rafraîchir</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="717"/>
+        <location filename="widgets/projectexplorer.py" line="721"/>
         <source>PYTHONPATH manager</source>
         <translation>Gestionnaire de PYTHONPATH</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1214"/>
+        <location filename="widgets/projectexplorer.py" line="1218"/>
         <source>Rename</source>
         <translation>Renommer</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1201"/>
+        <location filename="widgets/projectexplorer.py" line="1205"/>
         <source>New name:</source>
         <translation>Nouveau nom :</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1218"/>
+        <location filename="widgets/projectexplorer.py" line="1222"/>
         <source>&lt;b&gt;Unable to rename file &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible de renommer l&apos;élément &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1239"/>
+        <location filename="widgets/projectexplorer.py" line="1243"/>
         <source>Do you really want to delete project &lt;b&gt;%1&lt;/b&gt;?&lt;br&gt;&lt;br&gt;Note: project files won&apos;t be deleted from disk.</source>
         <translation>Souhaitez-vous réellement supprimer le projet &lt;b&gt;%1&lt;/b&gt; ?&lt;br&gt;&lt;br&gt;Notez que les fichiers et répertoires du projet ne seront pas supprimés du disque.</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1251"/>
+        <location filename="widgets/projectexplorer.py" line="1255"/>
         <source>Do you really want to delete &lt;b&gt;%1&lt;/b&gt;?</source>
         <translation>Souhaitez-vous réellement supprimer &lt;b&gt;%1&lt;/b&gt; ?</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1270"/>
+        <location filename="widgets/projectexplorer.py" line="1274"/>
         <source>delete</source>
         <translation>supprimer</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1473"/>
+        <location filename="widgets/projectexplorer.py" line="1477"/>
         <source>Project Explorer</source>
         <translation>Explorateur de projets</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1477"/>
+        <location filename="widgets/projectexplorer.py" line="1481"/>
         <source>&lt;b&gt;Unable to %1 &lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%3</source>
         <translation>&lt;b&gt;Impossible de %1 &lt;i&gt;%2&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%3</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1358"/>
+        <location filename="widgets/projectexplorer.py" line="1362"/>
         <source>Statistics on source files only:&lt;br&gt;(Python, C/C++, Fortran)&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt; files.&lt;br&gt;&lt;b&gt;%2&lt;/b&gt; lines of code.</source>
         <translation>Statistique sur les fichiers source uniquement:&lt;br&gt;(Python, C/C++, Fortran)&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt; fichiers.&lt;br&gt;&lt;b&gt;%2&lt;/b&gt; lignes de code.</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1449"/>
+        <location filename="widgets/projectexplorer.py" line="1453"/>
         <source>Project explorer</source>
         <translation>Explorateur de projets</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1437"/>
+        <location filename="widgets/projectexplorer.py" line="1441"/>
         <source>File &lt;b&gt;%2&lt;/b&gt; already exists.&lt;br&gt;Do you want to overwrite it?</source>
         <translation>Le fichier &lt;b&gt;%2&lt;/b&gt; existe déjà.&lt;br&gt;Souhaitez-vous le remplacer ?</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1452"/>
+        <location filename="widgets/projectexplorer.py" line="1456"/>
         <source>Folder &lt;b&gt;%2&lt;/b&gt; already exists.</source>
         <translation>Le dossier &lt;b&gt;%2&lt;/b&gt; existe déjà.</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1470"/>
+        <location filename="widgets/projectexplorer.py" line="1474"/>
         <source>copy</source>
         <translation>copier</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1472"/>
+        <location filename="widgets/projectexplorer.py" line="1476"/>
         <source>move</source>
         <translation>déplacer</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="684"/>
+        <location filename="widgets/projectexplorer.py" line="688"/>
         <source>New project...</source>
         <translation>Nouveau projet...</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="689"/>
+        <location filename="widgets/projectexplorer.py" line="693"/>
         <source>Existing Spyder project</source>
         <translation>Projet Spyder existant</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="694"/>
+        <location filename="widgets/projectexplorer.py" line="698"/>
         <source>Existing Pydev project</source>
         <translation>Projet Pydev existant</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="697"/>
+        <location filename="widgets/projectexplorer.py" line="701"/>
         <source>Import</source>
         <translation>Import</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="892"/>
+        <location filename="widgets/projectexplorer.py" line="896"/>
         <source>project</source>
         <translation>projet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="991"/>
+        <location filename="widgets/projectexplorer.py" line="995"/>
         <source>Select project root path</source>
         <translation>Sélectionner la racine du projet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="981"/>
+        <location filename="widgets/projectexplorer.py" line="985"/>
         <source>The project &lt;b&gt;%1&lt;/b&gt; is already opened!</source>
         <translation>Le projet &lt;b&gt;%1&lt;/b&gt; est déjà ouvert !</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1009"/>
+        <location filename="widgets/projectexplorer.py" line="1013"/>
         <source>New project</source>
         <translation>Nouveau projet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1012"/>
+        <location filename="widgets/projectexplorer.py" line="1016"/>
         <source>Project name:</source>
         <translation>Nom du projet :</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1019"/>
+        <location filename="widgets/projectexplorer.py" line="1023"/>
         <source>A project named &lt;b&gt;%1&lt;/b&gt; already exists</source>
         <translation>Un projet nommé &lt;b&gt;%1&lt;/b&gt; existe déjà</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1029"/>
+        <location filename="widgets/projectexplorer.py" line="1033"/>
         <source>Import existing project</source>
         <translation>Importer un projet existant</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1056"/>
+        <location filename="widgets/projectexplorer.py" line="1060"/>
         <source>The folder &lt;i&gt;%1&lt;/i&gt; does not contain a valid %2 project</source>
         <translation>Le dossier &lt;i&gt;%1&lt;/i&gt; ne contient pas de projet %2 valide</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1080"/>
+        <location filename="widgets/projectexplorer.py" line="1084"/>
         <source>Import existing Pydev project</source>
         <translation>Importer un projet Pydev</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1084"/>
+        <location filename="widgets/projectexplorer.py" line="1088"/>
         <source>&lt;b&gt;Unable to read Pydev project &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible d&apos;ouvrir le projet Pydev &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1115"/>
+        <location filename="widgets/projectexplorer.py" line="1119"/>
         <source>New file</source>
         <translation>Nouveau fichier</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1145"/>
+        <location filename="widgets/projectexplorer.py" line="1149"/>
         <source>&lt;b&gt;Unable to create file &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible de créer le fichier &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1134"/>
+        <location filename="widgets/projectexplorer.py" line="1138"/>
         <source>&lt;b&gt;Unable to create folder &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%2</source>
         <translation>&lt;b&gt;Impossible de créer le répertoire &lt;i&gt;%1&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%2</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1149"/>
+        <location filename="widgets/projectexplorer.py" line="1153"/>
         <source>New folder</source>
         <translation>Nouveau dossier</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1150"/>
+        <location filename="widgets/projectexplorer.py" line="1154"/>
         <source>Folder name:</source>
         <translation>Nom du dossier :</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1155"/>
+        <location filename="widgets/projectexplorer.py" line="1159"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1163"/>
+        <location filename="widgets/projectexplorer.py" line="1167"/>
         <source>New package</source>
         <translation>Nouveau paquet</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1164"/>
+        <location filename="widgets/projectexplorer.py" line="1168"/>
         <source>Package name:</source>
         <translation>Nom du paquet :</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1505"/>
+        <location filename="widgets/projectexplorer.py" line="1509"/>
         <source>Edit filename filter...</source>
         <translation>Modifier le filtre des types de fichier affichés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1510"/>
+        <location filename="widgets/projectexplorer.py" line="1514"/>
         <source>Show all files</source>
         <translation>Afficher tous les fichiers</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1565"/>
+        <location filename="widgets/projectexplorer.py" line="1569"/>
         <source>Type</source>
         <translation>Type</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1567"/>
+        <location filename="widgets/projectexplorer.py" line="1571"/>
         <source>regular expressions</source>
         <translation>expressions régulières</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1568"/>
+        <location filename="widgets/projectexplorer.py" line="1572"/>
         <source>global patterns</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1569"/>
+        <location filename="widgets/projectexplorer.py" line="1573"/>
         <source>Include</source>
         <translation>Inclure</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1570"/>
+        <location filename="widgets/projectexplorer.py" line="1574"/>
         <source>Exclude</source>
         <translation>Exclure</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1572"/>
+        <location filename="widgets/projectexplorer.py" line="1576"/>
         <source>Edit filter</source>
         <translation>Modifier le filtre</translation>
     </message>
@@ -4191,52 +4206,52 @@ puis appuyer sur Entrée pour le valider</translation>
         <translation>Sélectionner une police d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="720"/>
+        <location filename="widgets/projectexplorer.py" line="724"/>
         <source>Edit related projects</source>
         <translation>Modifier les projets associés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1320"/>
+        <location filename="widgets/projectexplorer.py" line="1324"/>
         <source>Related projects</source>
         <translation>Projets associés</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1329"/>
+        <location filename="widgets/projectexplorer.py" line="1333"/>
         <source>Select projects which are related to &lt;b&gt;%1&lt;/b&gt;</source>
         <translation>Sélectionner les projets à associer à &lt;b&gt;%1&lt;/b&gt;</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="1043"/>
+        <location filename="widgets/projectexplorer.py" line="1047"/>
         <source>Select projects to import</source>
         <translation>Sélectionner les projets à importer</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="758"/>
+        <location filename="widgets/projectexplorer.py" line="762"/>
         <source>Open in Windows Explorer</source>
         <translation>Ouvrir dans l&apos;explorateur Windows</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="762"/>
+        <location filename="widgets/projectexplorer.py" line="766"/>
         <source>Open command prompt here</source>
         <translation>Ouvrir un invite de commandes ici</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="765"/>
+        <location filename="widgets/projectexplorer.py" line="769"/>
         <source>Open terminal here</source>
         <translation>Ouvrir un terminal ici</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="768"/>
+        <location filename="widgets/projectexplorer.py" line="772"/>
         <source>Open Python interpreter here</source>
         <translation>Ouvrir un interpréteur Python ici</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="652"/>
+        <location filename="widgets/projectexplorer.py" line="656"/>
         <source>Open</source>
         <translation>Ouvrir</translation>
     </message>
     <message>
-        <location filename="widgets/projectexplorer.py" line="779"/>
+        <location filename="widgets/projectexplorer.py" line="783"/>
         <source>Open IPython here</source>
         <translation>Ouvrir IPython ici</translation>
     </message>
