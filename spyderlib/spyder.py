@@ -480,6 +480,8 @@ class MainWindow(QMainWindow):
             prefs_action = create_action(self, self.tr("Pre&ferences"),
                                          icon='configure.png',
                                          triggered=self.edit_preferences)
+            self.register_shortcut(prefs_action, "_", "Preferences",
+                                   "Ctrl+Alt+Shift+P")
             spyder_path_action = create_action(self,
                                         self.tr("PYTHONPATH manager"),
                                         None, 'pythonpath_mgr.png',
