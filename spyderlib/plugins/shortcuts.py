@@ -259,17 +259,18 @@ class ShortcutsDelegate(QItemDelegate):
             QItemDelegate.setModelData(self, editor, model, index)
 
 
-class ShortcutsTable(QWidget):
+class ShortcutsTable(QTableView):
     def __init__(self, parent=None):
-        QWidget.__init__(self, parent)
+        QTableView.__init__(self, parent)
         self.model = ShortcutsModel()
-        self.view = QTableView(self)
-        self.view.setModel(self.model)
-        self.view.setItemDelegate(ShortcutsDelegate(self))
-        layout = QVBoxLayout()
-        layout.addWidget(self.view)
-        self.setLayout(layout)
+        self.setModel(self.model)
+        self.setItemDelegate(ShortcutsDelegate(self))
         self.load_shortcuts()
+                     
+    def adjust_cells(self):
+        self.resizeColumnsToContents()
+#        self.resizeRowsToContents()
+        self.horizontalHeader().setStretchLastSection(True)
         
     def load_shortcuts(self):
         shortcuts = []
@@ -279,7 +280,7 @@ class ShortcutsTable(QWidget):
         shortcuts = sorted(shortcuts, key=lambda x: x.context+x.name)
         self.model.shortcuts = shortcuts
         self.model.reset()
-        self.view.resizeColumnsToContents()
+        self.adjust_cells()
 
     def check_shortcuts(self):
         """Check shortcuts for conflicts"""

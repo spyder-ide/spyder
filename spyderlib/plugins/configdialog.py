@@ -19,7 +19,7 @@ from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                          QDialogButtonBox, QCheckBox, QMessageBox, QLabel,
                          QLineEdit, QSpinBox, QPushButton, QFontComboBox,
                          QGroupBox, QComboBox, QColor, QGridLayout, QTabWidget,
-                         QRadioButton, QButtonGroup, QFileDialog)
+                         QRadioButton, QButtonGroup, QFileDialog, QSplitter)
 from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant
 
 
@@ -82,7 +82,7 @@ class ConfigDialog(QDialog):
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setMaximumWidth(200)
+        self.contents_widget.setMinimumWidth(160 if os.name == 'nt' else 200)
         self.contents_widget.setSpacing(1)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
@@ -101,18 +101,16 @@ class ConfigDialog(QDialog):
                      self.pages_widget.setCurrentIndex)
         self.contents_widget.setCurrentRow(0)
 
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(self.contents_widget)
-        hlayout.addWidget(self.pages_widget, 1)
+        hsplitter = QSplitter()
+        hsplitter.addWidget(self.contents_widget)
+        hsplitter.addWidget(self.pages_widget)
 
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
 
         vlayout = QVBoxLayout()
-        vlayout.addLayout(hlayout)
-        vlayout.addStretch(1)
-        vlayout.addSpacing(12)
+        vlayout.addWidget(hsplitter)
         vlayout.addLayout(btnlayout)
 
         self.setLayout(vlayout)
