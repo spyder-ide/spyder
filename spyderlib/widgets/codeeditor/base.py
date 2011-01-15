@@ -728,8 +728,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
-            cursor.movePosition(QTextCursor.NextBlock,
-                                QTextCursor.KeepAnchor)            
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            if cursor.atEnd():
+                cursor_temp = QTextCursor(cursor)
+                cursor_temp.clearSelection()
+                cursor_temp.insertText(self.get_line_separator())
+                break
+            cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)            
         text = cursor.selectedText()
         cursor.clearSelection()
         cursor.insertText(text)
@@ -762,6 +767,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
+            cursor.movePosition(QTextCursor.EndOfBlock, QTextCursor.KeepAnchor)
+            if cursor.atEnd():
+                break
             cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)
         cursor.removeSelectedText()
         cursor.endEditBlock()
