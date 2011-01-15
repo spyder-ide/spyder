@@ -210,6 +210,9 @@ class CodeEditor(TextEditBaseWidget):
         self.duplicate_sc = QShortcut(QKeySequence("Ctrl+Alt+Up"), self,
                                       self.duplicate_line)
         self.duplicate_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.copyline_sc = QShortcut(QKeySequence("Ctrl+Alt+Down"), self,
+                                      self.copy_line)
+        self.copyline_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.deleteline_sc = QShortcut(QKeySequence("Ctrl+D"), self,
                                        self.delete_line)
         self.deleteline_sc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -239,6 +242,7 @@ class CodeEditor(TextEditBaseWidget):
         return [
                 (self.codecomp_sc, "Code completion", "Ctrl+Space"),
                 (self.duplicate_sc, "Duplicate line", "Ctrl+Alt+Up"),
+                (self.copyline_sc, "Copy line", "Ctrl+Alt+Down"),
                 (self.deleteline_sc, "Delete line", "Ctrl+D"),
                 (self.gotodef_sc, "Go to definition", "Ctrl+G"),
                 (self.comment_sc, "Comment", "Ctrl+3"),

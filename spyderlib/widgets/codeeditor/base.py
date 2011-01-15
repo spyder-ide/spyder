@@ -710,8 +710,8 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Return document total line number"""
         return self.blockCount()
     
-    def duplicate_line(self):
-        """Duplicate current line"""
+    def __duplicate_line_or_selection(self, after_current_line=True):
+        """Duplicate current line or selected text"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
         orig_sel = start_pos, end_pos = (cursor.selectionStart(),
@@ -738,11 +738,32 @@ class TextEditBaseWidget(QPlainTextEdit):
             cursor.movePosition(QTextCursor.NextBlock, QTextCursor.KeepAnchor)            
         text = cursor.selectedText()
         cursor.clearSelection()
+        
+        if not after_current_line:
+            # Moving cursor before current line/selected text
+            cursor.setPosition(start_pos)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            orig_sel = (orig_sel[0]+len(text), orig_sel[1]+len(text))
+        
         cursor.insertText(text)
         cursor.endEditBlock()
         cursor.setPosition(orig_sel[0])
         cursor.setPosition(orig_sel[1], QTextCursor.KeepAnchor)
         self.setTextCursor(cursor)
+    
+    def duplicate_line(self):
+        """
+        Duplicate current line or selected text
+        Paste the duplicated text *after* the current line/selected text
+        """
+        self.__duplicate_line_or_selection(after_current_line=True)
+    
+    def copy_line(self):
+        """
+        Copy current line or selected text
+        Paste the duplicated text *before* the current line/selected text
+        """
+        self.__duplicate_line_or_selection(after_current_line=False)
         
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
