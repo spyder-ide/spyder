@@ -714,7 +714,8 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Duplicate current line"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
-        start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+        orig_sel = start_pos, end_pos = (cursor.selectionStart(),
+                                         cursor.selectionEnd())
         if not cursor.selectedText().isEmpty():
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -739,6 +740,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.clearSelection()
         cursor.insertText(text)
         cursor.endEditBlock()
+        cursor.setPosition(orig_sel[0])
+        cursor.setPosition(orig_sel[1], QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
         
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
@@ -751,7 +755,6 @@ class TextEditBaseWidget(QPlainTextEdit):
                                 QTextCursor.KeepAnchor)
             cursor.movePosition(QTextCursor.EndOfBlock,
                                 QTextCursor.KeepAnchor)
-            end_pos = cursor.position()
         self.setTextCursor(cursor)
         
     def delete_line(self):
