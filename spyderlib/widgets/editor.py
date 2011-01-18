@@ -900,6 +900,38 @@ class EditorStack(QWidget):
         self.update_actions()
         self.update_filelistdialog()
     
+    def __modified_readonly_title(self, title, is_modified, is_readonly):
+        if is_modified is not None and is_modified:
+            title += "*"
+        if is_readonly is not None and is_readonly:
+            title = "(%s)" % title
+        return title
+    
+    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
+        """Return tab title"""
+        return self.__modified_readonly_title(osp.basename(filename),
+                                              is_modified, is_readonly)
+                
+    def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
+        """Return tab menu title"""
+        if self.fullpath_sorting_enabled:
+            text = filename
+        else:
+            text = u"%s — %s"
+        text = self.__modified_readonly_title(text,
+                                              is_modified, is_readonly)
+        if filename == encoding.to_unicode(self.tempfile_path):
+            temp_file_str = unicode(translate("Editor", "Temporary file"))
+            if self.fullpath_sorting_enabled:
+                return "%s (%s)" % (text, temp_file_str)
+            else:
+                return text % (temp_file_str, self.tempfile_path)
+        else:
+            if self.fullpath_sorting_enabled:
+                return text
+            else:
+                return text % (osp.basename(filename), osp.dirname(filename))
+        
     def __get_sorting_func(self):
         if self.fullpath_sorting_enabled:
             return lambda item: osp.join(osp.dirname(item.filename),
@@ -914,6 +946,7 @@ class EditorStack(QWidget):
         fname, editor = finfo.filename, finfo.editor
         self.tabs.insertTab(index, editor, get_filetype_icon(fname),
                             self.get_tab_text(fname))
+        self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
         if set_current:
@@ -948,7 +981,12 @@ class EditorStack(QWidget):
             self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
         return new_index
         
-    def set_stack_title(self, index, tab_text, tab_tip):
+    def set_stack_title(self, index, is_modified):
+        finfo = self.data[index]
+        fname = finfo.filename
+        is_readonly = finfo.editor.isReadOnly()
+        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
+        tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
         self.tabs.setTabText(index, tab_text)
         self.tabs.setTabToolTip(index, tab_tip)
         
@@ -1446,46 +1484,6 @@ class EditorStack(QWidget):
         # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
                 
-    def __modified_readonly_title(self, title, is_modified, is_readonly):
-        if is_modified is not None and is_modified:
-            title += "*"
-        if is_readonly is not None and is_readonly:
-            title = "(%s)" % title
-        return title
-    
-    def get_tab_text(self, filename, is_modified=None, is_readonly=None):
-        """Return tab title"""
-        return self.__modified_readonly_title(osp.basename(filename),
-                                              is_modified, is_readonly)
-                
-    def get_tab_tip(self, filename, is_modified=None, is_readonly=None):
-        """Return tab menu title"""
-        if self.fullpath_sorting_enabled:
-            text = filename
-        else:
-            text = u"%s — %s"
-        text = self.__modified_readonly_title(text,
-                                              is_modified, is_readonly)
-        if filename == encoding.to_unicode(self.tempfile_path):
-            temp_file_str = unicode(translate("Editor", "Temporary file"))
-            if self.fullpath_sorting_enabled:
-                return "%s (%s)" % (text, temp_file_str)
-            else:
-                return text % (temp_file_str, self.tempfile_path)
-        else:
-            if self.fullpath_sorting_enabled:
-                return text
-            else:
-                return text % (osp.basename(filename), osp.dirname(filename))
-        
-    def get_titles(self, is_modified, finfo):
-        """Return tab text and tool tip"""
-        fname = finfo.filename
-        is_readonly = finfo.editor.isReadOnly()
-        tab_text = self.get_tab_text(fname, is_modified, is_readonly)
-        tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
-        return tab_text, tab_tip
-    
     def modification_changed(self, state=None, index=None):
         """
         Current editor's modification state has changed
@@ -1508,8 +1506,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         if state is None:
             state = finfo.editor.document().isModified()
-        tab_text, tab_tip = self.get_titles(state, finfo)
-        self.set_stack_title(index, tab_text, tab_tip)
+        self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
         self.revert_action.setEnabled(state)
