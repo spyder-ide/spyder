@@ -859,20 +859,24 @@ class ExternalConsole(SpyderPluginWidget):
                                   QLineEdit.Normal,
                                   ", ".join(self.get_option('umd/namelist')))
         if valid:
-            namelist = unicode(arguments).replace(' ', '').split(',')
-            fixed_namelist = [module_name for module_name in namelist
-                              if programs.is_module_installed(module_name)]
-            invalid = ", ".join(set(namelist)-set(fixed_namelist))
-            if invalid:
-                QMessageBox.warning(self, self.tr('UMD'),
+            arguments = unicode(arguments)
+            if arguments:
+                namelist = arguments.replace(' ', '').split(',')
+                fixed_namelist = [module_name for module_name in namelist
+                                  if programs.is_module_installed(module_name)]
+                invalid = ", ".join(set(namelist)-set(fixed_namelist))
+                if invalid:
+                    QMessageBox.warning(self, self.tr('UMD'),
                                     self.tr("The following modules are not "
                                             "installed on your machine:\n%1"
                                             ).arg(invalid), QMessageBox.Ok)
-            QMessageBox.information(self, self.tr('UMD'),
-                                    self.tr("Please note that these changes will "
-                                            "be applied only to new Python/IPython "
-                                            "interpreters"),
-                                    QMessageBox.Ok)
+                QMessageBox.information(self, self.tr('UMD'),
+                                self.tr("Please note that these changes will "
+                                        "be applied only to new Python/IPython "
+                                        "interpreters"),
+                                QMessageBox.Ok)
+            else:
+                fixed_namelist = []
             self.set_option('umd/namelist', fixed_namelist)
         
     def go_to_error(self, text):
