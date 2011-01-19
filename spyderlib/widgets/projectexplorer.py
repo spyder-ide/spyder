@@ -12,7 +12,7 @@ from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QMenu,
 from PyQt4.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
                           QUrl, QTimer)
 
-import os, sys, re, shutil, cPickle
+import os, sys, re, shutil, cPickle, time
 import os.path as osp
 
 # For debugging purpose:
@@ -21,7 +21,7 @@ STDERR = sys.stderr
 
 # Local imports
 from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
-                             programs, log_last_error)
+                             programs, log_last_error, log_dt)
 from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
@@ -222,9 +222,13 @@ class Project(object):
             resource = None
         try:
             import rope.contrib.codeassist
+            if DEBUG:
+                t0 = time.time()
             proposals = rope.contrib.codeassist.code_assist(self.rope_project,
                                                 source_code, offset, resource)
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
             return [proposal.name for proposal in proposals]
         except Exception, _error:
             if DEBUG:
@@ -244,14 +248,20 @@ class Project(object):
             resource = None
         try:
             import rope.contrib.codeassist
+            if DEBUG:
+                t0 = time.time()
             cts = rope.contrib.codeassist.get_calltip(self.rope_project,
                                         source_code, offset, resource,
                                         ignore_unknown=True, remove_self=True)
-            while '..' in cts:
-                cts = cts.replace('..', '.')
-            doc_text = rope.contrib.codeassist.get_doc(self.rope_project,
-                                               source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
+                while '..' in cts:
+                    cts = cts.replace('..', '.')
+                doc_text = rope.contrib.codeassist.get_doc(self.rope_project,
+                                               source_code, offset, resource)
+                if DEBUG:
+                    log_dt(LOG_FILENAME, "get_doc", t0)
                 return [cts, doc_text]
             else:
                 return []
@@ -273,8 +283,12 @@ class Project(object):
             resource = None
         try:
             import rope.contrib.codeassist
+            if DEBUG:
+                t0 = time.time()
             resource, lineno = rope.contrib.codeassist.get_definition_location(
                             self.rope_project, source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_definition_location", t0)
             if resource is not None:
                 filename = resource.real_path
             return filename, lineno
