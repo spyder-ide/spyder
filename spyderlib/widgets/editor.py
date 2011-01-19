@@ -2016,7 +2016,10 @@ class EditorWidget(QSplitter):
                                             show_all_files=show_all_files,
                                             show_comments=show_comments)
         self.connect(self.outlineexplorer,
-                     SIGNAL("edit_goto(QString,int,QString)"), plugin.load)
+                     SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda filenames, goto, word:
+                     plugin.load(filenames=filenames, goto=goto, word=word,
+                                 editorwindow=self.parent()))
         
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
@@ -2045,6 +2048,7 @@ class EditorWidget(QSplitter):
         if DEBUG:
             print >>STDOUT, "EditorWidget.register_editorstack:", editorstack
             self.__print_editorstacks()
+        self.plugin.last_focus_editorstack[self.parent()] = editorstack
         editorstack.set_closable( len(self.editorstacks) > 1 )
         editorstack.set_outlineexplorer(self.outlineexplorer)
         editorstack.set_find_widget(self.find_widget)

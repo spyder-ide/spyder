@@ -341,7 +341,10 @@ class Editor(SpyderPluginWidget):
                    show_comments=self.get_option(
                                     'outline_explorer/show_comments', True))
         self.connect(self.outlineexplorer,
-                     SIGNAL("edit_goto(QString,int,QString)"), self.load)
+                     SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda filenames, goto, word:
+                     self.load(filenames=filenames, goto=goto, word=word,
+                               editorwindow=self))
         oe_enabled = self.get_option('outline_explorer')
         if oe_enabled:
             oe_state = self.get_option('outline_explorer/visibility', False)
@@ -356,6 +359,7 @@ class Editor(SpyderPluginWidget):
         self.__ignore_cursor_position = True
         
         self.editorstacks = []
+        self.last_focus_editorstack = {}
         self.editorwindows = []
         self.editorwindows_to_be_created = []
         self.toolbar_list = None
@@ -398,8 +402,6 @@ class Editor(SpyderPluginWidget):
         self.recent_files = self.get_option('recent_files', [])
         
         self.untitled_num = 0
-
-        self.last_focus_editorstack = None
                 
         filenames = self.get_option('filenames', [])
         if filenames and not ignore_last_opened_files:
@@ -411,7 +413,7 @@ class Editor(SpyderPluginWidget):
             if win_layout:
                 for layout_settings in win_layout:
                     self.editorwindows_to_be_created.append(layout_settings)
-            self.last_focus_editorstack = self.editorstacks[0]
+            self.set_last_focus_editorstack(self, self.editorstacks[0])
         else:
             self.__load_temp_file()
         
@@ -870,10 +872,24 @@ class Editor(SpyderPluginWidget):
         elif isinstance(fwidget, EditorStack):
             return fwidget
         
+    def set_last_focus_editorstack(self, editorwindow, editorstack):
+        self.last_focus_editorstack[editorwindow] = editorstack
+        self.last_focus_editorstack[None] = editorstack # very last editorstack
+        
+    def get_last_focus_editorstack(self, editorwindow=None):
+        return self.last_focus_editorstack[editorwindow]
+    
+    def remove_last_focus_editorstack(self, editorstack):
+        for editorwindow, widget in self.last_focus_editorstack.items():
+            if widget is editorstack:
+                self.last_focus_editorstack[editorwindow] = None
+        
     def save_focus_editorstack(self):
         editorstack = self.__get_focus_editorstack()
         if editorstack is not None:
-            self.last_focus_editorstack = editorstack
+            for win in [self]+self.editorwindows:
+                if win.isAncestorOf(editorstack):
+                    self.set_last_focus_editorstack(win, editorstack)
     
         
     #------ Handling editorstacks
@@ -884,6 +900,7 @@ class Editor(SpyderPluginWidget):
         
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
+            self.set_last_focus_editorstack(self, editorstack)
             editorstack.set_closable( len(self.editorstacks) > 1 )
             editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
@@ -971,7 +988,6 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
         
-        self.last_focus_editorstack = editorstack
         self.connect(editorstack, SIGNAL('opened_files_list_changed()'),
                      self.opened_files_list_changed)
         self.connect(editorstack, SIGNAL('analysis_results_changed()'),
@@ -1004,8 +1020,7 @@ class Editor(SpyderPluginWidget):
         
     def unregister_editorstack(self, editorstack):
         """Removing editorstack only if it's not the last remaining"""
-        if self.last_focus_editorstack is editorstack:
-            self.last_focus_editorstack = None
+        self.remove_last_focus_editorstack(editorstack)
         if len(self.editorstacks) > 1:
             index = self.editorstacks.index(editorstack)
             self.editorstacks.pop(index)
@@ -1105,15 +1120,14 @@ class Editor(SpyderPluginWidget):
     def get_filename_index(self, filename):
         return self.editorstacks[0].has_filename(filename)
 
-    def get_current_editorstack(self):
+    def get_current_editorstack(self, editorwindow=None):
         if len(self.editorstacks) == 1:
             return self.editorstacks[0]
         else:
             editorstack = self.__get_focus_editorstack()
-            if editorstack is None:
-                return self.last_focus_editorstack
-            else:
-                return editorstack
+            if editorstack is None or editorwindow is not None:
+                return self.get_last_focus_editorstack(editorwindow)
+            return editorstack
         
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
@@ -1133,10 +1147,10 @@ class Editor(SpyderPluginWidget):
     def is_file_opened(self, filename=None):
         return self.editorstacks[0].is_file_opened(filename)
         
-    def set_current_filename(self, filename):
+    def set_current_filename(self, filename, editorwindow=None):
         """Set focus to *filename* if this file has been opened
         Return the editor instance associated to *filename*"""
-        editorstack = self.get_current_editorstack()
+        editorstack = self.get_current_editorstack(editorwindow)
         return editorstack.set_current_filename(filename)
     
     
@@ -1384,8 +1398,12 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
         
-    def load(self, filenames=None, goto=None, word=''):
-        """Load a text file"""
+    def load(self, filenames=None, goto=None, word='', editorwindow=None):
+        """
+        Load a text file
+        editorwindow: load in this editorwindow (useful when clicking on 
+        outline explorer with multiple editor windows)
+        """
         editor0 = self.get_current_editor()
         if editor0 is not None:
             position0 = editor0.get_position('cursor')
@@ -1440,13 +1458,13 @@ class Editor(SpyderPluginWidget):
             
         for index, filename in enumerate(filenames):
             # -- Do not open an already opened file
-            current_editor = self.set_current_filename(filename)
+            current_editor = self.set_current_filename(filename, editorwindow)
             if current_editor is None:
                 # -- Not a valid filename:
                 if not osp.isfile(filename):
                     continue
                 # --
-                current = self.get_current_editorstack()
+                current = self.get_current_editorstack(editorwindow)
                 for editorstack in self.editorstacks:
                     is_current = editorstack is current
                     editor = editorstack.load(filename, set_current=is_current)
