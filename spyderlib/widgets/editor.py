@@ -117,6 +117,8 @@ class FileListDialog(QDialog):
         self.listwidget.setResizeMode(QListWidget.Adjust)
         self.connect(self.listwidget, SIGNAL("itemSelectionChanged()"),
                      self.item_selection_changed)
+        self.connect(self.listwidget, SIGNAL("itemActivated(QListWidgetItem*)"),
+                     self.edit_file)
         
         btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, icon=get_icon('edit.png'),
