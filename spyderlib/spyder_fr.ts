@@ -4687,12 +4687,12 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
     <message>
         <location filename="widgets/browser.py" line="31"/>
         <source>Zoom out</source>
-        <translation>Agrandir</translation>
+        <translation>Réduire</translation>
     </message>
     <message>
         <location filename="widgets/browser.py" line="34"/>
         <source>Zoom in</source>
-        <translation>Réduire</translation>
+        <translation>Agrandir</translation>
     </message>
 </context>
 <context>
