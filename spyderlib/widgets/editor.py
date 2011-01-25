@@ -961,8 +961,10 @@ class EditorStack(QWidget):
         self.tabs.clear()
         for finfo in self.data:
             icon = get_filetype_icon(finfo.filename)
-            self.tabs.addTab(finfo.editor, icon,
-                             self.get_tab_text(finfo.filename))
+            tab_text = self.get_tab_text(finfo.filename)
+            tab_tip = self.get_tab_tip(finfo.filename)
+            index = self.tabs.addTab(finfo.editor, icon, tab_text)
+            self.tabs.setTabToolTip(index, tab_tip)
         self.tabs.blockSignals(False)
         self.update_filelistdialog()
         
