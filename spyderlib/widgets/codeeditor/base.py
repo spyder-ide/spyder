@@ -89,8 +89,8 @@ class CompletionWidget(QListWidget):
            or key == Qt.Key_Tab:
             self.item_selected()
             event.accept()
-        elif key in (Qt.Key_Return, Qt.Key_Enter,
-                     Qt.Key_Period, Qt.Key_Left, Qt.Key_Right):
+        elif key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Left, Qt.Key_Right) \
+             or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
         elif event.modifiers() & Qt.ShiftModifier:
