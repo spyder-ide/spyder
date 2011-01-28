@@ -1554,6 +1554,9 @@ class CodeEditor(TextEditBaseWidget):
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
+        if self.has_selected_text():
+            QPlainTextEdit.mouseMoveEvent(self, event)
+            return
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
