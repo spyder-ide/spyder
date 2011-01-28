@@ -24,7 +24,7 @@ STDERR = sys.stderr
 
 # Local import
 from spyderlib import __version__
-from spyderlib.config import CONF, get_icon, get_conf_path
+from spyderlib.config import CONF, get_icon, get_conf_path, get_font
 from spyderlib.utils import encoding, get_error_match
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
@@ -80,6 +80,16 @@ class ShellBaseWidget(ConsoleBaseWidget):
         # Give focus to widget
         self.setFocus()
                 
+        # Calltips
+        calltip_size = CONF.get('shell_appearance', 'calltips/size')
+        calltip_font = get_font('shell_appearance', 'calltips')
+        self.setup_calltips(calltip_size, calltip_font)
+        
+        # Completion
+        completion_size = CONF.get('shell_appearance', 'completion/size')
+        completion_font = get_font('shell_appearance', 'completion')
+        self.completion_widget.setup_appearance(completion_size,
+                                                completion_font)
         # Cursor width
         self.setCursorWidth( CONF.get('shell_appearance', 'cursor/width') )
         

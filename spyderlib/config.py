@@ -101,6 +101,16 @@ DEFAULTS = [
             ('shell_appearance',
              {
               'cursor/width': 2,
+              'calltips/font/family': MONOSPACE,
+              'calltips/font/size': SMALL,
+              'calltips/font/italic': False,
+              'calltips/font/bold': False,
+              'calltips/size': 600,
+              'completion/font/family': MONOSPACE,
+              'completion/font/size': SMALL,
+              'completion/font/italic': False,
+              'completion/font/bold': False,
+              'completion/size': (300, 180),
               }),
             ('internal_console',
              {
