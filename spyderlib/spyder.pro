@@ -36,6 +36,7 @@ SOURCES	     += widgets/findinfiles.py
 SOURCES	     += widgets/findreplace.py
 SOURCES      += widgets/importwizard.py
 SOURCES	     += widgets/internalshell.py
+SOURCES      += widgets/onecolumntree.py
 SOURCES      += widgets/outlineexplorer.py
 SOURCES	     += widgets/pathmanager.py
 SOURCES	     += widgets/projectexplorer.py
