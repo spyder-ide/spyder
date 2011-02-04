@@ -952,7 +952,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             self.connect(self, SIGNAL("focus_in()"), self._center_cursor)
         self.horizontalScrollBar().setValue(0)
-        if word and word in unicode(block.text()):
+        if word and unicode(word) in unicode(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)
         
     def cleanup_code_analysis(self):
