@@ -168,7 +168,7 @@ class PlainText(QWidget):
         
     def set_font(self, font, color_scheme=None):
         """Set font"""
-        self.editor.set_font(font, color_sheme=color_scheme)
+        self.editor.set_font(font, color_scheme=color_scheme)
         
     def set_color_scheme(self, color_scheme):
         """Set color scheme"""
@@ -255,7 +255,6 @@ class ObjectInspector(SpyderPluginWidget):
         layout_edit.addWidget(self.combo)
         self.object_edit = QLineEdit(self)
         self.object_edit.setReadOnly(True)
-        self.object_edit.setDisabled(True)
         layout_edit.addWidget(self.object_edit)
         self.combo.setMaxCount(self.get_option('max_history_entries'))
         self.combo.addItems( self.load_history() )
@@ -448,9 +447,9 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text mode font"""
         self.rich_text.set_font(font)
         
-    def set_plain_text_font(self, font, color_sheme=None):
+    def set_plain_text_font(self, font, color_scheme=None):
         """Set plain text mode font"""
-        self.plain_text.set_font(font)
+        self.plain_text.set_font(font, color_scheme=color_scheme)
 
     def set_plain_text_color_scheme(self, color_scheme):
         """Set plain text mode color scheme"""
