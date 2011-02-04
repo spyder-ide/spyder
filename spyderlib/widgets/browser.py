@@ -51,17 +51,18 @@ class WebView(QWebView):
         """Return text selected by current text cursor"""
         return self.selectedText()
         
-    def set_font(self, font): 
-        family = font.family() 
-        settings = self.page().settings() 
-        settings.setFontFamily(settings.StandardFont, family) 
-        settings.setFontFamily(settings.SerifFont, family) 
-        settings.setFontFamily(settings.SansSerifFont, family) 
-        settings.setFontFamily(settings.CursiveFont, family) 
-        size = font.pointSize() 
-        settings.setFontSize(settings.DefaultFontSize, size) 
-        settings.setFontSize(settings.DefaultFixedFontSize, size) 
-            
+    def set_font(self, font, fixed_font=None):
+        settings = self.page().settings()
+        for fontfamily in (settings.StandardFont, settings.SerifFont,
+                           settings.SansSerifFont, settings.CursiveFont,
+                           settings.FantasyFont):
+            settings.setFontFamily(fontfamily, font.family())
+        if fixed_font is not None:
+            settings.setFontFamily(settings.FixedFont, fixed_font.family())
+        size = font.pointSize()
+        settings.setFontSize(settings.DefaultFontSize, size)
+        settings.setFontSize(settings.DefaultFixedFontSize, size)
+        
     def apply_zoom_factor(self):
         """Apply zoom factor"""
         if hasattr(self, 'setZoomFactor'):

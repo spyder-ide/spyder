@@ -127,9 +127,9 @@ class RichText(QWidget):
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
         
-    def set_font(self, font):
+    def set_font(self, font, fixed_font=None):
         """Set font"""
-        self.webview.set_font(font)
+        self.webview.set_font(font, fixed_font=fixed_font)
         
     def set_html(self, html_text, base_url):
         """Set html text"""
@@ -209,7 +209,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.rich_text = RichText(self)
         
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        self.plain_text.editor.set_font(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
@@ -445,7 +445,7 @@ class ObjectInspector(SpyderPluginWidget):
     
     def set_rich_text_font(self, font):
         """Set rich text mode font"""
-        self.rich_text.set_font(font)
+        self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
         
     def set_plain_text_font(self, font, color_scheme=None):
         """Set plain text mode font"""
