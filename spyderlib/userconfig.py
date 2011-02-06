@@ -76,8 +76,9 @@ class UserConfig(ConfigParser):
     default_section_name = 'main'
     
     def __init__(self, name, defaults=None, load=True, version=None,
-                 subfolder=None, backup=False):
+                 subfolder=None, backup=False, raw_mode=False):
         ConfigParser.__init__(self)
+        self.raw = 1 if raw_mode else 0
         self.subfolder = subfolder
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
             raise RuntimeError("Version number %r is incorrect - must be in X.Y.Z format" % version)
@@ -136,10 +137,10 @@ class UserConfig(ConfigParser):
         Remove options which are present in the .ini file but not in defaults
         """
         for section in self.sections():
-            for option, _ in self.items(section):
+            for option, _ in self.items(section, raw=self.raw):
                 if self.get_default(section, option) is NoDefault:
                     self.remove_option(section, option)
-                    if len(self.items(section)) == 0:
+                    if len(self.items(section, raw=self.raw)) == 0:
                         self.remove_section(section)
         
     def __save(self):
@@ -177,7 +178,7 @@ class UserConfig(ConfigParser):
         self.defaults = []
         for section in self.sections():
             secdict = {}
-            for option, value in self.items(section):
+            for option, value in self.items(section, raw=self.raw):
                 secdict[option] = value
             self.defaults.append( (section, secdict) )
 
@@ -239,7 +240,7 @@ class UserConfig(ConfigParser):
                 self.set(section, option, default)
                 return default
             
-        value = ConfigParser.get(self, section, option)
+        value = ConfigParser.get(self, section, option, self.raw)
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
             value = eval(value)
