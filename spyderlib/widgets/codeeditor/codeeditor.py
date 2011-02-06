@@ -1502,8 +1502,7 @@ class CodeEditor(TextEditBaseWidget):
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
                s_trailing_text[0] in (',', ')', ']', '}'):
-                self.insert_text({Qt.Key_BraceLeft: '{}',
-                                  Qt.Key_BracketLeft: '[]'}[key])
+                self.insert_text({'{': '{}', '[': '[]'}[text])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
