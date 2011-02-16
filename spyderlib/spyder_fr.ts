@@ -1,83 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS><TS version="1.1" language="fr_FR">
+<!DOCTYPE TS>
+<TS version="2.0" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
-        <location filename="widgets/arrayeditor.py" line="532"/>
+        <location filename="widgets/arrayeditor.py" line="537"/>
         <source>Array editor</source>
         <translation>Éditeur de tableaux</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="417"/>
+        <location filename="widgets/arrayeditor.py" line="412"/>
         <source>Format</source>
         <translation>Format</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="388"/>
+        <location filename="widgets/arrayeditor.py" line="383"/>
         <source>Resize</source>
         <translation>Ajuster</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="391"/>
+        <location filename="widgets/arrayeditor.py" line="386"/>
         <source>Background color</source>
         <translation>Couleur de fond</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="418"/>
+        <location filename="widgets/arrayeditor.py" line="413"/>
         <source>Float formatting</source>
         <translation>Format de flottant</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="425"/>
+        <location filename="widgets/arrayeditor.py" line="420"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="427"/>
+        <location filename="widgets/arrayeditor.py" line="422"/>
         <source>Format (%1) is incorrect</source>
         <translation>Le format (%1) n&apos;est pas valide</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="467"/>
+        <location filename="widgets/arrayeditor.py" line="471"/>
         <source>read only</source>
         <translation>lecture seule</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="323"/>
+        <location filename="widgets/arrayeditor.py" line="317"/>
         <source>Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="451"/>
+        <location filename="widgets/arrayeditor.py" line="447"/>
         <source>Arrays with more than 2 dimensions are not supported</source>
         <translation>Les tableaux de plus de deux dimensions ne sont pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="487"/>
+        <location filename="widgets/arrayeditor.py" line="492"/>
         <source>Record array fields:</source>
         <translation>Champs du tableau : </translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="457"/>
+        <location filename="widgets/arrayeditor.py" line="461"/>
         <source>%1 arrays</source>
         <translation>Les tableaux %1</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="313"/>
+        <location filename="widgets/arrayeditor.py" line="307"/>
         <source>Resizing cells of a table of such size could take a long time.
 Do you want to continue anyway?</source>
         <translation>Redimensionner les cellules d&apos;un tableau d&apos;une telle taille peut prendre du temps.
 Souhaitez-vous néanmoins continuer ?</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="458"/>
+        <location filename="widgets/arrayeditor.py" line="462"/>
         <source>%1 are currently not supported</source>
         <translation>%1 ne sont actuellement pas pris en charge</translation>
     </message>
     <message>
-        <location filename="widgets/arrayeditor.py" line="447"/>
+        <location filename="widgets/arrayeditor.py" line="443"/>
         <source>Array is empty</source>
         <translation>Ce tableau est vide</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="451"/>
+        <source>The &apos;xlabels&apos; argument length do no match array column number</source>
+        <translation>La taille de l&apos;argument &apos;xlabels&apos; ne correspond pas au nombre de colonnes du tableau</translation>
+    </message>
+    <message>
+        <location filename="widgets/arrayeditor.py" line="455"/>
+        <source>The &apos;ylabels&apos; argument length do no match array row number</source>
+        <translation>La taille de l&apos;argument &apos;ylabels&apos; ne correspond pas au nombre de lignes du tableau</translation>
     </message>
 </context>
 <context>
@@ -602,7 +613,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
     <message>
         <location filename="widgets/dicteditor.py" line="980"/>
         <source>Please install &lt;b&gt;matplotlib&lt;/b&gt; or &lt;b&gt;guiqwt&lt;/b&gt;.</source>
-        <translation type="unfinished"></translation>
+        <translation>Merci d&apos;installer &lt;b&gt;matplotlib&lt;/b&gt; ou &lt;b&gt;guiqwt&lt;/b&gt;.</translation>
     </message>
 </context>
 <context>

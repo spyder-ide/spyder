@@ -88,12 +88,14 @@ def get_idx_rect(index_list):
 
 class ArrayModel(QAbstractTableModel):
     """Array Editor Table Model"""
-    def __init__(self, data, format="%.3f",
-                 xy_mode=False, readonly=False, parent=None):
+    def __init__(self, data, format="%.3f", xlabels=None, ylabels=None,
+                 readonly=False, parent=None):
         QAbstractTableModel.__init__(self)
 
         self.dialog = parent
         self.changes = {}
+        self.xlabels = xlabels
+        self.ylabels = ylabels
         self.readonly = readonly
         self.test_array = np.array([0], dtype=data.dtype)
 
@@ -112,7 +114,6 @@ class ArrayModel(QAbstractTableModel):
 
         self._data = data
         self._format = format
-        self._xy = xy_mode
         
         try:
             self.vmin = self.color_func(data).min()
@@ -236,18 +237,11 @@ class ArrayModel(QAbstractTableModel):
         """Set header data"""
         if role != Qt.DisplayRole:
             return QVariant()
-        if orientation == Qt.Horizontal:
+        labels = self.xlabels if orientation == Qt.Horizontal else self.ylabels
+        if labels is None:
             return QVariant(int(section))
         else:
-            if self._xy:
-                if section == 0:
-                    return QVariant('x')
-                elif self.rowCount() == 2:
-                    return QVariant('y')
-                else:
-                    return QVariant('y ('+str(section-1)+')')
-            else:
-                return QVariant(int(section))
+            return QVariant(labels[section])
 
 
 class ArrayDelegate(QItemDelegate):
@@ -363,7 +357,8 @@ class ArrayView(QTableView):
 
 
 class ArrayEditorWidget(QWidget):
-    def __init__(self, parent, data, xy, readonly):
+    def __init__(self, parent, data, readonly=False,
+                 xlabels=None, ylabels=None):
         QWidget.__init__(self, parent)
         self.data = data
         self.old_data_shape = None
@@ -375,8 +370,8 @@ class ArrayEditorWidget(QWidget):
             self.data.shape = (1, 1)
 
         format = SUPPORTED_FORMATS.get(data.dtype.name, '%s')
-        self.model = ArrayModel(self.data, format=format,
-                                xy_mode=xy, readonly=readonly, parent=self)
+        self.model = ArrayModel(self.data, format=format, xlabels=xlabels,
+                                ylabels=ylabels, readonly=readonly, parent=self)
         self.view = ArrayView(self, self.model, data.dtype, data.shape)
         
         btn_layout = QHBoxLayout()
@@ -436,7 +431,8 @@ class ArrayEditor(QDialog):
         QDialog.__init__(self, parent)
         self.data = None
     
-    def setup_and_check(self, data, title='', xy=False, readonly=False):
+    def setup_and_check(self, data, title='', readonly=False,
+                        xlabels=None, ylabels=None):
         """
         Setup ArrayEditor:
         return False if data is not supported, True otherwise
@@ -450,6 +446,14 @@ class ArrayEditor(QDialog):
         if data.ndim > 2:
             self.error(self.tr("Arrays with more than 2 dimensions "
                                "are not supported"))
+            return False
+        if xlabels is not None and len(xlabels) != self.data.shape[1]:
+            self.error(self.tr("The 'xlabels' argument length "
+						 	   "do no match array column number"))
+            return False
+        if ylabels is not None and len(ylabels) != self.data.shape[0]:
+            self.error(self.tr("The 'ylabels' argument length "
+							   "do no match array row number"))
             return False
         if not self.is_record_array:
             dtn = data.dtype.name
@@ -474,9 +478,10 @@ class ArrayEditor(QDialog):
         if self.is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
-                                                       xy, readonly))
+                                                   readonly, xlabels, ylabels))
         else:
-            self.stack.addWidget(ArrayEditorWidget(self, data, xy, readonly))
+            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
+                                                   xlabels, ylabels))
         self.arraywidget = self.stack.currentWidget()
         self.connect(self.stack, SIGNAL('currentChanged(int)'),
                      self.current_widget_changed)
@@ -542,7 +547,8 @@ class ArrayEditor(QDialog):
         QDialog.reject(self)
     
     
-def aedit(data, title="", xy=False, readonly=False, parent=None):
+def aedit(data, title="", xlabels=None, ylabels=None,
+          readonly=False, parent=None):
     """
     Edit the array 'data' with the ArrayEditor and return the edited copy
     (if Cancel is pressed, return None)
@@ -551,7 +557,8 @@ def aedit(data, title="", xy=False, readonly=False, parent=None):
     """
     app = qapplication()
     dialog = ArrayEditor(parent)
-    if dialog.setup_and_check(data, title, xy=xy, readonly=readonly):
+    if dialog.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
+                              readonly=readonly):
         dialog.show()
         app.exec_()
         if dialog.result():
@@ -571,9 +578,10 @@ def test():
                    dtype=[(('title 1', 'x'), '|i1'), (('title 2', 'y'), '>f4')])
     print "out:", aedit(arr, "record array with titles")
     arr = np.random.rand(5, 5)
-    print "out:", aedit(arr, "float array")
+    print "out:", aedit(arr, "float array", xlabels=['a', 'b', 'c', 'd', 'e'])
     arr = np.round(np.random.rand(5, 5)*10)+np.round(np.random.rand(5, 5)*10)*1j
-    print "out:", aedit(arr, "complex array")
+    print "out:", aedit(arr, "complex array", xlabels=np.linspace(-12, 12, 5),
+                        ylabels=np.linspace(-12, 12, 5))
     arr_in = np.array([True, False, True])
     print "in:", arr_in
     arr_out = aedit(arr_in, "bool array")
