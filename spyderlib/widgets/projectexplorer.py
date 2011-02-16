@@ -1521,7 +1521,7 @@ class ProjectExplorerWidget(QWidget):
 
         filters_action = create_toolbutton(self, icon=get_icon('filter.png'),
                                            tip=translate('ProjectExplorer',
-                                                   "Edit filename filter..."),
+                                                   "Edit filename filter"),
                                            triggered=self.edit_filter)
         # Show all files
         all_action = create_toolbutton(self, icon=get_icon('show_all.png'),

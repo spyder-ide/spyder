@@ -13,6 +13,7 @@ from PyQt4.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
 from spyderlib.config import get_icon, get_font
+from spyderlib.utils.qthelpers import translate
 
 
 class TextEditor(QDialog):
@@ -48,7 +49,7 @@ class TextEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         self.setWindowIcon(get_icon('edit.png'))
-        self.setWindowTitle(self.tr("Text editor") + \
+        self.setWindowTitle(translate("TextEditor", "Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])
         

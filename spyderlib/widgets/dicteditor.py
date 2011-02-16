@@ -976,7 +976,7 @@ class BaseTableView(QTableView):
                 return True
             except ImportError:
                 QMessageBox.warning(self, translate("DictEditor", "Import error"),
-                                    translate("DictEditor"
+                                    translate("DictEditor",
                                               "Please install <b>matplotlib</b>"
                                               " or <b>guiqwt</b>."))
 

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE TS>
-<TS version="2.0" language="fr_FR">
+<!DOCTYPE TS><TS version="1.1" language="fr_FR">
 <context>
     <name>ArrayEditor</name>
     <message>
@@ -599,6 +598,11 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
         <location filename="widgets/dicteditor.py" line="592"/>
         <source>&lt;b&gt;Unable to assign data to item.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Error message:&lt;br&gt;%1</source>
         <translation>&lt;b&gt;Impossible d&apos;assigner la valeur de l&apos;objet.&lt;/b&gt;&lt;br&gt;&lt;br&gt;Message d&apos;erreur :&lt;br&gt;%1</translation>
+    </message>
+    <message>
+        <location filename="widgets/dicteditor.py" line="980"/>
+        <source>Please install &lt;b&gt;matplotlib&lt;/b&gt; or &lt;b&gt;guiqwt&lt;/b&gt;.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -4186,7 +4190,7 @@ puis appuyer sur Entrée pour le valider</translation>
     <message>
         <location filename="widgets/projectexplorer.py" line="1523"/>
         <source>Edit filename filter...</source>
-        <translation>Modifier le filtre des types de fichier affichés</translation>
+        <translation type="obsolete">Modifier le filtre des types de fichier affichés</translation>
     </message>
     <message>
         <location filename="widgets/projectexplorer.py" line="1528"/>
@@ -4287,6 +4291,11 @@ puis appuyer sur Entrée pour le valider</translation>
         <location filename="widgets/projectexplorer.py" line="797"/>
         <source>Open IPython here</source>
         <translation>Ouvrir IPython ici</translation>
+    </message>
+    <message>
+        <location filename="widgets/projectexplorer.py" line="1523"/>
+        <source>Edit filename filter</source>
+        <translation>Modifier le filtre des types de fichier affichés</translation>
     </message>
 </context>
 <context>
@@ -4604,7 +4613,7 @@ puis appuyer sur Entrée pour le valider</translation>
 <context>
     <name>TextEditor</name>
     <message>
-        <location filename="widgets/texteditor.py" line="51"/>
+        <location filename="widgets/texteditor.py" line="52"/>
         <source>Text editor</source>
         <translation>Éditeur de texte</translation>
     </message>
@@ -4743,7 +4752,7 @@ Cela permet d&apos;éviter de transférer de gros volumes de données entre le p
     <message>
         <location filename="utils/environ.py" line="118"/>
         <source>If you accept changes, this will modify the current user environment variables directly &lt;b&gt;in Windows registry&lt;/b&gt;. Use it with precautions, at your own risks.&lt;br&gt;&lt;br&gt;Note that for changes to take effect, you will need to restart the parent process of this application (simply restart Spyder if you have executed it from a Windows shortcut, otherwise restart any application from which you may have executed it, like &lt;i&gt;Python(x,y) Home&lt;/i&gt; for example)</source>
-        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Spyder si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Spyder : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invite de commandes par exemple).</translation>
+        <translation>Si vous acceptez les changements effectués, cela modifiera les variables d&apos;environnement de l&apos;utilisateur courant directement &lt;b&gt;dans la base de registre Windows&lt;/b&gt;. Utilisez cette fonctionnalité avec précautions et à vos risques et périls.&lt;br&gt;&lt;br&gt;Notez que pour que les changements effectués prennent effet, il sera nécessaire de redémarrer le processus parent de cette application (redémarrez simplement Spyder si vous l&apos;avez exécuté à partir d&apos;un raccourci Windows, sinon redémarrez toute application ayant servie à exécuter Spyder : &lt;i&gt;Python(x,y) Home&lt;/i&gt; ou un invite de commandes par exemple)</translation>
     </message>
 </context>
 <context>
