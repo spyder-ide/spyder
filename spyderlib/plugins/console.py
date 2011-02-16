@@ -196,9 +196,10 @@ class Console(SpyderPluginWidget):
 
     def show_syspath(self):
         """Show sys.path"""
-        self.dialog_manager.show(DictEditor(sys.path, title="sys.path",
-                                            width=600, icon='syspath.png',
-                                            readonly=True))
+        editor = DictEditor()
+        editor.setup(sys.path, title="sys.path", readonly=True,
+                     width=600, icon='syspath.png')
+        self.dialog_manager.show(editor)
         
     def run_script(self, filename=None, silent=False, set_focus=False,
                    args=None):

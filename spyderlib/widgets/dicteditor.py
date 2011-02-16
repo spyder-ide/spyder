@@ -459,8 +459,9 @@ class DictDelegate(QItemDelegate):
                    or not is_known_type(value)
         #---editor = DictEditor
         if isinstance(value, (list, tuple, dict)) and not self.inplace:
-            editor = DictEditor(value, key, icon=self.parent().windowIcon(),
-                                readonly=readonly)
+            editor = DictEditor()
+            editor.setup(value, key, icon=self.parent().windowIcon(),
+                         readonly=readonly)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
             return None
@@ -1206,9 +1207,13 @@ class DictEditorWidget(QWidget):
 
 class DictEditor(QDialog):
     """Dictionary/List Editor Dialog"""
-    def __init__(self, data, title="", width=500,
-                 readonly=False, icon='dictedit.png', remote=False):
-        QDialog.__init__(self)
+    def __init__(self, parent=None):
+        QDialog.__init__(self, parent)
+        self.data_copy = None
+        self.widget = None
+        
+    def setup(self, data, title='', readonly=False, width=500,
+              icon='dictedit.png', remote=False, parent=None):
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
@@ -1261,7 +1266,8 @@ def dedit(seq):
     so it can be called directly from the interpreter)
     """
     app = qapplication()
-    dialog = DictEditor(seq)
+    dialog = DictEditor()
+    dialog.setup(seq)
     dialog.show()
     app.exec_()
     if dialog.result():

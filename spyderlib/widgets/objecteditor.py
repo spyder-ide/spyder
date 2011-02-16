@@ -92,7 +92,8 @@ def oedit(obj, modal=True, namespace=None):
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     elif isinstance(obj, (dict, tuple, list)):
-        dialog = DictEditor(obj, title=obj_name, readonly=readonly)
+        dialog = DictEditor()
+        dialog.setup(obj, title=obj_name, readonly=readonly)
     else:
         raise RuntimeError("Unsupported datatype")
     

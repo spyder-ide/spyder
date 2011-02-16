@@ -33,9 +33,10 @@ def listdict2envdict(listdict):
 
 class RemoteEnvDialog(DictEditor):
     """Remote process environment variables Dialog"""
-    def __init__(self, get_environ_func, set_environ_func):
-        DictEditor.__init__(self, envdict2listdict(get_environ_func()),
-                            title="os.environ", width=600, icon='environ.png')
+    def __init__(self, get_environ_func, set_environ_func, parent=None):
+        super(RemoteEnvDialog, self).__init__(parent)
+        self.setup(envdict2listdict(get_environ_func()),
+                   title="os.environ", width=600, icon='environ.png')
         self.set_environ = set_environ_func
     def accept(self):
         """Reimplement Qt method"""
@@ -100,9 +101,9 @@ try:
     class WinUserEnvDialog(DictEditor):
         """Windows User Environment Variables Editor"""
         def __init__(self, parent=None):
-            DictEditor.__init__(self, get_user_env(),
-                                title="HKEY_CURRENT_USER\Environment",
-                                width=600)
+            super(WinUserEnvDialog, self).__init__(parent)
+            self.setup(get_user_env(),
+                       title="HKEY_CURRENT_USER\Environment", width=600)
             if parent is None:
                 parent = self
             QMessageBox.warning(parent,

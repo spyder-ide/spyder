@@ -547,7 +547,7 @@ class ExternalPythonShell(ExternalShellBase):
         
     def show_syspath(self):
         """Show sys.path contents"""
-        self.dialog_manager.show(DictEditor(self.shell.get_syspath(),
-                                            title="sys.path",
-                                            width=600, icon='syspath.png',
-                                            readonly=True))
+        editor = DictEditor()
+        editor.setup(self.shell.get_syspath(), title="sys.path", readonly=True,
+                     width=600, icon='syspath.png')
+        self.dialog_manager.show(editor)
