@@ -142,6 +142,8 @@ def display_to_value(value, default_value, ignore_errors=True):
     try:
         if isinstance(default_value, str):
             value = str(value)
+        elif isinstance(default_value, unicode):
+            value = unicode(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -635,13 +637,10 @@ class BaseTableView(QTableView):
             self.collvalue_action.setChecked(collvalue)
             return
         
-        self.empty_ws_menu = QMenu(self)
         self.paste_action = create_action(self,
                                       translate("DictEditor", "Paste"),
                                       icon=get_icon('editpaste.png'),
                                       triggered=self.paste)
-        self.empty_ws_menu.addAction(self.paste_action)
-        
         self.copy_action = create_action(self,
                                       translate("DictEditor", "Copy"),
                                       icon=get_icon('editcopy.png'),
@@ -715,6 +714,8 @@ class BaseTableView(QTableView):
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
+        self.empty_ws_menu = QMenu(self)
+        add_actions(self.empty_ws_menu, [self.insert_action, self.paste_action])
         return menu
     
     #------ Remote/local API ---------------------------------------------------
