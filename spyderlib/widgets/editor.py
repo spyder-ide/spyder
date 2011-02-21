@@ -330,8 +330,9 @@ class FileInfo(QObject):
             doc_text = ''
             if len(textlist) == 2:
                 doc_text = textlist.pop(1)
-            self.emit(SIGNAL("send_to_inspector(QString,QString)"),
-                      text, doc_text)
+            if doc_text:
+                self.emit(SIGNAL("send_to_inspector(QString,QString)"),
+                          text, doc_text)
         if textlist:
             self.editor.show_calltip("rope", textlist)
                     

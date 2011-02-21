@@ -258,10 +258,15 @@ class Project(object):
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
-                doc_text = rope.contrib.codeassist.get_doc(self.rope_project,
-                                               source_code, offset, resource)
-                if DEBUG:
-                    log_dt(LOG_FILENAME, "get_doc", t0)
+                try:
+                    doc_text = rope.contrib.codeassist.get_doc(
+                            self.rope_project, source_code, offset, resource)
+                    if DEBUG:
+                        log_dt(LOG_FILENAME, "get_doc", t0)
+                except Exception, _error:
+                    doc_text = ''
+                    if DEBUG:
+                        log_last_error(LOG_FILENAME, "get_doc")
                 return [cts, doc_text]
             else:
                 return []
