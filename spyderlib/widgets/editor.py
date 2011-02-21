@@ -300,6 +300,8 @@ class FileInfo(QObject):
             return []
         source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
+        
+        self.editor.setFocus()
         textlist = self.project.get_completion_list(source_code, offset,
                                                     self.filename)
         if textlist:
@@ -313,6 +315,8 @@ class FileInfo(QObject):
             return
         source_code = unicode(self.editor.toPlainText())
         offset = position
+        
+        self.editor.setFocus()
         textlist = self.project.get_calltip_text(source_code, offset,
                                                  self.filename)
         text = ''
