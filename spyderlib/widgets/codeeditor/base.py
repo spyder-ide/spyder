@@ -16,7 +16,7 @@ import sys, re, string, os
 from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
                          QTextCharFormat, QToolTip, QTextDocument, QListWidget,
                          QPlainTextEdit, QPalette)
-from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp, QString
+from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp, QString, QEventLoop
 
 
 # Local imports
@@ -58,9 +58,11 @@ class CompletionWidget(QListWidget):
         self.clear()
         self.addItems(completion_list)
         self.setCurrentRow(0)
+        
+        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         self.show()
-        self.raise_()
         self.setFocus()
+        self.raise_()
         
         point = self.textedit.cursorRect().bottomRight()
         point.setX(point.x()+self.textedit.get_linenumberarea_width())
