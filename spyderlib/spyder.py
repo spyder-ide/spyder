@@ -288,7 +288,8 @@ class MainWindow(QMainWindow):
         if self.debug:
             title += " (DEBUG MODE)"
         self.setWindowTitle(title)
-        self.setWindowIcon(get_icon('spyder.svg'))
+        icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
+        self.setWindowIcon(get_icon(icon_name))
         
         # Showing splash screen
         pixmap = QPixmap(get_image_path('splash.png'), 'png')
