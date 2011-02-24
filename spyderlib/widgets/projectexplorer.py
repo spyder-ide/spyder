@@ -35,6 +35,29 @@ from spyderlib.widgets.pathmanager import PathManager
 DEBUG = False
 LOG_FILENAME = get_conf_path('rope.log')
 
+try:
+    import rope.base.libutils
+    import rope.contrib.codeassist
+    pydocextractor = rope.contrib.codeassist.PyDocExtractor()
+    
+    def get_pyobject(project, source_code, offset, resource=None, maxfixes=1):
+        fixer = rope.contrib.codeassist.fixsyntax.FixSyntax(project.pycore,
+                                            source_code, resource, maxfixes)
+        pyname = fixer.pyname_at(offset)
+        if pyname is None:
+            return None
+        return pyname.get_object()
+    
+    def get_calltip_from_pyobject(pyobject,
+                                  ignore_unknown=False, remove_self=False):
+        return pydocextractor.get_calltip(pyobject, ignore_unknown, remove_self)
+    
+    def get_doc_from_pyobject(pyobject):
+        return pydocextractor.get_doc(pyobject)
+    
+except ImportError:
+    pass
+
 
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
@@ -106,8 +129,8 @@ ROPE_PREFS = {'ignore_syntax_errors': True,
         "cmath", "collections", "datetime", "errno", "exceptions", "gc",
         "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
         "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
-        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib",
-                    ]}            
+        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
+              }
 
 class Project(object):
     """Spyder project"""
@@ -212,7 +235,6 @@ class Project(object):
     def get_completion_list(self, source_code, offset, filename):
         if self.rope_project is None:
             return []
-        import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
@@ -221,7 +243,6 @@ class Project(object):
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            import rope.contrib.codeassist
             if DEBUG:
                 t0 = time.time()
             proposals = rope.contrib.codeassist.code_assist(self.rope_project,
@@ -238,7 +259,6 @@ class Project(object):
     def get_calltip_text(self, source_code, offset, filename):
         if self.rope_project is None:
             return []
-        import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
@@ -247,20 +267,19 @@ class Project(object):
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            import rope.contrib.codeassist
             if DEBUG:
                 t0 = time.time()
-            cts = rope.contrib.codeassist.get_calltip(self.rope_project,
-                                        source_code, offset, resource,
-                                        ignore_unknown=True, remove_self=True)
+            pyobject = get_pyobject(self.rope_project, source_code, offset,
+                                    resource)
+            cts = get_calltip_from_pyobject(pyobject, ignore_unknown=True,
+                                            remove_self=True)
             if DEBUG:
                 log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
                 try:
-                    doc_text = rope.contrib.codeassist.get_doc(
-                            self.rope_project, source_code, offset, resource)
+                    doc_text = get_doc_from_pyobject(pyobject)
                     if DEBUG:
                         log_dt(LOG_FILENAME, "get_doc", t0)
                 except Exception, _error:
@@ -278,7 +297,6 @@ class Project(object):
     def get_definition_location(self, source_code, offset, filename):
         if self.rope_project is None:
             return (None, None)
-        import rope.base.libutils
         try:
             resource = rope.base.libutils.path_to_resource(self.rope_project,
                                                            filename)
@@ -287,7 +305,6 @@ class Project(object):
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
         try:
-            import rope.contrib.codeassist
             if DEBUG:
                 t0 = time.time()
             resource, lineno = rope.contrib.codeassist.get_definition_location(
