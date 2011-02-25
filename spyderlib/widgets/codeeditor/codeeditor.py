@@ -1136,8 +1136,10 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
         else:
             # Add prefix to current line
+            cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.insertText(prefix)
+            cursor.endEditBlock()
     
     def __is_cursor_at_start_of_block(self, cursor):
         cursor.movePosition(QTextCursor.StartOfBlock)
