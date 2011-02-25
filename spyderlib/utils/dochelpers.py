@@ -23,9 +23,9 @@ def getobj(txt, last=False):
                 txt_end = txt[pos:]
                 txt = txt[:pos]
     tokens = re.split(SYMBOLS, txt)
-    token = ""
+    token = None
     try:
-        while len(token) == 0 or re.match(SYMBOLS, token):
+        while token is None or re.match(SYMBOLS, token):
             token = tokens.pop()
         if token.endswith('.'):
             token = token[:-1]
@@ -35,10 +35,12 @@ def getobj(txt, last=False):
         if last:
             #XXX: remove this statement as well as the "last" argument
             token += txt[ txt.rfind(token) + len(token) ]
-        return token + txt_end
+        token += txt_end
+        if token:
+            return token
     except IndexError:
         return None
-
+    
 def getobjdir(obj):
     """
     For standard objects, will simply return dir(obj)
@@ -197,6 +199,8 @@ if __name__ == "__main__":
     print getargtxt(Test.method)
     print isdefined('numpy.take', force_import=True)
     print isdefined('__import__')
+    print isdefined('.keys', force_import=True)
     print getobj('globals')
     print getobj('globals().keys')
-    print isdefined('.keys', force_import=True)
+    print getobj('+scipy.signal.')
+    print getobj('4.')
