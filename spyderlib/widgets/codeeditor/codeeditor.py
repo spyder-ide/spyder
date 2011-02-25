@@ -1252,17 +1252,17 @@ class CodeEditor(TextEditBaseWidget):
     
     def indent(self):
         """Indent current line or selection"""
+        leading_text = self.get_text('sol', 'cursor')
         if self.has_selected_text():
             self.add_prefix(" "*4)
-        elif not self.get_text('sol', 'cursor').strip() or \
-             (self.tab_indents and self.tab_mode):
+        elif not leading_text.strip() or (self.tab_indents and self.tab_mode):
             if self.is_python() or self.is_cython():
                 if not self.fix_indent(forward=True):
                     self.add_prefix(" "*4)
             else:
                 self.add_prefix(" "*4)
         else:
-            self.insert_text(" "*4)
+            self.insert_text(" "*(4-(len(leading_text) % 4)))
             
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -1682,7 +1682,7 @@ class TestEditor(CodeEditor):
     def __init__(self, parent):
         CodeEditor.__init__(self, parent)
         self.setup_editor(linenumbers=True, code_analysis=False,
-                          todo_list=False)
+                          todo_list=False, tab_mode=False)
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])
