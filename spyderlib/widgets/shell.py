@@ -872,7 +872,9 @@ class PythonShellWidget(ShellBaseWidget):
     def _key_question(self, text):
         """Action for '?'"""
         if self.get_current_line_to_cursor():
-            self.show_docstring(self.get_last_obj())
+            last_obj = self.get_last_obj()
+            if last_obj and not last_obj.isdigit():
+                self.show_docstring(last_obj)
         self.insert_text(text)
         # In case calltip and completion are shown at the same time:
         if self.is_completion_widget_visible():
@@ -882,7 +884,9 @@ class PythonShellWidget(ShellBaseWidget):
         """Action for '('"""
         self.hide_completion_widget()
         if self.get_current_line_to_cursor():
-            self.show_docstring(self.get_last_obj(), call=True)
+            last_obj = self.get_last_obj()
+            if last_obj and not last_obj.isdigit():
+                self.show_docstring(last_obj, call=True)
         self.insert_text(text)
         
     def _key_period(self, text):
