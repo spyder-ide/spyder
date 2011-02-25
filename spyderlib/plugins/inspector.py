@@ -691,7 +691,10 @@ class ObjectInspector(SpyderPluginWidget):
         
         if self.rich_help:
             self.set_sphinx_text(doc_text)
-            return doc_text is not None or ignore_unknown
+            if ignore_unknown:
+                return doc_text is not None
+            else:
+                return True
         
         elif self.docstring:
             hlp_text = doc_text
