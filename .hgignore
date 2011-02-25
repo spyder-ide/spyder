@@ -11,10 +11,6 @@
 app_example/build/
 app_example/dist/
 ^doctmp/
-^pyflakes/
-^rope/
-^Rpyc/
-^Pyro4/
 ^spyder.egg-info/
 MANIFEST$
 \pypi.txt
