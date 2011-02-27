@@ -1437,7 +1437,6 @@ class CodeEditor(TextEditBaseWidget):
             self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
-        # Zoom in/out
         if key in (Qt.Key_Enter, Qt.Key_Return) and not shift and not ctrl:
             if self.is_completion_widget_visible() \
                and self.codecompletion_enter:
@@ -1445,6 +1444,8 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
                 self.fix_indent()
+        elif key == Qt.Key_Insert and not shift and not ctrl:
+            self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
             leading_text = self.get_text('sol', 'cursor')
             leading_length = len(leading_text)

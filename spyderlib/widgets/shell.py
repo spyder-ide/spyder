@@ -343,6 +343,9 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.insert_text(self.get_selected_text(), at_end=True)
             event.accept()
             
+        elif key == Qt.Key_Insert and not shift and not ctrl:
+            self.setOverwriteMode(not self.overwriteMode())
+            
         elif key == Qt.Key_Delete:
             if self.has_selected_text():
                 self.check_selection()
