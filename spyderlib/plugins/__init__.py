@@ -18,9 +18,9 @@ These plugins inherit the following classes
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QDockWidget, QWidget, QShortcut, QCursor, QKeySequence,
-                         QMainWindow, QApplication)
-from PyQt4.QtCore import SIGNAL, Qt, QObject
+from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
+                                QKeySequence, QMainWindow, QApplication)
+from spyderlib.qt.QtCore import SIGNAL, Qt, QObject
 
 import sys
 

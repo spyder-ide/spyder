@@ -5,16 +5,17 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Text data Importing Wizard based on PyQt4
+Text data Importing Wizard based on Qt
 """
 
-from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QString, pyqtSignature)
-from PyQt4.QtGui import (QTableView, QVBoxLayout, QHBoxLayout, QGridLayout,
-                         QWidget,QDialog, QTextEdit, QTabWidget, QPushButton,
-                         QLabel, QSpacerItem, QSizePolicy, QCheckBox, QColor,
-                         QRadioButton, QLineEdit, QFrame, QMenu, QIntValidator,
-                         QGroupBox, QMessageBox)
+from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
+                                QGridLayout, QWidget,QDialog, QTextEdit,
+                                QTabWidget, QPushButton, QLabel, QSpacerItem,
+                                QSizePolicy, QCheckBox, QColor, QRadioButton,
+                                QLineEdit, QFrame, QMenu, QIntValidator,
+                                QGroupBox, QMessageBox)
+from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
+                                 SIGNAL, SLOT, QString, pyqtSignature)
 
 from functools import partial as ft_partial
 

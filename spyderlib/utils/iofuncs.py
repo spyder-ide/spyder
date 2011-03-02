@@ -283,8 +283,8 @@ def load_session(filename):
     return error_message
 
 
-from PyQt4.QtGui import QFileDialog
-from PyQt4.QtCore import QObject
+from spyderlib.qt.QtGui import QFileDialog
+from spyderlib.qt.QtCore import QObject
 
 class IOFunctions(QObject):
     def __init__(self):

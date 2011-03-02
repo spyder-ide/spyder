@@ -6,11 +6,12 @@
 
 """Project Explorer"""
 
-from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QMenu,
-                         QWidget, QTreeWidgetItem, QFileIconProvider,
-                         QMessageBox, QInputDialog, QLineEdit, QFileDialog)
-from PyQt4.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
-                          QUrl, QTimer)
+from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
+                                QMenu, QWidget, QTreeWidgetItem,
+                                QFileIconProvider, QMessageBox, QInputDialog,
+                                QLineEdit, QFileDialog)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
+                                 QUrl, QTimer)
 
 import os, sys, re, shutil, cPickle, time
 import os.path as osp

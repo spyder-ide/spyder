@@ -8,7 +8,7 @@
 Environment variable utilities
 """
 
-from PyQt4.QtGui import QDialog, QMessageBox
+from spyderlib.qt.QtGui import QDialog, QMessageBox
 
 import os
 

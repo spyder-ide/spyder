@@ -14,13 +14,15 @@ from spyderlib.utils.qthelpers import translate, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 
-from PyQt4.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
-                         QVBoxLayout, QStackedWidget, QListView, QHBoxLayout,
-                         QDialogButtonBox, QCheckBox, QMessageBox, QLabel,
-                         QLineEdit, QSpinBox, QPushButton, QFontComboBox,
-                         QGroupBox, QComboBox, QColor, QGridLayout, QTabWidget,
-                         QRadioButton, QButtonGroup, QFileDialog, QSplitter)
-from PyQt4.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant
+from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
+                                QVBoxLayout, QStackedWidget, QListView,
+                                QHBoxLayout, QDialogButtonBox, QCheckBox,
+                                QMessageBox, QLabel, QLineEdit, QSpinBox,
+                                QPushButton, QFontComboBox, QGroupBox,
+                                QComboBox, QColor, QGridLayout, QTabWidget,
+                                QRadioButton, QButtonGroup, QFileDialog,
+                                QSplitter)
+from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant
 
 
 class ConfigPage(QWidget):

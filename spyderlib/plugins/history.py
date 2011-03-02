@@ -6,9 +6,9 @@
 
 """Console History Plugin"""
 
-from PyQt4.QtGui import (QVBoxLayout, QFontDialog, QInputDialog, QToolButton,
-                         QMenu, QFontComboBox, QGroupBox)
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
+                                QToolButton, QMenu, QFontComboBox, QGroupBox)
+from spyderlib.qt.QtCore import SIGNAL
 
 import os.path as osp
 

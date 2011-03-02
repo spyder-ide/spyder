@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from PyQt4.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor, QPushButton,
-                         QColorDialog, QPixmap)
-from PyQt4.QtCore import SIGNAL, QSize, QString, pyqtSignature, pyqtProperty
+from spyderlib.qt.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor,
+                                QPushButton, QColorDialog, QPixmap)
+from spyderlib.qt.QtCore import (SIGNAL, QSize, QObject, pyqtSignature,
+                                 pyqtProperty)
 
 
 class ColorButton(QPushButton):
@@ -46,7 +47,7 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if isinstance(text, QString):
+    if isinstance(text, QObject): # Actually testing for a QString (<!> API#2)
         text = str(text)
     if not isinstance(text, (unicode, str)):
         return color

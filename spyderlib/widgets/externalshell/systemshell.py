@@ -12,8 +12,8 @@ import sys, os
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtCore import QProcess, SIGNAL, QString
+from spyderlib.qt.QtGui import QMessageBox
+from spyderlib.qt.QtCore import QProcess, SIGNAL, QString
 
 # Local imports
 from spyderlib.utils import encoding

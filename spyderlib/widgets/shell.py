@@ -13,10 +13,12 @@
 
 import sys, os, time, os.path as osp, re
 
-from PyQt4.QtGui import (QMenu, QApplication, QCursor, QToolTip, QKeySequence,
-                         QFileDialog, QMessageBox, QMouseEvent, QTextCursor,
-                         QTextCharFormat, QShortcut)
-from PyQt4.QtCore import Qt, QString, QCoreApplication, SIGNAL, pyqtProperty
+from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
+                                QKeySequence, QFileDialog, QMessageBox,
+                                QMouseEvent, QTextCursor, QTextCharFormat,
+                                QShortcut)
+from spyderlib.qt.QtCore import (Qt, QString, QCoreApplication, SIGNAL,
+                                 pyqtProperty)
 
 # For debugging purpose:
 STDOUT = sys.stdout

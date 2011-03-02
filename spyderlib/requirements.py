@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Module checking Spyder requirements (PyQt4)
+Module checking Spyder requirements
 """
 
 def check_requirement(package, module_name, version_attr, required_str):

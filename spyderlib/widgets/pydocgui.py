@@ -6,8 +6,8 @@
 
 """pydoc widget"""
 
-from PyQt4.QtGui import QApplication, QCursor
-from PyQt4.QtCore import QThread, QUrl, Qt
+from spyderlib.qt.QtGui import QApplication, QCursor
+from spyderlib.qt.QtCore import QThread, QUrl, Qt
 
 import sys, os.path as osp
 

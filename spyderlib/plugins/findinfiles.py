@@ -16,8 +16,8 @@ import sys, os
 # For debugging purpose:
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QApplication
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QApplication
+from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.utils.qthelpers import create_action

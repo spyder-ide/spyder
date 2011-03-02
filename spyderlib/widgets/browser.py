@@ -6,10 +6,10 @@
 
 """Simple web browser widget"""
 
-from PyQt4.QtGui import (QHBoxLayout, QWidget, QVBoxLayout, QProgressBar,
-                         QLabel, QMenu)
-from PyQt4.QtWebKit import QWebView, QWebPage
-from PyQt4.QtCore import SIGNAL, QUrl
+from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QVBoxLayout,
+                                QProgressBar, QLabel, QMenu)
+from spyderlib.qt.QtWebKit import QWebView, QWebPage
+from spyderlib.qt.QtCore import SIGNAL, QUrl
 
 import sys
 

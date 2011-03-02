@@ -8,9 +8,10 @@
 
 from __future__ import with_statement
 
-from PyQt4.QtGui import (QDialog, QListWidget, QFileDialog, QDialogButtonBox,
-                         QVBoxLayout, QHBoxLayout, QMessageBox, QListWidgetItem)
-from PyQt4.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.QtGui import (QDialog, QListWidget, QFileDialog,
+                                QDialogButtonBox, QVBoxLayout, QHBoxLayout,
+                                QMessageBox, QListWidgetItem)
+from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 
 import os, sys, os.path as osp
 

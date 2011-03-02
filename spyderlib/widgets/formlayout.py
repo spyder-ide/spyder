@@ -3,7 +3,7 @@
 formlayout
 ==========
 
-Module creating PyQt4 form dialogs/layouts to edit various type of parameters
+Module creating Qt form dialogs/layouts to edit various type of parameters
 
 
 formlayout License Agreement (MIT License)
@@ -47,18 +47,19 @@ import sys
 STDERR = sys.stderr
 
 try:
-    from PyQt4.QtGui import QFormLayout
+    from spyderlib.qt.QtGui import QFormLayout
 except ImportError:
     raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
 
-from PyQt4.QtGui import (QWidget, QLineEdit, QComboBox, QLabel, QSpinBox, QIcon,
-                         QStyle, QDialogButtonBox, QHBoxLayout, QVBoxLayout,
-                         QDialog, QColor, QPushButton, QCheckBox, QColorDialog,
-                         QPixmap, QTabWidget, QApplication, QStackedWidget,
-                         QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
-                         QFontDatabase, QGridLayout, QDoubleValidator)
-from PyQt4.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
-                          pyqtSignature, pyqtProperty)
+from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
+                                QSpinBox, QIcon, QStyle, QDialogButtonBox,
+                                QHBoxLayout, QVBoxLayout, QDialog, QColor,
+                                QPushButton, QCheckBox, QColorDialog, QPixmap,
+                                QTabWidget, QApplication, QStackedWidget,
+                                QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
+                                QFontDatabase, QGridLayout, QDoubleValidator)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
+                                 pyqtSignature, pyqtProperty)
 import datetime
 
 

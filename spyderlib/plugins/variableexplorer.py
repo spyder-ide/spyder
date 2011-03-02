@@ -8,8 +8,8 @@
 
 import sys
 
-from PyQt4.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
+from spyderlib.qt.QtCore import SIGNAL
 
 # For debugging purpose:
 STDOUT = sys.stdout

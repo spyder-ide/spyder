@@ -8,7 +8,7 @@
 spyderlib.widgets
 =================
 
-Widgets defined in this module may be used in any other PyQt4-based application
+Widgets defined in this module may be used in any other Qt-based application
 
 They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)

@@ -6,10 +6,11 @@
 
 """Object Inspector Plugin"""
 
-from PyQt4.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy, QMenu,
-                         QToolButton, QGroupBox, QFontComboBox, QActionGroup,
-                         QFontDialog, QWidget, QComboBox, QLineEdit)
-from PyQt4.QtCore import SIGNAL, QUrl, QTimer
+from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
+                                QMenu, QToolButton, QGroupBox, QFontComboBox,
+                                QActionGroup, QFontDialog, QWidget, QComboBox,
+                                QLineEdit)
+from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 
 import sys, re, os.path as osp, socket
 

@@ -22,9 +22,9 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem, QMessageBox,
-                         QVBoxLayout, QLabel, QFileDialog)
-from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString
+from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
+                                QMessageBox, QVBoxLayout, QLabel, QFileDialog)
+from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QString
 
 import sys, os, time, cPickle, os.path as osp, re
 

@@ -1,7 +1,7 @@
 
-from PyQt4.QtGui import (QApplication, QMainWindow, QWidget, QLabel, QLineEdit,
-                         QHBoxLayout, QDockWidget, QFont)
-from PyQt4.QtCore import Qt
+from spyderlib.qt.QtGui import (QApplication, QMainWindow, QWidget, QLabel,
+                                QLineEdit, QHBoxLayout, QDockWidget, QFont)
+from spyderlib.qt.QtCore import Qt
 
 from spyderlib.widgets.internalshell import InternalShell
 

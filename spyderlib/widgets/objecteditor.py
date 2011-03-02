@@ -5,10 +5,10 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Object Editor Dialog based on PyQt4
+Object Editor Dialog based on Qt
 """
 
-from PyQt4.QtCore import QObject, SIGNAL
+from spyderlib.qt.QtCore import QObject, SIGNAL
 
 class DialogKeeper(QObject):
     def __init__(self):

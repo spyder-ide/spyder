@@ -3,7 +3,7 @@
 
 import threading, socket, thread, struct, cPickle as pickle
 
-from PyQt4.QtCore import QThread, SIGNAL
+from spyderlib.qt.QtCore import QThread, SIGNAL
 
 from spyderlib.config import str2type, get_conf_path
 from spyderlib.utils import select_port, fix_reference_name, log_last_error

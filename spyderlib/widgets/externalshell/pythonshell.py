@@ -12,9 +12,9 @@ import sys, os, os.path as osp, socket
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QApplication, QMessageBox, QSplitter, QFileDialog,
-                         QMenu)
-from PyQt4.QtCore import QProcess, SIGNAL, QString, Qt
+from spyderlib.qt.QtGui import (QApplication, QMessageBox, QSplitter,
+                                QFileDialog, QMenu)
+from spyderlib.qt.QtCore import QProcess, SIGNAL, QString, Qt
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,

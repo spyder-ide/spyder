@@ -9,11 +9,11 @@
 import os.path as osp
 import os, webbrowser
 
-from PyQt4.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication, QLabel,
-                         QVBoxLayout, QHBoxLayout, QLineEdit, QKeyEvent, QMenu,
-                         QKeySequence, QToolButton)
-from PyQt4.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale, QTranslator,
-                          QLibraryInfo)
+from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
+                                QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
+                                QKeyEvent, QMenu, QKeySequence, QToolButton)
+from spyderlib.qt.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale,
+                                 QTranslator, QLibraryInfo)
 
 # Local import
 from spyderlib.config import get_icon, DATA_PATH, get_spyderplugins, PLUGIN_PATH

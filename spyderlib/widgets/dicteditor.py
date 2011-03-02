@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Dictionary Editor Widget and Dialog based on PyQt4
+Dictionary Editor Widget and Dialog based on Qt
 """
 
 #TODO: Multiple selection: open as many editors (array/dict/...) as necessary,
@@ -17,12 +17,13 @@ Dictionary Editor Widget and Dialog based on PyQt4
 # pylint: disable-msg=R0201
 
 import re, os, sys
-from PyQt4.QtGui import (QMessageBox, QTableView, QItemDelegate, QLineEdit,
-                         QVBoxLayout, QWidget, QColor, QDialog, QDateEdit,
-                         QDialogButtonBox, QMenu, QInputDialog, QDateTimeEdit,
-                         QApplication, QKeySequence, QFileDialog)
-from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT, QDateTime)
+from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
+                                QLineEdit, QVBoxLayout, QWidget, QColor,
+                                QDialog, QDateEdit, QDialogButtonBox, QMenu,
+                                QInputDialog, QDateTimeEdit, QApplication,
+                                QKeySequence, QFileDialog)
+from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex,
+                                 QAbstractTableModel, SIGNAL, SLOT, QDateTime)
 
 # Local import
 from spyderlib.config import get_icon, get_font

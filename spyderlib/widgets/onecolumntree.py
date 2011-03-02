@@ -8,14 +8,14 @@
 spyderlib.widgets
 =================
 
-Widgets defined in this module may be used in any other PyQt4-based application
+Widgets defined in this module may be used in any other Qt-based application
 
 They are also used in Spyder through the Plugin interface
 (see spyderlib.plugins)
 """
 
-from PyQt4.QtGui import QTreeWidget, QMenu
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QTreeWidget, QMenu
+from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import get_icon

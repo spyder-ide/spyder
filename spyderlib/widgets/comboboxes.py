@@ -11,8 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QComboBox, QFont, QToolTip, QSizePolicy, QCompleter
-from PyQt4.QtCore import SIGNAL, Qt, QUrl
+from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
+                                QCompleter)
+from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 import sys
 import os.path as osp

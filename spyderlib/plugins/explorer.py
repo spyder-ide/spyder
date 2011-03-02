@@ -11,8 +11,8 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import QFontDialog
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QFontDialog
+from spyderlib.qt.QtCore import SIGNAL
 
 import sys, os.path as osp
 

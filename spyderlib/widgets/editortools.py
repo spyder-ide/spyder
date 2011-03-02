@@ -8,9 +8,9 @@
 
 import sys, re,  os.path as osp
 
-from PyQt4.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout, QVBoxLayout,
-                         QPainter, QColor)
-from PyQt4.QtCore import Qt, SIGNAL, QSize
+from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
+                                QVBoxLayout, QPainter, QColor)
+from spyderlib.qt.QtCore import Qt, SIGNAL, QSize
 
 # For debugging purpose:
 STDOUT = sys.stdout

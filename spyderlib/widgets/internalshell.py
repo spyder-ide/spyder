@@ -29,8 +29,8 @@ from subprocess import Popen
 
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QMessageBox
-from PyQt4.QtCore import SIGNAL, QString, QObject
+from spyderlib.qt.QtGui import QMessageBox
+from spyderlib.qt.QtCore import SIGNAL, QString, QObject
 
 # Local import
 from spyderlib.utils.qthelpers import translate, create_action, get_std_icon

@@ -6,11 +6,12 @@
 
 """Run configurations related dialogs and widgets and data models"""
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QDialog, QWidget, QGroupBox,
-                         QLabel, QPushButton, QCheckBox, QLineEdit, QComboBox,
-                         QHBoxLayout, QDialogButtonBox, QStackedWidget,
-                         QGridLayout, QSizePolicy, QRadioButton, QMessageBox)
-from PyQt4.QtCore import SIGNAL, SLOT
+from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QDialog, QWidget,
+                                QGroupBox, QLabel, QPushButton, QCheckBox,
+                                QLineEdit, QComboBox, QHBoxLayout,
+                                QDialogButtonBox, QStackedWidget, QGridLayout,
+                                QSizePolicy, QRadioButton, QMessageBox)
+from spyderlib.qt.QtCore import SIGNAL, SLOT
 
 import os, sys
 import os.path as osp

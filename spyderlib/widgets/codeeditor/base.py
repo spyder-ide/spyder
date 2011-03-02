@@ -13,10 +13,12 @@
 
 import sys, re, string, os
 
-from PyQt4.QtGui import (QTextCursor, QColor, QFont, QApplication, QTextEdit,
-                         QTextCharFormat, QToolTip, QTextDocument, QListWidget,
-                         QPlainTextEdit, QPalette)
-from PyQt4.QtCore import QPoint, SIGNAL, Qt, QRegExp, QString, QEventLoop
+from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
+                                QTextEdit, QTextCharFormat, QToolTip,
+                                QTextDocument, QListWidget, QPlainTextEdit,
+                                QPalette)
+from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QString,
+                                 QEventLoop)
 
 
 # Local imports

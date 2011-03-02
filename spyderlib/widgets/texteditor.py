@@ -5,11 +5,11 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Text Editor Dialog based on PyQt4
+Text Editor Dialog based on Qt
 """
 
-from PyQt4.QtCore import Qt, SIGNAL, SLOT
-from PyQt4.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
+from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
 from spyderlib.config import get_icon, get_font

@@ -22,10 +22,12 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout, QDirModel,
-                         QMessageBox, QInputDialog, QLineEdit, QMenu, QWidget,
-                         QToolButton, QFileDialog, QToolBar, QTreeView, QDrag)
-from PyQt4.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QStringList, QUrl
+from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
+                                QDirModel, QMessageBox, QInputDialog,
+                                QLineEdit, QMenu, QWidget, QToolButton,
+                                QFileDialog, QToolBar, QTreeView, QDrag)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir,
+                                 QStringList, QUrl)
 
 import os, sys, re
 import os.path as osp

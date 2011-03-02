@@ -27,7 +27,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.0.8'
+__version__ = '2.0.9'
 __license__ = __doc__
+
+from spyderlib import qt
 
 #FIXME: Internal console MT: for i in range(100000): print i -> bug

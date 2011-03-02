@@ -6,10 +6,10 @@
 
 """Shortcut management"""
 
-from PyQt4.QtGui import (QVBoxLayout, QWidget, QComboBox, QItemDelegate,
-                         QTableView, QMessageBox, QPushButton)
-from PyQt4.QtCore import (Qt, QSize, QAbstractTableModel, QVariant, QModelIndex,
-                          SIGNAL)
+from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
+                                QTableView, QMessageBox, QPushButton)
+from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QVariant,
+                                 QModelIndex, SIGNAL)
 
 import sys
 

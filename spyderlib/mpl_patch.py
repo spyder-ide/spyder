@@ -15,8 +15,8 @@ def set_backend(backend):
 
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
-    from PyQt4.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
-    from PyQt4.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
+    from spyderlib.qt.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
+    from spyderlib.qt.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
     from matplotlib.backends import backend_qt4
     
     # Class added to matplotlib to fix a bug with PyQt4 v4.6+

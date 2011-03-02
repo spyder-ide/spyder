@@ -11,9 +11,10 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QTabWidget, QMenu, QDrag, QApplication, QTabBar,
-                         QShortcut, QKeySequence, QWidget, QHBoxLayout)
-from PyQt4.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
+from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
+                                QTabBar, QShortcut, QKeySequence, QWidget,
+                                QHBoxLayout)
+from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
 from spyderlib.config import get_icon

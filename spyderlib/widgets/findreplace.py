@@ -11,9 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel, QWidget,
-                         QSizePolicy, QShortcut, QKeySequence)
-from PyQt4.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
+                                QWidget, QSizePolicy, QShortcut, QKeySequence)
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
 
@@ -211,7 +211,7 @@ class FindReplace(QWidget):
             browser.WebView
         """
         self.editor = editor
-        from PyQt4.QtWebKit import QWebView
+        from spyderlib.qt.QtWebKit import QWebView
         self.words_check.setVisible(not isinstance(editor, QWebView))
         self.re_button.setVisible(not isinstance(editor, QWebView))
         if refresh:

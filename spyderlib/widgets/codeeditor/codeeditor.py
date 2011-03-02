@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Editor widget based on PyQt4.QtGui.QPlainTextEdit
+Editor widget based on QtGui.QPlainTextEdit
 """
 
 # pylint: disable-msg=C0103
@@ -17,13 +17,15 @@ from __future__ import division
 
 import sys, os, re, os.path as osp, time
 
-from PyQt4.QtGui import (QMouseEvent, QColor, QMenu, QApplication, QSplitter,
-                         QFont, QTextEdit, QTextFormat, QPainter, QTextCursor,
-                         QPlainTextEdit, QBrush, QTextDocument, QTextCharFormat,
-                         QPixmap, QPrinter, QToolTip, QCursor, QInputDialog,
-                         QTextBlockUserData, QLineEdit, QShortcut, QKeySequence)
-from PyQt4.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect, QRegExp,
-                          PYQT_VERSION_STR, QVariant)
+from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
+                                QSplitter, QFont, QTextEdit, QTextFormat,
+                                QPainter, QTextCursor, QPlainTextEdit, QBrush,
+                                QTextDocument, QTextCharFormat, QPixmap,
+                                QPrinter, QToolTip, QCursor, QInputDialog,
+                                QTextBlockUserData, QLineEdit, QShortcut,
+                                QKeySequence)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
+                                 QRegExp, PYQT_VERSION_STR, QVariant)
 
 # For debugging purpose:
 STDOUT = sys.stdout

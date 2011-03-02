@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-NumPy Array Editor Dialog based on PyQt4
+NumPy Array Editor Dialog based on Qt
 """
 
 # pylint: disable-msg=C0103
@@ -13,14 +13,15 @@ NumPy Array Editor Dialog based on PyQt4
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                          SIGNAL, SLOT)
-from PyQt4.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
-                         QLineEdit, QCheckBox, QGridLayout, QDoubleValidator,
-                         QDialog, QDialogButtonBox, QMessageBox, QPushButton,
-                         QInputDialog, QMenu, QApplication, QKeySequence,
-                         QLabel, QComboBox, QStackedWidget, QWidget,
-                         QVBoxLayout)
+from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
+                                QLineEdit, QCheckBox, QGridLayout,
+                                QDoubleValidator, QDialog, QDialogButtonBox,
+                                QMessageBox, QPushButton, QInputDialog, QMenu,
+                                QApplication, QKeySequence, QLabel, QComboBox,
+                                QStackedWidget, QWidget, QVBoxLayout)
+from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex,
+                                 QAbstractTableModel, SIGNAL, SLOT)
+
 import numpy as np
 import StringIO
 

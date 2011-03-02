@@ -33,11 +33,12 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QApplication, QMainWindow, QSplashScreen, QPixmap,
-                         QMessageBox, QMenu, QColor, QFileDialog, QShortcut,
-                         QKeySequence, QDockWidget, QAction)
-from PyQt4.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR, QPoint, Qt,
-                          QSize, QByteArray)
+from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
+                                QPixmap, QMessageBox, QMenu, QColor,
+                                QFileDialog, QShortcut, QKeySequence,
+                                QDockWidget, QAction)
+from spyderlib.qt.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR,
+                                 QPoint, Qt, QSize, QByteArray)
 
 # Local imports
 from spyderlib import __version__
@@ -1352,7 +1353,7 @@ def initialize(debug):
         def exec_():
             """Do nothing because the Qt mainloop is already running"""
             pass
-    from PyQt4 import QtGui
+    from spyderlib.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
     #----Monkey patching sys.exit

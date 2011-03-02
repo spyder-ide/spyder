@@ -5,15 +5,15 @@
 # (see spyderlib/__init__.py for details)
 
 """
-Editor widget syntax highlighters based on PyQt4.QtGui.QSyntaxHighlighter
+Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 (Python syntax highlighting rules are inspired from idlelib)
 """
 
 import sys, re, keyword, __builtin__
 
-from PyQt4.QtGui import (QColor, QApplication, QFont, QSyntaxHighlighter,
-                         QCursor, QTextCharFormat)
-from PyQt4.QtCore import Qt
+from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
+                                QSyntaxHighlighter, QCursor, QTextCharFormat)
+from spyderlib.qt.QtCore import Qt
 
 # For debugging purpose:
 STDOUT = sys.stdout

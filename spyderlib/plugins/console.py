@@ -11,9 +11,9 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QFontDialog, QInputDialog,
-                         QLineEdit, QMenu)
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QFontDialog,
+                                QInputDialog, QLineEdit, QMenu)
+from spyderlib.qt.QtCore import SIGNAL
 
 import os, sys
 import os.path as osp

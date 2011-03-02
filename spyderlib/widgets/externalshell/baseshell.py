@@ -16,10 +16,11 @@ from time import time, strftime, gmtime
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from PyQt4.QtGui import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QMenu,
-                         QLabel, QInputDialog, QLineEdit, QToolButton)
-from PyQt4.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
-                          QStringList, Qt)
+from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
+                                QHBoxLayout, QMenu, QLabel, QInputDialog,
+                                QLineEdit, QToolButton)
+from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
+                                 QStringList, Qt)
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, translate,
@@ -313,7 +314,7 @@ def test():
 #                                light_background=False)
     shell.shell.toggle_wrap_mode(True)
     shell.start_shell(False)
-    from PyQt4.QtGui import QFont
+    from spyderlib.qt.QtGui import QFont
     font = QFont("Lucida console")
     font.setPointSize(10)
     shell.shell.set_font(font)

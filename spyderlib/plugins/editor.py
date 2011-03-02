@@ -13,12 +13,13 @@
 
 #TODO: Make a plugin for the outline explorer ?
 
-from PyQt4.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QPrintDialog,
-                         QSplitter, QToolBar, QAction, QApplication, QDialog,
-                         QWidget, QPrinter, QActionGroup, QInputDialog, QMenu,
-                         QAbstractPrintDialog, QGroupBox, QTabWidget, QLabel,
-                         QFontComboBox, QHBoxLayout)
-from PyQt4.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
+from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
+                                QPrintDialog, QSplitter, QToolBar, QAction,
+                                QApplication, QDialog, QWidget, QPrinter,
+                                QActionGroup, QInputDialog, QMenu,
+                                QAbstractPrintDialog, QGroupBox, QTabWidget,
+                                QLabel, QFontComboBox, QHBoxLayout)
+from spyderlib.qt.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
 import os.path as osp
@@ -1499,7 +1500,7 @@ class Editor(SpyderPluginWidget):
         if answer == QDialog.Accepted:
             self.starting_long_process(self.tr("Printing..."))
             printer.setDocName(filename)
-            from PyQt4.QtGui import QPlainTextEdit
+            from spyderlib.qt.QtGui import QPlainTextEdit
             if isinstance(editor, QPlainTextEdit):
                 editor.print_(printer)
                 ok = True
@@ -1519,7 +1520,7 @@ class Editor(SpyderPluginWidget):
 
     def print_preview(self):
         """Print preview for current file"""
-        from PyQt4.QtGui import QPrintPreviewDialog
+        from spyderlib.qt.QtGui import QPrintPreviewDialog
         editor = self.get_current_editor()
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_plugin_font('printer_header'))

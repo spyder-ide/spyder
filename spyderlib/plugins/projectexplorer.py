@@ -6,8 +6,8 @@
 
 """Project Explorer Plugin"""
 
-from PyQt4.QtGui import QFontDialog
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QFontDialog
+from spyderlib.qt.QtCore import SIGNAL
 
 import sys, cPickle, os.path as osp
 

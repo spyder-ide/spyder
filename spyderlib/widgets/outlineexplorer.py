@@ -20,8 +20,8 @@ import sys
 # For debugging purpose:
 STDOUT = sys.stdout
 
-from PyQt4.QtGui import QTreeWidgetItem
-from PyQt4.QtCore import SIGNAL
+from spyderlib.qt.QtGui import QTreeWidgetItem
+from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.config import get_icon
