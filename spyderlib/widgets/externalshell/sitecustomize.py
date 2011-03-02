@@ -176,6 +176,21 @@ try:
 except ValueError:
     pass
 
+# Removing PyQt4 input hook which is not working well on Windows
+if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
+    if 'sip' in sys.modules:
+        import sip
+        try:
+            from sip import setapi as original_setapi
+            def patched_setapi(name, no):
+                try:
+                    original_setapi(name, no)
+                except ValueError, msg:
+                    print >>sys.stderr, "Warning/PyQt4-Spyder (%s)" % str(msg)
+            sip.setapi = patched_setapi
+        except ImportError:
+            pass
+
 ## Restoring original PYTHONPATH
 #try:
 #    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']

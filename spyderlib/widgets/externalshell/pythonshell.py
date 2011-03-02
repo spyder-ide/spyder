@@ -142,7 +142,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4',
-                 remove_pyqt_inputhook=True,
+                 remove_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
@@ -165,6 +165,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
         self.remove_pyqt_inputhook = remove_pyqt_inputhook
+        self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -412,6 +413,8 @@ class ExternalPythonShell(ExternalShellBase):
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         env.append('REMOVE_PYQT_INPUTHOOK=%s' % self.remove_pyqt_inputhook)
+        env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
+                   % self.ignore_sip_setapi_errors)
         
         # User Module Deleter
         if self.interpreter:
