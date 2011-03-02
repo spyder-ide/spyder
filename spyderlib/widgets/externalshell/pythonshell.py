@@ -21,7 +21,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon, DialogManager, add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
@@ -232,16 +232,16 @@ class ExternalPythonShell(ExternalShellBase):
         if self.namespacebrowser_button is None \
            and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
-                          text=self.tr("Variables"),
+                          text=_("Variables"),
                           icon=get_icon('dictedit.png'),
-                          tip=self.tr("Show/hide global variables explorer"),
+                          tip=_("Show/hide global variables explorer"),
                           toggled=self.toggle_globals_explorer,
                           text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                          text=self.tr("Terminate"),
+                          text=_("Terminate"),
                           icon=get_icon('terminate.png'),
-                          tip=self.tr("Attempts to terminate the process.\n"
+                          tip=_("Attempts to terminate the process.\n"
                                       "The process may not exit as a result of "
                                       "clicking this button\n"
                                       "(it is given the chance to prompt "
@@ -255,24 +255,24 @@ class ExternalPythonShell(ExternalShellBase):
 
     def get_options_menu(self):
         ExternalShellBase.get_options_menu(self)
-        self.interact_action = create_action(self, self.tr("Interact"))
+        self.interact_action = create_action(self, _("Interact"))
         self.interact_action.setCheckable(True)
-        self.debug_action = create_action(self, self.tr("Debug"))
+        self.debug_action = create_action(self, _("Debug"))
         self.debug_action.setCheckable(True)
-        self.args_action = create_action(self, self.tr("Arguments..."),
+        self.args_action = create_action(self, _("Arguments..."),
                                          triggered=self.get_arguments)
-        run_settings_menu = QMenu(self.tr("Run settings"), self)
+        run_settings_menu = QMenu(_("Run settings"), self)
         add_actions(run_settings_menu,
                     (self.interact_action, self.debug_action, self.args_action))
-        self.cwd_button = create_action(self, self.tr("Working directory"),
+        self.cwd_button = create_action(self, _("Working directory"),
                                 icon=get_std_icon('DirOpenIcon'),
-                                tip=self.tr("Set current working directory"),
+                                tip=_("Set current working directory"),
                                 triggered=self.set_current_working_directory)
-        self.env_button = create_action(self, self.tr("Environment variables"),
+        self.env_button = create_action(self, _("Environment variables"),
                                         icon=get_icon('environ.png'),
                                         triggered=self.show_env)
         self.syspath_button = create_action(self,
-                                            self.tr("Show sys.path contents"),
+                                            _("Show sys.path contents"),
                                             icon=get_icon('syspath.png'),
                                             triggered=self.show_syspath)
         actions = [run_settings_menu, self.show_time_action, None,
@@ -319,11 +319,11 @@ class ExternalPythonShell(ExternalShellBase):
                                     (not self.interpreter or self.ipython))
         if state:
             if self.arguments:
-                argstr = self.tr("Arguments: %1").arg(self.arguments)
+                argstr = _("Arguments: %s") % self.arguments
             else:
-                argstr = self.tr("No argument")
+                argstr = _("No argument")
         else:
-            argstr = self.tr("Arguments...")
+            argstr = _("Arguments...")
         self.args_action.setText(argstr)
         self.terminate_button.setVisible(not self.interpreter and state)
         if not state:
@@ -471,8 +471,8 @@ class ExternalPythonShell(ExternalShellBase):
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 self.tr("Process failed to start"))
+            QMessageBox.critical(self, _("Error"),
+                                 _("Process failed to start"))
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))
@@ -537,7 +537,7 @@ class ExternalPythonShell(ExternalShellBase):
         cwd = self.shell.get_cwd()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self,
-                                             self.tr("Select directory"), cwd)
+                                                _("Select directory"), cwd)
         if not directory.isEmpty():
             self.shell.set_cwd(unicode(directory))
         self.emit(SIGNAL('redirect_stdio(bool)'), True)

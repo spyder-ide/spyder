@@ -17,9 +17,9 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import (translate, create_action, add_actions,
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 
@@ -29,10 +29,10 @@ class WebView(QWebView):
     def __init__(self, parent):
         QWebView.__init__(self, parent)
         self.zoom_factor = 1.
-        self.zoom_out_action = create_action(self, self.tr("Zoom out"),
+        self.zoom_out_action = create_action(self, _("Zoom out"),
                                              icon=get_icon('zoom_out.png'),
                                              triggered=self.zoom_out)
-        self.zoom_in_action = create_action(self, self.tr("Zoom in"),
+        self.zoom_in_action = create_action(self, _("Zoom in"),
                                             icon=get_icon('zoom_in.png'),
                                             triggered=self.zoom_in)
         
@@ -125,7 +125,7 @@ class WebBrowser(QWidget):
         self.connect(self.webview, SIGNAL("urlChanged(QUrl)"), self.url_changed)
                 
         home_button = create_toolbutton(self, icon=get_icon('home.png'),
-                                        tip=self.tr("Home"),
+                                        tip=_("Home"),
                                         triggered=self.go_home)
         
         zoom_out_button = action2button(self.webview.zoom_out_action)
@@ -165,8 +165,8 @@ class WebBrowser(QWidget):
         self.find_widget.hide()
 
         find_button = create_toolbutton(self, icon='find.png',
-                                    tip=translate("FindReplace", "Find text"),
-                                    toggled=self.toggle_find_widget)
+                                        tip=_("Find text"),
+                                        toggled=self.toggle_find_widget)
         self.connect(self.find_widget, SIGNAL("visibility_changed(bool)"),
                      find_button.setChecked)
 
@@ -184,7 +184,7 @@ class WebBrowser(QWidget):
                 
     def get_label(self):
         """Return address label text"""
-        return self.tr("Address:")
+        return _("Address:")
             
     def set_home_url(self, text):
         """Set home URL"""
@@ -218,7 +218,7 @@ class WebBrowser(QWidget):
         
     def load_finished(self, ok):
         if not ok:
-            self.webview.setHtml(self.tr("Unable to load page"))
+            self.webview.setHtml(_("Unable to load page"))
             
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""

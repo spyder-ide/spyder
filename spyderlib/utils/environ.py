@@ -13,8 +13,8 @@ from spyderlib.qt.QtGui import QDialog, QMessageBox
 import os
 
 # Local imports
+from spyderlib.config import _
 from spyderlib.widgets.dicteditor import DictEditor
-from spyderlib.utils.qthelpers import translate
 
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
@@ -91,10 +91,8 @@ try:
             SendMessageTimeout(HWND_BROADCAST, WM_SETTINGCHANGE, 0,
                                "Environment", SMTO_ABORTIFHUNG, 5000)
         except ImportError:
-            QMessageBox.warning(parent,
-                translate("WinUserEnvDialog", "Warning"),
-                translate("WinUserEnvDialog",
-                          "Module <b>pywin32 was not found</b>.<br>"
+            QMessageBox.warning(parent, _("Warning"),
+                        _("Module <b>pywin32 was not found</b>.<br>"
                           "Please restart this Windows <i>session</i> "
                           "(not the computer) for changes to take effect."))
             
@@ -106,9 +104,8 @@ try:
                        title="HKEY_CURRENT_USER\Environment", width=600)
             if parent is None:
                 parent = self
-            QMessageBox.warning(parent,
-                translate("WinUserEnvDialog", "Warning"),
-                translate("WinUserEnvDialog", "If you accept changes, "
+            QMessageBox.warning(parent, _("Warning"),
+                        _("If you accept changes, "
                           "this will modify the current user environment "
                           "variables directly <b>in Windows registry</b>. "
                           "Use it with precautions, at your own risks.<br>"

@@ -13,13 +13,15 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
-import os, sys
-import os.path as osp
+import os, sys, os.path as osp
 from datetime import date
-from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from userconfig import UserConfig, get_home_dir, NoDefault
+
+from spyderlib.utils.translations import get_translation
+_ = get_translation("spyderlib")
 
 DATA_DEV_PATH = osp.dirname(__file__)
 if not osp.isdir(DATA_DEV_PATH):

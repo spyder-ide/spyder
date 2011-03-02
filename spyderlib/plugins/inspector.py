@@ -19,10 +19,10 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import (get_conf_path, get_icon, CONF, get_color_scheme,
-                              get_font, set_font)
+                              get_font, set_font, _)
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
-                                       create_action, translate)
+                                       create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
 from spyderlib.widgets.editor import CodeEditor
 from spyderlib.widgets.findreplace import FindReplace
@@ -54,7 +54,7 @@ class ObjectComboBox(EditableComboBox):
         EditableComboBox.__init__(self, parent)
         self.object_inspector = parent
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: self.tr(''), False: self.tr('')}
+        self.tips = {True: '', False: ''}
         
     def is_valid(self, qstr=None):
         """Return True if string is valid"""
@@ -85,16 +85,16 @@ class ObjectComboBox(EditableComboBox):
 
 class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
-        sourcecode_group = QGroupBox(self.tr("Source code"))
-        wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
+        sourcecode_group = QGroupBox(_("Source code"))
+        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         plain_text_font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Plain text font style"),
+                                    text=_("Plain text font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         rich_text_font_group = self.create_fontgroup(option='rich_text',
-                                text=self.tr("Rich text font style"))
+                                text=_("Rich text font style"))
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
-        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+        cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
 
         sourcecode_layout = QVBoxLayout()
@@ -199,7 +199,7 @@ class ObjectInspector(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
-        self.no_doc_string = self.tr("No documentation available")
+        self.no_doc_string = _("No documentation available")
         
         self._last_console_cb = None
         self._last_editor_cb = None
@@ -214,12 +214,10 @@ class ObjectInspector(SpyderPluginWidget):
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
-        font_action = create_action(self, translate("Editor", "&Font..."), None,
-                                    'font.png',
-                                    translate("Editor", "Set font style"),
+        font_action = create_action(self, _("&Font..."), None,
+                                    'font.png', _("Set font style"),
                                     triggered=self.change_font)
-        self.wrap_action = create_action(self,
-                                         translate("Editor", "Wrap lines"),
+        self.wrap_action = create_action(self, _("Wrap lines"),
                                          toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked(self.get_option('wrap'))
         self.plain_text.editor.readonly_menu.addSeparator()
@@ -240,10 +238,10 @@ class ObjectInspector(SpyderPluginWidget):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
-        source_label = QLabel(self.tr("Source"))
+        source_label = QLabel(_("Source"))
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
-        self.source_combo.addItems([self.tr("Console"), self.tr("Editor")])
+        self.source_combo.addItems([_("Console"), _("Editor")])
         self.connect(self.source_combo, SIGNAL('currentIndexChanged(int)'),
                      self.source_changed)
         if not programs.is_module_installed('rope'):
@@ -251,7 +249,7 @@ class ObjectInspector(SpyderPluginWidget):
             source_label.hide()
         layout_edit.addWidget(self.source_combo)
         layout_edit.addSpacing(10)
-        layout_edit.addWidget(QLabel(self.tr("Object")))
+        layout_edit.addWidget(QLabel(_("Object")))
         self.combo = ObjectComboBox(self)
         layout_edit.addWidget(self.combo)
         self.object_edit = QLineEdit(self)
@@ -266,15 +264,15 @@ class ObjectInspector(SpyderPluginWidget):
         self.docstring = True
         self.rich_help = sphinxify is not None \
                          and self.get_option('rich_mode', True)
-        self.plain_text_action = create_action(self, self.tr("Plain Text"),
+        self.plain_text_action = create_action(self, _("Plain Text"),
                                                toggled=self.toggle_plain_text)
         
         # Source code option
-        self.show_source_action = create_action(self, self.tr("Show Source"),
+        self.show_source_action = create_action(self, _("Show Source"),
                                                 toggled=self.toggle_show_source)
         
         # Rich text option
-        self.rich_text_action = create_action(self, self.tr("Rich Text"),
+        self.rich_text_action = create_action(self, _("Rich Text"),
                                          toggled=self.toggle_rich_text)
                         
         # Add the help actions to an exclusive QActionGroup
@@ -284,8 +282,7 @@ class ObjectInspector(SpyderPluginWidget):
         help_actions.addAction(self.rich_text_action)
         
         # Automatic import option
-        self.auto_import_action = create_action(self,
-                                                self.tr("Automatic import"),
+        self.auto_import_action = create_action(self, _("Automatic import"),
                                                 toggled=self.toggle_auto_import)
         auto_import_state = self.get_option('automatic_import')
         self.auto_import_action.setChecked(auto_import_state)
@@ -297,7 +294,7 @@ class ObjectInspector(SpyderPluginWidget):
         self._update_lock_icon()
         
         # Option menu
-        options_button = create_toolbutton(self, text=self.tr("Options"),
+        options_button = create_toolbutton(self, text=_("Options"),
                                            icon=get_icon('tooloptions.png'),
                                            text_beside_icon=True)
         options_button.setPopupMode(QToolButton.InstantPopup)
@@ -330,7 +327,7 @@ class ObjectInspector(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Object inspector')
+        return _('Object inspector')
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -459,7 +456,7 @@ class ObjectInspector(SpyderPluginWidget):
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
-                                      translate("Editor", "Select a new font"))
+                                      _("Select a new font"))
         if valid:
             self.set_plain_text_font(font)
             set_font(font, self.CONF_SECTION)
@@ -622,7 +619,7 @@ class ObjectInspector(SpyderPluginWidget):
         """Update locked state icon"""
         icon = get_icon("lock.png" if self.locked else "lock_open.png")
         self.locked_button.setIcon(icon)
-        tip = self.tr("Unlock") if self.locked else self.tr("Lock")
+        tip = _("Unlock") if self.locked else _("Lock")
         self.locked_button.setToolTip(tip)
         
     def set_shell(self, shell):
@@ -710,7 +707,7 @@ class ObjectInspector(SpyderPluginWidget):
             if hlp_text is None:
                 hlp_text = doc_text
                 if hlp_text is None:
-                    hlp_text = self.tr("No source code available.")
+                    hlp_text = _("No source code available.")
                     if ignore_unknown:
                         return False
             else:

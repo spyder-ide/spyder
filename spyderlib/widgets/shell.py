@@ -26,11 +26,11 @@ STDERR = sys.stderr
 
 # Local import
 from spyderlib import __version__
-from spyderlib.config import CONF, get_icon, get_conf_path, get_font
+from spyderlib.config import CONF, get_icon, get_conf_path, get_font, _
 from spyderlib.utils import encoding, get_error_match
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
-                                       restore_keyevent, translate)
+                                       restore_keyevent)
 from spyderlib.widgets.codeeditor.base import ConsoleBaseWidget
 
 
@@ -114,36 +114,28 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def setup_context_menu(self):
         """Setup shell context menu"""
         self.menu = QMenu(self)
-        self.cut_action = create_action(self,
-                                        translate("ShellBaseWidget", "Cut"),
+        self.cut_action = create_action(self, _("Cut"),
                                         shortcut=keybinding('Cut'),
                                         icon=get_icon('editcut.png'),
                                         triggered=self.cut)
-        self.copy_action = create_action(self,
-                                         translate("ShellBaseWidget", "Copy"),
+        self.copy_action = create_action(self, _("Copy"),
                                          shortcut=keybinding('Copy'),
                                          icon=get_icon('editcopy.png'),
                                          triggered=self.copy)
-        paste_action = create_action(self,
-                                     translate("ShellBaseWidget", "Paste"),
+        paste_action = create_action(self, _("Paste"),
                                      shortcut=keybinding('Paste'),
                                      icon=get_icon('editpaste.png'),
                                      triggered=self.paste)
-        save_action = create_action(self,
-                                    translate("ShellBaseWidget",
-                                              "Save history log..."),
+        save_action = create_action(self, _("Save history log..."),
                                     icon=get_icon('filesave.png'),
-                                    tip=translate("ShellBaseWidget",
-                                          "Save current history log (i.e. all "
+                                    tip=_("Save current history log (i.e. all "
                                           "inputs and outputs) in a text file"),
                                     triggered=self.save_historylog)
-        self.delete_action = create_action(self,
-                                    translate("ShellBaseWidget", "Delete"),
+        self.delete_action = create_action(self, _("Delete"),
                                     shortcut=keybinding('Delete'),
                                     icon=get_icon('editdelete.png'),
                                     triggered=self.delete)
-        selectall_action = create_action(self,
-                                    translate("ShellBaseWidget", "Select All"),
+        selectall_action = create_action(self, _("Select All"),
                                     shortcut=keybinding('SelectAll'),
                                     icon=get_icon('selectall.png'),
                                     triggered=self.selectAll)
@@ -253,7 +245,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         
     def save_historylog(self):
         """Save current history log (all text in console)"""
-        title = translate("ShellBaseWidget", "Save history log")
+        title = _("Save history log")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getSaveFileName(self, title,
                             self.historylog_filename, "History logs (*.log)")
@@ -266,10 +258,10 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 CONF.set('main', 'historylog_filename', filename)
             except EnvironmentError, error:
                 QMessageBox.critical(self, title,
-                                translate("ShellBaseWidget",
-                                          "<b>Unable to save file '%1'</b>"
-                                          "<br><br>Error message:<br>%2") \
-                                .arg(osp.basename(filename)).arg(str(error)))
+                                     _("<b>Unable to save file '%s'</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (osp.basename(filename),
+                                            str(error)))
         
         
     #------ Basic keypress event handler
@@ -738,24 +730,18 @@ class PythonShellWidget(ShellBaseWidget):
         """Reimplements ShellBaseWidget method"""
         ShellBaseWidget.setup_context_menu(self)
         self.copy_without_prompts_action = create_action(self,
-                                     translate("PythonShellWidget",
-                                               "Copy without prompts"),
+                                     _("Copy without prompts"),
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
-        clear_line_action = create_action(self, translate("PythonShellWidget",
-                                                          "Clear line"),
+        clear_line_action = create_action(self, _("Clear line"),
                                      QKeySequence("Escape"),
                                      icon=get_icon('eraser.png'),
-                                     tip=translate("PythonShellWidget",
-                                                   "Clear line"),
+                                     tip=_("Clear line"),
                                      triggered=self.clear_line)
-        clear_action = create_action(self,
-                                     translate("PythonShellWidget",
-                                               "Clear shell"),
+        clear_action = create_action(self, _("Clear shell"),
                                      icon=get_icon('clear.png'),
-                                     tip=translate("PythonShellWidget",
-                                                   "Clear shell contents "
-                                                 "('cls' command)"),
+                                     tip=_("Clear shell contents "
+                                           "('cls' command)"),
                                      triggered=self.clear_terminal)
         add_actions(self.menu, (self.copy_without_prompts_action,
                     clear_line_action, clear_action))
@@ -1050,14 +1036,12 @@ class PythonShellWidget(ShellBaseWidget):
                         if isinstance(arglist, bool):
                             arglist = []
                         if arglist:
-                            self.show_calltip(translate("PythonShellWidget",
-                                                        "Arguments"),
+                            self.show_calltip(_("Arguments"),
                                               arglist, '#129625')
         elif self.calltips: # inspector is not visible or link is disabled
             doc = self.get__doc__(text)
             if doc is not None:
-                self.show_calltip(translate("PythonShellWidget",
-                                            "Documentation"), doc)
+                self.show_calltip(_("Documentation"), doc)
         
         
     #------ Miscellanous

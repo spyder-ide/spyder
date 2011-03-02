@@ -20,8 +20,8 @@ from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
 from functools import partial as ft_partial
 
 # Local import
-from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import translate, add_actions, create_action
+from spyderlib.config import get_icon, _
+from spyderlib.utils.qthelpers import add_actions, create_action
 
 def try_to_parse(value):
     _types = ('int', 'float')
@@ -98,16 +98,16 @@ class ContentsWidget(QWidget):
         
         # Type frame
         type_layout = QHBoxLayout()
-        type_label = QLabel(translate("ImportWizard", "Import as"))
+        type_label = QLabel(_("Import as"))
         type_layout.addWidget(type_label)
-        data_btn = QRadioButton(translate("ImportWizard", "data"))
+        data_btn = QRadioButton(_("data"))
         data_btn.setChecked(True)
         self._as_data= True
         type_layout.addWidget(data_btn)
-        code_btn = QRadioButton(translate("ImportWizard", "code"))
+        code_btn = QRadioButton(_("code"))
         self._as_code = False
         type_layout.addWidget(code_btn)        
-        txt_btn = QRadioButton(translate("ImportWizard", "text"))
+        txt_btn = QRadioButton(_("text"))
         type_layout.addWidget(txt_btn)
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
@@ -119,14 +119,14 @@ class ContentsWidget(QWidget):
         grid_layout = QGridLayout()
         grid_layout.setSpacing(0)
         
-        col_label = QLabel(translate("ImportWizard", "Column separator:"))
+        col_label = QLabel(_("Column separator:"))
         grid_layout.addWidget(col_label, 0, 0)
         col_w = QWidget()
         col_btn_layout = QHBoxLayout()
-        self.tab_btn = QRadioButton(translate("ImportWizard", "Tab"))
+        self.tab_btn = QRadioButton(_("Tab"))
         self.tab_btn.setChecked(True)
         col_btn_layout.addWidget(self.tab_btn)
-        other_btn_col = QRadioButton(translate("ImportWizard", "other"))
+        other_btn_col = QRadioButton(_("other"))
         col_btn_layout.addWidget(other_btn_col)
         col_w.setLayout(col_btn_layout)
         grid_layout.addWidget(col_w, 0, 1)
@@ -137,14 +137,14 @@ class ContentsWidget(QWidget):
                      self.line_edt, SLOT("setEnabled(bool)"))
         grid_layout.addWidget(self.line_edt, 0, 2)
 
-        row_label = QLabel(translate("ImportWizard", "Row separator:"))
+        row_label = QLabel(_("Row separator:"))
         grid_layout.addWidget(row_label, 1, 0)
         row_w = QWidget()
         row_btn_layout = QHBoxLayout()
-        self.eol_btn = QRadioButton(translate("ImportWizard", "EOL"))
+        self.eol_btn = QRadioButton(_("EOL"))
         self.eol_btn.setChecked(True)
         row_btn_layout.addWidget(self.eol_btn)
-        other_btn_row = QRadioButton(translate("ImportWizard", "other"))
+        other_btn_row = QRadioButton(_("other"))
         row_btn_layout.addWidget(other_btn_row)
         row_w.setLayout(row_btn_layout)
         grid_layout.addWidget(row_w, 1, 1)
@@ -157,12 +157,11 @@ class ContentsWidget(QWidget):
 
         grid_layout.setRowMinimumHeight(2, 15)
         
-        other_group = QGroupBox(translate("ImportWizard",
-                                            "Additionnal options"))
+        other_group = QGroupBox(_("Additionnal options"))
         other_layout = QGridLayout()
         other_group.setLayout(other_layout)
 
-        skiprows_label = QLabel(translate("ImportWizard", "Skip rows:"))
+        skiprows_label = QLabel(_("Skip rows:"))
         other_layout.addWidget(skiprows_label, 0, 0)
         self.skiprows_edt = QLineEdit('0')
         self.skiprows_edt.setMaximumWidth(30)
@@ -173,13 +172,13 @@ class ContentsWidget(QWidget):
         
         other_layout.setColumnMinimumWidth(2, 5)
         
-        comments_label = QLabel(translate("ImportWizard", "Comments:"))
+        comments_label = QLabel(_("Comments:"))
         other_layout.addWidget(comments_label, 0, 3)
         self.comments_edt = QLineEdit('#')
         self.comments_edt.setMaximumWidth(30)
         other_layout.addWidget(self.comments_edt, 0, 4)
         
-        self.trnsp_box = QCheckBox(translate("ImportWizard", "Transpose"))
+        self.trnsp_box = QCheckBox(_("Transpose"))
         #self.trnsp_box.setEnabled(False)
         other_layout.addWidget(self.trnsp_box, 1, 0, 2, 0)
         
@@ -401,7 +400,7 @@ class PreviewWidget(QWidget):
         vert_layout = QVBoxLayout()
         
         hor_layout = QHBoxLayout()
-        self.array_box = QCheckBox(translate("ImportWizard", "Import as array"))
+        self.array_box = QCheckBox(_("Import as array"))
         self.array_box.setEnabled(ndarray is not FakeObject)
         self.array_box.setChecked(ndarray is not FakeObject)
         hor_layout.addWidget(self.array_box)
@@ -431,15 +430,15 @@ class ImportWizard(QDialog):
         QDialog.__init__(self, parent)
         
         if title is None:
-            title = translate("ImportWizard", "Import wizard")
+            title = _("Import wizard")
         self.setWindowTitle(title)
         if icon is None:
             self.setWindowIcon(get_icon("fileimport.png"))
         if contents_title is None:
-            contents_title = translate("ImportWizard", "Raw text")
+            contents_title = _("Raw text")
         
         if varname is None:
-            varname = translate("ImportWizard", "variable_name")
+            varname = _("variable_name")
         
         self.var_name, self.clip_data = None, None
         
@@ -448,12 +447,10 @@ class ImportWizard(QDialog):
         self.text_widget = ContentsWidget(self, text)
         self.table_widget = PreviewWidget(self)
         
-        self.tab_widget.addTab(self.text_widget, translate("ImportWizard",
-                                                           "text"))
+        self.tab_widget.addTab(self.text_widget, _("text"))
         self.tab_widget.setTabText(0, contents_title)
-        self.tab_widget.addTab(self.table_widget, translate("ImportWizard",
-                                                            "table"))
-        self.tab_widget.setTabText(1, translate("ImportWizard", "Preview"))
+        self.tab_widget.addTab(self.table_widget, _("table"))
+        self.tab_widget.setTabText(1, _("Preview"))
         self.tab_widget.setTabEnabled(1, False)
         
         name_layout = QHBoxLayout()
@@ -461,7 +458,7 @@ class ImportWizard(QDialog):
                                     QSizePolicy.Expanding, QSizePolicy.Minimum)
         name_layout.addItem(name_h_spacer)
         
-        name_label = QLabel(translate("ImportWizard", "Name"))
+        name_label = QLabel(_("Name"))
         name_layout.addWidget(name_label)
         self.name_edt = QLineEdit()
         self.name_edt.setMaximumWidth(100)
@@ -469,22 +466,22 @@ class ImportWizard(QDialog):
         name_layout.addWidget(self.name_edt)
         
         btns_layout = QHBoxLayout()
-        cancel_btn = QPushButton(translate("ImportWizard", "Cancel"))
+        cancel_btn = QPushButton(_("Cancel"))
         btns_layout.addWidget(cancel_btn)
         self.connect(cancel_btn, SIGNAL("clicked()"), self, SLOT("reject()"))
         h_spacer = QSpacerItem(40, 20,
                                QSizePolicy.Expanding, QSizePolicy.Minimum)
         btns_layout.addItem(h_spacer)
-        self.back_btn = QPushButton(translate("ImportWizard", "Previous"))
+        self.back_btn = QPushButton(_("Previous"))
         self.back_btn.setEnabled(False)
         btns_layout.addWidget(self.back_btn)
         self.connect(self.back_btn, SIGNAL("clicked()"),
                      ft_partial(self._set_step, step=-1))
-        self.fwd_btn = QPushButton(translate("ImportWizard", "Next"))
+        self.fwd_btn = QPushButton(_("Next"))
         btns_layout.addWidget(self.fwd_btn)
         self.connect(self.fwd_btn, SIGNAL("clicked()"),
                      ft_partial(self._set_step, step=1))
-        self.done_btn = QPushButton(translate("ImportWizard", "Done"))
+        self.done_btn = QPushButton(_("Done"))
         self.done_btn.setEnabled(False)
         btns_layout.addWidget(self.done_btn)
         self.connect(self.done_btn, SIGNAL("clicked()"),
@@ -524,13 +521,10 @@ class ImportWizard(QDialog):
                 self.fwd_btn.setEnabled(False)
                 self.back_btn.setEnabled(True)
             except (SyntaxError, AssertionError), error:
-                QMessageBox.critical(self,
-                            translate("ImportWizard", "Import wizard"),
-                            translate("ImportWizard",
-                                      "<b>Unable to proceed to next step</b>"
-                                      "<br><br>Please check your entries."
-                                      "<br><br>Error message:<br>%2") \
-                            .arg(str(error)))
+                QMessageBox.critical(self, _("Import wizard"),
+                            _("<b>Unable to proceed to next step</b>"
+                              "<br><br>Please check your entries."
+                              "<br><br>Error message:<br>%s") % str(error))
                 return
         elif new_tab == 0:
             self.done_btn.setEnabled(False)

@@ -23,7 +23,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, CONF
+from spyderlib.config import get_icon, CONF, _
 from spyderlib.utils import (programs, remove_trailing_single_backslash,
                              get_error_match)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
@@ -36,13 +36,13 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 class ExternalConsoleConfigPage(PluginConfigPage):
     def setup_page(self):
-        interface_group = QGroupBox(self.tr("Interface"))
+        interface_group = QGroupBox(_("Interface"))
         font_group = self.create_fontgroup(option=None, text=None,
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        singletab_box = newcb(self.tr("One tab per script"), 'single_tab')
-        showtime_box = newcb(self.tr("Show elapsed time"), 'show_elapsed_time')
-        icontext_box = newcb(self.tr("Show icons and text"), 'show_icontext')
+        singletab_box = newcb(_("One tab per script"), 'single_tab')
+        showtime_box = newcb(_("Show elapsed time"), 'show_elapsed_time')
+        icontext_box = newcb(_("Show icons and text"), 'show_icontext')
 
         # Interface Group
         interface_layout = QVBoxLayout()
@@ -52,12 +52,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         interface_group.setLayout(interface_layout)
         
         # Source Code Group
-        display_group = QGroupBox(self.tr("Source code"))
+        display_group = QGroupBox(_("Source code"))
         buffer_spin = self.create_spinbox(
-                            self.tr("Buffer: "), self.tr(" lines"),
+                            _("Buffer: "), _(" lines"),
                             'max_line_count', min_=0, max_=1000000, step=100,
-                            tip=self.tr("Set maximum line count"))
-        wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
+                            tip=_("Set maximum line count"))
+        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(buffer_spin)
@@ -65,13 +65,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         display_group.setLayout(display_layout)
         
         # Background Color Group
-        bg_group = QGroupBox(self.tr("Background color"))
-        bg_label = QLabel(self.tr("This option will be applied the next time "
+        bg_group = QGroupBox(_("Background color"))
+        bg_label = QLabel(_("This option will be applied the next time "
                                   "a Python console or a terminal is opened."))
         bg_label.setWordWrap(True)
-        lightbg_box = newcb(self.tr("Light background (white color)"),
+        lightbg_box = newcb(_("Light background (white color)"),
                             'light_background')
-        ipybg_box = newcb(self.tr("Set the appropriate IPython color option"),
+        ipybg_box = newcb(_("Set the appropriate IPython color option"),
                           'ipython_set_color')
         ipybg_box.setEnabled(programs.is_module_installed("IPython"))
         bg_layout = QVBoxLayout()
@@ -81,20 +81,20 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         bg_group.setLayout(bg_layout)
 
         # Advanced settings
-        source_group = QGroupBox(self.tr("Source code"))
-        completion_box = newcb(self.tr("Automatic code completion"),
+        source_group = QGroupBox(_("Source code"))
+        completion_box = newcb(_("Automatic code completion"),
                                'codecompletion/auto')
-        case_comp_box = newcb(self.tr("Case sensitive code completion"),
+        case_comp_box = newcb(_("Case sensitive code completion"),
                               'codecompletion/case_sensitive')
-        show_single_box = newcb(self.tr("Show single completion"),
+        show_single_box = newcb(_("Show single completion"),
                                'codecompletion/show_single')
-        comp_enter_box = newcb(self.tr("Enter key selects completion"),
+        comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
-        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
+        calltips_box = newcb(_("Balloon tips"), 'calltips')
         inspector_box = newcb(
-              self.tr("Automatic notification to object inspector"),
+              _("Automatic notification to object inspector"),
               'object_inspector', default=True,
-              tip=self.tr("If this option is enabled, object inspector\n"
+              tip=_("If this option is enabled, object inspector\n"
                       "will automatically show informations on functions\n"
                       "entered in console (this is triggered when entering\n"
                       "a left parenthesis after a valid function name)"))
@@ -109,13 +109,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         source_group.setLayout(source_layout)
 
         # UMD Group
-        umd_group = QGroupBox(self.tr("User Module Deleter (UMD)"))
-        umd_label = QLabel(self.tr("UMD forces Python to reload modules "
+        umd_group = QGroupBox(_("User Module Deleter (UMD)"))
+        umd_label = QLabel(_("UMD forces Python to reload modules "
                                "imported when executing a script in the "
                                "external console with the 'runfile' function"))
         umd_label.setWordWrap(True)
-        umd_enabled_box = newcb(self.tr("Enable UMD"), 'umd/enabled',
-                                msg_if_enabled=True, msg_warning=self.tr(
+        umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
+                                msg_if_enabled=True, msg_warning=_(
                         "This option will enable the User Module Deleter (UMD) "
                         "in Python/IPython interpreters. UMD forces Python to "
                         "reload deeply modules during import when running a "
@@ -131,14 +131,14 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                         "attribute <b>Qt.WA_DeleteOnClose</b> on your main "
                         "window, using the <b>setAttribute</b> method)"),
                                 )
-        umd_verbose_box = newcb(self.tr("Show reloaded modules list"),
-                                'umd/verbose', msg_info=self.tr(
+        umd_verbose_box = newcb(_("Show reloaded modules list"),
+                                'umd/verbose', msg_info=_(
                                         "Please note that these changes will "
                                         "be applied only to new Python/IPython "
                                         "interpreters"),
                                 )
         umd_namelist_btn = QPushButton(
-                            self.tr("Set UMD excluded (not reloaded) modules"))
+                            _("Set UMD excluded (not reloaded) modules"))
         self.connect(umd_namelist_btn, SIGNAL('clicked()'),
                      self.plugin.set_umd_namelist)
         
@@ -150,10 +150,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_group.setLayout(umd_layout)
         
         # Startup Group
-        startup_group = QGroupBox(self.tr("Startup"))
-        pystartup_box = newcb(self.tr("Open a Python interpreter at startup"),
+        startup_group = QGroupBox(_("Startup"))
+        pystartup_box = newcb(_("Open a Python interpreter at startup"),
                               'open_python_at_startup')
-        ipystartup_box = newcb(self.tr("Open an IPython interpreter at startup"),
+        ipystartup_box = newcb(_("Open an IPython interpreter at startup"),
                                'open_ipython_at_startup')
         ipystartup_box.setEnabled(programs.is_module_installed('IPython'))
         
@@ -163,15 +163,15 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_group.setLayout(startup_layout)
         
         # Monitor Group
-        monitor_group = QGroupBox(self.tr("Monitor"))
-        monitor_label = QLabel(self.tr("The monitor provides introspection "
+        monitor_group = QGroupBox(_("Monitor"))
+        monitor_label = QLabel(_("The monitor provides introspection "
                                        "features to console: code completion, "
                                        "calltips and variable explorer. "
                                        "Because it relies on several modules, "
                                        "disabling the monitor may be useful "
                                        "to accelerate console startup."))
         monitor_label.setWordWrap(True)
-        monitor_box = newcb(self.tr("Enable monitor"), 'monitor/enabled')
+        monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
         for obj in (completion_box, case_comp_box, show_single_box,
                     comp_enter_box, calltips_box):
             self.connect(monitor_box, SIGNAL("toggled(bool)"), obj.setEnabled)
@@ -183,16 +183,16 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # PyQt Group
-        pyqt_group = QGroupBox(self.tr("PyQt"))
-        pyqt_label = QLabel(self.tr("PyQt installs an input hook that "
+        pyqt_group = QGroupBox(_("PyQt"))
+        pyqt_label = QLabel(_("PyQt installs an input hook that "
                         "allows creating and interacting with widgets in an "
                         "interactive interpreter without blocking it. It is "
                         "strongly recommended to remove it on Windows "
                         "platforms (it has no effect in IPython)."))
         pyqt_label.setWordWrap(True)
-        pyqt_hook_box = newcb(self.tr("Remove PyQt input hook"),
+        pyqt_hook_box = newcb(_("Remove PyQt input hook"),
                               'remove_pyqt_inputhook')
-        pyqt_setapi_box = newcb(self.tr("Ignore API change errors "
+        pyqt_setapi_box = newcb(_("Ignore API change errors "
                                         "(sip.setapi)"),
                                 'ignore_sip_setapi_errors')
         try:
@@ -207,8 +207,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pyqt_group.setLayout(pyqt_layout)
         
         # IPython Group
-        ipython_group = QGroupBox(self.tr("IPython"))
-        ipython_edit = self.create_lineedit(self.tr(
+        ipython_group = QGroupBox(_("IPython"))
+        ipython_edit = self.create_lineedit(_(
                             "IPython interpreter command line options:\n"
                             "(Qt4 and matplotlib support: -q4thread -pylab)"),
                             'ipython_options', alignment=Qt.Vertical)
@@ -219,19 +219,19 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         ipython_group.setEnabled(programs.is_module_installed("IPython"))
         
         # Matplotlib Group
-        mpl_group = QGroupBox(self.tr("Matplotlib"))
-        mpl_label = QLabel(self.tr("Patching Matplotlib library will add a "
+        mpl_group = QGroupBox(_("Matplotlib"))
+        mpl_label = QLabel(_("Patching Matplotlib library will add a "
                                    "button to customize figure options "
                                    "(curves/images plot parameters). This "
                                    "Spyder feature has been integrated in "
                                    "Matplotlib v1.0."))
         mpl_label.setWordWrap(True)
-        mpl_patch_box = newcb(self.tr("Patch Matplotlib figures"),
+        mpl_patch_box = newcb(_("Patch Matplotlib figures"),
                               'mpl_patch/enabled')
-        mpl_backend_edit = self.create_lineedit(self.tr("Matplotlib backend "
+        mpl_backend_edit = self.create_lineedit(_("Matplotlib backend "
                                                         "(default: Qt4Agg):"),
                                                 'mpl_patch/backend', "Qt4Agg",
-                                                self.tr("Set the GUI toolkit "
+                                                _("Set the GUI toolkit "
                                                         "used by Matplotlib to "
                                                         "show figures"),
                                                 alignment=Qt.Vertical)
@@ -247,12 +247,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
         
         # ETS Group
-        ets_group = QGroupBox(self.tr("Enthought Tool Suite"))
-        ets_label = QLabel(self.tr("Enthought Tool Suite (ETS) supports "
+        ets_group = QGroupBox(_("Enthought Tool Suite"))
+        ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
                                    "PyQt4 (qt4) and wxPython (wx) graphical "
                                    "user interfaces."))
         ets_label.setWordWrap(True)
-        ets_edit = self.create_lineedit(self.tr("ETS_TOOLKIT "
+        ets_edit = self.create_lineedit(_("ETS_TOOLKIT "
                                                 "(default value: qt4):"),
                                         'ets_backend', default='qt4',
                                         alignment=Qt.Vertical)
@@ -267,14 +267,14 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
                                     bg_group),
-                    self.tr("Display"))
+                    _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
-                    self.tr("Introspection"))
+                    _("Introspection"))
         tabs.addTab(self.create_tab(startup_group, umd_group),
-                    self.tr("Advanced settings"))
+                    _("Advanced settings"))
         tabs.addTab(self.create_tab(pyqt_group, ipython_group, mpl_group,
                                     ets_group),
-                    self.tr("External modules"))
+                    _("External modules"))
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
@@ -472,9 +472,9 @@ class ExternalConsole(SpyderPluginWidget):
                 old_shell = self.shellwidgets[index]
                 if old_shell.is_running():
                     answer = QMessageBox.question(self, self.get_plugin_title(),
-                        self.tr("%1 is already running in a separate process.\n"
-                                "Do you want to kill the process before starting "
-                                "a new one?").arg(osp.basename(fname)),
+                        _("%s is already running in a separate process.\n"
+                          "Do you want to kill the process before starting "
+                          "a new one?") % osp.basename(fname),
                         QMessageBox.Yes | QMessageBox.Cancel)
                     if answer == QMessageBox.Yes:
                         old_shell.process.kill()
@@ -596,9 +596,9 @@ class ExternalConsole(SpyderPluginWidget):
         else:
             fname = id(shellwidget)
             if os.name == 'nt':
-                tab_name = self.tr("Command Window")
+                tab_name = _("Command Window")
             else:
-                tab_name = self.tr("Terminal")
+                tab_name = _("Terminal")
             self.terminal_count += 1
             tab_name += (" %d" % self.terminal_count)
             tab_icon1 = get_icon('cmdprompt.png')
@@ -652,7 +652,7 @@ class ExternalConsole(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Console')
+        return _('Console')
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -668,20 +668,20 @@ class ExternalConsole(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
-                            self.tr("Open &interpreter"), None,
-                            'python.png', self.tr("Open a Python interpreter"),
+                            _("Open &interpreter"), None,
+                            'python.png', _("Open a Python interpreter"),
                             triggered=self.open_interpreter)
         if os.name == 'nt':
-            text = self.tr("Open &command prompt")
-            tip = self.tr("Open a Windows command prompt")
+            text = _("Open &command prompt")
+            tip = _("Open a Windows command prompt")
         else:
-            text = self.tr("Open &terminal")
-            tip = self.tr("Open a terminal window inside Spyder")
+            text = _("Open &terminal")
+            tip = _("Open a terminal window inside Spyder")
         terminal_action = create_action(self, text, None, 'cmdprompt.png', tip,
                                         triggered=self.open_terminal)
         run_action = create_action(self,
-                            self.tr("&Run..."), None,
-                            'run_small.png', self.tr("Run a Python script"),
+                            _("&Run..."), None,
+                            'run_small.png', _("Run a Python script"),
                             triggered=self.run_script)
 
         run_menu_actions = [interpreter_action]
@@ -689,9 +689,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
         ipython_action = create_action(self,
-                            self.tr("Open IPython interpreter"), None,
+                            _("Open IPython interpreter"), None,
                             'ipython.png',
-                            self.tr("Open an IPython interpreter"),
+                            _("Open an IPython interpreter"),
                             triggered=self.open_ipython)
         if programs.is_module_installed("IPython"):
             self.menu_actions.insert(1, ipython_action)
@@ -860,8 +860,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Run a Python script"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getOpenFileName(self,
-                      self.tr("Run Python script"), os.getcwdu(),
-                      self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+                      _("Run Python script"), os.getcwdu(),
+                      _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.start(fname=unicode(filename), wdir=None, args='',
@@ -869,8 +869,8 @@ class ExternalConsole(SpyderPluginWidget):
         
     def set_umd_namelist(self):
         """Set UMD excluded modules name list"""
-        arguments, valid = QInputDialog.getText(self, self.tr('UMD'),
-                                  self.tr('UMD excluded modules:\n'
+        arguments, valid = QInputDialog.getText(self, _('UMD'),
+                                  _('UMD excluded modules:\n'
                                           '(example: guidata, guiqwt)'),
                                   QLineEdit.Normal,
                                   ", ".join(self.get_option('umd/namelist')))
@@ -882,15 +882,14 @@ class ExternalConsole(SpyderPluginWidget):
                                   if programs.is_module_installed(module_name)]
                 invalid = ", ".join(set(namelist)-set(fixed_namelist))
                 if invalid:
-                    QMessageBox.warning(self, self.tr('UMD'),
-                                    self.tr("The following modules are not "
-                                            "installed on your machine:\n%1"
-                                            ).arg(invalid), QMessageBox.Ok)
-                QMessageBox.information(self, self.tr('UMD'),
-                                self.tr("Please note that these changes will "
-                                        "be applied only to new Python/IPython "
-                                        "interpreters"),
-                                QMessageBox.Ok)
+                    QMessageBox.warning(self, _('UMD'),
+                                        _("The following modules are not "
+                                          "installed on your machine:\n%s"
+                                          ) % invalid, QMessageBox.Ok)
+                QMessageBox.information(self, _('UMD'),
+                                    _("Please note that these changes will "
+                                      "be applied only to new Python/IPython "
+                                      "interpreters"), QMessageBox.Ok)
             else:
                 fixed_namelist = []
             self.set_option('umd/namelist', fixed_namelist)

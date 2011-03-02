@@ -62,6 +62,9 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
                                  pyqtSignature, pyqtProperty)
 import datetime
 
+# Local imports
+from spyderlib.config import _
+
 
 class ColorButton(QPushButton):
     """
@@ -198,12 +201,12 @@ class FontLayout(QGridLayout):
         self.addWidget(self.size, 1, 0)
         
         # Italic or not
-        self.italic = QCheckBox(self.tr("Italic"), parent)
+        self.italic = QCheckBox(_("Italic"), parent)
         self.italic.setChecked(font.italic())
         self.addWidget(self.italic, 1, 1)
         
         # Bold or not
-        self.bold = QCheckBox(self.tr("Bold"), parent)
+        self.bold = QCheckBox(_("Bold"), parent)
         self.bold.setChecked(font.bold())
         self.addWidget(self.bold, 1, 2)
         

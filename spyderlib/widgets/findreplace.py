@@ -23,7 +23,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 
 
 class FindReplace(QWidget):
@@ -49,13 +49,13 @@ class FindReplace(QWidget):
         glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
-        self.search_text = PatternComboBox(self, tip=self.tr("Search string"),
+        self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
         self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
                      self.text_has_changed)
         
         self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
-                                           tip=self.tr("Regular expression"))
+                                           tip=_("Regular expression"))
         self.re_button.setCheckable(True)
         self.connect(self.re_button, SIGNAL("toggled(bool)"),
                      lambda state: self.find())
@@ -71,10 +71,10 @@ class FindReplace(QWidget):
         self.connect(self.previous_button, SIGNAL('clicked()'),
                      self.update_search_combo)
 
-        self.case_check = QCheckBox(self.tr("Case Sensitive"))
+        self.case_check = QCheckBox(_("Case Sensitive"))
         self.connect(self.case_check, SIGNAL("stateChanged(int)"),
                      lambda state: self.find())
-        self.words_check = QCheckBox(self.tr("Whole words"))
+        self.words_check = QCheckBox(_("Whole words"))
         self.connect(self.words_check, SIGNAL("stateChanged(int)"),
                      lambda state: self.find())
 
@@ -87,12 +87,12 @@ class FindReplace(QWidget):
         glayout.addLayout(hlayout, 0, 1)
 
         # Replace layout
-        replace_with = QLabel(self.tr("Replace with:"))
+        replace_with = QLabel(_("Replace with:"))
         self.replace_text = PatternComboBox(self, adjust_to_minimum=False,
-                                            tip=self.tr("Replace string"))
+                                            tip=_("Replace string"))
         
         self.replace_button = create_toolbutton(self,
-                                     text=self.tr("Replace/find"),
+                                     text=_("Replace/find"),
                                      icon=get_std_icon("DialogApplyButton"),
                                      triggered=self.replace_find,
                                      text_beside_icon=True)
@@ -101,7 +101,7 @@ class FindReplace(QWidget):
         self.connect(self.replace_button, SIGNAL('clicked()'),
                      self.update_search_combo)
         
-        self.all_check = QCheckBox(self.tr("Replace all"))
+        self.all_check = QCheckBox(_("Replace all"))
         
         self.replace_layout = QHBoxLayout()
         widgets = [replace_with, self.replace_text, self.replace_button,

@@ -17,9 +17,9 @@ from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
-                                       create_action, translate)
+                                       create_action)
 
 # For debugging purpose:
 import sys
@@ -109,7 +109,7 @@ class BaseTabs(QTabWidget):
         corner_widgets.setdefault(Qt.TopRightCorner, [])
         self.browse_button = create_toolbutton(self,
                                           icon=get_icon("browse_tab.png"),
-                                          tip=translate("Tabs", "Browse tabs"))
+                                          tip=_("Browse tabs"))
         self.browse_tabs_menu = QMenu(self)
         self.browse_button.setMenu(self.browse_tabs_menu)
         self.browse_button.setPopupMode(self.browse_button.InstantPopup)
@@ -213,8 +213,7 @@ class BaseTabs(QTabWidget):
             # Workaround for Qt < 4.5
             close_button = create_toolbutton(self, triggered=func,
                                              icon=get_icon("fileclose.png"),
-                                             tip=translate("Tabs",
-                                                           "Close current tab"))
+                                             tip=_("Close current tab"))
             self.setCornerWidget(close_button if state else None)
 
         

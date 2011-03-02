@@ -12,8 +12,7 @@ from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
-from spyderlib.config import get_icon, get_font
-from spyderlib.utils.qthelpers import translate
+from spyderlib.config import get_icon, get_font, _
 
 
 class TextEditor(QDialog):
@@ -49,7 +48,7 @@ class TextEditor(QDialog):
         self.setWindowFlags(Qt.Window)
         
         self.setWindowIcon(get_icon('edit.png'))
-        self.setWindowTitle(translate("TextEditor", "Text editor") + \
+        self.setWindowTitle(_("Text editor") + \
                             "%s" % (" - "+str(title) if str(title) else ""))
         self.resize(size[0], size[1])
         

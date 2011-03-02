@@ -57,21 +57,6 @@ def install_translators(qapp):
     paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
     if qt_translator.load("qt_"+locale, paths):
         qapp.installTranslator(qt_translator)
-    # Spyder-specific translator
-    app_translator = QTranslator()
-    TRANSLATORS.append(app_translator) # Keep reference alive
-    if app_translator.load("spyder_"+locale, DATA_PATH):
-        qapp.installTranslator(app_translator)
-    # Load 3rd-party plugin translators
-    for modname in get_spyderplugins(prefix='p_', extension='.py'):
-        plugin_translator = QTranslator()
-        TRANSLATORS.append(plugin_translator)
-        if plugin_translator.load(modname+"_"+locale, PLUGIN_PATH):
-            qapp.installTranslator(plugin_translator)
-
-def translate(context, string):
-    """Translation"""
-    return QApplication.translate(context, string)
 
 def keybinding(attr):
     """Return keybinding"""

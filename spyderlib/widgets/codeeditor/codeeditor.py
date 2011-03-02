@@ -33,9 +33,8 @@ STDOUT = sys.stdout
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self 
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.config import CONF, get_font, get_icon, get_image_path
-from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
-                                       translate)
+from spyderlib.config import CONF, get_font, get_icon, get_image_path, _
+from spyderlib.utils.qthelpers import add_actions, create_action, keybinding
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import sourcecode, is_keyword
 from spyderlib.widgets.editortools import (PythonCFM, LineNumberArea, EdgeLine,
@@ -666,8 +665,8 @@ class CodeEditor(TextEditBaseWidget):
             if condition is None:
                 condition = ''
             condition, valid = QInputDialog.getText(self,
-                                        translate("SimpleEditor", 'Breakpoint'),
-                                        translate("SimpleEditor", "Condition:"),
+                                        _('Breakpoint'),
+                                        _("Condition:"),
                                         QLineEdit.Normal, condition)
             if valid:
                 condition = str(condition)
@@ -1018,7 +1017,7 @@ class CodeEditor(TextEditBaseWidget):
     def __show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
         msglist = [ msg for msg, _error in code_analysis ]
-        self.show_calltip(self.tr("Code analysis"), msglist,
+        self.show_calltip(_("Code analysis"), msglist,
                           color='#129625', at_line=line_number)
 
     def go_to_next_warning(self):
@@ -1072,7 +1071,7 @@ class CodeEditor(TextEditBaseWidget):
                 break
         line_number = block.blockNumber()+1
         self.go_to_line(line_number)
-        self.show_calltip(self.tr("To do"), data.todo,
+        self.show_calltip(_("To do"), data.todo,
                           color='#3096FC', at_line=line_number)
         return self.get_position('cursor')
             
@@ -1380,42 +1379,33 @@ class CodeEditor(TextEditBaseWidget):
 #===============================================================================
     def setup_context_menu(self):
         """Setup context menu"""
-        self.undo_action = create_action(self,
-                           translate("SimpleEditor", "Undo"),
+        self.undo_action = create_action(self, _("Undo"),
                            shortcut=keybinding('Undo'),
                            icon=get_icon('undo.png'), triggered=self.undo)
-        self.redo_action = create_action(self,
-                           translate("SimpleEditor", "Redo"),
+        self.redo_action = create_action(self, _("Redo"),
                            shortcut=keybinding('Redo'),
                            icon=get_icon('redo.png'), triggered=self.redo)
-        self.cut_action = create_action(self,
-                           translate("SimpleEditor", "Cut"),
+        self.cut_action = create_action(self, _("Cut"),
                            shortcut=keybinding('Cut'),
                            icon=get_icon('editcut.png'), triggered=self.cut)
-        self.copy_action = create_action(self,
-                           translate("SimpleEditor", "Copy"),
+        self.copy_action = create_action(self, _("Copy"),
                            shortcut=keybinding('Copy'),
                            icon=get_icon('editcopy.png'), triggered=self.copy)
-        paste_action = create_action(self,
-                           translate("SimpleEditor", "Paste"),
+        paste_action = create_action(self, _("Paste"),
                            shortcut=keybinding('Paste'),
                            icon=get_icon('editpaste.png'), triggered=self.paste)
-        self.delete_action = create_action(self,
-                           translate("SimpleEditor", "Delete"),
+        self.delete_action = create_action(self, _("Delete"),
                            shortcut=keybinding('Delete'),
                            icon=get_icon('editdelete.png'),
                            triggered=self.delete)
-        selectall_action = create_action(self,
-                           translate("SimpleEditor", "Select All"),
+        selectall_action = create_action(self, _("Select All"),
                            shortcut=keybinding('SelectAll'),
                            icon=get_icon('selectall.png'),
                            triggered=self.selectAll)
-        comment_action = create_action(self,
-                           translate("SimpleEditor", "Comment"),
+        comment_action = create_action(self, _("Comment"),
                            icon=get_icon("comment.png"),
                            triggered=self.comment)
-        uncomment_action = create_action(self,
-                           translate("SimpleEditor", "Uncomment"),
+        uncomment_action = create_action(self, _("Uncomment"),
                            icon=get_icon("uncomment.png"),
                            triggered=self.uncomment)
         self.menu = QMenu(self)

@@ -23,11 +23,11 @@ STDERR = sys.stderr
 # Local imports
 from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
                              programs, log_last_error, log_dt)
-from spyderlib.utils.qthelpers import (get_std_icon, translate, create_action,
+from spyderlib.utils.qthelpers import (get_std_icon, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
 from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
-from spyderlib.config import get_icon, get_image_path, get_conf_path
+from spyderlib.config import get_icon, get_image_path, get_conf_path, _
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
@@ -691,52 +691,49 @@ class ExplorerTreeWidget(OneColumnTree):
 
         if items and not only_folders:
             open_file_act = create_action(self,
-                              text=translate('ProjectExplorer', 'Open'),
+                              text=_('Open'),
                               triggered=lambda: self.open_file_from_menu(items))
             actions.append(open_file_act)
         
         new_project_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Project...'),
+                            text=_('Project...'),
                             icon=get_icon('project_expanded.png'),
                             triggered=self.new_project)
         if items:
             new_file_act = create_action(self,
-                                text=translate('ProjectExplorer', 'File...'),
+                                text=_('File...'),
                                 icon=get_icon('filenew.png'),
                                 triggered=lambda: self.new_file(items[-1]))
             new_folder_act = create_action(self,
-                                text=translate('ProjectExplorer', 'Folder...'),
+                                text=_('Folder...'),
                                 icon=get_icon('folder_collapsed.png'),
                                 triggered=lambda: self.new_folder(items[-1]))
             new_module_act = create_action(self,
-                                text=translate('ProjectExplorer', 'Module...'),
+                                text=_('Module...'),
                                 icon=get_icon('py.png'),
                                 triggered=lambda: self.new_module(items[-1]))
             new_package_act = create_action(self,
                                 icon=get_icon('package_collapsed.png'),
-                                text=translate('ProjectExplorer', 'Package...'),
+                                text=_('Package...'),
                                 triggered=lambda: self.new_package(items[-1]))
-            new_act_menu = QMenu(translate('ProjectExplorer', 'New'), self)
+            new_act_menu = QMenu(_('New'), self)
             add_actions(new_act_menu, (new_project_act, None,
                                        new_file_act, new_folder_act, None,
                                        new_module_act, new_package_act))
             actions.append(new_act_menu)
         else:
-            new_project_act.setText(translate('ProjectExplorer',
-                                              'New project...'))
+            new_project_act.setText(_('New project...'))
             actions.append(new_project_act)
         
         import_spyder_act = create_action(self,
-                            text=translate('ProjectExplorer',
-                                           'Existing Spyder project'),
+                            text=_('Existing Spyder project'),
                             icon=get_icon('spyder.svg'),
                             triggered=self.import_existing_project)
         import_pydev_act = create_action(self,
-                            text=translate('ProjectExplorer',
-                                           'Existing Pydev project'),
+                            text=_('Existing Pydev project'),
                             icon=get_icon('pydev.png'),
                             triggered=self.import_existing_pydev_project)
-        import_act_menu = QMenu(translate('ProjectExplorer', 'Import'), self)
+        import_act_menu = QMenu(_('Import'), self)
         add_actions(import_act_menu, (import_spyder_act, import_pydev_act))
         actions += [import_act_menu, None]
         
@@ -744,22 +741,21 @@ class ExplorerTreeWidget(OneColumnTree):
             return actions
             
         open_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Open project'),
+                            text=_('Open project'),
                             icon=get_icon('project_expanded.png'),
                             triggered=lambda: self.open_project(projects))
         close_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Close project'),
+                            text=_('Close project'),
                             icon=get_icon('project_closed.png'),
                             triggered=lambda: self.close_project(projects))
         close_unrelated_act = create_action(self,
-                text=translate('ProjectExplorer', 'Close unrelated projects'),
+                text=_('Close unrelated projects'),
                 triggered=lambda: self.close_unrelated_projects(projects))
         manage_path_act = create_action(self, icon=get_icon('pythonpath.png'),
-                            text=translate('ProjectExplorer',
-                                           'PYTHONPATH manager'),
+                            text=_('PYTHONPATH manager'),
                             triggered=lambda: self.manage_path(projects))
         relproj_act = create_action(self,
-                    text=translate('ProjectExplorer', 'Edit related projects'),
+                    text=_('Edit related projects'),
                     triggered=lambda: self.edit_related_projects(projects))
         relproj_act.setEnabled(len(self.projects) > 1)
         if any_project:
@@ -770,43 +766,40 @@ class ExplorerTreeWidget(OneColumnTree):
             actions += [manage_path_act, relproj_act, None]
                 
         rename_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Rename...'),
+                            text=_('Rename...'),
                             icon=get_icon('rename.png'),
                             triggered=lambda: self.rename(items))
         delete_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Delete'),
+                            text=_('Delete'),
                             icon=get_icon('delete.png'),
                             triggered=lambda: self.delete(items))
         actions += [rename_act, delete_act, None]
         
         add_to_path_act = create_action(self,
-                            text=translate('ProjectExplorer',
-                                           'Add to PYTHONPATH'),
+                            text=_('Add to PYTHONPATH'),
                             icon=get_icon('add_to_path.png'),
                             triggered=lambda: self.add_to_path(items))
         remove_from_path_act = create_action(self,
-                            text=translate('ProjectExplorer',
-                                           'Remove from PYTHONPATH'),
+                            text=_('Remove from PYTHONPATH'),
                             icon=get_icon('remove_from_path.png'),
                             triggered=lambda: self.remove_from_path(items))
         properties_act = create_action(self,
-                            text=translate('ProjectExplorer', 'Properties'),
+                            text=_('Properties'),
                             icon=get_icon('advanced.png'),
                             triggered=lambda: self.show_properties(items))
         
         if os.name == 'nt':
             winexp_act = create_action(self,
-                            text=translate('ProjectExplorer',
-                                           "Open in Windows Explorer"),
+                            text=_("Open in Windows Explorer"),
                             icon="magnifier.png",
                             triggered=lambda: self.open_windows_explorer(items))
-            _title = translate('ProjectExplorer', "Open command prompt here")
+            _title = _("Open command prompt here")
         else:
             winexp_act = None
-            _title = translate('ProjectExplorer', "Open terminal here")
+            _title = _("Open terminal here")
         terminal_act = create_action(self, text=_title, icon="cmdprompt.png",
                             triggered=lambda: self.open_terminal(items))
-        _title = translate('ProjectExplorer', "Open Python interpreter here")
+        _title = _("Open Python interpreter here")
         interpreter_act = create_action(self, text=_title, icon="python.png",
                             triggered=lambda: self.open_interpreter(items))
         
@@ -818,7 +811,7 @@ class ExplorerTreeWidget(OneColumnTree):
             actions += [None, winexp_act, terminal_act, interpreter_act]
             if programs.is_module_installed("IPython"):
                 ipython_act = create_action(self,
-                        text=translate('ProjectExplorer', "Open IPython here"),
+                        text=_("Open IPython here"),
                         icon="ipython.png",
                         triggered=lambda: self.open_ipython(items))
                 actions.append(ipython_act)
@@ -931,7 +924,7 @@ class ExplorerTreeWidget(OneColumnTree):
         
     def __update_title(self):
         nb = len(self.projects)
-        title = unicode("%d "+translate('ProjectExplorer', 'project')) % nb
+        title = unicode("%d "+_('project')) % nb
         if nb > 1:
             title += "s"
         self.set_title(title)
@@ -1016,11 +1009,10 @@ class ExplorerTreeWidget(OneColumnTree):
     def is_project_already_here(self, root_path, silent=False):
         if root_path in [project.root_path for project in self.projects]:
             if not silent:
-                QMessageBox.critical(self,
-                        translate('ProjectExplorer', "Project Explorer"),
-                        translate('ProjectExplorer', "The project <b>%1</b>"
-                                  " is already opened!"
-                                  ).arg(osp.basename(root_path)))
+                QMessageBox.critical(self, _("Project Explorer"),
+                                     _("The project <b>%s</b>"
+                                       " is already opened!"
+                                       ) % osp.basename(root_path))
             return True
         else:
             return False
@@ -1030,8 +1022,8 @@ class ExplorerTreeWidget(OneColumnTree):
         while True:
             self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
             folder = QFileDialog.getExistingDirectory(self,
-                      translate('ProjectExplorer', "Select project root path"),
-                      self.last_folder)
+                                              _("Select project root path"),
+                                              self.last_folder)
             self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
             if folder.isEmpty():
                 return
@@ -1047,18 +1039,17 @@ class ExplorerTreeWidget(OneColumnTree):
         folder = self.__select_project_root_path()
         if folder is None:
             return
-        title = translate('ProjectExplorer', 'New project')
+        title = _('New project')
         name = osp.basename(folder)
         while True:
-            name, valid = QInputDialog.getText(self, title,
-                               translate('ProjectExplorer', 'Project name:'),
-                               QLineEdit.Normal, name)
+            name, valid = QInputDialog.getText(self, title, _('Project name:'),
+                                               QLineEdit.Normal, name)
             if valid and name:
                 name = unicode(name)
                 if name in [project.name for project in self.projects]:
                     QMessageBox.critical(self, title,
-                            translate('ProjectExplorer', "A project named "
-                                      "<b>%1</b> already exists").arg(name))
+                                         _("A project named "
+                                           "<b>%s</b> already exists") % name)
                     continue
                 project = self.add_project(folder)
                 project.set_name(name)
@@ -1067,7 +1058,7 @@ class ExplorerTreeWidget(OneColumnTree):
                 return False
     
     def __select_existing_project(self, typename, configname):
-        title = translate('ProjectExplorer', 'Import existing project')
+        title = _('Import existing project')
         while True:
             folder = self.__select_project_root_path()
             if folder is None:
@@ -1080,8 +1071,7 @@ class ExplorerTreeWidget(OneColumnTree):
                     data = []
                     for subfolder in subfolders:
                         data.append((subfolder, False))
-                    comment = translate('ProjectExplorer',
-                                        "Select projects to import")
+                    comment = _("Select projects to import")
                     result = fedit(data, title=title, comment=comment)
                     if result is None:
                         return
@@ -1093,9 +1083,9 @@ class ExplorerTreeWidget(OneColumnTree):
                         return selected_folders
                 else:
                     QMessageBox.critical(self, title,
-                         translate('ProjectExplorer', "The folder <i>%1</i> "
-                                   "does not contain a valid %2 project"
-                                   ).arg(osp.basename(folder)).arg(typename))
+                                     _("The folder <i>%s</i> "
+                                       "does not contain a valid %s project"
+                                       ) % (osp.basename(folder), typename))
                     continue
             return folder
     
@@ -1119,11 +1109,10 @@ class ExplorerTreeWidget(OneColumnTree):
                 name, related_projects, path = get_pydev_project_infos(folder)
             except RuntimeError, error:
                 QMessageBox.critical(self,
-                    translate('ProjectExplorer', 'Import existing Pydev project'),
-                    translate('ProjectExplorer',
-                              "<b>Unable to read Pydev project <i>%1</i></b>"
-                              "<br><br>Error message:<br>%2") \
-                    .arg(osp.basename(folder)).arg(str(error)))
+                            _('Import existing Pydev project'),
+                            _("<b>Unable to read Pydev project <i>%s</i></b>"
+                              "<br><br>Error message:<br>%s"
+                              ) % (osp.basename(folder), str(error)))
             finally:
                 project = self.add_project(folder, silent=True)
                 if project is not None:
@@ -1143,18 +1132,16 @@ class ExplorerTreeWidget(OneColumnTree):
             try:
                 create_func(unicode(fname))
             except EnvironmentError, error:
-                QMessageBox.critical(self,
-                                 translate('ProjectExplorer', "New file"),
-                                 translate('ProjectExplorer',
-                                           "<b>Unable to create file <i>%1</i>"
-                                           "</b><br><br>Error message:<br>%2"
-                                           ).arg(fname).arg(str(error)))
+                QMessageBox.critical(self, _("New file"),
+                                     _("<b>Unable to create file <i>%s</i>"
+                                       "</b><br><br>Error message:<br>%s"
+                                       ) % (fname, str(error)))
             finally:
                 self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
     
     def new_file(self, item):
-        title = translate('ProjectExplorer', "New file")
-        filters = translate('Explorer', "All files")+" (*)"
+        title = _("New file")
+        filters = _("All files")+" (*)"
         create_func = lambda fname: file(fname, 'wb').write('')
         self.__create_new_file(item, title, filters, create_func)
     
@@ -1170,10 +1157,10 @@ class ExplorerTreeWidget(OneColumnTree):
                 os.mkdir(dirname)
             except EnvironmentError, error:
                 QMessageBox.critical(self, title,
-                                     translate('ProjectExplorer', "<b>Unable "
-                                               "to create folder <i>%1</i></b>"
-                                               "<br><br>Error message:<br>%2"
-                                               ).arg(dirname).arg(str(error)))
+                                     _("<b>Unable "
+                                       "to create folder <i>%s</i></b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (dirname, str(error)))
             finally:
                 if is_package:
                     fname = osp.join(dirname, '__init__.py')
@@ -1181,28 +1168,28 @@ class ExplorerTreeWidget(OneColumnTree):
                         file(fname, 'wb').write('#')
                     except EnvironmentError, error:
                         QMessageBox.critical(self, title,
-                                     translate('ProjectExplorer', "<b>Unable "
-                                               "to create file <i>%1</i></b>"
-                                               "<br><br>Error message:<br>%2"
-                                               ).arg(fname).arg(str(error)))
+                                             _("<b>Unable "
+                                               "to create file <i>%s</i></b>"
+                                               "<br><br>Error message:<br>%s"
+                                               ) % (fname, str(error)))
 
     def new_folder(self, item):
-        title = translate('ProjectExplorer', 'New folder')
-        subtitle = translate('ProjectExplorer', 'Folder name:')
+        title = _('New folder')
+        subtitle = _('Folder name:')
         self.__create_new_folder(item, title, subtitle, is_package=False)
         QTimer.singleShot(500, self.refresh)
     
     def new_module(self, item):
-        title = translate('ProjectExplorer', "New module")
-        filters = translate('Explorer', "Python scripts")+" (*.py *.pyw *.ipy)"
+        title = _("New module")
+        filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
         create_func = lambda fname: self.parent_widget.emit( \
                                      SIGNAL("create_module(QString)"), fname)
         self.__create_new_file(item, title, filters, create_func)
         QTimer.singleShot(500, self.refresh)
     
     def new_package(self, item):
-        title = translate('ProjectExplorer', 'New package')
-        subtitle = translate('ProjectExplorer', 'Package name:')
+        title = _('New package')
+        subtitle = _('Package name:')
         self.__create_new_folder(item, title, subtitle, is_package=True)
         QTimer.singleShot(500, self.refresh)
     
@@ -1222,10 +1209,8 @@ class ExplorerTreeWidget(OneColumnTree):
         for item in items:
             project = self.__get_project_from_item(item)
             if project.is_root_item(item):
-                name, valid = QInputDialog.getText(self,
-                                      translate('ProjectExplorer', 'Rename'),
-                                      translate('ProjectExplorer', 'New name:'),
-                                      QLineEdit.Normal, project.name)
+                name, valid = QInputDialog.getText(self, _('Rename'),
+                              _('New name:'), QLineEdit.Normal, project.name)
                 if valid:
                     old_name = project.name
                     new_name = unicode(name)
@@ -1238,10 +1223,9 @@ class ExplorerTreeWidget(OneColumnTree):
                     self.__sort_toplevel_items()
             else:
                 fname = get_item_path(item)
-                path, valid = QInputDialog.getText(self,
-                                      translate('ProjectExplorer', 'Rename'),
-                                      translate('ProjectExplorer', 'New name:'),
-                                      QLineEdit.Normal, osp.basename(fname))
+                path, valid = QInputDialog.getText(self, _('Rename'),
+                                      _('New name:'), QLineEdit.Normal,
+                                      osp.basename(fname))
                 if valid:
                     path = osp.join(osp.dirname(fname), unicode(path))
                     if path == fname:
@@ -1252,12 +1236,10 @@ class ExplorerTreeWidget(OneColumnTree):
                              SIGNAL("renamed(QString,QString)"), fname, path)
                         self.remove_path_from_project_pythonpath(project, fname)
                     except EnvironmentError, error:
-                        QMessageBox.critical(self,
-                            translate('ProjectExplorer', "Rename"),
-                            translate('ProjectExplorer',
-                                      "<b>Unable to rename file <i>%1</i></b>"
-                                      "<br><br>Error message:<br>%2") \
-                            .arg(osp.basename(fname)).arg(str(error)))
+                        QMessageBox.critical(self, _("Rename"),
+                                    _("<b>Unable to rename file <i>%s</i></b>"
+                                      "<br><br>Error message:<br>%s"
+                                      ) % (osp.basename(fname), str(error)))
                 project.refresh(self, self.include, self.exclude, self.show_all)
         
     def delete(self, items):
@@ -1273,12 +1255,11 @@ class ExplorerTreeWidget(OneColumnTree):
         for item in items:
             project = self.__get_project_from_item(item)
             if project.is_root_item(item):
-                answer = QMessageBox.warning(self,
-                        translate("ProjectExplorer", "Delete"),
-                        translate("ProjectExplorer", "Do you really want "
-                                  "to delete project <b>%1</b>?<br><br>"
+                answer = QMessageBox.warning(self, _("Delete"),
+                                _("Do you really want "
+                                  "to delete project <b>%s</b>?<br><br>"
                                   "Note: project files won't be deleted from "
-                                  "disk.").arg(project.get_name()), pj_buttons)
+                                  "disk.") % project.get_name(), pj_buttons)
                 if answer == QMessageBox.Yes:
                     self.remove_project(project)
                 elif answer == QMessageBox.Cancel:
@@ -1286,11 +1267,10 @@ class ExplorerTreeWidget(OneColumnTree):
             else:
                 fname = get_item_path(item)
                 if yes_to_all is None:
-                    answer = QMessageBox.warning(self,
-                            translate("ProjectExplorer", "Delete"),
-                            translate("ProjectExplorer", "Do you really want "
-                                      "to delete <b>%1</b>?") \
-                            .arg(osp.basename(fname)), buttons)
+                    answer = QMessageBox.warning(self, _("Delete"),
+                                         _("Do you really want "
+                                           "to delete <b>%s</b>?"
+                                           ) % osp.basename(fname), buttons)
                     if answer == QMessageBox.No:
                         continue
                     elif answer == QMessageBox.Cancel:
@@ -1308,13 +1288,11 @@ class ExplorerTreeWidget(OneColumnTree):
                         self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
                                                 fname)
                 except EnvironmentError, error:
-                    action_str = translate('ProjectExplorer', 'delete')
-                    QMessageBox.critical(self,
-                        translate('ProjectExplorer', "Project Explorer"),
-                        translate('ProjectExplorer',
-                                  "<b>Unable to %1 <i>%2</i></b>"
-                                  "<br><br>Error message:<br>%3") \
-                        .arg(action_str).arg(fname).arg(str(error)))
+                    action_str = _('delete')
+                    QMessageBox.critical(self, _("Project Explorer"),
+                                    _("<b>Unable to %s <i>%s</i></b>"
+                                      "<br><br>Error message:<br>%3"
+                                      ) % (action_str, fname).arg(str(error)))
         QTimer.singleShot(500, self.refresh)
     
     def add_path_to_project_pythonpath(self, project, path):
@@ -1358,7 +1336,7 @@ class ExplorerTreeWidget(OneColumnTree):
             self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
     
     def edit_related_projects(self, projects):
-        title = translate('ProjectExplorer', 'Related projects')
+        title = _('Related projects')
         for project in projects:
             related_projects = project.get_related_projects()
             data = []
@@ -1366,9 +1344,8 @@ class ExplorerTreeWidget(OneColumnTree):
             for proj in other_projects:
                 name = proj.get_name()
                 data.append((name, name in related_projects))
-            comment = translate('ProjectExplorer',
-                                "Select projects which are related to "
-                                "<b>%1</b>").arg(project.get_name())
+            comment = _("Select projects which are related to "
+                        "<b>%s</b>") % project.get_name()
             result = fedit(data, title=title, comment=comment)
             if result is not None:
                 related_projects = []
@@ -1390,14 +1367,12 @@ class ExplorerTreeWidget(OneColumnTree):
             f, l = count_lines(path)
             files += f
             lines += l
-        QMessageBox.information(self, translate('ProjectExplorer',
-                                                "Project Explorer"),
-                                translate('ProjectExplorer',
-                                          "Statistics on source files only:<br>"
-                                          "(Python, C/C++, Fortran)<br><br>"
-                                          "<b>%1</b> files.<br>"
-                                          "<b>%2</b> lines of code.") \
-                                .arg(str(files)).arg(str(lines)))
+        QMessageBox.information(self, _("Project Explorer"),
+                                _("Statistics on source files only:<br>"
+                                  "(Python, C/C++, Fortran)<br><br>"
+                                  "<b>%s</b> files.<br>"
+                                  "<b>%s</b> lines of code."
+                                  ) % (str(files), str(lines)))
         
     def open_windows_explorer(self, items):
         for path in sorted([get_item_path(_it) for _it in items]):
@@ -1471,12 +1446,10 @@ class ExplorerTreeWidget(OneColumnTree):
                     if no_to_all:
                         continue
                 elif osp.isfile(dst_fname):
-                    answer = QMessageBox.warning(self,
-                            translate('ProjectExplorer', 'Project explorer'),
-                            translate('ProjectExplorer',
-                                      'File <b>%2</b> already exists.<br>'
-                                      'Do you want to overwrite it?') \
-                                      .arg(dst_fname), buttons)
+                    answer = QMessageBox.warning(self, _('Project explorer'),
+                              _('File <b>%s</b> already exists.<br>'
+                                'Do you want to overwrite it?') % dst_fname,
+                              buttons)
                     if answer == QMessageBox.No:
                         continue
                     elif answer == QMessageBox.Cancel:
@@ -1487,11 +1460,9 @@ class ExplorerTreeWidget(OneColumnTree):
                         no_to_all = True
                         continue
                 else:
-                    QMessageBox.critical(self, translate('ProjectExplorer',
-                                                         'Project explorer'),
-                                         translate('ProjectExplorer', 'Folder '
-                                                   '<b>%2</b> already exists.')\
-                                         .arg(dst_fname), QMessageBox.Ok)
+                    QMessageBox.critical(self, _('Project explorer'),
+                                         _('Folder <b>%s</b> already exists.'
+                                           ) % dst_fname, QMessageBox.Ok)
                     event.setDropAction(Qt.CopyAction)
                     return
             try:
@@ -1508,15 +1479,13 @@ class ExplorerTreeWidget(OneColumnTree):
                     self.parent_widget.emit(SIGNAL("removed(QString)"), src)
             except EnvironmentError, error:
                 if action == Qt.CopyAction:
-                    action_str = translate('ProjectExplorer', 'copy')
+                    action_str = _('copy')
                 else:
-                    action_str = translate('ProjectExplorer', 'move')
-                QMessageBox.critical(self,
-                    translate('ProjectExplorer', "Project Explorer"),
-                    translate('ProjectExplorer',
-                              "<b>Unable to %1 <i>%2</i></b>"
-                              "<br><br>Error message:<br>%3") \
-                    .arg(action_str).arg(src).arg(str(error)))
+                    action_str = _('move')
+                QMessageBox.critical(self, _("Project Explorer"),
+                                     _("<b>Unable to %s <i>%s</i></b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (action_str, src, str(error)))
                     
 #            print str(func)+":", src, "to:", dst
 
@@ -1543,19 +1512,16 @@ class ProjectExplorerWidget(QWidget):
                               default_project_path=default_project_path)
 
         filters_action = create_toolbutton(self, icon=get_icon('filter.png'),
-                                           tip=translate('ProjectExplorer',
-                                                   "Edit filename filter"),
+                                           tip=_("Edit filename filter"),
                                            triggered=self.edit_filter)
         # Show all files
         all_action = create_toolbutton(self, icon=get_icon('show_all.png'),
-                                       tip=translate('ProjectExplorer',
-                                                     "Show all files"),
+                                       tip=_("Show all files"),
                                        toggled=self.toggle_all)
         all_action.setChecked(show_all)
         
-        refresh_btn = create_toolbutton(self,
-                        icon=get_icon('reload.png'),
-                        tip=translate('ProjectExplorer', "Refresh"),
+        refresh_btn = create_toolbutton(self, icon=get_icon('reload.png'),
+                        tip=_("Refresh"),
                         triggered=lambda: self.treewidget.refresh(clear=True))
         
         collapse_btn = create_toolbutton(self, text_beside_icon=False)
@@ -1604,15 +1570,12 @@ class ProjectExplorerWidget(QWidget):
     def edit_filter(self):
         """Edit include/exclude filter"""
         include, exclude = self.treewidget.include, self.treewidget.exclude
-        filter = [(translate('ProjectExplorer', 'Type'),
-                   [True, (True, translate('ProjectExplorer',
-                                           'regular expressions')),
-                    (False, translate('ProjectExplorer', 'global patterns'))]),
-                  (translate('ProjectExplorer', 'Include'), include),
-                  (translate('ProjectExplorer', 'Exclude'), exclude),]
-        result = fedit(filter,
-                       title=translate('ProjectExplorer', 'Edit filter'),
-                       parent=self)
+        filter = [(_('Type'),
+                   [True, (True, _('regular expressions')),
+                    (False, _('global patterns'))]),
+                  (_('Include'), include),
+                  (_('Exclude'), exclude),]
+        result = fedit(filter, title=_('Edit filter'), parent=self)
         if result:
             regexp, include, exclude = result
             if not regexp:

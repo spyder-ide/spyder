@@ -18,6 +18,9 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 import sys
 import os.path as osp
 
+# Local imports
+from spyderlib.config import _
+
 # For debugging purpose:
 STDOUT = sys.stdout
 
@@ -88,8 +91,8 @@ class EditableComboBox(BaseComboBox):
         self.connect(self, SIGNAL("activated(QString)"),
                      lambda qstr: self.validate(qstr, editing=False))
         self.set_default_style()
-        self.tips = {True: self.tr("Press enter to validate this entry"),
-                     False: self.tr('This entry is incorrect')}
+        self.tips = {True: _("Press enter to validate this entry"),
+                     False: _('This entry is incorrect')}
         
     def show_tip(self, tip=""):
         """Show tip"""
@@ -142,8 +145,8 @@ class PathComboBox(EditableComboBox):
         else:
             self.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
             self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.tips = {True: self.tr("Press enter to validate this path"),
-                     False: self.tr('This path is incorrect.\n'
+        self.tips = {True: _("Press enter to validate this path"),
+                     False: _('This path is incorrect.\n'
                                     'Enter a correct directory path,\n'
                                     'then press enter to validate')}
         

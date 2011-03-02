@@ -37,10 +37,9 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.widgets.formlayout import fedit
-from spyderlib.utils.qthelpers import (get_std_icon, create_action, add_actions,
-                                       translate)
+from spyderlib.utils.qthelpers import get_std_icon, create_action, add_actions
 from spyderlib.utils import encoding, rename_file, remove_file, programs
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 
 
 def create_script(fname):
@@ -167,14 +166,11 @@ class ExplorerTreeWidget(DirView):
     def setup_common_actions(self):
         """Setup context menu common actions"""
         # Filters
-        filters_action = create_action(self,
-                                       translate('Explorer',
-                                                 "Edit filename filters..."),
+        filters_action = create_action(self, _("Edit filename filters..."),
                                        None, get_icon('filter.png'),
                                        triggered=self.edit_filter)
         # Show all files
-        all_action = create_action(self,
-                                   translate('Explorer', "Show all files"),
+        all_action = create_action(self, _("Show all files"),
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
@@ -183,11 +179,10 @@ class ExplorerTreeWidget(DirView):
         
     def edit_filter(self):
         """Edit name filters"""
-        filters, valid = QInputDialog.getText(self,
-                              translate('Explorer', 'Edit filename filters'),
-                              translate('Explorer', 'Name filters:'),
-                              QLineEdit.Normal,
-                              ", ".join(self.name_filters))
+        filters, valid = QInputDialog.getText(self, _('Edit filename filters'),
+                                              _('Name filters:'),
+                                              QLineEdit.Normal,
+                                              ", ".join(self.name_filters))
         if valid:
             filters = [f.strip() for f in unicode(filters).split(',')]
             self.parent_widget.emit(SIGNAL('option_changed'),
@@ -204,15 +199,11 @@ class ExplorerTreeWidget(DirView):
         """Update option menu"""
         self.menu.clear()
         actions = []
-        newdir_action = create_action(self,
-                                      translate('Explorer',
-                                                "New folder..."),
+        newdir_action = create_action(self, _("New folder..."),
                                       icon="folder_new.png",
                                       triggered=self.new_folder)
         actions.append(newdir_action)
-        newfile_action = create_action(self,
-                                       translate('Explorer',
-                                                 "New file..."),
+        newfile_action = create_action(self, _("New file..."),
                                        icon="filenew.png",
                                        triggered=self.new_file)
         actions.append(newfile_action)
@@ -220,28 +211,22 @@ class ExplorerTreeWidget(DirView):
         if fname is not None:
             is_dir = osp.isdir(fname)
             ext = osp.splitext(fname)[1]
-            run_action = create_action(self,
-                                       translate('Explorer', "Run"),
+            run_action = create_action(self, _("Run"),
                                        icon="run_small.png",
                                        triggered=self.run)
-            edit_action = create_action(self,
-                                        translate('Explorer', "Edit"),
+            edit_action = create_action(self, _("Edit"),
                                         icon="edit.png",
                                         triggered=self.clicked)
-            delete_action = create_action(self,
-                                          translate('Explorer', "Delete..."),
+            delete_action = create_action(self, _("Delete..."),
                                           icon="delete.png",
                                           triggered=self.delete)
-            rename_action = create_action(self,
-                                          translate('Explorer', "Rename..."),
+            rename_action = create_action(self, _("Rename..."),
                                           icon="rename.png",
                                           triggered=self.rename)
-            browse_action = create_action(self,
-                                          translate('Explorer', "Browse"),
+            browse_action = create_action(self, _("Browse"),
                                           icon=get_std_icon("CommandLink"),
                                           triggered=self.clicked)
-            open_action = create_action(self,
-                                        translate('Explorer', "Open"),
+            open_action = create_action(self, _("Open"),
                                         triggered=self.startfile)
             if ext in ('.py', '.pyw', '.ipy'):
                 actions.append(run_action)
@@ -253,27 +238,27 @@ class ExplorerTreeWidget(DirView):
             if is_dir and os.name == 'nt':
                 # Actions specific to Windows directories
                 actions.append( create_action(self,
-                           translate('Explorer', "Open in Windows Explorer"),
-                           icon="magnifier.png",
-                           triggered=self.startfile) )
+                                              _("Open in Windows Explorer"),
+                                              icon="magnifier.png",
+                                              triggered=self.startfile) )
             if is_dir:
                 if os.name == 'nt':
-                    _title = translate('Explorer', "Open command prompt here")
+                    _title = _("Open command prompt here")
                 else:
-                    _title = translate('Explorer', "Open terminal here")
+                    _title = _("Open terminal here")
                 action = create_action(self, _title, icon="cmdprompt.png",
                                        triggered=lambda _fn=fname:
                                        self.parent_widget.emit(
                                        SIGNAL("open_terminal(QString)"), _fn))
                 actions.append(action)
-                _title = translate('Explorer', "Open Python interpreter here")
+                _title = _("Open Python interpreter here")
                 action = create_action(self, _title, icon="python.png",
                                    triggered=lambda _fn=fname:
                                    self.parent_widget.emit(
                                    SIGNAL("open_interpreter(QString)"), _fn))
                 actions.append(action)
                 if programs.is_module_installed("IPython"):
-                    _title = translate('Explorer', "Open IPython here")
+                    _title = _("Open IPython here")
                     action = create_action(self, _title, icon="ipython.png",
                                        triggered=lambda _fn=fname:
                                        self.parent_widget.emit(
@@ -445,10 +430,10 @@ class ExplorerTreeWidget(DirView):
         """Delete selected item"""
         fname = self.get_filename()
         if fname:
-            answer = QMessageBox.warning(self,
-                translate("Explorer", "Delete"),
-                translate("Explorer", "Do you really want to delete <b>%1</b>?") \
-                .arg(osp.basename(fname)), QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.warning(self, _("Delete"),
+                                    _("Do you really want to delete <b>%s</b>?"
+                                      ) % osp.basename(fname),
+                                    QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return
             try:
@@ -458,12 +443,10 @@ class ExplorerTreeWidget(DirView):
                     os.rmdir(fname)
                 self.parent_widget.emit(SIGNAL("removed(QString)"), fname)
             except EnvironmentError, error:
-                QMessageBox.critical(self,
-                    translate('Explorer', "Delete"),
-                    translate('Explorer',
-                              "<b>Unable to delete selected file</b>"
-                              "<br><br>Error message:<br>%1") \
-                    .arg(str(error)))
+                QMessageBox.critical(self, _("Delete"),
+                                     _("<b>Unable to delete selected file</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % str(error))
             finally:
                 self.refresh_folder(osp.dirname(fname))
             
@@ -471,10 +454,10 @@ class ExplorerTreeWidget(DirView):
         """Rename selected item"""
         fname = self.get_filename()
         if fname:
-            path, valid = QInputDialog.getText(self,
-                                          translate('Explorer', 'Rename'),
-                                          translate('Explorer', 'New name:'),
-                                          QLineEdit.Normal, osp.basename(fname))
+            path, valid = QInputDialog.getText(self, _('Rename'),
+                                               _('New name:'),
+                                               QLineEdit.Normal,
+                                               osp.basename(fname))
             if valid:
                 path = osp.join(osp.dirname(fname), unicode(path))
                 if path == fname:
@@ -484,20 +467,18 @@ class ExplorerTreeWidget(DirView):
                     self.parent_widget.emit(SIGNAL("renamed(QString,QString)"),
                                              fname, path)
                 except EnvironmentError, error:
-                    QMessageBox.critical(self,
-                        translate('Explorer', "Rename"),
-                        translate('Explorer',
-                                  "<b>Unable to rename selected file</b>"
-                                  "<br><br>Error message:<br>%1") \
-                        .arg(str(error)))
+                    QMessageBox.critical(self, _("Rename"),
+                                    _("<b>Unable to rename selected file</b>"
+                                      "<br><br>Error message:<br>%s"
+                                      ) % str(error))
                 finally:
                     self.refresh_folder(osp.dirname(fname))
         
     def new_folder(self):
         """Create a new folder"""
-        datalist = [(translate('Explorer', 'Folder name'), ''),
-                    (translate('Explorer', 'Python package'), False),]
-        answer = fedit( datalist, title=translate('Explorer', "New folder"),
+        datalist = [(_('Folder name'), ''),
+                    (_('Python package'), False),]
+        answer = fedit( datalist, title=_( "New folder"),
                         parent=self, icon=get_icon('spyder.svg') )
         if answer is not None:
             dirname, pack = answer
@@ -505,12 +486,10 @@ class ExplorerTreeWidget(DirView):
             try:
                 os.mkdir(dirname)
             except EnvironmentError, error:
-                QMessageBox.critical(self,
-                    translate('Explorer', "New folder"),
-                    translate('Explorer',
-                              "<b>Unable to create folder <i>%1</i></b>"
-                              "<br><br>Error message:<br>%2") \
-                    .arg(dirname).arg(str(error)))
+                QMessageBox.critical(self, _("New folder"),
+                                _("<b>Unable to create folder <i>%s</i></b>"
+                                  "<br><br>Error message:<br>%s"
+                                  ) % (dirname, str(error)))
             finally:
                 if pack:
                     create_script( osp.join(dirname, '__init__.py') )
@@ -521,9 +500,9 @@ class ExplorerTreeWidget(DirView):
         _temp = sys.stdout
         sys.stdout = None
         fname = QFileDialog.getSaveFileName(self,
-            translate('Explorer', "New Python script"), self.get_dirname(),
-            translate('Explorer', "Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
-            "\n"+translate('Explorer', "All files")+" (*)")
+                                _("New Python script"), self.get_dirname(),
+                                _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
+                                "\n"+_( "All files")+" (*)")
         sys.stdout = _temp
         if not fname.isEmpty():
             fname = unicode(fname)
@@ -533,12 +512,10 @@ class ExplorerTreeWidget(DirView):
                 else:
                     file(fname, 'wb').write('')
             except EnvironmentError, error:
-                QMessageBox.critical(self,
-                    translate('Explorer', "New file"),
-                    translate('Explorer',
-                              "<b>Unable to create file <i>%1</i></b>"
-                              "<br><br>Error message:<br>%2") \
-                    .arg(fname).arg(str(error)))
+                QMessageBox.critical(self, _("New file"),
+                                     _("<b>Unable to create file <i>%s</i></b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (fname, str(error)))
             finally:
                 self.refresh_folder(osp.dirname(fname))
                 self.open(fname)
@@ -556,12 +533,9 @@ class ExplorerWidget(QWidget):
         self.treewidget.setup(path=path, name_filters=name_filters,
                               valid_types=valid_types, show_all=show_all)
         
-        toolbar_action = create_action(self,
-                                       translate('Explorer', "Show toolbar"),
+        toolbar_action = create_action(self, _("Show toolbar"),
                                        toggled=self.toggle_toolbar)
-        icontext_action = create_action(self,
-                                        translate('Explorer',
-                                                  "Show icons and text"),
+        icontext_action = create_action(self, _("Show icons and text"),
                                         toggled=self.toggle_icontext)
         self.treewidget.common_actions += [None,
                                            toolbar_action, icontext_action]
@@ -570,8 +544,7 @@ class ExplorerWidget(QWidget):
         self.toolbar = QToolBar(self)
         self.toolbar.setIconSize(QSize(16, 16))
         
-        self.previous_action = create_action(self,
-                            text=translate('Explorer', "Previous"),
+        self.previous_action = create_action(self, text=_("Previous"),
                             icon=get_icon('previous.png'),
                             triggered=self.treewidget.go_to_previous_directory)
         self.toolbar.addAction(self.previous_action)
@@ -579,8 +552,7 @@ class ExplorerWidget(QWidget):
         self.connect(self.treewidget, SIGNAL("set_previous_enabled(bool)"),
                      self.previous_action.setEnabled)
         
-        self.next_action = create_action(self,
-                            text=translate('Explorer', "Next"),
+        self.next_action = create_action(self, text=_("Next"),
                             icon=get_icon('next.png'),
                             triggered=self.treewidget.go_to_next_directory)
         self.toolbar.addAction(self.next_action)
@@ -588,20 +560,17 @@ class ExplorerWidget(QWidget):
         self.connect(self.treewidget, SIGNAL("set_next_enabled(bool)"),
                      self.next_action.setEnabled)
         
-        parent_action = create_action(self,
-                            text=translate('Explorer', "Parent"),
+        parent_action = create_action(self, text=_("Parent"),
                             icon=get_icon('up.png'),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
                 
-        refresh_action = create_action(self,
-                    text=translate('Explorer', "Refresh"),
+        refresh_action = create_action(self, text=_("Refresh"),
                     icon=get_icon('reload.png'),
                     triggered=self.treewidget.refresh_whole_model)
         self.toolbar.addAction(refresh_action)
 
-        options_action = create_action(self,
-                    text=translate('Explorer', "Options"),
+        options_action = create_action(self, text=_("Options"),
                     icon=get_icon('tooloptions.png'))
         self.toolbar.addAction(options_action)
         widget = self.toolbar.widgetForAction(options_action)

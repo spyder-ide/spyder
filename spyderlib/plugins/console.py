@@ -23,7 +23,7 @@ STDOUT = sys.stdout
 
 
 # Local imports
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.utils import get_error_match
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        DialogManager)
@@ -98,7 +98,7 @@ class Console(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Internal console')
+        return _('Internal console')
     
     def get_focus_widget(self):
         """
@@ -118,54 +118,54 @@ class Console(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        quit_action = create_action(self, self.tr("&Quit"),
-                                    icon='exit.png', tip=self.tr("Quit"),
+        quit_action = create_action(self, _("&Quit"),
+                                    icon='exit.png', tip=_("Quit"),
                                     triggered=self.quit)
         self.register_shortcut(quit_action, "_", "Quit", "Ctrl+Q")
-        run_action = create_action(self, self.tr("&Run..."), None,
-                            'run_small.png', self.tr("Run a Python script"),
+        run_action = create_action(self, _("&Run..."), None,
+                            'run_small.png', _("Run a Python script"),
                             triggered=self.run_script)
         environ_action = create_action(self,
-                            self.tr("Environment variables..."),
+                            _("Environment variables..."),
                             icon = 'environ.png',
-                            tip=self.tr("Show and edit environment variables"
+                            tip=_("Show and edit environment variables"
                                         " (for current session)"),
                             triggered=self.show_env)
         syspath_action = create_action(self,
-                            self.tr("Show sys.path contents..."),
+                            _("Show sys.path contents..."),
                             icon = 'syspath.png',
-                            tip=self.tr("Show (read-only) sys.path"),
+                            tip=_("Show (read-only) sys.path"),
                             triggered=self.show_syspath)
         buffer_action = create_action(self,
-                            self.tr("Buffer..."), None,
-                            tip=self.tr("Set maximum line count"),
+                            _("Buffer..."), None,
+                            tip=_("Set maximum line count"),
                             triggered=self.change_max_line_count)
         font_action = create_action(self,
-                            self.tr("&Font..."), None,
-                            'font.png', self.tr("Set shell font style"),
+                            _("&Font..."), None,
+                            'font.png', _("Set shell font style"),
                             triggered=self.change_font)
         exteditor_action = create_action(self,
-                            self.tr("External editor path..."), None, None,
-                            self.tr("Set external editor executable path"),
+                            _("External editor path..."), None, None,
+                            _("Set external editor executable path"),
                             triggered=self.change_exteditor)
         wrap_action = create_action(self,
-                            self.tr("Wrap lines"),
+                            _("Wrap lines"),
                             toggled=self.toggle_wrap_mode)
         wrap_action.setChecked(self.get_option('wrap'))
-        calltips_action = create_action(self, self.tr("Balloon tips"),
+        calltips_action = create_action(self, _("Balloon tips"),
             toggled=self.toggle_calltips)
         calltips_action.setChecked(self.get_option('calltips'))
         codecompletion_action = create_action(self,
-                                          self.tr("Automatic code completion"),
+                                          _("Automatic code completion"),
                                           toggled=self.toggle_codecompletion)
         codecompletion_action.setChecked(self.get_option('codecompletion/auto'))
         codecompenter_action = create_action(self,
-                                    self.tr("Enter key selects completion"),
+                                    _("Enter key selects completion"),
                                     toggled=self.toggle_codecompletion_enter)
         codecompenter_action.setChecked(self.get_option(
                                                     'codecompletion/enter_key'))
         
-        option_menu = QMenu(self.tr("Internal console settings"), self)
+        option_menu = QMenu(_("Internal console settings"), self)
         option_menu.setIcon(get_icon('tooloptions.png'))
         add_actions(option_menu, (buffer_action, font_action, wrap_action,
                                   calltips_action, codecompletion_action,
@@ -207,8 +207,8 @@ class Console(SpyderPluginWidget):
         if filename is None:
             self.shell.interpreter.restore_stds()
             filename = QFileDialog.getOpenFileName(self,
-                          self.tr("Run Python script"), os.getcwdu(),
-                          self.tr("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+                          _("Run Python script"), os.getcwdu(),
+                          _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
                 filename = unicode(filename)
@@ -254,15 +254,15 @@ class Console(SpyderPluginWidget):
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
-                       self, self.tr("Select a new font"))
+                       self, _("Select a new font"))
         if valid:
             self.shell.set_font(font)
             self.set_plugin_font(font)
         
     def change_max_line_count(self):
         "Change maximum line count"""
-        mlc, valid = QInputDialog.getInteger(self, self.tr('Buffer'),
-                                           self.tr('Maximum line count'),
+        mlc, valid = QInputDialog.getInteger(self, _('Buffer'),
+                                           _('Maximum line count'),
                                            self.get_option('max_line_count'),
                                            0, 1000000)
         if valid:
@@ -271,8 +271,8 @@ class Console(SpyderPluginWidget):
 
     def change_exteditor(self):
         """Change external editor path"""
-        path, valid = QInputDialog.getText(self, self.tr('External editor'),
-                          self.tr('External editor executable path:'),
+        path, valid = QInputDialog.getText(self, _('External editor'),
+                          _('External editor executable path:'),
                           QLineEdit.Normal,
                           self.get_option('external_editor/path'))
         if valid:

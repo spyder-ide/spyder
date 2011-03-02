@@ -30,10 +30,9 @@ DEBUG = False
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs
-from spyderlib.config import get_icon, get_font
+from spyderlib.config import get_icon, get_font, _
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
-                                       get_filetype_icon, translate,
-                                       create_toolbutton)
+                                       get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorer, check
@@ -48,17 +47,17 @@ class GoToLineDialog(QDialog):
         QDialog.__init__(self, editor)
         self.editor = editor
         
-        self.setWindowTitle(translate("Editor", "Editor"))
+        self.setWindowTitle(_("Editor"))
         self.setModal(True)
         
-        label = QLabel(translate("Editor", "Go to line:"))
+        label = QLabel(_("Go to line:"))
         self.lineedit = QLineEdit()
         validator = QIntValidator(self.lineedit)
         validator.setRange(1, editor.get_line_count())
         self.lineedit.setValidator(validator)        
-        cl_label = QLabel(translate("Editor", "Current line:"))
+        cl_label = QLabel(_("Current line:"))
         cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
-        last_label = QLabel(translate("Editor", "Line count:"))
+        last_label = QLabel(_("Line count:"))
         last_label_v = QLabel("%d" % editor.get_line_count())
         
         glayout = QGridLayout()
@@ -100,16 +99,16 @@ class FileListDialog(QDialog):
         self.indexes = None
         
         self.setWindowIcon(get_icon('filelist.png'))
-        self.setWindowTitle(translate("Editor", "File list management"))
+        self.setWindowTitle(_("File list management"))
         
         self.setModal(True)
         
-        flabel = QLabel(translate("Editor", "Filter:"))
+        flabel = QLabel(_("Filter:"))
         self.edit = QLineEdit(self)
         self.connect(self.edit, SIGNAL("returnPressed()"), self.edit_file)
         self.connect(self.edit, SIGNAL("textChanged(QString)"),
                      lambda text: self.synchronize(0))
-        fhint = QLabel(translate("Editor", "(press <b>Enter</b> to edit file)"))
+        fhint = QLabel(_("(press <b>Enter</b> to edit file)"))
         edit_layout = QHBoxLayout()
         edit_layout.addWidget(flabel)
         edit_layout.addWidget(self.edit)
@@ -124,7 +123,7 @@ class FileListDialog(QDialog):
         
         btn_layout = QHBoxLayout()
         edit_btn = create_toolbutton(self, icon=get_icon('edit.png'),
-                     text=translate("Editor", "&Edit file"), autoraise=False,
+                     text=_("&Edit file"), autoraise=False,
                      triggered=self.edit_file, text_beside_icon=True)
         edit_btn.setMinimumHeight(28)
         btn_layout.addWidget(edit_btn)
@@ -133,8 +132,7 @@ class FileListDialog(QDialog):
         btn_layout.addSpacing(150)
         btn_layout.addStretch()
         
-        close_btn = create_toolbutton(self,
-              text=translate("Editor", "&Close file"),
+        close_btn = create_toolbutton(self, text=_("&Close file"),
               icon=get_icon("fileclose.png"),
               autoraise=False, text_beside_icon=True,
               triggered=lambda: self.emit(SIGNAL("close_file(int)"),
@@ -142,8 +140,7 @@ class FileListDialog(QDialog):
         close_btn.setMinimumHeight(28)
         btn_layout.addWidget(close_btn)
 
-        hint = QLabel(translate("Editor",
-                             "Hint: press <b>Alt</b> to show accelerators"))
+        hint = QLabel(_("Hint: press <b>Alt</b> to show accelerators"))
         hint.setAlignment(Qt.AlignCenter)
         
         vlayout = QVBoxLayout()
@@ -440,12 +437,10 @@ class EditorStack(QWidget):
 
         self.data = []
         
-        filelist_action = create_action(self,
-                                 translate("Editor", "File list management"),
+        filelist_action = create_action(self, _("File list management"),
                                  icon=get_icon('filelist.png'),
                                  triggered=self.open_filelistdialog)
-        copy_to_cb_action = create_action(self,
-                translate("Editor", "Copy path to clipboard"),
+        copy_to_cb_action = create_action(self, _("Copy path to clipboard"),
                 icon="editcopy.png",
                 triggered=lambda:
                 QApplication.clipboard().setText(self.get_current_filename()))
@@ -460,7 +455,7 @@ class EditorStack(QWidget):
         self.save_action = None
         self.revert_action = None
         self.tempfile_path = None
-        self.title = translate("Editor", "Editor")
+        self.title = _("Editor")
         self.filetype_filters = None
         self.valid_types = None
         self.codeanalysis_enabled = True
@@ -555,7 +550,7 @@ class EditorStack(QWidget):
     def setup_editorstack(self, parent, layout):
         """Setup editorstack's layout"""
         menu_btn = create_toolbutton(self, icon=get_icon("tooloptions.png"),
-                                     tip=translate("Editor", "Options"))
+                                     tip=_("Options"))
         self.menu = QMenu(self)
         menu_btn.setMenu(self.menu)
         menu_btn.setPopupMode(menu_btn.InstantPopup)
@@ -563,17 +558,17 @@ class EditorStack(QWidget):
 
 #        self.filelist_btn = create_toolbutton(self,
 #                             icon=get_icon('filelist.png'),
-#                             tip=translate("Editor", "File list management"),
+#                             tip=_("File list management"),
 #                             triggered=self.open_filelistdialog)
 #        
 #        self.previous_btn = create_toolbutton(self,
 #                             icon=get_icon('previous.png'),
-#                             tip=translate("Editor", "Previous file"),
+#                             tip=_("Previous file"),
 #                             triggered=self.go_to_previous_file)
 #        
 #        self.next_btn = create_toolbutton(self,
 #                             icon=get_icon('next.png'),
-#                             tip=translate("Editor", "Next file"),
+#                             tip=_("Next file"),
 #                             triggered=self.go_to_next_file)
                 
         # Optional tabs
@@ -928,7 +923,7 @@ class EditorStack(QWidget):
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
         if filename == encoding.to_unicode(self.tempfile_path):
-            temp_file_str = unicode(translate("Editor", "Temporary file"))
+            temp_file_str = unicode(_("Temporary file"))
             if self.fullpath_sorting_enabled:
                 return "%s (%s)" % (text, temp_file_str)
             else:
@@ -1016,28 +1011,20 @@ class EditorStack(QWidget):
     #------ Hor/Ver splitting
     def __get_split_actions(self):
         # New window
-        self.newwindow_action = create_action(self,
-                    translate("Editor", "New window"),
-                    icon="newwindow.png",
-                    tip=translate("Editor", "Create a new editor window"),
+        self.newwindow_action = create_action(self, _("New window"),
+                    icon="newwindow.png", tip=_("Create a new editor window"),
                     triggered=lambda: self.emit(SIGNAL("create_new_window()")))
         # Splitting
-        self.versplit_action = create_action(self,
-                    translate("Editor", "Split vertically"),
+        self.versplit_action = create_action(self, _("Split vertically"),
                     icon="versplit.png",
-                    tip=translate("Editor",
-                                  "Split vertically this editor window"),
+                    tip=_("Split vertically this editor window"),
                     triggered=lambda: self.emit(SIGNAL("split_vertically()")))
-        self.horsplit_action = create_action(self,
-                    translate("Editor", "Split horizontally"),
+        self.horsplit_action = create_action(self, _("Split horizontally"),
                     icon="horsplit.png",
-                    tip=translate("Editor",
-                                  "Split horizontally this editor window"),
+                    tip=_("Split horizontally this editor window"),
                     triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
-        self.close_action = create_action(self,
-                    translate("Editor", "Close this panel"),
-                    icon="close_panel.png",
-                    triggered=self.close)
+        self.close_action = create_action(self, _("Close this panel"),
+                    icon="close_panel.png", triggered=self.close)
         return [None, self.newwindow_action, None, 
                 self.versplit_action, self.horsplit_action, self.close_action]
         
@@ -1162,10 +1149,10 @@ class EditorStack(QWidget):
                     return False
             elif finfo.editor.document().isModified():
                 answer = QMessageBox.question(self, self.title,
-                            translate("Editor",
-                                      "<b>%1</b> has been modified."
-                                      "<br>Do you want to save changes?").arg(
-                            osp.basename(finfo.filename)), buttons)
+                            _("<b>%s</b> has been modified."
+                              "<br>Do you want to save changes?"
+                              ) % osp.basename(finfo.filename),
+                            buttons)
                 if answer == QMessageBox.Yes:
                     if not self.save(refresh_explorer=False):
                         return False
@@ -1219,11 +1206,11 @@ class EditorStack(QWidget):
                           osp.dirname(finfo.filename))
             return True
         except EnvironmentError, error:
-            QMessageBox.critical(self, translate("Editor", "Save"),
-                            translate("Editor",
-                                      "<b>Unable to save script '%1'</b>"
-                                      "<br><br>Error message:<br>%2").arg(
-                            osp.basename(finfo.filename)).arg(str(error)))
+            QMessageBox.critical(self, _("Save"),
+                                 _("<b>Unable to save script '%s'</b>"
+                                   "<br><br>Error message:<br>%s"
+                                   ) % (osp.basename(finfo.filename),
+                                        str(error)))
             return False
         
     def file_saved_in_other_editorstack(self, index):
@@ -1237,8 +1224,7 @@ class EditorStack(QWidget):
     
     def select_savename(self, original_filename):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self,
-                                   translate("Editor", "Save Python script"),
+        filename = QFileDialog.getSaveFileName(self, _("Save Python script"),
                                    original_filename, self.filetype_filters)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
@@ -1441,12 +1427,11 @@ class EditorStack(QWidget):
         # First, testing if file still exists (removed, moved or offline):
         if not osp.isfile(finfo.filename):
             answer = QMessageBox.warning(self, self.title,
-                            translate("Editor",
-                                      "<b>%1</b> is unavailable "
-                                      "(this file may have been removed, moved "
-                                      "or renamed outside Spyder)."
-                                      "<br>Do you want to close it?").arg(name),
-                            QMessageBox.Yes | QMessageBox.No)
+                                _("<b>%s</b> is unavailable "
+                                  "(this file may have been removed, moved "
+                                  "or renamed outside Spyder)."
+                                  "<br>Do you want to close it?") % name,
+                                QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.Yes:
                 self.close_file(index)
         else:
@@ -1455,12 +1440,11 @@ class EditorStack(QWidget):
             if lastm.toString().compare(finfo.lastmodified.toString()):
                 if finfo.editor.document().isModified():
                     answer = QMessageBox.question(self,
-                        self.title,
-                        translate("Editor",
-                                  "<b>%1</b> has been modified outside Spyder."
+                                self.title,
+                                _("<b>%s</b> has been modified outside Spyder."
                                   "<br>Do you want to reload it and loose all "
-                                  "your changes?").arg(name),
-                        QMessageBox.Yes | QMessageBox.No)
+                                  "your changes?") % name,
+                                QMessageBox.Yes | QMessageBox.No)
                     if answer == QMessageBox.Yes:
                         self.reload(index)
                     else:
@@ -1541,10 +1525,10 @@ class EditorStack(QWidget):
         index = self.get_stack_index()
         filename = self.data[index].filename
         answer = QMessageBox.warning(self, self.title,
-                    translate("Editor",
-                              "All changes to <b>%1</b> will be lost."
-                              "<br>Do you want to revert file from disk?").arg(
-                    osp.basename(filename)), QMessageBox.Yes|QMessageBox.No)
+                                _("All changes to <b>%s</b> will be lost."
+                                  "<br>Do you want to revert file from disk?"
+                                  ) % osp.basename(filename),
+                                  QMessageBox.Yes|QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.reload(index)
         
@@ -1655,7 +1639,7 @@ class EditorStack(QWidget):
         """
         filename = osp.abspath(unicode(filename))
         self.emit(SIGNAL('starting_long_process(QString)'),
-                  translate("Editor", "Loading %1...").arg(filename))
+                  _("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
         index = self.get_stack_index()
@@ -1665,11 +1649,10 @@ class EditorStack(QWidget):
            and sourcecode.has_mixed_eol_chars(text):
             name = osp.basename(filename)
             QMessageBox.warning(self, self.title,
-                            translate("Editor",
-                                      "<b>%1</b> contains mixed end-of-line "
-                                      "characters.<br>Spyder will fix this "
-                                      "automatically.").arg(name),
-                            QMessageBox.Ok)
+                                _("<b>%s</b> contains mixed end-of-line "
+                                  "characters.<br>Spyder will fix this "
+                                  "automatically.") % name,
+                                QMessageBox.Ok)
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
         return finfo.editor
@@ -1941,7 +1924,7 @@ class ReadWriteStatus(StatusBarWidget):
     def __init__(self, parent, statusbar):
         StatusBarWidget.__init__(self, parent, statusbar)
         layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Permissions:")))
+        layout.addWidget(QLabel(_("Permissions:")))
         self.readwrite = QLabel()
         self.readwrite.setFont(self.label_font)
         layout.addWidget(self.readwrite)
@@ -1956,7 +1939,7 @@ class EOLStatus(StatusBarWidget):
     def __init__(self, parent, statusbar):
         StatusBarWidget.__init__(self, parent, statusbar)
         layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "End-of-lines:")))
+        layout.addWidget(QLabel(_("End-of-lines:")))
         self.eol = QLabel()
         self.eol.setFont(self.label_font)
         layout.addWidget(self.eol)
@@ -1971,7 +1954,7 @@ class EncodingStatus(StatusBarWidget):
     def __init__(self, parent, statusbar):
         StatusBarWidget.__init__(self, parent, statusbar)
         layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Encoding:")))
+        layout.addWidget(QLabel(_("Encoding:")))
         self.encoding = QLabel()
         self.encoding.setFont(self.label_font)
         layout.addWidget(self.encoding)
@@ -1985,11 +1968,11 @@ class CursorPositionStatus(StatusBarWidget):
     def __init__(self, parent, statusbar):
         StatusBarWidget.__init__(self, parent, statusbar)
         layout = self.layout()
-        layout.addWidget(QLabel(translate("Editor", "Line:")))
+        layout.addWidget(QLabel(_("Line:")))
         self.line = QLabel()
         self.line.setFont(self.label_font)
         layout.addWidget(self.line)
-        layout.addWidget(QLabel(translate("Editor", "Column:")))
+        layout.addWidget(QLabel(_("Column:")))
         self.column = QLabel()
         self.column.setFont(self.label_font)
         layout.addWidget(self.column)
@@ -2126,11 +2109,10 @@ class EditorMainWindow(QMainWindow):
                 add_actions(toolbar, actions)
                 toolbars.append(toolbar)
         if menu_list:
-            quit_action = create_action(self,
-                                translate("Editor", "Close window"),
-                                icon="close_panel.png",
-                                tip=translate("Editor", "Close this window"),
-                                triggered=self.close)
+            quit_action = create_action(self, _("Close window"),
+                                        icon="close_panel.png",
+                                        tip=_("Close this window"),
+                                        triggered=self.close)
             menus = []
             for index, (title, actions) in enumerate(menu_list):
                 menu = self.menuBar().addMenu(title)

@@ -285,6 +285,7 @@ def load_session(filename):
 
 from spyderlib.qt.QtGui import QFileDialog
 from spyderlib.qt.QtCore import QObject
+from spyderlib.config import _
 
 class IOFunctions(QObject):
     def __init__(self):
@@ -310,7 +311,7 @@ class IOFunctions(QObject):
             if savefunc is not None:
                 save_filters.append(filter_str)
                 save_funcs[ext] = savefunc
-        load_filters.insert(0, unicode(self.tr("Supported files")+" (*"+\
+        load_filters.insert(0, unicode(_("Supported files")+" (*"+\
                                        " *".join(load_ext)+")"))
         self.load_filters = "\n".join(load_filters)
         self.save_filters = "\n".join(save_filters)
@@ -319,16 +320,16 @@ class IOFunctions(QObject):
         
     def get_internal_funcs(self):
         return [
-                ('.spydata', self.tr("Spyder data files"),
+                ('.spydata', _("Spyder data files"),
                              load_dictionary, save_dictionary),
-                ('.npy', self.tr("NumPy arrays"), load_array, None),
-                ('.mat', self.tr("Matlab files"), load_matlab, save_matlab),
-                ('.csv', self.tr("CSV text files"), 'import_wizard', None),
-                ('.txt', self.tr("Text files"), 'import_wizard', None),
-                ('.jpg', self.tr("JPEG images"), load_image, None),
-                ('.png', self.tr("PNG images"), load_image, None),
-                ('.gif', self.tr("GIF images"), load_image, None),
-                ('.tif', self.tr("TIFF images"), load_image, None),
+                ('.npy', _("NumPy arrays"), load_array, None),
+                ('.mat', _("Matlab files"), load_matlab, save_matlab),
+                ('.csv', _("CSV text files"), 'import_wizard', None),
+                ('.txt', _("Text files"), 'import_wizard', None),
+                ('.jpg', _("JPEG images"), load_image, None),
+                ('.png', _("PNG images"), load_image, None),
+                ('.gif', _("GIF images"), load_image, None),
+                ('.tif', _("TIFF images"), load_image, None),
                 ]
         
     def get_3rd_party_funcs(self):
@@ -354,14 +355,14 @@ class IOFunctions(QObject):
         if ext in self.save_funcs:
             return self.save_funcs[ext](data, filename)
         else:
-            return self.tr("<b>Unsupported file type '%1'</b>").arg(ext)
+            return _("<b>Unsupported file type '%s'</b>") % ext
     
     def load(self, filename):
         ext = osp.splitext(filename)[1].lower()
         if ext in self.load_funcs:
             return self.load_funcs[ext](filename)
         else:
-            return None, self.tr("<b>Unsupported file type '%1'</b>").arg(ext)
+            return None, _("<b>Unsupported file type '%s'</b>") % ext
 
 iofunctions = IOFunctions()
 iofunctions.setup()

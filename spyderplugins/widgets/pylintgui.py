@@ -33,8 +33,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import create_toolbutton, translate
-from spyderlib.config import get_icon, get_conf_path
+from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.config import get_icon, get_conf_path, _
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
@@ -67,18 +67,18 @@ class ResultsTree(OneColumnTree):
         self.refresh()
         
     def refresh(self):
-        title = translate('Pylint', 'Results for ')+self.filename
+        title = _('Results for ')+self.filename
         self.set_title(title)
         self.clear()
         self.data = {}
         # Populating tree
-        results = ((translate('Pylint', 'Convention'),
+        results = ((_('Convention'),
                     get_icon('convention.png'), self.results['C:']),
-                   (translate('Pylint', 'Refactor'),
+                   (_('Refactor'),
                     get_icon('refactor.png'), self.results['R:']),
-                   (translate('Pylint', 'Warning'),
+                   (_('Warning'),
                     get_icon('warning.png'), self.results['W:']),
-                   (translate('Pylint', 'Error'),
+                   (_('Error'),
                     get_icon('error.png'), self.results['E:']))
         for title, icon, messages in results:
             title += ' (%d message%s)' % (len(messages),
@@ -153,13 +153,13 @@ class PylintWidget(QWidget):
             self.filecombo.addItems(self.get_filenames())
         
         self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
-                                    text=translate('Pylint', "Analyze"),
-                                    tip=translate('Pylint', "Run analysis"),
+                                    text=_("Analyze"),
+                                    tip=_("Run analysis"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                     icon=get_icon('terminate.png'),
-                                    text=translate('Pylint', "Stop"),
-                                    tip=translate('Pylint',
+                                    text=_("Stop"),
+                                    tip=_(
                                                   "Stop current analysis"),
                                     text_beside_icon=True)
         self.connect(self.filecombo, SIGNAL('valid(bool)'),
@@ -167,16 +167,15 @@ class PylintWidget(QWidget):
         self.connect(self.filecombo, SIGNAL('valid(bool)'), self.show_data)
 
         browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=translate('Pylint', 'Select Python script'),
+                               tip=_('Select Python script'),
                                triggered=self.select_file)
 
         self.ratelabel = QLabel()
         self.datelabel = QLabel()
         self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
-                                    text=translate('Pylint', "Output"),
+                                    text=_("Output"),
                                     text_beside_icon=True,
-                                    tip=translate('Pylint',
-                                                  "Complete Pylint output"),
+                                    tip=_("Complete Pylint output"),
                                     triggered=self.show_log)
         self.treewidget = ResultsTree(self)
         
@@ -210,11 +209,10 @@ class PylintWidget(QWidget):
                and programs.is_module_installed("pylint"):
                 # Pylint is installed but pylint script is not in PATH
                 # (AFAIK, could happen only on Windows)
-                text = translate('Pylint',
-                     'Pylint script was not found. Please add "%s" to PATH.')
+                text = _('Pylint script was not found. Please add "%s" to PATH.')
                 text = unicode(text) % osp.join(sys.prefix, "Scripts")
             else:
-                text = translate('Pylint', 'Please install <b>pylint</b>:')
+                text = _('Please install <b>pylint</b>:')
                 url = 'http://www.logilab.fr'
                 text += ' <a href=%s>%s</a>' % (url, url)
             self.ratelabel.setText(text)
@@ -239,8 +237,8 @@ class PylintWidget(QWidget):
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getOpenFileName(self,
-                      translate('Pylint', "Select Python script"), os.getcwdu(),
-                      translate('Pylint', "Python scripts")+" (*.py ; *.pyw)")
+                                      _("Select Python script"), os.getcwdu(),
+                                      _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)
@@ -276,7 +274,7 @@ class PylintWidget(QWidget):
         
     def show_log(self):
         if self.output:
-            TextEditor(self.output, title=translate('Pylint', "Pylint output"),
+            TextEditor(self.output, title=_("Pylint output"),
                        readonly=True, size=(700, 500)).exec_()
         
     def start(self):
@@ -302,8 +300,8 @@ class PylintWidget(QWidget):
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, translate('Pylint', "Error"),
-                                 translate('Pylint', "Process failed to start"))
+            QMessageBox.critical(self, _("Error"),
+                                 _("Process failed to start"))
     
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
@@ -400,14 +398,14 @@ class PylintWidget(QWidget):
         
         _index, data = self.get_data(filename)
         if data is None:
-            text = translate('Pylint', 'Source code has not been rated yet.')
+            text = _('Source code has not been rated yet.')
             self.treewidget.clear()
             date_text = ''
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
-                text = translate('Pylint', 'Analysis did not succeed '
-                                           '(see output for more details).')
+                text = _('Analysis did not succeed '
+                         '(see output for more details).')
                 self.treewidget.clear()
                 date_text = ''
             else:
@@ -419,11 +417,11 @@ class PylintWidget(QWidget):
                     color = "#22AA22"
                 elif float(rate) > 3.:
                     color = "#EE5500"
-                text = translate('Pylint', 'Global evaluation:')
+                text = _('Global evaluation:')
                 text = (text_style % text)+(rate_style % (color,
                                                           ('%s/10' % rate)))
                 if previous_rate:
-                    text_prun = translate('Pylint', 'previous run:')
+                    text_prun = _('previous run:')
                     text_prun = ' (%s %s/10)' % (text_prun, previous_rate)
                     text += prevrate_style % text_prun
                 self.treewidget.set_results(filename, results)

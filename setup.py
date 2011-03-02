@@ -80,9 +80,9 @@ inspector, online help, and a lot more.""",
       platforms=['any'],
       packages=get_subpackages(LIBNAME)+get_subpackages('spyderplugins'),
       package_data={LIBNAME:
-                    get_package_data(LIBNAME, ('.qm', '.svg', '.png', '.css')),
+                    get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css')),
                     'spyderplugins':
-                    get_package_data('spyderplugins', ('.qm', '.svg', '.png'))},
+                    get_package_data('spyderplugins', ('.mo', '.svg', '.png'))},
       requires=["pyflakes (>0.3.0)", "rope (>0.9.0)", "sphinx (>0.6.0)",
                 "PyQt4 (>4.3)"],
       scripts=['spyder', 'spyder.bat'] if os.name == 'nt' else ['spyder'],

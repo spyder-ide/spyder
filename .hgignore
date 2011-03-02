@@ -2,6 +2,7 @@
 \.url$
 \.pyc$
 \.pyo$
+\.pot$
 \.settings$
 \.spyderproject$
 \.ropeproject$

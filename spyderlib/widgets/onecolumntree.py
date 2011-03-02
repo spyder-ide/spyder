@@ -18,8 +18,8 @@ from spyderlib.qt.QtGui import QTreeWidget, QMenu
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
-from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import (create_action, add_actions, translate,
+from spyderlib.config import get_icon, _
+from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_item_user_text)
 
 class OneColumnTree(QTreeWidget):
@@ -57,27 +57,26 @@ class OneColumnTree(QTreeWidget):
     def setup_common_actions(self):
         """Setup context menu common actions"""
         self.collapse_all_action = create_action(self,
-                         text=translate('OneColumnTree', 'Collapse all'),
-                         icon=get_icon('collapse.png'),
-                         triggered=self.collapseAll)
+                                     text=_('Collapse all'),
+                                     icon=get_icon('collapse.png'),
+                                     triggered=self.collapseAll)
         self.expand_all_action = create_action(self,
-                         text=translate('OneColumnTree', 'Expand all'),
-                         icon=get_icon('expand.png'),
-                         triggered=self.expandAll)
+                                     text=_('Expand all'),
+                                     icon=get_icon('expand.png'),
+                                     triggered=self.expandAll)
         self.restore_action = create_action(self,
-                         text=translate('OneColumnTree', 'Restore'),
-                         tip=translate('OneColumnTree',
-                                       'Restore original tree layout'),
-                         icon=get_icon('restore.png'),
-                         triggered=self.restore)
+                                     text=_('Restore'),
+                                     tip=_('Restore original tree layout'),
+                                     icon=get_icon('restore.png'),
+                                     triggered=self.restore)
         self.collapse_selection_action = create_action(self,
-                         text=translate('OneColumnTree', 'Collapse selection'),
-                         icon=get_icon('collapse_selection.png'),
-                         triggered=self.collapse_selection)
+                                     text=_('Collapse selection'),
+                                     icon=get_icon('collapse_selection.png'),
+                                     triggered=self.collapse_selection)
         self.expand_selection_action = create_action(self,
-                         text=translate('OneColumnTree', 'Expand selection'),
-                         icon=get_icon('expand_selection.png'),
-                         triggered=self.expand_selection)
+                                     text=_('Expand selection'),
+                                     icon=get_icon('expand_selection.png'),
+                                     triggered=self.expand_selection)
         return [self.collapse_all_action, self.expand_all_action,
                 self.restore_action, None,
                 self.collapse_selection_action, self.expand_selection_action]

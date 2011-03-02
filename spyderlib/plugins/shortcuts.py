@@ -18,8 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.config import (get_icon, get_shortcut, set_shortcut,
-                              iter_shortcuts, reset_shortcuts)
-from spyderlib.utils.qthelpers import translate
+                              iter_shortcuts, reset_shortcuts, _)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 
 
@@ -155,19 +154,17 @@ class ShortcutsModel(QAbstractTableModel):
             return QVariant()
         if orientation == Qt.Horizontal:
             if section == CONTEXT:
-                return QVariant(translate("ShortcutsConfigPage",
-                                          "Context"))
+                return QVariant(_("Context"))
             elif section == NAME:
-                return QVariant(translate("ShortcutsConfigPage",
-                                          "Name"))
+                return QVariant(_("Name"))
             elif section == MOD1:
-                return QVariant(translate("ShortcutsConfigPage", "Mod1"))
+                return QVariant(_("Mod1"))
             elif section == MOD2:
-                return QVariant(translate("ShortcutsConfigPage", "Mod2"))
+                return QVariant(_("Mod2"))
             elif section == MOD3:
-                return QVariant(translate("ShortcutsConfigPage", "Mod3"))
+                return QVariant(_("Mod3"))
             elif section == KEY:
-                return QVariant(translate("ShortcutsConfigPage", "Key"))
+                return QVariant(_("Key"))
         return QVariant()
 
     def rowCount(self, index=QModelIndex()):
@@ -299,12 +296,9 @@ class ShortcutsTable(QTableView):
             self.parent().emit(SIGNAL('show_this_page()'))
             cstr = "\n".join(['%s <---> %s' % (sh1, sh2)
                               for sh1, sh2 in conflicts])
-            QMessageBox.warning(self,
-                                translate("ShortcutsConfigPage", "Conflicts"),
-                                translate("ShortcutsConfigPage",
-                                          "The following conflicts have been "
-                                          "detected:")+"\n"+cstr,
-                                QMessageBox.Ok)
+            QMessageBox.warning(self, _( "Conflicts"),
+                                _("The following conflicts have been "
+                                  "detected:")+"\n"+cstr, QMessageBox.Ok)
         
     def save_shortcuts(self):
         self.check_shortcuts()
@@ -315,7 +309,7 @@ class ShortcutsTable(QTableView):
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
     def get_name(self):
-        return self.tr("Keyboard shortcuts")
+        return _("Keyboard shortcuts")
     
     def get_icon(self):
         return get_icon("genprefs.png")
@@ -327,7 +321,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
                      lambda i1, i2: self.has_been_modified())
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.table)
-        reset_btn = QPushButton(self.tr("Reset to default values"))
+        reset_btn = QPushButton(_("Reset to default values"))
         self.connect(reset_btn, SIGNAL('clicked()'), self.reset_to_default)
         vlayout.addWidget(reset_btn)
         self.setLayout(vlayout)

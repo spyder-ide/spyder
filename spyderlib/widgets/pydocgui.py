@@ -15,6 +15,7 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
+from spyderlib.config import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils import select_port
 
@@ -85,7 +86,7 @@ class PydocBrowser(WebBrowser):
     #------ WebBrowser API -----------------------------------------------------
     def get_label(self):
         """Return address label text"""
-        return self.tr("Module or package:")
+        return _("Module or package:")
     
     def reload(self):
         """Reload page"""

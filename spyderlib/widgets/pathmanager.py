@@ -20,7 +20,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 
 
 class PathManager(QDialog):
@@ -35,7 +35,7 @@ class PathManager(QDialog):
         
         self.last_path = os.getcwdu()
         
-        self.setWindowTitle(self.tr("PYTHONPATH manager"))
+        self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(get_icon('pythonpath.png'))
         self.resize(500, 300)
         
@@ -74,25 +74,25 @@ class PathManager(QDialog):
     def setup_top_toolbar(self, layout):
         toolbar = []
         movetop_button = create_toolbutton(self,
-                                    text=self.tr("Move to top"),
+                                    text=_("Move to top"),
                                     icon=get_icon('2uparrow.png'),
                                     triggered=lambda: self.move_to(absolute=0),
                                     text_beside_icon=True)
         toolbar.append(movetop_button)
         moveup_button = create_toolbutton(self,
-                                    text=self.tr("Move up"),
+                                    text=_("Move up"),
                                     icon=get_icon('1uparrow.png'),
                                     triggered=lambda: self.move_to(relative=-1),
                                     text_beside_icon=True)
         toolbar.append(moveup_button)
         movedown_button = create_toolbutton(self,
-                                    text=self.tr("Move down"),
+                                    text=_("Move down"),
                                     icon=get_icon('1downarrow.png'),
                                     triggered=lambda: self.move_to(relative=1),
                                     text_beside_icon=True)
         toolbar.append(movedown_button)
         movebottom_button = create_toolbutton(self,
-                                    text=self.tr("Move to bottom"),
+                                    text=_("Move to bottom"),
                                     icon=get_icon('2downarrow.png'),
                                     triggered=lambda: self.move_to(absolute=1),
                                     text_beside_icon=True)
@@ -103,12 +103,12 @@ class PathManager(QDialog):
     
     def setup_bottom_toolbar(self, layout, sync=True):
         toolbar = []
-        add_button = create_toolbutton(self, text=self.tr("Add path"),
+        add_button = create_toolbutton(self, text=_("Add path"),
                                        icon=get_icon('edit_add.png'),
                                        triggered=self.add_path,
                                        text_beside_icon=True)
         toolbar.append(add_button)
-        remove_button = create_toolbutton(self, text=self.tr("Remove path"),
+        remove_button = create_toolbutton(self, text=_("Remove path"),
                                           icon=get_icon('edit_remove.png'),
                                           triggered=self.remove_path,
                                           text_beside_icon=True)
@@ -118,9 +118,9 @@ class PathManager(QDialog):
         layout.addStretch(1)
         if os.name == 'nt' and sync:
             self.sync_button = create_toolbutton(self,
-                  text=self.tr("Synchronize..."),
+                  text=_("Synchronize..."),
                   icon=get_icon('synchronize.png'), triggered=self.synchronize,
-                  tip=self.tr("Synchronize Spyder's path list with PYTHONPATH "
+                  tip=_("Synchronize Spyder's path list with PYTHONPATH "
                               "environment variable"),
                   text_beside_icon=True)
             layout.addWidget(self.sync_button)
@@ -131,8 +131,8 @@ class PathManager(QDialog):
         Synchronize Spyder's path list with PYTHONPATH environment variable
         Only apply to: current user, on Windows platforms
         """
-        answer = QMessageBox.question(self, self.tr("Synchronize"),
-            self.tr("This will synchronize Spyder's path list with "
+        answer = QMessageBox.question(self, _("Synchronize"),
+            _("This will synchronize Spyder's path list with "
                     "<b>PYTHONPATH</b> environment variable for current user, "
                     "allowing you to run your Python modules outside Spyder "
                     "without having to configure sys.path. "
@@ -199,8 +199,8 @@ class PathManager(QDialog):
         self.listwidget.setCurrentRow(new_index)
         
     def remove_path(self):
-        answer = QMessageBox.warning(self, self.tr("Remove path"),
-            self.tr("Do you really want to remove selected path?"),
+        answer = QMessageBox.warning(self, _("Remove path"),
+            _("Do you really want to remove selected path?"),
             QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.pathlist.pop(self.listwidget.currentRow())
@@ -209,14 +209,14 @@ class PathManager(QDialog):
     def add_path(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self,
-                                 self.tr("Select directory"), self.last_path)
+                                 _("Select directory"), self.last_path)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if not directory.isEmpty():
             directory = osp.abspath(unicode(directory))
             self.last_path = directory
             if directory in self.pathlist:
-                answer = QMessageBox.question(self, self.tr("Add path"),
-                    self.tr("This directory is already included in Spyder path "
+                answer = QMessageBox.question(self, _("Add path"),
+                    _("This directory is already included in Spyder path "
                             "list.<br>Do you want to move it to the top of "
                             "the list?"),
                     QMessageBox.Yes | QMessageBox.No)

@@ -26,9 +26,9 @@ import numpy as np
 import StringIO
 
 # Local imports
-from spyderlib.config import get_icon, get_font
-from spyderlib.utils.qthelpers import (translate, add_actions, create_action,
-                                       keybinding, qapplication)
+from spyderlib.config import get_icon, get_font, _
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       qapplication)
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -301,13 +301,11 @@ class ArrayView(QTableView):
         for dim in self.shape:
             size *= dim
         if size > 1e5:
-            answer = QMessageBox.warning(self, translate("ArrayEditor",
-                                                         "Array editor"),
-                                translate("ArrayEditor",
-                                          "Resizing cells of a table of such "
-                                          "size could take a long time.\n"
-                                          "Do you want to continue anyway?"),
-                                QMessageBox.Yes | QMessageBox.No)
+            answer = QMessageBox.warning(self, _("Array editor"),
+                                         _("Resizing cells of a table of such "
+                                           "size could take a long time.\n"
+                                           "Do you want to continue anyway?"),
+                                         QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.No:
                 return
         self.resizeColumnsToContents()
@@ -315,8 +313,7 @@ class ArrayView(QTableView):
 
     def setup_menu(self):
         """Setup context menu"""
-        self.copy_action = create_action(self,
-                                         translate("ArrayEditor", "Copy"),
+        self.copy_action = create_action(self, _( "Copy"),
                                          shortcut=keybinding("Copy"),
                                          icon=get_icon('editcopy.png'),
                                          triggered=self.copy,
@@ -377,15 +374,15 @@ class ArrayEditorWidget(QWidget):
         
         btn_layout = QHBoxLayout()
         btn_layout.setAlignment(Qt.AlignLeft)
-        btn = QPushButton(translate("ArrayEditor", "Format"))
+        btn = QPushButton(_( "Format"))
         # disable format button for int type
         btn.setEnabled(is_float(data.dtype))
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.change_format)
-        btn = QPushButton(translate("ArrayEditor", "Resize"))
+        btn = QPushButton(_( "Resize"))
         btn_layout.addWidget(btn)
         self.connect(btn, SIGNAL("clicked()"), self.view.resize_to_contents)
-        bgcolor = QCheckBox(translate("ArrayEditor", 'Background color'))
+        bgcolor = QCheckBox(_( 'Background color'))
         bgcolor.setChecked(self.model.bgcolor_enabled)
         bgcolor.setEnabled(self.model.bgcolor_enabled)
         self.connect(bgcolor, SIGNAL("stateChanged(int)"), self.model.bgcolor)
@@ -410,18 +407,16 @@ class ArrayEditorWidget(QWidget):
         
     def change_format(self):
         """Change display format"""
-        format, valid = QInputDialog.getText(self,
-                                 translate("ArrayEditor", 'Format'),
-                                 translate("ArrayEditor", "Float formatting"),
+        format, valid = QInputDialog.getText(self, _( 'Format'),
+                                 _( "Float formatting"),
                                  QLineEdit.Normal, self.model.get_format())
         if valid:
             format = str(format)
             try:
                 format % 1.1
             except:
-                QMessageBox.critical(self, translate("ArrayEditor", "Error"),
-                          translate("ArrayEditor",
-                                    "Format (%1) is incorrect").arg(format))
+                QMessageBox.critical(self, _("Error"),
+                                     _("Format (%s) is incorrect") % format)
                 return
             self.model.set_format(format)    
 
@@ -442,35 +437,35 @@ class ArrayEditor(QDialog):
         self.arraywidget = None
         self.is_record_array = data.dtype.names is not None
         if data.size == 0:
-            self.error(self.tr("Array is empty"))
+            self.error(_("Array is empty"))
             return False
         if data.ndim > 2:
-            self.error(self.tr("Arrays with more than 2 dimensions "
+            self.error(_("Arrays with more than 2 dimensions "
                                "are not supported"))
             return False
         if xlabels is not None and len(xlabels) != self.data.shape[1]:
-            self.error(self.tr("The 'xlabels' argument length "
+            self.error(_("The 'xlabels' argument length "
 						 	   "do no match array column number"))
             return False
         if ylabels is not None and len(ylabels) != self.data.shape[0]:
-            self.error(self.tr("The 'ylabels' argument length "
+            self.error(_("The 'ylabels' argument length "
 							   "do no match array row number"))
             return False
         if not self.is_record_array:
             dtn = data.dtype.name
             if dtn not in SUPPORTED_FORMATS and not dtn.startswith('string') \
                and not dtn.startswith('unicode'):
-                arr = self.tr("%1 arrays").arg(data.dtype.name)
-                self.error(self.tr("%1 are currently not supported").arg(arr))
+                arr = _("%s arrays") % data.dtype.name
+                self.error(_("%s are currently not supported") % arr)
                 return False
         
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
         if not title:
-            title = self.tr("Array editor")
+            title = _("Array editor")
         if readonly:
-            title += ' (' + self.tr('read only') + ')'
+            title += ' (' + _('read only') + ')'
         self.setWindowTitle(title)
         self.resize(600, 500)
         
@@ -491,7 +486,7 @@ class ArrayEditor(QDialog):
         # Buttons configuration
         btn_layout = QHBoxLayout()
         if self.is_record_array:
-            btn_layout.addWidget(QLabel(self.tr("Record array fields:")))
+            btn_layout.addWidget(QLabel(_("Record array fields:")))
             ra_combo = QComboBox(self)
             self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
                          self.stack.setCurrentIndex)
@@ -536,7 +531,7 @@ class ArrayEditor(QDialog):
 
     def error(self, message):
         """An error occured, closing the dialog box"""
-        QMessageBox.critical(self, self.tr("Array editor"), message)
+        QMessageBox.critical(self, _("Array editor"), message)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.reject()
 

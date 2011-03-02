@@ -15,7 +15,7 @@ import sys, cPickle, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_conf_path, get_icon
+from spyderlib.config import get_conf_path, get_icon, _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -47,7 +47,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr("Project explorer")
+        return _("Project explorer")
     
     def get_focus_widget(self):
         """
@@ -58,12 +58,12 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        new_project_act = create_action(self, text=self.tr('New project...'),
+        new_project_act = create_action(self, text=_('New project...'),
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.create_new_project)
 
-        font_action = create_action(self, self.tr("&Font..."),
-                                    None, 'font.png', self.tr("Set font style"),
+        font_action = create_action(self, _("&Font..."),
+                                    None, 'font.png', _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions += (None, font_action)
         
@@ -114,7 +114,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
-                                          self.tr("Select a new font"))
+                                          _("Select a new font"))
         if valid:
             self.set_font(font)
             self.set_plugin_font(font)

@@ -16,9 +16,9 @@ from spyderlib.qt.QtCore import Qt, SIGNAL, QSize
 STDOUT = sys.stdout
 
 # Local import
-from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import (create_action, translate,
-                                       create_toolbutton, set_item_user_text)
+from spyderlib.config import get_icon, _
+from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
+                                       set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
 
 
@@ -138,14 +138,12 @@ class TreeItem(QTreeWidgetItem):
         self.setIcon(0, get_icon(icon_name))
         
     def setup(self):
-        self.setToolTip(0, translate("OutlineExplorer",
-                                     "Line %1").arg(str(self.line)))
+        self.setToolTip(0, _("Line %s") % str(self.line))
 
 class ClassItem(TreeItem):
     def setup(self):
         self.set_icon('class.png')
-        self.setToolTip(0, translate("OutlineExplorer",
-                             "Class defined at line %1").arg(str(self.line)))
+        self.setToolTip(0, _("Class defined at line %s") % str(self.line))
 
 class FunctionItem(TreeItem):
     def __init__(self, name, line, parent, preceding):
@@ -160,8 +158,7 @@ class FunctionItem(TreeItem):
     
     def setup(self):
         if self.is_method():
-            self.setToolTip(0, translate("OutlineExplorer",
-                             "Method defined at line %1").arg(str(self.line)))
+            self.setToolTip(0, _("Method defined at line %s") % str(self.line))
             if self.decorator is not None:
                 self.set_icon('decorator.png')
             else:
@@ -174,8 +171,8 @@ class FunctionItem(TreeItem):
                     self.set_icon('method.png')
         else:
             self.set_icon('function.png')
-            self.setToolTip(0, translate("OutlineExplorer",
-                             "Function defined at line %1").arg(str(self.line)))
+            self.setToolTip(0, _("Function defined at line %s"
+                                 ) % str(self.line))
 
 
 def get_item_children(item):
@@ -222,29 +219,23 @@ class OutlineExplorerTreeWidget(OneColumnTree):
         self.editor_tree_cache = {}
         self.editor_ids = {}
         self.current_editor = None
-        title = translate("OutlineExplorer", "Outline")
+        title = _("Outline")
         self.set_title(title)
         self.setWindowTitle(title)
         self.setUniformRowHeights(True)
 
     def get_actions_from_items(self, items):
         """Reimplemented OneColumnTree method"""
-        fromcursor_act = create_action(self,
-                        text=translate('OutlineExplorer',
-                                       'Go to cursor position'),
+        fromcursor_act = create_action(self, text=_('Go to cursor position'),
                         icon=get_icon('fromcursor.png'),
                         triggered=self.go_to_cursor_position)
-        fullpath_act = create_action(self,
-                        text=translate('OutlineExplorer', 'Show absolute path'),
+        fullpath_act = create_action(self, text=_( 'Show absolute path'),
                         toggled=self.toggle_fullpath_mode)
         fullpath_act.setChecked(self.show_fullpath)
-        allfiles_act = create_action(self,
-                        text=translate('OutlineExplorer', 'Show all files'),
+        allfiles_act = create_action(self, text=_( 'Show all files'),
                         toggled=self.toggle_show_all_files)
         allfiles_act.setChecked(self.show_all_files)
-        comment_act = create_action(self,
-                        text=translate('OutlineExplorer',
-                                       'Show special comments'),
+        comment_act = create_action(self, text=_('Show special comments'),
                         toggled=self.toggle_show_comments)
         comment_act.setChecked(self.show_comments)
         actions = [fullpath_act, allfiles_act, comment_act, fromcursor_act]
@@ -534,7 +525,7 @@ class OutlineExplorer(QWidget):
                                             show_comments=show_comments)
 
         self.visibility_action = create_action(self,
-                                           self.tr("Show/hide outline explorer"),
+                                           _("Show/hide outline explorer"),
                                            icon='outline_explorer_vis.png',
                                            toggled=self.toggle_visibility)
         self.visibility_action.setChecked(True)
@@ -562,8 +553,7 @@ class OutlineExplorer(QWidget):
     def setup_buttons(self):
         fromcursor_btn = create_toolbutton(self,
                              icon=get_icon("fromcursor.png"),
-                             tip=translate('OutlineExplorer',
-                                           'Go to cursor position'),
+                             tip=_('Go to cursor position'),
                              triggered=self.treewidget.go_to_cursor_position)
         collapse_btn = create_toolbutton(self)
         collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)

@@ -12,7 +12,7 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_conf_path
+from spyderlib.config import get_conf_path, _
 from spyderlib.widgets.pydocgui import PydocBrowser
 from spyderlib.plugins import SpyderPluginMixin
 
@@ -58,7 +58,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Online help')
+        return _('Online help')
     
     def get_focus_widget(self):
         """

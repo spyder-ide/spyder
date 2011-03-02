@@ -30,7 +30,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.config import get_icon, str2type
+from spyderlib.config import get_icon, str2type, _
 
 
 class NamespaceBrowser(QWidget):
@@ -157,53 +157,53 @@ class NamespaceBrowser(QWidget):
                           
         toolbar = []
 
-        refresh_button = create_toolbutton(self, text=self.tr("Refresh"),
+        refresh_button = create_toolbutton(self, text=_("Refresh"),
                                            icon=get_icon('reload.png'),
                                            triggered=self.refresh_table)
         self.auto_refresh_button = create_toolbutton(self,
-                                           text=self.tr("Refresh periodically"),
+                                           text=_("Refresh periodically"),
                                            icon=get_icon('auto_reload.png'),
                                            toggled=self.toggle_auto_refresh)
         self.auto_refresh_button.setChecked(autorefresh)
-        load_button = create_toolbutton(self, text=self.tr("Import data"),
+        load_button = create_toolbutton(self, text=_("Import data"),
                                         icon=get_icon('fileimport.png'),
                                         triggered=self.import_data)
-        self.save_button = create_toolbutton(self, text=self.tr("Save data"),
+        self.save_button = create_toolbutton(self, text=_("Save data"),
                                 icon=get_icon('filesave.png'),
                                 triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
-                                           text=self.tr("Save data as..."),
+                                           text=_("Save data as..."),
                                            icon=get_icon('filesaveas.png'),
                                            triggered=self.save_data)
         toolbar += [refresh_button, self.auto_refresh_button, load_button,
                     self.save_button, save_as_button]
         
         self.exclude_private_action = create_action(self,
-                self.tr("Exclude private references"),
-                tip=self.tr("Exclude references which name starts"
+                _("Exclude private references"),
+                tip=_("Exclude references which name starts"
                             " with an underscore"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_private', state))
         self.exclude_private_action.setChecked(exclude_private)
         
         self.exclude_upper_action = create_action(self,
-                self.tr("Exclude capitalized references"),
-                tip=self.tr("Exclude references which name starts with an "
+                _("Exclude capitalized references"),
+                tip=_("Exclude references which name starts with an "
                             "upper-case character"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_upper', state))
         self.exclude_upper_action.setChecked(exclude_upper)
         
         self.exclude_unsupported_action = create_action(self,
-                self.tr("Exclude unsupported data types"),
-                tip=self.tr("Exclude references to unsupported data types"
+                _("Exclude unsupported data types"),
+                tip=_("Exclude references to unsupported data types"
                             " (i.e. which won't be handled/saved correctly)"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
                                                'exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
-        options_button = create_toolbutton(self, text=self.tr("Options"),
+        options_button = create_toolbutton(self, text=_("Options"),
                                            icon=get_icon('tooloptions.png'))
         toolbar.append(options_button)
         options_button.setPopupMode(QToolButton.InstantPopup)
@@ -312,8 +312,7 @@ class NamespaceBrowser(QWidget):
         value = monitor_get_global(self._get_sock(), name)
         if value is None and not monitor_is_none(self._get_sock(), name):
             import pickle
-            msg = unicode(self.tr("Object <b>%1</b> is not picklable"
-                                  ).arg(name))
+            msg = unicode(_("Object <b>%s</b> is not picklable") % name)
             raise pickle.PicklingError(msg)
         return value
         
@@ -393,7 +392,7 @@ class NamespaceBrowser(QWidget):
         self.emit(SIGNAL('collapse()'))
         
     def import_data(self, filenames=None):
-        title = self.tr("Import data")
+        title = _("Import data")
         if filenames is None:
             if self.filename is None:
                 basedir = os.getcwdu()
@@ -414,9 +413,9 @@ class NamespaceBrowser(QWidget):
             if ext not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
-                       self.tr("<b>Unsupported file type '%1'</b><br><br>"
-                               "Would you like to import it as a text file?") \
-                       .arg(ext), buttons)
+                                _("<b>Unsupported file type '%s'</b><br><br>"
+                                  "Would you like to import it as a text file?"
+                                  ) % ext, buttons)
                 if answer == QMessageBox.Cancel:
                     return
                 else:
@@ -463,10 +462,9 @@ class NamespaceBrowser(QWidget):
     
             if error_message is not None:
                 QMessageBox.critical(self, title,
-                                     self.tr("<b>Unable to load '%1'</b>"
-                                             "<br><br>Error message:<br>%2"
-                                             ).arg(self.filename
-                                                   ).arg(error_message))
+                                     _("<b>Unable to load '%s'</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (self.filename, error_message))
             self.refresh_table()
             
     
@@ -477,7 +475,7 @@ class NamespaceBrowser(QWidget):
             if filename is None:
                 filename = os.getcwdu()
             filename = iofunctions.get_save_filename(self, filename,
-                                                     self.tr("Save data"))
+                                                     _("Save data"))
             if filename:
                 filename = unicode(filename)
                 self.filename = filename
@@ -496,9 +494,8 @@ class NamespaceBrowser(QWidget):
         QApplication.restoreOverrideCursor()
         QApplication.processEvents()
         if error_message is not None:
-            QMessageBox.critical(self, self.tr("Save data"),
-                            self.tr("<b>Unable to save current workspace</b>"
-                                    "<br><br>Error message:<br>%1") \
-                            .arg(error_message))
+            QMessageBox.critical(self, _("Save data"),
+                            _("<b>Unable to save current workspace</b>"
+                              "<br><br>Error message:<br>%s") % error_message)
         self.save_button.setEnabled(self.filename is not None)
         

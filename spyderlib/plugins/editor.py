@@ -29,7 +29,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme
+from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme, _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        get_filetype_icon, create_toolbutton)
@@ -77,20 +77,19 @@ def is_winpdb_installed():
 
 class EditorConfigPage(PluginConfigPage):
     def setup_page(self):
-        template_btn = self.create_button(
-                                    self.tr("Edit template for new modules"),
+        template_btn = self.create_button(_("Edit template for new modules"),
                                     self.plugin.edit_template)
         
-        interface_group = QGroupBox(self.tr("Interface"))
+        interface_group = QGroupBox(_("Interface"))
         font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Text and margin font style"),
+                                    text=_("Text and margin font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        oevis_box = newcb(self.tr("Show outline explorer"),
+        oevis_box = newcb(_("Show outline explorer"),
                           'outline_explorer/visibility')
-        fpsorting_box = newcb(self.tr("Sort files according to full path"),
+        fpsorting_box = newcb(_("Sort files according to full path"),
                               'fullpath_sorting')
-        showtabbar_box = newcb(self.tr("Show tab bar"), 'show_tab_bar')
+        showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(oevis_box)
@@ -98,10 +97,10 @@ class EditorConfigPage(PluginConfigPage):
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
         
-        display_group = QGroupBox(self.tr("Source code"))
-        linenumbers_box = newcb(self.tr("Show line numbers"), 'line_numbers')
-        edgeline_box = newcb(self.tr("Show vertical line after"), 'edge_line')
-        edgeline_spin = self.create_spinbox("", self.tr("characters"),
+        display_group = QGroupBox(_("Source code"))
+        linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
+        edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
+        edgeline_spin = self.create_spinbox("", _("characters"),
                                             'edge_line_column', 80, 1, 500)
         self.connect(edgeline_box, SIGNAL("toggled(bool)"),
                      edgeline_spin.setEnabled)
@@ -109,14 +108,14 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_layout = QHBoxLayout()
         edgeline_layout.addWidget(edgeline_box)
         edgeline_layout.addWidget(edgeline_spin)
-        currentline_box = newcb(self.tr("Highlight current line"),
+        currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line', default=True)
-        occurence_box = newcb(self.tr("Highlight occurences"),
+        occurence_box = newcb(_("Highlight occurences"),
                               'occurence_highlighting', default=True)
-        wrap_mode_box = newcb(self.tr("Wrap lines"), 'wrap')
+        wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
-        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+        cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
         
         display_layout = QVBoxLayout()
@@ -128,73 +127,73 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(cs_combo)
         display_group.setLayout(display_layout)
 
-        run_group = QGroupBox(self.tr("Run"))
-        saveall_box = newcb(self.tr("Save all files before running script"),
+        run_group = QGroupBox(_("Run"))
+        saveall_box = newcb(_("Save all files before running script"),
                             'save_all_before_run', True)
         
-        introspection_group = QGroupBox(self.tr("Introspection"))
-        completion_box = newcb(self.tr("Automatic code completion"),
+        introspection_group = QGroupBox(_("Introspection"))
+        completion_box = newcb(_("Automatic code completion"),
                                'codecompletion/auto')
-        case_comp_box = newcb(self.tr("Case sensitive code completion"),
+        case_comp_box = newcb(_("Case sensitive code completion"),
                               'codecompletion/case_sensitive')
-        show_single_box = newcb(self.tr("Show single completion"),
+        show_single_box = newcb(_("Show single completion"),
                                 'codecompletion/show_single')
-        comp_enter_box = newcb(self.tr("Enter key selects completion"),
+        comp_enter_box = newcb(_("Enter key selects completion"),
                                'codecompletion/enter_key')
-        calltips_box = newcb(self.tr("Balloon tips"), 'calltips')
-        gotodef_box = newcb(self.tr("Link to object definition"),
+        calltips_box = newcb(_("Balloon tips"), 'calltips')
+        gotodef_box = newcb(_("Link to object definition"),
               'go_to_definition',
-              tip=self.tr("If this option is enabled, clicking on an object\n"
+              tip=_("If this option is enabled, clicking on an object\n"
                           "name (left-click + Ctrl key) will go this object\n"
                           "definition (if resolved)."))
         inspector_box = newcb(
-              self.tr("Automatic notification to object inspector"),
+              _("Automatic notification to object inspector"),
               'object_inspector', default=True,
-              tip=self.tr("If this option is enabled, object inspector\n"
+              tip=_("If this option is enabled, object inspector\n"
                           "will automatically show informations on functions\n"
                           "entered in editor (this is triggered when entering\n"
                           "a left parenthesis after a valid function name)"))
-        rope_label = QLabel(self.tr("<b>Warning:</b><br>"
+        rope_label = QLabel(_("<b>Warning:</b><br>"
                                     "The Python module <i>rope</i> is not "
                                     "installed on this computer: calltips, "
                                     "code completion and go-to-definition "
                                     "features won't be available."))
         rope_label.setWordWrap(True)
         
-        sourcecode_group = QGroupBox(self.tr("Source code"))
-        closepar_box = newcb(self.tr("Automatic parentheses, braces and "
+        sourcecode_group = QGroupBox(_("Source code"))
+        closepar_box = newcb(_("Automatic parentheses, braces and "
                                      "brackets insertion"),
                              'close_parentheses')
-        autounindent_box = newcb(self.tr("Automatic indentation after 'else', "
+        autounindent_box = newcb(_("Automatic indentation after 'else', "
                                          "'elif', etc."), 'auto_unindent')
-        tab_mode_box = newcb(self.tr("Tab always indent"),
+        tab_mode_box = newcb(_("Tab always indent"),
               'tab_always_indent', default=False,
-              tip=self.tr("If enabled, pressing Tab will always indent,\n"
+              tip=_("If enabled, pressing Tab will always indent,\n"
                           "even when the cursor is not at the beginning\n"
                           "of a line (when this option is enabled, code\n"
                           "completion may be triggered using the alternate\n"
                           "shortcut: Ctrl+Space)"))
-        ibackspace_box = newcb(self.tr("Intelligent backspace"),
+        ibackspace_box = newcb(_("Intelligent backspace"),
                                'intelligent_backspace', default=True)
         
-        analysis_group = QGroupBox(self.tr("Analysis"))
-        codeanalysis_box = newcb(self.tr("Code analysis (pyflakes)"),
+        analysis_group = QGroupBox(_("Analysis"))
+        codeanalysis_box = newcb(_("Code analysis (pyflakes)"),
               'code_analysis', default=True,
-              tip=self.tr("If enabled, Python source code will be analyzed\n"
+              tip=_("If enabled, Python source code will be analyzed\n"
                           "using pyflakes, lines containing errors or \n"
                           "warnings will be highlighted"))
         codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
-        todolist_box = newcb(self.tr("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
+        todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
                              'todo_list', default=True)
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(codeanalysis_box)
         ancb_layout.addWidget(todolist_box)
         realtime_radio = self.create_radiobutton(
-                                            self.tr("Perform analysis when "
+                                            _("Perform analysis when "
                                                     "saving file and every"),
                                             'realtime_analysis', True)
         saveonly_radio = self.create_radiobutton(
-                                            self.tr("Perform analysis only "
+                                            _("Perform analysis only "
                                                     "when saving file"),
                                             'onsave_analysis', False)
         af_spin = self.create_spinbox("", " ms", 'realtime_analysis/timeout',
@@ -233,14 +232,14 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_group.setLayout(sourcecode_layout)
 
-        eol_group = QGroupBox(self.tr("End-of-line characters"))
-        eol_label = QLabel(self.tr("When opening a text file containing "
+        eol_group = QGroupBox(_("End-of-line characters"))
+        eol_label = QLabel(_("When opening a text file containing "
                                    "mixed end-of-line characters (this may "
                                    "raise syntax errors in Python interpreter "
                                    "on Windows platforms), Spyder may fix the "
                                    "file automatically."))
         eol_label.setWordWrap(True)
-        check_eol_box = newcb(self.tr("Fix automatically and show warning "
+        check_eol_box = newcb(_("Fix automatically and show warning "
                                       "message box"),
                               'check_eol_chars', default=True)
 
@@ -251,12 +250,12 @@ class EditorConfigPage(PluginConfigPage):
         
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group),
-                    self.tr("Display"))
+                    _("Display"))
         tabs.addTab(self.create_tab(introspection_group, analysis_group),
-                    self.tr("Code Introspection/Analysis"))
+                    _("Code Introspection/Analysis"))
         tabs.addTab(self.create_tab(template_btn, run_group, sourcecode_group,
                                     eol_group),
-                    self.tr("Advanced settings"))
+                    _("Advanced settings"))
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
@@ -299,27 +298,27 @@ class Editor(SpyderPluginWidget):
         self.stack_menu_actions = None
         SpyderPluginWidget.__init__(self, parent)
 
-        self.filetypes = ((self.tr("Python files"), ('.py', '.pyw', '.ipy')),
-                          (self.tr("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
-                          (self.tr("C files"), ('.c', '.h')),
-                          (self.tr("C++ files"), ('.cc', '.cpp', '.h',
+        self.filetypes = ((_("Python files"), ('.py', '.pyw', '.ipy')),
+                          (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
+                          (_("C files"), ('.c', '.h')),
+                          (_("C++ files"), ('.cc', '.cpp', '.h',
                                                   '.cxx', '.hpp', '.hh')),
-                          (self.tr("Fortran files"),
+                          (_("Fortran files"),
                            ('.f', '.for', '.f90', '.f95', '.f2k')),
-                          (self.tr("Patch and diff files"),
+                          (_("Patch and diff files"),
                            ('.patch', '.diff', '.rej')),
-                          (self.tr("Batch files"),
+                          (_("Batch files"),
                            ('.bat', '.cmd')),
-                          (self.tr("Text files"), ('.txt',)),
-                          (self.tr("reStructured Text files"),
+                          (_("Text files"), ('.txt',)),
+                          (_("reStructured Text files"),
                            ('.txt', '.rst')),
-                          (self.tr("gettext files"), ('.po', '.pot')),
-                          (self.tr("Web page files"),
+                          (_("gettext files"), ('.po', '.pot')),
+                          (_("Web page files"),
                            ('.css', '.htm', '.html',)),
-                          (self.tr("Configuration files"),
+                          (_("Configuration files"),
                            ('.properties', '.session', '.ini', '.inf',
                             '.reg', '.cfg')),
-                          (self.tr("All files"), ('',)))
+                          (_("All files"), ('',)))
         
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
@@ -463,7 +462,7 @@ class Editor(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Editor')
+        return _('Editor')
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -520,14 +519,14 @@ class Editor(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         self.toggle_outline_action = create_action(self,
-                                self.tr("Show/hide outline explorer"),
+                                _("Show/hide outline explorer"),
                                 triggered=lambda: self.emit(
                                         SIGNAL('show_hide_outline_explorer()')),
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline", default="Ctrl+Alt+O")
         self.toggle_project_action = create_action(self,
-                                self.tr("Show/hide project explorer"),
+                                _("Show/hide project explorer"),
                                 triggered=self.main.show_hide_project_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
@@ -535,57 +534,57 @@ class Editor(SpyderPluginWidget):
                                default="Ctrl+Alt+P")
         self.addActions([self.toggle_outline_action, self.toggle_project_action])
         
-        self.new_action = create_action(self, self.tr("&New file..."),
-                icon='filenew.png', tip=self.tr("Create a new Python script"),
+        self.new_action = create_action(self, _("&New file..."),
+                icon='filenew.png', tip=_("Create a new Python script"),
                 triggered=self.new)
         self.register_shortcut(self.new_action, context="Editor",
                                name="New file", default="Ctrl+N")
-        self.open_action = create_action(self, self.tr("&Open..."),
-                icon='fileopen.png', tip=self.tr("Open text file"),
+        self.open_action = create_action(self, _("&Open..."),
+                icon='fileopen.png', tip=_("Open text file"),
                 triggered=self.load)
-        self.revert_action = create_action(self, self.tr("&Revert"),
-                icon='revert.png', tip=self.tr("Revert file from disk"),
+        self.revert_action = create_action(self, _("&Revert"),
+                icon='revert.png', tip=_("Revert file from disk"),
                 triggered=self.revert)
         self.register_shortcut(self.open_action, context="Editor",
                                name="Open file", default="Ctrl+O")
-        self.save_action = create_action(self, self.tr("&Save"),
-                icon='filesave.png', tip=self.tr("Save current file"),
+        self.save_action = create_action(self, _("&Save"),
+                icon='filesave.png', tip=_("Save current file"),
                 triggered=self.save)
         self.register_shortcut(self.save_action, context="Editor",
                                name="Save file", default="Ctrl+S")
-        self.save_all_action = create_action(self, self.tr("Sav&e all"),
-                icon='save_all.png', tip=self.tr("Save all opened files"),
+        self.save_all_action = create_action(self, _("Sav&e all"),
+                icon='save_all.png', tip=_("Save all opened files"),
                 triggered=self.save_all)
         self.register_shortcut(self.save_all_action, context="Editor",
                                name="Save all", default="Ctrl+Shift+S")
-        save_as_action = create_action(self, self.tr("Save &as..."), None,
-                'filesaveas.png', self.tr("Save current file as..."),
+        save_as_action = create_action(self, _("Save &as..."), None,
+                'filesaveas.png', _("Save current file as..."),
                 triggered=self.save_as)
-        print_preview_action = create_action(self, self.tr("Print preview..."),
-                tip=self.tr("Print preview..."), triggered=self.print_preview)
-        print_action = create_action(self, self.tr("&Print..."),
-                icon='print.png', tip=self.tr("Print current file..."),
+        print_preview_action = create_action(self, _("Print preview..."),
+                tip=_("Print preview..."), triggered=self.print_preview)
+        print_action = create_action(self, _("&Print..."),
+                icon='print.png', tip=_("Print current file..."),
                 triggered=self.print_file)
-        self.close_action = create_action(self, self.tr("&Close"),
-                icon='fileclose.png', tip=self.tr("Close current file"),
+        self.close_action = create_action(self, _("&Close"),
+                icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
         self.register_shortcut(self.close_action, context="Editor",
                                name="Close file", default="Ctrl+W")
-        self.close_all_action = create_action(self, self.tr("C&lose all"),
-                icon='filecloseall.png', tip=self.tr("Close all opened files"),
+        self.close_all_action = create_action(self, _("C&lose all"),
+                icon='filecloseall.png', tip=_("Close all opened files"),
                 triggered=self.close_all_files)
         self.register_shortcut(self.close_all_action, context="Editor",
                                name="Close all", default="Ctrl+Shift+W")
         
         set_clear_breakpoint_action = create_action(self,
-                                    self.tr("Set/Clear breakpoint"),
+                                    _("Set/Clear breakpoint"),
                                     icon=get_icon("breakpoint.png"),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint", default="F12")
         set_cond_breakpoint_action = create_action(self,
-                            self.tr("Set/Edit conditional breakpoint"),
+                            _("Set/Edit conditional breakpoint"),
                             icon=get_icon("breakpoint_cond.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
@@ -593,51 +592,51 @@ class Editor(SpyderPluginWidget):
                                name="Conditional breakpoint",
                                default="Shift+F12")
         clear_all_breakpoints_action = create_action(self,
-                                    self.tr("Clear breakpoints in all files"),
+                                    _("Clear breakpoints in all files"),
                                     triggered=self.clear_all_breakpoints)
-        breakpoints_menu = QMenu(self.tr("Breakpoints"), self)
+        breakpoints_menu = QMenu(_("Breakpoints"), self)
         add_actions(breakpoints_menu, (set_clear_breakpoint_action,
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
-        run_action = create_action(self, self.tr("&Run"), icon='run.png',
-                tip=self.tr("Run active script in a new Python interpreter"),
+        run_action = create_action(self, _("&Run"), icon='run.png',
+                tip=_("Run active script in a new Python interpreter"),
                 triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
-        debug_action = create_action(self, self.tr("&Debug"), icon='bug.png',
-                tip=self.tr("Debug current script in external console"
+        debug_action = create_action(self, _("&Debug"), icon='bug.png',
+                tip=_("Debug current script in external console"
                             "\n(external console is executed in a "
                             "separate process)"),
                 triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor",
                                name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
-                self.tr("&Configure..."), icon='configure.png',
-                tip=self.tr("Edit run configurations"),
+                _("&Configure..."), icon='configure.png',
+                tip=_("Edit run configurations"),
                 triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
         re_run_action = create_action(self,
-                self.tr("Re-run &last script"), icon='run_again.png',
-                tip=self.tr("Run again last script in external console "
+                _("Re-run &last script"), icon='run_again.png',
+                tip=_("Run again last script in external console "
                             "with the same options"),
                 triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
         run_selected_action = create_action(self,
-                self.tr("Run &selection or current block"),
+                _("Run &selection or current block"),
                 icon='run_selection.png',
-                tip=self.tr("Run selected text or current block of lines \n"
+                tip=_("Run selected text or current block of lines \n"
                             "inside current external console's interpreter"),
                 triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
         
         self.todo_list_action = create_action(self,
-                self.tr("Show todo list"), icon='todo_list.png',
-                tip=self.tr("Show TODO/FIXME/XXX/HINT/TIP comments list"),
+                _("Show todo list"), icon='todo_list.png',
+                tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
                 triggered=self.go_to_next_todo)
         self.todo_menu = QMenu(self)
         self.todo_list_action.setMenu(self.todo_menu)
@@ -645,67 +644,67 @@ class Editor(SpyderPluginWidget):
                      self.update_todo_menu)
         
         self.warning_list_action = create_action(self,
-                self.tr("Show warning/error list"), icon='wng_list.png',
-                tip=self.tr("Show code analysis warnings/errors"),
+                _("Show warning/error list"), icon='wng_list.png',
+                tip=_("Show code analysis warnings/errors"),
                 triggered=self.go_to_next_warning)
         self.warning_menu = QMenu(self)
         self.warning_list_action.setMenu(self.warning_menu)
         self.connect(self.warning_menu, SIGNAL("aboutToShow()"),
                      self.update_warning_menu)
         self.previous_warning_action = create_action(self,
-                self.tr("Previous warning/error"), icon='prev_wng.png',
-                tip=self.tr("Go to previous code analysis warning/error"),
+                _("Previous warning/error"), icon='prev_wng.png',
+                tip=_("Go to previous code analysis warning/error"),
                 triggered=self.go_to_previous_warning)
         self.next_warning_action = create_action(self,
-                self.tr("Next warning/error"), icon='next_wng.png',
-                tip=self.tr("Go to next code analysis warning/error"),
+                _("Next warning/error"), icon='next_wng.png',
+                tip=_("Go to next code analysis warning/error"),
                 triggered=self.go_to_next_warning)
         
         self.previous_edit_cursor_action = create_action(self,
-                self.tr("Last edit location"), icon='last_edit_location.png',
-                tip=self.tr("Go to last edit location"),
+                _("Last edit location"), icon='last_edit_location.png',
+                tip=_("Go to last edit location"),
                 triggered=self.go_to_last_edit_location)
         self.register_shortcut(self.previous_edit_cursor_action,
                                context="Editor",
                                name="Last edit location",
                                default="Ctrl+Alt+Shift+Left")
         self.previous_cursor_action = create_action(self,
-                self.tr("Previous cursor position"), icon='prev_cursor.png',
-                tip=self.tr("Go to previous cursor position"),
+                _("Previous cursor position"), icon='prev_cursor.png',
+                tip=_("Go to previous cursor position"),
                 triggered=self.go_to_previous_cursor_position)
         self.register_shortcut(self.previous_cursor_action,
                                context="Editor",
                                name="Previous cursor position",
                                default="Ctrl+Alt+Left")
         self.next_cursor_action = create_action(self,
-                self.tr("Next cursor position"), icon='next_cursor.png',
-                tip=self.tr("Go to next cursor position"),
+                _("Next cursor position"), icon='next_cursor.png',
+                tip=_("Go to next cursor position"),
                 triggered=self.go_to_next_cursor_position)
         self.register_shortcut(self.next_cursor_action,
                                context="Editor", name="Next cursor position",
                                default="Ctrl+Alt+Right")
         
         self.comment_action = create_action(self,
-                self.tr("Co&mment"), icon='comment.png',
-                tip=self.tr("Comment current line or selection"),
+                _("Co&mment"), icon='comment.png',
+                tip=_("Comment current line or selection"),
                 triggered=self.comment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.comment_action, context="Editor",
                                name="Comment", default="Ctrl+3")
         self.uncomment_action = create_action(self,
-                self.tr("&Uncomment"), icon='uncomment.png',
-                tip=self.tr("Uncomment current line or selection"),
+                _("&Uncomment"), icon='uncomment.png',
+                tip=_("Uncomment current line or selection"),
                 triggered=self.uncomment, context=Qt.WidgetShortcut)
         self.register_shortcut(self.uncomment_action, context="Editor",
                                name="Uncomment", default="Ctrl+2")
-        blockcomment_action = create_action(self, self.tr("Add &block comment"),
-                tip=self.tr("Add block comment around "
+        blockcomment_action = create_action(self, _("Add &block comment"),
+                tip=_("Add block comment around "
                             "current line or selection"),
                 triggered=self.blockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(blockcomment_action, context="Editor",
                                name="Blockcomment", default="Ctrl+4")
         unblockcomment_action = create_action(self,
-                self.tr("R&emove block comment"),
-                tip = self.tr("Remove comment block around "
+                _("R&emove block comment"),
+                tip = _("Remove comment block around "
                               "current line or selection"),
                 triggered=self.unblockcomment, context=Qt.WidgetShortcut)
         self.register_shortcut(unblockcomment_action, context="Editor",
@@ -716,45 +715,45 @@ class Editor(SpyderPluginWidget):
         # keyPressEvent handler (the shortcut is here only to inform user):
         # (context=Qt.WidgetShortcut -> disable shortcut for other widgets)
         self.indent_action = create_action(self,
-                self.tr("Indent"), "Tab", icon='indent.png',
-                tip=self.tr("Indent current line or selection"),
+                _("Indent"), "Tab", icon='indent.png',
+                tip=_("Indent current line or selection"),
                 triggered=self.indent, context=Qt.WidgetShortcut)
         self.unindent_action = create_action(self,
-                self.tr("Unindent"), "Shift+Tab", icon='unindent.png',
-                tip=self.tr("Unindent current line or selection"),
+                _("Unindent"), "Shift+Tab", icon='unindent.png',
+                tip=_("Unindent current line or selection"),
                 triggered=self.unindent, context=Qt.WidgetShortcut)
         # ----------------------------------------------------------------------
         
-        self.winpdb_action = create_action(self, self.tr("Debug with winpdb"),
+        self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
         self.winpdb_action.setEnabled(is_winpdb_installed())
         self.register_shortcut(self.winpdb_action, context="Editor",
                                name="Debug with winpdb", default="F7")
         
         self.win_eol_action = create_action(self,
-                           self.tr("Carriage return and line feed (Windows)"),
+                           _("Carriage return and line feed (Windows)"),
                            toggled=lambda: self.toggle_eol_chars('nt'))
         self.linux_eol_action = create_action(self,
-                           self.tr("Line feed (UNIX)"),
+                           _("Line feed (UNIX)"),
                            toggled=lambda: self.toggle_eol_chars('posix'))
         self.mac_eol_action = create_action(self,
-                           self.tr("Carriage return (Mac)"),
+                           _("Carriage return (Mac)"),
                            toggled=lambda: self.toggle_eol_chars('mac'))
         eol_action_group = QActionGroup(self)
         eol_actions = (self.win_eol_action, self.linux_eol_action,
                        self.mac_eol_action)
         add_actions(eol_action_group, eol_actions)
-        eol_menu = QMenu(self.tr("Convert end-of-line characters"), self)
+        eol_menu = QMenu(_("Convert end-of-line characters"), self)
         add_actions(eol_menu, eol_actions)
         
         trailingspaces_action = create_action(self,
-                                      self.tr("Remove trailing spaces"),
+                                      _("Remove trailing spaces"),
                                       triggered=self.remove_trailing_spaces)
-        fixindentation_action = create_action(self, self.tr("Fix indentation"),
-                      tip=self.tr("Replace tab characters by space characters"),
+        fixindentation_action = create_action(self, _("Fix indentation"),
+                      tip=_("Replace tab characters by space characters"),
                       triggered=self.fix_indentation)
 
-        gotoline_action = create_action(self, self.tr("Go to line..."),
+        gotoline_action = create_action(self, _("Go to line..."),
                                         icon=get_icon("gotoline.png"),
                                         triggered=self.go_to_line,
                                         context=Qt.WidgetShortcut)
@@ -762,19 +761,19 @@ class Editor(SpyderPluginWidget):
                                name="Go to line", default="Ctrl+L")
 
         workdir_action = create_action(self,
-                self.tr("Set console working directory"),
+                _("Set console working directory"),
                 icon=get_std_icon('DirOpenIcon'),
-                tip=self.tr("Set current console (and file explorer) working "
+                tip=_("Set current console (and file explorer) working "
                             "directory to current script directory"),
                 triggered=self.__set_workdir)
 
         self.max_recent_action = create_action(self,
-            self.tr("Maximum number of recent files..."),
+            _("Maximum number of recent files..."),
             triggered=self.change_max_recent_files)
         self.clear_recent_action = create_action(self,
-            self.tr("Clear this list"), tip=self.tr("Clear recent files list"),
+            _("Clear this list"), tip=_("Clear recent files list"),
             triggered=self.clear_recent_files)
-        self.recent_file_menu = QMenu(self.tr("Open &recent"), self)
+        self.recent_file_menu = QMenu(_("Open &recent"), self)
         self.connect(self.recent_file_menu, SIGNAL("aboutToShow()"),
                      self.update_recent_file_menu)
 
@@ -1058,20 +1057,20 @@ class Editor(SpyderPluginWidget):
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""
         self.toolbar_list = (
-            (self.tr("File toolbar"), self.main.file_toolbar_actions),
-            (self.tr("Search toolbar"), self.main.search_menu_actions),
-            (self.tr("Source toolbar"), self.main.source_toolbar_actions),
-            (self.tr("Run toolbar"), self.main.run_toolbar_actions),
-            (self.tr("Edit toolbar"), self.main.edit_toolbar_actions),
+            (_("File toolbar"), self.main.file_toolbar_actions),
+            (_("Search toolbar"), self.main.search_menu_actions),
+            (_("Source toolbar"), self.main.source_toolbar_actions),
+            (_("Run toolbar"), self.main.run_toolbar_actions),
+            (_("Edit toolbar"), self.main.edit_toolbar_actions),
                              )
         self.menu_list = (
-                          (self.tr("&File"), self.main.file_menu_actions),
-                          (self.tr("&Edit"), self.main.edit_menu_actions),
-                          (self.tr("&Search"), self.main.search_menu_actions),
-                          (self.tr("Sour&ce"), self.main.source_menu_actions),
-                          (self.tr("&Run"), self.main.run_menu_actions),
-                          (self.tr("&Tools"), self.main.tools_menu_actions),
-                          (self.tr("?"), self.main.help_menu_actions),
+                          (_("&File"), self.main.file_menu_actions),
+                          (_("&Edit"), self.main.edit_menu_actions),
+                          (_("&Search"), self.main.search_menu_actions),
+                          (_("Sour&ce"), self.main.source_menu_actions),
+                          (_("&Run"), self.main.run_menu_actions),
+                          (_("&Tools"), self.main.tools_menu_actions),
+                          (_("?"), self.main.help_menu_actions),
                           )
         # Create pending new windows:
         for layout_settings in self.editorwindows_to_be_created:
@@ -1292,8 +1291,8 @@ class Editor(SpyderPluginWidget):
         if not osp.isfile(self.TEMPFILE_PATH):
             # Creating temporary file
             default = ['# -*- coding: utf-8 -*-',
-                       '"""', self.tr("Spyder Editor"), '',
-                       self.tr("This temporary script file is located here:"),
+                       '"""', _("Spyder Editor"), '',
+                       _("This temporary script file is located here:"),
                        self.TEMPFILE_PATH,
                        '"""', '', '']
             text = os.linesep.join([encoding.to_unicode(qstr)
@@ -1334,7 +1333,7 @@ class Editor(SpyderPluginWidget):
                            'username': os.environ.get('USERNAME', '-')}
         except:
             pass
-        create_fname = lambda n: unicode(self.tr("untitled")) + ("%d.py" % n)
+        create_fname = lambda n: unicode(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
             editorstack = self.get_current_editorstack()
@@ -1393,8 +1392,8 @@ class Editor(SpyderPluginWidget):
     def change_max_recent_files(self):
         "Change max recent files entries"""
         editorstack = self.get_current_editorstack()
-        mrf, valid = QInputDialog.getInteger(editorstack, self.tr('Editor'),
-                               self.tr('Maximum number of recent files'),
+        mrf, valid = QInputDialog.getInteger(editorstack, _('Editor'),
+                               _('Maximum number of recent files'),
                                self.get_option('max_recent_files'), 1, 35)
         if valid:
             self.set_option('max_recent_files', mrf)
@@ -1425,7 +1424,7 @@ class Editor(SpyderPluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             editorstack = self.get_current_editorstack()
             filenames = QFileDialog.getOpenFileNames(editorstack,
-                     self.tr("Open file"), basedir, self.get_filetype_filters())
+                     _("Open file"), basedir, self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
             if len(filenames):
@@ -1498,7 +1497,7 @@ class Editor(SpyderPluginWidget):
         answer = printDialog.exec_()
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if answer == QDialog.Accepted:
-            self.starting_long_process(self.tr("Printing..."))
+            self.starting_long_process(_("Printing..."))
             printer.setDocName(filename)
             from spyderlib.qt.QtGui import QPlainTextEdit
             if isinstance(editor, QPlainTextEdit):
@@ -1514,9 +1513,9 @@ class Editor(SpyderPluginWidget):
                     ok = printer.printRange(editor)
             self.ending_long_process()
             if not ok:
-                QMessageBox.critical(editor, self.tr("Print"),
-                            self.tr("<b>Unable to print document '%1'</b>") \
-                            .arg(osp.basename(filename)))
+                QMessageBox.critical(editor, _("Print"),
+                                     _("<b>Unable to print document '%s'</b>"
+                                       ) % osp.basename(filename))
 
     def print_preview(self):
         """Print preview for current file"""

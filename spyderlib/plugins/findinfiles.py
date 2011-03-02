@@ -20,6 +20,7 @@ from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
+from spyderlib.config import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -82,7 +83,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr("Find in files")
+        return _("Find in files")
     
     def get_focus_widget(self):
         """
@@ -106,10 +107,10 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         self.connect(self.main.workingdirectory,
                      SIGNAL("refresh_findinfiles()"), self.refreshdir)
         
-        findinfiles_action = create_action(self, self.tr("&Find in files"),
+        findinfiles_action = create_action(self, _("&Find in files"),
                                    "Ctrl+Shift+F", 'findf.png',
                                    triggered=self.findinfiles_callback,
-                                   tip=self.tr("Search text in multiple files"))        
+                                   tip=_("Search text in multiple files"))        
         
         self.main.search_menu_actions += [None, findinfiles_action]
         self.main.search_toolbar_actions += [None, findinfiles_action]

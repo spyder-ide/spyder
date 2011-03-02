@@ -20,8 +20,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, CONF
-from spyderlib.utils.qthelpers import get_std_icon, translate
+from spyderlib.config import get_icon, CONF, _
+from spyderlib.utils.qthelpers import get_std_icon
 
 
 class RunConfiguration(object):
@@ -104,17 +104,17 @@ class RunConfigOptions(QWidget):
         QWidget.__init__(self, parent)
         self.runconf = RunConfiguration()
         
-        common_group = QGroupBox(self.tr("General settings"))
+        common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
         common_group.setLayout(common_layout)
-        self.clo_cb = QCheckBox(self.tr("Command line options:"))
+        self.clo_cb = QCheckBox(_("Command line options:"))
         common_layout.addWidget(self.clo_cb, 0, 0)
         self.clo_edit = QLineEdit()
         self.connect(self.clo_cb, SIGNAL("toggled(bool)"),
                      self.clo_edit.setEnabled)
         self.clo_edit.setEnabled(False)
         common_layout.addWidget(self.clo_edit, 0, 1)
-        self.wd_cb = QCheckBox(self.tr("Working directory:"))
+        self.wd_cb = QCheckBox(_("Working directory:"))
         common_layout.addWidget(self.wd_cb, 1, 0)
         wd_layout = QHBoxLayout()
         self.wd_edit = QLineEdit()
@@ -123,37 +123,37 @@ class RunConfigOptions(QWidget):
         self.wd_edit.setEnabled(False)
         wd_layout.addWidget(self.wd_edit)
         browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
-        browse_btn.setToolTip(self.tr("Select directory"))
+        browse_btn.setToolTip(_("Select directory"))
         self.connect(browse_btn, SIGNAL("clicked()"), self.select_directory)
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
         
-        radio_group = QGroupBox(self.tr("Interpreter"))
+        radio_group = QGroupBox(_("Interpreter"))
         radio_layout = QVBoxLayout()
         radio_group.setLayout(radio_layout)
-        self.current_radio = QRadioButton(self.tr("Execute in current Python "
+        self.current_radio = QRadioButton(_("Execute in current Python "
                                                   "or IPython interpreter"))
         radio_layout.addWidget(self.current_radio)
-        self.new_radio = QRadioButton(self.tr("Execute in a new dedicated "
+        self.new_radio = QRadioButton(_("Execute in a new dedicated "
                                               "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
         
-        new_group = QGroupBox(self.tr("Dedicated Python interpreter"))
+        new_group = QGroupBox(_("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
-        self.interact_cb = QCheckBox(self.tr("Interact with the Python "
+        self.interact_cb = QCheckBox(_("Interact with the Python "
                                              "interpreter after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
-        self.pclo_cb = QCheckBox(self.tr("Command line options:"))
+        self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 2, 0)
         self.pclo_edit = QLineEdit()
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
         new_layout.addWidget(self.pclo_edit, 2, 1)
-        pclo_label = QLabel(self.tr("The <b>-u</b> option is "
+        pclo_label = QLabel(_("The <b>-u</b> option is "
                                     "added to these commands"))
         pclo_label.setWordWrap(True)
         new_layout.addWidget(pclo_label, 3, 1)
@@ -172,7 +172,7 @@ class RunConfigOptions(QWidget):
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
         directory = QFileDialog.getExistingDirectory(self,
-                                        self.tr("Select directory"), basedir)
+                                        _("Select directory"), basedir)
         if not directory.isEmpty():
             self.wd_edit.setText(directory)
             self.wd_cb.setChecked(True)
@@ -207,9 +207,9 @@ class RunConfigOptions(QWidget):
         if not self.wd_cb.isChecked() or osp.isdir(wdir):
             return True
         else:
-            QMessageBox.critical(self, self.tr("Run configuration"),
-                                 self.tr("The following working directory is "
-                                         "not valid:<br><b>%1</b>").arg(wdir))
+            QMessageBox.critical(self, _("Run configuration"),
+                                 _("The following working directory is "
+                                   "not valid:<br><b>%s</b>") % wdir)
             return False
 
 
@@ -222,8 +222,7 @@ class RunConfigOneDialog(QDialog):
         self.runconfigoptions = RunConfigOptions(self)
         
         bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
-        bbox.addButton(translate("RunConfigDialog", "Run"),
-                       QDialogButtonBox.AcceptRole)
+        bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
 
@@ -241,7 +240,7 @@ class RunConfigOneDialog(QDialog):
     def setup(self, fname):
         self.filename = fname
         self.runconfigoptions.set(RunConfiguration(fname).get())
-        self.setWindowTitle(self.tr("Run %1").arg(osp.basename(fname)))
+        self.setWindowTitle(_("Run %s") % osp.basename(fname))
             
     def accept(self):
         """Reimplement Qt method"""
@@ -262,7 +261,7 @@ class RunConfigDialog(QDialog):
         
         self.file_to_run = None
         
-        combo_label = QLabel(self.tr("Select a run configuration:"))
+        combo_label = QLabel(_("Select a run configuration:"))
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
         self.combo.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLength)
@@ -271,7 +270,7 @@ class RunConfigDialog(QDialog):
         self.stack = QStackedWidget()
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        run_btn = bbox.addButton(self.tr("Run"), QDialogButtonBox.AcceptRole)
+        run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
         self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
@@ -288,7 +287,7 @@ class RunConfigDialog(QDialog):
         layout.addLayout(btnlayout)
         self.setLayout(layout)
 
-        self.setWindowTitle(self.tr("Run configurations"))
+        self.setWindowTitle(_("Run configurations"))
         self.setWindowIcon(get_icon("run.png"))
         
     def setup(self, fname):

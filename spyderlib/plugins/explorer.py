@@ -20,7 +20,8 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, translate
+from spyderlib.config import _
+from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 
@@ -51,7 +52,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr("File explorer")
+        return _("File explorer")
     
     def get_focus_widget(self):
         """
@@ -63,9 +64,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
-        font_action = create_action(self, translate('Explorer', "&Font..."),
-                                    None, 'font.png',
-                                    translate("Explorer", "Set font style"),
+        font_action = create_action(self, _("&Font..."), None, 'font.png',
+                                    _("Set font style"),
                                     triggered=self.change_font)
         self.treewidget.common_actions.append(font_action)
         return []
@@ -137,7 +137,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
-                                  translate("Explorer", "Select a new font"))
+                                          _("Select a new font"))
         if valid:
             self.set_font(font)
             self.set_plugin_font(font)

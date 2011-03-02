@@ -33,13 +33,13 @@ from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import SIGNAL, QString, QObject
 
 # Local import
-from spyderlib.utils.qthelpers import translate, create_action, get_std_icon
+from spyderlib.utils.qthelpers import create_action, get_std_icon
 from spyderlib.interpreter import Interpreter
 from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.config import CONF, get_conf_path
+from spyderlib.config import CONF, get_conf_path, _
 from spyderlib.widgets.shell import PythonShellWidget
 
 
@@ -153,7 +153,7 @@ class InternalShell(PythonShellWidget):
             self.interpreter.start()
         
         # interpreter banner
-        banner = create_banner(self.tr('Type "copyright", "credits" or "license" for more information.'), self.message)
+        banner = create_banner(_('Type "copyright", "credits" or "license" for more information.'), self.message)
         self.write(banner, prompt=True)
 
         # Initial commands
@@ -199,33 +199,26 @@ class InternalShell(PythonShellWidget):
     def setup_context_menu(self):
         """Reimplement PythonShellWidget method"""
         PythonShellWidget.setup_context_menu(self)
-        self.help_action = create_action(self,
-                           translate("InternalShell", "Help..."),
+        self.help_action = create_action(self, _("Help..."),
                            icon=get_std_icon('DialogHelpButton'),
                            triggered=self.help)
         self.menu.addAction(self.help_action)
 
     def help(self):
         """Help on Spyder console"""
-        QMessageBox.about(self,
-            translate("InternalShell", "Help"),
-            self.tr("""<b>%1</b>
-            <p><i>%2</i><br>    edit foobar.py
-            <p><i>%3</i><br>    xedit foobar.py
-            <p><i>%4</i><br>    run foobar.py
-            <p><i>%5</i><br>    clear x, y
-            <p><i>%6</i><br>    !ls
-            <p><i>%7</i><br>    object?
-            <p><i>%8</i><br>    result = oedit(object)
-            """) \
-            .arg(translate("InternalShell", 'Shell special commands:')) \
-            .arg(translate("InternalShell", 'Internal editor:')) \
-            .arg(translate("InternalShell", 'External editor:')) \
-            .arg(translate("InternalShell", 'Run script:')) \
-            .arg(translate("InternalShell", 'Remove references:')) \
-            .arg(translate("InternalShell", 'System commands:')) \
-            .arg(translate("InternalShell", 'Python help:')) \
-            .arg(translate("InternalShell", 'GUI-based editor:')) )
+        QMessageBox.about(self, _("Help"),
+            _("""<b>%s</b>
+            <p><i>%s</i><br>    edit foobar.py
+            <p><i>%s</i><br>    xedit foobar.py
+            <p><i>%s</i><br>    run foobar.py
+            <p><i>%s</i><br>    clear x, y
+            <p><i>%s</i><br>    !ls
+            <p><i>%s</i><br>    object?
+            <p><i>%s</i><br>    result = oedit(object)
+            """
+            ) % ('Shell special commands:', 'Internal editor:',
+                 'External editor:', 'Run script:', 'Remove references:',
+                 'System commands:', 'Python help:', 'GUI-based editor:') )
                 
                 
     #------ External editing

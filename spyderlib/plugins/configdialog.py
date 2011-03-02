@@ -9,8 +9,8 @@
 import os, os.path as osp
 
 from spyderlib.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
-                              set_default_color_scheme, COLOR_SCHEME_NAMES)
-from spyderlib.utils.qthelpers import translate, get_std_icon
+                              set_default_color_scheme, COLOR_SCHEME_NAMES, _)
+from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 
@@ -117,7 +117,7 @@ class ConfigDialog(QDialog):
 
         self.setLayout(vlayout)
 
-        self.setWindowTitle(self.tr("Preferences"))
+        self.setWindowTitle(_("Preferences"))
         self.setWindowIcon(get_icon("configure.png"))
         
     def get_current_index(self):
@@ -382,10 +382,10 @@ class SpyderConfigPage(ConfigPage):
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
-        msg = translate("PluginConfigPage", "Invalid directory path")
+        msg = _("Invalid directory path")
         self.validate_data[edit] = (osp.isdir, msg)
         browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
-        browse_btn.setToolTip(translate("PluginConfigPage", "Select directory"))
+        browse_btn.setToolTip(_("Select directory"))
         self.connect(browse_btn, SIGNAL("clicked()"),
                      lambda: self.select_directory(edit))
         layout = QHBoxLayout()
@@ -401,7 +401,7 @@ class SpyderConfigPage(ConfigPage):
         basedir = unicode(edit.text())
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
-        title = translate("PluginConfigPage", "Select directory")
+        title = _("Select directory")
         directory = QFileDialog.getExistingDirectory(self, title, basedir)
         if not directory.isEmpty():
             edit.setText(directory)
@@ -413,10 +413,10 @@ class SpyderConfigPage(ConfigPage):
         for edit in self.lineedits:
             if widget.isAncestorOf(edit):
                 break
-        msg = translate("PluginConfigPage", "Invalid file path")
+        msg = _("Invalid file path")
         self.validate_data[edit] = (osp.isfile, msg)
         browse_btn = QPushButton(get_std_icon('FileIcon'), "", self)
-        browse_btn.setToolTip(translate("PluginConfigPage", "Select file"))
+        browse_btn.setToolTip(_("Select file"))
         self.connect(browse_btn, SIGNAL("clicked()"),
                      lambda: self.select_file(edit, filters))
         layout = QHBoxLayout()
@@ -433,8 +433,8 @@ class SpyderConfigPage(ConfigPage):
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
         if filters is None:
-            filters = translate("PluginConfigPage", "All files (*)")
-        title = translate("PluginConfigPage", "Select file")
+            filters = _("All files (*)")
+        title = _("Select file")
         filename = QFileDialog.getOpenFileName(self, title, basedir, filters)
         if filename:
             edit.setText(filename)
@@ -497,10 +497,10 @@ class SpyderConfigPage(ConfigPage):
             clayout.setToolTip(tip)
         cb_bold = QCheckBox()
         cb_bold.setIcon(get_icon("bold.png"))
-        cb_bold.setToolTip(translate("PluginConfigPage", "Bold"))
+        cb_bold.setToolTip(_("Bold"))
         cb_italic = QCheckBox()
         cb_italic.setIcon(get_icon("italic.png"))
-        cb_italic.setToolTip(translate("PluginConfigPage", "Italic"))
+        cb_italic.setToolTip(_("Italic"))
         self.scedits[(clayout, cb_bold, cb_italic)] = (option, default)
         if without_layout:
             return label, clayout, cb_bold, cb_italic
@@ -538,11 +538,11 @@ class SpyderConfigPage(ConfigPage):
     def create_fontgroup(self, option=None, text=None,
                          tip=None, fontfilters=None):
         """Option=None -> setting plugin font"""
-        fontlabel = QLabel(translate("PluginConfigPage", "Font: "))
+        fontlabel = QLabel(_("Font: "))
         fontbox = QFontComboBox()
         if fontfilters is not None:
             fontbox.setFontFilters(fontfilters)
-        sizelabel = QLabel("  "+translate("PluginConfigPage", "Size: "))
+        sizelabel = QLabel("  "+_("Size: "))
         sizebox = QSpinBox()
         sizebox.setRange(7, 100)
         self.fontboxes[(fontbox, sizebox)] = option
@@ -551,7 +551,7 @@ class SpyderConfigPage(ConfigPage):
             layout.addWidget(subwidget)
         layout.addStretch(1)
         if text is None:
-            text = translate("PluginConfigPage", "Font style")
+            text = _("Font style")
         group = QGroupBox(text)
         group.setLayout(layout)
         if tip is not None:
@@ -595,21 +595,21 @@ class GeneralConfigPage(SpyderConfigPage):
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
     def get_name(self):
-        return self.tr("General")
+        return _("General")
     
     def get_icon(self):
         return get_icon("genprefs.png")
     
     def setup_page(self):
-        interface_group = QGroupBox(self.tr("Interface"))
+        interface_group = QGroupBox(_("Interface"))
         newcb = self.create_checkbox
-        vertdock_box = newcb(self.tr("Vertical dockwidget title bars"),
+        vertdock_box = newcb(_("Vertical dockwidget title bars"),
                              'vertical_dockwidget_titlebars')
-        verttabs_box = newcb(self.tr("Vertical dockwidget tabs"),
+        verttabs_box = newcb(_("Vertical dockwidget tabs"),
                              'vertical_tabs')
-        animated_box = newcb(self.tr("Animated toolbars and dockwidgets"),
+        animated_box = newcb(_("Animated toolbars and dockwidgets"),
                              'animated_docks')
-        margin_box = newcb(self.tr("Custom dockwidget margin:"),
+        margin_box = newcb(_("Custom dockwidget margin:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
                                           0, 0, 30)
@@ -639,7 +639,7 @@ class MainConfigPage(GeneralConfigPage):
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
     def get_name(self):
-        return self.tr("Syntax coloring")
+        return _("Syntax coloring")
     
     def get_icon(self):
         return get_icon("genprefs.png")
@@ -650,27 +650,27 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         names.pop(names.index(CUSTOM_COLOR_SCHEME_NAME))
         names.insert(0, CUSTOM_COLOR_SCHEME_NAME)
         fieldnames = {
-                      "background":     self.tr("Background:"),
-                      "currentline":    self.tr("Current line:"),
-                      "occurence":      self.tr("Occurence:"),
-                      "ctrlclick":      self.tr("Link:"),
-                      "sideareas":      self.tr("Side areas:"),
-                      "matched_p":      self.tr("Matched parentheses:"),
-                      "unmatched_p":    self.tr("Unmatched parentheses:"),
-                      "normal":         self.tr("Normal text:"),
-                      "keyword":        self.tr("Keyword:"),
-                      "builtin":        self.tr("Builtin:"),
-                      "definition":     self.tr("Definition:"),
-                      "comment":        self.tr("Comment:"),
-                      "string":         self.tr("String:"),
-                      "number":         self.tr("Number:"),
-                      "instance":       self.tr("Instance:"),
+                      "background":     _("Background:"),
+                      "currentline":    _("Current line:"),
+                      "occurence":      _("Occurence:"),
+                      "ctrlclick":      _("Link:"),
+                      "sideareas":      _("Side areas:"),
+                      "matched_p":      _("Matched parentheses:"),
+                      "unmatched_p":    _("Unmatched parentheses:"),
+                      "normal":         _("Normal text:"),
+                      "keyword":        _("Keyword:"),
+                      "builtin":        _("Builtin:"),
+                      "definition":     _("Definition:"),
+                      "comment":        _("Comment:"),
+                      "string":         _("String:"),
+                      "number":         _("Number:"),
+                      "instance":       _("Instance:"),
                       }
         from spyderlib.widgets.codeeditor import syntaxhighlighters
         assert all([key in fieldnames
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:
-            cs_group = QGroupBox(self.tr("Color scheme"))
+            cs_group = QGroupBox(_("Color scheme"))
             cs_layout = QGridLayout()
             for row, key in enumerate(syntaxhighlighters.COLOR_SCHEME_KEYS):
                 option = "%s/%s" % (tabname, key)
@@ -692,7 +692,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                     cs_layout.addWidget(cb_italic, row+1, 3)
             cs_group.setLayout(cs_layout)
             if tabname in COLOR_SCHEME_NAMES:
-                def_btn = self.create_button(self.tr("Reset to default values"),
+                def_btn = self.create_button(_("Reset to default values"),
                                              self.reset_to_default)
                 def_btn.setProperty("name", QVariant(tabname))
                 tabs.addTab(self.create_tab(cs_group, def_btn), tabname)

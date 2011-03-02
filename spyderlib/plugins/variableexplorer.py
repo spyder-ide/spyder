@@ -15,7 +15,7 @@ from spyderlib.qt.QtCore import SIGNAL
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_icon
+from spyderlib.config import CONF, get_icon, _
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS
@@ -24,33 +24,33 @@ from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 
 class VariableExplorerConfigPage(PluginConfigPage):
     def setup_page(self):
-        ar_group = QGroupBox(self.tr("Autorefresh"))
-        ar_box = self.create_checkbox(self.tr("Enable autorefresh"),
+        ar_group = QGroupBox(_("Autorefresh"))
+        ar_box = self.create_checkbox(_("Enable autorefresh"),
                                       'autorefresh')
-        ar_spin = self.create_spinbox(self.tr("Refresh interval: "),
-                                      self.tr(" ms"), 'autorefresh/timeout',
+        ar_spin = self.create_spinbox(_("Refresh interval: "),
+                                      _(" ms"), 'autorefresh/timeout',
                                       min_=100, max_=1000000, step=100)
         
-        filter_group = QGroupBox(self.tr("Filter"))
+        filter_group = QGroupBox(_("Filter"))
         filter_data = [
-            ('exclude_private', self.tr("Exclude private references")),
-            ('exclude_upper', self.tr("Exclude capitalized references")),
-            ('exclude_unsupported', self.tr("Exclude unsupported data types")),
+            ('exclude_private', _("Exclude private references")),
+            ('exclude_upper', _("Exclude capitalized references")),
+            ('exclude_unsupported', _("Exclude unsupported data types")),
                 ]
         filter_boxes = [self.create_checkbox(text, option)
                         for option, text in filter_data]
 
-        display_group = QGroupBox(self.tr("Display"))
+        display_group = QGroupBox(_("Display"))
         display_data = [
-                        ('truncate', self.tr("Truncate values"), ''),
-                        ('inplace', self.tr("Always edit in-place"), ''),
-                        ('collvalue', self.tr("Show collection contents"), ''),
+                        ('truncate', _("Truncate values"), ''),
+                        ('inplace', _("Always edit in-place"), ''),
+                        ('collvalue', _("Show collection contents"), ''),
                         ]
         if programs.is_module_installed('numpy'):
-            display_data.append(('minmax', self.tr("Show arrays min/max"), ''))
+            display_data.append(('minmax', _("Show arrays min/max"), ''))
         display_data.append(
-            ('remote_editing', self.tr("Edit data in the remote process"),
-             self.tr("Editors are opened in the remote process for NumPy "
+            ('remote_editing', _("Edit data in the remote process"),
+             _("Editors are opened in the remote process for NumPy "
                      "arrays, PIL images, lists, tuples and dictionaries.\n"
                      "This avoids transfering large amount of data between "
                      "the remote process and Spyder (through the socket)."))
@@ -160,7 +160,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('Variable explorer')
+        return _('Variable explorer')
 
     def get_plugin_icon(self):
         """Return plugin icon"""

@@ -18,7 +18,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.config import get_icon, CONF, get_color_scheme
+from spyderlib.config import get_icon, CONF, get_color_scheme, _
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -29,20 +29,20 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 class HistoryConfigPage(PluginConfigPage):
     def setup_page(self):
-        settings_group = QGroupBox(self.tr("Settings"))
+        settings_group = QGroupBox(_("Settings"))
         hist_spin = self.create_spinbox(
-                            self.tr("History depth: "), self.tr(" entries"),
+                            _("History depth: "), _(" entries"),
                             'max_entries', min_=10, max_=10000, step=10,
-                            tip=self.tr("Set maximum line count"))
+                            tip=_("Set maximum line count"))
 
-        sourcecode_group = QGroupBox(self.tr("Source code"))
-        wrap_mode_box = self.create_checkbox(self.tr("Wrap lines"), 'wrap')
+        sourcecode_group = QGroupBox(_("Source code"))
+        wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         font_group = self.create_fontgroup(option=None,
-                                    text=self.tr("Font style"),
+                                    text=_("Font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
-        cs_combo = self.create_combobox(self.tr("Syntax color scheme: "),
+        cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
 
         settings_layout = QVBoxLayout()
@@ -91,7 +91,7 @@ class HistoryLog(SpyderPluginWidget):
         layout.addWidget(self.tabwidget)
 
         # Menu as corner widget
-        options_button = create_toolbutton(self, text=self.tr("Options"),
+        options_button = create_toolbutton(self, text=_("Options"),
                                            icon=get_icon('tooloptions.png'),
                                            text_beside_icon=True)
         options_button.setPopupMode(QToolButton.InstantPopup)
@@ -112,7 +112,7 @@ class HistoryLog(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr('History log')
+        return _('History log')
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -139,14 +139,14 @@ class HistoryLog(SpyderPluginWidget):
         
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        history_action = create_action(self, self.tr("History..."),
+        history_action = create_action(self, _("History..."),
                                        None, 'history.png',
-                                       self.tr("Set history maximum entries"),
+                                       _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
-        font_action = create_action(self, self.tr("&Font..."), None,
-                                    'font.png', self.tr("Set shell font style"),
+        font_action = create_action(self, _("&Font..."), None,
+                                    'font.png', _("Set shell font style"),
                                     triggered=self.change_font)
-        self.wrap_action = create_action(self, self.tr("Wrap lines"),
+        self.wrap_action = create_action(self, _("Wrap lines"),
                                     toggled=self.toggle_wrap_mode)
         self.wrap_action.setChecked( self.get_option('wrap') )
         self.menu_actions = [history_action, font_action, self.wrap_action]
@@ -244,8 +244,8 @@ class HistoryLog(SpyderPluginWidget):
         
     def change_history_depth(self):
         "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, self.tr('History'),
-                                       self.tr('Maximum entries'),
+        depth, valid = QInputDialog.getInteger(self, _('History'),
+                                       _('Maximum entries'),
                                        self.get_option('max_entries'),
                                        10, 10000)
         if valid:
@@ -254,7 +254,7 @@ class HistoryLog(SpyderPluginWidget):
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(),
-                       self, self.tr("Select a new font"))
+                       self, _("Select a new font"))
         if valid:
             for editor in self.editors:
                 editor.set_font(font)

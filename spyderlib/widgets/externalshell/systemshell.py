@@ -18,7 +18,7 @@ from spyderlib.qt.QtCore import QProcess, SIGNAL, QString
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.utils.programs import split_clo
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
@@ -85,8 +85,8 @@ class ExternalSystemShell(ExternalShellBase):
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, self.tr("Error"),
-                                 self.tr("Process failed to start"))
+            QMessageBox.critical(self, _("Error"),
+                                 _("Process failed to start"))
         else:
             self.shell.setFocus()
             self.emit(SIGNAL('started()'))

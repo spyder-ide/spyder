@@ -20,7 +20,7 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
@@ -29,15 +29,15 @@ from spyderplugins.widgets.pylintgui import PylintWidget, is_pylint_installed
 
 class PylintConfigPage(PluginConfigPage):
     def setup_page(self):
-        hist_group = QGroupBox(self.tr("History"))
-        hist_label = QLabel(self.tr("Pylint plugin results are stored here:\n"
-                                    "%1\n\nThe following option "
-                                    "will be applied at next startup.\n"
-                                    ).arg(PylintWidget.DATAPATH))
+        hist_group = QGroupBox(_("History"))
+        hist_label = QLabel(_("Pylint plugin results are stored here:\n"
+                              "%s\n\nThe following option "
+                              "will be applied at next startup.\n"
+                              ) % PylintWidget.DATAPATH)
         hist_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         hist_label.setWordWrap(True)
-        hist_spin = self.create_spinbox(self.tr("History: "),
-                            self.tr(" results"), 'max_entries', default=50,
+        hist_spin = self.create_spinbox(_("History: "),
+                            _(" results"), 'max_entries', default=50,
                             min_=10, max_=1000000, step=10)
 
         hist_layout = QVBoxLayout()
@@ -63,7 +63,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr("Pylint")
+        return _("Pylint")
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -79,9 +79,9 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         # Font
-        history_action = create_action(self, self.tr("History..."),
+        history_action = create_action(self, _("History..."),
                                        None, 'history.png',
-                                       self.tr("Set history maximum entries"),
+                                       _("Set history maximum entries"),
                                        triggered=self.change_history_depth)
         self.treewidget.common_actions += (None, history_action)
         return []
@@ -94,7 +94,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        pylint_act = create_action(self, self.tr("Run pylint code analysis"),
+        pylint_act = create_action(self, _("Run pylint code analysis"),
                                    triggered=self.run_pylint)
         pylint_act.setEnabled(is_pylint_installed())
         self.register_shortcut(pylint_act, context="Pylint",
@@ -120,8 +120,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     #------ Public API ---------------------------------------------------------
     def change_history_depth(self):
         "Change history max entries"""
-        depth, valid = QInputDialog.getInteger(self, self.tr('History'),
-                                       self.tr('Maximum entries'),
+        depth, valid = QInputDialog.getInteger(self, _('History'),
+                                       _('Maximum entries'),
                                        self.get_option('max_entries'),
                                        10, 10000)
         if valid:

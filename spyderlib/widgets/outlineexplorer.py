@@ -24,8 +24,7 @@ from spyderlib.qt.QtGui import QTreeWidgetItem
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
-from spyderlib.config import get_icon
-from spyderlib.utils.qthelpers import translate
+from spyderlib.config import get_icon, _
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.utils.classparser import get_classes
 
@@ -33,7 +32,7 @@ from spyderlib.utils.classparser import get_classes
 class OutlineExplorer(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
-        title = translate("OutlineExplorer", "Outline")
+        title = _("Outline")
         self.setWindowTitle(title)
         self.set_title(title)
         self.fname = None
