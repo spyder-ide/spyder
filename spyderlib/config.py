@@ -136,7 +136,7 @@ DEFAULTS = [
             ('console',
              {
               'shortcut': "Ctrl+Shift+C",
-              'max_line_count': 300,
+              'max_line_count': 10000,
               'font/family': MONOSPACE,
               'font/size': MEDIUM,
               'font/italic': False,
