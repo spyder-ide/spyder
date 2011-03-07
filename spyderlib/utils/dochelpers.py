@@ -99,15 +99,9 @@ def getsource(obj):
 
 def getargfromdoc(obj):
     """Get arguments from object doc"""
-    doc = getdoc(obj)
-    name = obj.__name__
-    if (doc is None) or (not doc.find(name+'(')):
-        return None
-    argtxt = doc[doc.find(name+'(')+len(name)+1:doc.find(')')]
-    if argtxt == u'...':
-        return None
-    else:
-        return argtxt.split()
+    doc, name = obj.__doc__, obj.__name__
+    if doc is not None and name+'(' in doc:
+        return doc[doc.find(name+'(')+len(name)+1:doc.find(')')].split()
 
 def getargtxt(obj, one_arg_per_line=True):
     """Get the names and default values of a function's arguments"""
@@ -121,7 +115,7 @@ def getargtxt(obj, one_arg_per_line=True):
     else:
         return None
     if not hasattr(func_obj, 'func_code'):
-        # Builtin: try to extract info from getdoc
+        # Builtin: try to extract info from doc
         return getargfromdoc(func_obj)
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
@@ -204,3 +198,5 @@ if __name__ == "__main__":
     print getobj('globals().keys')
     print getobj('+scipy.signal.')
     print getobj('4.')
+    print getdoc(sorted)
+    print getargtxt(sorted)
