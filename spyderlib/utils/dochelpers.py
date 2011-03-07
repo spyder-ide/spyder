@@ -103,9 +103,8 @@ def getargfromdoc(obj):
     if doc is not None and name+'(' in doc:
         return doc[doc.find(name+'(')+len(name)+1:doc.find(')')].split()
 
-def getargtxt(obj, one_arg_per_line=True):
+def getargs(obj):
     """Get the names and default values of a function's arguments"""
-    sep = ', '
     if inspect.isfunction(obj) or inspect.isbuiltin(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
@@ -113,7 +112,7 @@ def getargtxt(obj, one_arg_per_line=True):
     elif inspect.isclass(obj) and hasattr(obj, '__init__'):
         func_obj = getattr(obj, '__init__')
     else:
-        return None
+        return []
     if not hasattr(func_obj, 'func_code'):
         # Builtin: try to extract info from doc
         return getargfromdoc(func_obj)
@@ -130,21 +129,36 @@ def getargtxt(obj, one_arg_per_line=True):
     if defaults is not None:
         for index, default in enumerate(defaults):
             args[index+len(args)-len(defaults)] += '='+repr(default)
-    textlist = None
-    for i_arg, arg in enumerate(args):
-        if textlist is None:
-            textlist = ['']
-        textlist[-1] += arg
-        if i_arg < len(args)-1:
-            textlist[-1] += sep
-            if len(textlist[-1]) >= 32 or one_arg_per_line:
-                textlist.append('')
     if inspect.isclass(obj) or inspect.ismethod(obj):
-        if len(textlist) == 1:
+        if len(args) == 1:
             return None
-        if 'self'+sep in textlist:
-            textlist.remove('self'+sep)
-    return textlist
+        if 'self' in args:
+            args.remove('self')
+    return args
+
+def getargtxt(obj, one_arg_per_line=True):
+    """
+    Get the names and default values of a function's arguments
+    Return list with separators (', ') formatted for calltips
+    """
+    args = getargs(obj)
+    if args:
+        sep = ', '
+        textlist = None
+        for i_arg, arg in enumerate(args):
+            if textlist is None:
+                textlist = ['']
+            textlist[-1] += arg
+            if i_arg < len(args)-1:
+                textlist[-1] += sep
+                if len(textlist[-1]) >= 32 or one_arg_per_line:
+                    textlist.append('')
+        if inspect.isclass(obj) or inspect.ismethod(obj):
+            if len(textlist) == 1:
+                return None
+            if 'self'+sep in textlist:
+                textlist.remove('self'+sep)
+        return textlist
 
 
 def isdefined(obj, force_import=False, namespace=None):
