@@ -39,23 +39,6 @@ LOG_FILENAME = get_conf_path('rope.log')
 try:
     import rope.base.libutils
     import rope.contrib.codeassist
-    pydocextractor = rope.contrib.codeassist.PyDocExtractor()
-    
-    def get_pyobject(project, source_code, offset, resource=None, maxfixes=1):
-        fixer = rope.contrib.codeassist.fixsyntax.FixSyntax(project.pycore,
-                                            source_code, resource, maxfixes)
-        pyname = fixer.pyname_at(offset)
-        if pyname is None:
-            return None
-        return pyname.get_object()
-    
-    def get_calltip_from_pyobject(pyobject,
-                                  ignore_unknown=False, remove_self=False):
-        return pydocextractor.get_calltip(pyobject, ignore_unknown, remove_self)
-    
-    def get_doc_from_pyobject(pyobject):
-        return pydocextractor.get_doc(pyobject)
-    
 except ImportError:
     pass
 
@@ -270,17 +253,16 @@ class Project(object):
         try:
             if DEBUG:
                 t0 = time.time()
-            pyobject = get_pyobject(self.rope_project, source_code, offset,
-                                    resource)
-            cts = get_calltip_from_pyobject(pyobject, ignore_unknown=True,
-                                            remove_self=True)
+            cts = rope.contrib.codeassist.get_calltip(
+                            self.rope_project, source_code, offset, resource)
             if DEBUG:
                 log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
                 try:
-                    doc_text = get_doc_from_pyobject(pyobject)
+                    doc_text = rope.contrib.codeassist.get_doc(
+                            self.rope_project, source_code, offset, resource)
                     if DEBUG:
                         log_dt(LOG_FILENAME, "get_doc", t0)
                 except Exception, _error:

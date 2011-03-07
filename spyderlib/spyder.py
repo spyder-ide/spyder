@@ -1368,6 +1368,14 @@ def initialize(debug):
     from spyderlib.qt import QtGui
     QtGui.QApplication = FakeQApplication
     
+    #----Monkey patching rope
+    try:
+        from spyderlib import rope_patch
+        rope_patch.apply()
+    except ImportError:
+        # rope 0.9.2/0.9.3 is not installed
+        pass
+    
     #----Monkey patching sys.exit
     def fake_sys_exit(arg=[]):
         pass

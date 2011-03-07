@@ -64,6 +64,10 @@ def get_calltip_from_pyobject(pyobject,
 def get_doc_from_pyobject(pyobject):
     return pydocextractor.get_doc(pyobject)
 
+
+from spyderlib import rope_patch
+rope_patch.apply()
+
 def other_features():
     project = rope.base.project.Project('src', **ROPE_PREFS)
     project.validate(project.root)
