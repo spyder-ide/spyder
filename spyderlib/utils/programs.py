@@ -41,26 +41,15 @@ def run_program(name, args=[]):
     
 def start_file(filename):
     """
-    Generalized os.startfile for Windows and GNU/Linux (Gnome and KDE)
-    On Windows, returns False if the command failed (no application associated 
-    with filename's extension).
-    On GNU/Linux, returns always True.
-    On non-supported platforms, returns False.
+    Generalized os.startfile for all platforms supported by Qt
+    (this function is simply wrapping QDesktopServices.openUrl)
+    Returns True if successfull, otherwise returns False.
     """
-    exec_cmd = {
-                'gnome': 'gnome-open',
-                'kde': 'kfmclient exec'
-                }.get(os.environ.get('DESKTOP_SESSION'))
-    if os.name == 'nt':
-        try:
-            os.startfile(filename)
-            return True
-        except WindowsError:
-            return False
-    elif exec_cmd:
-        return os.system(exec_cmd+ ' "%s"' % filename) == 0
-    else:
-        return False
+    from PyQt4.QtGui import QDesktopServices
+    from PyQt4.QtCore import QUrl
+    url = QUrl()
+    url.setPath(filename)
+    return QDesktopServices.openUrl(url)
     
 def python_script_exists(package=None, module=None, get_path=False):
     """
