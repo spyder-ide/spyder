@@ -58,8 +58,7 @@ def start_file(filename):
         except WindowsError:
             return False
     elif exec_cmd:
-        run_program(exec_cmd, '"%s"' % filename)
-        return True
+        return os.system(exec_cmd+ ' "%s"' % filename) == 0
     else:
         return False
     
