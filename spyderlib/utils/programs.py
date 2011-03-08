@@ -39,6 +39,30 @@ def run_program(name, args=[]):
         raise RuntimeError("Program %s was not found" % name)
     subprocess.Popen([path]+args)
     
+def start_file(filename):
+    """
+    Generalized os.startfile for Windows and GNU/Linux (Gnome and KDE)
+    On Windows, returns False if the command failed (no application associated 
+    with filename's extension).
+    On GNU/Linux, returns always True.
+    On non-supported platforms, returns False.
+    """
+    exec_cmd = {
+                'gnome': 'gnome-open',
+                'kde': 'kfmclient exec'
+                }.get(os.environ.get('DESKTOP_SESSION'))
+    if os.name == 'nt':
+        try:
+            os.startfile(filename)
+            return True
+        except WindowsError:
+            return False
+    elif exec_cmd:
+        run_program(exec_cmd, '"%s"' % filename)
+        return True
+    else:
+        return False
+    
 def python_script_exists(package=None, module=None, get_path=False):
     """
     Return True if Python script exists

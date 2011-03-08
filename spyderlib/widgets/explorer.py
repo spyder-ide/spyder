@@ -408,18 +408,11 @@ class ExplorerTreeWidget(DirView):
             self.startfile(fname)
         
     def startfile(self, fname=None):
-        """Windows only: open file in the associated application"""
+        """Open file in the associated application"""
         if fname is None:
             fname = self.get_filename()
-        emit = False
-        if os.name == 'nt':
-            try:
-                os.startfile(fname)
-            except WindowsError:
-                emit = True
-        else:
-            emit = True
-        if emit:
+        ok = programs.start_file(fname)
+        if not ok:
             self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
         
     def run(self):
