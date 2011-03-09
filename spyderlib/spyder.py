@@ -1291,7 +1291,7 @@ class MainWindow(QMainWindow):
         """
         self.shortcut_data.append( (qaction_or_qshortcut,
                                     context, name, default) )
-#        self.apply_shortcuts()
+        self.apply_shortcuts()
         
     def apply_shortcuts(self):
         """Apply shortcuts settings to all widgets/plugins"""
