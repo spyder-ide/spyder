@@ -14,6 +14,11 @@ for _modname in ('PySide', 'PyQt4'):
         os.environ['PYTHON_QT_LIBRARY'] = _modname
         if _modname == 'PyQt4':
             import sip
-            sip.setapi('QString', 1)
+            try:
+                sip.setapi('QString', 1)
+            except AttributeError:
+                # PyQt < v4.6: in future version, we should warn the user 
+                # that PyQt is outdated and won't be supported by Spyder >v2.1
+                pass
     except ImportError:
         pass

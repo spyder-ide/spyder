@@ -15,6 +15,8 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+from spyderlib import qt #@UnusedImport
+
 # Check requirements
 import spyderlib.requirements #@UnusedImport
 

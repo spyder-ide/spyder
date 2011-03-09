@@ -30,6 +30,4 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '2.0.9'
 __license__ = __doc__
 
-from spyderlib import qt
-
 #FIXME: Internal console MT: for i in range(100000): print i -> bug
