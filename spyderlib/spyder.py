@@ -725,8 +725,11 @@ class MainWindow(QMainWindow):
             # View menu
             self.view_menu = self.createPopupMenu()
             self.view_menu.setTitle(_("&View"))
+            reset_layout_action = create_action(self, _("Reset window layout"),
+                                            triggered=self.reset_window_layout)
             add_actions(self.view_menu, (None, self.maximize_action,
                                          self.fullscreen_action, None,
+                                         reset_layout_action, None,
                                          self.close_dockwidget_action))
             self.menuBar().insertMenu(self.help_menu.menuAction(),
                                       self.view_menu)
@@ -764,10 +767,35 @@ class MainWindow(QMainWindow):
         self.emit(SIGNAL('all_actions_defined'))
         
         # Window set-up
-        prefix = ('lightwindow' if self.light else 'window') + '/'
         self.debug_print("Setting up window...")
-        width, height = CONF.get('main', prefix+'size')
-        hexstate = CONF.get('main', prefix+'state', None)
+        self.setup_layout(default=False)
+            
+        self.splash.hide()
+        
+        # Enabling tear off for all menus except help menu
+        for child in self.menuBar().children():
+            if isinstance(child, QMenu) and child != self.help_menu:
+                child.setTearOffEnabled(True)
+        
+        # Menu about to show
+        for child in self.menuBar().children():
+            if isinstance(child, QMenu):
+                self.connect(child, SIGNAL("aboutToShow()"),
+                             self.update_edit_menu)
+        
+        self.debug_print("*** End of MainWindow setup ***")
+        
+    def setup_layout(self, default=False):
+        prefix = ('lightwindow' if self.light else 'window') + '/'
+        get_func = CONF.get_default if default else CONF.get
+        width, height = get_func('main', prefix+'size')
+        if default:
+            hexstate = None
+        else:
+            hexstate = get_func('main', prefix+'state', None)
+        posx, posy =    get_func('main', prefix+'position')
+        is_maximized =  get_func('main', prefix+'is_maximized')
+        is_fullscreen = get_func('main', prefix+'is_fullscreen')
         first_spyder_execution = hexstate is None
         if first_spyder_execution and not self.light:
             # First Spyder execution:
@@ -804,7 +832,6 @@ class MainWindow(QMainWindow):
             self.projectexplorer.dockwidget.close()
         self.resize( QSize(width, height) )
         self.window_size = self.size()
-        posx, posy = CONF.get('main', prefix+'position')
         self.move( QPoint(posx, posy) )
         
         if not self.light:
@@ -812,27 +839,22 @@ class MainWindow(QMainWindow):
             if not first_spyder_execution:
                 self.restoreState( QByteArray().fromHex(str(hexstate)) )
             # Is maximized?
-            if CONF.get('main', prefix+'is_maximized'):
+            if is_maximized:
                 self.setWindowState(Qt.WindowMaximized)
             # Is fullscreen?
-            if CONF.get('main', prefix+'is_fullscreen'):
+            if is_fullscreen:
                 self.setWindowState(Qt.WindowFullScreen)
             self.__update_fullscreen_action()
-            
-        self.splash.hide()
-        
-        # Enabling tear off for all menus except help menu
-        for child in self.menuBar().children():
-            if isinstance(child, QMenu) and child != self.help_menu:
-                child.setTearOffEnabled(True)
-        
-        # Menu about to show
-        for child in self.menuBar().children():
-            if isinstance(child, QMenu):
-                self.connect(child, SIGNAL("aboutToShow()"),
-                             self.update_edit_menu)
-        
-        self.debug_print("*** End of MainWindow setup ***")
+
+    def reset_window_layout(self):
+        """Reset window layout to default"""
+        answer = QMessageBox.warning(self, _("Reset layout"),
+                     _("Window layout will be reset to default settings: "
+                       "this affects window position, size and dockwidgets.\n"
+                       "Do you want to continue?"),
+                     QMessageBox.Yes | QMessageBox.No)
+        if answer == QMessageBox.Yes:
+            self.setup_layout(default=True)
 
     def __focus_shell(self):
         """Return Python shell widget which has focus, if any"""
