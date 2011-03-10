@@ -103,46 +103,13 @@ else:
 
     sys.displayhook = displayhook
 
-# Patching pdb
+
+#===============================================================================
+# Monkey-patching pdb
+#===============================================================================
 import pdb, bdb
+
 class SpyderPdb(pdb.Pdb):
-    def user_return(self, frame, return_value):
-        """This function is called when a return trap is set here."""
-        #-----Spyder-specific---------------------------------------------------
-        # This is useful when debugging in an active interpreter (otherwise,
-        # the debugger will stop before reaching the target file)
-        if self._wait_for_mainpyfile:
-            if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
-                or frame.f_lineno<= 0):
-                return
-            self._wait_for_mainpyfile = 0
-        #-----Spyder-specific---------------------------------------------------
-        frame.f_locals['__return__'] = return_value
-        print >>self.stdout, '--Return--'
-        self.interaction(frame, None)
-        
-    def interaction(self, frame, traceback):
-        self.setup(frame, traceback)
-        self.notify_spyder(frame) #-----Spyder-specific-------------------------
-        self.print_stack_entry(self.stack[self.curindex])
-        self.cmdloop()
-        self.forget()
-
-    def reset(self):
-        bdb.Bdb.reset(self)
-        self.forget()
-        monitor.register_pdb_session(self) #------Spyder-specific---------------
-        self.set_spyder_breakpoints() #-----------Spyder-specific---------------
-        
-    def notify_spyder(self, frame):
-        if not frame:
-            return
-        fname = self.canonic(frame.f_code.co_filename)
-        lineno = frame.f_lineno
-        if isinstance(fname, basestring) and isinstance(lineno, int):
-            if osp.isfile(fname) and monitor is not None:
-                monitor.notify_pdb_step(fname, lineno)
-
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
         #------Really deleting all breakpoints:
@@ -163,8 +130,78 @@ class SpyderPdb(pdb.Pdb):
                     i += 1
                     self.set_break(self.canonic(fname), linenumber,
                                    cond=condition)
+                    
+    def notify_spyder(self, frame):
+        if not frame:
+            return
+        fname = self.canonic(frame.f_code.co_filename)
+        lineno = frame.f_lineno
+        if isinstance(fname, basestring) and isinstance(lineno, int):
+            if osp.isfile(fname) and monitor is not None:
+                monitor.notify_pdb_step(fname, lineno)
 
 pdb.Pdb = SpyderPdb
+
+def monkeypatch_method(cls, patch_name):
+    # This function's code was inspired from the following thread:
+    # "[Python-Dev] Monkeypatching idioms -- elegant or ugly?"
+    # by Robert Brewer <fumanchu at aminus.org>
+    # (Tue Jan 15 19:13:25 CET 2008)
+    """
+    Add the decorated method to the given class; replace as needed.
+    
+    If the named method already exists on the given class, it will
+    be replaced, and a reference to the old method is created as 
+    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute 
+    already exists, KeyError is raised.
+    """
+    def decorator(func):
+        fname = func.__name__
+        old_func = getattr(cls, fname, None)
+        if old_func is not None:
+            # Add the old func to a list of old funcs.
+            old_ref = "_old_%s_%s" % (patch_name, fname)
+            #print old_ref, old_func
+            old_attr = getattr(cls, old_ref, None)
+            if old_attr is None:
+                setattr(cls, old_ref, old_func)
+            else:
+                raise KeyError("%s.%s already exists."
+                               % (cls.__name__, old_ref))
+        setattr(cls, fname, func)
+        return func
+    return decorator
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def user_return(self, frame, return_value):
+    """This function is called when a return trap is set here."""
+    # This is useful when debugging in an active interpreter (otherwise,
+    # the debugger will stop before reaching the target file)
+    if self._wait_for_mainpyfile:
+        if (self.mainpyfile != self.canonic(frame.f_code.co_filename)
+            or frame.f_lineno<= 0):
+            return
+        self._wait_for_mainpyfile = 0
+    self._old_Pdb_user_return(frame, return_value)
+        
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def interaction(self, frame, traceback):
+    self._old_Pdb_interaction(frame, traceback)
+    self.notify_spyder(frame)
+
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def reset(self):
+    self._old_Pdb_reset()
+    monitor.register_pdb_session(self)
+    self.set_spyder_breakpoints()
+
+#XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more 
+#     specific behaviour desired?)
+@monkeypatch_method(pdb.Pdb, 'Pdb')
+def postcmd(self, stop, line):
+    self.notify_spyder(self.curframe)
+    return self._old_Pdb_postcmd(stop, line)
+
 
 # Restoring (almost) original sys.path:
 # (Note: do not remove spyderlib_path from sys.path because if Spyder has been
