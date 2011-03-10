@@ -37,14 +37,6 @@ def has_mixed_eol_chars(text):
     correct_text = eol_chars.join((text+eol_chars).splitlines())
     return repr(correct_text) != repr(text)
 
-
-def remove_trailing_spaces(text):
-    """Remove trailing spaces"""
-    eol_chars = get_eol_chars(text)
-    lines = [line.rstrip() for line in text.splitlines()]
-    return eol_chars.join(lines)
-
-
 def fix_indentation(text):
     """Replace tabs by spaces"""
     return text.replace('\t', ' '*4)

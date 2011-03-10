@@ -408,11 +408,21 @@ class CodeEditor(TextEditBaseWidget):
     
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
-        text_before = unicode(self.toPlainText())
-        text_after = sourcecode.remove_trailing_spaces(text_before)
-        if text_before != text_after:
-            self.setPlainText(text_after)
-            self.document().setModified(True)
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        cursor.movePosition(QTextCursor.Start)
+        while True:
+            cursor.movePosition(QTextCursor.EndOfBlock)
+            text = unicode(cursor.block().text())
+            length = len(text)-len(text.rstrip())
+            if length > 0:
+                cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
+                                    length)
+                cursor.removeSelectedText()
+            if cursor.atEnd():
+                break
+            cursor.movePosition(QTextCursor.NextBlock)
+        cursor.endEditBlock()
             
     def fix_indentation(self):
         """Replace tabs by spaces"""
