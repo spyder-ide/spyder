@@ -92,6 +92,8 @@ class BaseTabs(QTabWidget):
                  corner_widgets=None, menu_use_tooltips=False):
         QTabWidget.__init__(self, parent)
         
+        self.setUsesScrollButtons(True)
+        
         self.corner_widgets = {}
         self.menu_use_tooltips = menu_use_tooltips
         
