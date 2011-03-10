@@ -9,7 +9,7 @@
 from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
-                                QLineEdit)
+                                QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 
 import sys, re, os.path as osp, socket
@@ -654,7 +654,18 @@ class ObjectInspector(SpyderPluginWidget):
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
         if text is not None:
-            html_text = sphinxify(text)
+            try:
+                html_text = sphinxify(text)
+            except Exception, error:
+                import sphinx
+                QMessageBox.critical(self,
+                            _('Object inspector'),
+                            _("The following error occured when calling "
+                              "<b>Sphinx %s</b>. <br>Please check if this "
+                              "version of Sphinx is supported by Spyder."
+                              "<br><br>Error message:<br>%s"
+                              ) % (sphinx.__version__, str(error)))
+                self.plain_text_action.setChecked(True)
         else:
             html_text = '<div id=\"warning\">'+self.no_doc_string+'</div>'
         html_text = HTML_HEAD + html_text + HTML_TAIL
