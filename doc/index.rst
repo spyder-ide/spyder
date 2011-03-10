@@ -31,6 +31,7 @@ Contents:
     options
     lightmode
     console
+    debugging
     variableexplorer
     inspector
     onlinehelp
