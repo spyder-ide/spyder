@@ -1017,6 +1017,36 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
         self.current_format.setFont(font)
 
 
+def inverse_color(color):
+    color.setHsv(color.hue(), color.saturation(), 255-color.value())
+    
+class ConsoleFontStyle(object):
+    def __init__(self, foregroundcolor, backgroundcolor, 
+                 bold, italic, underline):
+        self.foregroundcolor = foregroundcolor
+        self.backgroundcolor = backgroundcolor
+        self.bold = bold
+        self.italic = italic
+        self.underline = underline
+        self.format = None
+        
+    def apply_style(self, font, light_background, is_default):
+        self.format = QTextCharFormat()
+        self.format.setFont(font)
+        foreground = QColor(self.foregroundcolor)
+        if not light_background and is_default:
+            inverse_color(foreground)
+        self.format.setForeground(foreground)
+        background = QColor(self.backgroundcolor)
+        if not light_background:
+            inverse_color(background)
+        self.format.setBackground(background)
+        font = self.format.font()
+        font.setBold(self.bold)
+        font.setItalic(self.italic)
+        font.setUnderline(self.underline)
+        self.format.setFont(font)
+    
 class ConsoleBaseWidget(TextEditBaseWidget):
     """Console base widget"""
     BRACE_MATCHING_SCOPE = ('sol', 'eol')
@@ -1039,36 +1069,21 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                      lambda user_id, text:
                      self.emit(SIGNAL('completion_widget_activated(QString)'),
                                text))
-        self.default_format = QTextCharFormat()
-        self.prompt_format = QTextCharFormat()
-        self.error_format = QTextCharFormat()
-        self.traceback_link_format = QTextCharFormat()
-        self.styles = {
-                       'default_style/foregroundcolor': 0x000000,
-                       'default_style/backgroundcolor': 0xFFFFFF,
-                       'default_style/bold': False,
-                       'default_style/italic': False,
-                       'default_style/underline': False,
-                       'error_style/foregroundcolor': 0xFF0000,
-                       'error_style/backgroundcolor': 0xFFFFFF,
-                       'error_style/bold': False,
-                       'error_style/italic': False,
-                       'error_style/underline': False,
-                       'traceback_link_style/foregroundcolor': 0x0000FF,
-                       'traceback_link_style/backgroundcolor': 0xFFFFFF,
-                       'traceback_link_style/bold': True,
-                       'traceback_link_style/italic': False,
-                       'traceback_link_style/underline': True,
-                       'prompt_style/foregroundcolor': 0x00AA00,
-                       'prompt_style/backgroundcolor': 0xFFFFFF,
-                       'prompt_style/bold': True,
-                       'prompt_style/italic': False,
-                       'prompt_style/underline': False,
-                       }
-        self.formats = {'default_style': self.default_format,
-                        'prompt_style': self.prompt_format,
-                        'error_style': self.error_format,
-                        'traceback_link_style': self.traceback_link_format}
+        
+        self.default_style = ConsoleFontStyle(
+                            foregroundcolor=0x000000, backgroundcolor=0xFFFFFF,
+                            bold=False, italic=False, underline=False)
+        self.error_style  = ConsoleFontStyle(
+                            foregroundcolor=0xFF0000, backgroundcolor=0xFFFFFF,
+                            bold=False, italic=False, underline=False)
+        self.traceback_link_style  = ConsoleFontStyle(
+                            foregroundcolor=0x0000FF, backgroundcolor=0xFFFFFF,
+                            bold=True, italic=False, underline=True)
+        self.prompt_style  = ConsoleFontStyle(
+                            foregroundcolor=0x00AA00, backgroundcolor=0xFFFFFF,
+                            bold=True, italic=False, underline=False)
+        self.font_styles = (self.default_style, self.error_style,
+                            self.traceback_link_style, self.prompt_style)
         self.set_pythonshell_font()
         self.setMouseTracking(True)
         
@@ -1112,7 +1127,7 @@ class ConsoleBaseWidget(TextEditBaseWidget):
     #------Python shell
     def insert_text(self, text):
         """Reimplement TextEditBaseWidget method"""
-        self.textCursor().insertText(text, self.default_format)
+        self.textCursor().insertText(text, self.default_style.format)
         
     def paste(self):
         """Reimplement Qt method"""
@@ -1143,60 +1158,45 @@ class ConsoleBaseWidget(TextEditBaseWidget):
                 if text.startswith('  File') \
                 and not text.startswith('  File "<'):
                     # Show error links in blue underlined text
-                    cursor.insertText('  ', self.default_format)
-                    cursor.insertText(text[2:], self.traceback_link_format)
+                    cursor.insertText('  ', self.default_style.format)
+                    cursor.insertText(text[2:],
+                                      self.traceback_link_style.format)
                 else:
                     # Show error messages in red
-                    cursor.insertText(text, self.error_format)
+                    cursor.insertText(text, self.error_style.format)
         elif prompt:
             # Show prompt in green
-            cursor.insertText(text, self.prompt_format)
+            cursor.insertText(text, self.prompt_style.format)
         else:
             # Show other outputs in black
             last_end = 0
             for match in self.COLOR_PATTERN.finditer(text):
                 cursor.insertText(text[last_end:match.start()],
-                                  self.default_format)
+                                  self.default_style.format)
                 last_end = match.end()
                 for code in [int(_c) for _c in match.group(1).split(';')]:
                     self.ansi_handler.set_code(code)
-                self.default_format = self.ansi_handler.get_format()
-            cursor.insertText(text[last_end:], self.default_format)
+                self.default_style.format = self.ansi_handler.get_format()
+            cursor.insertText(text[last_end:], self.default_style.format)
 #            # Slower alternative:
 #            segments = self.COLOR_PATTERN.split(text)
-#            cursor.insertText(segments.pop(0), self.default_format)
+#            cursor.insertText(segments.pop(0), self.default_style.format)
 #            if segments:
 #                for ansi_tags, text in zip(segments[::2], segments[1::2]):
 #                    for ansi_tag in ansi_tags.split(';'):
 #                        self.ansi_handler.set_code(int(ansi_tag))
-#                    self.default_format = self.ansi_handler.get_format()
-#                    cursor.insertText(text, self.default_format)
+#                    self.default_style.format = self.ansi_handler.get_format()
+#                    cursor.insertText(text, self.default_style.format)
         self.set_cursor_position('eof')
-        self.setCurrentCharFormat(self.default_format)
+        self.setCurrentCharFormat(self.default_style.format)
     
     def set_pythonshell_font(self, font=None):
         """Python Shell only"""
         if font is None:
             font = QFont()
-
-        for format in self.formats.values():
-            format.setFont(font)
+        for style in self.font_styles:
+            style.apply_style(font=font,
+                              light_background=self.light_background,
+                              is_default=style is self.default_style)
+        self.ansi_handler.set_base_format(self.default_style.format)
         
-        def inverse_color(color):
-            color.setHsv(color.hue(), color.saturation(), 255-color.value())
-        for stylestr, format in self.formats.items():
-            foreground = QColor(self.styles[stylestr+'/foregroundcolor'])
-            if not self.light_background and format is self.default_format:
-                inverse_color(foreground)
-            format.setForeground(foreground)
-            background = QColor(self.styles[stylestr+'/backgroundcolor'])
-            if not self.light_background:
-                inverse_color(background)
-            format.setBackground(background)
-            font = format.font()
-            font.setBold(self.styles[stylestr+'/bold'])
-            font.setItalic(self.styles[stylestr+'/italic'])
-            font.setUnderline(self.styles[stylestr+'/underline'])
-            format.setFont(font)
-            
-        self.ansi_handler.set_base_format(self.default_format)
