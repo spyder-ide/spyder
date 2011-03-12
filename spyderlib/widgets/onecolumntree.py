@@ -180,13 +180,13 @@ class OneColumnTree(QTreeWidget):
         self.__expanded_state = {}
         def add_to_state(item):
             user_text = get_item_user_text(item)
-            self.__expanded_state[user_text] = item.isExpanded()
+            self.__expanded_state[hash(user_text)] = item.isExpanded()
         def browse_children(item):
             add_to_state(item)
             for index in range(item.childCount()):
                 citem = item.child(index)
                 user_text = get_item_user_text(citem)
-                self.__expanded_state[user_text] = citem.isExpanded()
+                self.__expanded_state[hash(user_text)] = citem.isExpanded()
                 browse_children(citem)
         for tlitem in self.get_top_level_items():
             browse_children(tlitem)
@@ -197,7 +197,7 @@ class OneColumnTree(QTreeWidget):
             return
         for item in self.get_items()+self.get_top_level_items():
             user_text = get_item_user_text(item)
-            is_expanded = self.__expanded_state.get(user_text)
+            is_expanded = self.__expanded_state.get(hash(user_text))
             if is_expanded is not None:
                 item.setExpanded(is_expanded)
 
