@@ -140,6 +140,7 @@ class ExternalPythonShell(ExternalShellBase):
                  interact=False, debug=False, path=[], python_args='',
                  ipython=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
+                 pythonstartup=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4',
                  remove_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
@@ -160,6 +161,7 @@ class ExternalPythonShell(ExternalShellBase):
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
+        self.pythonstartup = pythonstartup
         self.monitor_enabled = monitor_enabled
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
@@ -384,6 +386,8 @@ class ExternalPythonShell(ExternalShellBase):
             p_args.append(self.fname)
         
         env = self.process.systemEnvironment()
+        if self.pythonstartup:
+            env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
         # Monitor
         if self.monitor_enabled:

@@ -146,11 +146,11 @@ if __name__ == "__main__":
         __remove_sys_argv__()
         __create_banner()
     __commands__ = __run_init_commands()
+
     if __commands__:
         for command in __commands__.split(';'):
             exec command
-    else:
-        __run_pythonstartup_script()
+    __run_pythonstartup_script()
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',

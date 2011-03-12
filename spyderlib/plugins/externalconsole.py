@@ -162,6 +162,33 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_layout.addWidget(ipystartup_box)
         startup_group.setLayout(startup_layout)
         
+        # PYTHONSTARTUP replacement
+        pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
+        pystartup_label = QLabel(_("This option will override the "
+                                   "PYTHONSTARTUP environment variable."))
+        pystartup_label.setWordWrap(True)
+        default_radio = self.create_radiobutton(
+                                _("Default PYTHONSTARTUP script"),
+                                'pythonstartup/default', True)
+        custom_radio = self.create_radiobutton(
+                                _("Use the following startup script:"),
+                                'pythonstartup/custom', False)
+        pystartup_file = self.create_browsefile(_('Startup script:'),
+                                                'pythonstartup', '',
+                                                filters=_("Python scripts")+\
+                                                " (*.py)")
+        self.connect(default_radio, SIGNAL("toggled(bool)"),
+                     pystartup_file.setDisabled)
+        self.connect(custom_radio, SIGNAL("toggled(bool)"),
+                     pystartup_file.setEnabled)
+        
+        pystartup_layout = QVBoxLayout()
+        pystartup_layout.addWidget(pystartup_label)
+        pystartup_layout.addWidget(default_radio)
+        pystartup_layout.addWidget(custom_radio)
+        pystartup_layout.addWidget(pystartup_file)
+        pystartup_group.setLayout(pystartup_layout)
+        
         # Monitor Group
         monitor_group = QGroupBox(_("Monitor"))
         monitor_label = QLabel(_("The monitor provides introspection "
@@ -196,7 +223,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                         "(sip.setapi)"),
                                 'ignore_sip_setapi_errors')
         try:
-            from sip import setapi
+            from sip import setapi #@UnusedImport
         except ImportError:
             pyqt_setapi_box.setDisabled(True)
         
@@ -270,7 +297,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(startup_group, umd_group),
+        tabs.addTab(self.create_tab(startup_group, pystartup_group, umd_group),
                     _("Advanced settings"))
         tabs.addTab(self.create_tab(pyqt_group, ipython_group, mpl_group,
                                     ets_group),
@@ -302,7 +329,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.terminal_count = 0
 
         try:
-            from sip import setapi
+            from sip import setapi #@UnusedImport
         except ImportError:
             self.set_option('ignore_sip_setapi_errors', False)
 
@@ -490,6 +517,10 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
+            if self.get_option('pythonstartup/default', True):
+                pythonstartup = None
+            else:
+                pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
             mpl_backend = self.get_option('mpl_patch/backend')
@@ -512,6 +543,7 @@ class ExternalConsole(SpyderPluginWidget):
                            interact, debug, path=pythonpath,
                            python_args=python_args, ipython=ipython,
                            arguments=args, stand_alone=sa_settings,
+                           pythonstartup=pythonstartup,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
