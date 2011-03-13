@@ -186,8 +186,11 @@ def user_return(self, frame, return_value):
         
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def interaction(self, frame, traceback):
-    self._old_Pdb_interaction(frame, traceback)
-    self.notify_spyder(frame)
+    self.setup(frame, traceback)
+    self.notify_spyder(frame) #-----Spyder-specific-------------------------
+    self.print_stack_entry(self.stack[self.curindex])
+    self.cmdloop()
+    self.forget()
 
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
