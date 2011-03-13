@@ -14,7 +14,6 @@ http://docs.python.org/library/profile.html
 
 Questions for Pierre and others:
     - Where in the menu should profiler go?  Run > Profile code ?
-    - Is the shortcut F10 ok?
 """
 
 from __future__ import with_statement
@@ -87,22 +86,24 @@ class ProfilerWidget(QWidget):
         self.datelabel = QLabel()
 
         self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
-                                    text=_("Output"),
-                                    text_beside_icon=True,
-                                    tip=_(
-                                                  "Show program's output"),
-                                    triggered=self.show_log)
+                                            text=_("Output"),
+                                            text_beside_icon=True,
+                                            tip=_("Show program's output"),
+                                            triggered=self.show_log)
 
         self.datatree = ProfilerDataTree(self)
 
-        self.collapse_button = create_toolbutton(self, icon=get_icon('collapse.png'),
-                                    triggered=lambda dD=-1:self.datatree.change_view(dD),
-                                    tip='Collapse one level up')
-        self.expand_button = create_toolbutton(self, icon=get_icon('expand.png'),
-                                    triggered=lambda dD=1:self.datatree.change_view(dD),
-                                    tip='Expand one level down')
+        self.collapse_button = create_toolbutton(self,
+                                                 icon=get_icon('collapse.png'),
+                                                 triggered=lambda dD=-1:
+                                                 self.datatree.change_view(dD),
+                                                 tip=_('Collapse one level up'))
+        self.expand_button = create_toolbutton(self,
+                                               icon=get_icon('expand.png'),
+                                               triggered=lambda dD=1:
+                                               self.datatree.change_view(dD),
+                                               tip=_('Expand one level down'))
 
-        
         hlayout1 = QHBoxLayout()
         hlayout1.addWidget(self.filecombo)
         hlayout1.addWidget(browse_button)
@@ -142,9 +143,8 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenFileName(self,
-                      _("Select Python script"), os.getcwdu(),
-                      _("Python scripts")+" (*.py ; *.pyw)")
+        filename = QFileDialog.getOpenFileName(self, _("Select Python script"),
+                           os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)
@@ -160,7 +160,7 @@ class ProfilerWidget(QWidget):
                        readonly=True, size=(700, 500)).exec_()
         
     def start(self):
-        self.datelabel.setText('Profiling, please wait...')
+        self.datelabel.setText(_('Profiling, please wait...'))
         filename = unicode(self.filecombo.currentText())
         
         self.process = QProcess(self)
@@ -170,16 +170,16 @@ class ProfilerWidget(QWidget):
                      self.read_output)
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
                      lambda: self.read_output(error=True))
-        self.connect(self.process, SIGNAL("finished(int,QProcess::ExitStatus)"),
+        self.connect(self.process,
+                     SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
-        self.connect(self.stop_button, SIGNAL("clicked()"),
-                     self.process.kill)
+        self.connect(self.stop_button, SIGNAL("clicked()"), self.process.kill)
         
         self.output = ''
         self.error_output = ''
         
-        p_args = ['-m', 'cProfile',
-                  '-o', self.DATAPATH, os.path.basename(filename)]
+        p_args = ['-m', 'cProfile', '-o', self.DATAPATH,
+                  os.path.basename(filename)]
         executable = sys.executable
         if executable.endswith("spyder.exe"):
             # py2exe distribution
@@ -241,14 +241,18 @@ class ProfilerWidget(QWidget):
         self.datatree.show_tree()
             
         text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
-        date_text = text_style % time.strftime("%d %b %Y %H:%M",time.localtime())
+        date_text = text_style % time.strftime("%d %b %Y %H:%M",
+                                               time.localtime())
         self.datelabel.setText(date_text)
 
 
 class ProfilerDataTree(QTreeWidget):
-    '''Convenience tree widget (with built-in model) to store and view profiler data.
+    """
+    Convenience tree widget (with built-in model) 
+    to store and view profiler data.
 
-    The quantities calculated by the profiler are as follows (from profile.Profile) :
+    The quantities calculated by the profiler are as follows 
+    (from profile.Profile):
     [0] = The number of times this function was called, not counting direct
           or indirect recursion,
     [1] = Number of times this function appears on the stack, minus one
@@ -259,11 +263,11 @@ class ProfilerDataTree(QTreeWidget):
           all subfunctions.
     [4] = A dictionary indicating for each function name, the number of times
           it was called by us.
-    '''
+    """
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
-        self.headersList = ['Function/Module', 'TotalTime', 'LocalTime',
-                            'Calls', 'File:line']
+        self.headersList = [_('Function/Module'), _('TotalTime'),
+                            _('LocalTime'), _('Calls'), _('File:line')]
         self.iconDict = {'module':      'python.png',
                          'function':    'function.png',
                          'builtin':     'python_t.png',
@@ -273,6 +277,14 @@ class ProfilerDataTree(QTreeWidget):
         self.setColumnCount(len(self.headersList))
         self.setHeaderLabels(self.headersList)
         self.initialize_view()
+        self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
+                     self.activated)
+        
+    def activated(self):
+        pass
+        #TODO: open file:line in editor
+#        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
+#                           fname, lineno, '')
 
     def initialize_view(self):
         '''Clean the tree and view parameters'''
@@ -326,59 +338,67 @@ class ProfilerDataTree(QTreeWidget):
     def function_info(self, functionKey):
         '''Returns processed information about the function's name and file.'''
         nodeType = 'function'
-        fileName,lineNumber,functionName = functionKey
-        if functionName=='<module>':
+        fileName, lineNumber, functionName = functionKey
+        if functionName == '<module>':
             modulePath, moduleName = os.path.split(fileName)
             nodeType = 'module'
             if moduleName == '__init__.py':
                 modulePath, moduleName = os.path.split(modulePath)
             functionName = '<' + moduleName + '>'
-        if not fileName or fileName=='~':
+        if not fileName or fileName == '~':
             fileAndLine = '(built-in)'
             nodeType = 'builtin'
         else:
-            if functionName=='__init__':
+            if functionName == '__init__':
                 nodeType = 'constructor'                
-            fileAndLine = '%s : %d'%(fileName,lineNumber)
-        return fileName,lineNumber,functionName,fileAndLine,nodeType
+            fileAndLine = '%s : %d' % (fileName, lineNumber)
+        return fileName, lineNumber, functionName, fileAndLine, nodeType
 
     def populate_tree(self,parentItem,childrenList):
         '''Recursive method to create each item (and associated data) in the tree.'''
         for childKey in childrenList:
-            self.itemDepth +=1
-            fileName,lineNumber,functionName,fileAndLine,nodeType = self.function_info(childKey)
-            primCalls,totalCalls,locTime,cumTime,callers = self.stats[childKey]
+            self.itemDepth += 1
+            (fileName, lineNumber, functionName, fileAndLine, nodeType
+             ) = self.function_info(childKey)
+            (primCalls, totalCalls, locTime, cumTime, callers
+             ) = self.stats[childKey]
             childItem = QTreeWidgetItem(parentItem)
             self.itemsList.append(childItem)
-            childItem.setData(0,Qt.UserRole,self.itemDepth)
+            childItem.setData(0, Qt.UserRole, self.itemDepth)
 
             # FIXME: indexes to data should be defined by a dictionary on init
-            childItem.setToolTip(0,'Function or module name')
-            childItem.setData(0,Qt.DisplayRole,functionName)
-            childItem.setIcon(0,get_icon(self.iconDict[nodeType]))
+            childItem.setToolTip(0, 'Function or module name')
+            childItem.setData(0, Qt.DisplayRole, functionName)
+            childItem.setIcon(0, get_icon(self.iconDict[nodeType]))
 
-            childItem.setToolTip(1,'Time in function (including sub-functions)')
-            #childItem.setData(1,Qt.DisplayRole,cumTime)
-            childItem.setData(1,Qt.DisplayRole,QString('%1').arg(cumTime,0,'f',3))
-            childItem.setTextAlignment(1,Qt.AlignCenter)
+            childItem.setToolTip(1, _('Time in function '\
+                                      '(including sub-functions)'))
+            #childItem.setData(1, Qt.DisplayRole, cumTime)
+            childItem.setData(1, Qt.DisplayRole,
+                              QString('%1').arg(cumTime, 0, 'f', 3))
+            childItem.setTextAlignment(1, Qt.AlignCenter)
 
-            childItem.setToolTip(2,'Local time in function (not in sub-functions)')
-            #childItem.setData(2,Qt.DisplayRole,locTime)
-            childItem.setData(2,Qt.DisplayRole,QString('%1').arg(locTime,0,'f',3))
+            childItem.setToolTip(2,_('Local time in function '\
+                                     '(not in sub-functions)'))
+            #childItem.setData(2, Qt.DisplayRole, locTime)
+            childItem.setData(2, Qt.DisplayRole,
+                              QString('%1').arg(locTime, 0, 'f', 3))
             childItem.setTextAlignment(2,Qt.AlignCenter)
 
-            childItem.setToolTip(3,'Total number of calls (including recursion)')
-            childItem.setData(3,Qt.DisplayRole,totalCalls)
-            childItem.setTextAlignment(3,Qt.AlignCenter)
+            childItem.setToolTip(3, _('Total number of calls '\
+                                      '(including recursion)'))
+            childItem.setData(3, Qt.DisplayRole, totalCalls)
+            childItem.setTextAlignment(3, Qt.AlignCenter)
 
-            childItem.setToolTip(4,'File:line where function is defined')
-            childItem.setData(4,Qt.DisplayRole,fileAndLine)
+            childItem.setToolTip(4, _('File:line '\
+                                      'where function is defined'))
+            childItem.setData(4, Qt.DisplayRole, fileAndLine)
             #childItem.setExpanded(True)
             if self.is_recursive(childItem):
-                childItem.setData(4,Qt.DisplayRole,'(recursion)')
+                childItem.setData(4, Qt.DisplayRole, '(%s)' % _('recursion'))
                 childItem.setDisabled(True)
             else:
-                self.populate_tree(childItem,self.find_callees(childKey))
+                self.populate_tree(childItem, self.find_callees(childKey))
             self.itemDepth -= 1
     
     def is_recursive(self,childItem):
@@ -386,8 +406,10 @@ class ProfilerDataTree(QTreeWidget):
         ancestor = childItem.parent()
         # FIXME: indexes to data should be defined by a dictionary on init
         while ancestor:
-            if (childItem.data(0,Qt.DisplayRole)==ancestor.data(0,Qt.DisplayRole) and
-                childItem.data(4,Qt.DisplayRole)==ancestor.data(4,Qt.DisplayRole)):
+            if (childItem.data(0, Qt.DisplayRole
+                               ) == ancestor.data(0, Qt.DisplayRole) and
+                childItem.data(4, Qt.DisplayRole
+                               ) == ancestor.data(4, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()
@@ -400,7 +422,7 @@ class ProfilerDataTree(QTreeWidget):
             self.currentViewDepth = 1
         for item in self.itemsList:
             itemDepth = item.data(0,Qt.UserRole).toInt()[0]
-            isItemBelowLevel =  itemDepth<self.currentViewDepth
+            isItemBelowLevel = itemDepth < self.currentViewDepth
             item.setExpanded(isItemBelowLevel)                
     
 
