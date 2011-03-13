@@ -278,13 +278,16 @@ class ProfilerDataTree(QTreeWidget):
         self.stats = None      # To be filled by self.load_data()
         self.item_depth = None
         self.item_list = None
+        self.items_to_be_shown = None
         self.setColumnCount(len(self.header_list))
         self.setHeaderLabels(self.header_list)
         self.initialize_view()
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
-                     self.activated)
+                     self.item_activated)
+        self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
+                     self.item_expanded)
         
-    def activated(self):
+    def item_activated(self):
         pass
         #TODO: open file:line in editor
 #        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
@@ -295,6 +298,7 @@ class ProfilerDataTree(QTreeWidget):
         self.clear()
         self.item_depth = 0   # To be use for collapsing/expanding one level
         self.item_list = []  # To be use for collapsing/expanding one level
+        self.items_to_be_shown = {}
         self.current_view_depth = 1
 
     def load_data(self, profdatafile):
@@ -398,8 +402,18 @@ class ProfilerDataTree(QTreeWidget):
                 child_item.setData(4, Qt.DisplayRole, '(%s)' % _('recursion'))
                 child_item.setDisabled(True)
             else:
-                self.populate_tree(child_item, self.find_callees(child_key))
+                callees = self.find_callees(child_key)
+                if self.item_depth < 3:
+                    self.populate_tree(child_item, callees)
+                elif callees:
+                    child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
+                    self.items_to_be_shown[child_item] = callees
             self.item_depth -= 1
+            
+    def item_expanded(self, item):
+        if item.childCount() == 0 and item in self.items_to_be_shown:
+            callees = self.items_to_be_shown[item]
+            self.populate_tree(item, callees)
     
     def is_recursive(self, child_item):
         """Returns True is a function is a descendant of itself."""
