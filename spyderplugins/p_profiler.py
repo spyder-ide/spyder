@@ -17,21 +17,20 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.profilergui import (ProfilerWidget,
-                                               is_profiler_installed)
+from spyderplugins.widgets.profilergui import ProfilerWidget
 
 
 class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
-        results_group = QGroupBox(self.tr("Results"))
-        results_label = QLabel(self.tr("Profiler plugin results (the output of python's profile/cProfile)\n"
-                                    "are stored here:\n"
-                                    "%1\n"
-                                    ).arg(ProfilerWidget.DATAPATH))
+        results_group = QGroupBox(_("Results"))
+        results_label = QLabel(_("Profiler plugin results "\
+                                 "(the output of python's profile/cProfile)\n"
+                                 "are stored here:"
+                                 )+("\n%s\n" % ProfilerWidget.DATAPATH))
         results_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
         results_label.setWordWrap(True)
 
@@ -56,7 +55,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return self.tr("Profiler")
+        return _("Profiler")
 
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -81,9 +80,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        profiler_act = create_action(self, self.tr("Profile code"),
-                                   triggered=self.run_profiler)
-        profiler_act.setEnabled(is_profiler_installed())
+        profiler_act = create_action(self, _("Profile code"),
+                                     triggered=self.run_profiler)
         self.register_shortcut(profiler_act, context="Profiler",
                                name="Run profiler", default="F10")
         

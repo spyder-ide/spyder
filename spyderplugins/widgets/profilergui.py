@@ -39,23 +39,12 @@ import sys, os, time
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.utils.translations import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
-
-
-# FIXME: is this the right way to check for modules?
-#PROFILER_PATH = 'profile'
-PROFILER_PATH = 'cProfile'
-PSTATS_PATH = 'pstats'
-
-def is_profiler_installed():
-    return (programs.is_module_installed(PROFILER_PATH) and
-            programs.is_module_installed(PSTATS_PATH))
 
 
 class ProfilerWidget(QWidget):
@@ -136,36 +125,12 @@ class ProfilerWidget(QWidget):
         
         self.process = None
         self.set_running_state(False)
-        
-        if not is_profiler_installed():
-            for widget in (self.datatree, self.filecombo,
-                           self.start_button, self.stop_button):
-                widget.setDisabled(True)
-            if os.name == 'nt' \
-               and programs.is_module_installed("profile"):
-                # The following is a comment from the pylint plugin:
-                # Module is installed but script is not in PATH
-                # (AFAIK, could happen only on Windows)
-                text = _('Profiler script was not found. '\
-                         'Please add "%s" to PATH.')
-                text = unicode(text) % os.path.join(sys.prefix, "Scripts")
-            else:
-                text = _('Please install the modules '\
-                         '<b>profile</b> and <b>pstats</b>:')
-                # FIXME: need the actual website
-                url = 'http://www.python.org'
-                text += ' <a href=%s>%s</a>' % (url, url)
-            self.datelabel.setText(text)
-        else:
-            pass # self.show_data()
                 
     def analyze(self, filename):
-        if not is_profiler_installed():
-            return
         filename = unicode(filename) # filename is a QString instance
         self.kill_if_running()
         #index, _data = self.get_data(filename)
-        index=None # FIXME: storing data is not implemented yet
+        index = None # FIXME: storing data is not implemented yet
         if index is None:
             self.filecombo.addItem(filename)
             self.filecombo.setCurrentIndex(self.filecombo.count()-1)
@@ -212,16 +177,20 @@ class ProfilerWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
-        p_args = [os.path.basename(filename)]
         
-        # FIXME: Use the system path to 'python' as opposed to hardwired
-        p_args = ['-m', PROFILER_PATH, '-o', self.DATAPATH, os.path.basename(filename)]
-        self.process.start('python', p_args)
+        p_args = ['-m', 'cProfile',
+                  '-o', self.DATAPATH, os.path.basename(filename)]
+        executable = sys.executable
+        if executable.endswith("spyder.exe"):
+            # py2exe distribution
+            executable = "python.exe"
+        self.process.start(executable, p_args)
         
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, _("Error"), _("Process failed to start"))
+            QMessageBox.critical(self, _("Error"),
+                                 _("Process failed to start"))
     
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)
@@ -293,9 +262,12 @@ class ProfilerDataTree(QTreeWidget):
     '''
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
-        self.headersList = ['Function/Module','TotalTime','LocalTime','Calls','File:line']
-        self.iconDict = {'module':'console/python.png','function':'editor/function.png',
-                         'builtin':'console/python_t.png','constructor':'editor/class.png'}
+        self.headersList = ['Function/Module', 'TotalTime', 'LocalTime',
+                            'Calls', 'File:line']
+        self.iconDict = {'module':      'python.png',
+                         'function':    'function.png',
+                         'builtin':     'python_t.png',
+                         'constructor': 'class.png'}
         self.profdata = []   # To be filled by self.load_data()
         self.stats = []      # To be filled by self.load_data()
         self.setColumnCount(len(self.headersList))
@@ -345,10 +317,10 @@ class ProfilerDataTree(QTreeWidget):
         self.setSortingEnabled(False)
         #rootKey = self.find_root()  # This root contains profiler overhead
         rootKey = self.find_root_skip_profilerfuns()
-        self.populate_tree(self,self.find_callees(rootKey))
+        self.populate_tree(self, self.find_callees(rootKey))
         self.resizeColumnToContents(0)
         self.setSortingEnabled(True)
-        self.sortItems(1,Qt.DescendingOrder) # FIXME: hardcoded index
+        self.sortItems(1, Qt.DescendingOrder) # FIXME: hardcoded index
         self.change_view(1)
 
     def function_info(self, functionKey):
