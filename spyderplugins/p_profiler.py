@@ -21,7 +21,8 @@ from spyderlib.config import get_icon, _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.profilergui import ProfilerWidget
+from spyderplugins.widgets.profilergui import (ProfilerWidget,
+                                               is_profiler_installed)
 
 
 class ProfilerConfigPage(PluginConfigPage):
@@ -82,6 +83,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         
         profiler_act = create_action(self, _("Profile code"),
                                      triggered=self.run_profiler)
+        profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",
                                name="Run profiler", default="F10")
         

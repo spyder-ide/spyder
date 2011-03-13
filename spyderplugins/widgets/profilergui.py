@@ -47,6 +47,11 @@ from spyderlib.utils.translations import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
 
 
+def is_profiler_installed():
+    from spyderlib.utils.programs import is_module_installed
+    return is_module_installed('cProfile') and is_module_installed('pstats')
+
+
 class ProfilerWidget(QWidget):
     """
     Profiler widget
@@ -127,8 +132,24 @@ class ProfilerWidget(QWidget):
         
         self.process = None
         self.set_running_state(False)
-                
+        
+        if not is_profiler_installed():
+            # This should happen only on certain GNU/Linux distributions 
+            # or when this a home-made Python build because the Python 
+            # profilers are included in the Python standard library
+            for widget in (self.datatree, self.filecombo,
+                           self.start_button, self.stop_button):
+                widget.setDisabled(True)
+            url = 'http://docs.python.org/library/profile.html'
+            text = '%s <a href=%s>%s</a>' % (_('Please install'), url,
+                                             _("the Python profiler modules"))
+            self.datelabel.setText(text)
+        else:
+            pass # self.show_data()
+        
     def analyze(self, filename):
+        if not is_profiler_installed():
+            return
         filename = unicode(filename) # filename is a QString instance
         self.kill_if_running()
         #index, _data = self.get_data(filename)
