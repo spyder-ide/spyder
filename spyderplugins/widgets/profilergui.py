@@ -6,7 +6,8 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Profiler widget
+"""
+Profiler widget
 
 See the official documentation on python profiling:
 http://docs.python.org/library/profile.html
@@ -39,12 +40,12 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import create_toolbutton, translate
+from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.texteditor import TextEditor
-from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
-                                          is_module_or_package)
-from spyderlib.config import get_font
+from spyderlib.widgets.comboboxes import PythonModulesComboBox
+from spyderlib.utils.translations import get_translation
+_ = get_translation("p_profiler", dirname="spyderplugins")
 
 
 # FIXME: is this the right way to check for modules?
@@ -75,13 +76,13 @@ class ProfilerWidget(QWidget):
         self.filecombo = PythonModulesComboBox(self)
         
         self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
-                                    text=translate('Profiler', "Profile"),
-                                    tip=translate('Profiler', "Run profiler"),
+                                    text=_("Profile"),
+                                    tip=_("Run profiler"),
                                     triggered=self.start, text_beside_icon=True)
         self.stop_button = create_toolbutton(self,
                                     icon=get_icon('terminate.png'),
-                                    text=translate('Profiler', "Stop"),
-                                    tip=translate('Profiler',
+                                    text=_("Stop"),
+                                    tip=_(
                                                   "Stop current profiling"),
                                     text_beside_icon=True)
         self.connect(self.filecombo, SIGNAL('valid(bool)'),
@@ -91,15 +92,15 @@ class ProfilerWidget(QWidget):
         #        triggering show_data() too early, too often. 
 
         browse_button = create_toolbutton(self, icon=get_icon('fileopen.png'),
-                               tip=translate('Profiler', 'Select Python script'),
+                               tip=_('Select Python script'),
                                triggered=self.select_file)
 
         self.datelabel = QLabel()
 
         self.log_button = create_toolbutton(self, icon=get_icon('log.png'),
-                                    text=translate('Profiler', "Output"),
+                                    text=_("Output"),
                                     text_beside_icon=True,
-                                    tip=translate('Profiler',
+                                    tip=_(
                                                   "Show program's output"),
                                     triggered=self.show_log)
 
@@ -145,13 +146,12 @@ class ProfilerWidget(QWidget):
                 # The following is a comment from the pylint plugin:
                 # Module is installed but script is not in PATH
                 # (AFAIK, could happen only on Windows)
-                text = translate('Profiler',
-                     'Profiler script was not found. Please add "%s" to PATH.')
+                text = _('Profiler script was not found. '\
+                         'Please add "%s" to PATH.')
                 text = unicode(text) % os.path.join(sys.prefix, "Scripts")
             else:
-                text = translate('Profiler',
-                    ('Please install the modules '+
-                     '<b>profile</b> and <b>pstats</b>:'))
+                text = _('Please install the modules '\
+                         '<b>profile</b> and <b>pstats</b>:')
                 # FIXME: need the actual website
                 url = 'http://www.python.org'
                 text += ' <a href=%s>%s</a>' % (url, url)
@@ -178,20 +178,20 @@ class ProfilerWidget(QWidget):
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename = QFileDialog.getOpenFileName(self,
-                      translate('Profiler', "Select Python script"), os.getcwdu(),
-                      translate('Profiler', "Python scripts")+" (*.py ; *.pyw)")
+                      _("Select Python script"), os.getcwdu(),
+                      _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)
         
     def show_log(self):
         if self.output:
-            TextEditor(self.output, title=translate('Profiler', "Profiler output"),
+            TextEditor(self.output, title=_("Profiler output"),
                        readonly=True, size=(700, 500)).exec_()
     
     def show_errorlog(self):
         if self.error_output:
-            TextEditor(self.error_output, title=translate('Profiler', "Profiler output"),
+            TextEditor(self.error_output, title=_("Profiler output"),
                        readonly=True, size=(700, 500)).exec_()
         
     def start(self):
@@ -221,8 +221,7 @@ class ProfilerWidget(QWidget):
         running = self.process.waitForStarted()
         self.set_running_state(running)
         if not running:
-            QMessageBox.critical(self, translate('Profiler', "Error"),
-                                 translate('Profiler', "Process failed to start"))
+            QMessageBox.critical(self, _("Error"), _("Process failed to start"))
     
     def set_running_state(self, state=True):
         self.start_button.setEnabled(not state)

@@ -8,7 +8,7 @@
 
 """Profiler Plugin"""
 
-from PyQt4.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
+from PyQt4.QtGui import QVBoxLayout, QGroupBox, QLabel
 from PyQt4.QtCore import SIGNAL, Qt
 
 import sys
@@ -21,7 +21,8 @@ from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.profilergui import ProfilerWidget, is_profiler_installed
+from spyderplugins.widgets.profilergui import (ProfilerWidget,
+                                               is_profiler_installed)
 
 
 class ProfilerConfigPage(PluginConfigPage):
