@@ -32,7 +32,7 @@ from PyQt4.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                          QApplication)
 from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString, Qt
 
-import sys, os, time, pstats
+import sys, os, time
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -320,6 +320,7 @@ class ProfilerDataTree(QTreeWidget):
 
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
+        import pstats
         self.profdata = pstats.Stats(profdatafile)
         self.profdata.calc_callees()
         self.stats = self.profdata.stats
