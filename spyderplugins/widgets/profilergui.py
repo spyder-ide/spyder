@@ -22,17 +22,17 @@ try:
     # PyQt4 4.3.3 on Windows (static DLLs) with py2exe installed:
     # -> pythoncom must be imported first, otherwise py2exe's boot_com_servers
     #    will raise an exception ("ImportError: DLL load failed [...]") when
-    #    calling any of the QFileDialog static methods (getOpenFileName, ...)
+    #    calling any of the QFileDialog static methods (getOpenfilename, ...)
     import pythoncom #@UnusedImport
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QHBoxLayout, QWidget, QMessageBox,
-                         QVBoxLayout, QLabel, QFileDialog,
-                         QTreeWidget, QTreeWidgetItem)
+from PyQt4.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
+                         QLabel, QFileDialog, QTreeWidget, QTreeWidgetItem,
+                         QApplication)
 from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString, Qt
 
-import sys, os, time
+import sys, os, time, pstats
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -143,7 +143,7 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenFileName(self, _("Select Python script"),
+        filename = QFileDialog.getOpenfilename(self, _("Select Python script"),
                            os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
@@ -238,6 +238,8 @@ class ProfilerWidget(QWidget):
             return
 
         self.datatree.load_data(self.DATAPATH)
+        self.datelabel.setText(_('Sorting data, please wait...'))
+        QApplication.processEvents()
         self.datatree.show_tree()
             
         text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
@@ -266,16 +268,18 @@ class ProfilerDataTree(QTreeWidget):
     """
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
-        self.headersList = [_('Function/Module'), _('TotalTime'),
+        self.header_list = [_('Function/Module'), _('TotalTime'),
                             _('LocalTime'), _('Calls'), _('File:line')]
-        self.iconDict = {'module':      'python.png',
+        self.icon_list = {'module':      'python.png',
                          'function':    'function.png',
                          'builtin':     'python_t.png',
                          'constructor': 'class.png'}
-        self.profdata = []   # To be filled by self.load_data()
-        self.stats = []      # To be filled by self.load_data()
-        self.setColumnCount(len(self.headersList))
-        self.setHeaderLabels(self.headersList)
+        self.profdata = None   # To be filled by self.load_data()
+        self.stats = None      # To be filled by self.load_data()
+        self.item_depth = None
+        self.item_list = None
+        self.setColumnCount(len(self.header_list))
+        self.setHeaderLabels(self.header_list)
         self.initialize_view()
         self.connect(self, SIGNAL('itemActivated(QTreeWidgetItem*,int)'),
                      self.activated)
@@ -287,43 +291,39 @@ class ProfilerDataTree(QTreeWidget):
 #                           fname, lineno, '')
 
     def initialize_view(self):
-        '''Clean the tree and view parameters'''
+        """Clean the tree and view parameters"""
         self.clear()
-        self.itemDepth = 0   # To be use for collapsing/expanding one level
-        self.itemsList = []  # To be use for collapsing/expanding one level
-        self.currentViewDepth = 1
+        self.item_depth = 0   # To be use for collapsing/expanding one level
+        self.item_list = []  # To be use for collapsing/expanding one level
+        self.current_view_depth = 1
 
-    def load_data(self,profDataFile):
-        '''Load profiler data saved by profile/cProfile module'''
-        import pstats
-        self.profdata = pstats.Stats(profDataFile)
+    def load_data(self, profdatafile):
+        """Load profiler data saved by profile/cProfile module"""
+        self.profdata = pstats.Stats(profdatafile)
+        self.profdata.calc_callees()
         self.stats = self.profdata.stats
 
     def find_root(self):
-        '''Find a function without a caller'''
+        """Find a function without a caller"""
         for key,value in self.stats.iteritems():
             if not value[4]:
                 return key
     
     def find_root_skip_profilerfuns(self):
-        '''Define root ignoring profiler-specific functions.'''
+        """Define root ignoring profiler-specific functions."""
         # FIXME: this is specific to module 'profile' and has to be
         #        changed for cProfile
         #return ('', 0, 'execfile')     # For 'profile' module   
         return ('~', 0, '<execfile>')     # For 'cProfile' module   
     
-    def find_callees(self,parent):
-        '''Find all functions called by (parent) function.'''
+    def find_callees(self, parent):
+        """Find all functions called by (parent) function."""
         # FIXME: This implementation is very inneficient, because it
         #        traverses all the data to find children nodes (callees)
-        childrenList = []
-        for key,value in self.stats.iteritems():
-            if parent in value[4]:
-                childrenList.append(key)
-        return childrenList
+        return self.profdata.all_callees[parent]
 
     def show_tree(self):
-        '''Populate the tree with profiler data and display it.'''
+        """Populate the tree with profiler data and display it."""
         self.initialize_view() # Clear before re-populating
         self.setItemsExpandable(True)
         self.setSortingEnabled(False)
@@ -336,94 +336,93 @@ class ProfilerDataTree(QTreeWidget):
         self.change_view(1)
 
     def function_info(self, functionKey):
-        '''Returns processed information about the function's name and file.'''
-        nodeType = 'function'
-        fileName, lineNumber, functionName = functionKey
-        if functionName == '<module>':
-            modulePath, moduleName = os.path.split(fileName)
-            nodeType = 'module'
+        """Returns processed information about the function's name and file."""
+        node_type = 'function'
+        filename, line_number, function_name = functionKey
+        if function_name == '<module>':
+            modulePath, moduleName = os.path.split(filename)
+            node_type = 'module'
             if moduleName == '__init__.py':
                 modulePath, moduleName = os.path.split(modulePath)
-            functionName = '<' + moduleName + '>'
-        if not fileName or fileName == '~':
-            fileAndLine = '(built-in)'
-            nodeType = 'builtin'
+            function_name = '<' + moduleName + '>'
+        if not filename or filename == '~':
+            file_and_line = '(built-in)'
+            node_type = 'builtin'
         else:
-            if functionName == '__init__':
-                nodeType = 'constructor'                
-            fileAndLine = '%s : %d' % (fileName, lineNumber)
-        return fileName, lineNumber, functionName, fileAndLine, nodeType
+            if function_name == '__init__':
+                node_type = 'constructor'                
+            file_and_line = '%s : %d' % (filename, line_number)
+        return filename, line_number, function_name, file_and_line, node_type
 
-    def populate_tree(self,parentItem,childrenList):
-        '''Recursive method to create each item (and associated data) in the tree.'''
-        for childKey in childrenList:
-            self.itemDepth += 1
-            (fileName, lineNumber, functionName, fileAndLine, nodeType
-             ) = self.function_info(childKey)
-            (primCalls, totalCalls, locTime, cumTime, callers
-             ) = self.stats[childKey]
-            childItem = QTreeWidgetItem(parentItem)
-            self.itemsList.append(childItem)
-            childItem.setData(0, Qt.UserRole, self.itemDepth)
+    def populate_tree(self, parentItem, children_list):
+        """Recursive method to create each item (and associated data) in the tree."""
+        for child_key in children_list:
+            self.item_depth += 1
+            (filename, line_number, function_name, file_and_line, node_type
+             ) = self.function_info(child_key)
+            (primcalls, total_calls, loc_time, cum_time, callers
+             ) = self.stats[child_key]
+            child_item = QTreeWidgetItem(parentItem)
+            self.item_list.append(child_item)
+            child_item.setData(0, Qt.UserRole, self.item_depth)
 
             # FIXME: indexes to data should be defined by a dictionary on init
-            childItem.setToolTip(0, 'Function or module name')
-            childItem.setData(0, Qt.DisplayRole, functionName)
-            childItem.setIcon(0, get_icon(self.iconDict[nodeType]))
+            child_item.setToolTip(0, 'Function or module name')
+            child_item.setData(0, Qt.DisplayRole, function_name)
+            child_item.setIcon(0, get_icon(self.icon_list[node_type]))
 
-            childItem.setToolTip(1, _('Time in function '\
-                                      '(including sub-functions)'))
-            #childItem.setData(1, Qt.DisplayRole, cumTime)
-            childItem.setData(1, Qt.DisplayRole,
-                              QString('%1').arg(cumTime, 0, 'f', 3))
-            childItem.setTextAlignment(1, Qt.AlignCenter)
+            child_item.setToolTip(1, _('Time in function '\
+                                       '(including sub-functions)'))
+            #child_item.setData(1, Qt.DisplayRole, cum_time)
+            child_item.setData(1, Qt.DisplayRole,
+                              QString('%1').arg(cum_time, 0, 'f', 3))
+            child_item.setTextAlignment(1, Qt.AlignCenter)
 
-            childItem.setToolTip(2,_('Local time in function '\
-                                     '(not in sub-functions)'))
-            #childItem.setData(2, Qt.DisplayRole, locTime)
-            childItem.setData(2, Qt.DisplayRole,
-                              QString('%1').arg(locTime, 0, 'f', 3))
-            childItem.setTextAlignment(2,Qt.AlignCenter)
+            child_item.setToolTip(2,_('Local time in function '\
+                                      '(not in sub-functions)'))
+            #child_item.setData(2, Qt.DisplayRole, loc_time)
+            child_item.setData(2, Qt.DisplayRole,
+                              QString('%1').arg(loc_time, 0, 'f', 3))
+            child_item.setTextAlignment(2,Qt.AlignCenter)
 
-            childItem.setToolTip(3, _('Total number of calls '\
-                                      '(including recursion)'))
-            childItem.setData(3, Qt.DisplayRole, totalCalls)
-            childItem.setTextAlignment(3, Qt.AlignCenter)
+            child_item.setToolTip(3, _('Total number of calls '\
+                                       '(including recursion)'))
+            child_item.setData(3, Qt.DisplayRole, total_calls)
+            child_item.setTextAlignment(3, Qt.AlignCenter)
 
-            childItem.setToolTip(4, _('File:line '\
-                                      'where function is defined'))
-            childItem.setData(4, Qt.DisplayRole, fileAndLine)
-            #childItem.setExpanded(True)
-            if self.is_recursive(childItem):
-                childItem.setData(4, Qt.DisplayRole, '(%s)' % _('recursion'))
-                childItem.setDisabled(True)
+            child_item.setToolTip(4, _('File:line '\
+                                       'where function is defined'))
+            child_item.setData(4, Qt.DisplayRole, file_and_line)
+            #child_item.setExpanded(True)
+            if self.is_recursive(child_item):
+                child_item.setData(4, Qt.DisplayRole, '(%s)' % _('recursion'))
+                child_item.setDisabled(True)
             else:
-                self.populate_tree(childItem, self.find_callees(childKey))
-            self.itemDepth -= 1
+                self.populate_tree(child_item, self.find_callees(child_key))
+            self.item_depth -= 1
     
-    def is_recursive(self,childItem):
-        '''Returns True is a function is a descendant of itself.'''
-        ancestor = childItem.parent()
+    def is_recursive(self, child_item):
+        """Returns True is a function is a descendant of itself."""
+        ancestor = child_item.parent()
         # FIXME: indexes to data should be defined by a dictionary on init
         while ancestor:
-            if (childItem.data(0, Qt.DisplayRole
-                               ) == ancestor.data(0, Qt.DisplayRole) and
-                childItem.data(4, Qt.DisplayRole
-                               ) == ancestor.data(4, Qt.DisplayRole)):
+            if (child_item.data(0, Qt.DisplayRole
+                                ) == ancestor.data(0, Qt.DisplayRole) and
+                child_item.data(4, Qt.DisplayRole
+                                ) == ancestor.data(4, Qt.DisplayRole)):
                 return True
             else:
                 ancestor = ancestor.parent()
         return False
             
-    def change_view(self,changeInDepth):
-        '''Change the view depth by expand or collapsing all same-level nodes'''
-        self.currentViewDepth += changeInDepth
-        if self.currentViewDepth < 1:
-            self.currentViewDepth = 1
-        for item in self.itemsList:
-            itemDepth = item.data(0,Qt.UserRole).toInt()[0]
-            isItemBelowLevel = itemDepth < self.currentViewDepth
-            item.setExpanded(isItemBelowLevel)                
+    def change_view(self, change_in_depth):
+        """Change the view depth by expand or collapsing all same-level nodes"""
+        self.current_view_depth += change_in_depth
+        if self.current_view_depth < 1:
+            self.current_view_depth = 1
+        for item in self.item_list:
+            item_depth = item.data(0, Qt.UserRole).toInt()[0]
+            item.setExpanded(item_depth < self.current_view_depth)                
     
 
 def test():
@@ -433,7 +432,7 @@ def test():
     widget = ProfilerWidget(None)
     widget.show()
     #widget.analyze(__file__)
-    widget.analyze('/var/tmp/test001.py')
+    widget.analyze('../../rope_profiling/test.py')
     sys.exit(app.exec_())
     
 if __name__ == '__main__':
