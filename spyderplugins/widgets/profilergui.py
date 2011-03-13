@@ -38,7 +38,8 @@ import sys, os, time, pstats
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import create_toolbutton
+from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
+                                       set_item_user_text)
 from spyderlib.config import get_icon, get_conf_path
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
@@ -279,6 +280,7 @@ class ProfilerDataTree(QTreeWidget):
         self.item_depth = None
         self.item_list = None
         self.items_to_be_shown = None
+        self.current_view_depth = None
         self.setColumnCount(len(self.header_list))
         self.setHeaderLabels(self.header_list)
         self.initialize_view()
@@ -286,12 +288,6 @@ class ProfilerDataTree(QTreeWidget):
                      self.item_activated)
         self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
                      self.item_expanded)
-        
-    def item_activated(self):
-        pass
-        #TODO: open file:line in editor
-#        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-#                           fname, lineno, '')
 
     def initialize_view(self):
         """Clean the tree and view parameters"""
@@ -299,7 +295,7 @@ class ProfilerDataTree(QTreeWidget):
         self.item_depth = 0   # To be use for collapsing/expanding one level
         self.item_list = []  # To be use for collapsing/expanding one level
         self.items_to_be_shown = {}
-        self.current_view_depth = 1
+        self.current_view_depth = 0
 
     def load_data(self, profdatafile):
         """Load profiler data saved by profile/cProfile module"""
@@ -368,7 +364,7 @@ class ProfilerDataTree(QTreeWidget):
              ) = self.stats[child_key]
             child_item = QTreeWidgetItem(parentItem)
             self.item_list.append(child_item)
-            child_item.setData(0, Qt.UserRole, self.item_depth)
+            set_item_user_text(child_item, '%s&%d' % (filename, line_number))
 
             # FIXME: indexes to data should be defined by a dictionary on init
             child_item.setToolTip(0, 'Function or module name')
@@ -409,6 +405,11 @@ class ProfilerDataTree(QTreeWidget):
                     child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
                     self.items_to_be_shown[child_item] = callees
             self.item_depth -= 1
+        
+    def item_activated(self, item):
+        filename, line_number_str = get_item_user_text(item).split('&')
+        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
+                           filename, int(line_number_str), '')
             
     def item_expanded(self, item):
         if item.childCount() == 0 and item in self.items_to_be_shown:
@@ -428,15 +429,35 @@ class ProfilerDataTree(QTreeWidget):
             else:
                 ancestor = ancestor.parent()
         return False
+    
+    def get_top_level_items(self):
+        """Iterate over top level items"""
+        return [self.topLevelItem(_i) for _i in range(self.topLevelItemCount())]
+    
+    def get_items(self, maxlevel):
+        """Return items (excluding top level items)"""
+        itemlist = []
+        def add_to_itemlist(item, maxlevel, level=1):
+            level += 1
+            for index in range(item.childCount()):
+                citem = item.child(index)
+                itemlist.append(citem)
+                if level <= maxlevel:
+                    add_to_itemlist(citem, maxlevel, level)
+        for tlitem in self.get_top_level_items():
+            itemlist.append(tlitem)
+            if maxlevel > 1:
+                add_to_itemlist(tlitem, maxlevel=maxlevel)
+        return itemlist
             
     def change_view(self, change_in_depth):
         """Change the view depth by expand or collapsing all same-level nodes"""
         self.current_view_depth += change_in_depth
         if self.current_view_depth < 1:
             self.current_view_depth = 1
-        for item in self.item_list:
-            item_depth = item.data(0, Qt.UserRole).toInt()[0]
-            item.setExpanded(item_depth < self.current_view_depth)                
+        self.collapseAll()
+        for item in self.get_items(maxlevel=self.current_view_depth):
+            item.setExpanded(True)
     
 
 def test():
