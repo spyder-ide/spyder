@@ -112,10 +112,10 @@ COLORS = {
            "keyword":    ("#0000ff", False, False),
            "builtin":    ("#900090", False, False),
            "definition": ("#000000", True,  False),
-           "comment":    ("#adadad", False, False),
-           "string":     ("#00aa00", False, True),
+           "comment":    ("#adadad", False, True),
+           "string":     ("#00aa00", False, False),
            "number":     ("#800000", False, False),
-           "instance":   ("#000000", False, True),
+           "instance":   ("#924900", False, True),
            },
           }
 COLOR_SCHEME_NAMES = COLORS.keys()
@@ -564,3 +564,65 @@ class Fortran77SH(FortranSH):
             self.setFormat(0, 5, self.formats["comment"])
             self.setFormat(73, max([73, text.length()]),
                            self.formats["comment"])
+
+
+#===============================================================================
+# Diff/Patch highlighter
+#===============================================================================
+
+class DiffSH(BaseSH):
+    """Simple Diff/Patch Syntax Highlighter Class"""
+    def highlightBlock(self, text):
+        if text.startsWith("+++"):
+            self.setFormat(0, text.length(), self.formats["keyword"])
+        elif text.startsWith("---"):
+            self.setFormat(0, text.length(), self.formats["keyword"])
+        elif text.startsWith("+"):
+            self.setFormat(0, text.length(), self.formats["string"])
+        elif text.startsWith("-"):
+            self.setFormat(0, text.length(), self.formats["number"])
+        elif text.startsWith("@"):
+            self.setFormat(0, text.length(), self.formats["builtin"])
+
+
+#===============================================================================
+# gettext highlighter
+#===============================================================================
+
+def make_gettext_patterns():
+    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    kwstr = 'msgid msgstr'
+    kw = r"\b" + any("keyword", kwstr.split()) + r"\b"
+    fuzzy = any("builtin", [r"#,[^\n]*"])
+    links = any("normal", [r"#:[^\n]*"])
+    comment = any("comment", [r"#[^\n]*"])
+    number = any("number",
+                 [r"\b[+-]?[0-9]+[lL]?\b",
+                  r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+    sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
+    dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
+    string = any("string", [sqstring, dqstring])
+    return kw + "|" + string + "|" + number + "|" + \
+           fuzzy + "|" + links + "|" + comment + "|" + any("SYNC", [r"\n"])
+
+class GetTextSH(BaseSH):
+    """gettext Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_gettext_patterns(), re.S)
+    def __init__(self, parent, font=None, color_scheme=None):
+        BaseSH.__init__(self, parent, font, color_scheme)
+
+    def highlightBlock(self, text):
+        self.setFormat(0, text.length(), self.formats["normal"])
+        
+        match = self.PROG.search(text)
+        index = 0
+        while match:
+            for key, value in match.groupdict().items():
+                if value:
+                    start, end = match.span(key)
+                    index += end-start
+                    self.setFormat(start, end-start, self.formats[key])
+                    
+            match = self.PROG.search(text, match.end())
