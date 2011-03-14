@@ -22,7 +22,7 @@ try:
     # PyQt4 4.3.3 on Windows (static DLLs) with py2exe installed:
     # -> pythoncom must be imported first, otherwise py2exe's boot_com_servers
     #    will raise an exception ("ImportError: DLL load failed [...]") when
-    #    calling any of the QFileDialog static methods (getOpenfilename, ...)
+    #    calling any of the QFileDialog static methods (getOpenFileName, ...)
     import pythoncom #@UnusedImport
 except ImportError:
     pass
@@ -165,7 +165,7 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenfilename(self, _("Select Python script"),
+        filename = QFileDialog.getOpenFileName(self, _("Select Python script"),
                            os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
