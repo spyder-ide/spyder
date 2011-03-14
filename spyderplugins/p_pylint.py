@@ -20,7 +20,9 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, _
+from spyderlib.utils.translations import get_translation
+_ = get_translation("p_pylint", dirname="spyderplugins")
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 

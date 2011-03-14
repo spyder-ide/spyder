@@ -17,7 +17,9 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, _
+from spyderlib.utils.translations import get_translation
+_ = get_translation("p_profiler", dirname="spyderplugins")
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
@@ -81,7 +83,8 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
                      self.main.redirect_internalshell_stdio)
         self.main.add_dockwidget(self)
         
-        profiler_act = create_action(self, _("Profile code"),
+        profiler_act = create_action(self, _("Profile"),
+                                     icon=get_icon('profiler.png'),
                                      triggered=self.run_profiler)
         profiler_act.setEnabled(is_profiler_installed())
         self.register_shortcut(profiler_act, context="Profiler",

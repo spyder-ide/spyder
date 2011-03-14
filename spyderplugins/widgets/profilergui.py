@@ -290,8 +290,8 @@ class ProfilerDataTree(QTreeWidget):
     """
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
-        self.header_list = [_('Function/Module'), _('TotalTime'),
-                            _('LocalTime'), _('Calls'), _('File:line')]
+        self.header_list = [_('Function/Module'), _('Total Time'),
+                            _('Local Time'), _('Calls'), _('File:line')]
         self.icon_list = {'module':      'python.png',
                          'function':    'function.png',
                          'builtin':     'python_t.png',

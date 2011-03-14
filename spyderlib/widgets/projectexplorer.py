@@ -1266,8 +1266,8 @@ class ExplorerTreeWidget(OneColumnTree):
                     action_str = _('delete')
                     QMessageBox.critical(self, _("Project Explorer"),
                                     _("<b>Unable to %s <i>%s</i></b>"
-                                      "<br><br>Error message:<br>%3"
-                                      ) % (action_str, fname).arg(str(error)))
+                                      "<br><br>Error message:<br>%s"
+                                      ) % (action_str, fname, str(error)))
         QTimer.singleShot(500, self.refresh)
     
     def add_path_to_project_pythonpath(self, project, path):

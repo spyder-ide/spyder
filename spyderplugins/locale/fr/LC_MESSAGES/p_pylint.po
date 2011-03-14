@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-03-02 17:42+Paris, Madrid\n"
+"POT-Creation-Date: 2011-03-14 11:14+Paris, Madrid\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,11 +15,11 @@ msgstr ""
 "Content-Transfer-Encoding: utf-8\n"
 "Generated-By: pygettext.py 1.5\n"
 
-#: spyderplugins/p_pylint.py:32 spyderplugins/p_pylint.py:123
+#: spyderplugins/p_pylint.py:34 spyderplugins/p_pylint.py:125
 msgid "History"
 msgstr "Historique"
 
-#: spyderplugins/p_pylint.py:33
+#: spyderplugins/p_pylint.py:35
 msgid ""
 "Pylint plugin results are stored here:\n"
 "%s\n"
@@ -31,31 +31,31 @@ msgstr ""
 "\n"
 "L'option suivante ne sera appliquée qu'au prochain démarrage."
 
-#: spyderplugins/p_pylint.py:39
+#: spyderplugins/p_pylint.py:41
 msgid "History: "
 msgstr "Historique : "
 
-#: spyderplugins/p_pylint.py:40
+#: spyderplugins/p_pylint.py:42
 msgid " results"
 msgstr " résultats"
 
-#: spyderplugins/p_pylint.py:66
+#: spyderplugins/p_pylint.py:68
 msgid "Pylint"
 msgstr "Pylint"
 
-#: spyderplugins/p_pylint.py:82
+#: spyderplugins/p_pylint.py:84
 msgid "History..."
 msgstr "Historique..."
 
-#: spyderplugins/p_pylint.py:84
+#: spyderplugins/p_pylint.py:86
 msgid "Set history maximum entries"
 msgstr "Modifier le nombre d'entrées maximum de l'historique"
 
-#: spyderplugins/p_pylint.py:97
+#: spyderplugins/p_pylint.py:99
 msgid "Run pylint code analysis"
 msgstr "Analyser le code source avec pylint"
 
-#: spyderplugins/p_pylint.py:124
+#: spyderplugins/p_pylint.py:126
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 
@@ -90,7 +90,7 @@ msgstr "Analyser le code source"
 
 #: spyderplugins/widgets/pylintgui.py:162
 msgid "Stop"
-msgstr "Analyser le code source"
+msgstr "Arrêter"
 
 #: spyderplugins/widgets/pylintgui.py:163
 msgid "Stop current analysis"

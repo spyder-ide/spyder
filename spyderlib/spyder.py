@@ -850,7 +850,7 @@ class MainWindow(QMainWindow):
 
     def reset_window_layout(self):
         """Reset window layout to default"""
-        answer = QMessageBox.warning(self, _("Reset layout"),
+        answer = QMessageBox.warning(self, _("Warning"),
                      _("Window layout will be reset to default settings: "
                        "this affects window position, size and dockwidgets.\n"
                        "Do you want to continue?"),
