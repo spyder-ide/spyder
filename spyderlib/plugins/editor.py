@@ -795,7 +795,7 @@ class Editor(SpyderPluginWidget):
                                   self.indent_action, self.unindent_action]
         self.main.edit_menu_actions += [None]+self.edit_menu_actions
         edit_toolbar_actions = [self.comment_action, self.uncomment_action,
-                                self.indent_action, self.unindent_action]
+                                self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
         
         self.search_menu_actions = [gotoline_action]
