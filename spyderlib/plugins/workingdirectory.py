@@ -159,14 +159,6 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.setWindowTitle(self.get_plugin_title()) # Toolbar title
         self.setObjectName(self.get_plugin_title()) # Used to save Window state
         
-        label = QLabel(_("Global working directory:")+" ")
-        label.setToolTip(_("This is the working directory for newly\n"
-                                 "opened consoles (Python interpreters and\n"
-                                 "terminals), for the file explorer, for the\n"
-                                 "find in files plugin and for new files\n"
-                                 "created in the editor"))
-        self.addWidget(label)
-        
         # Previous dir action
         self.history = []
         self.histindex = None
@@ -192,7 +184,11 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         # Path combo box
         adjust = self.get_option('working_dir_adjusttocontents', False)
         self.pathedit = PathComboBox(self, adjust_to_contents=adjust)
-        self.pathedit.setToolTip(_("Working directory"))
+        self.pathedit.setToolTip(_("This is the working directory for newly\n"
+                               "opened consoles (Python interpreters and\n"
+                               "terminals), for the file explorer, for the\n"
+                               "find in files plugin and for new files\n"
+                               "created in the editor"))
         self.connect(self.pathedit, SIGNAL("open_dir(QString)"), self.chdir)
         self.pathedit.setMaxCount(self.get_option('working_dir_history', 20))
         wdhistory = self.load_wdhistory( workdir )
