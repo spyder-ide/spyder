@@ -9,8 +9,8 @@
 import sys, re,  os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
-                                QVBoxLayout, QPainter, QColor)
-from spyderlib.qt.QtCore import Qt, SIGNAL, QSize, QRect
+                                QVBoxLayout)
+from spyderlib.qt.QtCore import Qt, SIGNAL
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -590,73 +590,3 @@ class OutlineExplorer(QWidget):
 
     def file_renamed(self, editor, new_filename):
         self.treewidget.file_renamed(editor, new_filename)
-
-
-#===============================================================================
-# Viewport widgets
-#===============================================================================
-class LineNumberArea(QWidget):
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.code_editor = editor
-        
-    def sizeHint(self):
-        return QSize(self.code_editor.compute_linenumberarea_width(), 0)
-        
-    def paintEvent(self, event):
-        self.code_editor.linenumberarea_paint_event(event)
-
-    def mousePressEvent(self, event):
-        self.code_editor.linenumberarea_mousepress_event(event)
-        
-    def mouseDoubleClickEvent(self, event):
-        self.code_editor.linenumberarea_mousedoubleclick_event(event)
-
-class ScrollFlagArea(QWidget):
-    WIDTH = 12
-    FLAGS_DX = 4
-    FLAGS_DY = 4
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.setAttribute(Qt.WA_OpaquePaintEvent)
-        self.code_editor = editor
-        self.scrollbar = editor.verticalScrollBar()
-        
-    def sizeHint(self):
-        return QSize(self.WIDTH, 0)
-        
-    def paintEvent(self, event):
-        self.code_editor.scrollflagarea_paint_event(event)
-
-    def __get_scale(self):
-        sb = self.scrollbar
-        return float(self.height())/(sb.maximum()-sb.minimum()+sb.pageStep())
-        
-    def scrollflag_to_scrollbar(self, y):
-        sb = self.scrollbar
-        return sb.minimum()+max([0, y/self.__get_scale()-.5*sb.pageStep()])
-        
-    def scrollbar_to_scrollflag(self, y):
-        sb = self.scrollbar
-        return (y-sb.minimum())*self.__get_scale()
-        
-    def make_flag_qrect(self, line_nb):
-        y = self.scrollbar_to_scrollflag(line_nb)
-        return QRect(self.FLAGS_DX/2, y-self.FLAGS_DY/2,
-                     self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
-        
-    def mousePressEvent(self, event):
-        y = event.pos().y()
-        self.scrollbar.setValue( self.scrollflag_to_scrollbar(y) )
-
-class EdgeLine(QWidget):
-    def __init__(self, editor):
-        QWidget.__init__(self, editor)
-        self.code_editor = editor
-        self.column = 80
-        
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        color = QColor(Qt.darkGray)
-        color.setAlphaF(.5)
-        painter.fillRect(event.rect(), color)
