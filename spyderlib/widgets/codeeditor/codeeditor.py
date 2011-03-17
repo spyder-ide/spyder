@@ -73,6 +73,10 @@ def get_primary_at(source_code, offset):
     except ImportError:
         return
 
+def set_scrollflagarea_painter(painter, light_color):
+    painter.setPen(QColor(light_color).darker(120))
+    painter.setBrush(QBrush(QColor(light_color)))
+
 class CodeEditor(TextEditBaseWidget):
     """
     Source Code Editor Widget based exclusively on Qt
@@ -751,23 +755,10 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return 0
     
-    def __set_scrollflagarea_painter(self, painter, light_color):
-        painter.setPen(QColor(light_color).darker(120))
-        painter.setBrush(QBrush(QColor(light_color)))
-    
     def scrollflagarea_paint_event(self, event):
-        cr = self.contentsRect()
-        top = cr.top()+18
-        hsbh = self.horizontalScrollBar().contentsRect().height()
-        bottom = cr.bottom()-hsbh-22
-        count = self.blockCount()
-        
-        make_flag = lambda line_nb: QRect(2, top+(line_nb-1)*(bottom-top)/count,
-                                          self.scrollflagarea.WIDTH-4, 4)
-        
+        make_flag = self.scrollflagarea.make_flag_qrect
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), self.area_background_color)
-        
         block = self.document().firstBlock()
         for line_number in xrange(1, self.document().blockCount()+1):
             data = block.userData()
@@ -779,21 +770,21 @@ class CodeEditor(TextEditBaseWidget):
                         if error:
                             color = self.error_color
                             break
-                    self.__set_scrollflagarea_painter(painter, color)
+                    set_scrollflagarea_painter(painter, color)
                     painter.drawRect(make_flag(line_number))
                 if data.todo:
                     # TODOs
-                    self.__set_scrollflagarea_painter(painter, self.todo_color)
+                    set_scrollflagarea_painter(painter, self.todo_color)
                     painter.drawRect(make_flag(line_number))
                 if data.breakpoint:
                     # Breakpoints
-                    self.__set_scrollflagarea_painter(painter,
-                                                      self.breakpoint_color)
+                    set_scrollflagarea_painter(painter,
+                                                     self.breakpoint_color)
                     painter.drawRect(make_flag(line_number))
             block = block.next()
         # Occurences
         if self.occurences:
-            self.__set_scrollflagarea_painter(painter, self.occurence_color)
+            set_scrollflagarea_painter(painter, self.occurence_color)
             for line in self.occurences:
                 painter.drawRect(make_flag(line))
                     
