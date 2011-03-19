@@ -462,7 +462,9 @@ class ArrayEditor(QDialog):
         self.layout = QGridLayout()
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
-        if not title:
+        if title:
+            title = unicode(title) # in case title is not a string
+        else:
             title = _("Array editor")
         if readonly:
             title += ' (' + _('read only') + ')'

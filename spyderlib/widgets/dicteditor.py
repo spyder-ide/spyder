@@ -1413,6 +1413,7 @@ def get_test_data():
             'datetime': datetime.datetime(1945, 5, 8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
+            1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
             }
 
 def test():
