@@ -734,7 +734,7 @@ class PythonShellWidget(ShellBaseWidget):
                                      icon=get_icon('copywop.png'),
                                      triggered=self.copy_without_prompts)
         clear_line_action = create_action(self, _("Clear line"),
-                                     QKeySequence("Escape"),
+                                     QKeySequence("Shift+Escape"),
                                      icon=get_icon('eraser.png'),
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
