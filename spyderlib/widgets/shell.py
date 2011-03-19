@@ -1014,11 +1014,15 @@ class PythonShellWidget(ShellBaseWidget):
                                       automatic=automatic)
             return
     
-    def show_docstring(self, text, call=False):
+    def show_docstring(self, text, call=False, force=False):
         """Show docstring or arguments"""
         text = unicode(text) # Useful only for ExternalShellBase
         
-        if self.inspector_enabled and (self.inspector is not None) and \
+        insp_enabled = self.inspector_enabled or force
+        if force and self.inspector is not None:
+            self.inspector.dockwidget.setVisible(True)
+            self.inspector.dockwidget.raise_()
+        if insp_enabled and (self.inspector is not None) and \
            (self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
             self.inspector.set_shell(self)
@@ -1070,7 +1074,7 @@ class PythonShellWidget(ShellBaseWidget):
         if tl2 and text2.startswith(tl2[0]):
             text += tl2[0]
         if text:
-            self.show_docstring(text)
+            self.show_docstring(text, force=True)
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

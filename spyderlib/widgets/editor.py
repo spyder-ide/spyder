@@ -650,7 +650,7 @@ class EditorStack(QWidget):
         else:
             text = self.get_current_editor().get_current_object()
             if text:
-                self.send_to_inspector(text)
+                self.send_to_inspector(text, force=True)
         
         
     #------ Editor Widget Settings
@@ -1607,9 +1607,9 @@ class EditorStack(QWidget):
         
         return finfo
     
-    def send_to_inspector(self, qstr1, qstr2=None):
+    def send_to_inspector(self, qstr1, qstr2=None, force=False):
         """qstr1: obj_text, qstr2: doc_text"""
-        if not self.inspector_enabled:
+        if not force and not self.inspector_enabled:
             return
         if self.inspector is not None and self.inspector.dockwidget.isVisible():
             # ObjectInspector widget exists and is visible
