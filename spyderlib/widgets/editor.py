@@ -328,8 +328,8 @@ class FileInfo(QObject):
             if len(textlist) == 2:
                 doc_text = textlist.pop(1)
             if doc_text:
-                self.emit(SIGNAL("send_to_inspector(QString,QString)"),
-                          text, doc_text)
+                self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
+                          text, doc_text, True)
         if textlist:
             self.editor.show_calltip("rope", textlist)
                     
@@ -1543,7 +1543,7 @@ class EditorStack(QWidget):
         if self.projectexplorer is not None:
             finfo.set_project(self.projectexplorer.get_source_project(fname))
         self.add_to_data(finfo, set_current)
-        self.connect(finfo, SIGNAL("send_to_inspector(QString,QString)"),
+        self.connect(finfo, SIGNAL("send_to_inspector(QString,QString,bool)"),
                      self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
