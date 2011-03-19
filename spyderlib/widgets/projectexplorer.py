@@ -442,10 +442,18 @@ class Project(object):
                     if branch in self.namesets:
                         self.namesets.pop(branch)
                     if dirname in self.items:
-                        self.items.pop(dirname)
+                        item = self.items.pop(dirname)
+                        try:
+                            item.parent().removeChild(item)
+                        except RuntimeError:
+                            #XXX: item has already been deleted, but why?
+                            pass
                     continue
-                self.populate_tree(tree, include, exclude,
-                                   show_all, branch=branch)
+                try:
+                    self.populate_tree(tree, include, exclude,
+                                       show_all, branch=branch)
+                except RuntimeError:
+                    pass
         else:
             tree.collapseItem(root_item)
             root_item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicator)
