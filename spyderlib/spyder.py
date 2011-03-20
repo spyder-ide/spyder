@@ -69,6 +69,7 @@ from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
+from spyderlib.plugins.outlineexplorer import OutlineExplorer
 from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
@@ -226,6 +227,7 @@ class MainWindow(QMainWindow):
         self.inspector = None
         self.onlinehelp = None
         self.projectexplorer = None
+        self.outlineexplorer = None
         self.historylog = None
         self.extconsole = None
         self.variableexplorer = None
@@ -563,7 +565,15 @@ class MainWindow(QMainWindow):
                 self.set_splash(_("Loading object inspector..."))
                 self.inspector = ObjectInspector(self)
                 self.inspector.register_plugin()
-                                    
+            
+            # Outline explorer widget
+            if CONF.get('outline_explorer', 'enable'):
+                self.set_splash(_("Loading outline explorer..."))
+                fullpath_sorting = CONF.get('editor', 'fullpath_sorting', True)
+                self.outlineexplorer = OutlineExplorer(self,
+                                            fullpath_sorting=fullpath_sorting)
+                self.outlineexplorer.register_plugin()
+            
             # Editor plugin
             self.set_splash(_("Loading editor..."))
             self.editor = Editor(self)
@@ -805,7 +815,8 @@ class MainWindow(QMainWindow):
             # appearance possible
             splitting = (
                          (self.projectexplorer, self.editor, Qt.Horizontal),
-                         (self.editor, self.inspector, Qt.Horizontal),
+                         (self.editor, self.outlineexplorer, Qt.Horizontal),
+                         (self.outlineexplorer, self.inspector, Qt.Horizontal),
                          (self.inspector, self.console, Qt.Vertical),
                          )
             for first, second, orientation in splitting:
@@ -831,7 +842,8 @@ class MainWindow(QMainWindow):
             self.extconsole.setMinimumHeight(250)
             for toolbar in (self.run_toolbar, self.edit_toolbar):
                 toolbar.close()
-            self.projectexplorer.dockwidget.close()
+            for plugin in (self.projectexplorer, self.outlineexplorer):
+                plugin.dockwidget.close()
         self.resize( QSize(width, height) )
         self.window_size = self.size()
         self.move( QPoint(posx, posy) )
@@ -1252,16 +1264,6 @@ class MainWindow(QMainWindow):
     def win_env(self):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
-        
-    def show_hide_project_explorer(self):
-        """Show/hide project explorer plugin (called from the editor plugin)"""
-        if self.projectexplorer is not None:
-            dw = self.projectexplorer.dockwidget
-            if dw.isVisible():
-                dw.hide()
-            else:
-                dw.show()
-            self.editor.switch_to_plugin()
         
     def edit_preferences(self):
         """Edit Spyder preferences"""

@@ -507,7 +507,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 break
     
     
-class OutlineExplorer(QWidget):
+class OutlineExplorerWidget(QWidget):
     """
     Class browser
     

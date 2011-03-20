@@ -11,8 +11,6 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-#TODO: Make a plugin for the outline explorer ?
-
 from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
                                 QPrintDialog, QSplitter, QToolBar, QAction,
                                 QApplication, QDialog, QWidget, QPrinter,
@@ -31,14 +29,13 @@ STDOUT = sys.stdout
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme, _
 from spyderlib.utils import programs
-from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
-                                       get_filetype_icon, create_toolbutton)
+from spyderlib.utils.qthelpers import (create_action, add_actions,
+                                       get_std_icon, get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack,
                                       EditorMainWindow, CodeEditor, Printer)
-from spyderlib.widgets.editortools import OutlineExplorer
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)
@@ -85,14 +82,11 @@ class EditorConfigPage(PluginConfigPage):
                                     text=_("Text and margin font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         newcb = self.create_checkbox
-        oevis_box = newcb(_("Show outline explorer"),
-                          'outline_explorer/visibility')
         fpsorting_box = newcb(_("Sort files according to full path"),
                               'fullpath_sorting')
         showtabbar_box = newcb(_("Show tab bar"), 'show_tab_bar')
 
         interface_layout = QVBoxLayout()
-        interface_layout.addWidget(oevis_box)
         interface_layout.addWidget(fpsorting_box)
         interface_layout.addWidget(showtabbar_box)
         interface_group.setLayout(interface_layout)
@@ -283,6 +277,7 @@ class Editor(SpyderPluginWidget):
             encoding.write(os.linesep.join(header), self.TEMPLATE_PATH, 'utf-8')
 
         self.projectexplorer = None
+        self.outlineexplorer = None
         self.inspector = None
 
         self.editorstacks = None
@@ -330,28 +325,6 @@ class Editor(SpyderPluginWidget):
         self.dock_toolbar = QToolBar(self)
         add_actions(self.dock_toolbar, self.dock_toolbar_actions)
         layout.addWidget(self.dock_toolbar)
-        
-        # Class browser
-        self.outlineexplorer = OutlineExplorer(self,
-                   show_fullpath=self.get_option(
-                                    'outline_explorer/show_fullpath', False),
-                   fullpath_sorting=self.get_option('fullpath_sorting', True),
-                   show_all_files=self.get_option(
-                                    'outline_explorer/show_all_files', False),
-                   show_comments=self.get_option(
-                                    'outline_explorer/show_comments', True))
-        self.connect(self.outlineexplorer,
-                     SIGNAL("edit_goto(QString,int,QString)"),
-                     lambda filenames, goto, word:
-                     self.load(filenames=filenames, goto=goto, word=word,
-                               editorwindow=self))
-        oe_enabled = self.get_option('outline_explorer')
-        if oe_enabled:
-            oe_state = self.get_option('outline_explorer/visibility', False)
-        else:
-            oe_state = False
-        self.outlineexplorer.visibility_action.setChecked(oe_state)
-        self.outlineexplorer.visibility_action.setEnabled(oe_enabled)
 
         self.last_edit_cursor_pos = None
         self.cursor_pos_history = []
@@ -388,7 +361,6 @@ class Editor(SpyderPluginWidget):
         self.splitter = QSplitter(self)
         self.splitter.setContentsMargins(0, 0, 0, 0)
         self.splitter.addWidget(editor_widgets)
-        self.splitter.addWidget(self.outlineexplorer)
         self.splitter.setStretchFactor(0, 5)
         self.splitter.setStretchFactor(1, 1)
         layout.addWidget(self.splitter)
@@ -423,12 +395,6 @@ class Editor(SpyderPluginWidget):
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
-        
-        # Restoring outline explorer state
-        expanded_state = self.get_option('outline_explorer/expanded_state',
-                                         None)
-        if expanded_state is not None:
-            self.outlineexplorer.treewidget.set_expanded_state(expanded_state)
             
         self.__ignore_cursor_position = False
         current_editor = self.get_current_editor()
@@ -443,6 +409,31 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             editorstack.set_projectexplorer(self.projectexplorer)
         
+    def show_hide_project_explorer(self):
+        if self.projectexplorer is not None:
+            dw = self.projectexplorer.dockwidget
+            if dw.isVisible():
+                dw.hide()
+            else:
+                dw.show()
+                dw.raise_()
+            self.switch_to_plugin()
+        
+    def set_outlineexplorer(self, outlineexplorer):
+        self.outlineexplorer = outlineexplorer
+        for editorstack in self.editorstacks:
+            editorstack.set_outlineexplorer(self.outlineexplorer)
+            
+    def show_hide_outline_explorer(self):
+        if self.outlineexplorer is not None:
+            dw = self.outlineexplorer.dockwidget
+            if dw.isVisible():
+                dw.hide()
+            else:
+                dw.show()
+                dw.raise_()
+            self.switch_to_plugin()
+        
     def set_inspector(self, inspector):
         self.inspector = inspector
         for editorstack in self.editorstacks:
@@ -451,11 +442,6 @@ class Editor(SpyderPluginWidget):
     #------ Private API --------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
-        scrollbar_pos = self.get_option(
-                                 'outline_explorer/scrollbar_position', None)
-        if scrollbar_pos is not None:
-            self.outlineexplorer.treewidget.set_scrollbar_position(
-                                                                scrollbar_pos)
         # Widget is now visible, we may center cursor on top level editor:
         self.get_current_editor()._center_cursor()
             
@@ -493,8 +479,6 @@ class Editor(SpyderPluginWidget):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
-        for option, value in self.outlineexplorer.get_options().items():
-            self.set_option('outline_explorer/%s' % option, value)
         state = self.splitter.saveState()
         self.set_option('splitter_state', str(state.toHex()))
         filenames = []
@@ -520,14 +504,13 @@ class Editor(SpyderPluginWidget):
         """Return a list of actions related to plugin"""
         self.toggle_outline_action = create_action(self,
                                 _("Show/hide outline explorer"),
-                                triggered=lambda: self.emit(
-                                        SIGNAL('show_hide_outline_explorer()')),
+                                triggered=self.show_hide_outline_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_outline_action, context="Editor",
                                name="Show/hide outline", default="Ctrl+Alt+O")
         self.toggle_project_action = create_action(self,
                                 _("Show/hide project explorer"),
-                                triggered=self.main.show_hide_project_explorer,
+                                triggered=self.show_hide_project_explorer,
                                 context=Qt.WidgetWithChildrenShortcut)
         self.register_shortcut(self.toggle_project_action, context="Editor",
                                name="Show/hide project explorer",
@@ -859,6 +842,7 @@ class Editor(SpyderPluginWidget):
         self.connect(self, SIGNAL("open_dir(QString)"),
                      self.main.workingdirectory.chdir)
         self.set_inspector(self.main.inspector)
+        self.set_outlineexplorer(self.main.outlineexplorer)
         self.main.add_dockwidget(self)
     
         
@@ -902,7 +886,8 @@ class Editor(SpyderPluginWidget):
             # editorstack is a child of the Editor plugin
             self.set_last_focus_editorstack(self, editorstack)
             editorstack.set_closable( len(self.editorstacks) > 1 )
-            editorstack.set_outlineexplorer(self.outlineexplorer)
+            if self.outlineexplorer is not None:
+                editorstack.set_outlineexplorer(self.outlineexplorer)
             editorstack.set_find_widget(self.find_widget)
             self.connect(editorstack, SIGNAL('reset_statusbar()'),
                          self.readwrite_status.hide)
@@ -918,11 +903,10 @@ class Editor(SpyderPluginWidget):
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                          self.eol_status.eol_changed)
-            oe_btn = create_toolbutton(self)
-            oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
-            editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
-            self.connect(self, SIGNAL('show_hide_outline_explorer()'),
-                         editorstack.outlineexplorer.visibility_action.toggle)
+        else:
+            # This is an independant window
+            if self.outlineexplorer is not None:
+                editorstack.add_outlineexplorer_button(self)
             
         editorstack.set_projectexplorer(self.projectexplorer)
         editorstack.set_inspector(self.inspector)
@@ -1078,15 +1062,14 @@ class Editor(SpyderPluginWidget):
             win.set_layout_settings(layout_settings)
         
     def create_new_window(self):
+        oe_options = self.outlineexplorer.get_options()
+        fullpath_sorting=self.get_option('fullpath_sorting', True),
         window = EditorMainWindow(self, self.stack_menu_actions,
-           self.toolbar_list, self.menu_list,
-           show_fullpath=self.get_option('outline_explorer/show_fullpath',
-                                         False),
-           fullpath_sorting=self.get_option('fullpath_sorting', True),
-           show_all_files=self.get_option('outline_explorer/show_all_files',
-                                          False),
-           show_comments=self.get_option('outline_explorer/show_comments',
-                                         True))
+                                  self.toolbar_list, self.menu_list,
+                                  show_fullpath=oe_options['show_fullpath'],
+                                  fullpath_sorting=fullpath_sorting,
+                                  show_all_files=oe_options['show_all_files'],
+                                  show_comments=oe_options['show_comments'])
         window.resize(self.size())
         window.show()
         self.register_editorwindow(window)
@@ -1852,15 +1835,6 @@ class Editor(SpyderPluginWidget):
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        # toggle_outlineexplorer_visibility
-        oevis_n = 'outline_explorer/visibility'
-        if oevis_n in options:
-            oevis_o = self.get_option(oevis_n)
-            self.outlineexplorer.setVisible(oevis_o)
-            if oevis_o:
-                self.outlineexplorer.update()
-                editorstack = self.get_current_editorstack()
-                editorstack._refresh_outlineexplorer(update=True)
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
             color_scheme_n = 'color_scheme_name'

@@ -35,7 +35,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorer, check
+from spyderlib.widgets.editortools import OutlineExplorerWidget, check
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
@@ -674,6 +674,11 @@ class EditorStack(QWidget):
         self.connect(self.outlineexplorer,
                      SIGNAL("outlineexplorer_is_visible()"),
                      self._refresh_outlineexplorer)
+        
+    def add_outlineexplorer_button(self, editor_plugin):
+        oe_btn = create_toolbutton(editor_plugin)
+        oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
+        self.add_corner_widgets_to_tabbar([5, oe_btn])
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
@@ -1374,10 +1379,12 @@ class EditorStack(QWidget):
         
     def _refresh_outlineexplorer(self, index=None, update=True):
         """Refresh outline explorer panel"""
+        oe = self.outlineexplorer
+        if oe is None:
+            return
         if index is None:
             index = self.get_stack_index()
         enable = False
-        oe = self.outlineexplorer
         if self.data:
             finfo = self.data[index]
             # oe_visible: if outline explorer is not visible, maybe the whole
@@ -2003,7 +2010,8 @@ class EditorWidget(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.plugin.register_widget_shortcuts("Editor", self.find_widget)
         self.find_widget.hide()
-        self.outlineexplorer = OutlineExplorer(self, show_fullpath=show_fullpath,
+        self.outlineexplorer = OutlineExplorerWidget(self,
+                                            show_fullpath=show_fullpath,
                                             fullpath_sorting=fullpath_sorting,
                                             show_all_files=show_all_files,
                                             show_comments=show_comments)
@@ -2180,8 +2188,8 @@ class FakePlugin(QSplitter):
         self.editorwindows = []
 
         self.find_widget = FindReplace(self, enable_replace=True)
-        self.outlineexplorer = OutlineExplorer(self, show_fullpath=False,
-                                               show_all_files=False)
+        self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
+                                                     show_all_files=False)
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()

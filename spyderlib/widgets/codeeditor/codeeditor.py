@@ -37,7 +37,7 @@ from spyderlib.config import CONF, get_font, get_icon, get_image_path, _
 from spyderlib.utils.qthelpers import add_actions, create_action, keybinding
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import sourcecode, is_keyword
-from spyderlib.widgets.editortools import PythonCFM, check, OutlineExplorer
+from spyderlib.widgets.editortools import PythonCFM, check
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
 from spyderlib.widgets.codeeditor import syntaxhighlighters
 
@@ -1760,7 +1760,8 @@ class TestWidget(QSplitter):
         QSplitter.__init__(self, parent)
         self.editor = TestEditor(self)
         self.addWidget(self.editor)
-        self.classtree = OutlineExplorer(self)
+        from spyderlib.widgets.editortools import OutlineExplorerWidget
+        self.classtree = OutlineExplorerWidget(self)
         self.addWidget(self.classtree)
         self.connect(self.classtree, SIGNAL("edit_goto(QString,int,QString)"),
                      lambda _fn, line, word: self.editor.go_to_line(line, word))

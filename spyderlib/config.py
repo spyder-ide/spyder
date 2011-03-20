@@ -254,6 +254,11 @@ DEFAULTS = [
               'zoom_factor': .8,
               'max_history_entries': 20,
               }),
+            ('outline_explorer',
+             {
+              'shortcut': "Ctrl+Shift+O",
+              'enable': True,
+              }),
             ('project_explorer',
              {
               'shortcut': "Ctrl+Shift+P",
