@@ -25,7 +25,6 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 # Local import
-from spyderlib import __version__
 from spyderlib.config import CONF, get_icon, get_conf_path, get_font, _
 from spyderlib.utils import encoding, get_error_match
 from spyderlib.utils.dochelpers import getobj
@@ -499,7 +498,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
             rawhistory, _ = encoding.readlines(self.history_filename)
             rawhistory = [line.replace('\n', '') for line in rawhistory]
             if rawhistory[1] != self.INITHISTORY[1]:
-                rawhistory = self.INITHISTORY
+                rawhistory[1] = self.INITHISTORY[1]
         else:
             rawhistory = self.INITHISTORY
         history = [line for line in rawhistory \
@@ -692,7 +691,7 @@ class PythonShellWidget(ShellBaseWidget):
     Python shell widget
     """
     INITHISTORY = ['# -*- coding: utf-8 -*-',
-                   '# *** Spyder v%s -- History log ***' % __version__,]
+                   '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
@@ -1096,8 +1095,7 @@ class TerminalWidget(ShellBaseWidget):
     Terminal widget
     """
     COM = 'rem' if os.name == 'nt' else '#'
-    INITHISTORY = ['%s *** Spyder v%s -- History log ***' % (COM, __version__),
-                   COM,]
+    INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
