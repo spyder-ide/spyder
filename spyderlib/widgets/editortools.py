@@ -305,6 +305,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             root_item.set_text(fullpath=self.show_fullpath)
             tree_cache = self.populate_branch(editor, root_item)
             self.__sort_toplevel_items()
+            self.__hide_or_show_root_items(root_item)
             self.root_item_selected(root_item)
     #        print >>STDOUT, "Elapsed time: %d ms" % round((time.time()-t0)*1000)
             self.editor_items[editor_id] = root_item

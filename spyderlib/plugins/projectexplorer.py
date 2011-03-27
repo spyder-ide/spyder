@@ -33,6 +33,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                                        valid_types=['.py', '.pyw'],
                                        default_project_path=get_conf_path())
         SpyderPluginMixin.__init__(self, parent)
+        self.treewidget.header().hide()
 
         self.editor_valid_types = None
 

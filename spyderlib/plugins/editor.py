@@ -908,10 +908,6 @@ class Editor(SpyderPluginWidget):
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                          self.eol_status.eol_changed)
-        else:
-            # This is an independant window
-            if self.outlineexplorer is not None:
-                editorstack.add_outlineexplorer_button(self)
             
         editorstack.set_projectexplorer(self.projectexplorer)
         editorstack.set_inspector(self.inspector)

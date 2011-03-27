@@ -31,6 +31,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
                                        show_all_files=show_all_files,
                                        show_comments=show_comments)
         SpyderPluginMixin.__init__(self, parent)
+        self.treewidget.header().hide()
         self.load_config()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -67,7 +68,14 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         """Perform actions before parent main window is closed"""
         self.save_config()
         return True
-        
+
+    #------ SpyderPluginMixin API ---------------------------------------------
+    def visibility_changed(self, enable):
+        """DockWidget visibility has changed"""
+        SpyderPluginMixin.visibility_changed(self, enable)
+        if enable:
+            self.emit(SIGNAL("outlineexplorer_is_visible()"))
+            
     #------ Public API ---------------------------------------------------------
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
