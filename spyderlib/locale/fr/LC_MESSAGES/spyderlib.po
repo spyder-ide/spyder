@@ -1951,6 +1951,22 @@ msgstr "&Affichage"
 msgid "Reset window layout"
 msgstr "Réinitialiser la disposition des fenêtres"
 
+#: spyderlib\spyder.py:744
+msgid "Custom window layouts"
+msgstr "Dispositions de fenêtres personnalisées"
+
+#: spyderlib\spyder.py:744
+msgid "Switch to/from layout %d"
+msgstr "Basculer vers/depuis la disposition %d"
+
+#: spyderlib\spyder.py:744
+msgid "Set layout %d"
+msgstr "Définir la disposition %d"
+
+#: spyderlib\spyder.py:744
+msgid "Quick switch layout #%d has not yet been defined."
+msgstr "La disposition de fenêtre personnalisée n°%d n'a pas encore été définie."
+
 #: spyderlib\spyder.py:853 spyderlib\utils\environ.py:94
 #: spyderlib\utils\environ.py:107
 msgid "Warning"

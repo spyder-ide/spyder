@@ -86,6 +86,10 @@ DEFAULTS = [
               'lightwindow/size': (650, 400),
               'lightwindow/position': (30, 30),
               }),
+            ('quick_layouts',
+             {
+              'place_holder': '',
+              }),
             ('editor_appearance',
              {
               'cursor/width': 2,

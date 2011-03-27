@@ -81,7 +81,7 @@ from spyderlib.config import (get_icon, get_image_path, CONF, get_conf_path,
                               _)
 from spyderlib.utils.programs import run_python_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
-from spyderlib.userconfig import NoDefault
+from spyderlib.userconfig import NoDefault, NoOptionError
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -319,7 +319,9 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         
         self.window_size = None
-        self.last_window_state = None
+        self.state_before_maximizing = None
+        self.current_quick_layout = None
+        self.previous_layout_settings = None
         self.last_plugin = None
         self.fullscreen_flag = None # isFullscreen does not work as expected
         
@@ -739,10 +741,30 @@ class MainWindow(QMainWindow):
             self.view_menu.setTitle(_("&View"))
             reset_layout_action = create_action(self, _("Reset window layout"),
                                             triggered=self.reset_window_layout)
+            quick_layout_menu = QMenu(_("Custom window layouts"), self)
+            ql_actions = []
+            for index in range(1, 4):
+                if index > 0:
+                    ql_actions += [None]
+                qli_act = create_action(self,
+                                        _("Switch to/from layout %d") % index,
+                                        triggered=lambda i=index:
+                                        self.quick_layout_switch(i))
+                self.register_shortcut(qli_act, "_",
+                                       "Switch to/from layout %d" % index,
+                                       "Shift+Alt+F%d" % index)
+                qlsi_act = create_action(self, _("Set layout %d") % index,
+                                         triggered=lambda i=index:
+                                         self.quick_layout_set(i))
+                self.register_shortcut(qlsi_act, "_",
+                                       "Set layout %d" % index,
+                                       "Ctrl+Shift+Alt+F%d" % index)
+                ql_actions += [qli_act, qlsi_act]
+            add_actions(quick_layout_menu, ql_actions)
             add_actions(self.view_menu, (None, self.maximize_action,
                                          self.fullscreen_action, None,
-                                         reset_layout_action, None,
-                                         self.close_dockwidget_action))
+                                         reset_layout_action, quick_layout_menu,
+                                         None, self.close_dockwidget_action))
             self.menuBar().insertMenu(self.help_menu.menuAction(),
                                       self.view_menu)
             
@@ -797,19 +819,66 @@ class MainWindow(QMainWindow):
         
         self.debug_print("*** End of MainWindow setup ***")
         
-    def setup_layout(self, default=False):
-        prefix = ('lightwindow' if self.light else 'window') + '/'
+    def load_window_settings(self, prefix, default=False, section='main'):
         get_func = CONF.get_default if default else CONF.get
-        width, height = get_func('main', prefix+'size')
+        width, height = get_func(section, prefix+'size')
         if default:
             hexstate = None
         else:
-            hexstate = get_func('main', prefix+'state', None)
-        posx, posy =    get_func('main', prefix+'position')
-        is_maximized =  get_func('main', prefix+'is_maximized')
-        is_fullscreen = get_func('main', prefix+'is_fullscreen')
-        first_spyder_execution = hexstate is None
-        if first_spyder_execution and not self.light:
+            hexstate = get_func(section, prefix+'state', None)
+        posx, posy =    get_func(section, prefix+'position')
+        is_maximized =  get_func(section, prefix+'is_maximized')
+        is_fullscreen = get_func(section, prefix+'is_fullscreen')
+        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
+    
+    def get_window_settings(self):
+        size = self.window_size
+        width, height = size.width(), size.height()
+        is_maximized = self.isMaximized()
+        is_fullscreen = self.isFullScreen()
+        pos = self.pos()
+        posx, posy = pos.x(), pos.y()
+        hexstate = str(self.saveState().toHex())
+        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
+        
+    def set_window_settings(self, hexstate, width, height, posx, posy,
+                            is_maximized, is_fullscreen):
+        self.resize( QSize(width, height) )
+        self.window_size = self.size()
+        self.move( QPoint(posx, posy) )
+        
+        if not self.light:
+            # Window layout
+            if hexstate:
+                self.restoreState( QByteArray().fromHex(str(hexstate)) )
+            # Is maximized?
+            if is_maximized:
+                self.setWindowState(Qt.WindowMaximized)
+            # Is fullscreen?
+            if is_fullscreen:
+                self.setWindowState(Qt.WindowFullScreen)
+            self.__update_fullscreen_action()
+        
+    def save_current_window_settings(self, prefix, section='main'):
+        size = self.window_size
+        CONF.set(section, prefix+'size', (size.width(), size.height()))
+        CONF.set(section, prefix+'is_maximized', self.isMaximized())
+        CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
+        pos = self.pos()
+        CONF.set(section, prefix+'position', (pos.x(), pos.y()))
+        if not self.light:
+            self.maximize_dockwidget(restore=True)# Restore non-maximized layout
+            qba = self.saveState()
+            CONF.set(section, prefix+'state', str(qba.toHex()))
+            CONF.set(section, prefix+'statusbar',
+                     not self.statusBar().isHidden())
+        
+    def setup_layout(self, default=False):
+        prefix = ('lightwindow' if self.light else 'window') + '/'
+        (hexstate, width, height, posx, posy, is_maximized,
+         is_fullscreen) = self.load_window_settings(prefix, default)
+        
+        if hexstate is None and not self.light:
             # First Spyder execution:
             # trying to set-up the dockwidget/toolbar positions to the best 
             # appearance possible
@@ -844,21 +913,9 @@ class MainWindow(QMainWindow):
                 toolbar.close()
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
-        self.resize( QSize(width, height) )
-        self.window_size = self.size()
-        self.move( QPoint(posx, posy) )
-        
-        if not self.light:
-            # Window layout
-            if not first_spyder_execution:
-                self.restoreState( QByteArray().fromHex(str(hexstate)) )
-            # Is maximized?
-            if is_maximized:
-                self.setWindowState(Qt.WindowMaximized)
-            # Is fullscreen?
-            if is_fullscreen:
-                self.setWindowState(Qt.WindowFullScreen)
-            self.__update_fullscreen_action()
+                
+        self.set_window_settings(hexstate, width, height, posx, posy,
+                                 is_maximized, is_fullscreen)
 
     def reset_window_layout(self):
         """Reset window layout to default"""
@@ -869,6 +926,27 @@ class MainWindow(QMainWindow):
                      QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
             self.setup_layout(default=True)
+            
+    def quick_layout_switch(self, index):
+        if self.current_quick_layout == index:
+            self.set_window_settings(*self.previous_layout_settings)
+            self.current_quick_layout = None
+        else:
+            try:
+                settings = self.load_window_settings('layout_%d/' % index,
+                                                     section='quick_layouts')
+            except NoOptionError:
+                QMessageBox.critical(self, _("Warning"),
+                                     _("Quick switch layout #%d has not yet "
+                                       "been defined.") % index)
+                return
+            self.previous_layout_settings = self.get_window_settings()
+            self.set_window_settings(*settings)
+            self.current_quick_layout = index
+    
+    def quick_layout_set(self, index):
+        self.save_current_window_settings('layout_%d/' % index,
+                                          section='quick_layouts')
 
     def __focus_shell(self):
         """Return Python shell widget which has focus, if any"""
@@ -994,19 +1072,8 @@ class MainWindow(QMainWindow):
         """Exit tasks"""
         if self.already_closed:
             return True
-        size = self.window_size
         prefix = ('lightwindow' if self.light else 'window') + '/'
-        CONF.set('main', prefix+'size', (size.width(), size.height()))
-        CONF.set('main', prefix+'is_maximized', self.isMaximized())
-        CONF.set('main', prefix+'is_fullscreen', self.isFullScreen())
-        pos = self.pos()
-        CONF.set('main', prefix+'position', (pos.x(), pos.y()))
-        if not self.light:
-            self.maximize_dockwidget(restore=True)# Restore non-maximized layout
-            qba = self.saveState()
-            CONF.set('main', prefix+'state', str(qba.toHex()))
-            CONF.set('main', prefix+'statusbar',
-                     not self.statusBar().isHidden())
+        self.save_current_window_settings(prefix)
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
                 return False
@@ -1031,7 +1098,7 @@ class MainWindow(QMainWindow):
                 break
         
     def __update_maximize_action(self):
-        if self.last_window_state is None:
+        if self.state_before_maximizing is None:
             text = _("Maximize current plugin")
             tip = _("Maximize current plugin to fit the whole "
                     "application window")
@@ -1051,11 +1118,11 @@ class MainWindow(QMainWindow):
         First call: maximize current dockwidget
         Second call (or restore=True): restore original window layout
         """
-        if self.last_window_state is None:
+        if self.state_before_maximizing is None:
             if restore:
                 return
             # No plugin is currently maximized: maximizing focus plugin
-            self.last_window_state = self.saveState()
+            self.state_before_maximizing = self.saveState()
             focus_widget = QApplication.focusWidget()
             for plugin in self.widgetlist:
                 plugin.dockwidget.hide()
@@ -1075,8 +1142,8 @@ class MainWindow(QMainWindow):
             self.last_plugin.dockwidget.toggleViewAction().setEnabled(True)
             self.setCentralWidget(None)
             self.last_plugin.ismaximized = False
-            self.restoreState(self.last_window_state)
-            self.last_window_state = None
+            self.restoreState(self.state_before_maximizing)
+            self.state_before_maximizing = None
             self.last_plugin.get_focus_widget().setFocus()
         self.__update_maximize_action()
         

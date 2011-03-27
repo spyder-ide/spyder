@@ -37,7 +37,8 @@ __version__ = '1.0.12'
 __license__ = __doc__
 
 import os, re, os.path as osp, shutil
-from ConfigParser import ConfigParser, MissingSectionHeaderError
+from ConfigParser import (ConfigParser, MissingSectionHeaderError,
+                          NoSectionError, NoOptionError)
 
 
 def get_home_dir():
@@ -81,7 +82,7 @@ class UserConfig(ConfigParser):
         self.raw = 1 if raw_mode else 0
         self.subfolder = subfolder
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
-            raise RuntimeError("Version number %r is incorrect - must be in X.Y.Z format" % version)
+            raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         self.name = name
         if isinstance(defaults, dict):
             defaults = [ (self.default_section_name, defaults) ]
@@ -200,9 +201,9 @@ class UserConfig(ConfigParser):
         if section is None:
             section = self.default_section_name
         elif not isinstance(section, (str, unicode)):
-            raise RuntimeError, "Argument 'section' must be a string"
+            raise ValueError, "Argument 'section' must be a string"
         if not isinstance(option, (str, unicode)):
-            raise RuntimeError, "Argument 'option' must be a string"
+            raise ValueError, "Argument 'option' must be a string"
         return section
 
     def get_default(self, section, option):
@@ -229,13 +230,13 @@ class UserConfig(ConfigParser):
 
         if not self.has_section(section):
             if default is NoDefault:
-                raise RuntimeError("Unknown section %r" % section)
+                raise NoSectionError(section)
             else:
                 self.add_section(section)
         
         if not self.has_option(section, option):
             if default is NoDefault:
-                raise RuntimeError("Unknown option %r" % option)
+                raise NoOptionError(option, section)
             else:
                 self.set(section, option, default)
                 return default
