@@ -1446,7 +1446,7 @@ def get_options():
 
 def initialize(debug):
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
-    enable_translation = CONF.get('main', 'translation') and not debug
+    enable_translation = CONF.get('main', 'translation')
     app = qapplication(translate=enable_translation)
     
     #----Monkey patching PyQt4.QtGui.QApplication

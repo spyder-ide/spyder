@@ -20,8 +20,6 @@ from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 # Local import
 from userconfig import UserConfig, get_home_dir, NoDefault
 
-from spyderlib.utils.translations import get_translation
-_ = get_translation("spyderlib")
 
 DATA_DEV_PATH = osp.dirname(__file__)
 if not osp.isdir(DATA_DEV_PATH):
@@ -329,6 +327,15 @@ CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.0.6',
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
     os.remove(old_location)
+
+
+# Translation support
+if CONF.get('main', 'translation'):
+    from spyderlib.utils.translations import get_translation
+    _ = get_translation("spyderlib")
+else:
+    _ = lambda x: x
+
 
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
