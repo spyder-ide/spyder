@@ -58,9 +58,8 @@ def oedit(obj, modal=True, namespace=None):
                                               Image, is_known_type)
     from spyderlib.widgets.arrayeditor import ArrayEditor
     
-    from spyderlib.utils.qthelpers import qapplication, install_translators
+    from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    install_translators(app)
     
     if modal:
         obj_name = ''

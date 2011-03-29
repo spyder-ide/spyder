@@ -29,26 +29,21 @@ from spyderlib.utils import programs
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
-TRANSLATORS = []
-
-QAPPLICATION = None
-
 def qapplication(translate=True):
     """
     Return QApplication instance
     Creates it if it doesn't already exist
     """
-    global QAPPLICATION
-    if QApplication.startingUp():
-        QAPPLICATION = QApplication([])
-        if translate:
-            install_translators(QAPPLICATION)
-    elif QAPPLICATION is None:
-        QAPPLICATION = QApplication.instance()
-    return QAPPLICATION
+    app = QApplication.instance()
+    if not app:
+        app = QApplication([])
+    if translate:
+        install_translator(app)
+    return app
 
-def install_translators(qapp):
-    """Install translators to the QApplication instance"""
+TRANSLATORS = []
+def install_translator(qapp):
+    """Install Qt translator to the QApplication instance"""
     global TRANSLATORS
     locale = QLocale.system().name()
     # Qt-specific translator
