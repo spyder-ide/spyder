@@ -594,16 +594,21 @@ class EditorStack(QWidget):
         QWidget.closeEvent(self, event)
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))        
+    
+    def clone_editor_from(self, other_finfo, set_current, new=False):
+        fname = other_finfo.filename
+        enc = other_finfo.encoding
+        finfo = self.create_new_editor(fname, enc, "",
+                                       set_current=set_current, new=new,
+                                       cloned_from=other_finfo.editor)
+        finfo.set_analysis_results(other_finfo.analysis_results)
+        finfo.set_todo_results(other_finfo.todo_results)
+        return finfo.editor
             
     def clone_from(self, other):
         """Clone EditorStack from other instance"""
         for other_finfo in other.data:
-            fname = other_finfo.filename
-            enc = other_finfo.encoding
-            finfo = self.create_new_editor(fname, enc, "", set_current=True,
-                                           cloned_from=other_finfo.editor)
-            finfo.set_analysis_results(other_finfo.analysis_results)
-            finfo.set_todo_results(other_finfo.todo_results)
+            self.clone_editor_from(other_finfo, set_current=True)
         self.set_stack_index(other.get_stack_index())
         
     def open_filelistdialog(self):
@@ -1610,7 +1615,7 @@ class EditorStack(QWidget):
         self.find_widget.set_editor(editor)
        
         self.emit(SIGNAL('refresh_file_dependent_actions()'))
-        self.modification_changed()
+        self.modification_changed(index=self.data.index(finfo))
         
         return finfo
     

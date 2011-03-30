@@ -1017,11 +1017,6 @@ class Editor(SpyderPluginWidget):
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
         
-    def __get_editorstack_from_id(self, t_id):
-        for editorstack in self.editorstacks:
-            if id(editorstack) == t_id:
-                return editorstack
-            
     def close_file_in_all_editorstacks(self, index):
         sender = self.sender()
         for editorstack in self.editorstacks:
@@ -1300,6 +1295,15 @@ class Editor(SpyderPluginWidget):
             if len(self.recent_files) > self.get_option('max_recent_files'):
                 self.recent_files.pop(-1)
     
+    def _clone_file_everywhere(self, from_editorstack, new=False):
+        """Clone current file in all editorstacks"""
+        finfo = self.get_current_finfo()
+        for editorstack in self.editorstacks:
+            if editorstack is not from_editorstack:
+                editor = editorstack.clone_editor_from(finfo, new=new,
+                                                       set_current=False)
+                self.register_widget_shortcuts("Editor", editor)
+    
     def new(self, fname=None, editorstack=None):
         """
         Create a new file - Untitled
@@ -1321,7 +1325,8 @@ class Editor(SpyderPluginWidget):
         # Creating editor widget
         if editorstack is None:
             editorstack = self.get_current_editorstack()
-        if fname is None:
+        created_from_here = fname is None
+        if created_from_here:
             while True:
                 fname = create_fname(self.untitled_num)
                 self.untitled_num += 1
@@ -1333,15 +1338,18 @@ class Editor(SpyderPluginWidget):
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
             fname = osp.abspath(osp.join(basedir, fname))
-            editorstack.new(fname, enc, text)
         else:
             # QString when triggered by a Qt signal
             fname = osp.abspath(unicode(fname))
             index = editorstack.has_filename(fname)
             if index and not editorstack.close_file(index):
                 return
-            editorstack.new(osp.abspath(fname), enc, text)
-            editorstack.save(force=True)
+        
+        editor = editorstack.new(fname, enc, text)
+        self.register_widget_shortcuts("Editor", editor)
+        self._clone_file_everywhere(from_editorstack=editorstack, new=True)
+        if not created_from_here:
+            self.save(force=True)
                 
     def edit_template(self):
         """Edit new file template"""
@@ -1406,8 +1414,8 @@ class Editor(SpyderPluginWidget):
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
                     basedir = osp.dirname(c_fname)
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
-            editorstack = self.get_current_editorstack()
-            filenames = QFileDialog.getOpenFileNames(editorstack,
+            parent_widget = self.get_current_editorstack()
+            filenames = QFileDialog.getOpenFileNames(parent_widget,
                      _("Open file"), basedir, self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             filenames = list(filenames)
@@ -1449,15 +1457,11 @@ class Editor(SpyderPluginWidget):
                     continue
                 # --
                 current = self.get_current_editorstack(editorwindow)
-                for editorstack in self.editorstacks:
-                    is_current = editorstack is current
-                    editor = editorstack.load(filename, set_current=is_current)
-                    editor.set_breakpoints(load_breakpoints(filename))
-                    self.register_widget_shortcuts("Editor", editor)
-                    if is_current:
-                        current_editor = editor
-                current.analyze_script() # Analyze script only once (and update
-                # all other editor instances in other editorstacks)
+                current_editor = current.load(filename, set_current=True)
+                current_editor.set_breakpoints(load_breakpoints(filename))
+                self.register_widget_shortcuts("Editor", current_editor)
+                self._clone_file_everywhere(from_editorstack=current)
+                current.analyze_script()
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word)
