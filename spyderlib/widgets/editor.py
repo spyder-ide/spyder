@@ -1081,7 +1081,7 @@ class EditorStack(QWidget):
 
         
     #------ Close file, tabwidget...
-    def close_file(self, index=None):
+    def close_file(self, index=None, force=False):
         """
         Close file (index=None -> close current file)
         Keep current file index unchanged (if current file that is being closed)
@@ -1100,7 +1100,7 @@ class EditorStack(QWidget):
                 new_index = self._get_previous_file_index()
             else:
                 new_index = current_index
-        is_ok = self.save_if_changed(cancelable=True, index=index)
+        is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
             finfo.close_threads()

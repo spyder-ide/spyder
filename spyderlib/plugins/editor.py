@@ -1022,7 +1022,7 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if editorstack is not sender:
                 editorstack.blockSignals(True)
-                editorstack.close_file(index)
+                editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
                 
     def file_saved_in_editorstack(self, index):
