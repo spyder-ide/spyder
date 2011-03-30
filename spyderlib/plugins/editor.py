@@ -1295,12 +1295,12 @@ class Editor(SpyderPluginWidget):
             if len(self.recent_files) > self.get_option('max_recent_files'):
                 self.recent_files.pop(-1)
     
-    def _clone_file_everywhere(self, from_editorstack, new=False):
+    def _clone_file_everywhere(self, from_editorstack):
         """Clone current file in all editorstacks"""
         finfo = self.get_current_finfo()
         for editorstack in self.editorstacks:
             if editorstack is not from_editorstack:
-                editor = editorstack.clone_editor_from(finfo, new=new,
+                editor = editorstack.clone_editor_from(finfo,
                                                        set_current=False)
                 self.register_widget_shortcuts("Editor", editor)
     
@@ -1347,7 +1347,7 @@ class Editor(SpyderPluginWidget):
         
         editor = editorstack.new(fname, enc, text)
         self.register_widget_shortcuts("Editor", editor)
-        self._clone_file_everywhere(from_editorstack=editorstack, new=True)
+        self._clone_file_everywhere(from_editorstack=editorstack)
         if not created_from_here:
             self.save(force=True)
                 

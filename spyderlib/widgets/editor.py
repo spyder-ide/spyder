@@ -595,9 +595,10 @@ class EditorStack(QWidget):
         if PYQT_VERSION_STR.startswith('4.6'):
             self.emit(SIGNAL('destroyed()'))        
     
-    def clone_editor_from(self, other_finfo, set_current, new=False):
+    def clone_editor_from(self, other_finfo, set_current):
         fname = other_finfo.filename
         enc = other_finfo.encoding
+        new = other_finfo.newly_created
         finfo = self.create_new_editor(fname, enc, "",
                                        set_current=set_current, new=new,
                                        cloned_from=other_finfo.editor)
