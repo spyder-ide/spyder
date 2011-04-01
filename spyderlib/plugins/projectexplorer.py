@@ -30,8 +30,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         show_all = self.get_option('show_all', False)
         ProjectExplorerWidget.__init__(self, parent=parent, include=include,
                                        exclude=exclude, show_all=show_all,
-                                       valid_types=['.py', '.pyw'],
-                                       default_project_path=get_conf_path())
+                                       valid_types=['.py', '.pyw'])
         SpyderPluginMixin.__init__(self, parent)
         self.treewidget.header().hide()
 

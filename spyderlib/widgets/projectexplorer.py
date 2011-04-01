@@ -13,7 +13,7 @@ from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
                                  QUrl, QTimer)
 
-import os, sys, re, shutil, cPickle, time
+import os, sys, re, shutil, cPickle
 import os.path as osp
 
 # For debugging purpose:
@@ -22,25 +22,15 @@ STDERR = sys.stderr
 
 # Local imports
 from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
-                             programs, log_last_error, log_dt)
+                             programs)
 from spyderlib.utils.qthelpers import (get_std_icon, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
 from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
-from spyderlib.config import get_icon, get_image_path, get_conf_path, _
+from spyderlib.config import get_icon, get_image_path, _
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
-
-
-DEBUG = False
-LOG_FILENAME = get_conf_path('rope.log')
-
-try:
-    import rope.base.libutils
-    import rope.contrib.codeassist
-except ImportError:
-    pass
 
 
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
@@ -103,19 +93,6 @@ def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
             return get_icon(prefix+'folder_collapsed.png')
 
 
-ROPE_PREFS = {'ignore_syntax_errors': True,
-              'ignore_bad_imports': True,
-              'soa_followed_calls': 2,
-              'extension_modules': [
-        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
-        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
-        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
-        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
-        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
-        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
-        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
-              }
-
 class Project(object):
     """Spyder project"""
     CONFIG_NAME = '.spyderproject'
@@ -130,7 +107,6 @@ class Project(object):
         self.pythonpath = []
         self.folders = set()
         self.opened = True
-        self.rope_project = None
 
         config_path = self.__get_project_config_path()
         if not osp.exists(config_path):
@@ -162,7 +138,6 @@ class Project(object):
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
-        self.create_rope_project()
     
     def save(self):
         data = {}
@@ -188,120 +163,6 @@ class Project(object):
     def get_root_item(self):
         return self.items[self.root_path]
         
-    #------rope integration
-    def create_rope_project(self):
-        try:
-            import rope.base.project
-            self.rope_project = rope.base.project.Project(self.root_path,
-                                                          **ROPE_PREFS)
-        except ImportError:
-            self.rope_project = None
-            if DEBUG:
-                log_last_error(LOG_FILENAME,
-                               "create_rope_project: %r" % self.root_path)
-        except TypeError:
-            # Compatibility with new Mercurial API (>= 1.3).
-            # New versions of rope (> 0.9.2) already handle this issue
-            self.rope_project = None
-            if DEBUG:
-                log_last_error(LOG_FILENAME,
-                               "create_rope_project: %r" % self.root_path)
-        self.validate_rope_project()
-        
-    def close_rope_project(self):
-        if self.rope_project is not None:
-            self.rope_project.close()
-            
-    def validate_rope_project(self):
-        if self.rope_project is not None:
-            self.rope_project.validate(self.rope_project.root)
-        
-    def get_completion_list(self, source_code, offset, filename):
-        if self.rope_project is None:
-            return []
-        try:
-            resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                           filename)
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG:
-                t0 = time.time()
-            proposals = rope.contrib.codeassist.code_assist(self.rope_project,
-                                                source_code, offset, resource)
-            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
-            if DEBUG:
-                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
-            return [proposal.name for proposal in proposals]
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "get_completion_list")
-            return []
-
-    def get_calltip_text(self, source_code, offset, filename):
-        if self.rope_project is None:
-            return []
-        try:
-            resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                           filename)
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG:
-                t0 = time.time()
-            cts = rope.contrib.codeassist.get_calltip(
-                            self.rope_project, source_code, offset, resource)
-            if DEBUG:
-                log_dt(LOG_FILENAME, "get_calltip", t0)
-            if cts is not None:
-                while '..' in cts:
-                    cts = cts.replace('..', '.')
-                try:
-                    doc_text = rope.contrib.codeassist.get_doc(
-                            self.rope_project, source_code, offset, resource)
-                    if DEBUG:
-                        log_dt(LOG_FILENAME, "get_doc", t0)
-                except Exception, _error:
-                    doc_text = ''
-                    if DEBUG:
-                        log_last_error(LOG_FILENAME, "get_doc")
-                return [cts, doc_text]
-            else:
-                return []
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "get_calltip_text")
-            return []
-    
-    def get_definition_location(self, source_code, offset, filename):
-        if self.rope_project is None:
-            return (None, None)
-        try:
-            resource = rope.base.libutils.path_to_resource(self.rope_project,
-                                                           filename)
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
-            resource = None
-        try:
-            if DEBUG:
-                t0 = time.time()
-            resource, lineno = rope.contrib.codeassist.get_definition_location(
-                            self.rope_project, source_code, offset, resource)
-            if DEBUG:
-                log_dt(LOG_FILENAME, "get_definition_location", t0)
-            if resource is not None:
-                filename = resource.real_path
-            return filename, lineno
-        except Exception, _error:
-            if DEBUG:
-                log_last_error(LOG_FILENAME, "get_definition_location")
-            return (None, None)
-        
     #------Misc.
     def get_related_projects(self):
         """Return related projects path list"""
@@ -323,13 +184,11 @@ class Project(object):
         """Open project"""
         self.opened = True
         self.save()
-        self.create_rope_project()
         
     def close(self):
         """Close project"""
         self.opened = False
         self.save()
-        self.close_rope_project()
         
     def is_opened(self):
         return self.opened
@@ -586,8 +445,6 @@ class ExplorerTreeWidget(OneColumnTree):
         OneColumnTree.__init__(self, parent)
         self.parent_widget = parent
         
-        self.default_project = None
-        
         self.projects = []
         self.__update_title()
         
@@ -619,20 +476,13 @@ class ExplorerTreeWidget(OneColumnTree):
         
     def closing_widget(self):
         """Perform actions before widget is closed"""
-        for project in self.projects+[self.default_project]:
-            if project.is_opened():
-                project.close_rope_project()
+        pass
 
     def get_source_project(self, fname):
         """Return project which contains source *fname*"""
-        return self.default_project # See Issue 490
-        # See Issue 490: always using the default project to avoid performance 
-        # issues with 'rope' when dealing with projects containing large files
-#        for project in self.projects:
-#            if project.is_file_in_project(fname):
-#                return project
-#        else:
-#            return self.default_project
+        for project in self.projects:
+            if project.is_file_in_project(fname):
+                return project
         
     def get_project_from_name(self, name):
         for project in self.projects:
@@ -647,14 +497,11 @@ class ExplorerTreeWidget(OneColumnTree):
         return pythonpath
         
     def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False,
-              valid_types=['.py', '.pyw'], default_project_path=None):
+              valid_types=['.py', '.pyw']):
         self.include = include
         self.exclude = exclude
         self.show_all = show_all
         self.valid_types = valid_types
-        assert default_project_path is not None
-        self.default_project = Project(default_project_path)
-        self.default_project.load()
         
     def __get_project_from_item(self, item):
         for project in self.projects:
@@ -1485,14 +1332,12 @@ class ProjectExplorerWidget(QWidget):
         SIGNAL("removed(QString)")
     """
     def __init__(self, parent=None, include='.', exclude=r'\.pyc$|^\.',
-                 show_all=False, valid_types=['.py', '.pyw'],
-                 default_project_path=None):
+                 show_all=False, valid_types=['.py', '.pyw']):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(include=include, exclude=exclude,
-                              show_all=show_all, valid_types=valid_types,
-                              default_project_path=default_project_path)
+                              show_all=show_all, valid_types=valid_types)
 
         filters_action = create_toolbutton(self, icon=get_icon('filter.png'),
                                            tip=_("Edit filename filter"),

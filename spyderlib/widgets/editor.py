@@ -21,16 +21,22 @@ from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, PYQT_VERSION_STR, QSize, QPoint,
                                  SLOT, QTimer)
 
-import os, sys, re
-import os.path as osp
+import os, sys, re, time, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
 DEBUG = False
 
+try:
+    import rope.base.libutils
+    import rope.contrib.codeassist
+except ImportError:
+    pass
+
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs
-from spyderlib.config import get_icon, get_font, _
+from spyderlib.config import get_icon, get_font, _, get_conf_path
+from spyderlib.utils import log_last_error, log_dt
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
@@ -40,6 +46,10 @@ from spyderlib.widgets.codeeditor import syntaxhighlighters
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
+
+
+DEBUG = False
+LOG_FILENAME = get_conf_path('rope.log')
 
 
 class GoToLineDialog(QDialog):
@@ -239,16 +249,149 @@ class ToDoFinderThread(QThread):
         return self.todo_results
 
 
+ROPE_PREFS = {'ignore_syntax_errors': True,
+              'ignore_bad_imports': True,
+              'soa_followed_calls': 2,
+              'extension_modules': [
+        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
+        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
+        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
+        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
+        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
+        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
+        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
+              }
+
+class RopeProject(object):
+    def __init__(self):
+        self.project = None
+        self.create_rope_project(root_path=get_conf_path())
+
+    #------rope integration
+    def create_rope_project(self, root_path):
+        try:
+            import rope.base.project
+            self.project = rope.base.project.Project(root_path,
+                                                          **ROPE_PREFS)
+        except ImportError:
+            self.project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % root_path)
+        except TypeError:
+            # Compatibility with new Mercurial API (>= 1.3).
+            # New versions of rope (> 0.9.2) already handle this issue
+            self.project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % root_path)
+        self.validate_rope_project()
+        
+    def close_rope_project(self):
+        if self.project is not None:
+            self.project.close()
+            
+    def validate_rope_project(self):
+        if self.project is not None:
+            self.project.validate(self.project.root)
+        
+    def get_completion_list(self, source_code, offset, filename):
+        if self.project is None:
+            return []
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            proposals = rope.contrib.codeassist.code_assist(self.project,
+                                                source_code, offset, resource)
+            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
+            return [proposal.name for proposal in proposals]
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_completion_list")
+            return []
+
+    def get_calltip_text(self, source_code, offset, filename):
+        if self.project is None:
+            return []
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            cts = rope.contrib.codeassist.get_calltip(
+                            self.project, source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_calltip", t0)
+            if cts is not None:
+                while '..' in cts:
+                    cts = cts.replace('..', '.')
+                try:
+                    doc_text = rope.contrib.codeassist.get_doc(
+                            self.project, source_code, offset, resource)
+                    if DEBUG:
+                        log_dt(LOG_FILENAME, "get_doc", t0)
+                except Exception, _error:
+                    doc_text = ''
+                    if DEBUG:
+                        log_last_error(LOG_FILENAME, "get_doc")
+                return [cts, doc_text]
+            else:
+                return []
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_calltip_text")
+            return []
+    
+    def get_definition_location(self, source_code, offset, filename):
+        if self.project is None:
+            return (None, None)
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            resource, lineno = rope.contrib.codeassist.get_definition_location(
+                            self.project, source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_definition_location", t0)
+            if resource is not None:
+                filename = resource.real_path
+            return filename, lineno
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_definition_location")
+            return (None, None)
+    
+
 class FileInfo(QObject):
     """File properties"""
-    def __init__(self, filename, encoding, editor, new):
+    def __init__(self, filename, encoding, editor, new, rope_project):
         QObject.__init__(self)
         self.is_closing = False
-        self.project = None
         self.filename = filename
         self.newly_created = new
         self.encoding = encoding
         self.editor = editor
+        self.rope_project = rope_project
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
@@ -282,26 +425,16 @@ class FileInfo(QObject):
         while self.todo_thread.isRunning():
             pass
         
-    def set_project(self, project):
-        self.project = project
-        
     def text_changed(self):
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
         
-    def validate_project(self):
-        if self.project is None:
-            return []
-        self.project.validate_rope_project()
-        
     def trigger_code_completion(self, automatic):
-        if self.project is None:
-            return []
         source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
         
-        textlist = self.project.get_completion_list(source_code, offset,
-                                                    self.filename)
+        textlist = self.rope_project.get_completion_list(source_code, offset,
+                                                         self.filename)
         if textlist:
             text = self.editor.get_text('sol', 'cursor')
             completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
@@ -309,13 +442,11 @@ class FileInfo(QObject):
                                              automatic)
         
     def trigger_calltip(self, position):
-        if self.project is None:
-            return
         source_code = unicode(self.editor.toPlainText())
         offset = position
         
-        textlist = self.project.get_calltip_text(source_code, offset,
-                                                 self.filename)
+        textlist = self.rope_project.get_calltip_text(source_code, offset,
+                                                      self.filename)
         text = ''
         if textlist:
             parpos = textlist[0].find('(')
@@ -334,12 +465,10 @@ class FileInfo(QObject):
             self.editor.show_calltip("rope", textlist)
                     
     def go_to_definition(self, position):
-        if self.project is None:
-            return
         source_code = unicode(self.editor.toPlainText())
         offset = position
-        fname, lineno = self.project.get_definition_location(source_code,
-                                                        offset, self.filename)
+        fname, lineno = self.rope_project.get_definition_location(source_code,
+                                                    offset, self.filename)
         if fname is not None and lineno is not None:
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       fname, lineno, "")
@@ -386,7 +515,7 @@ class FileInfo(QObject):
         breakpoints = self.editor.get_breakpoints()
         self.emit(SIGNAL("save_breakpoints(QString,QString)"),
                   self.filename, repr(breakpoints))
-
+        
 
 def get_file_language(filename, text=None):
     ext = osp.splitext(filename)[1]
@@ -411,6 +540,8 @@ class EditorStack(QWidget):
         QWidget.__init__(self, parent)
         
         self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        self.rope_project = plugin.rope_project
         
         self.newwindow_action = None
         self.horsplit_action = None
@@ -446,7 +577,6 @@ class EditorStack(QWidget):
                 QApplication.clipboard().setText(self.get_current_filename()))
         self.menu_actions = actions+[None, filelist_action, copy_to_cb_action]
         self.outlineexplorer = None
-        self.projectexplorer = None
         self.inspector = None
         self.unregister_callback = None
         self.is_closable = False
@@ -466,12 +596,12 @@ class EditorStack(QWidget):
         self.edgeline_enabled = True
         self.edgeline_column = 80
         self.outlineexplorer_enabled = True
-        self.codecompletion_auto_enabled = False
+        self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
         self.codecompletion_single_enabled = False
         self.codecompletion_enter_enabled = False
-        self.calltips_enabled = False
-        self.go_to_definition_enabled = False
+        self.calltips_enabled = True
+        self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.auto_unindent_enabled = True
         self.inspector_enabled = False
@@ -685,12 +815,6 @@ class EditorStack(QWidget):
         oe_btn = create_toolbutton(editor_plugin)
         oe_btn.setDefaultAction(self.outlineexplorer.visibility_action)
         self.add_corner_widgets_to_tabbar([5, oe_btn])
-        
-    def set_projectexplorer(self, projectexplorer):
-        self.projectexplorer = projectexplorer
-        for finfo in self.data:
-            project = self.projectexplorer.get_source_project(finfo.filename)
-            finfo.set_project(project)
         
     def set_inspector(self, inspector):
         self.inspector = inspector
@@ -1201,7 +1325,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            finfo.validate_project()
+            finfo.validate_rope_project()
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline explorer 
             #    data from scratch (could be optimized because rehighlighting
@@ -1532,7 +1656,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        finfo.validate_project()
+        finfo.validate_rope_project()
         
     def revert(self):
         index = self.get_stack_index()
@@ -1552,9 +1676,7 @@ class EditorStack(QWidget):
         Returns finfo object (instead of editor as in previous releases)
         """
         editor = CodeEditor(self)
-        finfo = FileInfo(fname, enc, editor, new)
-        if self.projectexplorer is not None:
-            finfo.set_project(self.projectexplorer.get_source_project(fname))
+        finfo = FileInfo(fname, enc, editor, new, self.rope_project)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL("send_to_inspector(QString,QString,bool)"),
                      self.send_to_inspector)
@@ -2196,6 +2318,8 @@ class FakePlugin(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
+        
+        self.rope_project = RopeProject()
 
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()

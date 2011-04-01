@@ -34,7 +34,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions,
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
-                                      EditorSplitter, EditorStack,
+                                      EditorSplitter, EditorStack, RopeProject,
                                       EditorMainWindow, CodeEditor, Printer)
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
@@ -279,6 +279,8 @@ class Editor(SpyderPluginWidget):
         self.projectexplorer = None
         self.outlineexplorer = None
         self.inspector = None
+        
+        self.rope_project = RopeProject()
 
         self.editorstacks = None
         self.editorwindows = None
@@ -406,8 +408,6 @@ class Editor(SpyderPluginWidget):
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
-        for editorstack in self.editorstacks:
-            editorstack.set_projectexplorer(self.projectexplorer)
         
     def show_hide_project_explorer(self):
         if self.projectexplorer is not None:
@@ -909,7 +909,6 @@ class Editor(SpyderPluginWidget):
             self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                          self.eol_status.eol_changed)
             
-        editorstack.set_projectexplorer(self.projectexplorer)
         editorstack.set_inspector(self.inspector)
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
