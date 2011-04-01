@@ -530,7 +530,11 @@ class ObjectInspector(SpyderPluginWidget):
             self.combo.add_text(text)
         self.save_history()
         
+        if self.dockwidget is not None:
+            self.dockwidget.blockSignals(True)
         self.__eventually_raise_inspector(text)
+        if self.dockwidget is not None:
+            self.dockwidget.blockSignals(False)
         
     def set_rope_doc(self, objtxt, doctxt, force_refresh=False):
         """Use the object inspector to show text computed with rope
@@ -547,7 +551,11 @@ class ObjectInspector(SpyderPluginWidget):
         else:
             self.set_plain_text(doctxt, is_code=False)
         
+        if self.dockwidget is not None:
+            self.dockwidget.blockSignals(True)
         self.__eventually_raise_inspector(doctxt)
+        if self.dockwidget is not None:
+            self.dockwidget.blockSignals(False)
             
     def __eventually_raise_inspector(self, text):
         index = self.source_combo.currentIndex()
