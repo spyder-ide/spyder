@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Spyder
+GenericName=Spyder
+Comment=Scientific PYthon Development EnviRonment
+TryExec=spyder
+Exec=spyder
+MimeType=application/x-foo;
+Categories=Development;Science;IDE;Qt;
