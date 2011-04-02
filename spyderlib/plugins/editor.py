@@ -453,7 +453,11 @@ class Editor(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Editor')
+        title = _('Editor')
+        filename = self.get_current_filename()
+        if filename:
+            title += ' - '+unicode(filename)
+        return title
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -1099,13 +1103,14 @@ class Editor(SpyderPluginWidget):
         return self.editorstacks[0].has_filename(filename)
 
     def get_current_editorstack(self, editorwindow=None):
-        if len(self.editorstacks) == 1:
-            return self.editorstacks[0]
-        else:
-            editorstack = self.__get_focus_editorstack()
-            if editorstack is None or editorwindow is not None:
-                return self.get_last_focus_editorstack(editorwindow)
-            return editorstack
+        if self.editorstacks is not None:
+            if len(self.editorstacks) == 1:
+                return self.editorstacks[0]
+            else:
+                editorstack = self.__get_focus_editorstack()
+                if editorstack is None or editorwindow is not None:
+                    return self.get_last_focus_editorstack(editorwindow)
+                return editorstack
         
     def get_current_editor(self):
         editorstack = self.get_current_editorstack()
@@ -1695,6 +1700,7 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(unicode(filename), position,
                                             fc=True)
+        self.emit(SIGNAL('update_plugin_title()'))
         
     def go_to_last_edit_location(self):
         if self.last_edit_cursor_pos is not None:

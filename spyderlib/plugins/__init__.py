@@ -76,11 +76,14 @@ class SpyderPluginMixin(object):
         self.default_margins = None
         self.plugin_actions = self.get_plugin_actions()
         self.dockwidget = None
+        self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
         QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
+        QObject.connect(self, SIGNAL('update_plugin_title()'),
+                        self.__update_plugin_title)
         
     def update_margins(self):
         layout = self.layout()
@@ -91,6 +94,16 @@ class SpyderPluginMixin(object):
             layout.setContentsMargins(*[margin]*4)
         else:
             layout.setContentsMargins(*self.default_margins)
+            
+    def __update_plugin_title(self):
+        """Update plugin title, i.e. dockwidget or mainwindow title"""
+        if self.dockwidget is not None:
+            win = self.dockwidget
+        elif self.mainwindow is not None:
+            win = self.mainwindow
+        else:
+            return
+        win.setWindowTitle(self.get_plugin_title())
         
     def create_dockwidget(self):
         """Add to parent QMainWindow as a dock widget"""
@@ -118,7 +131,7 @@ class SpyderPluginMixin(object):
         Create a QMainWindow instance containing this plugin
         Note: this method is currently not used
         """
-        mainwindow = QMainWindow()
+        self.mainwindow = mainwindow = QMainWindow()
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_widget_icon()
         if isinstance(icon, basestring):
