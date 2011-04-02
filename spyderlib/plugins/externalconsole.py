@@ -510,7 +510,7 @@ class ExternalConsole(SpyderPluginWidget):
                         return
                 self.close_console(index)
         else:
-            index = 0
+            index = self.tabwidget.count()
 
         # Creating a new external shell
         pythonpath = self.main.get_spyder_pythonpath()
