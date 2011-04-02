@@ -895,6 +895,8 @@ class PythonShellWidget(ShellBaseWidget):
         text = unicode(QApplication.clipboard().text())
         if len(text.splitlines()) > 1:
             # Multiline paste
+            if self.new_input_line:
+                self.on_new_line()
             self.remove_selected_text() # Remove selection, eventually
             end = self.get_current_line_from_cursor()
             lines = self.get_current_line_to_cursor() + text + end
