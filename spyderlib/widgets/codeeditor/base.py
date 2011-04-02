@@ -61,7 +61,7 @@ class CompletionWidget(QListWidget):
         self.addItems(completion_list)
         self.setCurrentRow(0)
         
-        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+#        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         self.show()
         self.setFocus()
         self.raise_()
@@ -89,7 +89,13 @@ class CompletionWidget(QListWidget):
         
     def keyPressEvent(self, event):
         text, key = event.text(), event.key()
-        if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
+        ctrl = event.modifiers() & Qt.ControlModifier
+        shift = event.modifiers() & Qt.ShiftModifier
+        alt = event.modifiers() & Qt.AltModifier
+        if ctrl or shift or alt:
+            self.hide()
+            self.textedit.keyPressEvent(event)
+        elif (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
            or key == Qt.Key_Tab:
             self.item_selected()
             event.accept()
