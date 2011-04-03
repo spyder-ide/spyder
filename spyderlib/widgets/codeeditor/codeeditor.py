@@ -1251,10 +1251,11 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     old_pos = new_pos
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                cursor.setPosition(cursor.position()+len(prefix),
-                                   QTextCursor.KeepAnchor)
-                if unicode(cursor.selectedText()) == prefix:
-                    cursor.removeSelectedText()
+                if len(unicode(cursor.block().text())) >= len(prefix):
+                    cursor.setPosition(cursor.position()+len(prefix),
+                                       QTextCursor.KeepAnchor)
+                    if unicode(cursor.selectedText()) == prefix:
+                        cursor.removeSelectedText()
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
