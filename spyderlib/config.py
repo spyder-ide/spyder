@@ -208,6 +208,7 @@ DEFAULTS = [
               'go_to_definition': True,
               'close_parentheses': True,
               'auto_unindent': True,
+              'indent_chars': '*    *',
               'object_inspector': True,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,

@@ -604,6 +604,7 @@ class EditorStack(QWidget):
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
         self.auto_unindent_enabled = True
+        self.indent_chars = " "*4
         self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -937,6 +938,14 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_auto_unindent_enabled(state)
+                
+    def set_indent_chars(self, indent_chars):
+        # CONF.get(self.CONF_SECTION, 'indent_chars')
+        indent_chars = indent_chars[1:-1] # removing the leading/ending '*'
+        self.indent_chars = indent_chars
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_indent_chars(indent_chars)
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
@@ -1713,6 +1722,7 @@ class EditorStack(QWidget):
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
                 auto_unindent=self.auto_unindent_enabled,
+                indent_chars=self.indent_chars,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)

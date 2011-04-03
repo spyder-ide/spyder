@@ -352,7 +352,7 @@ class CodeEditor(TextEditBaseWidget):
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, auto_unindent=True,
-                     cloned_from=None):
+                     indent_chars=" "*4, cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -362,6 +362,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_auto_unindent_enabled(auto_unindent)
+        self.set_indent_chars(indent_chars)
         
         # Scrollbar flag area
         self.set_scrollflagarea_enabled(scrollflagarea)
@@ -1326,15 +1327,19 @@ class CodeEditor(TextEditBaseWidget):
         """Indent current line or selection"""
         leading_text = self.get_text('sol', 'cursor')
         if self.has_selected_text():
-            self.add_prefix(" "*4)
+            self.add_prefix(self.indent_chars)
         elif not leading_text.strip() or (self.tab_indents and self.tab_mode):
             if self.is_python() or self.is_cython():
                 if not self.fix_indent(forward=True):
-                    self.add_prefix(" "*4)
+                    self.add_prefix(self.indent_chars)
             else:
-                self.add_prefix(" "*4)
+                self.add_prefix(self.indent_chars)
         else:
-            self.insert_text(" "*(4-(len(leading_text) % 4)))
+            if len(self.indent_chars) > 1:
+                length = len(self.indent_chars)
+                self.insert_text(" "*(length-(len(leading_text) % length)))
+            else:
+                self.insert_text(self.indent_chars)
             
     def indent_or_replace(self):
         """Indent or replace by 4 spaces depending on selection and tab mode"""
@@ -1352,22 +1357,22 @@ class CodeEditor(TextEditBaseWidget):
                 if cursor1.blockNumber() != cursor2.blockNumber():
                     self.indent()
                 else:
-                    self.replace(" "*4)
+                    self.replace(self.indent_chars)
     
     def unindent(self):
         """Unindent current line or selection"""
         if self.has_selected_text():
-            self.remove_prefix(" "*4)
+            self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
             if not leading_text.strip() or (self.tab_indents and self.tab_mode):
                 if self.is_python() or self.is_cython():
                     if not self.fix_indent(forward=False):
-                        self.remove_prefix(" "*4)
+                        self.remove_prefix(self.indent_chars)
                 elif leading_text.endswith('\t'):
                     self.remove_prefix('\t')
                 else:
-                    self.remove_prefix(" "*4)
+                    self.remove_prefix(self.indent_chars)
             
     def comment(self):
         """Comment current line or selection"""

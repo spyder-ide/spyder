@@ -406,6 +406,10 @@ msgid "Automatic indentation after 'else', 'elif', etc."
 msgstr "Indentation automatique après 'else', 'elif', etc."
 
 #: spyderlib\plugins\editor.py:169
+msgid "Indentation characters: "
+msgstr "Caractères d'indentation : "
+
+#: spyderlib\plugins\editor.py:169
 msgid "Tab always indent"
 msgstr "Toujours indenter avec la touche Tab"
 

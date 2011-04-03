@@ -162,6 +162,8 @@ class TextEditBaseWidget(QPlainTextEdit):
 
         self.eol_chars = None
         
+        self.indent_chars = " "*4
+        
         # Code completion / calltips
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
@@ -185,6 +187,9 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def setup_completion(self, size=None, font=None):
         self.completion_widget.setup_appearance(size, font)
+        
+    def set_indent_chars(self, indent_chars):
+        self.indent_chars = indent_chars
         
     def set_palette(self, background, foreground):
         """
@@ -913,7 +918,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.moveCursor(QTextCursor.Down, self.__get_move_mode(shift))
 
     def stdkey_tab(self):
-        self.insert_text(" "*4)
+        self.insert_text(self.indent_chars)
 
     def stdkey_home(self, shift, prompt_pos=None):
         """Smart HOME feature: cursor is first moved at 
