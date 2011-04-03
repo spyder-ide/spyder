@@ -685,18 +685,12 @@ class Editor(SpyderPluginWidget):
                                context="Editor", name="Next cursor position",
                                default="Ctrl+Alt+Right")
         
-        self.comment_action = create_action(self,
-                _("Co&mment"), icon='comment.png',
+        self.toggle_comment_action = create_action(self,
+                _("Comment")+"/"+_("Uncomment"), icon='comment.png',
                 tip=_("Comment current line or selection"),
-                triggered=self.comment, context=Qt.WidgetShortcut)
-        self.register_shortcut(self.comment_action, context="Editor",
-                               name="Comment", default="Ctrl+3")
-        self.uncomment_action = create_action(self,
-                _("&Uncomment"), icon='uncomment.png',
-                tip=_("Uncomment current line or selection"),
-                triggered=self.uncomment, context=Qt.WidgetShortcut)
-        self.register_shortcut(self.uncomment_action, context="Editor",
-                               name="Uncomment", default="Ctrl+2")
+                triggered=self.toggle_comment, context=Qt.WidgetShortcut)
+        self.register_shortcut(self.toggle_comment_action, context="Editor",
+                               name="Toggle comment", default="Ctrl+1")
         blockcomment_action = create_action(self, _("Add &block comment"),
                 tip=_("Add block comment around "
                             "current line or selection"),
@@ -791,11 +785,11 @@ class Editor(SpyderPluginWidget):
                                 print_action]
         self.main.file_toolbar_actions += file_toolbar_actions
         
-        self.edit_menu_actions = [self.comment_action, self.uncomment_action,
+        self.edit_menu_actions = [self.toggle_comment_action,
                                   blockcomment_action, unblockcomment_action,
                                   self.indent_action, self.unindent_action]
         self.main.edit_menu_actions += [None]+self.edit_menu_actions
-        edit_toolbar_actions = [self.comment_action, self.uncomment_action,
+        edit_toolbar_actions = [self.toggle_comment_action,
                                 self.unindent_action, self.indent_action]
         self.main.edit_toolbar_actions += edit_toolbar_actions
         
@@ -834,7 +828,7 @@ class Editor(SpyderPluginWidget):
                 [self.save_action, save_as_action, print_preview_action,
                  print_action, self.save_all_action, gotoline_action,
                  workdir_action, self.close_action, self.close_all_action,
-                 self.comment_action, self.uncomment_action, self.revert_action,
+                 self.toggle_comment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [self.save_action, save_as_action,
                                    print_action, None, run_action, debug_action,
@@ -1605,17 +1599,11 @@ class Editor(SpyderPluginWidget):
         if editor is not None:
             editor.unindent()
     
-    def comment(self):
+    def toggle_comment(self):
         """Comment current line or selection"""
         editor = self.get_current_editor()
         if editor is not None:
-            editor.comment()
-
-    def uncomment(self):
-        """Uncomment current line or selection"""
-        editor = self.get_current_editor()
-        if editor is not None:
-            editor.uncomment()
+            editor.toggle_comment()
     
     def blockcomment(self):
         """Block comment current line or selection"""

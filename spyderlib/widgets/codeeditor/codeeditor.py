@@ -295,12 +295,9 @@ class CodeEditor(TextEditBaseWidget):
         self.gotodef_sc = QShortcut(QKeySequence("Ctrl+G"), self,
                                     self.do_go_to_definition)
         self.gotodef_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.comment_sc = QShortcut(QKeySequence("Ctrl+3"), self,
-                                    self.comment)
-        self.comment_sc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.uncomment_sc = QShortcut(QKeySequence("Ctrl+2"), self,
-                                      self.uncomment)
-        self.uncomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
+        self.toggle_comment_sc = QShortcut(QKeySequence("Ctrl+1"), self,
+                                           self.toggle_comment)
+        self.toggle_comment_sc.setContext(Qt.WidgetWithChildrenShortcut)
         self.blockcomment_sc = QShortcut(QKeySequence("Ctrl+4"), self,
                                          self.blockcomment)
         self.blockcomment_sc.setContext(Qt.WidgetWithChildrenShortcut)
@@ -321,8 +318,7 @@ class CodeEditor(TextEditBaseWidget):
                 (self.copyline_sc, "Copy line", "Ctrl+Alt+Down"),
                 (self.deleteline_sc, "Delete line", "Ctrl+D"),
                 (self.gotodef_sc, "Go to definition", "Ctrl+G"),
-                (self.comment_sc, "Comment", "Ctrl+3"),
-                (self.uncomment_sc, "Uncomment", "Ctrl+2"),
+                (self.toggle_comment_sc, "Toggle comment", "Ctrl+1"),
                 (self.blockcomment_sc, "Blockcomment", "Ctrl+4"),
                 (self.unblockcomment_sc, "Unblockcomment", "Ctrl+5"),
                 ]
@@ -1374,7 +1370,20 @@ class CodeEditor(TextEditBaseWidget):
                     self.remove_prefix('\t')
                 else:
                     self.remove_prefix(self.indent_chars)
-            
+    
+    def toggle_comment(self):
+        """Toggle comment on current line or selection"""
+        cursor = self.textCursor()
+        if self.has_selected_text():
+            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            first_pos = min([start_pos, end_pos])
+            cursor.setPosition(first_pos)
+        text = unicode(cursor.block().text())
+        if text.startswith(self.comment_string):
+            self.uncomment()
+        else:
+            self.comment()
+    
     def comment(self):
         """Comment current line or selection"""
         self.add_prefix(self.comment_string)
@@ -1479,18 +1488,16 @@ class CodeEditor(TextEditBaseWidget):
                            shortcut=keybinding('SelectAll'),
                            icon=get_icon('selectall.png'),
                            triggered=self.selectAll)
-        comment_action = create_action(self, _("Comment"),
+        toggle_comment_action = create_action(self,
+                           _("Comment")+"/"+_("Uncomment"),
                            icon=get_icon("comment.png"),
-                           triggered=self.comment)
-        uncomment_action = create_action(self, _("Uncomment"),
-                           icon=get_icon("uncomment.png"),
-                           triggered=self.uncomment)
+                           triggered=self.toggle_comment)
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
                                 None, selectall_action, None,
-                                comment_action, uncomment_action))        
+                                toggle_comment_action))        
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
