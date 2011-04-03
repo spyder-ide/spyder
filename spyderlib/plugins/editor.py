@@ -73,6 +73,10 @@ def is_winpdb_installed():
 
 
 class EditorConfigPage(PluginConfigPage):
+    def __init__(self, plugin, parent):
+        PluginConfigPage.__init__(self, plugin, parent)
+        self.get_name = lambda: _("Editor")
+    
     def setup_page(self):
         template_btn = self.create_button(_("Edit template for new modules"),
                                     self.plugin.edit_template)
