@@ -248,10 +248,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Matplotlib Group
         mpl_group = QGroupBox(_("Matplotlib"))
         mpl_label = QLabel(_("Patching Matplotlib library will add a "
-                                   "button to customize figure options "
-                                   "(curves/images plot parameters). This "
-                                   "Spyder feature has been integrated in "
-                                   "Matplotlib v1.0."))
+                             "button to customize figure options "
+                             "(curves/images plot parameters)."))
         mpl_label.setWordWrap(True)
         mpl_patch_box = newcb(_("Patch Matplotlib figures"),
                               'mpl_patch/enabled')

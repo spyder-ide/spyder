@@ -101,37 +101,34 @@ def apply():
                                    'Customize', self.edit_parameters)
                 a.setToolTip('Edit curves line and axes parameters')
         def edit_parameters(self):
-            if edit_parameters is None:
-                allaxes = self.canvas.figure.get_axes()
-                if len(allaxes) == 1:
-                    axes = allaxes[0]
-                elif len(allaxes) > 1:
-                    titles = []
-                    for axes in allaxes:
-                        title = axes.get_title()
-                        ylabel = axes.get_ylabel()
-                        if title:
-                            text = title
-                            if ylabel:
-                                text += ": "+ylabel
-                            text += " (%s)"
-                        elif ylabel:
-                            text = "%s (%s)" % ylabel
-                        else:
-                            text = "%s"
-                        titles.append(text % repr(axes))
-                    item, ok = QInputDialog.getItem(self, 'Customize',
-                                                    'Select axes:', titles,
-                                                    0, False)
-                    if ok:
-                        axes = allaxes[titles.index(unicode(item))]
+            allaxes = self.canvas.figure.get_axes()
+            if len(allaxes) == 1:
+                axes = allaxes[0]
+            elif len(allaxes) > 1:
+                titles = []
+                for axes in allaxes:
+                    title = axes.get_title()
+                    ylabel = axes.get_ylabel()
+                    if title:
+                        text = title
+                        if ylabel:
+                            text += ": "+ylabel
+                        text += " (%s)"
+                    elif ylabel:
+                        text = "%s (%s)" % ylabel
                     else:
-                        return
+                        text = "%s"
+                    titles.append(text % repr(axes))
+                item, ok = QInputDialog.getItem(self, 'Customize',
+                                                'Select axes:', titles,
+                                                0, False)
+                if ok:
+                    axes = allaxes[titles.index(unicode(item))]
                 else:
                     return
-                figure_edit(axes, self)
             else:
-                super(NavigationToolbar2QT, self).edit_parameters()
+                return
+            figure_edit(axes, self)
         def save_figure(self):
             super(NavigationToolbar2QT, self).save_figure()
         def set_cursor(self, cursor):
