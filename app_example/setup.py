@@ -20,10 +20,10 @@ DLL_EXCLUDES = get_default_dll_excludes()
 DATA_FILES = create_vs2008_data_files()
 
 # Distributing application-specific data files
-add_module_data_files("spyderlib", ("images", ),
-                      ('.png', '.svg',), DATA_FILES, copy_to_root=False)
-add_module_data_files("spyderlib", ("", ),
-                      ('.qm', '.py'), DATA_FILES, copy_to_root=False)
+for _modname in ('spyderlib', 'spyderplugins'):
+    add_module_data_files(_modname, ("", ),
+                          ('.mo', '.svg', '.png', '.css', '.py'),
+                          DATA_FILES, copy_to_root=False)
 
 # Configuring/including Python modules
 add_modules(('PyQt4', ), # add 'matplotlib' after 'PyQt4' if you need it
