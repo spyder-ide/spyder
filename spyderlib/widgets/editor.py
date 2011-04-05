@@ -1334,7 +1334,7 @@ class EditorStack(QWidget):
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
-            finfo.validate_rope_project()
+            self.emit(SIGNAL('validate_rope_project()'))
             
             #XXX CodeEditor-only: re-scan the whole text to rebuild outline explorer 
             #    data from scratch (could be optimized because rehighlighting
@@ -1666,7 +1666,7 @@ class EditorStack(QWidget):
         finfo.editor.set_text(txt)
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
-        finfo.validate_rope_project()
+        self.emit(SIGNAL('validate_rope_project()'))
         
     def revert(self):
         index = self.get_stack_index()

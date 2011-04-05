@@ -17,7 +17,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
                                 QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout)
-from spyderlib.qt.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
+from spyderlib.qt.QtCore import (SIGNAL, QStringList, QVariant, QByteArray, Qt,
+                                 QEventLoop)
 
 import os, sys, time, re
 import os.path as osp
@@ -976,6 +977,8 @@ class Editor(SpyderPluginWidget):
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL('file_saved(int)'),
                      self.file_saved_in_editorstack)
+        self.connect(editorstack, SIGNAL('validate_rope_project()'),
+                     self.validate_rope_project)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -1038,6 +1041,9 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if editorstack is not sender:
                 editorstack.file_saved_in_other_editorstack(index)
+        
+    def validate_rope_project(self):
+        self.rope_project.validate_rope_project()
         
         
     #------ Handling editor windows    
