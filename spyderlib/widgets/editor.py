@@ -1617,6 +1617,7 @@ class EditorStack(QWidget):
             self.__refresh_statusbar(index)
             self.__refresh_readonly(index)
             self.__check_file_status(index)
+            self.emit(SIGNAL('update_plugin_title()'))
         else:
             editor = None
         # Update the modification-state-dependent parameters

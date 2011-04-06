@@ -972,6 +972,8 @@ class Editor(SpyderPluginWidget):
                      SIGNAL('external_console_execute_lines(QString)'),
                      lambda text: self.emit(
                      SIGNAL('external_console_execute_lines(QString)'), text))
+        self.connect(editorstack, SIGNAL("update_plugin_title()"),
+                     lambda: self.emit(SIGNAL("update_plugin_title()")))
         
         self.connect(editorstack, SIGNAL('close_file(int)'),
                      self.close_file_in_all_editorstacks)
@@ -1704,7 +1706,6 @@ class Editor(SpyderPluginWidget):
     def current_file_changed(self, filename, position):
         self.add_cursor_position_to_history(unicode(filename), position,
                                             fc=True)
-        self.emit(SIGNAL('update_plugin_title()'))
         
     def go_to_last_edit_location(self):
         if self.last_edit_cursor_pos is not None:
