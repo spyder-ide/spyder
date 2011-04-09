@@ -626,3 +626,84 @@ class GetTextSH(BaseSH):
                     self.setFormat(start, end-start, self.formats[key])
                     
             match = self.PROG.search(text, match.end())
+
+#===============================================================================
+# HTML highlighter
+#===============================================================================
+
+class BaseWebSH(BaseSH):
+    """Base class for CSS and HTML syntax highlighters"""
+    NORMAL  = 0
+    COMMENT = 1
+    
+    def __init__(self, parent, font=None, color_scheme=None):
+        BaseSH.__init__(self, parent, font, color_scheme)
+    
+    def highlightBlock(self, text):
+        previous_state = self.previousBlockState()
+        
+        if previous_state == self.COMMENT:
+            self.setFormat(0, text.length(), self.formats["comment"])
+        else:
+            previous_state = self.NORMAL
+            self.setFormat(0, text.length(), self.formats["normal"])
+        
+        self.setCurrentBlockState(previous_state)
+        match = self.PROG.search(text)        
+
+        while match:
+            match_dict = match.groupdict()
+            for key, value in match_dict.items():
+                if value:
+                    start, end = match.span(key)
+                    if previous_state == self.COMMENT:
+                        if key == "multiline_comment_end":
+                            self.setCurrentBlockState(self.NORMAL)
+                            self.setFormat(end, text.length(), self.formats["normal"])
+                        else:
+                            self.setCurrentBlockState(self.COMMENT)
+                            self.setFormat(0, text.length(), self.formats["comment"])
+                    else:
+                        if key == "multiline_comment_start":
+                            self.setCurrentBlockState(self.COMMENT)
+                            self.setFormat(start, text.length(), self.formats["comment"])
+                        else:
+                            self.setCurrentBlockState(self.NORMAL)
+                            self.setFormat(start, end-start, self.formats[key])
+                
+            match = self.PROG.search(text, match.end())
+
+def make_html_patterns():
+    """Strongly inspired from idlelib.ColorDelegator.make_pat """
+    tags = any("builtin",[r"<",r"[\?/]?>",r"(?<=<).*?(?=[ >])"])
+    keywords = any("keyword",[r" [\w:-]*?(?==)"])
+    string = any("string",[r'".*?"'])
+    comment = any("comment",[r"<!--.*?-->"])
+    multiline_comment_start = any("multiline_comment_start",[r"<!--"])
+    multiline_comment_end = any("multiline_comment_end",[r"-->"])
+    return ('|').join([comment,multiline_comment_start,multiline_comment_end,tags,keywords,string]) 
+    
+class HTMLSH(BaseWebSH):
+    """HTML Syntax Highlighter"""
+    PROG = re.compile(make_html_patterns(), re.S)
+
+#===============================================================================
+# CSS highlighter
+#===============================================================================
+
+def make_css_patterns():
+    """Strongly inspired from idlelib.ColorDelegator.make_pat """
+    tags = any("builtin",[r"(?<=}\/).*?(?={)" ,r"^[^}]*?(?={)", ])
+    keywords = any("keyword",[r"[\w-]+?(?=:)"])
+    string = any("string",[r"(?<=:).*?(?=;)"])
+    comment = any("comment", [r"\/\*(.*?)\*\/"])
+    multiline_comment_start = any("multiline_comment_start",[r"\/\*"])
+    multiline_comment_end = any("multiline_comment_end",[r"\*\/"])
+    return ('|').join([tags,keywords,string,comment,multiline_comment_start,multiline_comment_end]) 
+    
+    
+class CSSSH(BaseWebSH):
+    """CSS Syntax Highlighter"""
+    PROG = re.compile(make_css_patterns(), re.S)
+    
+
