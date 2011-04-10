@@ -62,6 +62,10 @@ class ResultsTree(OneColumnTree):
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, '')
         
+    def clear_results(self):
+        self.clear()
+        self.set_title('')
+        
     def set_results(self, filename, results):
         self.filename = filename
         self.results = results
@@ -400,14 +404,14 @@ class PylintWidget(QWidget):
         _index, data = self.get_data(filename)
         if data is None:
             text = _('Source code has not been rated yet.')
-            self.treewidget.clear()
+            self.treewidget.clear_results()
             date_text = ''
         else:
             datetime, rate, previous_rate, results = data
             if rate is None:
                 text = _('Analysis did not succeed '
                          '(see output for more details).')
-                self.treewidget.clear()
+                self.treewidget.clear_results()
                 date_text = ''
             else:
                 text_style = "<span style=\'color: #444444\'><b>%s </b></span>"
