@@ -434,13 +434,14 @@ class CythonSH(PythonSH):
 #===============================================================================
 # C/C++ syntax highlighter
 #===============================================================================
-def make_cpp_patterns():
+C_KEYWORDS1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
+C_KEYWORDS2 = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
+C_KEYWORDS3 = 'asm auto class compl false true volatile wchar_t'
+
+def make_generic_c_patterns(keywords, builtins):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
-    kwstr1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
-    kwstr1b = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ f[ f] file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
-    kwstr2 = 'asm auto class compl false true volatile wchar_t'
-    kw = r"\b" + any("builtin", kwstr1.split()+kwstr1b.split()) + r"\b"
-    builtin = r"\b" + any("keyword", kwstr2.split()+C_TYPES.split()) + r"\b"
+    kw = r"\b" + any("keyword", keywords.split()) + r"\b"
+    builtin = r"\b" + any("builtin", builtins.split()+C_TYPES.split()) + r"\b"
     comment = any("comment", [r"//[^\n]*"])
     comment_start = any("comment_start", [r"\/\*"])
     comment_end = any("comment_end", [r"\*\/"])
@@ -456,6 +457,9 @@ def make_cpp_patterns():
     return instance + "|" + kw + "|" + comment + "|" + string + "|" + \
            number + "|" + comment_start + "|" + comment_end + "|" + \
            builtin + "|" + define + "|" + any("SYNC", [r"\n"])
+
+def make_cpp_patterns():
+    return make_generic_c_patterns(C_KEYWORDS1+' '+C_KEYWORDS2, C_KEYWORDS3)
 
 class CppSH(BaseSH):
     """C/C++ Syntax Highlighter"""
@@ -500,6 +504,24 @@ class CppSH(BaseSH):
 
         last_state = self.INSIDE_COMMENT if inside_comment else self.NORMAL
         self.setCurrentBlockState(last_state)
+
+
+def make_opencl_patterns():
+    # Keywords:
+    kwstr1 = 'cl_char cl_uchar cl_short cl_ushort cl_int cl_uint cl_long cl_ulong cl_half cl_float cl_double cl_platform_id cl_device_id cl_context cl_command_queue cl_mem cl_program cl_kernel cl_event cl_sampler cl_bool cl_bitfield cl_device_type cl_platform_info cl_device_info cl_device_address_info cl_device_fp_config cl_device_mem_cache_type cl_device_local_mem_type cl_device_exec_capabilities cl_command_queue_properties cl_context_properties cl_context_info cl_command_queue_info cl_channel_order cl_channel_type cl_mem_flags cl_mem_object_type cl_mem_info cl_image_info cl_addressing_mode cl_filter_mode cl_sampler_info cl_map_flags cl_program_info cl_program_build_info cl_build_status cl_kernel_info cl_kernel_work_group_info cl_event_info cl_command_type cl_profiling_info cl_image_format'
+    # Constants:
+    kwstr2 = 'CL_FALSE, CL_TRUE, CL_PLATFORM_PROFILE, CL_PLATFORM_VERSION, CL_PLATFORM_NAME, CL_PLATFORM_VENDOR, CL_PLATFORM_EXTENSIONS, CL_DEVICE_TYPE_DEFAULT , CL_DEVICE_TYPE_CPU, CL_DEVICE_TYPE_GPU, CL_DEVICE_TYPE_ACCELERATOR, CL_DEVICE_TYPE_ALL, CL_DEVICE_TYPE, CL_DEVICE_VENDOR_ID, CL_DEVICE_MAX_COMPUTE_UNITS, CL_DEVICE_MAX_WORK_ITEM_DIMENSIONS, CL_DEVICE_MAX_WORK_GROUP_SIZE, CL_DEVICE_MAX_WORK_ITEM_SIZES, CL_DEVICE_PREFERRED_VECTOR_WIDTH_CHAR, CL_DEVICE_PREFERRED_VECTOR_WIDTH_SHORT, CL_DEVICE_PREFERRED_VECTOR_WIDTH_INT, CL_DEVICE_PREFERRED_VECTOR_WIDTH_LONG, CL_DEVICE_PREFERRED_VECTOR_WIDTH_FLOAT, CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, CL_DEVICE_MAX_CLOCK_FREQUENCY, CL_DEVICE_ADDRESS_BITS, CL_DEVICE_MAX_READ_IMAGE_ARGS, CL_DEVICE_MAX_WRITE_IMAGE_ARGS, CL_DEVICE_MAX_MEM_ALLOC_SIZE, CL_DEVICE_IMAGE2D_MAX_WIDTH, CL_DEVICE_IMAGE2D_MAX_HEIGHT, CL_DEVICE_IMAGE3D_MAX_WIDTH, CL_DEVICE_IMAGE3D_MAX_HEIGHT, CL_DEVICE_IMAGE3D_MAX_DEPTH, CL_DEVICE_IMAGE_SUPPORT, CL_DEVICE_MAX_PARAMETER_SIZE, CL_DEVICE_MAX_SAMPLERS, CL_DEVICE_MEM_BASE_ADDR_ALIGN, CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE, CL_DEVICE_SINGLE_FP_CONFIG, CL_DEVICE_GLOBAL_MEM_CACHE_TYPE, CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, CL_DEVICE_GLOBAL_MEM_SIZE, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, CL_DEVICE_MAX_CONSTANT_ARGS, CL_DEVICE_LOCAL_MEM_TYPE, CL_DEVICE_LOCAL_MEM_SIZE, CL_DEVICE_ERROR_CORRECTION_SUPPORT, CL_DEVICE_PROFILING_TIMER_RESOLUTION, CL_DEVICE_ENDIAN_LITTLE, CL_DEVICE_AVAILABLE, CL_DEVICE_COMPILER_AVAILABLE, CL_DEVICE_EXECUTION_CAPABILITIES, CL_DEVICE_QUEUE_PROPERTIES, CL_DEVICE_NAME, CL_DEVICE_VENDOR, CL_DRIVER_VERSION, CL_DEVICE_PROFILE, CL_DEVICE_VERSION, CL_DEVICE_EXTENSIONS, CL_DEVICE_PLATFORM, CL_FP_DENORM, CL_FP_INF_NAN, CL_FP_ROUND_TO_NEAREST, CL_FP_ROUND_TO_ZERO, CL_FP_ROUND_TO_INF, CL_FP_FMA, CL_NONE, CL_READ_ONLY_CACHE, CL_READ_WRITE_CACHE, CL_LOCAL, CL_GLOBAL, CL_EXEC_KERNEL, CL_EXEC_NATIVE_KERNEL, CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE, CL_QUEUE_PROFILING_ENABLE, CL_CONTEXT_REFERENCE_COUNT, CL_CONTEXT_DEVICES, CL_CONTEXT_PROPERTIES, CL_CONTEXT_PLATFORM, CL_QUEUE_CONTEXT, CL_QUEUE_DEVICE, CL_QUEUE_REFERENCE_COUNT, CL_QUEUE_PROPERTIES, CL_MEM_READ_WRITE, CL_MEM_WRITE_ONLY, CL_MEM_READ_ONLY, CL_MEM_USE_HOST_PTR, CL_MEM_ALLOC_HOST_PTR, CL_MEM_COPY_HOST_PTR, CL_R, CL_A, CL_RG, CL_RA, CL_RGB, CL_RGBA, CL_BGRA, CL_ARGB, CL_INTENSITY, CL_LUMINANCE, CL_SNORM_INT8, CL_SNORM_INT16, CL_UNORM_INT8, CL_UNORM_INT16, CL_UNORM_SHORT_565, CL_UNORM_SHORT_555, CL_UNORM_INT_101010, CL_SIGNED_INT8, CL_SIGNED_INT16, CL_SIGNED_INT32, CL_UNSIGNED_INT8, CL_UNSIGNED_INT16, CL_UNSIGNED_INT32, CL_HALF_FLOAT, CL_FLOAT, CL_MEM_OBJECT_BUFFER, CL_MEM_OBJECT_IMAGE2D, CL_MEM_OBJECT_IMAGE3D, CL_MEM_TYPE, CL_MEM_FLAGS, CL_MEM_SIZECL_MEM_HOST_PTR, CL_MEM_HOST_PTR, CL_MEM_MAP_COUNT, CL_MEM_REFERENCE_COUNT, CL_MEM_CONTEXT, CL_IMAGE_FORMAT, CL_IMAGE_ELEMENT_SIZE, CL_IMAGE_ROW_PITCH, CL_IMAGE_SLICE_PITCH, CL_IMAGE_WIDTH, CL_IMAGE_HEIGHT, CL_IMAGE_DEPTH, CL_ADDRESS_NONE, CL_ADDRESS_CLAMP_TO_EDGE, CL_ADDRESS_CLAMP, CL_ADDRESS_REPEAT, CL_FILTER_NEAREST, CL_FILTER_LINEAR, CL_SAMPLER_REFERENCE_COUNT, CL_SAMPLER_CONTEXT, CL_SAMPLER_NORMALIZED_COORDS, CL_SAMPLER_ADDRESSING_MODE, CL_SAMPLER_FILTER_MODE, CL_MAP_READ, CL_MAP_WRITE, CL_PROGRAM_REFERENCE_COUNT, CL_PROGRAM_CONTEXT, CL_PROGRAM_NUM_DEVICES, CL_PROGRAM_DEVICES, CL_PROGRAM_SOURCE, CL_PROGRAM_BINARY_SIZES, CL_PROGRAM_BINARIES, CL_PROGRAM_BUILD_STATUS, CL_PROGRAM_BUILD_OPTIONS, CL_PROGRAM_BUILD_LOG, CL_BUILD_SUCCESS, CL_BUILD_NONE, CL_BUILD_ERROR, CL_BUILD_IN_PROGRESS, CL_KERNEL_FUNCTION_NAME, CL_KERNEL_NUM_ARGS, CL_KERNEL_REFERENCE_COUNT, CL_KERNEL_CONTEXT, CL_KERNEL_PROGRAM, CL_KERNEL_WORK_GROUP_SIZE, CL_KERNEL_COMPILE_WORK_GROUP_SIZE, CL_KERNEL_LOCAL_MEM_SIZE, CL_EVENT_COMMAND_QUEUE, CL_EVENT_COMMAND_TYPE, CL_EVENT_REFERENCE_COUNT, CL_EVENT_COMMAND_EXECUTION_STATUS, CL_COMMAND_NDRANGE_KERNEL, CL_COMMAND_TASK, CL_COMMAND_NATIVE_KERNEL, CL_COMMAND_READ_BUFFER, CL_COMMAND_WRITE_BUFFER, CL_COMMAND_COPY_BUFFER, CL_COMMAND_READ_IMAGE, CL_COMMAND_WRITE_IMAGE, CL_COMMAND_COPY_IMAGE, CL_COMMAND_COPY_IMAGE_TO_BUFFER, CL_COMMAND_COPY_BUFFER_TO_IMAGE, CL_COMMAND_MAP_BUFFER, CL_COMMAND_MAP_IMAGE, CL_COMMAND_UNMAP_MEM_OBJECT, CL_COMMAND_MARKER, CL_COMMAND_ACQUIRE_GL_OBJECTS, CL_COMMAND_RELEASE_GL_OBJECTS, command execution status, CL_COMPLETE, CL_RUNNING, CL_SUBMITTED, CL_QUEUED, CL_PROFILING_COMMAND_QUEUED, CL_PROFILING_COMMAND_SUBMIT, CL_PROFILING_COMMAND_START, CL_PROFILING_COMMAND_END, CL_CHAR_BIT, CL_SCHAR_MAX, CL_SCHAR_MIN, CL_CHAR_MAX, CL_CHAR_MIN, CL_UCHAR_MAX, CL_SHRT_MAX, CL_SHRT_MIN, CL_USHRT_MAX, CL_INT_MAX, CL_INT_MIN, CL_UINT_MAX, CL_LONG_MAX, CL_LONG_MIN, CL_ULONG_MAX, CL_FLT_DIG, CL_FLT_MANT_DIG, CL_FLT_MAX_10_EXP, CL_FLT_MAX_EXP, CL_FLT_MIN_10_EXP, CL_FLT_MIN_EXP, CL_FLT_RADIX, CL_FLT_MAX, CL_FLT_MIN, CL_FLT_EPSILON, CL_DBL_DIG, CL_DBL_MANT_DIG, CL_DBL_MAX_10_EXP, CL_DBL_MAX_EXP, CL_DBL_MIN_10_EXP, CL_DBL_MIN_EXP, CL_DBL_RADIX, CL_DBL_MAX, CL_DBL_MIN, CL_DBL_EPSILON, CL_SUCCESS, CL_DEVICE_NOT_FOUND, CL_DEVICE_NOT_AVAILABLE, CL_COMPILER_NOT_AVAILABLE, CL_MEM_OBJECT_ALLOCATION_FAILURE, CL_OUT_OF_RESOURCES, CL_OUT_OF_HOST_MEMORY, CL_PROFILING_INFO_NOT_AVAILABLE, CL_MEM_COPY_OVERLAP, CL_IMAGE_FORMAT_MISMATCH, CL_IMAGE_FORMAT_NOT_SUPPORTED, CL_BUILD_PROGRAM_FAILURE, CL_MAP_FAILURE, CL_INVALID_VALUE, CL_INVALID_DEVICE_TYPE, CL_INVALID_PLATFORM, CL_INVALID_DEVICE, CL_INVALID_CONTEXT, CL_INVALID_QUEUE_PROPERTIES, CL_INVALID_COMMAND_QUEUE, CL_INVALID_HOST_PTR, CL_INVALID_MEM_OBJECT, CL_INVALID_IMAGE_FORMAT_DESCRIPTOR, CL_INVALID_IMAGE_SIZE, CL_INVALID_SAMPLER, CL_INVALID_BINARY, CL_INVALID_BUILD_OPTIONS, CL_INVALID_PROGRAM, CL_INVALID_PROGRAM_EXECUTABLE, CL_INVALID_KERNEL_NAME, CL_INVALID_KERNEL_DEFINITION, CL_INVALID_KERNEL, CL_INVALID_ARG_INDEX, CL_INVALID_ARG_VALUE, CL_INVALID_ARG_SIZE, CL_INVALID_KERNEL_ARGS, CL_INVALID_WORK_DIMENSION, CL_INVALID_WORK_GROUP_SIZE, CL_INVALID_WORK_ITEM_SIZE, CL_INVALID_GLOBAL_OFFSET, CL_INVALID_EVENT_WAIT_LIST, CL_INVALID_EVENT, CL_INVALID_OPERATION, CL_INVALID_GL_OBJECT, CL_INVALID_BUFFER_SIZE, CL_INVALID_MIP_LEVEL, CL_INVALID_GLOBAL_WORK_SIZE'
+    # Functions:
+    builtins = 'clGetPlatformIDs, clGetPlatformInfo, clGetDeviceIDs, clGetDeviceInfo, clCreateContext, clCreateContextFromType, clReleaseContext, clGetContextInfo, clCreateCommandQueue, clRetainCommandQueue, clReleaseCommandQueue, clGetCommandQueueInfo, clSetCommandQueueProperty, clCreateBuffer, clCreateImage2D, clCreateImage3D, clRetainMemObject, clReleaseMemObject, clGetSupportedImageFormats, clGetMemObjectInfo, clGetImageInfo, clCreateSampler, clRetainSampler, clReleaseSampler, clGetSamplerInfo, clCreateProgramWithSource, clCreateProgramWithBinary, clRetainProgram, clReleaseProgram, clBuildProgram, clUnloadCompiler, clGetProgramInfo, clGetProgramBuildInfo, clCreateKernel, clCreateKernelsInProgram, clRetainKernel, clReleaseKernel, clSetKernelArg, clGetKernelInfo, clGetKernelWorkGroupInfo, clWaitForEvents, clGetEventInfo, clRetainEvent, clReleaseEvent, clGetEventProfilingInfo, clFlush, clFinish, clEnqueueReadBuffer, clEnqueueWriteBuffer, clEnqueueCopyBuffer, clEnqueueReadImage, clEnqueueWriteImage, clEnqueueCopyImage, clEnqueueCopyImageToBuffer, clEnqueueCopyBufferToImage, clEnqueueMapBuffer, clEnqueueMapImage, clEnqueueUnmapMemObject, clEnqueueNDRangeKernel, clEnqueueTask, clEnqueueNativeKernel, clEnqueueMarker, clEnqueueWaitForEvents, clEnqueueBarrier'
+    # Qualifiers:
+    qualifiers = '__global __local __constant __private __kernel'
+    keyword_list = C_KEYWORDS1+' '+C_KEYWORDS2+' '+kwstr1+' '+kwstr2
+    builtin_list = C_KEYWORDS3+' '+builtins+' '+qualifiers
+    return make_generic_c_patterns(keyword_list, builtin_list)
+
+class OpenCLSH(CppSH):
+    """OpenCL Syntax Highlighter"""
+    PROG = re.compile(make_opencl_patterns(), re.S)
 
 
 #===============================================================================
@@ -683,7 +705,7 @@ def make_html_patterns():
     multiline_comment_end = any("multiline_comment_end",[r"-->"])
     return ('|').join([comment,multiline_comment_start,multiline_comment_end,tags,keywords,string]) 
     
-class HTMLSH(BaseWebSH):
+class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
 
@@ -702,7 +724,7 @@ def make_css_patterns():
     return ('|').join([tags,keywords,string,comment,multiline_comment_start,multiline_comment_end]) 
     
     
-class CSSSH(BaseWebSH):
+class CssSH(BaseWebSH):
     """CSS Syntax Highlighter"""
     PROG = re.compile(make_css_patterns(), re.S)
     

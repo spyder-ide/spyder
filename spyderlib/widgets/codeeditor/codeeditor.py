@@ -159,16 +159,17 @@ class CodeEditor(TextEditBaseWidget):
                                          '!', None),
                  ('diff', 'patch', 'rej'): (syntaxhighlighters.DiffSH, '',
                                             None),
-                 ('css',): (syntaxhighlighters.CSSSH, '', None),
+                 ('css',): (syntaxhighlighters.CssSH, '', None),
                  ('po', 'pot'): (syntaxhighlighters.GetTextSH, '#', None),
-                 ('htm', 'html'): (syntaxhighlighters.HTMLSH, '', None),
+                 ('htm', 'html'): (syntaxhighlighters.HtmlSH, '', None),
                  ('c', 'cpp', 'h', 'hpp', 'cxx'): (syntaxhighlighters.CppSH,
                                                    '//', None),
+                 ('cl',): (syntaxhighlighters.OpenCLSH, '//', None),
 #                 ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
 #                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
 #                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
                  }
-    TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'h')
+    TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
     
     def __init__(self, parent=None):
         TextEditBaseWidget.__init__(self, parent)
@@ -1763,7 +1764,7 @@ class TestEditor(CodeEditor):
         
     def load(self, filename):
         self.set_language(osp.splitext(filename)[1][1:])
-        self.set_font(QFont("Courier New", 10), 'Emacs')
+        self.set_font(QFont("Courier New", 10), 'Pydev')
         self.set_text(file(filename, 'rb').read())
         self.setWindowTitle(filename)
 #        self.setup_margins(True, True, True)
@@ -1805,6 +1806,7 @@ if __name__ == '__main__':
         fname = __file__
 #        fname = r"d:\Python\scintilla\src\LexCPP.cxx"
         fname = r"C:\Python26\Lib\pdb.py"
+        fname = "D:\\Python\\structfac.cl"
 #        fname = r"C:\Python26\Lib\ssl.py"
 #        fname = r"D:\Python\testouille.py"
 #        fname = r"C:\Python26\Lib\pydoc.py"
