@@ -331,7 +331,6 @@ class ArrayView(QTableView):
         """Reimplement Qt method"""
         if event == QKeySequence.Copy:
             self.copy()
-            event.accept()
         else:
             QTableView.keyPressEvent(self, event)
 

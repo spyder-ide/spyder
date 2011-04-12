@@ -816,16 +816,12 @@ class BaseTableView(QTableView):
         """Reimplement Qt methods"""
         if event.key() == Qt.Key_Delete:
             self.remove_item()
-            event.accept()
         elif event.key() == Qt.Key_F2:
             self.rename_item()
-            event.accept()
         elif event == QKeySequence.Copy:
             self.copy()
-            event.accept()
         elif event == QKeySequence.Paste:
             self.paste()
-            event.accept()
         else:
             QTableView.keyPressEvent(self, event)
         

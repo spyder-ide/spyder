@@ -196,9 +196,7 @@ class BaseTabs(QTabWidget):
             elif key == Qt.Key_PageDown and index < self.count()-1:
                 self.setCurrentIndex(index+1)
                 handled = True
-        if handled:
-            event.accept()
-        else:
+        if not handled:
             QTabWidget.keyPressEvent(self, event)
         
     def set_close_function(self, func):

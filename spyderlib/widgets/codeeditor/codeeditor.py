@@ -1559,7 +1559,6 @@ class CodeEditor(TextEditBaseWidget):
                     self.emit(SIGNAL('trigger_code_completion(bool)'), True)
         elif key == Qt.Key_Home and not ctrl:
             self.stdkey_home(shift)
-            event.accept()
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
             position = self.get_position('cursor')
@@ -1576,7 +1575,6 @@ class CodeEditor(TextEditBaseWidget):
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
-            event.accept()
         elif text in ('[', '{') and not self.has_selected_text() \
              and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
@@ -1586,7 +1584,6 @@ class CodeEditor(TextEditBaseWidget):
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
-                event.accept()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
@@ -1600,7 +1597,6 @@ class CodeEditor(TextEditBaseWidget):
                         Qt.Key_BracketRight: ']'}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
-                event.accept()
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_Colon and not self.has_selected_text() \

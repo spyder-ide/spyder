@@ -98,7 +98,6 @@ class CompletionWidget(QListWidget):
         elif (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
            or key == Qt.Key_Tab:
             self.item_selected()
-            event.accept()
         elif key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Left, Qt.Key_Right) \
              or text in ('.', ':'):
             self.hide()
@@ -107,17 +106,15 @@ class CompletionWidget(QListWidget):
             self.textedit.keyPressEvent(event)
             if len(text):
                 self.update_current()
-            event.accept()
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
                      Qt.Key_Home, Qt.Key_End, Qt.Key_CapsLock):
             QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current()
-            event.accept()
         else:
             self.hide()
-            event.ignore()
+            QListWidget.keyPressEvent(self, event)
             
     def update_current(self):
         completion_text = unicode(self.textedit.completion_text)

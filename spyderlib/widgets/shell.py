@@ -334,7 +334,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
             # add and run selection
             else:
                 self.insert_text(self.get_selected_text(), at_end=True)
-            event.accept()
             
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -345,22 +344,17 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.remove_selected_text()
             elif self.is_cursor_on_last_line():
                 self.stdkey_clear()
-            event.accept()
             
         elif key == Qt.Key_Backspace:
             self._key_backspace(cursor_position)
-            event.accept()
             
         elif key == Qt.Key_Tab:
             self._key_tab()
-            event.accept()
             
         elif key == Qt.Key_Space and ctrl:
             self._key_ctrl_space()
-            event.accept()
 
         elif key == Qt.Key_Left:
-            event.accept()
             if self.current_prompt_pos == cursor_position:
                 # Avoid moving cursor on prompt
                 return
@@ -369,7 +363,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
             method('word' if ctrl else 'character', direction='left')
                 
         elif key == Qt.Key_Right:
-            event.accept()
             if self.is_cursor_at_end():
                 return
             method = self.extend_selection_to_next if shift \
@@ -378,11 +371,9 @@ class ShellBaseWidget(ConsoleBaseWidget):
 
         elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
             self._key_home(shift)
-            event.accept()
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
             self._key_end(shift)
-            event.accept()
 
         elif key == Qt.Key_Up:
             if not self.is_cursor_on_last_line():
@@ -393,7 +384,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.stdkey_up(shift)
             else:
                 self.browse_history(backward=True)
-            event.accept()
                 
         elif key == Qt.Key_Down:
             if not self.is_cursor_on_last_line():
@@ -404,7 +394,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
                 self.stdkey_down(shift)
             else:
                 self.browse_history(backward=False)
-            event.accept()
             
         elif key in (Qt.Key_PageUp, Qt.Key_PageDown):
             #XXX: Find a way to do this programmatically instead of calling
@@ -414,49 +403,39 @@ class ShellBaseWidget(ConsoleBaseWidget):
 
         elif key == Qt.Key_Escape:
             self._key_escape()
-            event.accept()
                 
         elif key == Qt.Key_V and ctrl:
             self.paste()
-            event.accept()
             
         elif key == Qt.Key_X and ctrl:
             self.cut()
-            event.accept()
             
         elif key == Qt.Key_Z and ctrl:
             self.undo()
-            event.accept()
             
         elif key == Qt.Key_Y and ctrl:
             self.redo()
-            event.accept()
             
         elif key == Qt.Key_A and ctrl:
             self.selectAll()
-            event.accept()
                 
         elif key == Qt.Key_Question and not self.has_selected_text():
             self._key_question(text)
-            event.accept()
             
         elif key == Qt.Key_ParenLeft and not self.has_selected_text():
             self._key_parenleft(text)
-            event.accept()
             
         elif key == Qt.Key_Period and not self.has_selected_text():
             self._key_period(text)
-            event.accept()
 
         elif text.length() and not self.isReadOnly():
             self.hist_wholeline = False
             self.insert_text(text)
             self._key_other(text)
-            event.accept()
                 
         else:
             # Let the parent widget handle the key press event
-            event.ignore()
+            ConsoleBaseWidget.keyPressEvent(self, event)
             
                 
     #------ Key handlers
