@@ -536,9 +536,8 @@ class FindOptions(QWidget):
             # Toggle find widgets
             self.parent().emit(SIGNAL('toggle_visibility(bool)'),
                                not self.isVisible())
-            event.accept()
         else:
-            event.ignore()
+            QWidget.keyPressEvent(self, event)
 
 
 class ResultsBrowser(OneColumnTree):

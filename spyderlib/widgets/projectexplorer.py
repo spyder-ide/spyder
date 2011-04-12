@@ -696,7 +696,6 @@ class ExplorerTreeWidget(OneColumnTree):
         """Reimplement Qt method"""
         if event.key() == Qt.Key_F2:
             self.rename(self.currentItem())
-            event.accept()
         else:
             OneColumnTree.keyPressEvent(self, event)
 

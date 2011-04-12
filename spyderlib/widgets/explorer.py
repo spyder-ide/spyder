@@ -296,10 +296,8 @@ class ExplorerTreeWidget(DirView):
         """Reimplement Qt method"""
         if event.key() in (Qt.Key_Enter, Qt.Key_Return):
             self.clicked()
-            event.accept()
         elif event.key() == Qt.Key_F2:
             self.rename()
-            event.accept()
         else:
             DirView.keyPressEvent(self, event)
 
