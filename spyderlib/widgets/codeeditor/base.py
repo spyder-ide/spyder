@@ -90,9 +90,8 @@ class CompletionWidget(QListWidget):
     def keyPressEvent(self, event):
         text, key = event.text(), event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
-        shift = event.modifiers() & Qt.ShiftModifier
         alt = event.modifiers() & Qt.AltModifier
-        if ctrl or shift or alt:
+        if ctrl or alt:
             self.hide()
             self.textedit.keyPressEvent(event)
         elif (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
