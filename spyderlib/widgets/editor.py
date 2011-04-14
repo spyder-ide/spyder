@@ -23,11 +23,13 @@ from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
 
 import os, sys, re, time, os.path as osp
 
-# For debugging purpose:
-STDOUT = sys.stdout
-DEBUG = False
-
 try:
+    try:
+        from spyderlib import rope_patch
+        rope_patch.apply()
+    except ImportError:
+        # rope 0.9.2/0.9.3 is not installed
+        pass
     import rope.base.libutils
     import rope.contrib.codeassist
 except ImportError:
@@ -48,6 +50,8 @@ from spyderlib.widgets.codeeditor.codeeditor import CodeEditor, get_primary_at
 from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 
 
+# For debugging purpose:
+STDOUT = sys.stdout
 DEBUG = False
 LOG_FILENAME = get_conf_path('rope.log')
 
