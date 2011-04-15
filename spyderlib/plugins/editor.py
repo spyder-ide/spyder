@@ -17,8 +17,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
                                 QActionGroup, QInputDialog, QMenu,
                                 QAbstractPrintDialog, QGroupBox, QTabWidget,
                                 QLabel, QFontComboBox, QHBoxLayout)
-from spyderlib.qt.QtCore import (SIGNAL, QStringList, QVariant, QByteArray, Qt,
-                                 QEventLoop)
+from spyderlib.qt.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
 import os.path as osp
@@ -178,6 +177,9 @@ class EditorConfigPage(PluginConfigPage):
                           "shortcut: Ctrl+Space)"))
         ibackspace_box = newcb(_("Intelligent backspace"),
                                'intelligent_backspace', default=True)
+        removetrail_box = newcb(_("Automatically remove trailing spaces "
+                                  "when saving files"),
+                               'always_remove_trailing_spaces', default=False)
         
         analysis_group = QGroupBox(_("Analysis"))
         codeanalysis_box = newcb(_("Code analysis (pyflakes)"),
@@ -234,14 +236,15 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(indent_chars_box)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
+        sourcecode_layout.addWidget(removetrail_box)
         sourcecode_group.setLayout(sourcecode_layout)
 
         eol_group = QGroupBox(_("End-of-line characters"))
         eol_label = QLabel(_("When opening a text file containing "
-                                   "mixed end-of-line characters (this may "
-                                   "raise syntax errors in Python interpreter "
-                                   "on Windows platforms), Spyder may fix the "
-                                   "file automatically."))
+                             "mixed end-of-line characters (this may "
+                             "raise syntax errors in Python interpreter "
+                             "on Windows platforms), Spyder may fix the "
+                             "file automatically."))
         eol_label.setWordWrap(True)
         check_eol_box = newcb(_("Fix automatically and show warning "
                                       "message box"),
@@ -948,6 +951,7 @@ class Editor(SpyderPluginWidget):
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
+            ('set_always_remove_trailing_spaces',   'always_remove_trailing_spaces'),
                     )
         for method, setting in settings:
             getattr(editorstack, method)(self.get_option(setting))
@@ -1557,7 +1561,7 @@ class Editor(SpyderPluginWidget):
         
     def save_all(self):
         """Save all opened files"""
-        self.editorstacks[0].save_all()
+        self.get_current_editorstack().save_all()
         
     def revert(self):
         """Revert the currently edited file from disk"""
@@ -1827,7 +1831,7 @@ class Editor(SpyderPluginWidget):
     def re_run_file(self):
         """Re-run last script"""
         if self.get_option('save_all_before_run', True):
-            self.get_current_editorstack().save_all()
+            self.save_all()
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
@@ -1874,6 +1878,8 @@ class Editor(SpyderPluginWidget):
             tabindent_o = self.get_option(tabindent_n)
             ibackspace_n = 'intelligent_backspace'
             ibackspace_o = self.get_option(ibackspace_n)
+            removetrail_n = 'always_remove_trailing_spaces'
+            removetrail_o = self.get_option(removetrail_n)
             autocomp_n = 'codecompletion/auto'
             autocomp_o = self.get_option(autocomp_n)
             case_comp_n = 'codecompletion/case_sensitive'
@@ -1937,6 +1943,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_tabmode_enabled(tabindent_o)
                 if ibackspace_n in options:
                     editorstack.set_intelligent_backspace_enabled(ibackspace_o)
+                if removetrail_n in options:
+                    editorstack.set_always_remove_trailing_spaces(removetrail_o)
                 if autocomp_n in options:
                     editorstack.set_codecompletion_auto_enabled(autocomp_o)
                 if case_comp_n in options:

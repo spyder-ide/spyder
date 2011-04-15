@@ -617,6 +617,7 @@ class EditorStack(QWidget):
         self.highlight_current_line_enabled = False
         self.occurence_highlighting_enabled = True
         self.checkeolchars_enabled = True
+        self.always_remove_trailing_spaces = False
         self.fullpath_sorting_enabled = None
         self.set_fullpath_sorting_enabled(False)
         ccs = 'Spyder'
@@ -1020,6 +1021,10 @@ class EditorStack(QWidget):
             new_index = self.data.index(finfo)
             self.__repopulate_stack()
             self.set_stack_index(new_index)
+        
+    def set_always_remove_trailing_spaces(self, state):
+        # CONF.get(self.CONF_SECTION, 'always_remove_trailing_spaces')
+        self.always_remove_trailing_spaces = state
             
     
     #------ Stacked widget management
@@ -1328,6 +1333,8 @@ class EditorStack(QWidget):
         if not osp.isfile(finfo.filename) and not force:
             # File has not been saved yet
             return self.save_as(index=index)
+        if self.always_remove_trailing_spaces:
+            self.remove_trailing_spaces(index)
         txt = unicode(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
