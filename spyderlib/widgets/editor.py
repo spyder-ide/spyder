@@ -15,11 +15,10 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu,
                                 QFont, QAction, QApplication, QWidget,
                                 QHBoxLayout, QLabel, QKeySequence, QShortcut,
                                 QMainWindow, QSplitter, QListWidget,
-                                QListWidgetItem, QDialog, QLineEdit, 
-                                QIntValidator, QDialogButtonBox, QGridLayout)
+                                QListWidgetItem, QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, PYQT_VERSION_STR, QSize, QPoint,
-                                 SLOT, QTimer)
+                                 QTimer)
 
 import os, sys, re, os.path as osp
 
@@ -39,56 +38,6 @@ from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
 # For debugging purpose:
 STDOUT = sys.stdout
 DEBUG = False
-
-
-class GoToLineDialog(QDialog):
-    def __init__(self, editor):
-        QDialog.__init__(self, editor)
-        self.editor = editor
-        
-        self.setWindowTitle(_("Editor"))
-        self.setModal(True)
-        
-        label = QLabel(_("Go to line:"))
-        self.lineedit = QLineEdit()
-        validator = QIntValidator(self.lineedit)
-        validator.setRange(1, editor.get_line_count())
-        self.lineedit.setValidator(validator)        
-        cl_label = QLabel(_("Current line:"))
-        cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
-        last_label = QLabel(_("Line count:"))
-        last_label_v = QLabel("%d" % editor.get_line_count())
-        
-        glayout = QGridLayout()
-        glayout.addWidget(label, 0, 0, Qt.AlignVCenter|Qt.AlignRight)
-        glayout.addWidget(self.lineedit, 0, 1, Qt.AlignVCenter)
-        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter|Qt.AlignRight)
-        glayout.addWidget(cl_label_v, 1, 1, Qt.AlignVCenter)
-        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter|Qt.AlignRight)
-        glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
-
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel,
-                                Qt.Vertical, self)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-        btnlayout = QVBoxLayout()
-        btnlayout.addWidget(bbox)
-        btnlayout.addStretch(1)
-
-        ok_button = bbox.button(QDialogButtonBox.Ok)
-        ok_button.setEnabled(False)
-        self.connect(self.lineedit, SIGNAL("textChanged(QString)"),
-                     lambda text: ok_button.setEnabled(len(text) > 0))
-        
-        layout = QHBoxLayout()
-        layout.addLayout(glayout)
-        layout.addLayout(btnlayout)
-        self.setLayout(layout)
-
-        self.lineedit.setFocus()
-        
-    def get_line_number(self):
-        return int(self.lineedit.text())
         
 
 class FileListDialog(QDialog):
@@ -616,10 +565,7 @@ class EditorStack(QWidget):
     def go_to_line(self):
         """Go to line dialog"""
         if self.data:
-            editor = self.get_current_editor()
-            dlg = GoToLineDialog(editor)
-            if dlg.exec_():
-                editor.go_to_line(dlg.get_line_number())
+            self.get_current_editor().exec_gotolinedialog()
                 
     def set_or_clear_breakpoint(self):
         """Set/clear breakpoint"""

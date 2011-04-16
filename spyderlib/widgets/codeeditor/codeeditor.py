@@ -23,9 +23,12 @@ from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
                                 QTextDocument, QTextCharFormat, QPixmap,
                                 QPrinter, QToolTip, QCursor, QInputDialog,
                                 QTextBlockUserData, QLineEdit, QShortcut,
-                                QKeySequence, QWidget)
+                                QKeySequence, QWidget, QVBoxLayout,
+                                QHBoxLayout, QLabel, QDialog, QIntValidator,
+                                QDialogButtonBox, QGridLayout)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
-                                 QRegExp, PYQT_VERSION_STR, QVariant, QSize)
+                                 QRegExp, PYQT_VERSION_STR, QVariant, QSize,
+                                 SLOT)
 
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self 
@@ -205,6 +208,59 @@ def get_rope_project():
 def validate_rope_project():
     """Validate rope project"""
     get_rope_project().validate_rope_project()
+
+
+#===============================================================================
+# Go to line dialog box
+#===============================================================================
+class GoToLineDialog(QDialog):
+    def __init__(self, editor):
+        QDialog.__init__(self, editor)
+        self.editor = editor
+        
+        self.setWindowTitle(_("Editor"))
+        self.setModal(True)
+        
+        label = QLabel(_("Go to line:"))
+        self.lineedit = QLineEdit()
+        validator = QIntValidator(self.lineedit)
+        validator.setRange(1, editor.get_line_count())
+        self.lineedit.setValidator(validator)        
+        cl_label = QLabel(_("Current line:"))
+        cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
+        last_label = QLabel(_("Line count:"))
+        last_label_v = QLabel("%d" % editor.get_line_count())
+        
+        glayout = QGridLayout()
+        glayout.addWidget(label, 0, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(self.lineedit, 0, 1, Qt.AlignVCenter)
+        glayout.addWidget(cl_label, 1, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(cl_label_v, 1, 1, Qt.AlignVCenter)
+        glayout.addWidget(last_label, 2, 0, Qt.AlignVCenter|Qt.AlignRight)
+        glayout.addWidget(last_label_v, 2, 1, Qt.AlignVCenter)
+
+        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel,
+                                Qt.Vertical, self)
+        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
+        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
+        btnlayout = QVBoxLayout()
+        btnlayout.addWidget(bbox)
+        btnlayout.addStretch(1)
+
+        ok_button = bbox.button(QDialogButtonBox.Ok)
+        ok_button.setEnabled(False)
+        self.connect(self.lineedit, SIGNAL("textChanged(QString)"),
+                     lambda text: ok_button.setEnabled(len(text) > 0))
+        
+        layout = QHBoxLayout()
+        layout.addLayout(glayout)
+        layout.addLayout(btnlayout)
+        self.setLayout(layout)
+
+        self.lineedit.setFocus()
+        
+    def get_line_number(self):
+        return int(self.lineedit.text())
 
 
 #===============================================================================
@@ -1189,6 +1245,12 @@ class CodeEditor(TextEditBaseWidget):
         self.horizontalScrollBar().setValue(0)
         if word and unicode(word) in unicode(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)
+            
+    def exec_gotolinedialog(self):
+        """Execute the GoToLineDialog dialog box"""
+        dlg = GoToLineDialog(self)
+        if dlg.exec_():
+            self.go_to_line(dlg.get_line_number())
         
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
