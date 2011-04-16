@@ -532,7 +532,7 @@ class ObjectInspector(SpyderPluginWidget):
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(text)
+        self.__eventually_raise_inspector(text, force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
         
@@ -553,20 +553,22 @@ class ObjectInspector(SpyderPluginWidget):
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(doctxt)
+        self.__eventually_raise_inspector(doctxt, force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
             
-    def __eventually_raise_inspector(self, text):
+    def __eventually_raise_inspector(self, text, force=False):
         index = self.source_combo.currentIndex()
         if hasattr(self.main, 'tabifiedDockWidgets'):
             # 'QMainWindow.tabifiedDockWidgets' was introduced in PyQt 4.5
-            if self.dockwidget and self.dockwidget.isVisible() \
-               and not self.ismaximized and text != self._last_texts[index]:
+            if self.dockwidget and (force or self.dockwidget.isVisible()) \
+               and not self.ismaximized \
+               and (force or text != self._last_texts[index]):
                 dockwidgets = self.main.tabifiedDockWidgets(self.dockwidget)
                 if self.main.console.dockwidget not in dockwidgets and \
                    (hasattr(self.main, 'extconsole') and \
                     self.main.extconsole.dockwidget not in dockwidgets):
+                    self.dockwidget.show()
                     self.dockwidget.raise_()
         self._last_texts[index] = text
     

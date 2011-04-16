@@ -246,7 +246,11 @@ class FileInfo(QObject):
             self.editor.show_completion_list(textlist, completion_text,
                                              automatic)
         
-    def trigger_calltip(self, position):
+    def trigger_calltip(self, position, auto=True):
+        # auto is True means that trigger_calltip was called automatically,
+        # i.e. the user has just entered an opening parenthesis -- in that 
+        # case, we don't want to force the object inspector to be visible, 
+        # to avoid polluting the window layout
         source_code = unicode(self.editor.toPlainText())
         offset = position
         
@@ -265,7 +269,7 @@ class FileInfo(QObject):
                 doc_text = textlist.pop(1)
             if doc_text:
                 self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
-                          text, doc_text, True)
+                          text, doc_text, not auto)
         if textlist:
             self.editor.show_calltip("rope", textlist)
                     
@@ -584,7 +588,8 @@ class EditorStack(QWidget):
         if programs.is_module_installed('rope'):
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
-            editor.emit(SIGNAL('trigger_calltip(int)'), position)
+            finfo = self.get_current_finfo()
+            finfo.trigger_calltip(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
@@ -1565,12 +1570,15 @@ class EditorStack(QWidget):
         """qstr1: obj_text, qstr2: doc_text"""
         if not force and not self.inspector_enabled:
             return
-        if self.inspector is not None and self.inspector.dockwidget.isVisible():
+        if self.inspector is not None \
+           and (force or self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
             if qstr2 is None:
-                self.inspector.set_object_text(qstr1, ignore_unknown=True)
+                self.inspector.set_object_text(qstr1, ignore_unknown=True,
+                                               force_refresh=force)
             else:
-                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2))
+                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2),
+                                            force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     
