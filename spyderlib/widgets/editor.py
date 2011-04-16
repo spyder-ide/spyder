@@ -2125,7 +2125,7 @@ class EditorMainWindow(QMainWindow):
             self.editorwidget.editorsplitter.set_layout_settings(splitsettings)
 
 
-class FakePlugin(QSplitter):
+class EditorPluginExample(QSplitter):
     def __init__(self):
         QSplitter.__init__(self)
                 
@@ -2137,7 +2137,10 @@ class FakePlugin(QSplitter):
         self.find_widget = FindReplace(self, enable_replace=True)
         self.outlineexplorer = OutlineExplorerWidget(self, show_fullpath=False,
                                                      show_all_files=False)
-
+        self.connect(self.outlineexplorer,
+                     SIGNAL("edit_goto(QString,int,QString)"),
+                     self.go_to_file)
+        
         editor_widgets = QWidget(self)
         editor_layout = QVBoxLayout()
         editor_layout.setContentsMargins(0, 0, 0, 0)
@@ -2158,6 +2161,12 @@ class FakePlugin(QSplitter):
         self.menu_list = None
         self.setup_window([], [])
         
+    def go_to_file(self, fname, lineno, text):
+        editorstack = self.editorstacks[0]
+        editorstack.set_current_filename(fname)
+        editor = editorstack.get_current_editor()
+        editor.go_to_line(lineno, word=text)
+
     def closeEvent(self, event):
         for win in self.editorwindows[:]:
             win.close()
@@ -2245,11 +2254,10 @@ class FakePlugin(QSplitter):
         """Fake!"""
         pass
     
-
 def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-    test = FakePlugin()
+    test = EditorPluginExample()
     test.resize(900, 800)
     test.load(__file__)
     test.load("explorer.py")
