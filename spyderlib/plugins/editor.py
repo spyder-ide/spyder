@@ -34,8 +34,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions,
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
-                                      EditorSplitter, EditorStack, RopeProject,
-                                      EditorMainWindow, CodeEditor, Printer)
+                                      EditorSplitter, EditorStack, Printer,
+                                      EditorMainWindow)
+from spyderlib.widgets.codeeditor import codeeditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)
@@ -292,8 +293,6 @@ class Editor(SpyderPluginWidget):
         self.projectexplorer = None
         self.outlineexplorer = None
         self.inspector = None
-        
-        self.rope_project = RopeProject()
 
         self.editorstacks = None
         self.editorwindows = None
@@ -863,7 +862,7 @@ class Editor(SpyderPluginWidget):
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
-        if isinstance(fwidget, CodeEditor):
+        if isinstance(fwidget, codeeditor.CodeEditor):
             for editorstack in self.editorstacks:
                 if fwidget is editorstack.get_current_editor():
                     return editorstack
@@ -981,8 +980,6 @@ class Editor(SpyderPluginWidget):
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL('file_saved(int)'),
                      self.file_saved_in_editorstack)
-        self.connect(editorstack, SIGNAL('validate_rope_project()'),
-                     self.validate_rope_project)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -1045,9 +1042,6 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if editorstack is not sender:
                 editorstack.file_saved_in_other_editorstack(index)
-        
-    def validate_rope_project(self):
-        self.rope_project.validate_rope_project()
         
         
     #------ Handling editor windows    

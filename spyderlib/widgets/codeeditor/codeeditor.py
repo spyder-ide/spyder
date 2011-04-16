@@ -27,19 +27,184 @@ from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
                                  QRegExp, PYQT_VERSION_STR, QVariant, QSize)
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self 
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.config import CONF, get_font, get_icon, get_image_path, _
+from spyderlib.config import (CONF, get_font, get_icon, get_image_path, _,
+                              get_conf_path)
 from spyderlib.utils.qthelpers import add_actions, create_action, keybinding
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import sourcecode, is_keyword
+from spyderlib.utils import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM, check
 from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
 from spyderlib.widgets.codeeditor import syntaxhighlighters
+
+# For debugging purpose:
+STDOUT = sys.stdout
+DEBUG = False
+LOG_FILENAME = get_conf_path('rope.log')
+
+
+#===============================================================================
+# Code introspection features: rope integration
+#===============================================================================
+try:
+    try:
+        from spyderlib import rope_patch
+        rope_patch.apply()
+    except ImportError:
+        # rope 0.9.2/0.9.3 is not installed
+        pass
+    import rope.base.libutils
+    import rope.contrib.codeassist
+except ImportError:
+    pass
+
+#TODO: The following preferences should be customizable in the future
+ROPE_PREFS = {'ignore_syntax_errors': True,
+              'ignore_bad_imports': True,
+              'soa_followed_calls': 2,
+              'extension_modules': [
+        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
+        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
+        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
+        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
+        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
+        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
+        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
+              }
+
+class RopeProject(object):
+    def __init__(self):
+        self.project = None
+        self.create_rope_project(root_path=get_conf_path())
+
+    #------rope integration
+    def create_rope_project(self, root_path):
+        try:
+            import rope.base.project
+            self.project = rope.base.project.Project(root_path,
+                                                          **ROPE_PREFS)
+        except ImportError:
+            self.project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % root_path)
+        except TypeError:
+            # Compatibility with new Mercurial API (>= 1.3).
+            # New versions of rope (> 0.9.2) already handle this issue
+            self.project = None
+            if DEBUG:
+                log_last_error(LOG_FILENAME,
+                               "create_rope_project: %r" % root_path)
+        self.validate_rope_project()
+        
+    def close_rope_project(self):
+        if self.project is not None:
+            self.project.close()
+            
+    def validate_rope_project(self):
+        if self.project is not None:
+            self.project.validate(self.project.root)
+        
+    def get_completion_list(self, source_code, offset, filename):
+        if self.project is None:
+            return []
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            proposals = rope.contrib.codeassist.code_assist(self.project,
+                                                source_code, offset, resource)
+            proposals = rope.contrib.codeassist.sorted_proposals(proposals)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
+            return [proposal.name for proposal in proposals]
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_completion_list")
+            return []
+
+    def get_calltip_text(self, source_code, offset, filename):
+        if self.project is None:
+            return []
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            cts = rope.contrib.codeassist.get_calltip(
+                            self.project, source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_calltip", t0)
+            if cts is not None:
+                while '..' in cts:
+                    cts = cts.replace('..', '.')
+                try:
+                    doc_text = rope.contrib.codeassist.get_doc(
+                            self.project, source_code, offset, resource)
+                    if DEBUG:
+                        log_dt(LOG_FILENAME, "get_doc", t0)
+                except Exception, _error:
+                    doc_text = ''
+                    if DEBUG:
+                        log_last_error(LOG_FILENAME, "get_doc")
+                return [cts, doc_text]
+            else:
+                return []
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_calltip_text")
+            return []
+    
+    def get_definition_location(self, source_code, offset, filename):
+        if self.project is None:
+            return (None, None)
+        try:
+            resource = rope.base.libutils.path_to_resource(self.project,
+                                                           filename)
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
+            resource = None
+        try:
+            if DEBUG:
+                t0 = time.time()
+            resource, lineno = rope.contrib.codeassist.get_definition_location(
+                            self.project, source_code, offset, resource)
+            if DEBUG:
+                log_dt(LOG_FILENAME, "get_definition_location", t0)
+            if resource is not None:
+                filename = resource.real_path
+            return filename, lineno
+        except Exception, _error:
+            if DEBUG:
+                log_last_error(LOG_FILENAME, "get_definition_location")
+            return (None, None)
+
+ROPE_PROJECT = None
+def get_rope_project():
+    """Create a single rope project"""
+    global ROPE_PROJECT
+    if ROPE_PROJECT is None:
+        ROPE_PROJECT = RopeProject()
+    return ROPE_PROJECT
+
+def validate_rope_project():
+    """Validate rope project"""
+    get_rope_project().validate_rope_project()
 
 
 #===============================================================================

@@ -29,7 +29,6 @@ STDERR = sys.stderr
 
 # Workaround: importing rope.base.project here, otherwise this module can't
 # be imported if Spyder was executed from another folder than spyderlib
-# (see spyderlib.widgets.projectexplorer.Project.create_rope_project)
 try:
     import rope.base.project #@UnusedImport
 except ImportError:

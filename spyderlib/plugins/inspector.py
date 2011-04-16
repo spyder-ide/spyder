@@ -24,7 +24,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.widgets.editor import CodeEditor
+from spyderlib.widgets.codeeditor import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
@@ -149,7 +149,7 @@ class PlainText(QWidget):
         self.editor = None
 
         # Read-only editor
-        self.editor = CodeEditor(self)
+        self.editor = codeeditor.CodeEditor(self)
         self.editor.setup_editor(linenumbers=False, language='py',
                                  scrollflagarea=False)
         self.connect(self.editor, SIGNAL("focus_changed()"),
