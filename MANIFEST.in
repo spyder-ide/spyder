@@ -1,7 +1,6 @@
 recursive-include spyderlib *.pot *.po *.svg *.png *.css
 recursive-include spyderlibplugins *.pot *.po *.svg *.png
 recursive-include doc *.py *.rst *.png *.ico *.
-recursive-include img_src *.pdn *.svg *.ico *.png
 recursive-include app_example *.py *.pyw *.bat *.qm *.svg *.png
 include bin/*
 include spyder
