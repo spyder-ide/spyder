@@ -843,7 +843,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         point.setX(point.x()+self.get_linenumberarea_width())
         QToolTip.showText(point, tiptext)
         # Saving cursor position:
-        self.calltip_position = self.get_position('cursor')
+        self.calltip_position = self.get_position('cursor')-1
 
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""
