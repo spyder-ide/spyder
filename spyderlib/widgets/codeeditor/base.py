@@ -812,10 +812,16 @@ class TextEditBaseWidget(QPlainTextEdit):
 
 
     #------Code completion / Calltips
-    def show_calltip(self, title, text, color='#2D62FF', at_line=None):
+    def show_calltip(self, title, text, color='#2D62FF',
+                     at_line=None, at_position=None):
         """Show calltip"""
         if text is None or len(text) == 0:
             return
+        # Saving cursor position:
+        if at_position is None:
+            at_position = self.get_position('cursor')
+        self.calltip_position = at_position
+        # Preparing text:
         weight = 'bold' if self.calltip_font.bold() else 'normal'
         size = self.calltip_font.pointSize()
         family = self.calltip_font.family()
@@ -832,8 +838,6 @@ class TextEditBaseWidget(QPlainTextEdit):
         # Showing tooltip at cursor position:
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
-            #TODO: this code has not yet been ported to QPlainTextEdit because it's
-            # only used in editor widgets which are based on QsciScintilla
             cx = 5
             cursor = self.textCursor()
             block = self.document().findBlockByNumber(at_line-1)
@@ -842,8 +846,6 @@ class TextEditBaseWidget(QPlainTextEdit):
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
         QToolTip.showText(point, tiptext)
-        # Saving cursor position:
-        self.calltip_position = self.get_position('cursor')-1
 
     def hide_tooltip_if_necessary(self, key):
         """Hide calltip when necessary"""

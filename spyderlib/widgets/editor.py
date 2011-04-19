@@ -271,7 +271,7 @@ class FileInfo(QObject):
                 self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
                           text, doc_text, not auto)
         if textlist:
-            self.editor.show_calltip("rope", textlist)
+            self.editor.show_calltip("rope", textlist, at_position=position)
                     
     def go_to_definition(self, position):
         source_code = unicode(self.editor.toPlainText())
