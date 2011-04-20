@@ -61,7 +61,7 @@ class CompletionWidget(QListWidget):
         self.addItems(completion_list)
         self.setCurrentRow(0)
         
-#        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
+        QApplication.processEvents(QEventLoop.ExcludeUserInputEvents)
         self.show()
         self.setFocus()
         self.raise_()
@@ -89,28 +89,26 @@ class CompletionWidget(QListWidget):
         
     def keyPressEvent(self, event):
         text, key = event.text(), event.key()
-        ctrl = event.modifiers() & Qt.ControlModifier
         alt = event.modifiers() & Qt.AltModifier
-        if ctrl or alt:
-            self.hide()
-            self.textedit.keyPressEvent(event)
-        elif (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
+        shift = event.modifiers() & Qt.ShiftModifier
+        ctrl = event.modifiers() & Qt.ControlModifier
+        modifier = shift or ctrl or alt
+        if (key in (Qt.Key_Return, Qt.Key_Enter) and self.enter_select) \
            or key == Qt.Key_Tab:
             self.item_selected()
-        elif key in (Qt.Key_Return, Qt.Key_Enter, Qt.Key_Left, Qt.Key_Right) \
-             or text in ('.', ':'):
+        elif key in (Qt.Key_Return, Qt.Key_Enter,
+                     Qt.Key_Left, Qt.Key_Right) or text in ('.', ':'):
             self.hide()
             self.textedit.keyPressEvent(event)
-        elif event.modifiers() & Qt.ShiftModifier:
-            self.textedit.keyPressEvent(event)
-            if len(text):
-                self.update_current()
         elif key in (Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown,
-                     Qt.Key_Home, Qt.Key_End, Qt.Key_CapsLock):
+                     Qt.Key_Home, Qt.Key_End,
+                     Qt.Key_CapsLock) and not modifier:
             QListWidget.keyPressEvent(self, event)
         elif len(text) or key == Qt.Key_Backspace:
             self.textedit.keyPressEvent(event)
             self.update_current()
+        elif modifier:
+            self.textedit.keyPressEvent(event)
         else:
             self.hide()
             QListWidget.keyPressEvent(self, event)
