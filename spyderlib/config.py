@@ -302,6 +302,7 @@ DEFAULTS = [
                                   '.pth', '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': False,
+              'show_cd_only': False,
               'show_toolbar': True,
               'show_icontext': True,
               }),
