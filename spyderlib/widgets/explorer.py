@@ -23,7 +23,7 @@ except ImportError:
     pass
 
 from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
-                                QDirModel, QMessageBox, QInputDialog,
+                                QFileSystemModel, QMessageBox, QInputDialog,
                                 QLineEdit, QMenu, QWidget, QToolButton,
                                 QFileDialog, QToolBar, QTreeView, QDrag)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir,
@@ -89,10 +89,13 @@ class DirView(QTreeView):
         self.name_filters = None
         
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
-        sort_flags = QDir.Name | QDir.DirsFirst | \
-                     QDir.IgnoreCase | QDir.LocaleAware
-        self.setModel(QDirModel(QStringList(), filters, sort_flags, self))
+        self.fsmodel = QFileSystemModel(self)
+        self.fsmodel.setFilter(filters)
+        self.fsmodel.setNameFilterDisables(False)
+        self.setModel(self.fsmodel)
         
+        self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
+                     lambda: self.resizeColumnToContents(0))
         self.connect(self, SIGNAL('expanded(QModelIndex)'),
                      lambda: self.resizeColumnToContents(0))
         self.connect(self, SIGNAL('collapsed(QModelIndex)'),
@@ -104,20 +107,17 @@ class DirView(QTreeView):
         
     def get_index(self, folder):
         folder = osp.abspath(unicode(folder))
-        return self.model().index(folder)
+        return self.fsmodel.index(folder)
     
     def is_in_current_folder(self, folder):
         folder = osp.abspath(unicode(folder))
-        current_name = unicode(self.model().filePath(self.currentIndex()))
+        current_name = unicode(self.fsmodel.filePath(self.currentIndex()))
         current_path = osp.normpath(current_name)
         return osp.dirname(current_path) == folder
         
-    def refresh_whole_model(self):
-        self.model().refresh()
-        
     def refresh_folder(self, folder):
         index = self.get_index(folder)
-        self.model().refresh(index)
+        self.fsmodel.setRootPath(folder)
         return index
         
     def set_folder(self, folder, force_current=False):
@@ -129,13 +129,13 @@ class DirView(QTreeView):
         
     def set_name_filters(self, name_filters):
         self.name_filters = name_filters
-        self.model().setNameFilters(QStringList(name_filters))
+        self.fsmodel.setNameFilters(QStringList(name_filters))
         
     def set_show_all(self, state):
         if state:
-            self.model().setNameFilters(QStringList())
+            self.fsmodel.setNameFilters(QStringList())
         else:
-            self.model().setNameFilters(QStringList(self.name_filters))
+            self.fsmodel.setNameFilters(QStringList(self.name_filters))
 
 
 class ExplorerTreeWidget(DirView):
@@ -334,7 +334,7 @@ class ExplorerTreeWidget(DirView):
         """Return selected filename"""
         index = self.currentIndex()
         if index:
-            return osp.normpath(unicode(self.model().filePath(index)))
+            return osp.normpath(unicode(self.fsmodel.filePath(index)))
         
     def get_dirname(self):
         """
@@ -555,11 +555,6 @@ class ExplorerWidget(QWidget):
                             icon=get_icon('up.png'),
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
-                
-        refresh_action = create_action(self, text=_("Refresh"),
-                    icon=get_icon('reload.png'),
-                    triggered=self.treewidget.refresh_whole_model)
-        self.toolbar.addAction(refresh_action)
 
         options_action = create_action(self, text=_("Options"),
                     icon=get_icon('tooloptions.png'))
