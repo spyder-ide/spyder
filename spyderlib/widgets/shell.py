@@ -650,7 +650,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
         if (event.mimeData().hasFormat("text/plain")):
-            text = event.mimeData().text()
+            text = unicode(event.mimeData().text())
             if self.new_input_line:
                 self.on_new_line()
             self.insert_text(text, at_end=True)
