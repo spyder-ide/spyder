@@ -35,7 +35,8 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
 #      consistent editor module (Qt source code and shell widgets library)
 from spyderlib.config import (CONF, get_font, get_icon, get_image_path, _,
                               get_conf_path)
-from spyderlib.utils.qthelpers import add_actions, create_action, keybinding
+from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
+                                       mimedata2url)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import sourcecode, is_keyword
 from spyderlib.utils import log_last_error, log_dt
@@ -1934,18 +1935,20 @@ class CodeEditor(TextEditBaseWidget):
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
-        if event.mimeData().hasText():
-            TextEditBaseWidget.dragEnterEvent(self, event)
-        else:
+        if mimedata2url(event.mimeData()):
+            # Let the parent widget handle this
             event.ignore()
+        else:
+            TextEditBaseWidget.dragEnterEvent(self, event)
             
     def dropEvent(self, event):
         """Reimplement Qt method
         Unpack dropped data and handle it"""
-        if event.mimeData().hasText():
-            TextEditBaseWidget.dropEvent(self, event)
-        else:
+        if mimedata2url(event.mimeData()):
+            # Let the parent widget handle this
             event.ignore()
+        else:
+            TextEditBaseWidget.dropEvent(self, event)
 
 
 #===============================================================================
