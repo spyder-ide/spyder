@@ -1062,6 +1062,7 @@ class EditorStack(QWidget):
             self.emit(SIGNAL('update_code_analysis_actions()'))
             self._refresh_outlineexplorer()
             self.emit(SIGNAL('refresh_file_dependent_actions()'))
+            self.emit(SIGNAL('update_plugin_title()'))
             
             if new_index is not None:
                 if index < new_index:
