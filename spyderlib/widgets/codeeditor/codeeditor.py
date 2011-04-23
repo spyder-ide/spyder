@@ -1637,9 +1637,16 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.StartOfBlock)
         while cursor.position() <= end_pos:
             cursor.insertText("# ")
+            cursor.movePosition(QTextCursor.EndOfBlock)
+            if cursor.atEnd():
+                break
             cursor.movePosition(QTextCursor.NextBlock)
         cursor.setPosition(end_pos)
-        cursor.movePosition(QTextCursor.NextBlock)
+        cursor.movePosition(QTextCursor.EndOfBlock)
+        if cursor.atEnd():
+            cursor.insertText(self.get_line_separator())
+        else:
+            cursor.movePosition(QTextCursor.NextBlock)
         cursor.insertText(comline)
         cursor.setPosition(start_pos)
         cursor.movePosition(QTextCursor.StartOfBlock)
