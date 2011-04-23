@@ -19,9 +19,9 @@ from spyderlib.qt.QtCore import Qt
 STDOUT = sys.stdout
 
 
-#===============================================================================
+#==============================================================================
 # Syntax highlighting color schemes
-#===============================================================================
+#==============================================================================
 COLOR_SCHEME_KEYS = ("background", "currentline", "occurence",
                      "ctrlclick", "sideareas", "matched_p", "unmatched_p",
                      "normal", "keyword", "builtin", "definition",
@@ -232,9 +232,9 @@ class TextSH(BaseSH):
         pass
 
 
-#===============================================================================
+#==============================================================================
 # Python syntax highlighter
-#===============================================================================
+#==============================================================================
 def any(name, alternates):
     "Return a named group pattern matching list of alternates."
     return "(?P<%s>" % name + "|".join(alternates) + ")"
@@ -264,9 +264,9 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     ufstring2 = any("uf_dqstring", [uf_dqstring])
     ufstring3 = any("uf_sq3string", [uf_sq3string])
     ufstring4 = any("uf_dq3string", [uf_dq3string])
-    return instance + "|" + kw + "|" + builtin + "|" + comment + "|" + \
-           ufstring1 + "|" + ufstring2 + "|" + ufstring3 + "|" + ufstring4 + \
-           "|" + string + "|" + number + "|" + any("SYNC", [r"\n"])
+    return "|".join([instance, kw, builtin, comment,
+                     ufstring1, ufstring2, ufstring3, ufstring4, string,
+                     number, any("SYNC", [r"\n"])])
 
 class OutlineExplorerData(object):
     CLASS, FUNCTION, STATEMENT, COMMENT = range(4)
@@ -338,16 +338,20 @@ class PythonSH(BaseSH):
                     start = max([0, start+offset])
                     end = max([0, end+offset])
                     if key == "uf_sq3string":
-                        self.setFormat(start, end-start, self.formats["string"])
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
                         state = self.INSIDE_SQ3STRING
                     elif key == "uf_dq3string":
-                        self.setFormat(start, end-start, self.formats["string"])
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
                         state = self.INSIDE_DQ3STRING
                     elif key == "uf_sqstring":
-                        self.setFormat(start, end-start, self.formats["string"])
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
                         state = self.INSIDE_SQSTRING
                     elif key == "uf_dqstring":
-                        self.setFormat(start, end-start, self.formats["string"])
+                        self.setFormat(start, end-start,
+                                       self.formats["string"])
                         state = self.INSIDE_DQSTRING
                     else:
                         self.setFormat(start, end-start, self.formats[key])
@@ -372,12 +376,14 @@ class PythonSH(BaseSH):
                                                                 unicode(value)]
                                     oedata.def_name = text[start1:end1]
                             elif value in ("elif", "else", "except", "finally",
-                                           "for", "if", "try", "while", "with"):
+                                           "for", "if", "try", "while",
+                                           "with"):
                                 if text.lstrip().startswith(value):
                                     oedata = OutlineExplorerData()
                                     oedata.text = unicode(text).strip()
                                     oedata.fold_level = start
-                                    oedata.def_type = OutlineExplorerData.STATEMENT
+                                    oedata.def_type = \
+                                        OutlineExplorerData.STATEMENT
                                     oedata.def_name = text.strip()
                             elif value == "import":
                                 import_stmt = text.strip()
@@ -416,9 +422,9 @@ class PythonSH(BaseSH):
         BaseSH.rehighlight(self)
 
 
-#===============================================================================
+#==============================================================================
 # Cython syntax highlighter
-#===============================================================================
+#==============================================================================
 C_TYPES = 'bool char double enum float int long mutable short signed struct unsigned void'
 
 class CythonSH(PythonSH):
@@ -431,9 +437,9 @@ class CythonSH(PythonSH):
     IDPROG = re.compile(r"\s+([\w\.]+)", re.S)
 
 
-#===============================================================================
+#==============================================================================
 # C/C++ syntax highlighter
-#===============================================================================
+#==============================================================================
 C_KEYWORDS1 = 'and and_eq bitand bitor break case catch const const_cast continue default delete do dynamic_cast else explicit export extern for friend goto if inline namespace new not not_eq operator or or_eq private protected public register reinterpret_cast return sizeof static static_cast switch template throw try typedef typeid typename union using virtual while xor xor_eq'
 C_KEYWORDS2 = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
 C_KEYWORDS3 = 'asm auto class compl false true volatile wchar_t'
@@ -454,9 +460,9 @@ def make_generic_c_patterns(keywords, builtins):
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
     define = any("define", [r"#[^\n]*"])
-    return instance + "|" + kw + "|" + comment + "|" + string + "|" + \
-           number + "|" + comment_start + "|" + comment_end + "|" + \
-           builtin + "|" + define + "|" + any("SYNC", [r"\n"])
+    return "|".join([instance, kw, comment, string, number,
+                     comment_start, comment_end, builtin,
+                     define, any("SYNC", [r"\n"])])
 
 def make_cpp_patterns():
     return make_generic_c_patterns(C_KEYWORDS1+' '+C_KEYWORDS2, C_KEYWORDS3)
@@ -524,9 +530,9 @@ class OpenCLSH(CppSH):
     PROG = re.compile(make_opencl_patterns(), re.S)
 
 
-#===============================================================================
+#==============================================================================
 # Fortran Syntax Highlighter
-#===============================================================================
+#==============================================================================
 
 def make_fortran_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
@@ -543,8 +549,8 @@ def make_fortran_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    return kw + "|" + comment + "|" + string + "|" + \
-           number + "|" + builtin + "|" + any("SYNC", [r"\n"])
+    return "|".join([kw, comment, string, number, builtin,
+                     any("SYNC", [r"\n"])])
 
 class FortranSH(BaseSH):
     """Fortran Syntax Highlighter"""
@@ -588,9 +594,9 @@ class Fortran77SH(FortranSH):
                            self.formats["comment"])
 
 
-#===============================================================================
+#==============================================================================
 # Diff/Patch highlighter
-#===============================================================================
+#==============================================================================
 
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
@@ -607,9 +613,9 @@ class DiffSH(BaseSH):
             self.setFormat(0, text.length(), self.formats["builtin"])
 
 
-#===============================================================================
+#==============================================================================
 # gettext highlighter
-#===============================================================================
+#==============================================================================
 
 def make_gettext_patterns():
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
@@ -625,8 +631,8 @@ def make_gettext_patterns():
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    return kw + "|" + string + "|" + number + "|" + \
-           fuzzy + "|" + links + "|" + comment + "|" + any("SYNC", [r"\n"])
+    return "|".join([kw, string, number, fuzzy, links, comment,
+                     any("SYNC", [r"\n"])])
 
 class GetTextSH(BaseSH):
     """gettext Syntax Highlighter"""
@@ -649,9 +655,9 @@ class GetTextSH(BaseSH):
                     
             match = self.PROG.search(text, match.end())
 
-#===============================================================================
+#==============================================================================
 # HTML highlighter
-#===============================================================================
+#==============================================================================
 
 class BaseWebSH(BaseSH):
     """Base class for CSS and HTML syntax highlighters"""
@@ -681,51 +687,54 @@ class BaseWebSH(BaseSH):
                     if previous_state == self.COMMENT:
                         if key == "multiline_comment_end":
                             self.setCurrentBlockState(self.NORMAL)
-                            self.setFormat(end, text.length(), self.formats["normal"])
+                            self.setFormat(end, text.length(),
+                                           self.formats["normal"])
                         else:
                             self.setCurrentBlockState(self.COMMENT)
-                            self.setFormat(0, text.length(), self.formats["comment"])
+                            self.setFormat(0, text.length(),
+                                           self.formats["comment"])
                     else:
                         if key == "multiline_comment_start":
                             self.setCurrentBlockState(self.COMMENT)
-                            self.setFormat(start, text.length(), self.formats["comment"])
+                            self.setFormat(start, text.length(),
+                                           self.formats["comment"])
                         else:
                             self.setCurrentBlockState(self.NORMAL)
-                            self.setFormat(start, end-start, self.formats[key])
+                            self.setFormat(start, end-start,
+                                           self.formats[key])
                 
             match = self.PROG.search(text, match.end())
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
-    tags = any("builtin",[r"<",r"[\?/]?>",r"(?<=<).*?(?=[ >])"])
-    keywords = any("keyword",[r" [\w:-]*?(?==)"])
-    string = any("string",[r'".*?"'])
-    comment = any("comment",[r"<!--.*?-->"])
-    multiline_comment_start = any("multiline_comment_start",[r"<!--"])
-    multiline_comment_end = any("multiline_comment_end",[r"-->"])
-    return ('|').join([comment,multiline_comment_start,multiline_comment_end,tags,keywords,string]) 
+    tags = any("builtin", [r"<",r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
+    keywords = any("keyword", [r" [\w:-]*?(?==)"])
+    string = any("string", [r'".*?"'])
+    comment = any("comment", [r"<!--.*?-->"])
+    multiline_comment_start = any("multiline_comment_start", [r"<!--"])
+    multiline_comment_end = any("multiline_comment_end", [r"-->"])
+    return "|".join([comment, multiline_comment_start,
+                     multiline_comment_end, tags, keywords, string]) 
     
 class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
 
-#===============================================================================
+#==============================================================================
 # CSS highlighter
-#===============================================================================
+#==============================================================================
 
 def make_css_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
-    tags = any("builtin",[r"(?<=}\/).*?(?={)" ,r"^[^}]*?(?={)", ])
-    keywords = any("keyword",[r"[\w-]+?(?=:)"])
-    string = any("string",[r"(?<=:).*?(?=;)"])
+    tags = any("builtin", [r"(?<=}\/).*?(?={)", r"^[^}]*?(?={)",])
+    keywords = any("keyword", [r"[\w-]+?(?=:)"])
+    string = any("string", [r"(?<=:).*?(?=;)"])
     comment = any("comment", [r"\/\*(.*?)\*\/"])
-    multiline_comment_start = any("multiline_comment_start",[r"\/\*"])
-    multiline_comment_end = any("multiline_comment_end",[r"\*\/"])
-    return ('|').join([tags,keywords,string,comment,multiline_comment_start,multiline_comment_end]) 
-    
+    multiline_comment_start = any("multiline_comment_start", [r"\/\*"])
+    multiline_comment_end = any("multiline_comment_end", [r"\*\/"])
+    return "|".join([tags, keywords, string, comment,
+                     multiline_comment_start, multiline_comment_end]) 
     
 class CssSH(BaseWebSH):
     """CSS Syntax Highlighter"""
     PROG = re.compile(make_css_patterns(), re.S)
-    
-
