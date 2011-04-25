@@ -1572,7 +1572,9 @@ def main():
                                 u"If Spyder does not start at all, please try "
                                 u"to run Spyder with the command line option "
                                 u"<b>--reset</b> before submitting a bug "
-                                u"report.")
+                                u"report (note that this command will "
+                                u"remove all your Spyder configuration files "
+                                u"located in '%s')." % get_conf_path())
         
     next_session_name = options.startup_session
     while isinstance(next_session_name, basestring):
