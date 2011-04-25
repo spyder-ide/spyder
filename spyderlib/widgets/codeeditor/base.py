@@ -32,8 +32,7 @@ STDOUT = sys.stdout
 class CompletionWidget(QListWidget):
     """Completion list widget"""
     def __init__(self, parent, ancestor):
-        # Currently, the parent widget is set to None:
-        QListWidget.__init__(self, None)
+        QListWidget.__init__(self, ancestor)
         self.setWindowFlags(Qt.SubWindow | Qt.FramelessWindowHint)
         self.textedit = parent
         self.completion_list = None
