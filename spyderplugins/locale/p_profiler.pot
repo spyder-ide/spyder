@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR ORGANIZATION
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
@@ -11,130 +10,132 @@ msgstr ""
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
-"Content-Transfer-Encoding: utf-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
 "Generated-By: pygettext.py 1.5\n"
+
 
 #: spyderplugins/p_profiler.py:32
 msgid "Results"
-msgstr "Résultats"
+msgstr ""
 
 #: spyderplugins/p_profiler.py:33
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
-msgstr "Les résultats du profileur Python sont stockés ici :"
+msgstr ""
 
 #: spyderplugins/p_profiler.py:61
 msgid "Profiler"
-msgstr "Profileur"
+msgstr ""
 
 #: spyderplugins/p_profiler.py:86 spyderplugins/widgets/profilergui.py:73
 msgid "Profile"
-msgstr "Profiler"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:74
 msgid "Run profiler"
-msgstr "Exécuter le profileur"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:78
 msgid "Stop"
-msgstr "Arrêter"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:79
 msgid "Stop current profiling"
-msgstr "Arrêter le processus en cours"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:89
 #: spyderplugins/widgets/profilergui.py:168
 msgid "Select Python script"
-msgstr "Sélectionner un script Python"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:95
 msgid "Output"
-msgstr "Sortie"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:97
 msgid "Show program's output"
-msgstr "Afficher la sortie du programme"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:106
 msgid "Collapse one level up"
-msgstr "Replier l'arbre d'un niveau"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:111
 msgid "Expand one level down"
-msgstr "Déplier l'arbre d'un niveau"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:144
 msgid "Please install"
-msgstr "Veuillez installer"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:145
 msgid "the Python profiler modules"
-msgstr "les profileurs Python"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:169
 msgid "Python scripts"
-msgstr "Scripts Python"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:176
 #: spyderplugins/widgets/profilergui.py:181
 msgid "Profiler output"
-msgstr "Sortie du profileur"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:185
 msgid "Profiling, please wait..."
-msgstr "Profilage en cours..."
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:214
 msgid "Error"
-msgstr "Erreur"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:215
 msgid "Process failed to start"
-msgstr "Le processus n'a pas pu démarrer"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:263
 msgid "Sorting data, please wait..."
-msgstr "Classement des résultats en cours..."
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:293
 msgid "Function/Module"
-msgstr "Fonction/Module"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:293
 msgid "Total Time"
-msgstr "Durée totale"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:294
 msgid "Calls"
-msgstr "Appels"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:294
 msgid "File:line"
-msgstr "Fichier:ligne"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:294
 msgid "Local Time"
-msgstr "Durée locale"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:396
 msgid "Time in function (including sub-functions)"
-msgstr "Temps écoulé dans la fonction (sous-fonctions comprises)"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:403
 msgid "Local time in function (not in sub-functions)"
-msgstr "Temps écoulé dans la fonction (hors sous-fonctions)"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:410
 msgid "Total number of calls (including recursion)"
-msgstr "Nombre total d'appels (récursion comprise)"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:415
 msgid "File:line where function is defined"
-msgstr "Fichier:ligne de définition de la fonction"
+msgstr ""
 
 #: spyderplugins/widgets/profilergui.py:420
 msgid "recursion"
-msgstr "récursion"
+msgstr ""
+

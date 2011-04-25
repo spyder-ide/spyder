@@ -1374,13 +1374,16 @@ def is_supported(value, iter=0, itermax=-1, filters=None):
     return True
 
 def globalsfilter(input_dict, itermax=-1, filters=None,
-                  exclude_private=None, exclude_upper=None,
-                  exclude_unsupported=None, excluded_names=None):
+                  exclude_private=None, exclude_capitalized=None,
+                  exclude_uppercase=None, exclude_unsupported=None,
+                  excluded_names=None):
     """Keep only objects that can be pickled"""
     output_dict = {}
     for key, value in input_dict.items():
         excluded = (exclude_private and key.startswith('_')) or \
-                   (exclude_upper and key[0].isupper()) or \
+                   (exclude_capitalized and key[0].isupper()) or \
+                   (exclude_uppercase and key.isupper()
+                    and len(key) > 1 and not key[1:].isdigit()) or \
                    (key in excluded_names) or \
                    (exclude_unsupported and \
                     not is_supported(value, itermax=itermax, filters=filters))

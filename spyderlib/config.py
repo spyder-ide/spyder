@@ -48,8 +48,9 @@ except ImportError:
 # (for workspace saving, itermax == -1, see Workspace.save)
 ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
 
-EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc', 'typecodes',
-            '__builtins__', '__main__', '__doc__']
+EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
+            'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
+            'Inf', 'Infinity']
 
 def type2str(types):
     """Convert types to strings"""
@@ -176,7 +177,8 @@ DEFAULTS = [
               'itermax': ITERMAX,
               'excluded_names': EXCLUDED,
               'exclude_private': True,
-              'exclude_upper': True,
+              'exclude_uppercase': True,
+              'exclude_capitalized': False,
               'exclude_unsupported': True,
               'inplace': False,
               'truncate': True,

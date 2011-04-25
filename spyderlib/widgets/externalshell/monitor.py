@@ -23,10 +23,10 @@ if DEBUG:
                         level=logging.DEBUG)
 
 REMOTE_SETTINGS = ('editable_types', 'picklable_types', 'itermax',
-                   'exclude_private', 'exclude_upper',
-                   'exclude_unsupported', 'excluded_names',
-                   'truncate', 'minmax', 'collvalue', 'inplace',
-                   'remote_editing', 'autorefresh')
+                   'exclude_private', 'exclude_uppercase',
+                   'exclude_capitalized', 'exclude_unsupported',
+                   'excluded_names', 'truncate', 'minmax', 'collvalue',
+                   'inplace', 'remote_editing', 'autorefresh')
 
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
@@ -50,7 +50,8 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
     return globalsfilter(data, itermax=settings['itermax'],
                          filters=tuple(str2type(settings[fparam])),
                          exclude_private=settings['exclude_private'],
-                         exclude_upper=settings['exclude_upper'],
+                         exclude_uppercase=settings['exclude_uppercase'],
+                         exclude_capitalized=settings['exclude_capitalized'],
                          exclude_unsupported=settings['exclude_unsupported'],
                          excluded_names=excluded_names)
 

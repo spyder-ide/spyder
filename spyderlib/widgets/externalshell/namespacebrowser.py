@@ -49,7 +49,8 @@ class NamespaceBrowser(QWidget):
         self.picklable_types = None
         self.itermax = None
         self.exclude_private = None
-        self.exclude_upper = None
+        self.exclude_uppercase = None
+        self.exclude_capitalized = None
         self.exclude_unsupported = None
         self.excluded_names = None
         self.truncate = None
@@ -61,23 +62,25 @@ class NamespaceBrowser(QWidget):
         
         self.editor = None
         self.exclude_private_action = None
-        self.exclude_upper_action = None
+        self.exclude_uppercase_action = None
+        self.exclude_capitalized_action = None
         self.exclude_unsupported_action = None
         
         self.filename = None
             
     def setup(self, editable_types=None, picklable_types=None, itermax=None,
-              exclude_private=None, exclude_upper=None,
-              exclude_unsupported=None, excluded_names=None,
-              truncate=None, minmax=None, collvalue=None, remote_editing=None,
-              inplace=None, autorefresh=None):
+              exclude_private=None, exclude_uppercase=None,
+              exclude_capitalized=None, exclude_unsupported=None,
+              excluded_names=None, truncate=None, minmax=None, collvalue=None,
+              remote_editing=None, inplace=None, autorefresh=None):
         assert self.shellwidget is not None
         
         self.editable_types = editable_types
         self.picklable_types = picklable_types
         self.itermax = itermax
         self.exclude_private = exclude_private
-        self.exclude_upper = exclude_upper
+        self.exclude_uppercase = exclude_uppercase
+        self.exclude_capitalized = exclude_capitalized
         self.exclude_unsupported = exclude_unsupported
         self.excluded_names = excluded_names
         self.truncate = truncate
@@ -94,7 +97,8 @@ class NamespaceBrowser(QWidget):
                 self.editor.setup_menu(truncate, minmax, inplace, collvalue,
                                        remote_editing)
             self.exclude_private_action.setChecked(exclude_private)
-            self.exclude_upper_action.setChecked(exclude_upper)
+            self.exclude_uppercase_action.setChecked(exclude_uppercase)
+            self.exclude_capitalized_action.setChecked(exclude_capitalized)
             self.exclude_unsupported_action.setChecked(exclude_unsupported)
             self.auto_refresh_button.setChecked(autorefresh)
             self.refresh_table()
@@ -131,8 +135,9 @@ class NamespaceBrowser(QWidget):
         # Setup layout
         hlayout = QHBoxLayout()
         vlayout = QVBoxLayout()
-        toolbar = self.setup_toolbar(exclude_private, exclude_upper,
-                                     exclude_unsupported, autorefresh)
+        toolbar = self.setup_toolbar(exclude_private, exclude_uppercase,
+                                     exclude_capitalized, exclude_unsupported,
+                                     autorefresh)
         vlayout.setAlignment(Qt.AlignTop)
         for widget in toolbar:
             vlayout.addWidget(widget)
@@ -151,8 +156,8 @@ class NamespaceBrowser(QWidget):
         if not self.is_internal_shell:
             shellwidget.set_namespacebrowser(self)
         
-    def setup_toolbar(self, exclude_private, exclude_upper,
-                      exclude_unsupported, autorefresh):
+    def setup_toolbar(self, exclude_private, exclude_uppercase,
+                      exclude_capitalized, exclude_unsupported, autorefresh):
         self.setup_in_progress = True                          
                           
         toolbar = []
@@ -187,13 +192,20 @@ class NamespaceBrowser(QWidget):
                                                'exclude_private', state))
         self.exclude_private_action.setChecked(exclude_private)
         
-        self.exclude_upper_action = create_action(self,
+        self.exclude_uppercase_action = create_action(self,
+                _("Exclude all-uppercase references"),
+                tip=_("Exclude references which name is uppercase"),
+                toggled=lambda state:self.emit(SIGNAL('option_changed'),
+                                               'exclude_uppercase', state))
+        self.exclude_uppercase_action.setChecked(exclude_uppercase)
+        
+        self.exclude_capitalized_action = create_action(self,
                 _("Exclude capitalized references"),
                 tip=_("Exclude references which name starts with an "
-                            "upper-case character"),
+                      "uppercase character"),
                 toggled=lambda state:self.emit(SIGNAL('option_changed'),
-                                               'exclude_upper', state))
-        self.exclude_upper_action.setChecked(exclude_upper)
+                                               'exclude_capitalized', state))
+        self.exclude_capitalized_action.setChecked(exclude_capitalized)
         
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
@@ -209,7 +221,8 @@ class NamespaceBrowser(QWidget):
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         editor = self.editor
-        actions = [self.exclude_private_action, self.exclude_upper_action,
+        actions = [self.exclude_private_action, self.exclude_uppercase_action,
+                   self.exclude_capitalized_action,
                    self.exclude_unsupported_action, None,
                    editor.truncate_action, editor.inplace_action,
                    editor.collvalue_action]
@@ -277,7 +290,8 @@ class NamespaceBrowser(QWidget):
             return globalsfilter(
                          input_dict, itermax=itermax, filters=filters,
                          exclude_private=self.exclude_private,
-                         exclude_upper=self.exclude_upper,
+                         exclude_uppercase=self.exclude_uppercase,
+                         exclude_capitalized=self.exclude_capitalized,
                          exclude_unsupported=self.exclude_unsupported,
                          excluded_names=self.excluded_names)
         return wsfilter
