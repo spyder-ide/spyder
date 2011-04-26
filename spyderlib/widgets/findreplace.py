@@ -54,12 +54,6 @@ class FindReplace(QWidget):
         self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
                      self.text_has_changed)
         
-        self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
-                                           tip=_("Regular expression"))
-        self.re_button.setCheckable(True)
-        self.connect(self.re_button, SIGNAL("toggled(bool)"),
-                     lambda state: self.find())
-        
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
                                              icon=get_std_icon("ArrowBack"))
@@ -71,17 +65,29 @@ class FindReplace(QWidget):
         self.connect(self.previous_button, SIGNAL('clicked()'),
                      self.update_search_combo)
 
-        self.case_check = QCheckBox(_("Case Sensitive"))
-        self.connect(self.case_check, SIGNAL("stateChanged(int)"),
+        self.re_button = create_toolbutton(self, icon=get_icon("advanced.png"),
+                                           tip=_("Regular expression"))
+        self.re_button.setCheckable(True)
+        self.connect(self.re_button, SIGNAL("toggled(bool)"),
                      lambda state: self.find())
-        self.words_check = QCheckBox(_("Whole words"))
-        self.connect(self.words_check, SIGNAL("stateChanged(int)"),
+        
+        self.case_button = create_toolbutton(self,
+                                             icon=get_icon("upper_lower.png"),
+                                             tip=_("Case Sensitive"))
+        self.case_button.setCheckable(True)
+        self.connect(self.case_button, SIGNAL("toggled(bool)"),
+                     lambda state: self.find())
+        self.words_button = create_toolbutton(self,
+                                              icon=get_icon("whole_words.png"),
+                                              tip=_("Whole words"))
+        self.words_button.setCheckable(True)
+        self.connect(self.words_button, SIGNAL("toggled(bool)"),
                      lambda state: self.find())
 
         hlayout = QHBoxLayout()
-        self.widgets = [self.close_button, self.search_text, self.re_button,
+        self.widgets = [self.close_button, self.search_text,
                         self.previous_button, self.next_button,
-                        self.case_check, self.words_check]
+                        self.re_button, self.case_button, self.words_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -212,7 +218,7 @@ class FindReplace(QWidget):
         """
         self.editor = editor
         from spyderlib.qt.QtWebKit import QWebView
-        self.words_check.setVisible(not isinstance(editor, QWebView))
+        self.words_button.setVisible(not isinstance(editor, QWebView))
         self.re_button.setVisible(not isinstance(editor, QWebView))
         if refresh:
             self.refresh()
@@ -241,8 +247,8 @@ class FindReplace(QWidget):
             return None
         else:
             found = self.editor.find_text(text, changed, forward,
-                                          case=self.case_check.isChecked(),
-                                          words=self.words_check.isChecked(),
+                                          case=self.case_button.isChecked(),
+                                          words=self.words_button.isChecked(),
                                           regexp=self.re_button.isChecked())
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
             return found
