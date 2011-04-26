@@ -1567,14 +1567,24 @@ def main():
 
     if CONF.get('main', 'crash', False):
         CONF.set('main', 'crash', False)
+        issues_link = 'http://code.google.com/p/spyderlib/issues/list'
+        group_link = 'http://groups.google.com/group/spyderlib'
         QMessageBox.information(None, "Spyder",
-                                u"Spyder crashed during last session.<br><br>"
-                                u"If Spyder does not start at all, please try "
-                                u"to run Spyder with the command line option "
-                                u"<b>--reset</b> before submitting a bug "
-                                u"report (note that this command will "
-                                u"remove all your Spyder configuration files "
-                                u"located in '%s')." % get_conf_path())
+            u"Spyder crashed during last session.<br><br>"
+            u"If Spyder does not start at all and <u>before submitting a "
+            u"bug report</u>, please try to reset settings to defaults by "
+            u"running Spyder with the command line option '--reset':<br>"
+            u"<span style=\'color: #555555\'><b>python spyder --reset"
+            u"</b></span><br><br>"
+            u"<span style=\'color: #ff5555\'><b>Warning:</b></span> "
+            u"this command will remove all your Spyder configuration files "
+            u"located in '%s').<br><br>"
+            u"If restoring the default settings does not help, please take "
+            u"the time to search for <a href=\"%s\">known bugs</a> or "
+            u"<a href=\"%s\">discussions</a> matching your situation before "
+            u"eventually creating a new issue <a href=\"%s\">here</a>. "
+            u"Your feedback will always be greatly appreciated."
+            u"" % (get_conf_path(), issues_link, group_link, issues_link))
         
     next_session_name = options.startup_session
     while isinstance(next_session_name, basestring):
