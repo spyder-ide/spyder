@@ -206,7 +206,7 @@ msgstr "Tampon..."
 msgid "Set maximum line count"
 msgstr "Modifier le nombre maximum de lignes"
 
-#: spyderlib\plugins\console.py:144 spyderlib\plugins\explorer.py:67
+#: spyderlib\plugins\console.py:144 spyderlib\plugins\explorer.py:68
 #: spyderlib\plugins\history.py:146 spyderlib\plugins\inspector.py:217
 #: spyderlib\plugins\projectexplorer.py:64
 msgid "&Font..."
@@ -255,12 +255,12 @@ msgid "Run Python script"
 msgstr "Exécuter un script Python"
 
 #: spyderlib\plugins\console.py:211 spyderlib\plugins\externalconsole.py:178
-#: spyderlib\plugins\externalconsole.py:894 spyderlib\widgets\explorer.py:495
+#: spyderlib\plugins\externalconsole.py:894 spyderlib\widgets\explorer.py:526
 #: spyderlib\widgets\projectexplorer.py:1013
 msgid "Python scripts"
 msgstr "Scripts Python"
 
-#: spyderlib\plugins\console.py:257 spyderlib\plugins\explorer.py:140
+#: spyderlib\plugins\console.py:257 spyderlib\plugins\explorer.py:141
 #: spyderlib\plugins\history.py:257 spyderlib\plugins\inspector.py:459
 #: spyderlib\plugins\projectexplorer.py:116
 msgid "Select a new font"
@@ -338,7 +338,7 @@ msgid "Syntax color scheme: "
 msgstr "Thème de coloration syntaxique : "
 
 #: spyderlib\plugins\editor.py:129 spyderlib\plugins\runconfig.py:225
-#: spyderlib\plugins\runconfig.py:273 spyderlib\widgets\explorer.py:214
+#: spyderlib\plugins\runconfig.py:273 spyderlib\widgets\explorer.py:245
 #: spyderlib\widgets\externalshell\baseshell.py:131
 msgid "Run"
 msgstr "Exécuter"
@@ -965,11 +965,11 @@ msgstr "Impression"
 msgid "<b>Unable to print document '%s'</b>"
 msgstr "<b>Impossible d'imprimer le document '%s'</b>"
 
-#: spyderlib\plugins\explorer.py:55
+#: spyderlib\plugins\explorer.py:56
 msgid "File explorer"
 msgstr "Explorateur de fichiers"
 
-#: spyderlib\plugins\explorer.py:68 spyderlib\plugins\inspector.py:218
+#: spyderlib\plugins\explorer.py:69 spyderlib\plugins\inspector.py:218
 #: spyderlib\plugins\projectexplorer.py:65
 msgid "Set font style"
 msgstr "Changer la police d'écriture"
@@ -983,7 +983,7 @@ msgstr "Un onglet par script"
 msgid "Show elapsed time"
 msgstr "Afficher le temps écoulé"
 
-#: spyderlib\plugins\externalconsole.py:45 spyderlib\widgets\explorer.py:529
+#: spyderlib\plugins\externalconsole.py:45 spyderlib\widgets\explorer.py:560
 msgid "Show icons and text"
 msgstr "Afficher icônes et textes"
 
@@ -1653,7 +1653,7 @@ msgstr "le répertoire du fichier en cours d'édition"
 msgid "the global working directory"
 msgstr "le répertoire de travail global"
 
-#: spyderlib\plugins\workingdirectory.py:84 spyderlib\widgets\explorer.py:506
+#: spyderlib\plugins\workingdirectory.py:84 spyderlib\widgets\explorer.py:537
 #: spyderlib\widgets\projectexplorer.py:964
 #: spyderlib\widgets\projectexplorer.py:972
 msgid "New file"
@@ -1679,7 +1679,7 @@ msgstr "Lors de l'enregistrement d'un fichier"
 msgid "Back"
 msgstr "Retour"
 
-#: spyderlib\plugins\workingdirectory.py:174 spyderlib\widgets\explorer.py:546
+#: spyderlib\plugins\workingdirectory.py:174 spyderlib\widgets\explorer.py:577
 #: spyderlib\widgets\importwizard.py:480
 msgid "Next"
 msgstr "Suivant"
@@ -1803,7 +1803,7 @@ msgid "Paste"
 msgstr "Coller"
 
 #: spyderlib\spyder.py:413 spyderlib\widgets\codeeditor\codeeditor.py:1719
-#: spyderlib\widgets\explorer.py:424 spyderlib\widgets\explorer.py:437
+#: spyderlib\widgets\explorer.py:455 spyderlib\widgets\explorer.py:468
 #: spyderlib\widgets\projectexplorer.py:610
 #: spyderlib\widgets\projectexplorer.py:1087
 #: spyderlib\widgets\projectexplorer.py:1099 spyderlib\widgets\shell.py:133
@@ -2342,7 +2342,7 @@ msgstr ""
 "<b>Impossible d'assigner la valeur de l'objet.</b><br><br>Message d'erreur :"
 "<br>%s"
 
-#: spyderlib\widgets\dicteditor.py:639 spyderlib\widgets\explorer.py:217
+#: spyderlib\widgets\dicteditor.py:639 spyderlib\widgets\explorer.py:248
 msgid "Edit"
 msgstr "Modifier"
 
@@ -2369,7 +2369,7 @@ msgid "Remove"
 msgstr "Supprimer"
 
 #: spyderlib\widgets\dicteditor.py:680 spyderlib\widgets\dicteditor.py:892
-#: spyderlib\widgets\explorer.py:448 spyderlib\widgets\explorer.py:461
+#: spyderlib\widgets\explorer.py:479 spyderlib\widgets\explorer.py:492
 #: spyderlib\widgets\projectexplorer.py:1041
 #: spyderlib\widgets\projectexplorer.py:1055
 #: spyderlib\widgets\projectexplorer.py:1068
@@ -2602,7 +2602,7 @@ msgstr "Aller à la position du curseur"
 msgid "Show absolute path"
 msgstr "Afficher les chemins complets"
 
-#: spyderlib\widgets\editortools.py:235 spyderlib\widgets\explorer.py:173
+#: spyderlib\widgets\editortools.py:235 spyderlib\widgets\explorer.py:192
 #: spyderlib\widgets\projectexplorer.py:1346
 msgid "Show all files"
 msgstr "Afficher tous les fichiers"
@@ -2611,122 +2611,126 @@ msgstr "Afficher tous les fichiers"
 msgid "Show special comments"
 msgstr "Afficher les commentaires spéciaux"
 
-#: spyderlib\widgets\explorer.py:169
+#: spyderlib\widgets\explorer.py:188
 msgid "Edit filename filters..."
 msgstr "Modifier les filtres..."
 
-#: spyderlib\widgets\explorer.py:182
+#: spyderlib\widgets\explorer.py:197
+msgid "Show current directory only"
+msgstr "Afficher uniquement le répertoire courant"
+
+#: spyderlib\widgets\explorer.py:206
 msgid "Edit filename filters"
 msgstr "Modifier les filtres"
 
-#: spyderlib\widgets\explorer.py:183
+#: spyderlib\widgets\explorer.py:207
 msgid "Name filters:"
 msgstr "Filtres sur les noms de fichiers :"
 
-#: spyderlib\widgets\explorer.py:202
+#: spyderlib\widgets\explorer.py:233
 msgid "New folder..."
 msgstr "Nouveau répertoire..."
 
-#: spyderlib\widgets\explorer.py:206
+#: spyderlib\widgets\explorer.py:237
 msgid "New file..."
 msgstr "Nouveau fichier..."
 
-#: spyderlib\widgets\explorer.py:220
+#: spyderlib\widgets\explorer.py:251
 msgid "Delete..."
 msgstr "Supprimer..."
 
-#: spyderlib\widgets\explorer.py:223 spyderlib\widgets\projectexplorer.py:606
+#: spyderlib\widgets\explorer.py:254 spyderlib\widgets\projectexplorer.py:606
 msgid "Rename..."
 msgstr "Renommer..."
 
-#: spyderlib\widgets\explorer.py:226
+#: spyderlib\widgets\explorer.py:257
 msgid "Browse"
 msgstr "Parcourir"
 
-#: spyderlib\widgets\explorer.py:229 spyderlib\widgets\projectexplorer.py:531
+#: spyderlib\widgets\explorer.py:260 spyderlib\widgets\projectexplorer.py:531
 msgid "Open"
 msgstr "Ouvrir"
 
-#: spyderlib\widgets\explorer.py:241 spyderlib\widgets\projectexplorer.py:630
+#: spyderlib\widgets\explorer.py:272 spyderlib\widgets\projectexplorer.py:630
 msgid "Open in Windows Explorer"
 msgstr "Ouvrir dans l'explorateur Windows"
 
-#: spyderlib\widgets\explorer.py:246 spyderlib\widgets\projectexplorer.py:633
+#: spyderlib\widgets\explorer.py:277 spyderlib\widgets\projectexplorer.py:633
 msgid "Open command prompt here"
 msgstr "Ouvrir un invite de commandes ici"
 
-#: spyderlib\widgets\explorer.py:248 spyderlib\widgets\projectexplorer.py:636
+#: spyderlib\widgets\explorer.py:279 spyderlib\widgets\projectexplorer.py:636
 msgid "Open terminal here"
 msgstr "Ouvrir un terminal ici"
 
-#: spyderlib\widgets\explorer.py:254 spyderlib\widgets\projectexplorer.py:639
+#: spyderlib\widgets\explorer.py:285 spyderlib\widgets\projectexplorer.py:639
 msgid "Open Python interpreter here"
 msgstr "Ouvrir un interpréteur Python ici"
 
-#: spyderlib\widgets\explorer.py:261 spyderlib\widgets\projectexplorer.py:651
+#: spyderlib\widgets\explorer.py:292 spyderlib\widgets\projectexplorer.py:651
 msgid "Open IPython here"
 msgstr "Ouvrir IPython ici"
 
-#: spyderlib\widgets\explorer.py:425 spyderlib\widgets\projectexplorer.py:1100
+#: spyderlib\widgets\explorer.py:456 spyderlib\widgets\projectexplorer.py:1100
 msgid "Do you really want to delete <b>%s</b>?"
 msgstr "Souhaitez-vous réellement supprimer <b>%s</b> ?"
 
-#: spyderlib\widgets\explorer.py:438
+#: spyderlib\widgets\explorer.py:469
 msgid "<b>Unable to delete selected file</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible de supprimer le fichier sélectionné</b><br><br>Message "
 "d'erreur :<br>%s"
 
-#: spyderlib\widgets\explorer.py:449 spyderlib\widgets\projectexplorer.py:1042
+#: spyderlib\widgets\explorer.py:480 spyderlib\widgets\projectexplorer.py:1042
 #: spyderlib\widgets\projectexplorer.py:1056
 msgid "New name:"
 msgstr "Nouveau nom :"
 
-#: spyderlib\widgets\explorer.py:462
+#: spyderlib\widgets\explorer.py:493
 msgid "<b>Unable to rename selected file</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible de renommer le fichier sélectionné</b><br><br>Message "
 "d'erreur :<br>%s"
 
-#: spyderlib\widgets\explorer.py:470
+#: spyderlib\widgets\explorer.py:501
 msgid "Folder name"
 msgstr "Nom du répertoire"
 
-#: spyderlib\widgets\explorer.py:471
+#: spyderlib\widgets\explorer.py:502
 msgid "Python package"
 msgstr "Module Python"
 
-#: spyderlib\widgets\explorer.py:472 spyderlib\widgets\explorer.py:480
+#: spyderlib\widgets\explorer.py:503 spyderlib\widgets\explorer.py:511
 #: spyderlib\widgets\projectexplorer.py:1006
 msgid "New folder"
 msgstr "Nouveau répertoire"
 
-#: spyderlib\widgets\explorer.py:481 spyderlib\widgets\projectexplorer.py:989
+#: spyderlib\widgets\explorer.py:512 spyderlib\widgets\projectexplorer.py:989
 msgid "<b>Unable to create folder <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible de créer le répertoire <i>%s</i></b><br><br>Message d'erreur :"
 "<br>%s"
 
-#: spyderlib\widgets\explorer.py:494
+#: spyderlib\widgets\explorer.py:525
 msgid "New Python script"
 msgstr "Nouveau script Python"
 
-#: spyderlib\widgets\explorer.py:507 spyderlib\widgets\projectexplorer.py:965
+#: spyderlib\widgets\explorer.py:538 spyderlib\widgets\projectexplorer.py:965
 #: spyderlib\widgets\projectexplorer.py:1000
 msgid "<b>Unable to create file <i>%s</i></b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible de créer le fichier <i>%s</i></b><br><br>Message d'erreur :<br>"
 "%s"
 
-#: spyderlib\widgets\explorer.py:527
+#: spyderlib\widgets\explorer.py:558
 msgid "Show toolbar"
 msgstr "Afficher la barre d'outils"
 
-#: spyderlib\widgets\explorer.py:538 spyderlib\widgets\importwizard.py:475
+#: spyderlib\widgets\explorer.py:569 spyderlib\widgets\importwizard.py:475
 msgid "Previous"
 msgstr "Précédent"
 
-#: spyderlib\widgets\explorer.py:554
+#: spyderlib\widgets\explorer.py:585
 msgid "Parent"
 msgstr "Parent"
 

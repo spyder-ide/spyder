@@ -88,6 +88,10 @@ class DirView(QTreeView):
         self.parent_widget = parent
         self.name_filters = None
         
+        self.show_cd_only = False
+        self.__original_root_index = None
+        self.__last_folder = None
+        
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
@@ -118,6 +122,11 @@ class DirView(QTreeView):
     def refresh_folder(self, folder):
         index = self.get_index(folder)
         self.fsmodel.setRootPath(folder)
+        self.__last_folder = folder
+        if self.show_cd_only:
+            if self.__original_root_index is None:
+                self.__original_root_index = self.rootIndex()
+            self.setRootIndex(index)
         return index
         
     def set_folder(self, folder, force_current=False):
@@ -136,6 +145,14 @@ class DirView(QTreeView):
             self.fsmodel.setNameFilters(QStringList())
         else:
             self.fsmodel.setNameFilters(QStringList(self.name_filters))
+        
+    def set_show_cd_only(self, state):
+        self.show_cd_only = state
+        if state:
+            if self.__last_folder is not None:
+                self.refresh_folder(self.__last_folder)
+        elif self.__original_root_index is not None:
+            self.setRootIndex(self.__original_root_index)
 
 
 class ExplorerTreeWidget(DirView):
@@ -145,10 +162,12 @@ class ExplorerTreeWidget(DirView):
         self.histindex = None
         
     def setup(self, path=None, name_filters=['*.py', '*.pyw'],
-              valid_types= ('.py', '.pyw'), show_all=False):
+              valid_types= ('.py', '.pyw'), show_all=False,
+              show_cd_only=False):
         self.name_filters = name_filters
         self.valid_types = valid_types
         self.show_all = show_all
+        self.show_cd_only = show_cd_only
         
         if path is None:
             path = os.getcwdu()
@@ -174,8 +193,13 @@ class ExplorerTreeWidget(DirView):
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
+        # Show current directory only
+        cd_only_action = create_action(self, _("Show current directory only"),
+                                       toggled=self.toggle_show_cd_only)
+        cd_only_action.setChecked(self.show_cd_only)
+        self.toggle_show_cd_only(self.show_cd_only)
         
-        return [filters_action, all_action]
+        return [filters_action, all_action, cd_only_action]
         
     def edit_filter(self):
         """Edit name filters"""
@@ -194,6 +218,13 @@ class ExplorerTreeWidget(DirView):
         self.parent_widget.emit(SIGNAL('option_changed'), 'show_all', checked)
         self.show_all = checked
         self.set_show_all(checked)
+            
+    def toggle_show_cd_only(self, checked):
+        """Toggle show current directory only mode"""
+        self.parent_widget.emit(SIGNAL('option_changed'),
+                                'show_cd_only', checked)
+        self.show_cd_only = checked
+        self.set_show_cd_only(checked)
         
     def update_menu(self):
         """Update option menu"""
@@ -517,12 +548,13 @@ class ExplorerWidget(QWidget):
     """Explorer widget"""
     def __init__(self, parent=None, path=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
-                 show_toolbar=True, show_icontext=True):
+                 show_cd_only=False, show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(path=path, name_filters=name_filters,
-                              valid_types=valid_types, show_all=show_all)
+                              valid_types=valid_types, show_all=show_all,
+                              show_cd_only=show_cd_only)
         
         toolbar_action = create_action(self, _("Show toolbar"),
                                        toggled=self.toggle_toolbar)
