@@ -16,7 +16,7 @@ import sys, re, string, os
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QTextDocument, QListWidget, QPlainTextEdit,
-                                QPalette)
+                                QPalette, QMainWindow)
 from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QString,
                                  QEventLoop)
 
@@ -70,6 +70,7 @@ class CompletionWidget(QListWidget):
         point = self.textedit.mapToGlobal(point)
         if self.screen_size[1]-point.y()-self.height() < 0:
             point = self.textedit.cursorRect().topRight()
+            point.setX(point.x()+self.textedit.get_linenumberarea_width())
             point = self.textedit.mapToGlobal(point)
             point.setY(point.y()-self.height())
         if self.parent() is not None:
@@ -158,6 +159,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.indent_chars = " "*4
         
         # Code completion / calltips
+        mainwin = parent
+        while not isinstance(mainwin, QMainWindow):
+            mainwin = mainwin.parent()
+            if mainwin is None:
+                break
+        if mainwin is not None:
+            parent = mainwin
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
