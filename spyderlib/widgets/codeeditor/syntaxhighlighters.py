@@ -726,10 +726,12 @@ class HtmlSH(BaseWebSH):
 
 def make_css_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
-    tags = any("builtin", [r"(?<=}\/).*?(?={)", r"^[^}]*?(?={)",])
+    tags = any("builtin", [r"^[^{}/*:;]+$",
+                           r"(?<=}\/).*?(?={)",
+                           r"[^}]+?(?={)"])
     keywords = any("keyword", [r"[\w-]+?(?=:)"])
     string = any("string", [r"(?<=:).*?(?=;)"])
-    comment = any("comment", [r"\/\*(.*?)\*\/"])
+    comment = any("comment", [r"/\*(.*?)\*/"])
     multiline_comment_start = any("multiline_comment_start", [r"\/\*"])
     multiline_comment_end = any("multiline_comment_end", [r"\*\/"])
     return "|".join([tags, keywords, string, comment,
