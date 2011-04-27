@@ -112,6 +112,10 @@ class ExtPythonShellWidget(PythonShellWidget):
     def get_completion(self, objtxt):
         """Return completion list associated to object name"""
         return self.ask_monitor("getcomplist('%s')" % objtxt)
+        
+    def get_module_completion(self, objtxt):
+        """Return module completion list associated to object name"""
+        return self.ask_monitor("getmodcomplist('%s')" % objtxt)
     
     def get_cwd(self):
         """Return shell current working directory"""
