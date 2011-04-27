@@ -238,6 +238,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'wrap': True,
+              'go_to_eof': True,
               }),
             ('inspector',
              {

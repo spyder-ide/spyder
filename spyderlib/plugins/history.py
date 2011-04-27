@@ -37,6 +37,8 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
+        go_to_eof_box = self.create_checkbox(
+                        _("Scroll automatically to last entry"), 'go_to_eof')
         font_group = self.create_fontgroup(option=None,
                                     text=_("Font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
@@ -51,6 +53,7 @@ class HistoryConfigPage(PluginConfigPage):
 
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(wrap_mode_box)
+        sourcecode_layout.addWidget(go_to_eof_box)
         sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
         
@@ -239,7 +242,8 @@ class HistoryLog(SpyderPluginWidget):
         filename, command = encoding.to_unicode(filename), unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
-        self.editors[index].set_cursor_position('eof')
+        if self.get_option('go_to_eof'):
+            self.editors[index].set_cursor_position('eof')
         self.tabwidget.setCurrentIndex(index)
         
     def change_history_depth(self):

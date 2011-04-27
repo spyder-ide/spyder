@@ -1319,6 +1319,10 @@ msgstr " lignes"
 msgid "History depth: "
 msgstr "Taille de l'historique : "
 
+#: spyderlib\plugins\history.py:41
+msgid "Scroll automatically to last entry"
+msgstr "Défiler automatiquement jusqu'à la dernière ligne"
+
 #: spyderlib\plugins\history.py:94 spyderlib\plugins\inspector.py:297
 #: spyderlib\widgets\editor.py:492 spyderlib\widgets\explorer.py:586
 #: spyderlib\widgets\externalshell\baseshell.py:144
