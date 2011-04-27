@@ -448,7 +448,7 @@ def make_generic_c_patterns(keywords, builtins):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kw = r"\b" + any("keyword", keywords.split()) + r"\b"
     builtin = r"\b" + any("builtin", builtins.split()+C_TYPES.split()) + r"\b"
-    comment = any("comment", [r"//[^\n]*"])
+    comment = any("comment", [r"//[^\n]*",r"\/\*(.*?)\*\/"])
     comment_start = any("comment_start", [r"\/\*"])
     comment_end = any("comment_end", [r"\*\/"])
     instance = any("instance", [r"\bthis\b"])
