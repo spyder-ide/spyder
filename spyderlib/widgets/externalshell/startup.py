@@ -168,6 +168,14 @@ if __name__ == "__main__":
             # to make IPython work in a remote process
             from pyreadline import unicode_helper
             unicode_helper.pyreadline_codepage = "ascii"
+            # For pyreadline >= v1.7:
+            from pyreadline import rlmain
+            class Readline(rlmain.Readline):
+                def __init__(self):
+                    super(Readline, self).__init__()
+                    self.console = None
+            rlmain.Readline = Readline
+            # For pyreadline v1.5-1.6 only:
             import pyreadline
             pyreadline.GetOutputFile = lambda: None
         import IPython.Shell
