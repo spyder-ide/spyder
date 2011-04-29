@@ -22,10 +22,10 @@ try:
 except ImportError:
     pass
 
-from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
-                                QFileSystemModel, QMessageBox, QInputDialog,
-                                QLineEdit, QMenu, QWidget, QToolButton,
-                                QFileDialog, QToolBar, QTreeView, QDrag)
+from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
+                                QFileSystemModel, QMenu, QWidget, QToolButton,
+                                QLineEdit, QMessageBox, QToolBar, QTreeView,
+                                QFileDialog, QDrag, QSortFilterProxyModel)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir,
                                  QStringList, QUrl)
 
@@ -83,21 +83,22 @@ def is_drive_path(path):
 
 class DirView(QTreeView):
     def __init__(self, parent=None):
-        QTreeView.__init__(self, parent)
-
-        self.parent_widget = parent
+        super(DirView, self).__init__(parent)
         self.name_filters = None
+        self.fsmodel = None
+        self.setup_fs_model()
         
-        self.show_cd_only = False
-        self.__original_root_index = None
-        self.__last_folder = None
-        
+    def setup_fs_model(self):
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
         self.fsmodel = QFileSystemModel(self)
         self.fsmodel.setFilter(filters)
         self.fsmodel.setNameFilterDisables(False)
+        
+    def install_model(self):
         self.setModel(self.fsmodel)
         
+    def setup_view(self):
+        self.install_model()
         self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
                      lambda: self.resizeColumnToContents(0))
         self.connect(self, SIGNAL('expanded(QModelIndex)'),
@@ -109,27 +110,9 @@ class DirView(QTreeView):
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
         
-    def is_in_current_folder(self, folder):
-        folder = osp.abspath(unicode(folder))
-        current_name = unicode(self.fsmodel.filePath(self.currentIndex()))
-        current_path = osp.normpath(current_name)
-        return osp.dirname(current_path) == folder
-        
-    def refresh_folder(self, folder):
+    def set_root_folder(self, folder):
         index = self.fsmodel.setRootPath(folder)
-        self.__last_folder = folder
-        if self.show_cd_only:
-            if self.__original_root_index is None:
-                self.__original_root_index = self.rootIndex()
-            self.setRootIndex(index)
-        return index
-        
-    def set_folder(self, folder, force_current=False):
-        if not force_current:
-            return
-        index = self.refresh_folder(folder)
-        self.expand(index)
-        self.setCurrentIndex(index)
+        self.setRootIndex(index)
         
     def set_name_filters(self, name_filters):
         self.name_filters = name_filters
@@ -140,25 +123,85 @@ class DirView(QTreeView):
             self.fsmodel.setNameFilters(QStringList())
         else:
             self.fsmodel.setNameFilters(QStringList(self.name_filters))
+
+
+class ProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent):
+        super(ProxyModel, self).__init__(parent)
+        self.root_path = None
+        self.path_list = []
+        self.setDynamicSortFilter(True)
+
+    def set_root_path(self, root_path):
+        self.root_path = osp.normpath(unicode(root_path))
         
-    def set_show_cd_only(self, state):
-        self.show_cd_only = state
-        if state:
-            if self.__last_folder is not None:
-                self.refresh_folder(self.__last_folder)
-        elif self.__original_root_index is not None:
-            self.setRootIndex(self.__original_root_index)
+    def set_path_list(self, path_list):
+        self.path_list = [osp.normpath(unicode(p)) for p in path_list]
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        self.sourceModel().sort(column, order)
+        
+    def filterAcceptsRow(self, row, parent_index):
+        if self.root_path is None:
+            return True
+        index = self.sourceModel().index(row, 0, parent_index)
+        path = osp.normpath(unicode(self.sourceModel().filePath(index)))
+        if self.root_path.startswith(path):
+            # This is necessary because parent folders need to be scanned
+            return True
+        else:
+            for p in self.path_list:
+                if path == p or path.startswith(p+os.sep):
+                    return True
+            else:
+                return False
+
+class FilteredDirView(DirView):
+    def __init__(self, parent=None):
+        super(FilteredDirView, self).__init__(parent)
+        self.proxymodel = None
+        self.setup_proxy_model()
+        
+    def setup_proxy_model(self):
+        self.proxymodel = ProxyModel(self)
+        self.proxymodel.setSourceModel(self.fsmodel)
+        
+    def install_model(self):
+        self.setModel(self.proxymodel)
+        
+    def set_folder_names(self, root_path, folder_names):
+        path_list = [osp.join(root_path, dirname) for dirname in folder_names]
+        self.proxymodel.set_root_path(root_path)
+        self.proxymodel.set_path_list(path_list)
+        index = self.proxymodel.mapFromSource(
+                        self.fsmodel.setRootPath(root_path))
+        self.setRootIndex(index)
 
 
 class ExplorerTreeWidget(DirView):
     def __init__(self, parent=None):
         DirView.__init__(self, parent)
+        
+        self.parent_widget = parent
+        
         self.history = []
         self.histindex = None
+
+        self.name_filters = None
+        self.valid_types = None
+        self.show_all = None
+        self.show_cd_only = None
+        self.__original_root_index = None
+        self.__last_folder = None
+
+        self.menu = None
+        self.common_actions = None
         
     def setup(self, path=None, name_filters=['*.py', '*.pyw'],
               valid_types= ('.py', '.pyw'), show_all=False,
               show_cd_only=False):
+        self.setup_view()
+        
         self.name_filters = name_filters
         self.valid_types = valid_types
         self.show_all = show_all
@@ -219,7 +262,11 @@ class ExplorerTreeWidget(DirView):
         self.parent_widget.emit(SIGNAL('option_changed'),
                                 'show_cd_only', checked)
         self.show_cd_only = checked
-        self.set_show_cd_only(checked)
+        if checked:
+            if self.__last_folder is not None:
+                self.refresh_folder(self.__last_folder)
+        elif self.__original_root_index is not None:
+            self.setRootIndex(self.__original_root_index)
         
     def update_menu(self):
         """Update option menu"""
@@ -297,6 +344,22 @@ class ExplorerTreeWidget(DirView):
         
         
     #---- Refreshing widget
+    def refresh_folder(self, folder):
+        index = self.fsmodel.setRootPath(folder)
+        self.__last_folder = folder
+        if self.show_cd_only:
+            if self.__original_root_index is None:
+                self.__original_root_index = self.rootIndex()
+            self.setRootIndex(index)
+        return index
+        
+    def set_folder(self, folder, force_current=False):
+        if not force_current:
+            return
+        index = self.refresh_folder(folder)
+        self.expand(index)
+        self.setCurrentIndex(index)
+        
     def refresh(self, new_path=None, force_current=False):
         """
         Refresh widget
@@ -619,9 +682,9 @@ class ExplorerWidget(QWidget):
 
 
 
-class Test(QDialog):
+class FileExplorerTest(QWidget):
     def __init__(self):
-        QDialog.__init__(self)
+        QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         self.explorer = ExplorerWidget(self)
@@ -660,15 +723,23 @@ class Test(QDialog):
         self.connect(self.explorer, SIGNAL("open_parent_dir()"),
                      lambda: self.explorer.listwidget.refresh('..'))
 
+class ProjectExplorerTest(QWidget):
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+        vlayout = QVBoxLayout()
+        self.setLayout(vlayout)
+        self.treewidget = FilteredDirView(self)
+        self.treewidget.setup_view()
+        self.treewidget.set_folder_names(r'D:\Python', ['spyder', 'spyder-2.0'])
+        vlayout.addWidget(self.treewidget)
 
-def test():
-    """Run file/directory explorer test"""
-    from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    test = Test()
-    test.show()
-    sys.exit(app.exec_())
     
 if __name__ == "__main__":
-    test()
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+#    test = FileExplorerTest()
+    test = ProjectExplorerTest()
+    test.resize(640, 480)
+    test.show()
+    sys.exit(app.exec_())
     
