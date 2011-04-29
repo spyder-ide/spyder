@@ -30,7 +30,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     """File and Directories Explorer DockWidget"""
     CONF_SECTION = 'explorer'
     def __init__(self, parent=None):
-        ExplorerWidget.__init__(self, parent=parent, path=None,
+        ExplorerWidget.__init__(self, parent=parent,
                             name_filters=self.get_option('name_filters'),
                             valid_types=self.get_option('valid_filetypes'),
                             show_all=self.get_option('show_all'),

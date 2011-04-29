@@ -87,7 +87,13 @@ class DirView(QTreeView):
         self.name_filters = None
         self.fsmodel = None
         self.setup_fs_model()
-        
+
+        self.parent_widget = parent
+        self.name_filters = None
+        self.valid_types = None
+        self.show_all = None
+                
+    #---- Model
     def setup_fs_model(self):
         filters = QDir.AllDirs | QDir.Files | QDir.Drives | QDir.NoDotAndDotDot
         self.fsmodel = QFileSystemModel(self)
@@ -123,81 +129,26 @@ class DirView(QTreeView):
             self.fsmodel.setNameFilters(QStringList())
         else:
             self.fsmodel.setNameFilters(QStringList(self.name_filters))
-
-
-class ProxyModel(QSortFilterProxyModel):
-    def __init__(self, parent):
-        super(ProxyModel, self).__init__(parent)
-        self.root_path = None
-        self.path_list = []
-        self.setDynamicSortFilter(True)
-
-    def set_root_path(self, root_path):
-        self.root_path = osp.normpath(unicode(root_path))
+            
+    def get_filename(self):
+        """Return selected filename"""
+        index = self.currentIndex()
+        if index:
+            return osp.normpath(unicode(self.fsmodel.filePath(index)))
         
-    def set_path_list(self, path_list):
-        self.path_list = [osp.normpath(unicode(p)) for p in path_list]
-
-    def sort(self, column, order=Qt.AscendingOrder):
-        self.sourceModel().sort(column, order)
-        
-    def filterAcceptsRow(self, row, parent_index):
-        if self.root_path is None:
-            return True
-        index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normpath(unicode(self.sourceModel().filePath(index)))
-        if self.root_path.startswith(path):
-            # This is necessary because parent folders need to be scanned
-            return True
+    def get_dirname(self):
+        """
+        Return selected directory path
+        or selected filename's directory path
+        """
+        fname = self.get_filename()
+        if osp.isdir(fname):
+            return fname
         else:
-            for p in self.path_list:
-                if path == p or path.startswith(p+os.sep):
-                    return True
-            else:
-                return False
-
-class FilteredDirView(DirView):
-    def __init__(self, parent=None):
-        super(FilteredDirView, self).__init__(parent)
-        self.proxymodel = None
-        self.setup_proxy_model()
+            return osp.dirname(fname)
         
-    def setup_proxy_model(self):
-        self.proxymodel = ProxyModel(self)
-        self.proxymodel.setSourceModel(self.fsmodel)
-        
-    def install_model(self):
-        self.setModel(self.proxymodel)
-        
-    def set_folder_names(self, root_path, folder_names):
-        path_list = [osp.join(root_path, dirname) for dirname in folder_names]
-        self.proxymodel.set_root_path(root_path)
-        self.proxymodel.set_path_list(path_list)
-        index = self.proxymodel.mapFromSource(
-                        self.fsmodel.setRootPath(root_path))
-        self.setRootIndex(index)
-
-
-class ExplorerTreeWidget(DirView):
-    def __init__(self, parent=None):
-        DirView.__init__(self, parent)
-        
-        self.parent_widget = parent
-        
-        self.history = []
-        self.histindex = None
-
-        self.name_filters = None
-        self.valid_types = None
-        self.show_all = None
-        self.show_cd_only = None
-        self.__original_root_index = None
-        self.__last_folder = None
-
-        self.menu = None
-        self.common_actions = None
-        
-    def setup(self, path=None, name_filters=['*.py', '*.pyw'],
+    #---- Tree view widget
+    def setup(self, name_filters=['*.py', '*.pyw'],
               valid_types= ('.py', '.pyw'), show_all=False,
               show_cd_only=False):
         self.setup_view()
@@ -207,17 +158,9 @@ class ExplorerTreeWidget(DirView):
         self.show_all = show_all
         self.show_cd_only = show_cd_only
         
-        if path is None:
-            path = os.getcwdu()
-        self.chdir(path)
-        
-        # Enable drag events
-        self.setDragEnabled(True)
-        
         # Setup context menu
         self.menu = QMenu(self)
         self.common_actions = self.setup_common_actions()
-        
         
     #---- Context menu
     def setup_common_actions(self):
@@ -231,13 +174,8 @@ class ExplorerTreeWidget(DirView):
                                    toggled=self.toggle_all)
         all_action.setChecked(self.show_all)
         self.toggle_all(self.show_all)
-        # Show current directory only
-        cd_only_action = create_action(self, _("Show current directory only"),
-                                       toggled=self.toggle_show_cd_only)
-        cd_only_action.setChecked(self.show_cd_only)
-        self.toggle_show_cd_only(self.show_cd_only)
         
-        return [filters_action, all_action, cd_only_action]
+        return [filters_action, all_action]
         
     def edit_filter(self):
         """Edit name filters"""
@@ -256,17 +194,6 @@ class ExplorerTreeWidget(DirView):
         self.parent_widget.emit(SIGNAL('option_changed'), 'show_all', checked)
         self.show_all = checked
         self.set_show_all(checked)
-            
-    def toggle_show_cd_only(self, checked):
-        """Toggle show current directory only mode"""
-        self.parent_widget.emit(SIGNAL('option_changed'),
-                                'show_cd_only', checked)
-        self.show_cd_only = checked
-        if checked:
-            if self.__last_folder is not None:
-                self.refresh_folder(self.__last_folder)
-        elif self.__original_root_index is not None:
-            self.setRootIndex(self.__original_root_index)
         
     def update_menu(self):
         """Update option menu"""
@@ -341,40 +268,7 @@ class ExplorerTreeWidget(DirView):
             actions.append(None)
         actions += self.common_actions
         add_actions(self.menu, actions)
-        
-        
-    #---- Refreshing widget
-    def refresh_folder(self, folder):
-        index = self.fsmodel.setRootPath(folder)
-        self.__last_folder = folder
-        if self.show_cd_only:
-            if self.__original_root_index is None:
-                self.__original_root_index = self.rootIndex()
-            self.setRootIndex(index)
-        return index
-        
-    def set_folder(self, folder, force_current=False):
-        if not force_current:
-            return
-        index = self.refresh_folder(folder)
-        self.expand(index)
-        self.setCurrentIndex(index)
-        
-    def refresh(self, new_path=None, force_current=False):
-        """
-        Refresh widget
-        force=False: won't refresh widget if path has not changed
-        """
-        if new_path is None:
-            new_path = os.getcwdu()
-        self.set_folder(new_path, force_current=force_current)
-        self.emit(SIGNAL("set_previous_enabled(bool)"),
-                  self.histindex is not None and self.histindex > 0)
-        self.emit(SIGNAL("set_next_enabled(bool)"),
-                  self.histindex is not None and \
-                  self.histindex < len(self.history)-1)
     
-        
     #---- Events
     def contextMenuEvent(self, event):
         """Override Qt method"""
@@ -395,6 +289,17 @@ class ExplorerTreeWidget(DirView):
         QTreeView.mouseDoubleClickEvent(self, event)
         self.clicked()
         
+    def clicked(self):
+        """Selected item was double-clicked or enter/return was pressed"""
+        fname = self.get_filename()
+        if fname:
+            if osp.isdir(fname):
+                self.directory_clicked(fname)
+            else:
+                self.open(fname)
+                
+    def directory_clicked(self, dirname):
+        pass
         
     #---- Drag
     def dragEnterEvent(self, event):
@@ -416,75 +321,8 @@ class ExplorerTreeWidget(DirView):
         drag = QDrag(self)
         drag.setMimeData(data)
         drag.exec_()
-            
-            
-    #---- Files/Directories Actions
-    def get_filename(self):
-        """Return selected filename"""
-        index = self.currentIndex()
-        if index:
-            return osp.normpath(unicode(self.fsmodel.filePath(index)))
         
-    def get_dirname(self):
-        """
-        Return selected directory path
-        or selected filename's directory path
-        """
-        fname = self.get_filename()
-        if osp.isdir(fname):
-            return fname
-        else:
-            return osp.dirname(fname)
-        
-    def clicked(self):
-        """Selected item was double-clicked or enter/return was pressed"""
-        fname = self.get_filename()
-        if fname:
-            if osp.isdir(fname):
-                self.chdir(directory=unicode(fname))
-            else:
-                self.open(fname)
-        
-    def go_to_parent_directory(self):
-        self.chdir( osp.abspath(osp.join(os.getcwdu(), os.pardir)) )
-        
-    def go_to_previous_directory(self):
-        """Back to previous directory"""
-        self.histindex -= 1
-        self.chdir(browsing_history=True)
-        
-    def go_to_next_directory(self):
-        """Return to next directory"""
-        self.histindex += 1
-        self.chdir(browsing_history=True)
-        
-    def update_history(self, directory):
-        directory = osp.abspath(unicode(directory))
-        if directory in self.history:
-            self.histindex = self.history.index(directory)
-        
-    def chdir(self, directory=None, browsing_history=False):
-        """Set directory as working directory"""
-        if directory is not None:
-            directory = osp.abspath(unicode(directory))
-        if browsing_history:
-            directory = self.history[self.histindex]
-        elif directory in self.history:
-            self.histindex = self.history.index(directory)
-        else:
-            if self.histindex is None:
-                self.history = []
-            else:
-                self.history = self.history[:self.histindex+1]
-            if len(self.history) == 0 or \
-               (self.history and self.history[-1] != directory):
-                self.history.append(directory)
-            self.histindex = len(self.history)-1
-        directory = unicode(directory)
-        os.chdir(directory)
-        self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
-        self.refresh(new_path=directory, force_current=True)
-        
+    #---- File/Directory actions
     def open(self, fname):
         """Open filename with the appropriate application"""
         fname = unicode(fname)
@@ -601,18 +439,202 @@ class ExplorerTreeWidget(DirView):
                 self.open(fname)
 
 
+class ProxyModel(QSortFilterProxyModel):
+    def __init__(self, parent):
+        super(ProxyModel, self).__init__(parent)
+        self.root_path = None
+        self.path_list = []
+        self.setDynamicSortFilter(True)
+
+    def set_root_path(self, root_path):
+        self.root_path = osp.normpath(unicode(root_path))
+        
+    def set_path_list(self, path_list):
+        self.path_list = [osp.normpath(unicode(p)) for p in path_list]
+
+    def sort(self, column, order=Qt.AscendingOrder):
+        self.sourceModel().sort(column, order)
+        
+    def filterAcceptsRow(self, row, parent_index):
+        if self.root_path is None:
+            return True
+        index = self.sourceModel().index(row, 0, parent_index)
+        path = osp.normpath(unicode(self.sourceModel().filePath(index)))
+        if self.root_path.startswith(path):
+            # This is necessary because parent folders need to be scanned
+            return True
+        else:
+            for p in self.path_list:
+                if path == p or path.startswith(p+os.sep):
+                    return True
+            else:
+                return False
+
+class FilteredDirView(DirView):
+    def __init__(self, parent=None):
+        super(FilteredDirView, self).__init__(parent)
+        self.proxymodel = None
+        self.setup_proxy_model()
+        self.root_path = None
+        
+    #---- Model
+    def setup_proxy_model(self):
+        self.proxymodel = ProxyModel(self)
+        self.proxymodel.setSourceModel(self.fsmodel)
+        
+    def install_model(self):
+        self.setModel(self.proxymodel)
+        
+    def set_root_path(self, root_path):
+        self.root_path = root_path
+        
+    def set_folder_names(self, folder_names):
+        assert self.root_path is not None
+        path_list = [osp.join(self.root_path, dirname)
+                     for dirname in folder_names]
+        self.proxymodel.set_root_path(self.root_path)
+        self.proxymodel.set_path_list(path_list)
+        index = self.proxymodel.mapFromSource(
+                        self.fsmodel.setRootPath(self.root_path))
+        self.setRootIndex(index)
+            
+    def get_filename(self):
+        """Return selected filename"""
+        index = self.currentIndex()
+        if index:
+            index = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
+            return osp.normpath(unicode(index))
+
+
+class ExplorerTreeWidget(DirView):
+    def __init__(self, parent=None):
+        DirView.__init__(self, parent)
+                
+        self.history = []
+        self.histindex = None
+
+        self.show_cd_only = None
+        self.__original_root_index = None
+        self.__last_folder = None
+
+        self.menu = None
+        self.common_actions = None
+        
+        # Enable drag events
+        self.setDragEnabled(True)
+        
+    #---- Context menu
+    def setup_common_actions(self):
+        """Setup context menu common actions"""
+        # Show current directory only
+        cd_only_action = create_action(self, _("Show current directory only"),
+                                       toggled=self.toggle_show_cd_only)
+        cd_only_action.setChecked(self.show_cd_only)
+        self.toggle_show_cd_only(self.show_cd_only)
+        
+        actions = super(ExplorerTreeWidget, self).setup_common_actions()
+        return actions+[cd_only_action]
+            
+    def toggle_show_cd_only(self, checked):
+        """Toggle show current directory only mode"""
+        self.parent_widget.emit(SIGNAL('option_changed'),
+                                'show_cd_only', checked)
+        self.show_cd_only = checked
+        if checked:
+            if self.__last_folder is not None:
+                self.refresh_folder(self.__last_folder)
+        elif self.__original_root_index is not None:
+            self.setRootIndex(self.__original_root_index)
+        
+    #---- Refreshing widget
+    def refresh_folder(self, folder):
+        index = self.fsmodel.setRootPath(folder)
+        self.__last_folder = folder
+        if self.show_cd_only:
+            if self.__original_root_index is None:
+                self.__original_root_index = self.rootIndex()
+            self.setRootIndex(index)
+        return index
+        
+    def set_folder(self, folder, force_current=False):
+        if not force_current:
+            return
+        index = self.refresh_folder(folder)
+        self.expand(index)
+        self.setCurrentIndex(index)
+        
+    def refresh(self, new_path=None, force_current=False):
+        """
+        Refresh widget
+        force=False: won't refresh widget if path has not changed
+        """
+        if new_path is None:
+            new_path = os.getcwdu()
+        self.set_folder(new_path, force_current=force_current)
+        self.emit(SIGNAL("set_previous_enabled(bool)"),
+                  self.histindex is not None and self.histindex > 0)
+        self.emit(SIGNAL("set_next_enabled(bool)"),
+                  self.histindex is not None and \
+                  self.histindex < len(self.history)-1)
+            
+    #---- Events
+    def directory_clicked(self, dirname):
+        self.chdir(directory=dirname)
+        
+    #---- Files/Directories Actions
+    def go_to_parent_directory(self):
+        self.chdir( osp.abspath(osp.join(os.getcwdu(), os.pardir)) )
+        
+    def go_to_previous_directory(self):
+        """Back to previous directory"""
+        self.histindex -= 1
+        self.chdir(browsing_history=True)
+        
+    def go_to_next_directory(self):
+        """Return to next directory"""
+        self.histindex += 1
+        self.chdir(browsing_history=True)
+        
+    def update_history(self, directory):
+        directory = osp.abspath(unicode(directory))
+        if directory in self.history:
+            self.histindex = self.history.index(directory)
+        
+    def chdir(self, directory=None, browsing_history=False):
+        """Set directory as working directory"""
+        if directory is not None:
+            directory = osp.abspath(unicode(directory))
+        if browsing_history:
+            directory = self.history[self.histindex]
+        elif directory in self.history:
+            self.histindex = self.history.index(directory)
+        else:
+            if self.histindex is None:
+                self.history = []
+            else:
+                self.history = self.history[:self.histindex+1]
+            if len(self.history) == 0 or \
+               (self.history and self.history[-1] != directory):
+                self.history.append(directory)
+            self.histindex = len(self.history)-1
+        directory = unicode(directory)
+        os.chdir(directory)
+        self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
+        self.refresh(new_path=directory, force_current=True)
+
 
 class ExplorerWidget(QWidget):
     """Explorer widget"""
-    def __init__(self, parent=None, path=None, name_filters=['*.py', '*.pyw'],
+    def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
                  show_cd_only=False, show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
         self.treewidget = ExplorerTreeWidget(self)
-        self.treewidget.setup(path=path, name_filters=name_filters,
+        self.treewidget.setup(name_filters=name_filters,
                               valid_types=valid_types, show_all=show_all,
                               show_cd_only=show_cd_only)
+        self.treewidget.chdir(os.getcwdu())
         
         toolbar_action = create_action(self, _("Show toolbar"),
                                        toggled=self.toggle_toolbar)
@@ -730,15 +752,16 @@ class ProjectExplorerTest(QWidget):
         self.setLayout(vlayout)
         self.treewidget = FilteredDirView(self)
         self.treewidget.setup_view()
-        self.treewidget.set_folder_names(r'D:\Python', ['spyder', 'spyder-2.0'])
+        self.treewidget.set_root_path(r'D:\Python')
+        self.treewidget.set_folder_names(['spyder', 'spyder-2.0'])
         vlayout.addWidget(self.treewidget)
 
     
 if __name__ == "__main__":
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
-#    test = FileExplorerTest()
-    test = ProjectExplorerTest()
+    test = FileExplorerTest()
+#    test = ProjectExplorerTest()
     test.resize(640, 480)
     test.show()
     sys.exit(app.exec_())
