@@ -24,7 +24,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.widgets.comboboxes import EditableComboBox
-from spyderlib.widgets.codeeditor import codeeditor
+from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget

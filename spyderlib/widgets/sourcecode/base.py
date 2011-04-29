@@ -22,7 +22,7 @@ from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QString,
 
 
 # Local imports
-from spyderlib.widgets.codeeditor.terminal import ANSIEscapeCodeHandler
+from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.utils import sourcecode
 
 # For debugging purpose:

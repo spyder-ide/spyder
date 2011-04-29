@@ -666,7 +666,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                       "number":         _("Number:"),
                       "instance":       _("Instance:"),
                       }
-        from spyderlib.widgets.codeeditor import syntaxhighlighters
+        from spyderlib.widgets.sourcecode import syntaxhighlighters
         assert all([key in fieldnames
                     for key in syntaxhighlighters.COLOR_SCHEME_KEYS])
         for tabname in names:

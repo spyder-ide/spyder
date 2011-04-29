@@ -30,9 +30,10 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget, check
-from spyderlib.widgets.codeeditor import syntaxhighlighters, codeeditor
-from spyderlib.widgets.codeeditor.base import TextEditBaseWidget #@UnusedImport
-from spyderlib.widgets.codeeditor.codeeditor import Printer #@UnusedImport
+from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
+from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
+from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 
 
 # For debugging purpose:
@@ -326,24 +327,6 @@ class FileInfo(QObject):
                   self.filename, repr(breakpoints))
         
 
-def get_file_language(filename, text=None):
-    ext = osp.splitext(filename)[1]
-    if ext.startswith('.'):
-        ext = ext[1:] # file extension with leading dot
-    language = ext
-    if not ext:
-        if text is None:
-            text, _enc = encoding.read(filename)
-        for line in text.splitlines():
-            if not line.strip():
-                continue
-            if line.startswith('#!') and \
-               line[2:].split() == ['/usr/bin/env', 'python']:
-                    language = 'python'
-            else:
-                break
-    return language
-        
 class EditorStack(QWidget):
     def __init__(self, parent, plugin, actions):
         QWidget.__init__(self, parent)

@@ -38,11 +38,11 @@ from spyderlib.config import (CONF, get_font, get_icon, get_image_path, _,
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import sourcecode, is_keyword
+from spyderlib.utils import encoding, sourcecode, is_keyword
 from spyderlib.utils import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM, check
-from spyderlib.widgets.codeeditor.base import TextEditBaseWidget
-from spyderlib.widgets.codeeditor import syntaxhighlighters
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
+from spyderlib.widgets.sourcecode import syntaxhighlighters
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -367,6 +367,24 @@ def set_scrollflagarea_painter(painter, light_color):
     painter.setPen(QColor(light_color).darker(120))
     painter.setBrush(QBrush(QColor(light_color)))
 
+def get_file_language(filename, text=None):
+    ext = osp.splitext(filename)[1]
+    if ext.startswith('.'):
+        ext = ext[1:] # file extension with leading dot
+    language = ext
+    if not ext:
+        if text is None:
+            text, _enc = encoding.read(filename)
+        for line in text.splitlines():
+            if not line.strip():
+                continue
+            if line.startswith('#!') and \
+               line[2:].split() == ['/usr/bin/env', 'python']:
+                    language = 'python'
+            else:
+                break
+    return language
+        
 class CodeEditor(TextEditBaseWidget):
     """
     Source Code Editor Widget based exclusively on Qt
@@ -1194,6 +1212,14 @@ class CodeEditor(TextEditBaseWidget):
 #        if self.supported_language:
 #            self.highlighter.rehighlight()
 
+    def set_text_from_file(self, filename, language=None):
+        """Set the text of the editor from file *fname*"""
+        text, _enc = encoding.read(filename)
+        if language is None:
+            language = get_file_language(filename, text)
+        self.set_language(language)
+        self.set_text(text)
+
     def append(self, text):
         """Append text to the end of the text widget"""
         cursor = self.textCursor()
@@ -1989,23 +2015,14 @@ class Printer(QPrinter):
 #===============================================================================
 # Editor + Class browser test
 #===============================================================================
-class TestEditor(CodeEditor):
-    def __init__(self, parent):
-        CodeEditor.__init__(self, parent)
-        self.setup_editor(linenumbers=True, code_analysis=False,
-                          todo_list=False, tab_mode=False)
-        
-    def load(self, filename):
-        self.set_language(osp.splitext(filename)[1][1:])
-        self.set_font(QFont("Courier New", 10), 'Pydev')
-        self.set_text(file(filename, 'rb').read())
-        self.setWindowTitle(filename)
-#        self.setup_margins(True, True, True)
-
 class TestWidget(QSplitter):
     def __init__(self, parent):
         QSplitter.__init__(self, parent)
-        self.editor = TestEditor(self)
+        self.editor = CodeEditor(self)
+        self.editor.setup_editor(linenumbers=True, code_analysis=False,
+                                 todo_list=False, tab_mode=False,
+                                 font=QFont("Courier New", 10),
+                                 color_scheme='Pydev')
         self.addWidget(self.editor)
         from spyderlib.widgets.editortools import OutlineExplorerWidget
         self.classtree = OutlineExplorerWidget(self)
@@ -2014,9 +2031,13 @@ class TestWidget(QSplitter):
                      lambda _fn, line, word: self.editor.go_to_line(line, word))
         self.setStretchFactor(0, 4)
         self.setStretchFactor(1, 1)
+        self.setWindowIcon(get_icon('spyder.svg'))
         
     def load(self, filename):
-        self.editor.load(filename)
+        self.editor.set_text_from_file(filename)
+        self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
+                                              osp.basename(filename),
+                                              osp.dirname(filename)))
         self.classtree.set_current_editor(self.editor, filename, False)
         
 def test(fname):

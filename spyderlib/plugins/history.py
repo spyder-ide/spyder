@@ -22,7 +22,7 @@ from spyderlib.config import get_icon, CONF, get_color_scheme, _
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.codeeditor import codeeditor
+from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 

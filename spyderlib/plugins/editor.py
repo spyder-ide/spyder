@@ -36,7 +36,7 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack, Printer,
                                       EditorMainWindow)
-from spyderlib.widgets.codeeditor import codeeditor
+from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)
