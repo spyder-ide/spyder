@@ -934,21 +934,19 @@ class PythonShellWidget(ShellBaseWidget):
         if text.startswith('import '):
             obj_list = self.get_module_completion(text)
             words = text.split(' ')
-            if obj_list:
-                self.show_completion_list(obj_list, completion_text=words[-1],
-                                          automatic=automatic)
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
             return
             
-        if text.startswith('from '):
+        elif text.startswith('from '):
             obj_list = self.get_module_completion(text)
             words = text.split(' ')
             if words[-1].find('(') != -1:
                 words = words[:-2] + words[-1].split('(')
             if words[-1].find(',') != -1:
                 words = words[:-2] + words[-1].split(',')
-            if obj_list:
-                self.show_completion_list(obj_list, completion_text=words[-1],
-                                          automatic=automatic)
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
             return
         
         #-- IPython only -------------------------------------------------------
