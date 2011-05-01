@@ -156,8 +156,7 @@ QMainWindow::separator:horizontal {
 
 class MainWindow(QMainWindow):
     """Spyder main window"""
-    DOCKOPTIONS = QMainWindow.AnimatedDocks|QMainWindow.AllowTabbedDocks| \
-                  QMainWindow.AllowNestedDocks
+    DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
     spyder_path = get_conf_path('.path')
     BOOKMARKS = (
          ('PyQt4',
