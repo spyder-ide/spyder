@@ -172,13 +172,14 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.indent_chars = " "*4
         
         # Code completion / calltips
-        mainwin = parent
-        while not isinstance(mainwin, QMainWindow):
-            mainwin = mainwin.parent()
-            if mainwin is None:
-                break
-        if mainwin is not None:
-            parent = mainwin
+        if parent is not None:
+            mainwin = parent
+            while not isinstance(mainwin, QMainWindow):
+                mainwin = mainwin.parent()
+                if mainwin is None:
+                    break
+            if mainwin is not None:
+                parent = mainwin
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
