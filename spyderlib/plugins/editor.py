@@ -1499,23 +1499,8 @@ class Editor(SpyderPluginWidget):
         if answer == QDialog.Accepted:
             self.starting_long_process(_("Printing..."))
             printer.setDocName(filename)
-            from spyderlib.qt.QtGui import QPlainTextEdit
-            if isinstance(editor, QPlainTextEdit):
-                editor.print_(printer)
-                ok = True
-            else:
-                if printDialog.printRange() == QAbstractPrintDialog.Selection:
-                    from_line, _index, to_line, to_index = editor.getSelection()
-                    if to_index == 0:
-                        to_line -= 1
-                    ok = printer.printRange(editor, from_line, to_line-1)
-                else:
-                    ok = printer.printRange(editor)
+            editor.print_(printer)
             self.ending_long_process()
-            if not ok:
-                QMessageBox.critical(editor, _("Print"),
-                                     _("<b>Unable to print document '%s'</b>"
-                                       ) % osp.basename(filename))
 
     def print_preview(self):
         """Print preview for current file"""
@@ -1524,8 +1509,9 @@ class Editor(SpyderPluginWidget):
         printer = Printer(mode=QPrinter.HighResolution,
                           header_font=self.get_plugin_font('printer_header'))
         preview = QPrintPreviewDialog(printer, self)
+        preview.setWindowFlags(Qt.Window)
         self.connect(preview, SIGNAL("paintRequested(QPrinter*)"),
-                     lambda printer: printer.printRange(editor))
+                     lambda printer: editor.print_(printer))
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         preview.exec_()
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
