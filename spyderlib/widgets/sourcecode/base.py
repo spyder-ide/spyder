@@ -39,9 +39,6 @@ class CompletionWidget(QListWidget):
         self.case_sensitive = False
         self.show_single = None
         self.enter_select = None
-        desktop = QApplication.desktop()
-        srect = desktop.availableGeometry(desktop.screenNumber(self))
-        self.screen_size = (srect.width(), srect.height())
         self.hide()
         self.connect(self, SIGNAL("itemActivated(QListWidgetItem*)"),
                      self.item_selected)
@@ -65,17 +62,33 @@ class CompletionWidget(QListWidget):
         self.setFocus()
         self.raise_()
         
+        # Retrieving current screen height
+        desktop = QApplication.desktop()
+        srect = desktop.availableGeometry(desktop.screenNumber(self))
+        screen_height = srect.height()
+        
         point = self.textedit.cursorRect().bottomRight()
         point.setX(point.x()+self.textedit.get_linenumberarea_width())
         point = self.textedit.mapToGlobal(point)
-        if self.screen_size[1]-point.y()-self.height() < 0:
+        
+        # Computing completion widget and its parent bottom positions
+        comp_bottom = point.y()+self.height()
+        ancestor = self.parent()
+        if ancestor is None:
+            anc_bottom = screen_height
+        else:
+            anc_bottom = min([ancestor.y()+ancestor.height(), screen_height])
+        
+        # Moving completion widget above if there is not enough space below
+        if comp_bottom > anc_bottom:
             point = self.textedit.cursorRect().topRight()
             point.setX(point.x()+self.textedit.get_linenumberarea_width())
             point = self.textedit.mapToGlobal(point)
             point.setY(point.y()-self.height())
-        if self.parent() is not None:
+            
+        if ancestor is not None:
             # Useful only if we set parent to 'ancestor' in __init__
-            point = self.parent().mapFromGlobal(point)
+            point = ancestor.mapFromGlobal(point)
         self.move(point)
         
         if unicode(self.textedit.completion_text):
