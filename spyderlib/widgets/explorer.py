@@ -488,22 +488,24 @@ class FilteredDirView(DirView):
     def set_root_path(self, root_path):
         self.root_path = root_path
         
+    def get_index(self, filename):
+        return self.proxymodel.mapFromSource(
+                        self.fsmodel.setRootPath(filename))
+        
     def set_folder_names(self, folder_names):
         assert self.root_path is not None
         path_list = [osp.join(self.root_path, dirname)
                      for dirname in folder_names]
         self.proxymodel.set_root_path(self.root_path)
         self.proxymodel.set_path_list(path_list)
-        index = self.proxymodel.mapFromSource(
-                        self.fsmodel.setRootPath(self.root_path))
-        self.setRootIndex(index)
-            
+        self.setRootIndex( self.get_index(self.root_path) )
+        
     def get_filename(self):
         """Return selected filename"""
         index = self.currentIndex()
         if index:
-            index = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
-            return osp.normpath(unicode(index))
+            path = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
+            return osp.normpath(unicode(path))
 
 
 class ExplorerTreeWidget(DirView):
