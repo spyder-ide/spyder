@@ -95,7 +95,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         self.setCursorWidth( CONF.get('shell_appearance', 'cursor/width') )
         
     def toggle_wrap_mode(self, enable):
-        """Reimplement ConsoleBaseWidget method: 'word' -> 'character'"""
+        """Enable/disable wrap mode"""
         self.set_wrap_mode('character' if enable else None)
 
     def set_font(self, font):

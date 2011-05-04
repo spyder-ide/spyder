@@ -579,6 +579,11 @@ class CodeEditor(TextEditBaseWidget):
         self.document_id = editor.get_document_id()
         self.highlighter = editor.highlighter
         self._apply_highlighter_color_scheme()
+
+    #-----Widget setup and options
+    def toggle_wrap_mode(self, enable):
+        """Enable/disable wrap mode"""
+        self.set_wrap_mode('word' if enable else None)
         
     def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,

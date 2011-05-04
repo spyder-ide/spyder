@@ -16,7 +16,7 @@ import sys, re, string, os
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QTextDocument, QListWidget, QPlainTextEdit,
-                                QPalette, QMainWindow)
+                                QPalette, QMainWindow, QTextOption)
 from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QString,
                                  QEventLoop)
 
@@ -363,17 +363,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         Set wrap mode
         Valid *mode* values: None, 'word', 'character'
         """
-        wrap_mode = QPlainTextEdit.NoWrap
-        #XXX: no word/character wrapping in QPlainTextEdit
         if mode == 'word':
-            wrap_mode = QPlainTextEdit.WidgetWidth
+            wrap_mode = QTextOption.WrapAtWordBoundaryOrAnywhere
         elif mode == 'character':
-            wrap_mode = QPlainTextEdit.WidgetWidth
-        self.setLineWrapMode(wrap_mode)
-
-    def toggle_wrap_mode(self, enable):
-        """Enable/disable wrap mode"""
-        self.set_wrap_mode('word' if enable else None)
+            wrap_mode = QTextOption.WrapAnywhere
+        else:
+            wrap_mode = QTextOption.NoWrap
+        self.setWordWrapMode(wrap_mode)
         
         
     #------Positions, coordinates (cursor, EOF, ...)
