@@ -40,7 +40,8 @@ class Console(SpyderPluginWidget):
     """
     CONF_SECTION = 'internal_console'
     def __init__(self, parent=None, namespace=None, commands=[], message="",
-                 debug=False, exitfunc=None, profile=False, multithreaded=True):
+                 debug=False, exitfunc=None, profile=False,
+                 multithreaded=False):
         
         self.dialog_manager = DialogManager()
 
