@@ -1489,7 +1489,12 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         if self.has_selected_text():
             # Remove prefix from selected line(s)
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
+            start_pos, end_pos = sorted([cursor.selectionStart(),
+                                         cursor.selectionEnd()])
+            cursor.setPosition(start_pos)
+            if not cursor.atBlockStart():
+                cursor.movePosition(QTextCursor.StartOfBlock)
+                start_pos = cursor.position()
             cursor.beginEditBlock()
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
@@ -1499,6 +1504,7 @@ class CodeEditor(TextEditBaseWidget):
                 if cursor.position() < start_pos:
                     cursor.setPosition(start_pos)
                 
+            cursor.movePosition(QTextCursor.StartOfBlock)
             old_pos = None
             while cursor.position() >= start_pos:
                 new_pos = cursor.position()
@@ -1506,7 +1512,6 @@ class CodeEditor(TextEditBaseWidget):
                     break
                 else:
                     old_pos = new_pos
-                cursor.movePosition(QTextCursor.StartOfBlock)
                 line_text = unicode(cursor.block().text())
                 if (prefix.strip() and line_text.lstrip().startswith(prefix)
                     or line_text.startswith(prefix)):
@@ -1517,7 +1522,6 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.KeepAnchor, len(prefix))
                     cursor.removeSelectedText()
                 cursor.movePosition(QTextCursor.PreviousBlock)
-                cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
