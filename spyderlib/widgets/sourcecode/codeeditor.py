@@ -1507,20 +1507,29 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     old_pos = new_pos
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                if len(unicode(cursor.block().text())) >= len(prefix):
-                    cursor.setPosition(cursor.position()+len(prefix),
-                                       QTextCursor.KeepAnchor)
-                    if unicode(cursor.selectedText()) == prefix:
-                        cursor.removeSelectedText()
+                line_text = unicode(cursor.block().text())
+                if (prefix.strip() and line_text.lstrip().startswith(prefix)
+                    or line_text.startswith(prefix)):
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.MoveAnchor,
+                                        line_text.find(prefix))
+                    cursor.movePosition(QTextCursor.Right,
+                                        QTextCursor.KeepAnchor, len(prefix))
+                    cursor.removeSelectedText()
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
-            cursor.setPosition(cursor.position()+len(prefix),
-                               QTextCursor.KeepAnchor)
-            if unicode(cursor.selectedText()) == prefix:
+            line_text = unicode(cursor.block().text())
+            if (prefix.strip() and line_text.lstrip().startswith(prefix)
+                or line_text.startswith(prefix)):
+                cursor.movePosition(QTextCursor.Right,
+                                    QTextCursor.MoveAnchor,
+                                    line_text.find(prefix))
+                cursor.movePosition(QTextCursor.Right,
+                                    QTextCursor.KeepAnchor, len(prefix))
                 cursor.removeSelectedText()
     
     def fix_indent(self, forward=True):
@@ -1639,7 +1648,7 @@ class CodeEditor(TextEditBaseWidget):
             first_pos = min([start_pos, end_pos])
             cursor.setPosition(first_pos)
         text = unicode(cursor.block().text())
-        if text.startswith(self.comment_string):
+        if text.lstrip().startswith(self.comment_string):
             self.uncomment()
         else:
             self.comment()
