@@ -1643,15 +1643,22 @@ class CodeEditor(TextEditBaseWidget):
     def toggle_comment(self):
         """Toggle comment on current line or selection"""
         cursor = self.textCursor()
-        if self.has_selected_text():
-            start_pos, end_pos = cursor.selectionStart(), cursor.selectionEnd()
-            first_pos = min([start_pos, end_pos])
-            cursor.setPosition(first_pos)
-        text = unicode(cursor.block().text())
-        if text.lstrip().startswith(self.comment_string):
-            self.uncomment()
+        start_pos, end_pos = sorted([cursor.selectionStart(),
+                                     cursor.selectionEnd()])
+        cursor.setPosition(end_pos)
+        last_line = cursor.block().blockNumber()
+        if cursor.atBlockStart() and start_pos != end_pos:
+            last_line -= 1
+        cursor.setPosition(start_pos)
+        first_line = cursor.block().blockNumber()
+        for _line_nb in range(first_line, last_line+1):
+            text = unicode(cursor.block().text())
+            if not text.lstrip().startswith(self.comment_string):
+                self.comment()
+                break
+            cursor.movePosition(QTextCursor.NextBlock)
         else:
-            self.comment()
+            self.uncomment()
     
     def comment(self):
         """Comment current line or selection"""
