@@ -22,8 +22,14 @@ from time import time
 import sys
 from zipimport import zipimporter
 
-#TIMEOUT_STORAGE = 3 #Time in seconds after which the rootmodules will be stored
+from spyderlib.config import get_conf_path
+from spyderlib.utils.external.pickleshare import PickleShareDB
+
+MODULES_PATH = get_conf_path('db')
+TIMEOUT_STORAGE = 0.5 #Time in seconds after which the modules will be stored
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
+
+db = PickleShareDB(MODULES_PATH)
 
 def getRootModules():
     """
@@ -31,22 +37,18 @@ def getRootModules():
     folders of the pythonpath.
     """
     modules = []
-    #if ip.db.has_key('rootmodules'):
-    #    return ip.db['rootmodules']
+    if db.has_key('rootmodules'):
+        return db['rootmodules']
     t = time()
-    #store = False
+    store = False
     for path in sys.path:
         modules += moduleList(path)        
-        #if time() - t >= TIMEOUT_STORAGE and not store:
-        #    store = True
-        #    print "\nCaching the list of root modules, please wait!" 
-        #    print "(This will only be done once - type '%rehashx' to " + \
-        #    "reset cache!)"
-        #    print
+        if time() - t >= TIMEOUT_STORAGE and not store:
+            store = True
         if time() - t > TIMEOUT_GIVEUP:
             print "This is taking too long, we give up."
             print
-            #ip.db['rootmodules'] = []
+            db['rootmodules'] = []
             return []
     
     modules += sys.builtin_module_names
@@ -55,8 +57,8 @@ def getRootModules():
     if '__init__' in modules:
         modules.remove('__init__')
     modules = list(set(modules))
-    #if store:
-    #    ip.db['rootmodules'] = modules
+    if store:
+        db['rootmodules'] = modules
     return modules
 
 def moduleList(path):
