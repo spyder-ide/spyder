@@ -248,9 +248,11 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     comment = any("comment", [r"#[^\n]*"])
     instance = any("instance", [r"\bself\b"])
     number = any("number",
-                 [r"\b[+-]?[0-9]+[lL]?\b",
+                 [r"\b[+-]?[0-9]+[lLjJ]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
-                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\b"])
+                  r"\b[+-]?0[oO][0-7]+[lL]?\b",
+                  r"\b[+-]?0[bB][01]+[lL]?\b",
+                  r"\b[+-]?[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?[jJ]?\b"])
     sqstring =     r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring =     r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     uf_sqstring =  r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*(\\)$(?!')$"
