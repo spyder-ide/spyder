@@ -173,8 +173,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         custom_radio = self.create_radiobutton(
                                 _("Use the following startup script:"),
                                 'pythonstartup/custom', False)
-        pystartup_file = self.create_browsefile(_('Startup script:'),
-                                                'pythonstartup', '',
+        pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
         self.connect(default_radio, SIGNAL("toggled(bool)"),
@@ -192,11 +191,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Monitor Group
         monitor_group = QGroupBox(_("Monitor"))
         monitor_label = QLabel(_("The monitor provides introspection "
-                                       "features to console: code completion, "
-                                       "calltips and variable explorer. "
-                                       "Because it relies on several modules, "
-                                       "disabling the monitor may be useful "
-                                       "to accelerate console startup."))
+                                 "features to console: code completion, "
+                                 "calltips and variable explorer. "
+                                 "Because it relies on several modules, "
+                                 "disabling the monitor may be useful "
+                                 "to accelerate console startup."))
         monitor_label.setWordWrap(True)
         monitor_box = newcb(_("Enable monitor"), 'monitor/enabled')
         for obj in (completion_box, case_comp_box, show_single_box,
@@ -211,14 +210,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         # PyQt Group
         pyqt_group = QGroupBox(_("PyQt"))
-        pyqt_label = QLabel(_("PyQt installs an input hook that "
-                        "allows creating and interacting with widgets in an "
-                        "interactive interpreter without blocking it. It is "
-                        "strongly recommended to remove it on Windows "
-                        "platforms (it has no effect in IPython)."))
-        pyqt_label.setWordWrap(True)
         pyqt_hook_box = newcb(_("Remove PyQt input hook"),
-                              'remove_pyqt_inputhook')
+                              'remove_pyqt_inputhook',
+                              tip=_(
+"""PyQt installs an input hook that allows creating and interacting
+with widgets in an interactive interpreter without blocking it. 
+It is strongly recommended to remove it on Windows platforms 
+(it has no effect in IPython)."""))
         pyqt_setapi_box = newcb(_("Ignore API change errors "
                                         "(sip.setapi)"),
                                 'ignore_sip_setapi_errors')
@@ -228,7 +226,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             pyqt_setapi_box.setDisabled(True)
         
         pyqt_layout = QVBoxLayout()
-        pyqt_layout.addWidget(pyqt_label)
         pyqt_layout.addWidget(pyqt_hook_box)
         pyqt_layout.addWidget(pyqt_setapi_box)
         pyqt_group.setLayout(pyqt_layout)
@@ -247,9 +244,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         # Matplotlib Group
         mpl_group = QGroupBox(_("Matplotlib"))
-        mpl_label = QLabel(_("Patching Matplotlib library will add a "
-                             "button to customize figure options "
-                             "(curves/images plot parameters)."))
+        mpl_label = QLabel(_("Patching Matplotlib library will add a button "
+                             "to customize figure options (Qt4Agg only) and "
+                             "allows to change the GUI backend."))
         mpl_label.setWordWrap(True)
         mpl_patch_box = newcb(_("Patch Matplotlib figures"),
                               'mpl_patch/enabled')
