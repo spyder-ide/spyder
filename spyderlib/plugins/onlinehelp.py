@@ -28,6 +28,8 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
         self.main = parent
         PydocBrowser.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
+
+        self.register_widget_shortcuts("Editor", self.find_widget)
         
         self.webview.set_zoom_factor(self.get_option('zoom_factor'))
         self.url_combo.setMaxCount(self.get_option('max_history_entries'))

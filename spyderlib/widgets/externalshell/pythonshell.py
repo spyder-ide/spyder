@@ -542,7 +542,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self,
                                                 _("Select directory"), cwd)
-        if not directory.isEmpty():
+        if unicode(directory): # avoiding QString isEmpty method (API#2)
             self.shell.set_cwd(unicode(directory))
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
 

@@ -26,9 +26,8 @@ from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
                                 QKeySequence, QWidget, QVBoxLayout,
                                 QHBoxLayout, QLabel, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
-                                 QRegExp, PYQT_VERSION_STR, QVariant, QSize,
-                                 SLOT)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QEvent, QTimer, QRect, QRegExp,
+                                 PYQT_VERSION_STR, QVariant, QSize, SLOT)
 
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self 
@@ -914,10 +913,9 @@ class CodeEditor(TextEditBaseWidget):
             if block.isVisible() and bottom >= event.rect().top():
                 line_number = block_number+1
                 if self.linenumbers_margin:
-                    number = QString.number(line_number)
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
-                                     number)
+                                     unicode(line_number))
                 data = block.userData()
                 if self.markers_margin and data:
                     if data.code_analysis:

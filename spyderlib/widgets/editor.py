@@ -1380,7 +1380,8 @@ class EditorStack(QWidget):
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
-            if lastm.toString().compare(finfo.lastmodified.toString()):
+            if unicode(lastm.toString()) \
+               != unicode(finfo.lastmodified.toString()):
                 if finfo.editor.document().isModified():
                     answer = QMessageBox.question(self,
                                 self.title,
@@ -2254,7 +2255,7 @@ def test():
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
-    test.load("codeeditor/codeeditor.py")
+    test.load("sourcecode/codeeditor.py")
     test.show()
     sys.exit(app.exec_())
     

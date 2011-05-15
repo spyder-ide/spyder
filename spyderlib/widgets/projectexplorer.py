@@ -759,7 +759,8 @@ class ExplorerTreeWidget(OneColumnTree):
         self.set_title(title)
         
     def __sort_toplevel_items(self):
-        self.sort_top_level_items(key=lambda item: item.text(0).toLower())
+        self.sort_top_level_items(key=lambda item:
+                                  unicode(item.text(0)).lower())
         
     def add_project(self, root_path, silent=False):
         if self.is_project_already_here(root_path, silent=silent):
@@ -854,14 +855,14 @@ class ExplorerTreeWidget(OneColumnTree):
                                               _("Select project root path"),
                                               self.last_folder)
             self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
-            if folder.isEmpty():
-                return
-            else:
+            if unicode(folder):
                 folder = osp.abspath(unicode(folder))
                 self.last_folder = folder
                 if self.is_project_already_here(folder):
                     continue
                 return folder
+            else:
+                return
         
     def new_project(self):
         """Return True if project was created"""

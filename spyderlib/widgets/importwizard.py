@@ -15,7 +15,7 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QLineEdit, QFrame, QMenu, QIntValidator,
                                 QGroupBox, QMessageBox)
 from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                                 SIGNAL, SLOT, QString, pyqtSignature)
+                                 SIGNAL, SLOT, pyqtSignature)
 
 from functools import partial as ft_partial
 
@@ -358,7 +358,7 @@ class PreviewTable(QTableView):
             stripped = unicode(row).strip()
             if len(stripped) == 0 or stripped.startswith(comments):
                 continue
-            line = QString(row).split(colsep)
+            line = unicode(row).split(colsep)
             line = map(lambda x: try_to_parse(unicode(x)), line)
             out.append(line)
         if transpose:
@@ -585,4 +585,4 @@ def test(text):
         print dialog.get_data()
 
 if __name__ == "__main__":
-    test(QString(u"17/11/1976\t1.34\n14/05/09\t3.14"))
+    test(u"17/11/1976\t1.34\n14/05/09\t3.14")

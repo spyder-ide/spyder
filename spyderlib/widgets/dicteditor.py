@@ -732,7 +732,7 @@ class BaseTableView(QTableView):
         orig_key = self.model.keys[idx_rows[0]]
         new_key, valid = QInputDialog.getText(self, _( 'Rename'), _( 'Key:'),
                                               QLineEdit.Normal,orig_key)
-        if valid and not new_key.isEmpty():
+        if valid and unicode(new_key):
             new_key = try_to_eval(unicode(new_key))
             if new_key == orig_key:
                 return
@@ -762,7 +762,7 @@ class BaseTableView(QTableView):
         elif isinstance(data, dict):
             key, valid = QInputDialog.getText(self, _( 'Insert'), _( 'Key:'),
                                               QLineEdit.Normal)
-            if valid and not key.isEmpty():
+            if valid and unicode(key):
                 key = try_to_eval(unicode(key))
             else:
                 return
@@ -770,7 +770,7 @@ class BaseTableView(QTableView):
             return
         value, valid = QInputDialog.getText(self, _('Insert'), _('Value:'),
                                             QLineEdit.Normal)
-        if valid and not value.isEmpty():
+        if valid and unicode(value):
             self.new_value(key, try_to_eval(unicode(value)))
             
     def __prepare_plot(self):

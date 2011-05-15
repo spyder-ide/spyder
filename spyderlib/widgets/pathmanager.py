@@ -211,7 +211,7 @@ class PathManager(QDialog):
         directory = QFileDialog.getExistingDirectory(self,
                                  _("Select directory"), self.last_path)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
-        if not directory.isEmpty():
+        if unicode(directory):
             directory = osp.abspath(unicode(directory))
             self.last_path = directory
             if directory in self.pathlist:

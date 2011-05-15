@@ -173,7 +173,7 @@ class RunConfigOptions(QWidget):
             basedir = os.getcwdu()
         directory = QFileDialog.getExistingDirectory(self,
                                         _("Select directory"), basedir)
-        if not directory.isEmpty():
+        if unicode(directory): # avoiding QString isEmpty method (API#2)
             self.wd_edit.setText(directory)
             self.wd_cb.setChecked(True)
         

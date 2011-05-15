@@ -26,8 +26,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QFileDialog, QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir,
-                                 QStringList, QUrl)
+from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl
 
 import os, sys, re
 import os.path as osp
@@ -122,13 +121,13 @@ class DirView(QTreeView):
         
     def set_name_filters(self, name_filters):
         self.name_filters = name_filters
-        self.fsmodel.setNameFilters(QStringList(name_filters))
+        self.fsmodel.setNameFilters(name_filters)
         
     def set_show_all(self, state):
         if state:
-            self.fsmodel.setNameFilters(QStringList())
+            self.fsmodel.setNameFilters([])
         else:
-            self.fsmodel.setNameFilters(QStringList(self.name_filters))
+            self.fsmodel.setNameFilters(self.name_filters)
             
     def get_filename(self):
         """Return selected filename"""
@@ -422,7 +421,7 @@ class DirView(QTreeView):
                                 _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
                                 "\n"+_( "All files")+" (*)")
         sys.stdout = _temp
-        if not fname.isEmpty():
+        if unicode(fname):
             fname = unicode(fname)
             try:
                 if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):

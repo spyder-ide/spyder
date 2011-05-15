@@ -292,7 +292,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = QFileDialog.getExistingDirectory(self.main,
                     _("Select directory"), os.getcwdu())
-        if not directory.isEmpty():
+        if unicode(directory): # avoiding QString isEmpty method (API#2)
             self.chdir(directory)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         

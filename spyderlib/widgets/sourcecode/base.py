@@ -17,8 +17,8 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QTextDocument, QListWidget, QPlainTextEdit,
                                 QPalette, QMainWindow, QTextOption)
-from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QString,
-                                 QEventLoop)
+from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QEventLoop,
+                                 QObject)
 
 
 # Local imports
@@ -541,7 +541,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         """
         Set widget end-of-line (EOL) characters from text (analyzes text)
         """
-        if isinstance(text, QString):
+        if isinstance(text, QObject): # testing for QString, compat. with API#2
             text = unicode(text)
         eol_chars = sourcecode.get_eol_chars(text)
         if eol_chars is not None and self.eol_chars is not None:
@@ -571,7 +571,7 @@ class TextEditBaseWidget(QPlainTextEdit):
     #------Text selection
     def has_selected_text(self):
         """Returns True if some text is selected"""
-        return not self.textCursor().selectedText().isEmpty()
+        return bool(unicode(self.textCursor().selectedText()))
 
     def get_selected_text(self):
         """
@@ -622,13 +622,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         Positions may be positions or 'sol', 'eol', 'sof', 'eof' or 'cursor'
         """
         cursor = self.__select_text(position_from, position_to)
-        text = cursor.selectedText()
-        if not text.isEmpty():
-            while text.endsWith("\n"):
-                text.chop(1)
-            while text.endsWith(u"\u2029"):
-                text.chop(1)
-        return unicode(text)
+        text = unicode(cursor.selectedText())
+        if text:
+            while text.endswith("\n"):
+                text = text[:-1]
+            while text.endswith(u"\u2029"):
+                text = text[:-1]
+        return text
     
     def get_character(self, position):
         """Return character at *position*"""
@@ -667,12 +667,12 @@ class TextEditBaseWidget(QPlainTextEdit):
         if forward:
             moves += [QTextCursor.NextWord, QTextCursor.Start]
             if changed:
-                if cursor.selectedText().isEmpty():
-                    cursor.movePosition(QTextCursor.PreviousWord)
-                else:
+                if unicode(cursor.selectedText()):
                     new_position = min([cursor.selectionStart(),
                                         cursor.selectionEnd()])
                     cursor.setPosition(new_position)
+                else:
+                    cursor.movePosition(QTextCursor.PreviousWord)
         else:
             moves += [QTextCursor.End]
         if not regexp:
@@ -742,13 +742,13 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.beginEditBlock()
         orig_sel = start_pos, end_pos = (cursor.selectionStart(),
                                          cursor.selectionEnd())
-        if not cursor.selectedText().isEmpty():
+        if unicode(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
             # changes from the previous block
             cursor.movePosition(QTextCursor.StartOfBlock,
                                 QTextCursor.KeepAnchor)
-            if cursor.selectedText().isEmpty():
+            if not unicode(cursor.selectedText()):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 end_pos = cursor.position()
             

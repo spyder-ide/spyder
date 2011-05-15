@@ -58,7 +58,7 @@ from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
                                 QTabWidget, QApplication, QStackedWidget,
                                 QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
                                 QFontDatabase, QGridLayout, QDoubleValidator)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QString,
+from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QObject,
                                  pyqtSignature, pyqtProperty)
 import datetime
 
@@ -107,7 +107,7 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if isinstance(text, QString):
+    if isinstance(text, QObject): # testing for QString (compat. with API#2)
         text = str(text)
     if not isinstance(text, (unicode, str)):
         return color

@@ -517,7 +517,7 @@ class FindOptions(QWidget):
         directory = QFileDialog.getExistingDirectory(self,
                                                  _("Select directory"),
                                                  self.dir_combo.currentText())
-        if not directory.isEmpty():
+        if unicode(directory):
             self.set_directory(directory)
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
         

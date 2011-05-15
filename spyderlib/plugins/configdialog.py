@@ -403,7 +403,7 @@ class SpyderConfigPage(ConfigPage):
             basedir = os.getcwdu()
         title = _("Select directory")
         directory = QFileDialog.getExistingDirectory(self, title, basedir)
-        if not directory.isEmpty():
+        if unicode(directory): # avoiding QString isEmpty method (API#2)
             edit.setText(directory)
     
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
