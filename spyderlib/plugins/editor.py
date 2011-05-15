@@ -11,12 +11,12 @@
 # pylint: disable-msg=R0911
 # pylint: disable-msg=R0201
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
-                                QPrintDialog, QSplitter, QToolBar, QAction,
-                                QApplication, QDialog, QWidget, QPrinter,
-                                QActionGroup, QInputDialog, QMenu,
-                                QAbstractPrintDialog, QGroupBox, QTabWidget,
-                                QLabel, QFontComboBox, QHBoxLayout)
+from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QPrintDialog,
+                                QSplitter, QToolBar, QAction, QApplication,
+                                QDialog, QWidget, QPrinter, QActionGroup,
+                                QInputDialog, QMenu, QAbstractPrintDialog,
+                                QGroupBox, QTabWidget, QLabel, QFontComboBox,
+                                QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
 
 import os, sys, time, re
@@ -27,7 +27,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.config import get_conf_path, get_icon, CONF, get_color_scheme, _
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import get_icon, CONF, get_color_scheme, _
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_std_icon, get_filetype_icon)

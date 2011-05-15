@@ -12,7 +12,8 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import _
 from spyderlib.widgets.pydocgui import PydocBrowser
 from spyderlib.plugins import SpyderPluginMixin
 

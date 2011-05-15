@@ -194,7 +194,8 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.config import get_conf_path, get_spyderplugins_mods
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import get_spyderplugins_mods
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',

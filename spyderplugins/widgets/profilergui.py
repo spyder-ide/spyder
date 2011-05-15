@@ -40,7 +40,8 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
-from spyderlib.config import get_icon, get_conf_path
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import get_icon
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.utils.translations import get_translation

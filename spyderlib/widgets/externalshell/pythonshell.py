@@ -394,10 +394,10 @@ class ExternalPythonShell(ExternalShellBase):
             env.append('SPYDER_SHELL_ID=%s' % id(self))
             env.append('SPYDER_AR_TIMEOUT=%d' % self.autorefresh_timeout)
             env.append('SPYDER_AR_STATE=%r' % self.autorefresh_state)
-            from spyderlib.widgets.externalshell import monitor
-            introspection_server = monitor.start_introspection_server()
+            from spyderlib.widgets.externalshell import introspection
+            introspection_server = introspection.start_introspection_server()
             introspection_server.register(self)
-            notification_server = monitor.start_notification_server()
+            notification_server = introspection.start_notification_server()
             self.notification_thread = notification_server.register(self)
             self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno:

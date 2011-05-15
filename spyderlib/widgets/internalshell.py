@@ -39,7 +39,8 @@ from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.config import CONF, get_conf_path, _
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import CONF, _
 from spyderlib.widgets.shell import PythonShellWidget
 
 

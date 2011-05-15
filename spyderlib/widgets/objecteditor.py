@@ -54,8 +54,9 @@ def oedit(obj, modal=True, namespace=None):
     """
     # Local import
     from spyderlib.widgets.texteditor import TextEditor
-    from spyderlib.widgets.dicteditor import (DictEditor, ndarray, FakeObject,
-                                              Image, is_known_type)
+    from spyderlib.widgets.dicteditorutils import (ndarray, FakeObject,
+                                                   Image, is_known_type)
+    from spyderlib.widgets.dicteditor import DictEditor
     from spyderlib.widgets.arrayeditor import ArrayEditor
     
     from spyderlib.utils.qthelpers import qapplication

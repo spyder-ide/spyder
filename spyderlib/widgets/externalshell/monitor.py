@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
-import threading, socket, thread, struct, cPickle as pickle
+import os, threading, socket, thread, struct, cPickle as pickle
 
-from spyderlib.qt.QtCore import QThread, SIGNAL
-
-from spyderlib.config import str2type, get_conf_path
-from spyderlib.utils import select_port, fix_reference_name, log_last_error
-from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource, getobjdir,
-                                        isdefined)
-from spyderlib.widgets.dicteditor import (get_type, get_size, get_color_name,
-                                          value_to_display, globalsfilter)
+# Local imports
+from spyderlib.utils import fix_reference_name, log_last_error
+from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
+                                        getobjdir, isdefined)
+from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
+                                       PACKET_NOT_RECEIVED)
+from spyderlib.baseconfig import get_conf_path, str2type
 
 
 LOG_FILENAME = get_conf_path('monitor.log')
@@ -39,6 +38,7 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * itermax: maximum iterations when walking in sequences
           (dict, list, tuple)
     """
+    from spyderlib.widgets.dicteditorutils import globalsfilter
     assert mode in ('editable', 'picklable')
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
@@ -60,6 +60,8 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
+    from spyderlib.widgets.dicteditorutils import (get_type, get_size,
+                                              get_color_name, value_to_display)
     assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, mode='editable',
                            more_excluded_names=more_excluded_names)
@@ -74,76 +76,6 @@ def make_remote_view(data, settings, more_excluded_names=None):
                        'view':  view}
     return remote
     
-
-SZ = struct.calcsize("l")
-    
-def write_packet(sock, data, already_pickled=False):
-    """Write *data* to socket *sock*"""
-    if already_pickled:
-        sent_data = data
-    else:
-        sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-    sock.send(struct.pack("l", len(sent_data)) + sent_data)
-
-def read_packet(sock, timeout=None):
-    """
-    Read data from socket *sock*
-    Returns None if something went wrong
-    """
-    sock.settimeout(timeout)
-    dlen, data = None, None
-    try:
-        datalen = sock.recv(SZ)
-        dlen, = struct.unpack("l", datalen)
-        data = ''
-        while len(data) < dlen:
-            data += sock.recv(dlen)
-    except socket.timeout:
-        raise
-    except socket.error:
-        data = None
-    finally:
-        sock.settimeout(None)
-    if data is not None:
-        try:
-            return pickle.loads(data)
-        except (EOFError, pickle.UnpicklingError):
-            return
-
-# old com implementation: (see solution (1) in Issue 434)
-def communicate(sock, command, settings=[]):
-## new com implementation: (see solution (2) in Issue 434)
-#def communicate(sock, command, settings=[], timeout=None):
-    """Communicate with monitor"""
-    write_packet(sock, command)
-    for option in settings:
-        write_packet(sock, option)
-    # old com implementation: (see solution (1) in Issue 434)
-    return read_packet(sock)
-#    # new com implementation: (see solution (2) in Issue 434)
-#    if timeout == 0.:
-#        # non blocking socket is not really supported:
-#        # setting timeout to 0. here is equivalent (in current monitor's 
-#        # implementation) to say 'I don't need to receive anything in return'
-#        return
-#    while True:
-#        output = read_packet(sock, timeout=timeout)
-#        if output is None:
-#            return
-#        output_command, output_data = output
-#        if command == output_command:
-#            return output_data
-#        elif DEBUG:
-#            logging.debug("###### communicate/warning /Begin ######")
-#            logging.debug("was expecting '%s', received '%s'" \
-#                          % (command, output_command))
-#            logging.debug("###### communicate/warning /End   ######")
-
-class PacketNotReceived(object):
-    pass
-
-PACKET_NOT_RECEIVED = PacketNotReceived()
-
 
 def monitor_save_globals(sock, settings, filename):
     """Save globals() to file"""
@@ -188,7 +120,6 @@ def monitor_is_image(sock, name):
 
 def _getcdlistdir():
     """Return current directory list dir"""
-    import os
     return os.listdir(os.getcwdu())
 
 class Monitor(threading.Thread):
@@ -346,7 +277,6 @@ class Monitor(threading.Thread):
         if self.ipython_shell:
             return self.ipython_shell.magic_pwd()
         else:
-            import os
             return os.getcwdu()
     
     def setcwd(self, dirname):
@@ -354,18 +284,15 @@ class Monitor(threading.Thread):
         if self.ipython_shell:
             self.ipython_shell.magic_cd("-q "+dirname)
         else:
-            import os
             return os.chdir(dirname)
             
     def getenv(self):
         """Return os.environ"""
-        import os
         return os.environ.copy()
         
     def setenv(self):
         """Set os.environ"""
         env = read_packet(self.i_request)
-        import os
         os.environ = env
 
     def getsyspath(self):
@@ -521,154 +448,3 @@ class Monitor(threading.Thread):
                     logging.debug("****** Introspection request /End ******")
                 if command is not PACKET_NOT_RECEIVED:
                     write_packet(self.i_request, output, already_pickled=True)
-
-
-SPYDER_PORT = 20128
-
-class IntrospectionServer(threading.Thread):
-    def __init__(self):
-        threading.Thread.__init__(self)
-        self.shells = {}
-        self.setDaemon(True)
-        global SPYDER_PORT
-        self.port = SPYDER_PORT = select_port(default_port=SPYDER_PORT)
-        SPYDER_PORT += 1
-        
-    def register(self, shell):
-        shell_id = str(id(shell))
-        self.shells[shell_id] = shell
-    
-    def send_socket(self, shell_id, sock):
-        """Send socket to the appropriate object for later communication"""
-        shell = self.shells[shell_id]
-        shell.set_introspection_socket(sock)
-        if DEBUG:
-            logging.debug('Introspection server: shell [%r] port [%r]'
-                          % (shell, self.port))
-        
-    def run(self):
-        s = socket.socket(socket.AF_INET)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        s.bind( ("127.0.0.1", self.port) )
-        
-        while True:
-            s.listen(2)
-            s2, _addr = s.accept()
-            shell_id = read_packet(s2)
-            self.send_socket(shell_id, s2)
-
-class NotificationServer(IntrospectionServer):
-    def __init__(self):
-        IntrospectionServer.__init__(self)
-        self.notification_threads = {}
-        
-    def register(self, shell):
-        IntrospectionServer.register(self, shell)
-        shell_id = str(id(shell))
-        nt = self.notification_threads[shell_id] = NotificationThread(shell)
-        return nt
-    
-    def send_socket(self, shell_id, sock):
-        """Send socket to the appropriate object for later communication"""
-        nt = self.notification_threads[shell_id]
-        nt.set_notify_socket(sock)
-        nt.start()
-        if DEBUG:
-            logging.debug('Notification server: shell [%r] port [%r]'
-                          % (self.shells[shell_id], self.port))
-
-INTROSPECTION_SERVER = None
-
-def start_introspection_server():
-    """
-    Start introspection server (only one time)
-    This server is dedicated to introspection features, i.e. Spyder is calling 
-    it to retrieve informations on remote objects
-    """
-    global INTROSPECTION_SERVER
-    if INTROSPECTION_SERVER is None:
-        if DEBUG:
-            import time
-            TIME_STR = "Logging time: %s" % time.ctime(time.time())
-            logging.debug("="*len(TIME_STR))
-            logging.debug(TIME_STR)
-            logging.debug("="*len(TIME_STR))
-        INTROSPECTION_SERVER = IntrospectionServer()
-        INTROSPECTION_SERVER.start()
-    return INTROSPECTION_SERVER
-
-NOTIFICATION_SERVER = None
-
-def start_notification_server():
-    """
-    Start notify server (only one time)
-    This server is dedicated to notification features, i.e. remote objects 
-    are notifying Spyder about anything relevant like debugging data (pdb) 
-    or "this is the right moment to refresh variable explorer" (syshook)
-    """
-    global NOTIFICATION_SERVER
-    if NOTIFICATION_SERVER is None:
-        NOTIFICATION_SERVER = NotificationServer()
-        NOTIFICATION_SERVER.start()
-    return NOTIFICATION_SERVER
-
-
-class NotificationThread(QThread):
-    def __init__(self, shell):
-        QThread.__init__(self, shell)
-        self.shell = shell
-        self.notify_socket = None
-        
-    def set_notify_socket(self, notify_socket):
-        self.notify_socket = notify_socket
-        
-    def run(self):
-        while True:
-            if self.notify_socket is None:
-                continue
-            output = None
-            try:
-                try:
-                    cdict = read_packet(self.notify_socket)
-                except:
-                    # This except statement is intended to handle a struct.error
-                    # (but when writing 'except struct.error', it doesn't work)
-                    # Note: struct.error is raised when the communication has 
-                    # been interrupted and the received data is not a string 
-                    # of length 8 as required by struct.unpack (see read_packet)
-                    break
-                if cdict is None:
-                    # Another notification thread has just terminated and 
-                    # then wrote 'None' in the notification socket
-                    # (see the 'finally' statement below)
-                    continue
-                if not isinstance(cdict, dict):
-                    raise TypeError("Invalid data type: %r" % cdict)
-                command = cdict['command']
-                data = cdict.get('data')
-                if command == 'pdb_step':
-                    fname, lineno = data
-                    self.emit(SIGNAL('pdb(QString,int)'), fname, lineno)
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
-                elif command == 'refresh':
-                    self.emit(SIGNAL('refresh_namespace_browser()'))
-                elif command == 'get_remote_view_settings':
-                    nsb = self.shell.namespacebrowser
-                    if nsb is not None:
-                        output = nsb.get_remote_view_settings()
-                elif command == 'remote_view':
-                    self.emit(SIGNAL('process_remote_view(PyQt_PyObject)'),
-                              data)
-                else:
-                    raise RuntimeError('Unsupported command: %r' % command)
-                if DEBUG:
-                    logging.debug("received command: %r" % command)
-            except:
-                log_last_error(LOG_FILENAME, "notification thread")
-            finally:
-                try:
-                    write_packet(self.notify_socket, output)
-                except:
-                    # The only reason why it should fail is that Spyder is 
-                    # closing while this thread is still alive
-                    break

@@ -18,7 +18,8 @@ import sys, re, os.path as osp, socket
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import (get_conf_path, get_icon, CONF, get_color_scheme,
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import (get_icon, CONF, get_color_scheme,
                               get_font, set_font, _)
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,

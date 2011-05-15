@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
-Spyder configuration management
+Spyder GUI-related configuration management
+(for non-GUI configuration, see spyderlib/baseconfig.py)
 
 Important note regarding shortcuts:
     For compatibility with QWERTZ keyboards, one must avoid using the following
@@ -14,11 +15,12 @@ Important note regarding shortcuts:
 """
 
 import os, sys, os.path as osp
-from datetime import date
 from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
-from userconfig import UserConfig, get_home_dir, NoDefault
+from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
+from spyderlib.baseconfig import (SUBFOLDER, EDITABLE_TYPES, PICKLABLE_TYPES,
+                                  ITERMAX, EXCLUDED, type2str)
 
 
 DATA_DEV_PATH = osp.dirname(__file__)
@@ -30,35 +32,6 @@ DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
 # The two following lines are patched when making the debian package:
 DATA_PATH = DATA_DEV_PATH # @@@DATA_PATH@@@
 DOC_PATH = DOC_DEV_PATH # @@@DOC_PATH@@@
-
-EDITABLE_TYPES = [int, long, float, list, dict, tuple, str, unicode, date]
-try:
-    from numpy import ndarray, matrix
-    EDITABLE_TYPES += [ndarray, matrix]
-except ImportError:
-    pass
-PICKLABLE_TYPES = EDITABLE_TYPES[:]
-try:
-    from PIL.Image import Image
-    EDITABLE_TYPES.append(Image)
-except ImportError:
-    pass
-
-# Max number of filter iterations for worskpace display:
-# (for workspace saving, itermax == -1, see Workspace.save)
-ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
-
-EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
-            'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
-            'Inf', 'Infinity']
-
-def type2str(types):
-    """Convert types to strings"""
-    return [typ.__name__ for typ in types]
-
-def str2type(strings):
-    """Convert strings to types"""
-    return tuple( [eval(string) for string in strings] )
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Bitstream Charter', 'Lucida Grande', 'Verdana', 'Geneva',
@@ -327,15 +300,12 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-from spyderlib import __version__
-_subfolder = '.spyder%s' % __version__.split('.')[0]
 CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.0.6',
-                  subfolder=_subfolder, backup=True, raw_mode=True)
+                  subfolder=SUBFOLDER, backup=True, raw_mode=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
     os.remove(old_location)
-
 
 # Translation support
 if CONF.get('main', 'translation'):
@@ -344,16 +314,6 @@ if CONF.get('main', 'translation'):
 else:
     _ = lambda x: x
 
-
-def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename"""
-    conf_dir = osp.join(get_home_dir(), _subfolder)
-    if not osp.isdir(conf_dir):
-        os.mkdir(conf_dir)
-    if filename is None:
-        return conf_dir
-    else:
-        return osp.join(conf_dir, filename)
 
 IMG_PATH = []
 def add_image_path(path):

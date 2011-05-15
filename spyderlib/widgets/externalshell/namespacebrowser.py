@@ -23,14 +23,16 @@ from spyderlib.widgets.externalshell.monitor import (
                 monitor_is_array, monitor_is_image, monitor_is_none,
                 communicate, REMOTE_SETTINGS)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
-                                          DictEditorTableView, globalsfilter)
+                                          DictEditorTableView)
+from spyderlib.widgets.dicteditorutils import globalsfilter
 from spyderlib.utils import encoding, fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.config import get_icon, str2type, _
+from spyderlib.baseconfig import str2type
+from spyderlib.config import get_icon, _
 
 
 class NamespaceBrowser(QWidget):

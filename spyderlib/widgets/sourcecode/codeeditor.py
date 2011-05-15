@@ -33,8 +33,8 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, QString, QEvent, QTimer, QRect,
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self 
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.config import (CONF, get_font, get_icon, get_image_path, _,
-                              get_conf_path)
+from spyderlib.baseconfig import get_conf_path
+from spyderlib.config import CONF, get_font, get_icon, get_image_path, _
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
