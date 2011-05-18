@@ -677,6 +677,7 @@ class ObjectInspector(SpyderPluginWidget):
                               "<br><br>Error message:<br>%s"
                               ) % (sphinx.__version__, str(error)))
                 self.plain_text_action.setChecked(True)
+                return
         else:
             html_text = '<div id=\"warning\">'+self.no_doc_string+'</div>'
         html_text = HTML_HEAD + html_text + HTML_TAIL
