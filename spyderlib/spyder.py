@@ -317,6 +317,7 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         
         self.window_size = None
+        self.window_position = None
         self.state_before_maximizing = None
         self.current_quick_layout = None
         self.previous_layout_settings = None
@@ -834,35 +835,38 @@ class MainWindow(QMainWindow):
         width, height = size.width(), size.height()
         is_maximized = self.isMaximized()
         is_fullscreen = self.isFullScreen()
-        pos = self.pos()
+        pos = self.window_position
         posx, posy = pos.x(), pos.y()
         hexstate = str(self.saveState().toHex())
         return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
         
     def set_window_settings(self, hexstate, width, height, posx, posy,
                             is_maximized, is_fullscreen):
-        self.resize( QSize(width, height) )
-        self.window_size = self.size()
-        self.move( QPoint(posx, posy) )
-        
+        self.setUpdatesEnabled(False)
+        self.window_size = QSize(width, height)
+        self.window_position = QPoint(posx, posy)
+        self.setWindowState(Qt.WindowNoState)
+        self.resize(self.window_size)
+        self.move(self.window_position)
         if not self.light:
             # Window layout
             if hexstate:
                 self.restoreState( QByteArray().fromHex(str(hexstate)) )
-            # Is maximized?
-            if is_maximized:
-                self.setWindowState(Qt.WindowMaximized)
             # Is fullscreen?
             if is_fullscreen:
                 self.setWindowState(Qt.WindowFullScreen)
             self.__update_fullscreen_action()
+        # Is maximized?
+        if is_maximized:
+            self.setWindowState(Qt.WindowMaximized)
+        self.setUpdatesEnabled(True)
         
     def save_current_window_settings(self, prefix, section='main'):
         size = self.window_size
         CONF.set(section, prefix+'size', (size.width(), size.height()))
         CONF.set(section, prefix+'is_maximized', self.isMaximized())
         CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
-        pos = self.pos()
+        pos = self.window_position
         CONF.set(section, prefix+'position', (pos.x(), pos.y()))
         if not self.light:
             self.maximize_dockwidget(restore=True)# Restore non-maximized layout
@@ -1065,6 +1069,12 @@ class MainWindow(QMainWindow):
         if not self.isMaximized() and not self.fullscreen_flag:
             self.window_size = self.size()
         QMainWindow.resizeEvent(self, event)
+        
+    def moveEvent(self, event):
+        """Reimplement Qt method"""
+        if not self.isMaximized() and not self.fullscreen_flag:
+            self.window_position = self.pos()
+        QMainWindow.moveEvent(self, event)
         
     def closing(self, cancelable=False):
         """Exit tasks"""
