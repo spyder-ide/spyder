@@ -1551,15 +1551,15 @@ class CodeEditor(TextEditBaseWidget):
         block_nb = cursor.blockNumber()
         cursor.movePosition(QTextCursor.PreviousBlock)
         prevtext = unicode(cursor.block().text()).rstrip()
-        indent = self.get_indentation(block_nb)
-        correct_indent = self.get_indentation(block_nb-1)
+        indent = self.get_block_indentation(block_nb)
+        correct_indent = self.get_block_indentation(block_nb-1)
         if prevtext.endswith(':'):
             # Indent            
-            correct_indent += 4
+            correct_indent += len(self.indent_chars)
         elif prevtext.endswith('continue') or prevtext.endswith('break') \
              or prevtext.endswith('pass'):
             # Unindent
-            correct_indent -= 4
+            correct_indent -= len(self.indent_chars)
         elif prevtext.endswith(',') \
              and len(re.split(r'\(|\{|\[', prevtext)) > 1:
             rlmap = {")":"(", "]":"[", "}":"{"}
@@ -1588,7 +1588,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor.movePosition(QTextCursor.StartOfBlock)
             cursor.setPosition(cursor.position()+indent, QTextCursor.KeepAnchor)
             cursor.removeSelectedText()
-            cursor.insertText(" "*correct_indent)
+            cursor.insertText(self.indent_chars[0]*correct_indent)
             cursor.endEditBlock()
             return True
     
@@ -1816,13 +1816,14 @@ class CodeEditor(TextEditBaseWidget):
                 QPlainTextEdit.keyPressEvent(self, event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
-                if leading_length > 4 and not leading_text.strip():
-                    if leading_length % 4 == 0:
+                if not leading_text.strip() \
+                   and leading_length > len(self.indent_chars):
+                    if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
                         QPlainTextEdit.keyPressEvent(self, event)
                 elif trailing_spaces and not trailing_text.strip():
-                    self.remove_suffix(" "*trailing_spaces)
+                    self.remove_suffix(leading_text[-trailing_spaces:])
                 elif leading_text and trailing_text and \
                      leading_text[-1]+trailing_text[0] in ('()', '[]', '{}'):
                     cursor = self.textCursor()

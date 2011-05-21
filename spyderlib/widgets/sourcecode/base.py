@@ -719,7 +719,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cursor.select(QTextCursor.WordUnderCursor)
         return unicode(cursor.selectedText())
     
-    def get_indentation(self, block_nb):
+    def get_block_indentation(self, block_nb):
         """Return line indentation (character number)"""
         text = unicode(self.document().findBlockByNumber(block_nb).text())
         return len(text)-len(text.lstrip())
