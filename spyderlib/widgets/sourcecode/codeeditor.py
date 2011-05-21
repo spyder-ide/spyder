@@ -1592,12 +1592,17 @@ class CodeEditor(TextEditBaseWidget):
             cursor.endEditBlock()
             return True
     
-    def indent(self):
-        """Indent current line or selection"""
+    def indent(self, force=False):
+        """
+        Indent current line or selection
+        
+        force=True: indent even if cursor is not a the beginning of the line
+        """
         leading_text = self.get_text('sol', 'cursor')
         if self.has_selected_text():
             self.add_prefix(self.indent_chars)
-        elif not leading_text.strip() or (self.tab_indents and self.tab_mode):
+        elif force or not leading_text.strip() \
+             or (self.tab_indents and self.tab_mode):
             if self.is_python() or self.is_cython():
                 if not self.fix_indent(forward=True):
                     self.add_prefix(self.indent_chars)
@@ -1628,13 +1633,18 @@ class CodeEditor(TextEditBaseWidget):
                 else:
                     self.replace(self.indent_chars)
     
-    def unindent(self):
-        """Unindent current line or selection"""
+    def unindent(self, force=False):
+        """
+        Unindent current line or selection
+        
+        force=True: unindent even if cursor is not a the beginning of the line
+        """
         if self.has_selected_text():
             self.remove_prefix(self.indent_chars)
         else:
             leading_text = self.get_text('sol', 'cursor')
-            if not leading_text.strip() or (self.tab_indents and self.tab_mode):
+            if force or not leading_text.strip() \
+               or (self.tab_indents and self.tab_mode):
                 if self.is_python() or self.is_cython():
                     if not self.fix_indent(forward=False):
                         self.remove_prefix(self.indent_chars)
@@ -1892,7 +1902,7 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = unicode(self.textCursor().block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
-                    self.unindent()
+                    self.unindent(force=True)
             QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_Space and not shift and not ctrl \
              and not self.has_selected_text() and self.auto_unindent_enabled:
@@ -1901,7 +1911,7 @@ class CodeEditor(TextEditBaseWidget):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
                 prevtxt = unicode(self.textCursor().block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
-                    self.unindent()
+                    self.unindent(force=True)
             QPlainTextEdit.keyPressEvent(self, event)
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
