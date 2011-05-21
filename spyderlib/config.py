@@ -186,6 +186,7 @@ DEFAULTS = [
               'close_parentheses': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
+              'tab_stop_width': 40,
               'object_inspector': True,
               'codecompletion/auto': True,
               'codecompletion/enter_key': True,

@@ -395,6 +395,7 @@ class EditorStack(QWidget):
         self.close_parentheses_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
+        self.tab_stop_width = 40
         self.inspector_enabled = False
         self.default_font = None
         self.wrap_enabled = False
@@ -735,6 +736,13 @@ class EditorStack(QWidget):
         if self.data:
             for finfo in self.data:
                 finfo.editor.set_indent_chars(indent_chars)
+                
+    def set_tab_stop_width(self, tab_stop_width):
+        # CONF.get(self.CONF_SECTION, 'tab_stop_width')
+        self.tab_stop_width = tab_stop_width
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.setTabStopWidth(tab_stop_width)
                 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
@@ -1521,6 +1529,7 @@ class EditorStack(QWidget):
                 close_parentheses=self.close_parentheses_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
+                tab_stop_width=self.tab_stop_width,
                 cloned_from=cloned_from)
         if cloned_from is None:
             editor.set_text(txt)

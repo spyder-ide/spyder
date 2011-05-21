@@ -170,6 +170,8 @@ class EditorConfigPage(PluginConfigPage):
                                         ((_("4 spaces"), '*    *'),
                                          (_("2 spaces"), '*  *'),
                                          (_("tab"), '*\t*')), 'indent_chars')
+        tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
+                                            'tab_stop_width', 40, 10, 1000, 10)
         tab_mode_box = newcb(_("Tab always indent"),
               'tab_always_indent', default=False,
               tip=_("If enabled, pressing Tab will always indent,\n"
@@ -236,6 +238,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(closepar_box)
         sourcecode_layout.addWidget(autounindent_box)
         sourcecode_layout.addWidget(indent_chars_box)
+        sourcecode_layout.addWidget(tabwidth_spin)
         sourcecode_layout.addWidget(tab_mode_box)
         sourcecode_layout.addWidget(ibackspace_box)
         sourcecode_layout.addWidget(removetrail_box)
@@ -942,6 +945,7 @@ class Editor(SpyderPluginWidget):
             ('set_close_parentheses_enabled',       'close_parentheses'),
             ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_indent_chars',                    'indent_chars'),
+            ('set_tab_stop_width',                  'tab_stop_width'),
             ('set_inspector_enabled',               'object_inspector'),
             ('set_wrap_enabled',                    'wrap'),
             ('set_tabmode_enabled',                 'tab_always_indent'),
@@ -1879,6 +1883,8 @@ class Editor(SpyderPluginWidget):
             autounindent_o = self.get_option(autounindent_n)
             indent_chars_n = 'indent_chars'
             indent_chars_o = self.get_option(indent_chars_n)
+            tab_stop_width_n = 'tab_stop_width'
+            tab_stop_width_o = self.get_option(tab_stop_width_n)
             inspector_n = 'object_inspector'
             inspector_o = self.get_option(inspector_n)
             todo_n = 'todo_list'
@@ -1944,6 +1950,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_auto_unindent_enabled(autounindent_o)
                 if indent_chars_n in options:
                     editorstack.set_indent_chars(indent_chars_o)
+                if tab_stop_width_n in options:
+                    editorstack.set_tab_stop_width(tab_stop_width_o)
                 if inspector_n in options:
                     editorstack.set_inspector_enabled(inspector_o)
                 if todo_n in options:
