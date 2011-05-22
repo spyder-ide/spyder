@@ -323,6 +323,9 @@ class MainWindow(QMainWindow):
         self.previous_layout_settings = None
         self.last_plugin = None
         self.fullscreen_flag = None # isFullscreen does not work as expected
+        # The following flag remember the maximized state even when 
+        # the window is in fullscreen mode:
+        self.maximized_flag = None
         
         # Session manager
         self.next_session_name = None
@@ -833,8 +836,11 @@ class MainWindow(QMainWindow):
     def get_window_settings(self):
         size = self.window_size
         width, height = size.width(), size.height()
-        is_maximized = self.isMaximized()
         is_fullscreen = self.isFullScreen()
+        if is_fullscreen:
+            is_maximized = self.maximized_flag
+        else:
+            is_maximized = self.isMaximized()
         pos = self.window_position
         posx, posy = pos.x(), pos.y()
         hexstate = str(self.saveState().toHex())
@@ -857,7 +863,9 @@ class MainWindow(QMainWindow):
                 self.setWindowState(Qt.WindowFullScreen)
             self.__update_fullscreen_action()
         # Is maximized?
-        if is_maximized:
+        if is_fullscreen:
+            self.maximized_flag = is_maximized
+        elif is_maximized:
             self.setWindowState(Qt.WindowMaximized)
         self.setUpdatesEnabled(True)
         
@@ -1166,7 +1174,10 @@ class MainWindow(QMainWindow):
         if self.isFullScreen():
             self.fullscreen_flag = False
             self.showNormal()
+            if self.maximized_flag:
+                self.showMaximized()
         else:
+            self.maximized_flag = self.isMaximized()
             self.fullscreen_flag = True
             self.showFullScreen()
         self.__update_fullscreen_action()
