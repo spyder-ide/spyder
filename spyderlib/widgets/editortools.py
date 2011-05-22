@@ -56,17 +56,19 @@ def check(source_code, filename=None):
                           pyflakes.messages.UndefinedLocal,
                           pyflakes.messages.DuplicateArgument,
                           pyflakes.messages.LateFutureImport)
+        lines = source_code.splitlines()
         for warning in w.messages:
-            results.append( (warning.message % warning.message_args,
-                             warning.lineno,
-                             isinstance(warning, error_messages)) )
+            if 'pyflakes:ignore' not in lines[warning.lineno-1]:
+                results.append( (warning.message % warning.message_args,
+                                 warning.lineno,
+                                 isinstance(warning, error_messages)) )
         return results
 
 if __name__ == '__main__':
-    check_results = check(osp.abspath("../../spyder.py"))
+    fname = __file__
+    check_results = check(file(fname, 'U').read(), fname)
     for message, line, error in check_results:
         print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
-
 
 #===============================================================================
 # Class browser
