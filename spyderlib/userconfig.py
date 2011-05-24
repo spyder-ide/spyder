@@ -33,7 +33,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '1.0.12'
+__version__ = '1.0.13'
 __license__ = __doc__
 
 import os, re, os.path as osp, shutil
@@ -73,11 +73,10 @@ class UserConfig(ConfigParser):
     Note that 'get' and 'set' arguments number and type
     differ from the overriden methods
     """
-    
-    default_section_name = 'main'
-    
+    DEFAULT_SECTION_NAME = 'main'
     def __init__(self, name, defaults=None, load=True, version=None,
-                 subfolder=None, backup=False, raw_mode=False):
+                 subfolder=None, backup=False, raw_mode=False,
+                 remove_obsolete=False):
         ConfigParser.__init__(self)
         self.raw = 1 if raw_mode else 0
         self.subfolder = subfolder
@@ -85,7 +84,7 @@ class UserConfig(ConfigParser):
             raise ValueError("Version number %r is incorrect - must be in X.Y.Z format" % version)
         self.name = name
         if isinstance(defaults, dict):
-            defaults = [ (self.default_section_name, defaults) ]
+            defaults = [ (self.DEFAULT_SECTION_NAME, defaults) ]
         self.defaults = defaults
         if defaults is not None:
             self.reset_to_defaults(save=False)
@@ -107,7 +106,8 @@ class UserConfig(ConfigParser):
                         pass
                 # Version has changed -> overwriting .ini file
                 self.reset_to_defaults(save=False)
-                self.__remove_deprecated_options()
+                if remove_obsolete:
+                    self.__remove_deprecated_options()
                 # Set new version number
                 self.set_version(version, save=False)
             if defaults is None:
@@ -118,11 +118,11 @@ class UserConfig(ConfigParser):
         
     def get_version(self, version='0.0.0'):
         """Return configuration (not application!) version"""
-        return self.get(self.default_section_name, 'version', version)
+        return self.get(self.DEFAULT_SECTION_NAME, 'version', version)
         
     def set_version(self, version='0.0.0', save=True):
         """Set configuration (not application!) version"""
-        self.set(self.default_section_name, 'version', version, save=save)
+        self.set(self.DEFAULT_SECTION_NAME, 'version', version, save=save)
 
     def load_from_ini(self):
         """
@@ -199,7 +199,7 @@ class UserConfig(ConfigParser):
         Private method to check section and option types
         """
         if section is None:
-            section = self.default_section_name
+            section = self.DEFAULT_SECTION_NAME
         elif not isinstance(section, (str, unicode)):
             raise ValueError, "Argument 'section' must be a string"
         if not isinstance(option, (str, unicode)):
