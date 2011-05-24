@@ -231,6 +231,20 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
         except ImportError:
             pass
 
+
+# Workaround #1 to make the HDF5 I/O variable explorer plugin work:
+# we import h5py without IPython support (otherwise, Spyder will crash 
+# when initializing IPython in startup.py).
+# (see startup.py for the Workaround #2)
+if monitor and not os.environ.get('IPYTHON', False):
+    sys.modules['IPython'] = None
+    try:
+        import h5py #@UnusedImport
+    except ImportError:
+        pass
+    del sys.modules['IPython']
+
+
 ## Restoring original PYTHONPATH
 #try:
 #    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']

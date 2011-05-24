@@ -183,4 +183,16 @@ if __name__ == "__main__":
         __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile,
                                                         'debugfile': debugfile})
         __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
+        
+        # Workaround #2 to make the HDF5 I/O variable explorer plugin work:
+        # we import h5py only after initializing IPython in order to avoid 
+        # a premature import of IPython *and* to enable the h5py/IPython 
+        # completer (which wouldn't be enabled if we used the same approach 
+        # as workaround #1)
+        # (see sitecustomize.py for the Workaround #1)
+        try:
+            import h5py #@UnusedImport
+        except ImportError:
+            pass
+        
         __ipythonshell__.mainloop()
