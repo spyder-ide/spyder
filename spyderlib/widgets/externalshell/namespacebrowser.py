@@ -13,7 +13,8 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
-                                QToolButton, QMessageBox, QApplication, QCursor)
+                                QToolButton, QMessageBox, QApplication,
+                                QCursor, QFileDialog, QInputDialog)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Local imports
@@ -414,7 +415,8 @@ class NamespaceBrowser(QWidget):
                 basedir = os.getcwdu()
             else:
                 basedir = osp.dirname(self.filename)
-            filenames = iofunctions.get_open_filenames(self, basedir, title)
+            filenames = QFileDialog.getOpenFileNames(self, title, basedir,
+                                                     iofunctions.load_filters)
             if not filenames:
                 return
         elif isinstance(filenames, basestring):
@@ -429,15 +431,22 @@ class NamespaceBrowser(QWidget):
             if ext not in iofunctions.load_funcs:
                 buttons = QMessageBox.Yes | QMessageBox.Cancel
                 answer = QMessageBox.question(self, title,
-                                _("<b>Unsupported file type '%s'</b><br><br>"
-                                  "Would you like to import it as a text file?"
-                                  ) % ext, buttons)
+                            _("<b>Unsupported file extension '%s'</b><br><br>"
+                              "Would you like to import it anyway "
+                              "(by selecting a known file format)?"
+                              ) % ext, buttons)
                 if answer == QMessageBox.Cancel:
                     return
+                formats = iofunctions.load_extensions.keys()
+                item, ok = QInputDialog.getItem(self, title,
+                                                _('Open file as:'),
+                                                formats, 0, False)
+                if ok:
+                    ext = iofunctions.load_extensions[unicode(item)]
                 else:
-                    load_func = 'import_wizard'
-            else:
-                load_func = iofunctions.load_funcs[ext]
+                    return
+
+            load_func = iofunctions.load_funcs[ext]
                 
             # 'import_wizard' (self.setup_io)
             if isinstance(load_func, basestring):
@@ -472,7 +481,7 @@ class NamespaceBrowser(QWidget):
                         interpreter.namespace.update(namespace)
                 else:
                     error_message = monitor_load_globals(self._get_sock(),
-                                                         self.filename)
+                                                         self.filename, ext)
                 QApplication.restoreOverrideCursor()
                 QApplication.processEvents()
     
@@ -490,8 +499,8 @@ class NamespaceBrowser(QWidget):
             filename = self.filename
             if filename is None:
                 filename = os.getcwdu()
-            filename = iofunctions.get_save_filename(self, filename,
-                                                     _("Save data"))
+            filename = QFileDialog.getSaveFileName(self, _("Save data"),
+                                        filename, iofunctions.save_filters)
             if filename:
                 filename = unicode(filename)
                 self.filename = filename

@@ -287,6 +287,8 @@ from spyderlib.baseconfig import _
 
 class IOFunctions(object):
     def __init__(self):
+        self.load_extensions = None
+        self.save_extensions = None
         self.load_filters = None
         self.save_filters = None
         self.load_funcs = None
@@ -294,6 +296,8 @@ class IOFunctions(object):
         
     def setup(self):
         iofuncs = self.get_internal_funcs()+self.get_3rd_party_funcs()
+        load_extensions = {}
+        save_extensions = {}
         load_funcs = {}
         save_funcs = {}
         load_filters = []
@@ -303,9 +307,11 @@ class IOFunctions(object):
             filter_str = unicode(name + " (*%s)" % ext)
             if loadfunc is not None:
                 load_filters.append(filter_str)
+                load_extensions[filter_str] = ext
                 load_funcs[ext] = loadfunc
                 load_ext.append(ext)
             if savefunc is not None:
+                save_extensions[filter_str] = ext
                 save_filters.append(filter_str)
                 save_funcs[ext] = savefunc
         load_filters.insert(0, unicode(_("Supported files")+" (*"+\
@@ -314,6 +320,8 @@ class IOFunctions(object):
         self.save_filters = "\n".join(save_filters)
         self.load_funcs = load_funcs
         self.save_funcs = save_funcs
+        self.load_extensions = load_extensions
+        self.save_extensions = save_extensions
         
     def get_internal_funcs(self):
         return [
@@ -339,16 +347,6 @@ class IOFunctions(object):
             except AttributeError, error:
                 print >>STDERR, "%s: %s" % (mod, str(error))
         return other_funcs
-    
-    def get_open_filenames(self, parent, filename, title):
-        from spyderlib.qt.QtGui import QFileDialog
-        return QFileDialog.getOpenFileNames(parent, title, filename,
-                                            self.load_filters)
-    
-    def get_save_filename(self, parent, filename, title):
-        from spyderlib.qt.QtGui import QFileDialog
-        return QFileDialog.getSaveFileName(parent, title, filename,
-                                           self.save_filters)
         
     def save(self, data, filename):
         ext = osp.splitext(filename)[1].lower()

@@ -82,10 +82,10 @@ def monitor_save_globals(sock, settings, filename):
     return communicate(sock, '__save_globals__(globals())',
                        settings=[settings, filename])
 
-def monitor_load_globals(sock, filename):
+def monitor_load_globals(sock, filename, ext):
     """Load globals() from file"""
     return communicate(sock, '__load_globals__(globals())',
-                       settings=[filename])
+                       settings=[filename, ext])
 
 def monitor_get_global(sock, name):
     """Get global variable *name* value"""
@@ -333,7 +333,9 @@ class Monitor(threading.Thread):
         """Load globals() from filename"""
         from spyderlib.utils.iofuncs import iofunctions
         filename = read_packet(self.i_request)
-        data, error_message = iofunctions.load(filename)
+        ext = read_packet(self.i_request)
+        load_func = iofunctions.load_funcs[ext]
+        data, error_message = load_func(filename)
         if error_message:
             return error_message
         for key in data.keys():
