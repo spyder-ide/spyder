@@ -19,7 +19,7 @@ import sys
 import os.path as osp
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 
 # For debugging purpose:
 STDOUT = sys.stdout

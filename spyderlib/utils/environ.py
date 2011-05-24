@@ -13,7 +13,7 @@ from spyderlib.qt.QtGui import QDialog, QMessageBox
 import os
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 from spyderlib.widgets.dicteditor import DictEditor
 
 def envdict2listdict(envdict):
@@ -78,7 +78,7 @@ try:
         key = OpenKey(HKEY_CURRENT_USER, "Environment")
         for name in reg:
             try:
-                _, types[name] = QueryValueEx(key, name)
+                _x, types[name] = QueryValueEx(key, name)
             except WindowsError:
                 types[name] = REG_EXPAND_SZ
         key = OpenKey(HKEY_CURRENT_USER, "Environment", 0, KEY_SET_VALUE)

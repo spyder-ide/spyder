@@ -19,7 +19,8 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 

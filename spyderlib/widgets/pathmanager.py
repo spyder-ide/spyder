@@ -20,7 +20,8 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 
 
 class PathManager(QDialog):

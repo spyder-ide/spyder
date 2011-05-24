@@ -15,7 +15,8 @@ from spyderlib.qt.QtCore import SIGNAL
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import CONF, get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import CONF, get_icon
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS

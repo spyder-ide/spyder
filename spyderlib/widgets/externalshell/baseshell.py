@@ -25,8 +25,8 @@ from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        add_actions)
-from spyderlib.baseconfig import get_conf_path
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.config import get_icon
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist):

@@ -14,7 +14,8 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 

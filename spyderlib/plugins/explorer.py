@@ -20,7 +20,7 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin

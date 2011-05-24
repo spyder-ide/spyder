@@ -20,7 +20,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, CONF, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, CONF
 from spyderlib.utils.qthelpers import get_std_icon
 
 

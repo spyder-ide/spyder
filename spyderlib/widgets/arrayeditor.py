@@ -26,7 +26,8 @@ import numpy as np
 import StringIO
 
 # Local imports
-from spyderlib.config import get_icon, get_font, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 

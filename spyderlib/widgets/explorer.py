@@ -38,7 +38,8 @@ STDOUT = sys.stdout
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.utils.qthelpers import get_std_icon, create_action, add_actions
 from spyderlib.utils import encoding, rename_file, remove_file, programs
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 
 
 def create_script(fname):

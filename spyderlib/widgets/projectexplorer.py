@@ -27,7 +27,8 @@ from spyderlib.utils.qthelpers import (get_std_icon, create_action,
                                        create_toolbutton, add_actions,
                                        set_item_user_text)
 from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
-from spyderlib.config import get_icon, get_image_path, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_image_path
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager

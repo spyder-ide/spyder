@@ -17,7 +17,8 @@ from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
 # Local imports
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)
 

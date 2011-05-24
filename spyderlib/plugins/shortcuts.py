@@ -17,8 +17,9 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
+from spyderlib.baseconfig import _
 from spyderlib.config import (get_icon, get_shortcut, set_shortcut,
-                              iter_shortcuts, reset_shortcuts, _)
+                              iter_shortcuts, reset_shortcuts)
 from spyderlib.plugins.configdialog import GeneralConfigPage
 
 

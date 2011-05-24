@@ -63,7 +63,7 @@ from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QObject,
 import datetime
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 
 
 class ColorButton(QPushButton):

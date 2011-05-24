@@ -21,7 +21,8 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon, DialogManager, add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser

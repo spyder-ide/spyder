@@ -18,7 +18,8 @@ from spyderlib.qt.QtGui import QTreeWidget, QMenu
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_item_user_text)
 

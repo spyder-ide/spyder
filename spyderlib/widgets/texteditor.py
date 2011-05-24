@@ -12,7 +12,8 @@ from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
-from spyderlib.config import get_icon, get_font, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_font
 
 
 class TextEditor(QDialog):

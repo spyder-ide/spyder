@@ -18,7 +18,8 @@ from spyderlib.qt.QtCore import QProcess, SIGNAL, QString
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.utils.programs import split_clo
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget

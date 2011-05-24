@@ -47,7 +47,6 @@ SMALL = 9
 DEFAULTS = [
             ('main',
              {
-              'translation': True,
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
@@ -307,13 +306,6 @@ CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.0.6',
 old_location = osp.join(get_home_dir(), '.spyder.ini')
 if osp.isfile(old_location):
     os.remove(old_location)
-
-# Translation support
-if CONF.get('main', 'translation'):
-    from spyderlib.utils.translations import get_translation
-    _ = get_translation("spyderlib")
-else:
-    _ = lambda x: x
 
 
 IMG_PATH = []

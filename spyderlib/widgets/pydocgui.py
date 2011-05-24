@@ -15,7 +15,7 @@ import sys, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils import select_port
 

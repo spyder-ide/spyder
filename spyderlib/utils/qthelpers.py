@@ -16,7 +16,7 @@ from spyderlib.qt.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale,
                                  QTranslator, QLibraryInfo)
 
 # Local import
-from spyderlib.config import get_icon, DATA_PATH, get_spyderplugins, PLUGIN_PATH
+from spyderlib.config import get_icon
 from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?

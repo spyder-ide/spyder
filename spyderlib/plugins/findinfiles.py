@@ -20,7 +20,7 @@ from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin

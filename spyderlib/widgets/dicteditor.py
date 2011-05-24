@@ -26,7 +26,8 @@ from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex,
                                  QAbstractTableModel, SIGNAL, SLOT, QDateTime)
 
 # Local import
-from spyderlib.config import get_icon, get_font, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_font
 from spyderlib.utils import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size, get_type,

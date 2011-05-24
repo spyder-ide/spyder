@@ -18,6 +18,11 @@ import os.path as osp, os
 # Local imports
 from spyderlib.userconfig import get_home_dir
 from spyderlib import __version__
+from spyderlib.utils.translations import get_translation
+
+
+# Translation support
+_ = get_translation("spyderlib")
 
 
 SUBFOLDER = '.spyder%s' % __version__.split('.')[0]

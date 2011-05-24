@@ -195,7 +195,6 @@ def load_dictionary(filename):
 
 
 from spyderlib.baseconfig import get_conf_path
-from spyderlib.config import get_spyderplugins_mods
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
@@ -284,13 +283,10 @@ def load_session(filename):
     return error_message
 
 
-from spyderlib.qt.QtGui import QFileDialog
-from spyderlib.qt.QtCore import QObject
-from spyderlib.config import _
+from spyderlib.baseconfig import _
 
-class IOFunctions(QObject):
+class IOFunctions(object):
     def __init__(self):
-        QObject.__init__(self)
         self.load_filters = None
         self.save_filters = None
         self.load_funcs = None
@@ -335,6 +331,7 @@ class IOFunctions(QObject):
         
     def get_3rd_party_funcs(self):
         other_funcs = []
+        from spyderlib.config import get_spyderplugins_mods
         for mod in get_spyderplugins_mods(prefix='io_', extension='.py'):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
@@ -344,10 +341,12 @@ class IOFunctions(QObject):
         return other_funcs
     
     def get_open_filenames(self, parent, filename, title):
+        from spyderlib.qt.QtGui import QFileDialog
         return QFileDialog.getOpenFileNames(parent, title, filename,
                                             self.load_filters)
     
     def get_save_filename(self, parent, filename, title):
+        from spyderlib.qt.QtGui import QFileDialog
         return QFileDialog.getSaveFileName(parent, title, filename,
                                            self.save_filters)
         

@@ -23,7 +23,8 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.config import get_icon, CONF, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, CONF
 from spyderlib.utils import (programs, remove_trailing_single_backslash,
                              get_error_match)
 from spyderlib.utils.qthelpers import create_action, mimedata2url

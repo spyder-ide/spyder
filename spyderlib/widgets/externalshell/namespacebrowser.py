@@ -31,8 +31,8 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import str2type
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import str2type, _
+from spyderlib.config import get_icon
 
 
 class NamespaceBrowser(QWidget):

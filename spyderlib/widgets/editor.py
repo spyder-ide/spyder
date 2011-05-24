@@ -24,7 +24,8 @@ import os, sys, re, os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs
-from spyderlib.config import get_icon, get_font, _
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs

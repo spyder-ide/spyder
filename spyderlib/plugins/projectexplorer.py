@@ -15,8 +15,8 @@ import sys, cPickle, os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path
-from spyderlib.config import get_icon, _
+from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
