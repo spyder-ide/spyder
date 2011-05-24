@@ -320,6 +320,11 @@ def add_image_path(path):
 
 add_image_path(osp.join(DATA_PATH, 'images'))
 
+from spyderlib.otherplugins import PLUGIN_PATH
+if PLUGIN_PATH is not None:
+    add_image_path(osp.join(PLUGIN_PATH, 'images'))
+
+
 def get_image_path( name, default="not_found.png" ):
     """Return image absolute path"""
     for img_path in IMG_PATH:
@@ -445,31 +450,3 @@ for _name in COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)
 CUSTOM_COLOR_SCHEME_NAME = "Custom"
 set_color_scheme(CUSTOM_COLOR_SCHEME_NAME, COLORS["Spyder"], replace=False)
-
-
-PLUGIN_PATH = None
-from spyderlib.utils import programs
-if programs.is_module_installed("spyderplugins"):
-    import spyderplugins
-    PLUGIN_PATH = osp.abspath(spyderplugins.__path__[0])
-    add_image_path(osp.join(PLUGIN_PATH, 'images'))
-
-def get_spyderplugins(prefix, extension):
-    """Scan spyderplugins module and
-    return the list of module names matching *prefix* and *extension*"""
-    plist = []
-    if PLUGIN_PATH is not None:
-        for name in os.listdir(PLUGIN_PATH):
-            modname, ext = osp.splitext(name)
-            if prefix is not None and not name.startswith(prefix):
-                continue
-            if extension is not None and ext != extension:
-                continue
-            plist.append(modname)
-    return plist
-
-def get_spyderplugins_mods(prefix, extension):
-    """Scan spyderplugins module and
-    return the list of modules matching *prefix* and *extension*"""
-    return [getattr(__import__('spyderplugins.%s' % modname), modname)
-            for modname in get_spyderplugins(prefix, extension)]

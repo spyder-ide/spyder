@@ -77,7 +77,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_script_action)
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import (get_icon, get_image_path, CONF, DOC_PATH,
-                              get_spyderplugins_mods, get_shortcut)
+                              get_shortcut)
+from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.programs import run_python_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
