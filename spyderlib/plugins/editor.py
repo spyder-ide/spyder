@@ -132,40 +132,43 @@ class EditorConfigPage(PluginConfigPage):
                             'save_all_before_run', True)
         
         introspection_group = QGroupBox(_("Introspection"))
-        completion_box = newcb(_("Automatic code completion"),
-                               'codecompletion/auto')
-        case_comp_box = newcb(_("Case sensitive code completion"),
-                              'codecompletion/case_sensitive')
-        show_single_box = newcb(_("Show single completion"),
-                                'codecompletion/show_single')
-        comp_enter_box = newcb(_("Enter key selects completion"),
-                               'codecompletion/enter_key')
-        calltips_box = newcb(_("Balloon tips"), 'calltips')
-        gotodef_box = newcb(_("Link to object definition"),
-              'go_to_definition',
-              tip=_("If this option is enabled, clicking on an object\n"
-                          "name (left-click + Ctrl key) will go this object\n"
-                          "definition (if resolved)."))
-        inspector_box = newcb(
-              _("Automatic notification to object inspector"),
-              'object_inspector', default=True,
-              tip=_("If this option is enabled, object inspector\n"
-                          "will automatically show informations on functions\n"
-                          "entered in editor (this is triggered when entering\n"
-                          "a left parenthesis after a valid function name)"))
-        rope_label = QLabel(_("<b>Warning:</b><br>"
-                                    "The Python module <i>rope</i> is not "
-                                    "installed on this computer: calltips, "
-                                    "code completion and go-to-definition "
-                                    "features won't be available."))
-        rope_label.setWordWrap(True)
+        rope_is_installed = programs.is_module_installed('rope')
+        if rope_is_installed:
+            completion_box = newcb(_("Automatic code completion"),
+                                   'codecompletion/auto')
+            case_comp_box = newcb(_("Case sensitive code completion"),
+                                  'codecompletion/case_sensitive')
+            show_single_box = newcb(_("Show single completion"),
+                                    'codecompletion/show_single')
+            comp_enter_box = newcb(_("Enter key selects completion"),
+                                   'codecompletion/enter_key')
+            calltips_box = newcb(_("Balloon tips"), 'calltips')
+            gotodef_box = newcb(_("Link to object definition"),
+                  'go_to_definition',
+                  tip=_("If this option is enabled, clicking on an object\n"
+                        "name (left-click + Ctrl key) will go this object\n"
+                        "definition (if resolved)."))
+            inspector_box = newcb(
+                  _("Automatic notification to object inspector"),
+                  'object_inspector', default=True,
+                  tip=_("If this option is enabled, object inspector\n"
+                        "will automatically show informations on functions\n"
+                        "entered in editor (this is triggered when entering\n"
+                        "a left parenthesis after a valid function name)"))
+        else:
+            rope_label = QLabel(_("<b>Warning:</b><br>"
+                                  "The Python module <i>rope</i> is not "
+                                  "installed on this computer: calltips, "
+                                  "code completion and go-to-definition "
+                                  "features won't be available."))
+            rope_label.setWordWrap(True)
         
         sourcecode_group = QGroupBox(_("Source code"))
         closepar_box = newcb(_("Automatic parentheses, braces and "
                                      "brackets insertion"),
                              'close_parentheses')
         autounindent_box = newcb(_("Automatic indentation after 'else', "
-                                         "'elif', etc."), 'auto_unindent')
+                                   "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
                                         ((_("4 spaces"), '*    *'),
                                          (_("2 spaces"), '*  *'),
@@ -173,12 +176,12 @@ class EditorConfigPage(PluginConfigPage):
         tabwidth_spin = self.create_spinbox(_("Tab stop width:"), _("pixels"),
                                             'tab_stop_width', 40, 10, 1000, 10)
         tab_mode_box = newcb(_("Tab always indent"),
-              'tab_always_indent', default=False,
-              tip=_("If enabled, pressing Tab will always indent,\n"
-                          "even when the cursor is not at the beginning\n"
-                          "of a line (when this option is enabled, code\n"
-                          "completion may be triggered using the alternate\n"
-                          "shortcut: Ctrl+Space)"))
+                      'tab_always_indent', default=False,
+                      tip=_("If enabled, pressing Tab will always indent,\n"
+                            "even when the cursor is not at the beginning\n"
+                            "of a line (when this option is enabled, code\n"
+                            "completion may be triggered using the alternate\n"
+                            "shortcut: Ctrl+Space)"))
         ibackspace_box = newcb(_("Intelligent backspace"),
                                'intelligent_backspace', default=True)
         removetrail_box = newcb(_("Automatically remove trailing spaces "
@@ -191,10 +194,10 @@ class EditorConfigPage(PluginConfigPage):
                                   "warnings."))
         pyflakes_label.setWordWrap(True)
         codeanalysis_box = newcb(_("Code analysis (pyflakes)"),
-              'code_analysis', default=True,
-              tip=_("If enabled, Python source code will be analyzed\n"
-                          "using pyflakes, lines containing errors or \n"
-                          "warnings will be highlighted"))
+                      'code_analysis', default=True,
+                      tip=_("If enabled, Python source code will be analyzed\n"
+                            "using pyflakes, lines containing errors or \n"
+                            "warnings will be highlighted"))
         codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
         todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
                              'todo_list', default=True)
@@ -220,7 +223,7 @@ class EditorConfigPage(PluginConfigPage):
         run_group.setLayout(run_layout)
         
         introspection_layout = QVBoxLayout()
-        if programs.is_module_installed('rope'):
+        if rope_is_installed:
             introspection_layout.addWidget(calltips_box)
             introspection_layout.addWidget(completion_box)
             introspection_layout.addWidget(case_comp_box)
@@ -257,7 +260,7 @@ class EditorConfigPage(PluginConfigPage):
                              "file automatically."))
         eol_label.setWordWrap(True)
         check_eol_box = newcb(_("Fix automatically and show warning "
-                                      "message box"),
+                                "message box"),
                               'check_eol_chars', default=True)
 
         eol_layout = QVBoxLayout()

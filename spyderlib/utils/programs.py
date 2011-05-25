@@ -82,11 +82,19 @@ def run_python_script(package=None, module=None, args=[], p_args=[]):
     path = python_script_exists(package, module, get_path=True)
     subprocess.Popen([sys.executable]+p_args+[path]+args)
 
-def is_module_installed(module_name):
-    """Return True if module *module_name* is installed"""
+def is_module_installed(module_name, version=None):
+    """
+    Return True if module *module_name* is installed
+    
+    If version is not None, checking module version 
+    (module must have an attribute named '__version__')
+    """
     try:
-        __import__(module_name)
-        return True
+        mod = __import__(module_name)
+        if version is None:
+            return True
+        else:
+            return getattr(mod, '__version__').startswith(version)
     except ImportError:
         return False
 

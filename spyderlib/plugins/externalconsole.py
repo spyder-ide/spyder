@@ -68,13 +68,14 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # Background Color Group
         bg_group = QGroupBox(_("Background color"))
         bg_label = QLabel(_("This option will be applied the next time "
-                                  "a Python console or a terminal is opened."))
+                            "a Python console or a terminal is opened."))
         bg_label.setWordWrap(True)
         lightbg_box = newcb(_("Light background (white color)"),
                             'light_background')
         ipybg_box = newcb(_("Set the appropriate IPython color option"),
                           'ipython_set_color')
-        ipybg_box.setEnabled(programs.is_module_installed("IPython"))
+        ipython_is_installed = programs.is_module_installed('IPython', '0.10')
+        ipybg_box.setEnabled(ipython_is_installed)
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(bg_label)
         bg_layout.addWidget(lightbg_box)
@@ -93,12 +94,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                'codecompletion/enter_key')
         calltips_box = newcb(_("Balloon tips"), 'calltips')
         inspector_box = newcb(
-              _("Automatic notification to object inspector"),
-              'object_inspector', default=True,
-              tip=_("If this option is enabled, object inspector\n"
-                      "will automatically show informations on functions\n"
-                      "entered in console (this is triggered when entering\n"
-                      "a left parenthesis after a valid function name)"))
+                  _("Automatic notification to object inspector"),
+                  'object_inspector', default=True,
+                  tip=_("If this option is enabled, object inspector\n"
+                        "will automatically show informations on functions\n"
+                        "entered in console (this is triggered when entering\n"
+                        "a left parenthesis after a valid function name)"))
         
         source_layout = QVBoxLayout()
         source_layout.addWidget(completion_box)
@@ -112,8 +113,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # UMD Group
         umd_group = QGroupBox(_("User Module Deleter (UMD)"))
         umd_label = QLabel(_("UMD forces Python to reload modules "
-                               "imported when executing a script in the "
-                               "external console with the 'runfile' function"))
+                             "imported when executing a script in the "
+                             "external console with the 'runfile' function"))
         umd_label.setWordWrap(True)
         umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
                                 msg_if_enabled=True, msg_warning=_(
@@ -156,7 +157,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                               'open_python_at_startup')
         ipystartup_box = newcb(_("Open an IPython interpreter at startup"),
                                'open_ipython_at_startup')
-        ipystartup_box.setEnabled(programs.is_module_installed('IPython'))
+        ipystartup_box.setEnabled(ipython_is_installed)
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
@@ -169,11 +170,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                                    "PYTHONSTARTUP environment variable."))
         pystartup_label.setWordWrap(True)
         default_radio = self.create_radiobutton(
-                                _("Default PYTHONSTARTUP script"),
-                                'pythonstartup/default', True)
+                                        _("Default PYTHONSTARTUP script"),
+                                        'pythonstartup/default', True)
         custom_radio = self.create_radiobutton(
-                                _("Use the following startup script:"),
-                                'pythonstartup/custom', False)
+                                        _("Use the following startup script:"),
+                                        'pythonstartup/custom', False)
         pystartup_file = self.create_browsefile('', 'pythonstartup', '',
                                                 filters=_("Python scripts")+\
                                                 " (*.py)")
@@ -233,15 +234,21 @@ It is strongly recommended to remove it on Windows platforms
         
         # IPython Group
         ipython_group = QGroupBox(_("IPython"))
-        ipython_edit = self.create_lineedit(_(
+        ipython_layout = QVBoxLayout()
+        if ipython_is_installed:
+            ipython_edit = self.create_lineedit(_(
                             "IPython interpreter command line options:\n"
                             "(Qt4 and matplotlib support: -q4thread -pylab)"),
                             'ipython_options', alignment=Qt.Vertical)
-        
-        ipython_layout = QVBoxLayout()
-        ipython_layout.addWidget(ipython_edit)
+            ipython_layout.addWidget(ipython_edit)
+        else:
+            ipython_label = QLabel(_("<b>Note:</b><br>"
+                                     "IPython <u>v0.10</u> is not "
+                                     "installed on this computer."))
+            ipython_label.setWordWrap(True)
+            ipython_layout.addWidget(ipython_label)
         ipython_group.setLayout(ipython_layout)
-        ipython_group.setEnabled(programs.is_module_installed("IPython"))
+        ipython_group.setEnabled(ipython_is_installed)
         
         # Matplotlib Group
         mpl_group = QGroupBox(_("Matplotlib"))
@@ -252,11 +259,11 @@ It is strongly recommended to remove it on Windows platforms
         mpl_patch_box = newcb(_("Patch Matplotlib figures"),
                               'mpl_patch/enabled')
         mpl_backend_edit = self.create_lineedit(_("Matplotlib backend "
-                                                        "(default: Qt4Agg):"),
+                                                  "(default: Qt4Agg):"),
                                                 'mpl_patch/backend', "Qt4Agg",
                                                 _("Set the GUI toolkit "
-                                                        "used by Matplotlib to "
-                                                        "show figures"),
+                                                  "used by Matplotlib to "
+                                                  "show figures"),
                                                 alignment=Qt.Vertical)
         self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
                      mpl_backend_edit.setEnabled)
@@ -272,11 +279,10 @@ It is strongly recommended to remove it on Windows platforms
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
         ets_label = QLabel(_("Enthought Tool Suite (ETS) supports "
-                                   "PyQt4 (qt4) and wxPython (wx) graphical "
-                                   "user interfaces."))
+                             "PyQt4 (qt4) and wxPython (wx) graphical "
+                             "user interfaces."))
         ets_label.setWordWrap(True)
-        ets_edit = self.create_lineedit(_("ETS_TOOLKIT "
-                                                "(default value: qt4):"),
+        ets_edit = self.create_lineedit(_("ETS_TOOLKIT (default value: qt4):"),
                                         'ets_backend', default='qt4',
                                         alignment=Qt.Vertical)
         
@@ -332,7 +338,7 @@ class ExternalConsole(SpyderPluginWidget):
         python_startup = self.get_option('open_python_at_startup', None)
         ipython_startup = self.get_option('open_ipython_at_startup', None)
         if ipython_startup is None:
-            ipython_startup = programs.is_module_installed("IPython")
+            ipython_startup = programs.is_module_installed('IPython', '0.10')
             self.set_option('open_ipython_at_startup', ipython_startup)
         if python_startup is None:
             python_startup = not ipython_startup
@@ -721,7 +727,7 @@ class ExternalConsole(SpyderPluginWidget):
                             'ipython.png',
                             _("Open an IPython interpreter"),
                             triggered=self.open_ipython)
-        if programs.is_module_installed("IPython"):
+        if programs.is_module_installed('IPython', '0.10'):
             self.menu_actions.insert(1, ipython_action)
             run_menu_actions.append(ipython_action)
         
@@ -841,9 +847,12 @@ class ExternalConsole(SpyderPluginWidget):
     #------ Public API ---------------------------------------------------------
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
-        if self.get_option('open_ipython_at_startup') \
-           and programs.is_module_installed("IPython"):
-            self.open_ipython()
+        if self.get_option('open_ipython_at_startup'):
+            if programs.is_module_installed('IPython', '0.10'):
+                self.open_ipython()
+            else:
+                self.set_option('open_ipython_at_startup', False)
+                self.set_option('open_python_at_startup', True)
         if self.get_option('open_python_at_startup'):
             self.open_interpreter()
             

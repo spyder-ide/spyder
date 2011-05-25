@@ -647,7 +647,7 @@ class ExplorerTreeWidget(OneColumnTree):
             if any_folder_in_path:
                 actions += [remove_from_path_act]
             actions += [None, winexp_act, terminal_act, interpreter_act]
-            if programs.is_module_installed("IPython"):
+            if programs.is_module_installed('IPython', '0.10'):
                 ipython_act = create_action(self,
                         text=_("Open IPython here"),
                         icon="ipython.png",

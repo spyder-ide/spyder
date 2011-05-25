@@ -257,7 +257,7 @@ class DirView(QTreeView):
                                    self.parent_widget.emit(
                                    SIGNAL("open_interpreter(QString)"), _fn))
                 actions.append(action)
-                if programs.is_module_installed("IPython"):
+                if programs.is_module_installed('IPython', '0.10'):
                     _title = _("Open IPython here")
                     action = create_action(self, _title, icon="ipython.png",
                                        triggered=lambda _fn=fname:
