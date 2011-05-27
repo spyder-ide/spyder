@@ -795,6 +795,13 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_occurence_highlighting(state)
                 
+    def set_occurence_highlighting_timeout(self, timeout):
+        # CONF.get(self.CONF_SECTION, 'occurence_highlighting/timeout')
+        self.occurence_highlighting_timeout = timeout
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_occurence_timeout(timeout)
+                
     def set_highlight_current_line_enabled(self, state):
         self.highlight_current_line_enabled = state
         if self.data:

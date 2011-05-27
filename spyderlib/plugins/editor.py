@@ -110,8 +110,14 @@ class EditorConfigPage(PluginConfigPage):
         edgeline_layout.addWidget(edgeline_spin)
         currentline_box = newcb(_("Highlight current line"),
                                 'highlight_current_line', default=True)
-        occurence_box = newcb(_("Highlight occurences"),
+        occurence_box = newcb(_("Highlight occurences after"),
                               'occurence_highlighting', default=True)
+        occurence_spin = self.create_spinbox("", " ms",
+                                             'occurence_highlighting/timeout',
+                                             min_=100, max_=1000000, step=100)
+        occurence_layout = QHBoxLayout()
+        occurence_layout.addWidget(occurence_box)
+        occurence_layout.addWidget(occurence_spin)
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
@@ -122,7 +128,7 @@ class EditorConfigPage(PluginConfigPage):
         display_layout.addWidget(linenumbers_box)
         display_layout.addLayout(edgeline_layout)
         display_layout.addWidget(currentline_box)
-        display_layout.addWidget(occurence_box)
+        display_layout.addLayout(occurence_layout)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(cs_combo)
         display_group.setLayout(display_layout)
@@ -960,6 +966,7 @@ class Editor(SpyderPluginWidget):
             ('set_intelligent_backspace_enabled',   'intelligent_backspace'),
             ('set_highlight_current_line_enabled',  'highlight_current_line'),
             ('set_occurence_highlighting_enabled',  'occurence_highlighting'),
+            ('set_occurence_highlighting_timeout',  'occurence_highlighting/timeout'),
             ('set_checkeolchars_enabled',           'check_eol_chars'),
             ('set_fullpath_sorting_enabled',        'fullpath_sorting'),
             ('set_tabbar_visible',                  'show_tab_bar'),
@@ -1865,6 +1872,8 @@ class Editor(SpyderPluginWidget):
             currentline_o = self.get_option(currentline_n)
             occurence_n = 'occurence_highlighting'
             occurence_o = self.get_option(occurence_n)
+            occurence_timeout_n = 'occurence_highlighting/timeout'
+            occurence_timeout_o = self.get_option(occurence_timeout_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
             tabindent_n = 'tab_always_indent'
@@ -1932,6 +1941,9 @@ class Editor(SpyderPluginWidget):
                                                                 currentline_o)
                 if occurence_n in options:
                     editorstack.set_occurence_highlighting_enabled(occurence_o)
+                if occurence_timeout_n in options:
+                    editorstack.set_occurence_highlighting_timeout(
+                                                        occurence_timeout_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:

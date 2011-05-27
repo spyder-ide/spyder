@@ -330,8 +330,8 @@ msgid "Highlight current line"
 msgstr "Surligner la ligne en cours d'édition"
 
 #: spyderlib\plugins\editor.py:113
-msgid "Highlight occurences"
-msgstr "Surligner les occurences"
+msgid "Highlight occurences after"
+msgstr "Surligner les occurences après"
 
 #: spyderlib\plugins\editor.py:118 spyderlib\plugins\history.py:48
 #: spyderlib\plugins\inspector.py:98

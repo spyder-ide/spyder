@@ -672,6 +672,10 @@ class CodeEditor(TextEditBaseWidget):
         if not enable:
             self.__clear_occurences()
             
+    def set_occurence_timeout(self, timeout):
+        """Set occurence highlighting timeout (ms)"""
+        self.occurence_timer.setInterval(timeout)
+            
     def set_highlight_current_line(self, enable):
         """Enable/disable current line highlighting"""
         self.highlight_current_line_enabled = enable

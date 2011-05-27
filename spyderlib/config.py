@@ -196,6 +196,7 @@ DEFAULTS = [
               'intelligent_backspace': True,
               'highlight_current_line': True,
               'occurence_highlighting': True,
+              'occurence_highlighting/timeout': 1500,
               'always_remove_trailing_spaces': False,
               'fullpath_sorting': True,
               'show_tab_bar': True,
