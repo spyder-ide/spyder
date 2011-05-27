@@ -282,7 +282,7 @@ class DirView(QTreeView):
         elif event.key() == Qt.Key_F2:
             self.rename()
         else:
-            DirView.keyPressEvent(self, event)
+            QTreeView.keyPressEvent(self, event)
 
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
