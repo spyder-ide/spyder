@@ -291,7 +291,6 @@ class ScrollFlagArea(QWidget):
         QWidget.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.code_editor = editor
-        self.scrollbar = editor.verticalScrollBar()
         
     def sizeHint(self):
         return QSize(self.WIDTH, 0)
@@ -300,15 +299,15 @@ class ScrollFlagArea(QWidget):
         self.code_editor.scrollflagarea_paint_event(event)
 
     def __get_scale(self):
-        sb = self.scrollbar
+        sb = self.code_editor.verticalScrollBar()
         return float(self.height())/(sb.maximum()-sb.minimum()+sb.pageStep())
         
     def scrollflag_to_scrollbar(self, y):
-        sb = self.scrollbar
+        sb = self.code_editor.verticalScrollBar()
         return sb.minimum()+max([0, y/self.__get_scale()-.5*sb.pageStep()])
         
     def scrollbar_to_scrollflag(self, y):
-        sb = self.scrollbar
+        sb = self.code_editor.verticalScrollBar()
         return (y-sb.minimum())*self.__get_scale()
         
     def make_flag_qrect(self, line_nb):
@@ -318,7 +317,8 @@ class ScrollFlagArea(QWidget):
         
     def mousePressEvent(self, event):
         y = event.pos().y()
-        self.scrollbar.setValue( self.scrollflag_to_scrollbar(y) )
+        sb = self.code_editor.verticalScrollBar()
+        sb.setValue( self.scrollflag_to_scrollbar(y) )
 
 class EdgeLine(QWidget):
     def __init__(self, editor):
