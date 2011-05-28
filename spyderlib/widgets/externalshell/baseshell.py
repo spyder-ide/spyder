@@ -196,6 +196,7 @@ class ExternalShellBase(QWidget):
         if self.process is not None:
             self.is_closing = True
             self.process.kill()
+            self.process.waitForFinished(100)
         self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
     
     def set_running_state(self, state=True):
