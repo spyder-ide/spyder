@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
                                 QTextDocument, QTextCharFormat, QPixmap,
                                 QPrinter, QToolTip, QCursor, QInputDialog,
                                 QTextBlockUserData, QLineEdit, QShortcut,
-                                QKeySequence, QWidget, QVBoxLayout,
+                                QKeySequence, QWidget, QVBoxLayout, QKeyEvent,
                                 QHBoxLayout, QLabel, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QEvent, QTimer, QRect, QRegExp,
@@ -1813,13 +1813,22 @@ class CodeEditor(TextEditBaseWidget):
             self.__clear_occurences()
         if QToolTip.isVisible():
             self.hide_tooltip_if_necessary(key)
-        if key in (Qt.Key_Enter, Qt.Key_Return) and not shift and not ctrl:
-            if self.is_completion_widget_visible() \
-               and self.codecompletion_enter:
-                self.select_completion_list()
-            else:
+        if key in (Qt.Key_Enter, Qt.Key_Return):
+            if not shift and not ctrl:
+                if self.is_completion_widget_visible() \
+                   and self.codecompletion_enter:
+                    self.select_completion_list()
+                else:
+                    QPlainTextEdit.keyPressEvent(self, event)
+                    self.fix_indent()
+            elif shift:
+                # Ignoring QPlainTextEdit default Shift+Enter keybinding 
+                # which will print a new line in the same block:
+                event = QKeyEvent(event.type(), event.key(), Qt.NoModifier,
+                                  event.text(), event.isAutoRepeat(),
+                                  event.count())
                 QPlainTextEdit.keyPressEvent(self, event)
-                self.fix_indent()
+                return
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
         elif key == Qt.Key_Backspace and not shift and not ctrl:
