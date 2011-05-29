@@ -178,7 +178,7 @@ DEFAULTS = [
               'outline_explorer': True,
               'line_numbers': True,
               'edge_line': True,
-              'edge_line_column': 79,
+              'edge_line_column': 80,
               'toolbox_panel': True,
               'calltips': True,
               'go_to_definition': True,

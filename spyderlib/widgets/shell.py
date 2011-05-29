@@ -6,10 +6,10 @@
 
 """Shell widgets: base, python and terminal"""
 
-# pylint: disable-msg=C0103
-# pylint: disable-msg=R0903
-# pylint: disable-msg=R0911
-# pylint: disable-msg=R0201
+# pylint: disable=C0103
+# pylint: disable=R0903
+# pylint: disable=R0911
+# pylint: disable=R0201
 
 import sys, os, time, os.path as osp, re
 
