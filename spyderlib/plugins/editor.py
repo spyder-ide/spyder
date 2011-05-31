@@ -873,7 +873,8 @@ class Editor(SpyderPluginWidget):
         self.connect(self, SIGNAL("open_dir(QString)"),
                      self.main.workingdirectory.chdir)
         self.set_inspector(self.main.inspector)
-        self.set_outlineexplorer(self.main.outlineexplorer)
+        if self.main.outlineexplorer is not None:
+            self.set_outlineexplorer(self.main.outlineexplorer)
         self.main.add_dockwidget(self)
     
         
