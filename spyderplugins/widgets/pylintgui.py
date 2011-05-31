@@ -48,6 +48,7 @@ PYLINT_PATH = programs.get_nt_program_name('pylint')
 def is_pylint_installed():
     return programs.is_program_installed(PYLINT_PATH)
 
+#TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
     def __init__(self, parent):
         OneColumnTree.__init__(self, parent)
@@ -94,7 +95,7 @@ class ResultsTree(OneColumnTree):
             if not messages:
                 title_item.setDisabled(True)
             modules = {}
-            for module, lineno, message in messages:
+            for module, lineno, message, msg_id in messages:
                 basename = osp.splitext(osp.basename(self.filename))[0]
                 if not module.startswith(basename):
                     # Pylint bug
@@ -121,9 +122,11 @@ class ResultsTree(OneColumnTree):
                         parent = item
                 else:
                     parent = title_item
-                msg_item = QTreeWidgetItem(parent,
-                                           ["%d : %s" % (lineno, message)],
-                                           QTreeWidgetItem.Type)
+                if len(msg_id) > 1:
+                    text = "[%s] %d : %s" % (msg_id, lineno, message)
+                else:
+                    text = "%d : %s" % (lineno, message)
+                msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
                 msg_item.setIcon(0, get_icon('arrow.png'))
                 self.data[msg_item] = (modname, lineno)
 
@@ -133,7 +136,7 @@ class PylintWidget(QWidget):
     Pylint widget
     """
     DATAPATH = get_conf_path('.pylint.results')
-    VERSION = '1.0.2'
+    VERSION = '1.1.0'
     
     def __init__(self, parent, max_entries=100):
         QWidget.__init__(self, parent)
@@ -300,7 +303,7 @@ class PylintWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
-        p_args = [osp.basename(filename)]
+        p_args = ['-i', 'yes', osp.basename(filename)]
         self.process.start(PYLINT_PATH, p_args)
         
         running = self.process.waitForStarted()
@@ -351,6 +354,7 @@ class PylintWidget(QWidget):
             i1 = line.find(':')
             if i1 == -1:
                 continue
+            msg_id = line[:i1-1]
             i2 = line.find(':', i1+1)
             if i2 == -1:
                 continue
@@ -359,8 +363,8 @@ class PylintWidget(QWidget):
                 continue
             line_nb = int(line_nb)
             message = line[i2+1:]
-            item = (module, line_nb, message)
-            results[line[0]+':'].append(item)                
+            item = (module, line_nb, message, msg_id)
+            results[line[0]+':'].append(item)
             
         # Rate
         rate = None
