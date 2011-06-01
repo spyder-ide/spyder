@@ -22,7 +22,7 @@ from time import time
 import sys
 from zipimport import zipimporter
 
-from spyderlib.config import get_conf_path
+from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
 MODULES_PATH = get_conf_path('db')
