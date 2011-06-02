@@ -2637,8 +2637,8 @@ msgid "Open"
 msgstr "Ouvrir"
 
 #: spyderlib\widgets\explorer.py:241 spyderlib\widgets\projectexplorer.py:631
-msgid "Open in Windows Explorer"
-msgstr "Ouvrir dans l'explorateur Windows"
+msgid "Open outside Spyder"
+msgstr "Ouvrir en dehors de Spyder"
 
 #: spyderlib\widgets\explorer.py:246 spyderlib\widgets\projectexplorer.py:634
 msgid "Open command prompt here"

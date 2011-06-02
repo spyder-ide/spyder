@@ -626,14 +626,13 @@ class ExplorerTreeWidget(OneColumnTree):
                             icon=get_icon('advanced.png'),
                             triggered=lambda: self.show_properties(items))
         
-        if os.name == 'nt':
-            winexp_act = create_action(self,
-                            text=_("Open in Windows Explorer"),
+        openoutside_act = create_action(self,
+                            text=_("Open outside Spyder"),
                             icon="magnifier.png",
-                            triggered=lambda: self.open_windows_explorer(items))
+                            triggered=lambda: self.open_outside_spyder(items))
+        if os.name == 'nt':
             _title = _("Open command prompt here")
         else:
-            winexp_act = None
             _title = _("Open terminal here")
         terminal_act = create_action(self, text=_title, icon="cmdprompt.png",
                             triggered=lambda: self.open_terminal(items))
@@ -646,7 +645,7 @@ class ExplorerTreeWidget(OneColumnTree):
                 actions += [add_to_path_act]
             if any_folder_in_path:
                 actions += [remove_from_path_act]
-            actions += [None, winexp_act, terminal_act, interpreter_act]
+            actions += [None, openoutside_act, terminal_act, interpreter_act]
             if programs.is_module_installed('IPython', '0.10'):
                 ipython_act = create_action(self,
                         text=_("Open IPython here"),
@@ -1205,9 +1204,9 @@ class ExplorerTreeWidget(OneColumnTree):
                                   "<b>%s</b> lines of code."
                                   ) % (str(files), str(lines)))
         
-    def open_windows_explorer(self, items):
+    def open_outside_spyder(self, items):
         for path in sorted([get_item_path(_it) for _it in items]):
-            os.startfile(path)
+            programs.start_file(path)
         
     def open_terminal(self, items):
         for path in sorted([get_item_path(_it) for _it in items]):

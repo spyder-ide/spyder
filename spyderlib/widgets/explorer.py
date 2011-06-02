@@ -235,12 +235,10 @@ class DirView(QTreeView):
             else:
                 actions.append(open_action)
             actions += [delete_action, rename_action, None]
-            if is_dir and os.name == 'nt':
-                # Actions specific to Windows directories
-                actions.append( create_action(self,
-                                              _("Open in Windows Explorer"),
-                                              icon="magnifier.png",
-                                              triggered=self.startfile) )
+            actions.append( create_action(self,
+                                          _("Open outside Spyder"),
+                                          icon="magnifier.png",
+                                          triggered=self.startfile) )
             if is_dir:
                 if os.name == 'nt':
                     _title = _("Open command prompt here")
