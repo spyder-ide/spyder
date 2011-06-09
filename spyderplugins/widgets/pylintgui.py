@@ -354,7 +354,7 @@ class PylintWidget(QWidget):
             i1 = line.find(':')
             if i1 == -1:
                 continue
-            msg_id = line[:i1-1]
+            msg_id = line[:i1]
             i2 = line.find(':', i1+1)
             if i2 == -1:
                 continue
