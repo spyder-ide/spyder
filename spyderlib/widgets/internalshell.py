@@ -30,7 +30,7 @@ from subprocess import Popen
 STDOUT = sys.stdout
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import SIGNAL, QString, QObject
+from spyderlib.qt.QtCore import SIGNAL, QObject
 
 # Local import
 from spyderlib.utils.qthelpers import create_action, get_std_icon
@@ -128,7 +128,7 @@ class InternalShell(PythonShellWidget):
         self.start_interpreter(namespace)
         
         # Clear status bar
-        self.emit(SIGNAL("status(QString)"), QString())
+        self.emit(SIGNAL("status(QString)"), '')
                 
                 
     #------ Interpreter

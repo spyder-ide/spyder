@@ -9,8 +9,12 @@ import os
 if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
     from PyQt4.QtCore import *
     def QVariant(obj=None):
-        import PyQt4.QtCore
-        return PyQt4.QtCore.QVariant(obj)
+        try:
+            import PyQt4.QtCore
+            return PyQt4.QtCore.QVariant(obj)
+        except TypeError:
+            # Compatibility with API #2
+            return obj
     from PyQt4.Qt import QCoreApplication
     from PyQt4.Qt import Qt
 else:

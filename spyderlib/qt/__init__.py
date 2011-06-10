@@ -18,3 +18,9 @@ if _modname == 'PyQt4':
         # PyQt < v4.6: in future version, we should warn the user 
         # that PyQt is outdated and won't be supported by Spyder >v2.1
         pass
+    except ValueError, error:
+        import warnings
+        warnings.warn("PyQt has been set to API#2\n"
+                      "Note that, even if spyderlib is designed for API#1, "
+                      "most widgets should work with API#2",
+                      RuntimeWarning, stacklevel=2)

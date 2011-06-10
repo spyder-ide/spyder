@@ -17,8 +17,7 @@ from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
                                 QKeySequence, QFileDialog, QMessageBox,
                                 QMouseEvent, QTextCursor, QTextCharFormat,
                                 QShortcut)
-from spyderlib.qt.QtCore import (Qt, QString, QCoreApplication, SIGNAL,
-                                 pyqtProperty)
+from spyderlib.qt.QtCore import Qt, QCoreApplication, SIGNAL, pyqtProperty
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -573,7 +572,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """Simulate stdout and stderr"""
         if prompt:
             self.flush()
-        if isinstance(text, QString):
+        if not isinstance(text, basestring):
             # This test is useful to discriminate QStrings from decoded str
             text = unicode(text)
         self.__buffer.append(text)
