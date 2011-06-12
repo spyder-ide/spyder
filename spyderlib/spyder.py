@@ -18,7 +18,9 @@ Licensed under the terms of the MIT License
 from spyderlib import qt #@UnusedImport
 
 # Check requirements
-import spyderlib.requirements #@UnusedImport
+from spyderlib import requirements
+requirements.check_path()
+requirements.check_pyqt()
 
 import sys, os, platform, re, webbrowser, os.path as osp
 original_sys_exit = sys.exit

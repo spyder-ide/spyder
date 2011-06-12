@@ -17,8 +17,10 @@ if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
             return obj
     from PyQt4.Qt import QCoreApplication
     from PyQt4.Qt import Qt
+    from PyQt4.QtCore import QT_VERSION_STR as __version__
 else:
-    PYQT_VERSION_STR = ''
+    import PySide.QtCore
+    __version__ = PySide.QtCore.__version__
     from PySide.QtCore import *
     def QVariant(obj=None):
         return obj

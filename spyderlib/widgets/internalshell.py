@@ -11,6 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+#FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
 #----Builtins
 import __builtin__

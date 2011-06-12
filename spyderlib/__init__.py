@@ -3,7 +3,7 @@
 Spyder License Agreement (MIT License)
 --------------------------------------
 
-Copyright (c) 2009-2010 Pierre Raybaut
+Copyright (c) 2009-2011 Pierre Raybaut
 
 Permission is hereby granted, free of charge, to any person
 obtaining a copy of this software and associated documentation
@@ -29,5 +29,3 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 __version__ = '2.1.0alpha1'
 __license__ = __doc__
-
-#FIXME: Internal console MT: for i in range(100000): print i -> bug
