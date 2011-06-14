@@ -1218,7 +1218,7 @@ class MainWindow(QMainWindow):
             (&copy; 2006-2007 Everaldo Coelho)
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
-            <a href="http://spyderlib.googlecode.com">Google Code</a>
+            <a href="http://spyder.googlecode.com">Google Code</a>
             </li><li>Discussions around the project: 
             <a href="http://groups.google.com/group/spyderlib">Google Group</a>
             </li></ul>
@@ -1587,7 +1587,7 @@ def main():
 
     if CONF.get('main', 'crash', False):
         CONF.set('main', 'crash', False)
-        issues_link = 'http://code.google.com/p/spyderlib/issues/list'
+        issues_link = 'http://code.google.com/p/spyder/issues/list'
         group_link = 'http://groups.google.com/group/spyderlib'
         QMessageBox.information(None, "Spyder",
             u"Spyder crashed during last session.<br><br>"
