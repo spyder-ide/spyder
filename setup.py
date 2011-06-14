@@ -61,7 +61,7 @@ cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
 NAME = 'spyder'
 LIBNAME = 'spyderlib'
 from spyderlib import __version__
-GOOGLE_URL = 'http://%s.googlecode.com' % LIBNAME
+GOOGLE_URL = 'http://%s.googlecode.com' % NAME
 
 setup(name=NAME,
       version=__version__,
