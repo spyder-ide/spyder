@@ -550,6 +550,13 @@ class MainWindow(QMainWindow):
             if len(additact) > 1:
                 self.external_tools_menu_actions += additact
                 
+            # Sift
+            sift_act = create_python_script_action(self, _("Sift"),
+                                                   'sift.svg', "guiqwt",
+                                                   osp.join("tests", "sift"))
+            if sift_act:
+                self.external_tools_menu_actions += [None, sift_act]
+                
             # ViTables
             vitables_act = create_program_action(self, _("ViTables"),
                                                  'vitables.png', "vitables")
