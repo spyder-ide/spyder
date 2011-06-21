@@ -30,5 +30,5 @@ Help and support
 ----------------
 
 Spyder websites:
-    * Downloads, bug reports and feature requests: http://spyder.googlecode.com
+    * Downloads, bug reports and feature requests: http://spyderlib.googlecode.com
     * Discussions: http://groups.google.com/group/spyderlib

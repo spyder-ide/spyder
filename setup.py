@@ -60,8 +60,7 @@ cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
 
 NAME = 'spyder'
 LIBNAME = 'spyderlib'
-from spyderlib import __version__
-GOOGLE_URL = 'http://%s.googlecode.com' % NAME
+from spyderlib import __version__, __project_url__
 
 setup(name=NAME,
       version=__version__,
@@ -72,9 +71,9 @@ Scientific Python development environment named 'Spyder', an alternative to
 IDLE with powerful interactive features such as variable explorer (with 
 GUI-based editors for dictionaries, lists, NumPy arrays, etc.), object 
 inspector, online help, and a lot more.""",
-      download_url='%s/files/%s-%s.zip' % (GOOGLE_URL, NAME, __version__),
+      download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="Pierre Raybaut",
-      url=GOOGLE_URL,
+      url=__project_url__,
       license='MIT',
       keywords='PyQt4 editor shell console widgets IDE',
       platforms=['any'],

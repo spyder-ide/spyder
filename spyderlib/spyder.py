@@ -44,7 +44,7 @@ from spyderlib.qt.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR,
                                  QPoint, Qt, QSize, QByteArray)
 
 # Local imports
-from spyderlib import __version__
+from spyderlib import __version__, __project_url__, __forum_url__
 from spyderlib.utils import encoding
 try:
     from spyderlib.utils.environ import WinUserEnvDialog
@@ -1227,9 +1227,9 @@ class MainWindow(QMainWindow):
             (&copy; 2006-2007 Everaldo Coelho)
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
-            <a href="http://spyder.googlecode.com">Google Code</a>
+            <a href="%s">Google Code</a>
             </li><li>Discussions around the project: 
-            <a href="http://groups.google.com/group/spyderlib">Google Group</a>
+            <a href="%s">Google Group</a>
             </li></ul>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
@@ -1243,6 +1243,7 @@ class MainWindow(QMainWindow):
                  "</b></span>",
                  "<span style=\'color: #444444\'><b>",
                  "</b></span>",
+                 __project_url__, __forum_url__,
                  platform.python_version(), QT_VERSION_STR, PYQT_VERSION_STR,
                  platform.system()) )
     
@@ -1590,14 +1591,13 @@ def main():
 #        CONF.reset_to_defaults(save=True)
         return
     elif options.optimize:
+        import spyderlib
         run_python_script(module="compileall", args=[spyderlib.__path__[0]],
                           p_args=['-O'])
         return
 
     if CONF.get('main', 'crash', False):
         CONF.set('main', 'crash', False)
-        issues_link = 'http://code.google.com/p/spyder/issues/list'
-        group_link = 'http://groups.google.com/group/spyderlib'
         QMessageBox.information(None, "Spyder",
             u"Spyder crashed during last session.<br><br>"
             u"If Spyder does not start at all and <u>before submitting a "
@@ -1613,7 +1613,8 @@ def main():
             u"<a href=\"%s\">discussions</a> matching your situation before "
             u"eventually creating a new issue <a href=\"%s\">here</a>. "
             u"Your feedback will always be greatly appreciated."
-            u"" % (get_conf_path(), issues_link, group_link, issues_link))
+            u"" % (get_conf_path(), __project_url__,
+                   __forum_url__, __project_url__))
         
     next_session_name = options.startup_session
     while isinstance(next_session_name, basestring):

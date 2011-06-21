@@ -16,7 +16,7 @@ for your PyQt-based applications -- for example, it may be used to integrate a
 debugging console directly in the layout of your graphical user interface.
 
 Spyder websites:
-    * Downloads, bug reports and feature requests: http://spyder.googlecode.com
+    * Downloads, bug reports and feature requests: http://spyderlib.googlecode.com
     * Discussions: http://groups.google.com/group/spyderlib
             
 

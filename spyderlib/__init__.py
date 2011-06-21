@@ -29,3 +29,5 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 __version__ = '2.1.0alpha1'
 __license__ = __doc__
+__project_url__ = 'http://spyderlib.googlecode.com'
+__forum_url__   = 'http://groups.google.com/group/spyderlib'
