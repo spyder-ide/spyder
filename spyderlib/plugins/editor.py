@@ -1477,7 +1477,11 @@ class Editor(SpyderPluginWidget):
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
-        if isinstance(filenames, basestring):
+
+        if hasattr(filenames, 'replaceInStrings'):
+            # This is a QStringList instance (PyQt API #1), converting to list:
+            filenames = list(filenames)
+        if not isinstance(filenames, list):
             filenames = [_convert(filenames)]
         else:
             filenames = [_convert(fname) for fname in list(filenames)]
