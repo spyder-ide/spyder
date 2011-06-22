@@ -218,18 +218,17 @@ except ValueError:
 
 # Removing PyQt4 input hook which is not working well on Windows
 if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
-    if 'sip' in sys.modules:
+    try:
         import sip
-        try:
-            from sip import setapi as original_setapi
-            def patched_setapi(name, no):
-                try:
-                    original_setapi(name, no)
-                except ValueError, msg:
-                    print >>sys.stderr, "Warning/PyQt4-Spyder (%s)" % str(msg)
-            sip.setapi = patched_setapi
-        except ImportError:
-            pass
+        from sip import setapi as original_setapi
+        def patched_setapi(name, no):
+            try:
+                original_setapi(name, no)
+            except ValueError, msg:
+                print >>sys.stderr, "Warning/PyQt4-Spyder (%s)" % str(msg)
+        sip.setapi = patched_setapi
+    except ImportError:
+        pass
 
 
 # Workaround #1 to make the HDF5 I/O variable explorer plugin work:
