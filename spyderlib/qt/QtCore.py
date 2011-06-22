@@ -8,19 +8,51 @@ import os
 
 if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
     from PyQt4.QtCore import *
-    def QVariant(obj=None):
-        try:
-            import PyQt4.QtCore
-            return PyQt4.QtCore.QVariant(obj)
-        except TypeError:
-            # Compatibility with API #2
-            return obj
+    def to_qvariant(pyobj=None):
+        """Convert Python object to QVariant
+        This is a transitional function from PyQt API #1 (QVariant exist) 
+        to PyQt API #2 and Pyside (QVariant does not exist)"""
+        import sip
+        if sip.getapi('QVariant') == 1:
+            # PyQt API #1
+            return QVariant(pyobj)
+        else:
+            # PyQt API #2
+            return pyobj
+    def from_qvariant(qobj=None, convfunc=None):
+        """Convert QVariant object to Python object
+        This is a transitional function from PyQt API #1 (QVariant exist) 
+        to PyQt API #2 and Pyside (QVariant does not exist)"""
+        import sip
+        if sip.getapi('QVariant') == 1:
+            # PyQt API #1
+            assert callable(convfunc)
+            if convfunc in (unicode, str):
+                return convfunc(qobj.toString())
+            elif convfunc is bool:
+                return qobj.toBool()
+            elif convfunc is int:
+                return qobj.toInt()
+        else:
+            # PyQt API #2
+            return qobj
     from PyQt4.Qt import QCoreApplication
     from PyQt4.Qt import Qt
+    from PyQt4.QtCore import pyqtSignal as Signal
+    from PyQt4.QtCore import pyqtSlot as Slot
+    from PyQt4.QtCore import pyqtProperty as Property
     from PyQt4.QtCore import QT_VERSION_STR as __version__
 else:
     import PySide.QtCore
     __version__ = PySide.QtCore.__version__
     from PySide.QtCore import *
-    def QVariant(obj=None):
+    def to_qvariant(obj=None):
+        """Convert Python object to QVariant
+        This is a transitional function from PyQt API#1 (QVariant exist) 
+        to PyQt API#2 and Pyside (QVariant does not exist)"""
         return obj
+    def from_qvariant(qobj=None, pytype=None):
+        """Convert QVariant object to Python object
+        This is a transitional function from PyQt API #1 (QVariant exist) 
+        to PyQt API #2 and Pyside (QVariant does not exist)"""
+        return qobj

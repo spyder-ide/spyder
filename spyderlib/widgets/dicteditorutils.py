@@ -48,7 +48,9 @@ except ImportError:
         return datetime.datetime( *map(atoi, datestr.split(',')) )
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
-    return dateparse(value[rp:-1])
+    v = dateparse(value[rp:-1])
+    print value, "-->", v
+    return v
 
 #----Background colors for supported types 
 COLORS = {
@@ -113,36 +115,6 @@ def try_to_eval(value):
     except (NameError, SyntaxError, ImportError):
         return value
     
-def display_to_value(value, default_value, ignore_errors=True):
-    """Convert back to value"""
-    value = unicode(value.toString())
-    try:
-        if isinstance(default_value, str):
-            value = str(value)
-        elif isinstance(default_value, unicode):
-            value = unicode(value)
-        elif isinstance(default_value, float):
-            value = float(value)
-        elif isinstance(default_value, int):
-            try:
-                value = int(value)
-            except ValueError:
-                value = float(value)
-        elif isinstance(default_value, datetime.datetime):
-            value = datestr_to_datetime(value)
-        elif isinstance(default_value, datetime.date):
-            value = datestr_to_datetime(value).date()
-        elif ignore_errors:
-            value = try_to_eval(value)
-        else:
-            value = eval(value)
-    except (ValueError, SyntaxError):
-        if ignore_errors:
-            value = try_to_eval(value)
-        else:
-            raise
-    return value
-
 def get_size(item):
     """Return size of an item of arbitrary type"""
     if isinstance(item, (list, tuple, dict)):

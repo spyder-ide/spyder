@@ -84,6 +84,9 @@ class HistoryLog(SpyderPluginWidget):
         
         SpyderPluginWidget.__init__(self, parent)
 
+        # Initialize plugin
+        self.initialize_plugin()
+        
         self.set_default_color_scheme()
         
         layout = QVBoxLayout()

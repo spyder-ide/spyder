@@ -14,7 +14,8 @@ STDERR = sys.stderr
 
 from spyderlib.qt.QtGui import (QApplication, QMessageBox, QSplitter,
                                 QFileDialog, QMenu)
-from spyderlib.qt.QtCore import QProcess, SIGNAL, QString, Qt
+from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
+locale_codec = QTextCodec.codecForLocale()
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
@@ -350,9 +351,8 @@ class ExternalPythonShell(ExternalShellBase):
             self.connect(self.notification_thread,
                          SIGNAL('refresh_namespace_browser()'),
                          self.namespacebrowser.refresh_table)
-            self.connect(self.notification_thread,
-                         SIGNAL('process_remote_view(PyQt_PyObject)'),
-                         self.namespacebrowser.process_remote_view)
+            signal = self.notification_thread.process_remote_view_signal
+            signal.connect(self.namespacebrowser.process_remote_view)
     
     def create_process(self):
         self.shell.clear()
@@ -386,7 +386,7 @@ class ExternalPythonShell(ExternalShellBase):
         else:
             p_args.append(self.fname)
         
-        env = self.process.systemEnvironment()
+        env = [unicode(_path) for _path in self.process.systemEnvironment()]
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
@@ -497,12 +497,12 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.write_error(self.get_stderr())
         QApplication.processEvents()
         
-    def send_to_process(self, qstr):
-        if not isinstance(qstr, QString):
-            qstr = QString(qstr)
-        if not qstr.endsWith('\n'):
-            qstr.append('\n')
-        self.process.write(qstr.toLocal8Bit())
+    def send_to_process(self, text):
+        if not isinstance(text, basestring):
+            text = unicode(text)
+        if not text.endswith('\n'):
+            text += '\n'
+        self.process.write(locale_codec.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         
         # Eventually write prompt faster (when hitting Enter continuously)

@@ -12,8 +12,8 @@ import os, webbrowser
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton)
-from spyderlib.qt.QtCore import (SIGNAL, QVariant, QObject, Qt, QLocale,
-                                 QTranslator, QLibraryInfo)
+from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
+                                 QLibraryInfo, to_qvariant, from_qvariant)
 
 # Local import
 from spyderlib.config import get_icon
@@ -58,7 +58,7 @@ def install_translator(qapp):
 def keybinding(attr):
     """Return keybinding"""
     ks = getattr(QKeySequence, attr)
-    return QKeySequence.keyBindings(ks)[0].toString()
+    return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
 
 def _process_mime_path(path, extlist):
     if path.startswith(r"file://"):
@@ -178,7 +178,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         action.setToolTip(tip)
         action.setStatusTip(tip)
     if data is not None:
-        action.setData(QVariant(data))
+        action.setData(to_qvariant(data))
     #TODO: Hard-code all shortcuts and choose context=Qt.WidgetShortcut
     # (this will avoid calling shortcuts from another dockwidget
     #  since the context thing doesn't work quite well with these widgets)
@@ -214,11 +214,11 @@ def add_actions(target, actions, insert_before=None):
 
 def get_item_user_text(item):
     """Get QTreeWidgetItem user role string"""
-    return unicode(item.data(0, Qt.UserRole).toString())
+    return from_qvariant(item.data(0, Qt.UserRole), unicode)
 
 def set_item_user_text(item, text):
     """Set QTreeWidgetItem user role string"""
-    item.setData(0, Qt.UserRole, QVariant(text))
+    item.setData(0, Qt.UserRole, to_qvariant(text))
 
 
 def create_bookmark_action(parent, url, title, icon=None, shortcut=None):

@@ -27,10 +27,11 @@ try:
 except ImportError:
     pass
 
-from PyQt4.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
-                         QLabel, QFileDialog, QTreeWidget, QTreeWidgetItem,
-                         QApplication)
-from PyQt4.QtCore import SIGNAL, QProcess, QByteArray, QString, Qt
+from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
+                                QLabel, QFileDialog, QTreeWidget,
+                                QTreeWidgetItem, QApplication)
+from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, Qt, QTextCodec
+locale_codec = QTextCodec.codecForLocale()
 
 import sys, os, time
 
@@ -230,7 +231,7 @@ class ProfilerWidget(QWidget):
                 bytes += self.process.readAllStandardError()
             else:
                 bytes += self.process.readAllStandardOutput()
-        text = unicode( QString.fromLocal8Bit(bytes.data()) )
+        text = unicode( locale_codec.toUnicode(bytes.data()) )
         if error:
             self.error_output += text
         else:
@@ -397,15 +398,13 @@ class ProfilerDataTree(QTreeWidget):
             child_item.setToolTip(1, _('Time in function '\
                                        '(including sub-functions)'))
             #child_item.setData(1, Qt.DisplayRole, cum_time)
-            child_item.setData(1, Qt.DisplayRole,
-                              QString('%1').arg(cum_time, 0, 'f', 3))
+            child_item.setData(1, Qt.DisplayRole, '%.3f' % cum_time)
             child_item.setTextAlignment(1, Qt.AlignCenter)
 
             child_item.setToolTip(2,_('Local time in function '\
                                       '(not in sub-functions)'))
             #child_item.setData(2, Qt.DisplayRole, loc_time)
-            child_item.setData(2, Qt.DisplayRole,
-                              QString('%1').arg(loc_time, 0, 'f', 3))
+            child_item.setData(2, Qt.DisplayRole, '%.3f' % loc_time)
             child_item.setTextAlignment(2,Qt.AlignCenter)
 
             child_item.setToolTip(3, _('Total number of calls '\

@@ -152,7 +152,7 @@ class WebBrowser(QWidget):
         self.connect(self.webview, SIGNAL("loadProgress(int)"),
                      progressbar.setValue)
         self.connect(self.webview, SIGNAL("loadFinished(bool)"),
-                     progressbar.hide)
+                     lambda _state: progressbar.hide())
         
         label = QLabel(self.get_label())
         

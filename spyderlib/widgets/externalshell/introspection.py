@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """External shell's introspection and notification servers"""
 
-from spyderlib.qt.QtCore import QThread, SIGNAL
+from spyderlib.qt.QtCore import QThread, SIGNAL, Signal
 
 import threading, socket
 
@@ -128,6 +128,7 @@ def start_notification_server():
 
 
 class NotificationThread(QThread):
+    process_remote_view_signal = Signal(object)
     def __init__(self, shell):
         QThread.__init__(self, shell)
         self.shell = shell
@@ -171,8 +172,7 @@ class NotificationThread(QThread):
                     if nsb is not None:
                         output = nsb.get_remote_view_settings()
                 elif command == 'remote_view':
-                    self.emit(SIGNAL('process_remote_view(PyQt_PyObject)'),
-                              data)
+                    self.process_remote_view_signal.emit(data)
                 else:
                     raise RuntimeError('Unsupported command: %r' % command)
                 if DEBUG:

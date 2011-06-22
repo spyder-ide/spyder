@@ -39,6 +39,9 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                             show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
+        # Initialize plugin
+        self.initialize_plugin()
+        
         self.editor_valid_types = None
         
         self.set_font(self.get_plugin_font())
@@ -101,7 +104,9 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      lambda directory: self.refresh_plugin(new_path=directory,
                                                            force_current=True))
         self.connect(self, SIGNAL("open_dir(QString)"),
-                     self.main.workingdirectory.chdir)
+                     lambda dirname:
+                     self.main.workingdirectory.chdir(dirname,
+                                                      refresh_explorer=False))
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""

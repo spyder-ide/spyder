@@ -17,8 +17,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QTextDocument, QListWidget, QPlainTextEdit,
                                 QPalette, QMainWindow, QTextOption)
-from spyderlib.qt.QtCore import (QPoint, SIGNAL, Qt, QRegExp, QEventLoop,
-                                 QObject)
+from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QRegExp, QEventLoop
 
 
 # Local imports
@@ -296,8 +295,6 @@ class TextEditBaseWidget(QPlainTextEdit):
             if position > self.get_position('eof'):
                 return
             selection = QTextEdit.ExtraSelection()
-#            selection.format.setProperty(QTextFormat.OutlinePen,
-#                                         QVariant(QPen(color)))
             selection.format.setBackground(color)
             selection.cursor = self.textCursor()
             selection.cursor.clearSelection()
@@ -541,7 +538,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         """
         Set widget end-of-line (EOL) characters from text (analyzes text)
         """
-        if isinstance(text, QObject): # testing for QString, compat. with API#2
+        if not isinstance(text, basestring): # testing for QString (PyQt API#1)
             text = unicode(text)
         eol_chars = sourcecode.get_eol_chars(text)
         if eol_chars is not None and self.eol_chars is not None:

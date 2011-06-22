@@ -11,7 +11,7 @@ from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
                                 QFileIconProvider, QMessageBox, QInputDialog,
                                 QLineEdit, QFileDialog)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
-                                 QUrl, QTimer)
+                                 QUrl, QTimer, Slot)
 
 import os, sys, re, shutil, cPickle
 import os.path as osp
@@ -223,6 +223,13 @@ class Project(object):
     #------Tree widget items
     def get_items(self):
         return self.items.values()
+    
+    def is_item_in_project(self, item):
+        for item_i in self.items.values():
+            if item_i is item:
+                return True
+        else:
+            return False
         
     def is_item_in_pythonpath(self, item):
         for dirname, item_i in self.items.iteritems():
@@ -506,7 +513,7 @@ class ExplorerTreeWidget(OneColumnTree):
         
     def __get_project_from_item(self, item):
         for project in self.projects:
-            if item in project.get_items():
+            if project.is_item_in_project(item):
                 return project
         
     def get_actions_from_items(self, items):
@@ -719,7 +726,8 @@ class ExplorerTreeWidget(OneColumnTree):
         ok = programs.start_file(fname)
         if not ok:
             self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
-                
+    
+    @Slot(QTreeWidgetItem)
     def item_expanded(self, item):
         project = self.__get_project_from_item(item)
         if osp.isfile(get_item_path(item)):
@@ -735,11 +743,12 @@ class ExplorerTreeWidget(OneColumnTree):
         if not item.childCount():
             # A non-populated item was just expanded
             for project in self.projects:
-                if item in project.get_items():
+                if project.is_item_in_project(item):
                     project.populate_tree(self, self.include, self.exclude,
                                           self.show_all, branch=item)
                     self.scrollToItem(item)
             
+    @Slot(QTreeWidgetItem)
     def item_collapsed(self, item):
         project = self.__get_project_from_item(item)
         in_path = project.is_item_in_pythonpath(item)

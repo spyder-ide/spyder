@@ -63,8 +63,8 @@ class TabBar(QTabBar):
     def dragEnterEvent(self, event):
         """Override Qt method"""
         mimeData = event.mimeData()
-        formats = mimeData.formats()
-        if formats.contains("parent-id") and \
+        formats = list( mimeData.formats() )
+        if "parent-id" in formats and \
            mimeData.data("parent-id").toLong()[0] == id(self.ancestor):
             event.acceptProposedAction()
         QTabBar.dragEnterEvent(self, event)

@@ -56,6 +56,9 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
                                    in_python_path, more_options)
         SpyderPluginMixin.__init__(self, parent)
         
+        # Initialize plugin
+        self.initialize_plugin()
+        
         self.connect(self, SIGNAL('toggle_visibility(bool)'), self.toggle)
         
     def toggle(self, state):

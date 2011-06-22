@@ -130,22 +130,28 @@ class DirView(QTreeView):
         else:
             self.fsmodel.setNameFilters(self.name_filters)
             
-    def get_filename(self):
-        """Return selected filename"""
-        index = self.currentIndex()
+    def get_filename(self, index):
         if index:
             return osp.normpath(unicode(self.fsmodel.filePath(index)))
         
-    def get_dirname(self):
+    def get_selected_filename(self):
+        """Return selected filename"""
+        return self.get_filename(self.currentIndex())
+            
+    def get_dirname(self, index):
+        fname = self.get_filename(index)
+        if fname:
+            if osp.isdir(fname):
+                return fname
+            else:
+                return osp.dirname(fname)
+        
+    def get_selected_dirname(self):
         """
         Return selected directory path
         or selected filename's directory path
         """
-        fname = self.get_filename()
-        if osp.isdir(fname):
-            return fname
-        else:
-            return osp.dirname(fname)
+        return self.get_dirname(self.currentIndex())
         
     #---- Tree view widget
     def setup(self, name_filters=['*.py', '*.pyw'],
@@ -207,7 +213,7 @@ class DirView(QTreeView):
                                        icon="filenew.png",
                                        triggered=self.new_file)
         actions.append(newfile_action)
-        fname = self.get_filename()
+        fname = self.get_selected_filename()
         if fname is not None:
             is_dir = osp.isdir(fname)
             ext = osp.splitext(fname)[1]
@@ -289,7 +295,7 @@ class DirView(QTreeView):
         
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
-        fname = self.get_filename()
+        fname = self.get_selected_filename()
         if fname:
             if osp.isdir(fname):
                 self.directory_clicked(fname)
@@ -315,7 +321,7 @@ class DirView(QTreeView):
     def startDrag(self, dropActions):
         """Reimplement Qt Method - handle drag event"""
         data = QMimeData()
-        data.setUrls([QUrl(self.get_filename())])
+        data.setUrls([QUrl(self.get_selected_filename())])
         drag = QDrag(self)
         drag.setMimeData(data)
         drag.exec_()
@@ -333,18 +339,19 @@ class DirView(QTreeView):
     def startfile(self, fname=None):
         """Open file in the associated application"""
         if fname is None:
-            fname = self.get_filename()
+            fname = self.get_selected_filename()
         ok = programs.start_file(fname)
         if not ok:
             self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
         
     def run(self):
         """Run Python script"""
-        self.parent_widget.emit(SIGNAL("run(QString)"), self.get_filename())
+        self.parent_widget.emit(SIGNAL("run(QString)"),
+                                self.get_selected_filename())
             
     def delete(self):
         """Delete selected item"""
-        fname = self.get_filename()
+        fname = self.get_selected_filename()
         if fname:
             answer = QMessageBox.warning(self, _("Delete"),
                                     _("Do you really want to delete <b>%s</b>?"
@@ -368,7 +375,7 @@ class DirView(QTreeView):
             
     def rename(self):
         """Rename selected item"""
-        fname = self.get_filename()
+        fname = self.get_selected_filename()
         if fname:
             path, valid = QInputDialog.getText(self, _('Rename'),
                                                _('New name:'),
@@ -398,7 +405,7 @@ class DirView(QTreeView):
                         parent=self, icon=get_icon('spyder.svg') )
         if answer is not None:
             dirname, pack = answer
-            dirname = osp.join(self.get_dirname(), dirname)
+            dirname = osp.join(self.get_selected_dirname(), dirname)
             try:
                 os.mkdir(dirname)
             except EnvironmentError, error:
@@ -416,9 +423,9 @@ class DirView(QTreeView):
         _temp = sys.stdout
         sys.stdout = None
         fname = QFileDialog.getSaveFileName(self,
-                                _("New Python script"), self.get_dirname(),
-                                _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
-                                "\n"+_( "All files")+" (*)")
+                        _("New Python script"), self.get_selected_dirname(),
+                        _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
+                        "\n"+_( "All files")+" (*)")
         sys.stdout = _temp
         if unicode(fname):
             fname = unicode(fname)
@@ -498,9 +505,7 @@ class FilteredDirView(DirView):
         self.proxymodel.set_path_list(path_list)
         self.setRootIndex( self.get_index(self.root_path) )
         
-    def get_filename(self):
-        """Return selected filename"""
-        index = self.currentIndex()
+    def get_filename(self, index):
         if index:
             path = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
             return osp.normpath(unicode(path))

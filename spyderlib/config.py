@@ -15,7 +15,7 @@ Important note regarding shortcuts:
 """
 
 import os, sys, os.path as osp
-from PyQt4.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
+from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault

@@ -17,7 +17,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QPrintDialog,
                                 QInputDialog, QMenu, QAbstractPrintDialog,
                                 QGroupBox, QTabWidget, QLabel, QFontComboBox,
                                 QHBoxLayout)
-from spyderlib.qt.QtCore import SIGNAL, QStringList, QVariant, QByteArray, Qt
+from spyderlib.qt.QtCore import (SIGNAL, QByteArray, Qt, to_qvariant, Slot,
+                                 from_qvariant)
 
 import os, sys, time, re
 import os.path as osp
@@ -298,6 +299,8 @@ class Editor(SpyderPluginWidget):
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):
+        SpyderPluginWidget.__init__(self, parent)
+        
         self.__set_eol_chars = True
         
         self.set_default_color_scheme()
@@ -323,8 +326,10 @@ class Editor(SpyderPluginWidget):
         # (see spyder.py: 'update_edit_menu' method)
         self.search_menu_actions = None #XXX: same thing ('update_search_menu')
         self.stack_menu_actions = None
-        SpyderPluginWidget.__init__(self, parent)
-
+        
+        # Initialize plugin
+        self.initialize_plugin()
+        
         self.filetypes = ((_("Python files"), ('.py', '.pyw', '.ipy')),
                           (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
                           (_("C files"), ('.c', '.h')),
@@ -476,7 +481,7 @@ class Editor(SpyderPluginWidget):
     def restore_scrollbar_position(self):
         """Restoring scrollbar position after main window is visible"""
         # Widget is now visible, we may center cursor on top level editor:
-        self.get_current_editor()._center_cursor()
+        self.get_current_editor().centerCursor()
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -997,9 +1002,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
                      lambda: self.emit(SIGNAL("update_plugin_title()")))
         
-        self.connect(editorstack, SIGNAL('close_file(int)'),
+        self.connect(editorstack, SIGNAL('close_file(int,int)'),
                      self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(int)'),
+        self.connect(editorstack, SIGNAL('file_saved(int,int)'),
                      self.file_saved_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
@@ -1049,19 +1054,19 @@ class Editor(SpyderPluginWidget):
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
         
-    def close_file_in_all_editorstacks(self, index):
-        sender = self.sender()
+    @Slot(int, int)
+    def close_file_in_all_editorstacks(self, editorstack_id, index):
         for editorstack in self.editorstacks:
-            if editorstack is not sender:
+            if id(editorstack) != editorstack_id:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
                 
-    def file_saved_in_editorstack(self, index):
+    @Slot(int, int)
+    def file_saved_in_editorstack(self, editorstack_id, index):
         """A file was saved in editorstack, this notifies others"""
-        sender = self.sender()
         for editorstack in self.editorstacks:
-            if editorstack is not sender:
+            if id(editorstack) != editorstack_id:
                 editorstack.file_saved_in_other_editorstack(index)
         
         
@@ -1404,7 +1409,7 @@ class Editor(SpyderPluginWidget):
                 action = create_action(self, "&%s %s" % (accel, fname),
                                        icon=get_filetype_icon(fname),
                                        triggered=self.load)
-                action.setData(QVariant(fname))
+                action.setData(to_qvariant(fname))
                 self.recent_file_menu.addAction(action)
         self.clear_recent_action.setEnabled(len(recent_files) > 0)
         add_actions(self.recent_file_menu, (None, self.max_recent_action,
@@ -1439,7 +1444,7 @@ class Editor(SpyderPluginWidget):
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
-                filenames = unicode(action.data().toString())
+                filenames = from_qvariant(action.data(), unicode)
         if not filenames:
             basedir = os.getcwdu()
             if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
@@ -1472,7 +1477,7 @@ class Editor(SpyderPluginWidget):
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
-        if not isinstance(filenames, (list, QStringList)):
+        if isinstance(filenames, basestring):
             filenames = [_convert(filenames)]
         else:
             filenames = [_convert(fname) for fname in list(filenames)]

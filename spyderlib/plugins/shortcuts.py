@@ -8,8 +8,8 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
-from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QVariant,
-                                 QModelIndex, SIGNAL)
+from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
+                                 SIGNAL, from_qvariant, to_qvariant)
 
 import sys
 
@@ -125,48 +125,48 @@ class ShortcutsModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         if not index.isValid() or \
            not (0 <= index.row() < len(self.shortcuts)):
-            return QVariant()
+            return to_qvariant()
         shortcut = self.shortcuts[index.row()]
         key = shortcut.key
         column = index.column()
         if role == Qt.DisplayRole:
             if column == CONTEXT:
-                return QVariant(shortcut.context)
+                return to_qvariant(shortcut.context)
             elif column == NAME:
-                return QVariant(shortcut.name)
+                return to_qvariant(shortcut.name)
             elif column == MOD1:
-                return QVariant(Key.MODIFIERS[key.modifiers[0]])
+                return to_qvariant(Key.MODIFIERS[key.modifiers[0]])
             elif column == MOD2:
-                return QVariant(Key.MODIFIERS[key.modifiers[1]])
+                return to_qvariant(Key.MODIFIERS[key.modifiers[1]])
             elif column == MOD3:
-                return QVariant(Key.MODIFIERS[key.modifiers[2]])
+                return to_qvariant(Key.MODIFIERS[key.modifiers[2]])
             elif column == KEY:
-                return QVariant(Key.KEYS[key.key])
+                return to_qvariant(Key.KEYS[key.key])
         elif role == Qt.TextAlignmentRole:
-            return QVariant(int(Qt.AlignHCenter|Qt.AlignVCenter))
-        return QVariant()
+            return to_qvariant(int(Qt.AlignHCenter|Qt.AlignVCenter))
+        return to_qvariant()
 
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         if role == Qt.TextAlignmentRole:
             if orientation == Qt.Horizontal:
-                return QVariant(int(Qt.AlignHCenter|Qt.AlignVCenter))
-            return QVariant(int(Qt.AlignRight|Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignHCenter|Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
         if role != Qt.DisplayRole:
-            return QVariant()
+            return to_qvariant()
         if orientation == Qt.Horizontal:
             if section == CONTEXT:
-                return QVariant(_("Context"))
+                return to_qvariant(_("Context"))
             elif section == NAME:
-                return QVariant(_("Name"))
+                return to_qvariant(_("Name"))
             elif section == MOD1:
-                return QVariant(_("Mod1"))
+                return to_qvariant(_("Mod1"))
             elif section == MOD2:
-                return QVariant(_("Mod2"))
+                return to_qvariant(_("Mod2"))
             elif section == MOD3:
-                return QVariant(_("Mod3"))
+                return to_qvariant(_("Mod3"))
             elif section == KEY:
-                return QVariant(_("Key"))
-        return QVariant()
+                return to_qvariant(_("Key"))
+        return to_qvariant()
 
     def rowCount(self, index=QModelIndex()):
         return len(self.shortcuts)
@@ -179,14 +179,15 @@ class ShortcutsModel(QAbstractTableModel):
             shortcut = self.shortcuts[index.row()]
             key = shortcut.key
             column = index.column()
+            text = from_qvariant(value, str)
             if column == MOD1:
-                key.modifiers[0] = Key.modifier_from_str(str(value.toString()))
+                key.modifiers[0] = Key.modifier_from_str(text)
             elif column == MOD2:
-                key.modifiers[1] = Key.modifier_from_str(str(value.toString()))
+                key.modifiers[1] = Key.modifier_from_str(text)
             elif column == MOD3:
-                key.modifiers[2] = Key.modifier_from_str(str(value.toString()))
+                key.modifiers[2] = Key.modifier_from_str(text)
             elif column == KEY:
-                key.key = Key.key_from_str(str(value.toString()))
+                key.key = Key.key_from_str(text)
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
                       index, index)
             return True
@@ -241,7 +242,7 @@ class ShortcutsDelegate(QItemDelegate):
                                               index)
 
     def setEditorData(self, editor, index):
-        text = index.model().data(index, Qt.DisplayRole).toString()
+        text = from_qvariant(index.model().data(index, Qt.DisplayRole), str)
         if index.column() in (MOD1, MOD2, MOD3, KEY):
             i = editor.findText(text)
             if i == -1:
@@ -252,7 +253,7 @@ class ShortcutsDelegate(QItemDelegate):
 
     def setModelData(self, editor, model, index):
         if index.column() in (MOD1, MOD2, MOD3, KEY):
-            model.setData(index, QVariant(editor.currentText()))
+            model.setData(index, to_qvariant(editor.currentText()))
         else:
             QItemDelegate.setModelData(self, editor, model, index)
 
@@ -319,7 +320,7 @@ class ShortcutsConfigPage(GeneralConfigPage):
         self.table = ShortcutsTable(self)
         self.connect(self.table.model,
                      SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
-                     lambda i1, i2: self.has_been_modified())
+                     lambda i1, i2, opt='': self.has_been_modified(opt))
         vlayout = QVBoxLayout()
         vlayout.addWidget(self.table)
         reset_btn = QPushButton(_("Reset to default values"))

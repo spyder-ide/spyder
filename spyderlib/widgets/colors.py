@@ -2,7 +2,7 @@
 
 from spyderlib.qt.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor,
                                 QPushButton, QColorDialog, QPixmap)
-from spyderlib.qt.QtCore import SIGNAL, QSize, pyqtSignature, pyqtProperty
+from spyderlib.qt.QtCore import SIGNAL, QSize, Slot, Property
 
 
 class ColorButton(QPushButton):
@@ -28,7 +28,7 @@ class ColorButton(QPushButton):
     def get_color(self):
         return self._color
     
-    @pyqtSignature("QColor")
+    @Slot(QColor)
     def set_color(self, color):
         if color != self._color:
             self._color = color
@@ -37,7 +37,7 @@ class ColorButton(QPushButton):
             pixmap.fill(color)
             self.setIcon(QIcon(pixmap))
     
-    color = pyqtProperty("QColor", get_color, set_color)
+    color = Property("QColor", get_color, set_color)
 
 
 def text_to_qcolor(text):

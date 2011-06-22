@@ -19,8 +19,8 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QMessageBox, QPushButton, QInputDialog, QMenu,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QStackedWidget, QWidget, QVBoxLayout)
-from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex,
-                                 QAbstractTableModel, SIGNAL, SLOT)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+                                 SLOT, to_qvariant, from_qvariant)
 
 import numpy as np
 import StringIO
@@ -168,20 +168,20 @@ class ArrayModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
-            return QVariant()
+            return to_qvariant()
         value = self.get_value(index)
         if role == Qt.DisplayRole:
-            return QVariant(self._format % value)
+            return to_qvariant(self._format % value)
         elif role == Qt.TextAlignmentRole:
-            return QVariant(int(Qt.AlignCenter|Qt.AlignVCenter))
+            return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
             hue = self.hue0+self.dhue*(self.vmax-self.color_func(value))/(self.vmax-self.vmin)
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
-            return QVariant(color)
+            return to_qvariant(color)
         elif role == Qt.FontRole:
-            return QVariant(get_font('arrayeditor'))
-        return QVariant()
+            return to_qvariant(get_font('arrayeditor'))
+        return to_qvariant()
 
     def setData(self, index, value, role=Qt.EditRole):
         """Cell content change"""
@@ -189,7 +189,7 @@ class ArrayModel(QAbstractTableModel):
             return False
         i = index.row()
         j = index.column()
-        value = str(value.toString())
+        value = from_qvariant(value, str)
         if self._data.dtype.name == "bool":
             try:
                 val = bool(float(value))
@@ -238,12 +238,12 @@ class ArrayModel(QAbstractTableModel):
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Set header data"""
         if role != Qt.DisplayRole:
-            return QVariant()
+            return to_qvariant()
         labels = self.xlabels if orientation == Qt.Horizontal else self.ylabels
         if labels is None:
-            return QVariant(int(section))
+            return to_qvariant(int(section))
         else:
-            return QVariant(labels[section])
+            return to_qvariant(labels[section])
 
 
 class ArrayDelegate(QItemDelegate):
@@ -257,7 +257,7 @@ class ArrayDelegate(QItemDelegate):
         model = index.model()
         if model._data.dtype.name == "bool":
             value = not model.get_value(index)
-            model.setData(index, QVariant(value))
+            model.setData(index, to_qvariant(value))
             return
         else:
             editor = QLineEdit(parent)
@@ -277,7 +277,7 @@ class ArrayDelegate(QItemDelegate):
 
     def setEditorData(self, editor, index):
         """Set editor widget's data"""
-        text = index.model().data(index, Qt.DisplayRole).toString()
+        text = from_qvariant(index.model().data(index, Qt.DisplayRole), str)
         editor.setText(text)
 
 

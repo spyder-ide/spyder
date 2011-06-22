@@ -32,6 +32,10 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
                                        show_all_files=show_all_files,
                                        show_comments=show_comments)
         SpyderPluginMixin.__init__(self, parent)
+
+        # Initialize plugin
+        self.initialize_plugin()
+        
         self.treewidget.header().hide()
         self.load_config()
         

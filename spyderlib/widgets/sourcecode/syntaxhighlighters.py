@@ -126,7 +126,7 @@ class BaseSH(QSyntaxHighlighter):
     PROG = None
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
-    def __init__(self, parent, font=None, color_scheme=None):
+    def __init__(self, parent, font=None, color_scheme='Spyder'):
         QSyntaxHighlighter.__init__(self, parent)
         
         self.outlineexplorer_data = {}
@@ -303,7 +303,7 @@ class PythonSH(BaseSH):
      INSIDE_SQSTRING, INSIDE_DQSTRING) = range(5)
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
-    def __init__(self, parent, font=None, color_scheme=None):
+    def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
         self.import_statements = {}
 
@@ -480,8 +480,9 @@ class CppSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
+        text = unicode(text)
         inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
-        self.setFormat(0, text.length(),
+        self.setFormat(0, len(text),
                        self.formats["comment" if inside_comment else "normal"])
         
         match = self.PROG.search(text)
@@ -493,7 +494,7 @@ class CppSH(BaseSH):
                     index += end-start
                     if key == "comment_start":
                         inside_comment = True
-                        self.setFormat(start, text.length()-start,
+                        self.setFormat(start, len(text)-start,
                                        self.formats["comment"])
                     elif key == "comment_end":
                         inside_comment = False
@@ -565,7 +566,8 @@ class FortranSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
-        self.setFormat(0, text.length(), self.formats["normal"])
+        text = unicode(text)
+        self.setFormat(0, len(text), self.formats["normal"])
         
         match = self.PROG.search(text)
         index = 0
@@ -587,12 +589,13 @@ class FortranSH(BaseSH):
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
     def highlightBlock(self, text):
-        if text.startsWith("c"):
-            self.setFormat(0, text.length(), self.formats["comment"])
+        text = unicode(text)
+        if text.startswith("c"):
+            self.setFormat(0, len(text), self.formats["comment"])
         else:
             FortranSH.highlightBlock(self, text)
             self.setFormat(0, 5, self.formats["comment"])
-            self.setFormat(73, max([73, text.length()]),
+            self.setFormat(73, max([73, len(text)]),
                            self.formats["comment"])
 
 
@@ -603,16 +606,17 @@ class Fortran77SH(FortranSH):
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
     def highlightBlock(self, text):
-        if text.startsWith("+++"):
-            self.setFormat(0, text.length(), self.formats["keyword"])
-        elif text.startsWith("---"):
-            self.setFormat(0, text.length(), self.formats["keyword"])
-        elif text.startsWith("+"):
-            self.setFormat(0, text.length(), self.formats["string"])
-        elif text.startsWith("-"):
-            self.setFormat(0, text.length(), self.formats["number"])
-        elif text.startsWith("@"):
-            self.setFormat(0, text.length(), self.formats["builtin"])
+        text = unicode(text)
+        if text.startswith("+++"):
+            self.setFormat(0, len(text), self.formats["keyword"])
+        elif text.startswith("---"):
+            self.setFormat(0, len(text), self.formats["keyword"])
+        elif text.startswith("+"):
+            self.setFormat(0, len(text), self.formats["string"])
+        elif text.startswith("-"):
+            self.setFormat(0, len(text), self.formats["number"])
+        elif text.startswith("@"):
+            self.setFormat(0, len(text), self.formats["builtin"])
 
 
 #==============================================================================
@@ -644,7 +648,8 @@ class GetTextSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
-        self.setFormat(0, text.length(), self.formats["normal"])
+        text = unicode(text)
+        self.setFormat(0, len(text), self.formats["normal"])
         
         match = self.PROG.search(text)
         index = 0
@@ -670,13 +675,14 @@ class BaseWebSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
     
     def highlightBlock(self, text):
+        text = unicode(text)
         previous_state = self.previousBlockState()
         
         if previous_state == self.COMMENT:
-            self.setFormat(0, text.length(), self.formats["comment"])
+            self.setFormat(0, len(text), self.formats["comment"])
         else:
             previous_state = self.NORMAL
-            self.setFormat(0, text.length(), self.formats["normal"])
+            self.setFormat(0, len(text), self.formats["normal"])
         
         self.setCurrentBlockState(previous_state)
         match = self.PROG.search(text)        
@@ -689,16 +695,16 @@ class BaseWebSH(BaseSH):
                     if previous_state == self.COMMENT:
                         if key == "multiline_comment_end":
                             self.setCurrentBlockState(self.NORMAL)
-                            self.setFormat(end, text.length(),
+                            self.setFormat(end, len(text),
                                            self.formats["normal"])
                         else:
                             self.setCurrentBlockState(self.COMMENT)
-                            self.setFormat(0, text.length(),
+                            self.setFormat(0, len(text),
                                            self.formats["comment"])
                     else:
                         if key == "multiline_comment_start":
                             self.setCurrentBlockState(self.COMMENT)
-                            self.setFormat(start, text.length(),
+                            self.setFormat(start, len(text),
                                            self.formats["comment"])
                         else:
                             self.setCurrentBlockState(self.NORMAL)

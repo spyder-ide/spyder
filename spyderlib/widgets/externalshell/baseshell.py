@@ -19,8 +19,9 @@ STDERR = sys.stderr
 from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QHBoxLayout, QMenu, QLabel, QInputDialog,
                                 QLineEdit, QToolButton)
-from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QString, QTimer,
-                                 QStringList, Qt)
+from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QTimer, Qt,
+                                 QTextCodec)
+locale_codec = QTextCodec.codecForLocale()
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
@@ -30,12 +31,17 @@ from spyderlib.config import get_icon
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist):
-    assert isinstance(env, QStringList)
+    # PyQt API 1/2 compatibility-related tests:
+    assert isinstance(env, list)
+    assert all([isinstance(path, basestring) for path in env])
+    
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
     if os.environ.get(pypath) is not None:
-        env.replaceInStrings(pypath+'=', pypath+'='+pathstr+os.pathsep,
-                             Qt.CaseSensitive)
+        for index, var in enumerate(env[:]):
+            if var.startswith(pypath+'='):
+                env[index] = var.replace(pypath+'=',
+                                         pypath+'='+pathstr+os.pathsep)
         env.append('OLD_PYTHONPATH='+os.environ[pypath])
     else:
         env.append(pypath+'='+pathstr)
@@ -249,7 +255,7 @@ class ExternalShellBase(QWidget):
 #    Input/Output
 #===============================================================================
     def transcode(self, bytes):
-        return unicode( QString.fromLocal8Bit(bytes.data()) )
+        return unicode( locale_codec.toUnicode(bytes.data()) )
     
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
@@ -278,7 +284,7 @@ class ExternalShellBase(QWidget):
         byte_array.append(char)
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
-        self.shell.write(QString(byte_array), flush=True)
+        self.shell.write(locale_codec.toUnicode(byte_array), flush=True)
         
     def keyboard_interrupt(self):
         raise NotImplementedError

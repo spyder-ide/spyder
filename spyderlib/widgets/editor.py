@@ -11,14 +11,14 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu,
                                 QFont, QAction, QApplication, QWidget,
                                 QHBoxLayout, QLabel, QKeySequence, QShortcut,
                                 QMainWindow, QSplitter, QListWidget,
                                 QListWidgetItem, QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, PYQT_VERSION_STR, QSize, QPoint,
-                                 QTimer)
+                                 QByteArray, QSize, QPoint, QTimer)
 
 import os, sys, re, os.path as osp
 
@@ -516,7 +516,7 @@ class EditorStack(QWidget):
         self.disconnect(self.analysis_timer, SIGNAL("timeout()"),
                         self.analyze_script)
         QWidget.closeEvent(self, event)
-        if PYQT_VERSION_STR.startswith('4.6'):
+        if is_pyqt46:
             self.emit(SIGNAL('destroyed()'))        
     
     def clone_editor_from(self, other_finfo, set_current):
@@ -1052,7 +1052,7 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
             
             self.remove_from_data(index)
-            self.emit(SIGNAL('close_file(int)'), index)
+            self.emit(SIGNAL('close_file(int,int)'), id(self), index)
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
@@ -1142,7 +1142,7 @@ class EditorStack(QWidget):
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-            self.emit(SIGNAL('file_saved(int)'), index)
+            self.emit(SIGNAL('file_saved(int,int)'), id(self), index)
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
@@ -1438,16 +1438,15 @@ class EditorStack(QWidget):
         # Update FindReplace binding
         self.find_widget.set_editor(editor, refresh=False)
                 
-    def modification_changed(self, state=None, index=None):
+    def modification_changed(self, state=None, index=None, editor_id=None):
         """
         Current editor's modification state has changed
         --> change tab title depending on new modification state
         --> enable/disable save/save all actions
         """
-        sender = self.sender()
-        if isinstance(sender, codeeditor.CodeEditor):
-            for index, finfo in enumerate(self.data):
-                if finfo.editor is sender:
+        if editor_id is not None:
+            for index, _finfo in enumerate(self.data):
+                if id(_finfo.editor) == editor_id:
                     break
         # This must be done before refreshing save/save all actions:
         # (otherwise Save/Save all actions will always be enabled)
@@ -1551,7 +1550,8 @@ class EditorStack(QWidget):
         self.connect(editor, SIGNAL('textChanged()'),
                      self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
-                     self.modification_changed)
+                     lambda state: self.modification_changed(state,
+                                                    editor_id=id(editor)))
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
         self.connect(editor, SIGNAL("focus_changed()"),
                      self.focus_changed_callback)
@@ -1759,7 +1759,7 @@ class EditorSplitter(QSplitter):
 
     def closeEvent(self, event):
         QSplitter.closeEvent(self, event)
-        if PYQT_VERSION_STR.startswith('4.6'):
+        if is_pyqt46:
             self.emit(SIGNAL('destroyed()'))
                                 
     def __give_focus_to_remaining_editor(self):
@@ -2097,7 +2097,7 @@ class EditorMainWindow(QMainWindow):
     def closeEvent(self, event):
         """Reimplement Qt method"""
         QMainWindow.closeEvent(self, event)
-        if PYQT_VERSION_STR.startswith('4.6'):
+        if is_pyqt46:
             self.emit(SIGNAL('destroyed()'))
             for editorstack in self.editorwidget.editorstacks[:]:
                 if DEBUG:
@@ -2211,7 +2211,7 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, SIGNAL('close_file(int)'),
+        self.connect(editorstack, SIGNAL('close_file(int,int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -2254,12 +2254,11 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    def close_file_in_all_editorstacks(self, index):
-        sender = self.sender()
+    def close_file_in_all_editorstacks(self, editorstack_id, index):
         for editorstack in self.editorstacks:
-            if editorstack is not sender:
+            if id(editorstack) != editorstack_id:
                 editorstack.blockSignals(True)
-                editorstack.close_file(index)
+                editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
                 
     def register_widget_shortcuts(self, context, widget):

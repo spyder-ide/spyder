@@ -14,7 +14,7 @@
 from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
                                 QInputDialog, QLineEdit, QPushButton,
                                 QGroupBox, QLabel, QTabWidget, QFontComboBox)
-from spyderlib.qt.QtCore import SIGNAL, QString, Qt
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys, os
 import os.path as osp
@@ -317,6 +317,7 @@ class ExternalConsole(SpyderPluginWidget):
     CONF_SECTION = 'console'
     CONFIGWIDGET_CLASS = ExternalConsoleConfigPage
     def __init__(self, parent, light_mode):
+        SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
         self.commands = []
         self.tabwidget = None
@@ -353,7 +354,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.icons = []
         self.runfile_args = ""
         
-        SpyderPluginWidget.__init__(self, parent)
+        # Initialize plugin
+        self.initialize_plugin()
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
@@ -492,8 +494,10 @@ class ExternalConsole(SpyderPluginWidget):
                    (option "-u" is mandatory, see widgets.externalshell package)
         """
         # Note: fname is None <=> Python interpreter
-        fname = unicode(fname) if isinstance(fname, QString) else fname
-        wdir = unicode(wdir) if isinstance(wdir, QString) else wdir
+        if fname is not None and not isinstance(fname, basestring):
+            fname = unicode(fname)
+        if wdir is not None and not isinstance(wdir, basestring):
+            wdir = unicode(wdir)
         
         if fname is not None and fname in self.filenames:
             index = self.filenames.index(fname)

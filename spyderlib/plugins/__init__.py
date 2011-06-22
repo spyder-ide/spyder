@@ -74,11 +74,15 @@ class SpyderPluginMixin(object):
         assert self.CONF_SECTION is not None
         self.main = main
         self.default_margins = None
-        self.plugin_actions = self.get_plugin_actions()
+        self.plugin_actions = None
         self.dockwidget = None
         self.mainwindow = None
         self.ismaximized = False
         self.isvisible = False
+        
+    def initialize_plugin(self):
+        """Initialize plugin: connect signals, setup actions, ..."""
+        self.plugin_actions = self.get_plugin_actions()
         QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
@@ -251,6 +255,10 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
+        
+    def initialize_plugin(self):
+        """Initialize plugin: connect signals, setup actions, ..."""
+        SpyderPluginMixin.initialize_plugin(self)
         self.setWindowTitle(self.get_plugin_title())
         
     def get_plugin_title(self):

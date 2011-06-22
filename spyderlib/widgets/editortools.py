@@ -10,7 +10,7 @@ import sys, re,  os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, SIGNAL
+from spyderlib.qt.QtCore import Qt, SIGNAL, from_qvariant
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -133,7 +133,7 @@ class TreeItem(QTreeWidgetItem):
                 QTreeWidgetItem.__init__(self, parent, preceding,
                                          QTreeWidgetItem.Type)
         self.setText(0, name)
-        parent_text = unicode(parent.data(0, Qt.UserRole).toString())
+        parent_text = from_qvariant(parent.data(0, Qt.UserRole), unicode)
         set_item_user_text(self, parent_text+'/'+name)
         self.line = line
         

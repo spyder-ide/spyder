@@ -94,6 +94,9 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         SpyderPluginMixin.__init__(self, parent)
         self.shellwidgets = {}
 
+        # Initialize plugin
+        self.initialize_plugin()
+
     @staticmethod
     def get_settings():
         """

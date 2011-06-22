@@ -200,6 +200,9 @@ class ObjectInspector(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
 
+        # Initialize plugin
+        self.initialize_plugin()
+
         self.no_doc_string = _("No documentation available")
         
         self._last_console_cb = None

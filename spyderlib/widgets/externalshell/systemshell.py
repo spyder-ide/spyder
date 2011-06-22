@@ -13,7 +13,8 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import QProcess, SIGNAL, QString
+from spyderlib.qt.QtCore import QProcess, SIGNAL, QTextCodec
+locale_codec = QTextCodec.codecForLocale()
 
 # Local imports
 from spyderlib.utils import encoding
@@ -51,7 +52,7 @@ class ExternalSystemShell(ExternalShellBase):
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
-        env = self.process.systemEnvironment()
+        env = [unicode(_path) for _path in self.process.systemEnvironment()]
         add_pathlist_to_PYTHONPATH(env, self.path)
         self.process.setEnvironment(env)
         
@@ -103,19 +104,19 @@ class ExternalSystemShell(ExternalShellBase):
         else:
             return ExternalShellBase.transcode(self, bytes)
     
-    def send_to_process(self, qstr):
-        if not isinstance(qstr, QString):
-            qstr = QString(qstr)
-        if qstr[:-1] in ["clear", "cls", "CLS"]:
+    def send_to_process(self, text):
+        if not isinstance(text, basestring):
+            text = unicode(text)
+        if text[:-1] in ["clear", "cls", "CLS"]:
             self.shell.clear()
-            self.send_to_process(QString(os.linesep))
+            self.send_to_process(os.linesep)
             return
-        if not qstr.endsWith('\n'):
-            qstr.append('\n')
+        if not text.endswith('\n'):
+            text += '\n'
         if os.name == 'nt':
-            self.process.write(unicode(qstr).encode('cp850'))
+            self.process.write(text.encode('cp850'))
         else:
-            self.process.write(qstr.toLocal8Bit())
+            self.process.write(locale_codec.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         
     def keyboard_interrupt(self):

@@ -43,6 +43,7 @@ class Console(SpyderPluginWidget):
     def __init__(self, parent=None, namespace=None, commands=[], message="",
                  debug=False, exitfunc=None, profile=False,
                  multithreaded=False):
+        SpyderPluginWidget.__init__(self, parent)
         
         self.dialog_manager = DialogManager()
 
@@ -65,8 +66,9 @@ class Console(SpyderPluginWidget):
                      lambda state: self.emit(SIGNAL('redirect_stdio(bool)'),
                                              state))
         
-        SpyderPluginWidget.__init__(self, parent)
-        
+        # Initialize plugin
+        self.initialize_plugin()
+                
         # Find/replace widget
         self.find_widget = FindReplace(self)
         self.find_widget.set_editor(self.shell)

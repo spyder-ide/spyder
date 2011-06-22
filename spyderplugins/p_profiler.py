@@ -8,8 +8,8 @@
 
 """Profiler Plugin"""
 
-from PyQt4.QtGui import QVBoxLayout, QGroupBox, QLabel
-from PyQt4.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
 

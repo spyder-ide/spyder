@@ -24,7 +24,8 @@ except ImportError:
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QMessageBox, QVBoxLayout, QLabel, QFileDialog)
-from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QString
+from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QTextCodec
+locale_codec = QTextCodec.codecForLocale()
 
 import sys, os, time, cPickle, os.path as osp, re
 
@@ -327,7 +328,7 @@ class PylintWidget(QWidget):
                 bytes += self.process.readAllStandardError()
             else:
                 bytes += self.process.readAllStandardOutput()
-        text = unicode( QString.fromLocal8Bit(bytes.data()) )
+        text = unicode( locale_codec.toUnicode(bytes.data()) )
         if error:
             self.error_output += text
         else:

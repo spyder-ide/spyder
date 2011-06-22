@@ -45,8 +45,8 @@ def start_file(filename):
     (this function is simply wrapping QDesktopServices.openUrl)
     Returns True if successfull, otherwise returns False.
     """
-    from PyQt4.QtGui import QDesktopServices
-    from PyQt4.QtCore import QUrl
+    from spyderlib.qt.QtGui import QDesktopServices
+    from spyderlib.qt.QtCore import QUrl
     url = QUrl()
     url.setPath(filename)
     return QDesktopServices.openUrl(url)

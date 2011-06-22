@@ -22,8 +22,8 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence, QFileDialog)
-from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex,
-                                 QAbstractTableModel, SIGNAL, SLOT, QDateTime)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
+                                 SLOT, QDateTime, to_qvariant, from_qvariant)
 
 # Local import
 from spyderlib.baseconfig import _
@@ -32,14 +32,45 @@ from spyderlib.utils import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size, get_type,
                                                value_to_display, get_color_name,
-                                               display_to_value, is_known_type,
-                                               FakeObject, Image, ndarray,
-                                               array, PIL, unsorted_unique,
-                                               try_to_eval)
+                                               is_known_type, FakeObject,
+                                               Image, ndarray, array, PIL,
+                                               unsorted_unique, try_to_eval,
+                                               datestr_to_datetime)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
+
+
+def display_to_value(value, default_value, ignore_errors=True):
+    """Convert back to value"""
+    value = from_qvariant(value, unicode)
+    try:
+        if isinstance(default_value, str):
+            value = str(value)
+        elif isinstance(default_value, unicode):
+            value = unicode(value)
+        elif isinstance(default_value, float):
+            value = float(value)
+        elif isinstance(default_value, int):
+            try:
+                value = int(value)
+            except ValueError:
+                value = float(value)
+        elif isinstance(default_value, datetime.datetime):
+            value = datestr_to_datetime(value)
+        elif isinstance(default_value, datetime.date):
+            value = datestr_to_datetime(value).date()
+        elif ignore_errors:
+            value = try_to_eval(value)
+        else:
+            value = eval(value)
+    except (ValueError, SyntaxError):
+        if ignore_errors:
+            value = try_to_eval(value)
+        else:
+            raise
+    return value
 
 
 class ReadOnlyDictModel(QAbstractTableModel):
@@ -175,7 +206,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def data(self, index, role=Qt.DisplayRole):
         """Cell content"""
         if not index.isValid():
-            return QVariant()
+            return to_qvariant()
         value = self.get_value(index)
         if index.column() == 3 and self.remote:
             value = value['view']
@@ -184,39 +215,39 @@ class ReadOnlyDictModel(QAbstractTableModel):
                                minmax=self.minmax,
                                collvalue=self.collvalue or index.column() != 3)
         if role == Qt.DisplayRole:
-            return QVariant(display)
+            return to_qvariant(display)
         elif role == Qt.EditRole:
-            return QVariant(value_to_display(value))
+            return to_qvariant(value_to_display(value))
         elif role == Qt.TextAlignmentRole:
             if index.column() == 3:
                 if len(display.splitlines()) < 3:
-                    return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
                 else:
-                    return QVariant(int(Qt.AlignLeft|Qt.AlignTop))
+                    return to_qvariant(int(Qt.AlignLeft|Qt.AlignTop))
             else:
-                return QVariant(int(Qt.AlignLeft|Qt.AlignVCenter))
+                return to_qvariant(int(Qt.AlignLeft|Qt.AlignVCenter))
         elif role == Qt.BackgroundColorRole:
-            return QVariant( self.get_bgcolor(index) )
+            return to_qvariant( self.get_bgcolor(index) )
         elif role == Qt.FontRole:
             if index.column() < 3:
-                return QVariant(get_font('dicteditor_header'))
+                return to_qvariant(get_font('dicteditor_header'))
             else:
-                return QVariant(get_font('dicteditor'))
-        return QVariant()
+                return to_qvariant(get_font('dicteditor'))
+        return to_qvariant()
     
     def headerData(self, section, orientation, role=Qt.DisplayRole):
         """Overriding method headerData"""
         if role != Qt.DisplayRole:
             if role == Qt.FontRole:
-                return QVariant(get_font('dicteditor_header'))
+                return to_qvariant(get_font('dicteditor_header'))
             else:
-                return QVariant()
+                return to_qvariant()
         i_column = int(section)
         if orientation == Qt.Horizontal:
             headers = (self.header0, _("Type"), _("Size"), _("Value"))
-            return QVariant( headers[i_column] )
+            return to_qvariant( headers[i_column] )
         else:
-            return QVariant()
+            return to_qvariant()
 
     def flags(self, index):
         """Overriding method flags"""
@@ -407,6 +438,16 @@ class DictDelegate(QItemDelegate):
         
         if isinstance(editor, QLineEdit):
             value = editor.text()
+            try:
+                value = display_to_value(to_qvariant(value),
+                                         self.get_value(index),
+                                         ignore_errors=False)
+            except Exception, msg:
+                QMessageBox.critical(editor, _("Edit item"),
+                                     _("<b>Unable to assign data to item.</b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % str(msg))
+                return
         elif isinstance(editor, QDateEdit):
             qdate = editor.date()
             value = datetime.date( qdate.year(), qdate.month(), qdate.day() )
@@ -420,16 +461,6 @@ class DictDelegate(QItemDelegate):
         else:
             # Should not happen...
             raise RuntimeError("Unsupported editor widget")
-        
-        try:
-            value = display_to_value(QVariant(value), self.get_value(index),
-                                     ignore_errors=False)
-        except Exception, msg:
-            QMessageBox.critical(editor, _("Edit item"),
-                                 _("<b>Unable to assign data to item.</b>"
-                                   "<br><br>Error message:<br>%s"
-                                   ) % str(msg))
-            return
         self.set_value(index, value)
 
 

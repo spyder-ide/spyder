@@ -17,7 +17,7 @@ from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
                                 QKeySequence, QFileDialog, QMessageBox,
                                 QMouseEvent, QTextCursor, QTextCharFormat,
                                 QShortcut)
-from spyderlib.qt.QtCore import Qt, QCoreApplication, SIGNAL, pyqtProperty
+from spyderlib.qt.QtCore import Qt, QCoreApplication, SIGNAL, Property
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -197,7 +197,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
             input_buffer = input_buffer.replace(os.linesep, '\n')
         return input_buffer
 
-    input_buffer = pyqtProperty("QString", _get_input_buffer, _set_input_buffer)
+    input_buffer = Property("QString", _get_input_buffer, _set_input_buffer)
         
         
     #------ Prompt
@@ -428,7 +428,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
         elif key == Qt.Key_Period and not self.has_selected_text():
             self._key_period(text)
 
-        elif text.length() and not self.isReadOnly():
+        elif len(text) and not self.isReadOnly():
             self.hist_wholeline = False
             self.insert_text(text)
             self._key_other(text)

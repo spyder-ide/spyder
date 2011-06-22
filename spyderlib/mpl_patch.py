@@ -15,8 +15,9 @@ def set_backend(backend):
 
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
+    from spyderlib.qt import is_pyqt46
     from spyderlib.qt.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
-    from spyderlib.qt.QtCore import Qt, PYQT_VERSION_STR, SIGNAL, QObject
+    from spyderlib.qt.QtCore import Qt, SIGNAL, QObject
     from matplotlib.backends import backend_qt4
     
     # Class added to matplotlib to fix a bug with PyQt4 v4.6+
@@ -26,7 +27,7 @@ def apply():
             
         def closeEvent(self, event):
             super(FigureWindow, self).closeEvent(event)
-            if PYQT_VERSION_STR.startswith('4.6'):
+            if is_pyqt46:
                 self.emit(SIGNAL('destroyed()'))
     # ****************************************************************
     # *  FigureManagerQT

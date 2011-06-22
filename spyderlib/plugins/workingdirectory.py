@@ -30,7 +30,6 @@ from spyderlib.utils.qthelpers import get_std_icon, create_action
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
-from spyderlib.plugins.explorer import Explorer
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
@@ -148,6 +147,9 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
+
+        # Initialize plugin
+        self.initialize_plugin()
         
         # Setting default values for editor-related options
         self.get_option('editor/open/browse_scriptdir', True)
@@ -310,7 +312,8 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Change working directory to parent directory"""
         self.chdir(os.path.join(os.getcwdu(), os.path.pardir))
         
-    def chdir(self, directory=None, browsing_history=False):
+    def chdir(self, directory=None, browsing_history=False,
+              refresh_explorer=True):
         """Set directory as working directory"""
         # Working directory history management
         if directory is not None:
@@ -330,8 +333,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         # Changing working directory
         os.chdir( unicode(directory) )
         self.refresh_plugin()
-        if not isinstance(self.sender(), Explorer):
-            # Explorer is not the sender: let's refresh it
+        if refresh_explorer:
             self.emit(SIGNAL("refresh_explorer(QString)"), directory)
         self.emit(SIGNAL("refresh_findinfiles()"))
         

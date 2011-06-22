@@ -58,8 +58,7 @@ from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
                                 QTabWidget, QApplication, QStackedWidget,
                                 QDateEdit, QDateTimeEdit, QFont, QFontComboBox,
                                 QFontDatabase, QGridLayout, QDoubleValidator)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, SLOT, QSize, QObject,
-                                 pyqtSignature, pyqtProperty)
+from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 import datetime
 
 # Local imports
@@ -89,7 +88,7 @@ class ColorButton(QPushButton):
     def get_color(self):
         return self._color
     
-    @pyqtSignature("QColor")
+    @Slot(QColor)
     def set_color(self, color):
         if color != self._color:
             self._color = color
@@ -98,7 +97,7 @@ class ColorButton(QPushButton):
             pixmap.fill(color)
             self.setIcon(QIcon(pixmap))
     
-    color = pyqtProperty("QColor", get_color, set_color)
+    color = Property("QColor", get_color, set_color)
 
 
 def text_to_qcolor(text):
@@ -107,7 +106,7 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if isinstance(text, QObject): # testing for QString (compat. with API#2)
+    if not isinstance(text, basestring): # testing for QString (PyQt API#1)
         text = str(text)
     if not isinstance(text, (unicode, str)):
         return color

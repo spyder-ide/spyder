@@ -20,7 +20,7 @@ from spyderlib import qt #@UnusedImport
 # Check requirements
 from spyderlib import requirements
 requirements.check_path()
-requirements.check_pyqt()
+requirements.check_qt()
 
 import sys, os, platform, re, webbrowser, os.path as osp
 original_sys_exit = sys.exit
@@ -40,8 +40,7 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor,
                                 QFileDialog, QShortcut, QKeySequence,
                                 QDockWidget, QAction)
-from spyderlib.qt.QtCore import (SIGNAL, PYQT_VERSION_STR, QT_VERSION_STR,
-                                 QPoint, Qt, QSize, QByteArray)
+from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
@@ -1209,6 +1208,7 @@ class MainWindow(QMainWindow):
             from rope import VERSION as rope_version
         except ImportError:
             rope_version = not_installed
+        import spyderlib.qt.QtCore
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             _("""<b>%s %s</b>
@@ -1233,7 +1233,7 @@ class MainWindow(QMainWindow):
             </li></ul>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
-            <p>Python %s, Qt %s, PyQt %s on %s"""
+            <p>Python %s, Qt %s, %s %s on %s"""
             ) % ("Spyder", __version__,
                  "<span style=\'color: #444444\'><b>",
                  pyflakes_version,
@@ -1244,7 +1244,9 @@ class MainWindow(QMainWindow):
                  "<span style=\'color: #444444\'><b>",
                  "</b></span>",
                  __project_url__, __forum_url__,
-                 platform.python_version(), QT_VERSION_STR, PYQT_VERSION_STR,
+                 platform.python_version(),
+                 spyderlib.qt.QtCore.__version__,
+                 os.environ['PYTHON_QT_LIBRARY'], spyderlib.qt.__version__,
                  platform.system()) )
     
     def get_current_editor_plugin(self):
@@ -1298,7 +1300,7 @@ class MainWindow(QMainWindow):
         """Global callback"""
         widget = QApplication.focusWidget()
         action = self.sender()
-        callback = unicode(action.data().toString())
+        callback = from_qvariant(action.data(), unicode)
         from spyderlib.widgets.editor import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()

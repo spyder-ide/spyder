@@ -33,6 +33,10 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                                        exclude=exclude, show_all=show_all,
                                        valid_types=['.py', '.pyw'])
         SpyderPluginMixin.__init__(self, parent)
+
+        # Initialize plugin
+        self.initialize_plugin()
+
         self.treewidget.header().hide()
 
         self.editor_valid_types = None

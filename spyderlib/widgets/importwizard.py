@@ -14,8 +14,8 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QSizePolicy, QCheckBox, QColor, QRadioButton,
                                 QLineEdit, QFrame, QMenu, QIntValidator,
                                 QGroupBox, QMessageBox)
-from spyderlib.qt.QtCore import (Qt, QVariant, QModelIndex, QAbstractTableModel,
-                                 SIGNAL, SLOT, pyqtSignature)
+from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel,
+                                 SIGNAL, SLOT, Slot, to_qvariant)
 
 from functools import partial as ft_partial
 
@@ -236,13 +236,13 @@ class ContentsWidget(QWidget):
         """Return comment string"""
         return unicode(self.comments_edt.text())
 
-    @pyqtSignature("bool")
+    @Slot(bool)
     def set_as_data(self, as_data):
         """Set if data type conversion"""
         self._as_data = as_data
         self.emit(SIGNAL("asDataChanged(bool)"), as_data)
 
-    @pyqtSignature("bool")
+    @Slot(bool)
     def set_as_code(self, as_code):
         """Set if code type conversion"""
         self._as_code = as_code
@@ -263,19 +263,19 @@ class PreviewTableModel(QAbstractTableModel):
 
     def _display_data(self, index):
         """Return a data element"""
-        return QVariant(self._data[index.row()][index.column()])
+        return to_qvariant(self._data[index.row()][index.column()])
     
     def data(self, index, role=Qt.DisplayRole):
         """Return a model data element"""
         if not index.isValid():
-            return QVariant()
+            return to_qvariant()
         if role == Qt.DisplayRole:
             return self._display_data(index)
         elif role == Qt.BackgroundColorRole:
-            return QVariant(get_color(self._data[index.row()][index.column()], .2))            
+            return to_qvariant(get_color(self._data[index.row()][index.column()], .2))            
         elif role == Qt.TextAlignmentRole:
-            return QVariant(int(Qt.AlignRight|Qt.AlignVCenter))
-        return QVariant()
+            return to_qvariant(int(Qt.AlignRight|Qt.AlignVCenter))
+        return to_qvariant()
     
     def setData(self, index, value, role=Qt.EditRole):
         """Set model data"""
@@ -559,7 +559,7 @@ class ImportWizard(QDialog):
         """Return clipboard as text"""
         return self.text_widget.text_editor.toPlainText()
 
-    @pyqtSignature("")
+    @Slot()
     def process(self):
         """Process the data from clipboard"""
         var_name = self.name_edt.text()

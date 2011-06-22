@@ -23,7 +23,8 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QFileDialog,
                                 QSplitter)
-from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, QVariant
+from spyderlib.qt.QtCore import (Qt, QSize, SIGNAL, SLOT, Slot,
+                                 to_qvariant, from_qvariant)
 
 
 class ConfigPage(QWidget):
@@ -219,74 +220,66 @@ class SpyderConfigPage(ConfigPage):
         """Load settings from configuration file"""
         for checkbox, (option, default) in self.checkboxes.items():
             checkbox.setChecked(self.get_option(option, default))
-            checkbox.setProperty("option", QVariant(option))
             self.connect(checkbox, SIGNAL("clicked(bool)"),
-                         lambda checked: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
         for radiobutton, (option, default) in self.radiobuttons.items():
             radiobutton.setChecked(self.get_option(option, default))
-            radiobutton.setProperty("option", QVariant(option))
             self.connect(radiobutton, SIGNAL("toggled(bool)"),
-                         lambda checked: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
         for lineedit, (option, default) in self.lineedits.items():
             lineedit.setText(self.get_option(option, default))
-            lineedit.setProperty("option", QVariant(option))
             self.connect(lineedit, SIGNAL("textChanged(QString)"),
-                         lambda text: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
         for spinbox, (option, default) in self.spinboxes.items():
             spinbox.setValue(self.get_option(option, default))
-            spinbox.setProperty("option", QVariant(option))
             self.connect(spinbox, SIGNAL('valueChanged(int)'),
-                         lambda value: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
         for combobox, (option, default) in self.comboboxes.items():
             value = self.get_option(option, default)
             for index in range(combobox.count()):
-                if unicode(combobox.itemData(index).toString()
-                           ) == unicode(value):
+                if from_qvariant(combobox.itemData(index), unicode
+                                 ) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
-            combobox.setProperty("option", QVariant(option))
             self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
-                         lambda index: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
             if option is None:
-                property = QVariant('plugin_font')
+                property = 'plugin_font'
             else:
-                property = QVariant(option)
-            fontbox.setProperty("option", property)
+                property = option
             self.connect(fontbox, SIGNAL('currentIndexChanged(int)'),
-                         lambda index: self.has_been_modified())
-            sizebox.setProperty("option", property)
+                         lambda _foo, opt=property: self.has_been_modified(opt))
             self.connect(sizebox, SIGNAL('valueChanged(int)'),
-                         lambda value: self.has_been_modified())
+                         lambda _foo, opt=property: self.has_been_modified(opt))
         for clayout, (option, default) in self.coloredits.items():
-            property = QVariant(option)
+            property = to_qvariant(option)
             edit = clayout.lineedit
             btn = clayout.colorbtn
             edit.setText(self.get_option(option, default))
-            edit.setProperty("option", property)
-            btn.setProperty("option", property)
-            self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+            self.connect(btn, SIGNAL('clicked()'),
+                         lambda opt=option: self.has_been_modified(opt))
             self.connect(edit, SIGNAL("textChanged(QString)"),
-                         lambda text: self.has_been_modified())
-        for (clayout, cb_bold, cb_italic), (option, default) in self.scedits.items():
+                         lambda _foo, opt=option: self.has_been_modified(opt))
+        for (clayout, cb_bold, cb_italic
+             ), (option, default) in self.scedits.items():
             edit = clayout.lineedit
             btn = clayout.colorbtn
             color, bold, italic = self.get_option(option, default)
             edit.setText(color)
             cb_bold.setChecked(bold)
             cb_italic.setChecked(italic)
-            for _w in (edit, btn, cb_bold, cb_italic):
-                _w.setProperty("option", QVariant(option))
-            self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+            self.connect(btn, SIGNAL('clicked()'),
+                         lambda opt=option: self.has_been_modified(opt))
             self.connect(edit, SIGNAL("textChanged(QString)"),
-                         lambda text: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
             self.connect(cb_bold, SIGNAL("clicked(bool)"),
-                         lambda checked: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
             self.connect(cb_italic, SIGNAL("clicked(bool)"),
-                         lambda checked: self.has_been_modified())
+                         lambda _foo, opt=option: self.has_been_modified(opt))
     
     def save_to_conf(self):
         """Save settings to configuration file"""
@@ -300,7 +293,7 @@ class SpyderConfigPage(ConfigPage):
             self.set_option(option, spinbox.value())
         for combobox, (option, _default) in self.comboboxes.items():
             data = combobox.itemData(combobox.currentIndex())
-            self.set_option(option, unicode(data.toString()))
+            self.set_option(option, from_qvariant(data, unicode))
         for (fontbox, sizebox), option in self.fontboxes.items():
             font = fontbox.currentFont()
             font.setPointSize(sizebox.value())
@@ -313,8 +306,8 @@ class SpyderConfigPage(ConfigPage):
             italic = cb_italic.isChecked()
             self.set_option(option, (color, bold, italic))
     
-    def has_been_modified(self):
-        option = unicode(self.sender().property("option").toString())
+    @Slot(str)
+    def has_been_modified(self, option):
         self.set_modified(True)
         self.changed_options.add(option)
     
@@ -525,7 +518,7 @@ class SpyderConfigPage(ConfigPage):
         if tip is not None:
             combobox.setToolTip(tip)
         for name, key in choices:
-            combobox.addItem(name, QVariant(key))
+            combobox.addItem(name, to_qvariant(key))
         self.comboboxes[combobox] = (option, default)
         layout = QHBoxLayout()
         for subwidget in (label, combobox):
@@ -562,8 +555,8 @@ class SpyderConfigPage(ConfigPage):
     def create_button(self, text, callback):
         btn = QPushButton(text)
         self.connect(btn, SIGNAL('clicked()'), callback)
-        btn.setProperty("option", QVariant(""))
-        self.connect(btn, SIGNAL('clicked()'), self.has_been_modified)
+        self.connect(btn, SIGNAL('clicked()'),
+                     lambda opt='': self.has_been_modified(opt))
         return btn
     
     def create_tab(self, *widgets):
@@ -694,8 +687,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
             cs_group.setLayout(cs_layout)
             if tabname in COLOR_SCHEME_NAMES:
                 def_btn = self.create_button(_("Reset to default values"),
-                                             self.reset_to_default)
-                def_btn.setProperty("name", QVariant(tabname))
+                                         lambda: self.reset_to_default(tabname))
                 tabs.addTab(self.create_tab(cs_group, def_btn), tabname)
             else:
                 tabs.addTab(self.create_tab(cs_group), tabname)
@@ -704,8 +696,8 @@ class ColorSchemeConfigPage(GeneralConfigPage):
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
         
-    def reset_to_default(self):
-        name = unicode(self.sender().property("name").toString())
+    @Slot(str)
+    def reset_to_default(self, name):
         set_default_color_scheme(name, replace=True)
         self.load_from_conf()
             
