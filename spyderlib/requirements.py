@@ -52,35 +52,3 @@ def check_qt():
     if wng1 and wng2:
         show_warning("Please check Spyder installation requirements:\n"
                      +wng1+"\nor"+wng2)
-
-def get_pyqt_api_infos():
-    """Returns a tuple containing the two following items:
-        * PyQt/api version number (integer)
-        * spyderlib version (string) which is compatible with current PyQt/api
-    """
-    import sip
-    api = sip.getapi('QString')
-    return api, ('2.1', '2.2+')[api-1]
-
-def check_pyqt_api(parent=None):
-    """Check if installed PyQt version is compatible with this version of 
-    spyderlib in terms of PyQt/sip API
-    If not, show a message box (only if parent is not None) and return False
-    """
-    try:
-        import spyderlib.qt #@UnusedImport
-    except ValueError:
-        # The version of spyderlib installed is not compatible
-        # with the PyQt API currently selected
-        from spyderlib import __version__
-        api, capi = get_pyqt_api_infos()
-        if parent is not None:
-            from PyQt4.QtGui import QMessageBox
-            QMessageBox.critical(parent, "Error",
-                                 "The version of <b>spyderlib</b> installed "
-                                 "on your machine (v%s) is not compatible "
-                                 "with PyQt API#%d.<br><br>Please install "
-                                 "spyderlib v%s." % (__version__, api, capi),
-                                 QMessageBox.Ok)
-        return False
-    return True
