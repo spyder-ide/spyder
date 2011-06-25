@@ -79,7 +79,7 @@ class NotificationServer(IntrospectionServer):
     def register(self, shell):
         IntrospectionServer.register(self, shell)
         shell_id = str(id(shell))
-        nt = self.notification_threads[shell_id] = NotificationThread(shell)
+        nt = self.notification_threads[shell_id] = NotificationThread()
         return nt
     
     def send_socket(self, shell_id, sock):
@@ -129,9 +129,8 @@ def start_notification_server():
 
 class NotificationThread(QThread):
     process_remote_view_signal = Signal(object)
-    def __init__(self, shell):
-        QThread.__init__(self, shell)
-        self.shell = shell
+    def __init__(self):
+        QThread.__init__(self)
         self.notify_socket = None
         
     def set_notify_socket(self, notify_socket):
@@ -167,10 +166,6 @@ class NotificationThread(QThread):
                     self.emit(SIGNAL('refresh_namespace_browser()'))
                 elif command == 'refresh':
                     self.emit(SIGNAL('refresh_namespace_browser()'))
-                elif command == 'get_remote_view_settings':
-                    nsb = self.shell.namespacebrowser
-                    if nsb is not None:
-                        output = nsb.get_remote_view_settings()
                 elif command == 'remote_view':
                     self.process_remote_view_signal.emit(data)
                 else:

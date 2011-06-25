@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """External shell's monitor"""
 
+#TODO: The "disable auto-refresh when variable explorer is hidden" feature 
+#      broken since we removed the "shell" widget reference from notification 
+#      thread. We must find another mechanism to avoid refreshing systematically
+#      remote views for all consoles...!
+
 import os, threading, socket, thread, struct, cPickle as pickle
 
 # Local imports
@@ -28,6 +33,12 @@ REMOTE_SETTINGS = ('editable_types', 'picklable_types', 'itermax',
                    'excluded_names', 'truncate', 'minmax', 'collvalue',
                    'inplace', 'remote_editing', 'autorefresh')
 
+def monitor_set_remote_view_settings(sock, namespacebrowser):
+    """Set monitor's remote view settings from namespacebrowser instance"""
+    settings = {}
+    for name in REMOTE_SETTINGS:
+        settings[name] = getattr(namespacebrowser, name)
+    communicate(sock, '__set_remote_view_settings__()', settings=[settings])
 
 def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
@@ -137,6 +148,7 @@ class Monitor(threading.Thread):
         self.set_timeout(timeout)
         self.auto_refresh = auto_refresh
         self.refresh_after_eval = False
+        self.remote_view_settings = None
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -164,6 +176,8 @@ class Monitor(threading.Thread):
                        "thread": thread,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
+                       "__set_remote_view_settings__":
+                                                self.set_remote_view_settings,
                        "__get_dir__": self.get_dir,
                        "__iscallable__": self.iscallable,
                        "__get_arglist__": self.get_arglist,
@@ -316,12 +330,19 @@ class Monitor(threading.Thread):
         """
         self.locals[name] = value
         
+    def set_remote_view_settings(self):
+        """
+        Set the namespace remote view settings
+        (see the namespace browser widget)
+        """
+        self.remote_view_settings = read_packet(self.i_request)
+        self.enable_refresh_after_eval()
+        
     def update_remote_view(self, glbs):
         """
         Return remote view of globals()
         """
-        settings = communicate(self.n_request,
-                               dict(command="get_remote_view_settings"))
+        settings = self.remote_view_settings
         if settings:
             more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
             remote_view = make_remote_view(glbs, settings, more_excluded_names)

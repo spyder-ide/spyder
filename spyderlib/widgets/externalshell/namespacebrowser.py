@@ -22,7 +22,7 @@ from spyderlib.widgets.externalshell.monitor import (
                 monitor_set_global, monitor_get_global, monitor_del_global,
                 monitor_copy_global, monitor_save_globals, monitor_load_globals,
                 monitor_is_array, monitor_is_image, monitor_is_none,
-                communicate, REMOTE_SETTINGS)
+                communicate, monitor_set_remote_view_settings)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView)
 from spyderlib.widgets.dicteditorutils import globalsfilter
@@ -242,7 +242,7 @@ class NamespaceBrowser(QWidget):
 
     def option_changed(self, option, value):
         setattr(self, option, value)
-        self.refresh_table()
+        monitor_set_remote_view_settings(self._get_sock(), self)
         
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser 
@@ -259,20 +259,6 @@ class NamespaceBrowser(QWidget):
             
     def _get_sock(self):
         return self.shellwidget.introspection_socket
-        
-    def get_remote_view_settings(self):
-        """Return dict editor view settings for the remote process,
-        but return None if this namespace browser is not visible (no need 
-        to refresh an invisible widget...)"""
-        if self.is_visible and self.isVisible():
-            return self.get_view_settings()
-        
-    def get_view_settings(self):
-        """Return dict editor view settings"""
-        settings = {}
-        for name in REMOTE_SETTINGS:
-            settings[name] = getattr(self, name)
-        return settings
     
     def get_internal_shell_filter(self, mode, itermax=None):
         """
