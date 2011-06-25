@@ -9,6 +9,7 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
+from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import get_conf_path, str2type
 
 
@@ -152,6 +153,7 @@ class Monitor(threading.Thread):
                        "is_array": self.is_array,
                        "is_image": self.is_image,
                        "getcomplist": self.getcomplist,
+                       "getmodcomplist": self.getmodcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
                        "setcwd": self.setcwd,
@@ -254,6 +256,13 @@ class Monitor(threading.Thread):
         ** IPython only **"""
         if self.ipython_shell:
             return self.ipython_shell.complete(name)
+            
+    def getmodcomplist(self, name):
+        """Return module completion list for object named *name*"""
+        if self.ipython_shell:
+            return self.ipython_shell.modcompletion(name)
+        else:
+            return moduleCompletion(name)
                 
     #------ Other
     def is_array(self, glbs, name):
@@ -399,6 +408,7 @@ class Monitor(threading.Thread):
                         continue
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
+                    self.ipython_shell.modcompletion = moduleCompletion
                     glbs = self.ipython_shell.user_ns
                 namespace = {}
                 if self.pdb_obj is not None and self.pdb_obj.curframe is None:

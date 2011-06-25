@@ -24,6 +24,7 @@ import os, sys, re, os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs
+from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, get_font
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
@@ -239,14 +240,35 @@ class FileInfo(QObject):
     def trigger_code_completion(self, automatic):
         source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
+        text = self.editor.get_text('sol', 'cursor')
         
-        textlist = self.rope_project.get_completion_list(source_code, offset,
-                                                         self.filename)
-        if textlist:
-            text = self.editor.get_text('sol', 'cursor')
-            completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-            self.editor.show_completion_list(textlist, completion_text,
-                                             automatic)
+        if text.startswith('import '):
+            comp_list = moduleCompletion(text)
+            words = text.split(' ')
+            self.editor.show_completion_list(comp_list,
+                                             completion_text=words[-1],
+                                             automatic=automatic)
+            return
+        elif text.startswith('from '):
+            comp_list = moduleCompletion(text)
+            words = text.split(' ')
+            if words[-1].find('(') != -1:
+                words = words[:-2] + words[-1].split('(')
+            if words[-1].find(',') != -1:
+                words = words[:-2] + words[-1].split(',')
+            self.editor.show_completion_list(comp_list,
+                                             completion_text=words[-1],
+                                             automatic=automatic)
+            return
+        else:
+            textlist = self.rope_project.get_completion_list(source_code,
+                                                             offset,
+                                                             self.filename)
+            if textlist:
+                completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
+                self.editor.show_completion_list(textlist, completion_text,
+                                                 automatic)
+                return
         
     def trigger_calltip(self, position, auto=True):
         # auto is True means that trigger_calltip was called automatically,
@@ -2279,4 +2301,3 @@ def test():
     
 if __name__ == "__main__":
     test()
-    

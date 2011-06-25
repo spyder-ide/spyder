@@ -896,6 +896,9 @@ class PythonShellWidget(ShellBaseWidget):
     def get_completion(self, objtxt):
         """Return completion list associated to object name"""
         pass
+    def get_module_completion(self, objtxt):
+        """Return module completion list associated to object name"""
+        pass
     def get_globals_keys(self):
         """Return shell globals() keys"""
         raise NotImplementedError
@@ -927,9 +930,27 @@ class PythonShellWidget(ShellBaseWidget):
         text = unicode(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
         
+        if text.startswith('import '):
+            obj_list = self.get_module_completion(text)
+            words = text.split(' ')
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
+            return
+            
+        elif text.startswith('from '):
+            obj_list = self.get_module_completion(text)
+            words = text.split(' ')
+            if words[-1].find('(') != -1:
+                words = words[:-2] + words[-1].split('(')
+            if words[-1].find(',') != -1:
+                words = words[:-2] + words[-1].split(',')
+            self.show_completion_list(obj_list, completion_text=words[-1],
+                                      automatic=automatic)
+            return
+        
         #-- IPython only -------------------------------------------------------
         # Using IPython code completion feature: __IP.complete
-        if ' ' in text and not text.endswith(' '):
+        elif ' ' in text and not text.endswith(' '):
             try1 = text.split(' ')[-1]
             obj_list = self.get_completion(try1)
             if obj_list:

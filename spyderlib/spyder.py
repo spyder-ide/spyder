@@ -505,7 +505,18 @@ class MainWindow(QMainWindow):
                                         None, 'pythonpath_mgr.png',
                                         triggered=self.path_manager_callback,
                                         tip=_("Open Spyder path manager"))
-            self.tools_menu_actions = [prefs_action, spyder_path_action, None]
+            update_modules_action = create_action(self,
+                                        _("Update module names list"),
+                                        None, 'reload.png',
+                                        triggered=self.update_modules,
+                                        tip=_("Update the list of names of all "
+                                              "the modules available in your "
+                                              "PYTHONPATH"))
+            self.tools_menu_actions = [prefs_action, spyder_path_action]
+            if osp.isfile(get_conf_path('db/rootmodules')):
+                self.tools_menu_actions += [update_modules_action, None]
+            else:
+                self.tools_menu_actions += [None]
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
@@ -1353,6 +1364,13 @@ class MainWindow(QMainWindow):
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
+        
+    def update_modules(self):
+        """Update module names list"""
+        from spyderlib.utils.module_completion import MODULES_PATH
+        from spyderlib.utils.external.pickleshare import PickleShareDB
+        db = PickleShareDB(MODULES_PATH)
+        del db['rootmodules']
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
