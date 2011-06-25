@@ -40,7 +40,8 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor,
                                 QFileDialog, QShortcut, QKeySequence,
                                 QDockWidget, QAction)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
+from spyderlib.qt.QtCore import (SIGNAL, QPoint, Qt, QSize, QByteArray,
+                                 from_qvariant)
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
