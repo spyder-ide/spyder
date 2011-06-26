@@ -423,10 +423,10 @@ class Monitor(threading.Thread):
                 except socket.timeout:
                     timed_out = True
                 except struct.error:
+                    # This should mean that Spyder GUI has crashed
                     if DEBUG:
-                        raise
-                    else:
-                        continue
+                        logging.debug("struct.error -> quitting monitor")
+                    break
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     self.ipython_shell = glbs['__ipythonshell__'].IP
                     self.ipython_shell.modcompletion = moduleCompletion
@@ -481,3 +481,4 @@ class Monitor(threading.Thread):
                     logging.debug("****** Introspection request /End ******")
                 if command is not PACKET_NOT_RECEIVED:
                     write_packet(self.i_request, output, already_pickled=True)
+
