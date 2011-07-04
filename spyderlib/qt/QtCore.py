@@ -8,12 +8,16 @@ import os
 
 if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
     from PyQt4.QtCore import *
+    try:
+        from PyQt4.QtCore import QVariant
+        QVARIANT_EXISTS = True # PyQt API #1
+    except ImportError:
+        QVARIANT_EXISTS = False # PyQt API #2
     def to_qvariant(pyobj=None):
         """Convert Python object to QVariant
         This is a transitional function from PyQt API #1 (QVariant exist) 
         to PyQt API #2 and Pyside (QVariant does not exist)"""
-        import sip
-        if sip.getapi('QVariant') == 1:
+        if QVARIANT_EXISTS:
             # PyQt API #1
             return QVariant(pyobj)
         else:
@@ -23,8 +27,7 @@ if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
         """Convert QVariant object to Python object
         This is a transitional function from PyQt API #1 (QVariant exist) 
         to PyQt API #2 and Pyside (QVariant does not exist)"""
-        import sip
-        if sip.getapi('QVariant') == 1:
+        if QVARIANT_EXISTS:
             # PyQt API #1
             assert callable(convfunc)
             if convfunc in (unicode, str):
@@ -32,7 +35,11 @@ if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
             elif convfunc is bool:
                 return qobj.toBool()
             elif convfunc is int:
-                return qobj.toInt()
+                return qobj.toInt()[0]
+            elif convfunc is float:
+                return qobj.toDouble()[0]
+            else:
+                return convfunc(qobj)
         else:
             # PyQt API #2
             return qobj
