@@ -11,9 +11,10 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QFontDialog,
-                                QInputDialog, QLineEdit, QMenu)
+from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
+                                QLineEdit, QMenu)
 from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.compat import getopenfilename
 
 import os, sys
 import os.path as osp
@@ -210,12 +211,10 @@ class Console(SpyderPluginWidget):
         """Run a Python script"""
         if filename is None:
             self.shell.interpreter.restore_stds()
-            filename = QFileDialog.getOpenFileName(self,
-                          _("Run Python script"), os.getcwdu(),
-                          _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+            filename, _selfilter = getopenfilename(self, _("Run Python script"),
+                   os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
-                filename = unicode(filename)
                 os.chdir( os.path.dirname(filename) )
                 filename = os.path.basename(filename)
                 self.emit(SIGNAL("refresh()"))

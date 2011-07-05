@@ -23,9 +23,9 @@ except ImportError:
     pass
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
-                                QSizePolicy, QRadioButton, QVBoxLayout, QLabel,
-                                QFileDialog)
+                                QSizePolicy, QRadioButton, QVBoxLayout, QLabel)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QThread, QMutexLocker, QMutex
+from spyderlib.qt.compat import getexistingdirectory
 
 import sys, os, re, fnmatch
 import os.path as osp
@@ -515,10 +515,9 @@ class FindOptions(QWidget):
     def select_directory(self):
         """Select directory"""
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
-        directory = QFileDialog.getExistingDirectory(self,
-                                                 _("Select directory"),
-                                                 self.dir_combo.currentText())
-        if unicode(directory):
+        directory = getexistingdirectory(self, _("Select directory"),
+                                         self.dir_combo.currentText())
+        if directory:
             self.set_directory(directory)
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
         

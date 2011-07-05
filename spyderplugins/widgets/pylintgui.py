@@ -23,9 +23,10 @@ except ImportError:
     pass
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
-                                QMessageBox, QVBoxLayout, QLabel, QFileDialog)
+                                QMessageBox, QVBoxLayout, QLabel)
 from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
+from spyderlib.qt.compat import getopenfilename
 
 import sys, os, time, cPickle, os.path as osp, re
 
@@ -246,9 +247,8 @@ class PylintWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenFileName(self,
-                                      _("Select Python script"), os.getcwdu(),
-                                      _("Python scripts")+" (*.py ; *.pyw)")
+        filename, _selfilter = getopenfilename(self, _("Select Python script"),
+                           os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)

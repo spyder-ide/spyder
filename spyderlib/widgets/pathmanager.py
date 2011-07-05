@@ -8,10 +8,11 @@
 
 from __future__ import with_statement
 
-from spyderlib.qt.QtGui import (QDialog, QListWidget, QFileDialog,
-                                QDialogButtonBox, QVBoxLayout, QHBoxLayout,
-                                QMessageBox, QListWidgetItem)
+from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
+                                QVBoxLayout, QHBoxLayout, QMessageBox,
+                                QListWidgetItem)
 from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
+from spyderlib.qt.compat import getexistingdirectory
 
 import os, sys, os.path as osp
 
@@ -209,11 +210,11 @@ class PathManager(QDialog):
     
     def add_path(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        directory = QFileDialog.getExistingDirectory(self,
-                                 _("Select directory"), self.last_path)
+        directory = getexistingdirectory(self, _("Select directory"),
+                                         self.last_path)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
-        if unicode(directory):
-            directory = osp.abspath(unicode(directory))
+        if directory:
+            directory = osp.abspath(directory)
             self.last_path = directory
             if directory in self.pathlist:
                 answer = QMessageBox.question(self, _("Add path"),

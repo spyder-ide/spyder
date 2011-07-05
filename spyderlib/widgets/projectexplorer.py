@@ -7,11 +7,11 @@
 """Project Explorer"""
 
 from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
-                                QMenu, QWidget, QTreeWidgetItem,
-                                QFileIconProvider, QMessageBox, QInputDialog,
-                                QLineEdit, QFileDialog)
+                                QMenu, QWidget, QTreeWidgetItem, QLineEdit,
+                                QFileIconProvider, QMessageBox, QInputDialog)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
                                  QUrl, QTimer, Slot)
+from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 
 import os, sys, re, shutil, cPickle
 import os.path as osp
@@ -860,12 +860,11 @@ class ExplorerTreeWidget(OneColumnTree):
         self.__set_last_folder()
         while True:
             self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
-            folder = QFileDialog.getExistingDirectory(self,
-                                              _("Select project root path"),
-                                              self.last_folder)
+            folder = getexistingdirectory(self, _("Select project root path"),
+                                          self.last_folder)
             self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
-            if unicode(folder):
-                folder = osp.abspath(unicode(folder))
+            if folder:
+                folder = osp.abspath(folder)
                 self.last_folder = folder
                 if self.is_project_already_here(folder):
                     continue
@@ -965,11 +964,11 @@ class ExplorerTreeWidget(OneColumnTree):
         if osp.isfile(current_path):
             current_path = osp.dirname(current_path)
         self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
-        fname = QFileDialog.getSaveFileName(self, title, current_path, filters)
+        fname, _selfilter = getsavefilename(self, title, current_path, filters)
         self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
         if fname:
             try:
-                create_func(unicode(fname))
+                create_func(fname)
             except EnvironmentError, error:
                 QMessageBox.critical(self, _("New file"),
                                      _("<b>Unable to create file <i>%s</i>"

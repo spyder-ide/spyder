@@ -25,8 +25,9 @@ except ImportError:
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
-                                QFileDialog, QDrag, QSortFilterProxyModel)
+                                QDrag, QSortFilterProxyModel)
 from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl
+from spyderlib.qt.compat import getsavefilename
 
 import os, sys, re
 import os.path as osp
@@ -420,15 +421,11 @@ class DirView(QTreeView):
 
     def new_file(self):
         """Create a new file"""
-        _temp = sys.stdout
-        sys.stdout = None
-        fname = QFileDialog.getSaveFileName(self,
-                        _("New Python script"), self.get_selected_dirname(),
-                        _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
-                        "\n"+_( "All files")+" (*)")
-        sys.stdout = _temp
-        if unicode(fname):
-            fname = unicode(fname)
+        fname, _selfilter = getsavefilename(self, _("New Python script"),
+                                self.get_selected_dirname(),
+                                _("Python scripts")+" (*.py ; *.pyw ; *.ipy)"+\
+                                "\n"+_( "All files")+" (*)")
+        if fname:
             try:
                 if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):
                     create_script(fname)

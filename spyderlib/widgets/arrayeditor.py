@@ -20,7 +20,8 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QApplication, QKeySequence, QLabel, QComboBox,
                                 QStackedWidget, QWidget, QVBoxLayout)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, to_qvariant, from_qvariant)
+                                 SLOT)
+from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import numpy as np
 import StringIO

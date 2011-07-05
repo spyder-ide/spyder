@@ -14,10 +14,10 @@
 import sys, os, time, os.path as osp, re
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
-                                QKeySequence, QFileDialog, QMessageBox,
-                                QMouseEvent, QTextCursor, QTextCharFormat,
-                                QShortcut)
+                                QKeySequence, QMessageBox, QMouseEvent,
+                                QTextCursor, QTextCharFormat, QShortcut)
 from spyderlib.qt.QtCore import Qt, QCoreApplication, SIGNAL, Property
+from spyderlib.qt.compat import getsavefilename
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -246,11 +246,11 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """Save current history log (all text in console)"""
         title = _("Save history log")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self, title,
-                            self.historylog_filename, "History logs (*.log)")
+        filename, _selfilter = getsavefilename(self, title,
+                    self.historylog_filename, "%s (*.log)" % _("History logs"))
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            filename = osp.normpath(unicode(filename))
+            filename = osp.normpath(filename)
             try:
                 encoding.write(unicode(self.get_text_with_eol()), filename)
                 self.historylog_filename = filename

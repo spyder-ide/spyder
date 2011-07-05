@@ -11,9 +11,10 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QToolBar, QLabel, QFileDialog, QGroupBox,
-                                QVBoxLayout, QHBoxLayout, QButtonGroup)
+from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
+                                QHBoxLayout, QButtonGroup)
 from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.compat import getexistingdirectory
 
 import os, sys
 import os.path as osp
@@ -292,9 +293,9 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     def select_directory(self):
         """Select directory"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        directory = QFileDialog.getExistingDirectory(self.main,
-                    _("Select directory"), os.getcwdu())
-        if unicode(directory): # avoiding QString isEmpty method (API#2)
+        directory = getexistingdirectory(self.main, _("Select directory"),
+                                         os.getcwdu())
+        if directory:
             self.chdir(directory)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         

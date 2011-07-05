@@ -6,12 +6,13 @@
 
 """Run configurations related dialogs and widgets and data models"""
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QDialog, QWidget,
-                                QGroupBox, QLabel, QPushButton, QCheckBox,
-                                QLineEdit, QComboBox, QHBoxLayout,
-                                QDialogButtonBox, QStackedWidget, QGridLayout,
-                                QSizePolicy, QRadioButton, QMessageBox)
+from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
+                                QLabel, QPushButton, QCheckBox, QLineEdit,
+                                QComboBox, QHBoxLayout, QDialogButtonBox,
+                                QStackedWidget, QGridLayout, QSizePolicy,
+                                QRadioButton, QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, SLOT
+from spyderlib.qt.compat import getexistingdirectory
 
 import os, sys
 import os.path as osp
@@ -172,9 +173,8 @@ class RunConfigOptions(QWidget):
         basedir = unicode(self.wd_edit.text())
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
-        directory = QFileDialog.getExistingDirectory(self,
-                                        _("Select directory"), basedir)
-        if unicode(directory): # avoiding QString isEmpty method (API#2)
+        directory = getexistingdirectory(self, _("Select directory"), basedir)
+        if directory:
             self.wd_edit.setText(directory)
             self.wd_cb.setChecked(True)
         

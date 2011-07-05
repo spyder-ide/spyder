@@ -15,7 +15,8 @@ from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QLineEdit, QFrame, QMenu, QIntValidator,
                                 QGroupBox, QMessageBox)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel,
-                                 SIGNAL, SLOT, Slot, to_qvariant)
+                                 SIGNAL, SLOT, Slot)
+from spyderlib.qt.compat import to_qvariant
 
 from functools import partial as ft_partial
 

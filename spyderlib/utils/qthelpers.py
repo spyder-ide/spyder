@@ -6,14 +6,14 @@
 
 """Qt utilities"""
 
-import os.path as osp
-import os, webbrowser
+import os.path as osp, os, webbrowser
 
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton)
 from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo, to_qvariant, from_qvariant)
+                                 QLibraryInfo)
+from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local import
 from spyderlib.config import get_icon

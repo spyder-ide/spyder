@@ -21,10 +21,10 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
-                                QRadioButton, QButtonGroup, QFileDialog,
-                                QSplitter)
-from spyderlib.qt.QtCore import (Qt, QSize, SIGNAL, SLOT, Slot,
-                                 to_qvariant, from_qvariant)
+                                QRadioButton, QButtonGroup, QSplitter)
+from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
+from spyderlib.qt.compat import (to_qvariant, from_qvariant,
+                                 getexistingdirectory, getopenfilename)
 
 
 class ConfigPage(QWidget):
@@ -396,8 +396,8 @@ class SpyderConfigPage(ConfigPage):
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
         title = _("Select directory")
-        directory = QFileDialog.getExistingDirectory(self, title, basedir)
-        if unicode(directory): # avoiding QString isEmpty method (API#2)
+        directory = getexistingdirectory(self, title, basedir)
+        if directory:
             edit.setText(directory)
     
     def create_browsefile(self, text, option, default=NoDefault, tip=None,
@@ -429,7 +429,7 @@ class SpyderConfigPage(ConfigPage):
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
-        filename = QFileDialog.getOpenFileName(self, title, basedir, filters)
+        filename, _selfilter = getopenfilename(self, title, basedir, filters)
         if filename:
             edit.setText(filename)
     

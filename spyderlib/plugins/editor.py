@@ -11,14 +11,13 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QPrintDialog,
-                                QSplitter, QToolBar, QAction, QApplication,
-                                QDialog, QWidget, QPrinter, QActionGroup,
-                                QInputDialog, QMenu, QAbstractPrintDialog,
-                                QGroupBox, QTabWidget, QLabel, QFontComboBox,
-                                QHBoxLayout)
-from spyderlib.qt.QtCore import (SIGNAL, QByteArray, Qt, to_qvariant, Slot,
-                                 from_qvariant)
+from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
+                                QAction, QApplication, QDialog, QWidget,
+                                QPrinter, QActionGroup, QInputDialog, QMenu,
+                                QAbstractPrintDialog, QGroupBox, QTabWidget,
+                                QLabel, QFontComboBox, QHBoxLayout)
+from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
+from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
 import os, sys, time, re
 import os.path as osp
@@ -1453,13 +1452,11 @@ class Editor(SpyderPluginWidget):
                     basedir = osp.dirname(c_fname)
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             parent_widget = self.get_current_editorstack()
-            filenames = QFileDialog.getOpenFileNames(parent_widget,
-                     _("Open file"), basedir, self.get_filetype_filters())
+            filenames, _selfilter = getopenfilenames(parent_widget,
+                        _("Open file"), basedir, self.get_filetype_filters())
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
-            filenames = list(filenames)
-            if len(filenames):
-                filenames = [osp.normpath(unicode(fname)) \
-                             for fname in filenames]
+            if filenames:
+                filenames = [osp.normpath(fname) for fname in filenames]
                 if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
                     directory = osp.dirname(filenames[0])
                     self.emit(SIGNAL("open_dir(QString)"), directory)

@@ -28,10 +28,11 @@ except ImportError:
     pass
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
-                                QLabel, QFileDialog, QTreeWidget,
-                                QTreeWidgetItem, QApplication)
+                                QLabel, QTreeWidget, QTreeWidgetItem,
+                                QApplication)
 from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, Qt, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
+from spyderlib.qt.compat import getopenfilename
 
 import sys, os, time
 
@@ -167,7 +168,7 @@ class ProfilerWidget(QWidget):
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenFileName(self, _("Select Python script"),
+        filename, _selfilter = getopenfilename(self, _("Select Python script"),
                            os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:

@@ -11,10 +11,11 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox,
-                                QInputDialog, QLineEdit, QPushButton,
-                                QGroupBox, QLabel, QTabWidget, QFontComboBox)
+from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
+                                QLineEdit, QPushButton, QGroupBox, QLabel,
+                                QTabWidget, QFontComboBox)
 from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.compat import getopenfilename
 
 import sys, os
 import os.path as osp
@@ -900,12 +901,11 @@ class ExternalConsole(SpyderPluginWidget):
     def run_script(self):
         """Run a Python script"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getOpenFileName(self,
-                      _("Run Python script"), os.getcwdu(),
-                      _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+        filename, _selfilter = getopenfilename(self, _("Run Python script"),
+                os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.start(fname=unicode(filename), wdir=None, args='',
+            self.start(fname=filename, wdir=None, args='',
                        interact=False, debug=False)
         
     def set_umd_namelist(self):

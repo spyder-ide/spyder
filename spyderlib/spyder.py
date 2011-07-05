@@ -37,11 +37,11 @@ except ImportError:
     pass
 
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
-                                QPixmap, QMessageBox, QMenu, QColor,
-                                QFileDialog, QShortcut, QKeySequence,
-                                QDockWidget, QAction)
-from spyderlib.qt.QtCore import (SIGNAL, QPoint, Qt, QSize, QByteArray,
-                                 from_qvariant)
+                                QPixmap, QMessageBox, QMenu, QColor, QShortcut,
+                                QKeySequence, QDockWidget, QAction)
+from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
+from spyderlib.qt.compat import (from_qvariant, getopenfilename,
+                                 getsavefilename)
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
@@ -1436,13 +1436,10 @@ class MainWindow(QMainWindow):
         """Load session"""
         if filename is None:
             self.redirect_internalshell_stdio(False)
-            filename = QFileDialog.getOpenFileName(self,
-                                  _("Open session"), os.getcwdu(),
-                                  _("Spyder sessions")+" (*.session.tar)")
+            filename, _selfilter = getopenfilename(self, _("Open session"),
+                        os.getcwdu(), _("Spyder sessions")+" (*.session.tar)")
             self.redirect_internalshell_stdio(True)
-            if filename:
-                filename = unicode(filename)
-            else:
+            if not filename:
                 return
         if self.close():
             self.next_session_name = filename
@@ -1450,13 +1447,12 @@ class MainWindow(QMainWindow):
     def save_session(self):
         """Save session and quit application"""
         self.redirect_internalshell_stdio(False)
-        filename = QFileDialog.getSaveFileName(self,
-                                  _("Save session"), os.getcwdu(),
-                                  _("Spyder sessions")+" (*.session.tar)")
+        filename, _selfilter = getsavefilename(self, _("Save session"),
+                        os.getcwdu(), _("Spyder sessions")+" (*.session.tar)")
         self.redirect_internalshell_stdio(True)
         if filename:
             if self.close():
-                self.save_session_name = unicode(filename)
+                self.save_session_name = filename
 
         
 def get_options():

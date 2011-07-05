@@ -21,9 +21,10 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
                                 QInputDialog, QDateTimeEdit, QApplication,
-                                QKeySequence, QFileDialog)
+                                QKeySequence)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, QDateTime, to_qvariant, from_qvariant)
+                                 SLOT, QDateTime)
+from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 # Local import
 from spyderlib.baseconfig import _
@@ -856,11 +857,12 @@ class BaseTableView(QTableView):
         if self.array_filename is None:
             self.array_filename = os.getcwdu()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self, title, self.array_filename,
-                          _("NumPy arrays")+" (*.npy)")
+        filename, _selfilter = getsavefilename(self, title,
+                                               self.array_filename,
+                                               _("NumPy arrays")+" (*.npy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            self.array_filename = unicode(filename)
+            self.array_filename = filename
             data = self.delegate.get_value( self.currentIndex() )
             try:
                 import numpy as np

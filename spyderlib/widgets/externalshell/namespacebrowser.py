@@ -14,8 +14,9 @@ STDERR = sys.stderr
 
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
-                                QCursor, QFileDialog, QInputDialog)
+                                QCursor, QInputDialog)
 from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
@@ -401,7 +402,7 @@ class NamespaceBrowser(QWidget):
                 basedir = os.getcwdu()
             else:
                 basedir = osp.dirname(self.filename)
-            filenames = QFileDialog.getOpenFileNames(self, title, basedir,
+            filenames, _selfilter = getopenfilenames(self, title, basedir,
                                                      iofunctions.load_filters)
             if not filenames:
                 return
@@ -485,10 +486,10 @@ class NamespaceBrowser(QWidget):
             filename = self.filename
             if filename is None:
                 filename = os.getcwdu()
-            filename = QFileDialog.getSaveFileName(self, _("Save data"),
-                                        filename, iofunctions.save_filters)
+            filename, _selfilter = getsavefilename(self, _("Save data"),
+                                                   filename,
+                                                   iofunctions.save_filters)
             if filename:
-                filename = unicode(filename)
                 self.filename = filename
             else:
                 return False

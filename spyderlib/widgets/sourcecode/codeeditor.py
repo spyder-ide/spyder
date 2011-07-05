@@ -28,7 +28,8 @@ from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
                                 QHBoxLayout, QLabel, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QEvent, QTimer, QRect, QRegExp,
-                                 QSize, SLOT, Slot, to_qvariant)
+                                 QSize, SLOT, Slot)
+from spyderlib.qt.compat import to_qvariant
 
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self

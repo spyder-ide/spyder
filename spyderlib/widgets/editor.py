@@ -12,13 +12,14 @@
 # pylint: disable=R0201
 
 from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QFileDialog, QMessageBox, QMenu,
-                                QFont, QAction, QApplication, QWidget,
-                                QHBoxLayout, QLabel, QKeySequence, QShortcut,
-                                QMainWindow, QSplitter, QListWidget,
-                                QListWidgetItem, QDialog, QLineEdit)
+from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont, QAction,
+                                QApplication, QWidget, QHBoxLayout, QLabel,
+                                QKeySequence, QShortcut, QMainWindow, QSplitter,
+                                QListWidget, QListWidgetItem, QDialog,
+                                QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer)
+from spyderlib.qt.compat import getsavefilename
 
 import os, sys, re, os.path as osp
 
@@ -1202,11 +1203,11 @@ class EditorStack(QWidget):
     
     def select_savename(self, original_filename):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        filename = QFileDialog.getSaveFileName(self, _("Save Python script"),
+        filename, _selfilter = getsavefilename(self, _("Save Python script"),
                                    original_filename, self.filetype_filters)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
-            return osp.normpath(unicode(filename))
+            return osp.normpath(filename)
     
     def save_as(self, index=None):
         """Save file as..."""

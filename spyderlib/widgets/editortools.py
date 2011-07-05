@@ -10,7 +10,8 @@ import sys, re,  os.path as osp
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
-from spyderlib.qt.QtCore import Qt, SIGNAL, from_qvariant
+from spyderlib.qt.QtCore import Qt, SIGNAL
+from spyderlib.qt.compat import from_qvariant
 
 # For debugging purpose:
 STDOUT = sys.stdout

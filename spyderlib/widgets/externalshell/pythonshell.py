@@ -12,10 +12,10 @@ import sys, os, os.path as osp, socket
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-from spyderlib.qt.QtGui import (QApplication, QMessageBox, QSplitter,
-                                QFileDialog, QMenu)
+from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
+from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
@@ -548,10 +548,9 @@ class ExternalPythonShell(ExternalShellBase):
         """Set current working directory"""
         cwd = self.shell.get_cwd()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
-        directory = QFileDialog.getExistingDirectory(self,
-                                                _("Select directory"), cwd)
-        if unicode(directory): # avoiding QString isEmpty method (API#2)
-            self.shell.set_cwd(unicode(directory))
+        directory = getexistingdirectory(self, _("Select directory"), cwd)
+        if directory:
+            self.shell.set_cwd(directory)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
 
     def show_env(self):
