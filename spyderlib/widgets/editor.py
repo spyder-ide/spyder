@@ -246,9 +246,10 @@ class FileInfo(QObject):
         if text.startswith('import '):
             comp_list = moduleCompletion(text)
             words = text.split(' ')
-            self.editor.show_completion_list(comp_list,
-                                             completion_text=words[-1],
-                                             automatic=automatic)
+            if comp_list:
+                self.editor.show_completion_list(comp_list,
+                                                 completion_text=words[-1],
+                                                 automatic=automatic)
             return
         elif text.startswith('from '):
             comp_list = moduleCompletion(text)
