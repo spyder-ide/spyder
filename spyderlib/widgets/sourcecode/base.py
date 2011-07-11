@@ -885,8 +885,12 @@ class TextEditBaseWidget(QPlainTextEdit):
         if len(completions) == 0 or completions == [completion_text]:
             return
         self.completion_text = completion_text
-        self.show_completion_widget(sorted(completions, key=string.lower),
-                                    automatic=automatic)
+        # Sorting completion list (entries starting with underscore are 
+        # put at the end of the list):
+        underscore = set([comp for comp in completions if comp.startswith('_')])
+        completions = sorted(set(completions)-underscore, key=string.lower)+\
+                      sorted(underscore, key=string.lower)
+        self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):
         """Completion list is active, Enter was just pressed"""
