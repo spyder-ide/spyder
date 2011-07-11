@@ -195,16 +195,18 @@ class EditorConfigPage(PluginConfigPage):
                                'always_remove_trailing_spaces', default=False)
         
         analysis_group = QGroupBox(_("Analysis"))
-        pyflakes_label = QLabel(_("Note: add <b>pyflakes:ignore</b> in "
+        analysis_label = QLabel(_("Note: add <b>analysis:ignore</b> in "
                                   "a comment to ignore code analysis "
                                   "warnings."))
-        pyflakes_label.setWordWrap(True)
-        codeanalysis_box = newcb(_("Code analysis (pyflakes)"),
+        analysis_label.setWordWrap(True)
+        codeanalysis_box = newcb(_("Code analysis")+" (pyflakes/pep8)",
                       'code_analysis', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"
-                            "using pyflakes, lines containing errors or \n"
+                            "using code introspection tools (pyflakes/pep8),\n"
+                            "lines containing errors or \n"
                             "warnings will be highlighted"))
-        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes'))
+        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes')\
+                                    or programs.is_module_installed('pep8'))
         todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
                              'todo_list', default=True)
         ancb_layout = QHBoxLayout()
@@ -242,7 +244,7 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group.setLayout(introspection_layout)
         
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(pyflakes_label)
+        analysis_layout.addWidget(analysis_label)
         analysis_layout.addLayout(ancb_layout)
         analysis_layout.addLayout(af_layout)
         analysis_layout.addWidget(saveonly_radio)

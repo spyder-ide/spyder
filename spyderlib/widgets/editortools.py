@@ -25,15 +25,16 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 
 
 #===============================================================================
-# Pyflakes code analysis
+# Pyflakes/pep8 code analysis
 #===============================================================================
-import compiler
-
-def check(source_code, filename=None):
+def check_with_pyflakes(source_code, filename=None):
+    """Check source code with pyflakes
+    Returns an empty list if pyflakes is not installed"""
     try:
         import pyflakes.checker, pyflakes.messages
     except ImportError:
         return []
+    import compiler
     try:
 #        tree = compiler.parse(file(filename, 'U').read() + '\n')
         tree = compiler.parse(source_code+'\n')
@@ -44,7 +45,7 @@ def check(source_code, filename=None):
             (lineno, _offset, _text) = value[1][1:]
         except IndexError:
             # Could not compile script
-            return
+            return []
         return [ (message, lineno, True) ]
     else:
         results = []
@@ -60,11 +61,39 @@ def check(source_code, filename=None):
                           pyflakes.messages.LateFutureImport)
         lines = source_code.splitlines()
         for warning in w.messages:
-            if 'pyflakes:ignore' not in lines[warning.lineno-1]:
+            if 'analysis:ignore' not in lines[warning.lineno-1]:
                 results.append( (warning.message % warning.message_args,
                                  warning.lineno,
                                  isinstance(warning, error_messages)) )
         return results
+
+def check_with_pep8(source_code, filename=None):
+    """Check source code with pep8"""
+    from spyderlib.utils.programs import python_script_exists
+    path = python_script_exists(package=None, module='pep8', get_path=True)
+    if path is None:
+        return []
+    if filename is None:
+        # Creating a temporary file
+        import tempfile
+        tempfd = tempfile.NamedTemporaryFile(suffix=".py")
+        filename = tempfd.name
+    from subprocess import Popen, PIPE
+    output = Popen([sys.executable, path, filename],
+                   stdout=PIPE).communicate()[0].strip().splitlines()
+    results = []
+    lines = source_code.splitlines()
+    for line in output:
+        lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
+        if 'analysis:ignore' not in lines[lineno-1]:
+            message = '<b>PEP8</b> '+line[line.find(': ')+2:]
+            results.append( (message, lineno, False) )
+    return results
+
+def check(source_code, filename=None):
+    """Check source code with pyflakes and pep8"""
+    return check_with_pyflakes(source_code, filename=filename)+\
+           check_with_pep8(source_code, filename=filename)
 
 if __name__ == '__main__':
     fname = __file__
