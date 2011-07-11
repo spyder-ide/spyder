@@ -25,6 +25,7 @@ import os, sys, re, os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs
+from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, get_font
@@ -282,22 +283,33 @@ class FileInfo(QObject):
         
         textlist = self.rope_project.get_calltip_text(source_code, offset,
                                                       self.filename)
-        text = ''
-        if textlist:
-            parpos = textlist[0].find('(')
-            if parpos:
-                text = textlist[0][:parpos]
-        if not text:
-            text = codeeditor.get_primary_at(source_code, offset)
-        if text and not text.startswith('self.'):
-            doc_text = ''
-            if len(textlist) == 2:
-                doc_text = textlist.pop(1)
-            if doc_text:
-                self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
-                          text, doc_text, not auto)
-        if textlist:
-            self.editor.show_calltip("rope", textlist, at_position=position)
+        if not textlist:
+            return
+        obj_fullname = ''
+        signatures = []
+        cts, doc_text = textlist
+        cts = cts.replace('.__init__', '')
+        parpos = cts.find('(')
+        if parpos:
+            obj_fullname = cts[:parpos]
+            obj_name = obj_fullname.split('.')[-1]
+            cts = cts.replace(obj_fullname, obj_name)
+            signatures = [cts]
+            if '()' in cts:
+                # Either inspected object has no argument, or it's 
+                # a builtin or an extension -- in this last case 
+                # the following attempt may succeed:
+                signatures = getsignaturesfromtext(doc_text, obj_name)
+        if not obj_fullname:
+            obj_fullname = codeeditor.get_primary_at(source_code, offset)
+        if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
+            self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
+                      obj_fullname, doc_text, not auto)
+        if signatures:
+            signatures = ['<b>'+s.replace('(', '(</b>').replace(')', '<b>)</b>')
+                          for s in signatures]
+            self.editor.show_calltip(obj_fullname, '<br>'.join(signatures),
+                                     at_position=position)
                     
     def go_to_definition(self, position):
         source_code = unicode(self.editor.toPlainText())

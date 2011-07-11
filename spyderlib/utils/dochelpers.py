@@ -97,11 +97,24 @@ def getsource(obj):
     except (TypeError, IOError):
         return
 
-def getargfromdoc(obj):
+def getsignaturesfromtext(text, objname):
+    """Get object signatures from text (object documentation)
+    Return a list containing a single string in most cases
+    Example of multiple signatures: PyQt4 objects"""
+    return re.findall(objname+r'\([^\)]+\)', text)
+
+def getargsfromtext(text, objname):
+    """Get arguments from text (object documentation)"""
+    signatures = getsignaturesfromtext(text, objname)
+    if signatures:
+        signature = signatures[0]
+        argtxt = signature[signature.find('(')+1:-1]
+        return argtxt.split(',')
+
+def getargsfromdoc(obj):
     """Get arguments from object doc"""
-    doc, name = obj.__doc__, obj.__name__
-    if doc is not None and name+'(' in doc:
-        return doc[doc.find(name+'(')+len(name)+1:doc.find(')')].split()
+    if obj.__doc__ is not None:
+        return getargsfromtext(obj.__doc__, obj.__name__)
 
 def getargs(obj):
     """Get the names and default values of a function's arguments"""
@@ -115,10 +128,15 @@ def getargs(obj):
         return []
     if not hasattr(func_obj, 'func_code'):
         # Builtin: try to extract info from doc
-        return getargfromdoc(func_obj)
+        args = getargsfromdoc(func_obj)
+        if args is not None:
+            return args
+        else:
+            # Example: PyQt4
+            return getargsfromdoc(obj)
     args, _, _ = inspect.getargs(func_obj.func_code)
     if not args:
-        return getargfromdoc(obj)
+        return getargsfromdoc(obj)
     
     # Supporting tuple arguments in def statement:
     for i_arg, arg in enumerate(args):

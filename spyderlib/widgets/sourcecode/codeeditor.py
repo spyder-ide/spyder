@@ -151,7 +151,8 @@ class RopeProject(object):
             if DEBUG:
                 t0 = time.time()
             cts = rope.contrib.codeassist.get_calltip(
-                            self.project, source_code, offset, resource)
+                            self.project, source_code, offset, resource,
+                            ignore_unknown=False, remove_self=True)
             if DEBUG:
                 log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
