@@ -738,7 +738,7 @@ def make_css_patterns():
                            r"(?<=}\/).*?(?={)",
                            r"[^}]+?(?={)"])
     keywords = any("keyword", [r"[\w-]+?(?=:)"])
-    string = any("string", [r"(?<=:).*?(?=;)"])
+    string = any("string", [r"(?<=:).+?(?=;)"])
     comment = any("comment", [r"/\*(.*?)\*/"])
     multiline_comment_start = any("multiline_comment_start", [r"\/\*"])
     multiline_comment_end = any("multiline_comment_end", [r"\*\/"])
