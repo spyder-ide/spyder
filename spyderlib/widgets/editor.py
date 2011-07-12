@@ -33,7 +33,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import OutlineExplorerWidget, check
+from spyderlib.widgets.editortools import (OutlineExplorerWidget,
+                                           check_with_pyflakes, check_with_pep8)
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
@@ -158,13 +159,20 @@ class CodeAnalysisThread(QThread):
         self.editor = editor
         self.filename = None
         self.analysis_results = []
+        self.checkers = []
         
     def set_filename(self, filename):
         self.filename = filename
         
+    def set_checkers(self, checkers):
+        self.checkers = checkers
+        
     def run(self):
         source_code = unicode(self.editor.toPlainText()).encode('utf-8')
-        self.analysis_results = check(source_code, filename=self.filename)
+        self.analysis_results = []
+        for checker in self.checkers:
+            self.analysis_results += checker(source_code,
+                                             filename=self.filename)
         
     def get_results(self):
         return self.analysis_results
@@ -320,9 +328,10 @@ class FileInfo(QObject):
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       fname, lineno, "")
     
-    def run_code_analysis(self):
+    def run_code_analysis(self, checkers):
         if self.editor.is_python() and not self.is_closing:
             self.analysis_thread.set_filename(self.filename)
+            self.analysis_thread.set_checkers(checkers)
             self.analysis_thread.start()
         
     def code_analysis_finished(self):
@@ -415,7 +424,8 @@ class EditorStack(QWidget):
         self.title = _("Editor")
         self.filetype_filters = None
         self.valid_types = None
-        self.codeanalysis_enabled = True
+        self.pyflakes_enabled = True
+        self.pep8_enabled = True
         self.todolist_enabled = True
         self.realtime_analysis_enabled = False
         self.is_analysis_done = False
@@ -661,19 +671,40 @@ class EditorStack(QWidget):
         
     def __update_editor_margins(self, editor):
         editor.setup_margins(linenumbers=self.linenumbers_enabled,
-                             code_analysis=self.codeanalysis_enabled,
-                             todo_list=self.todolist_enabled)
+                             markers=self.has_markers())
         
-    def set_codeanalysis_enabled(self, state, current_finfo=None):
-        # CONF.get(self.CONF_SECTION, 'code_analysis')
-        self.codeanalysis_enabled = state
+    def __codeanalysis_settings_changed(self, state, current_finfo):
         if self.data:
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
                 finfo.cleanup_analysis_results()
                 if state and current_finfo is not None:
                     if current_finfo is not finfo:
-                        finfo.run_code_analysis()                    
+                        finfo.run_code_analysis(self.get_checkers())          
+        
+    def set_pyflakes_enabled(self, state, current_finfo=None):
+        # CONF.get(self.CONF_SECTION, 'code_analysis/pyflakes')
+        self.pyflakes_enabled = state
+        self.__codeanalysis_settings_changed(state, current_finfo)
+        
+    def set_pep8_enabled(self, state, current_finfo=None):
+        # CONF.get(self.CONF_SECTION, 'code_analysis/pep8')
+        self.pep8_enabled = state
+        self.__codeanalysis_settings_changed(state, current_finfo)
+                        
+    def get_checkers(self):
+        """Return code analysis checker callbacks"""
+        checkers = []
+        if self.pyflakes_enabled:
+            checkers += [check_with_pyflakes]
+        if self.pep8_enabled:
+            checkers += [check_with_pep8]
+        return checkers
+    
+    def has_markers(self):
+        """Return True if this editorstack has a marker margin for TODOs or
+        code analysis"""
+        return self.todolist_enabled or len(self.get_checkers()) > 0
     
     def set_todolist_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'todo_list')
@@ -1270,8 +1301,9 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
         if self.data:
             finfo = self.data[index]
-            if self.codeanalysis_enabled:
-                finfo.run_code_analysis()
+            checkers = self.get_checkers()
+            if checkers:
+                finfo.run_code_analysis(checkers)
             if self.todolist_enabled:
                 finfo.run_todo_finder()
         self.is_analysis_done = True
@@ -1556,8 +1588,7 @@ class EditorStack(QWidget):
                 linenumbers=self.linenumbers_enabled,
                 edge_line=self.edgeline_enabled,
                 edge_line_column=self.edgeline_column, language=language,
-                code_analysis=self.codeanalysis_enabled,
-                todo_list=self.todolist_enabled, font=self.default_font,
+                markers=self.has_markers(), font=self.default_font,
                 color_scheme=self.color_scheme,
                 wrap=self.wrap_enabled, tab_mode=self.tabmode_enabled,
                 intelligent_backspace=self.intelligent_backspace_enabled,

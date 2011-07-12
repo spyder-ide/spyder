@@ -195,23 +195,31 @@ class EditorConfigPage(PluginConfigPage):
                                'always_remove_trailing_spaces', default=False)
         
         analysis_group = QGroupBox(_("Analysis"))
-        analysis_label = QLabel(_("Note: add <b>analysis:ignore</b> in "
-                                  "a comment to ignore code analysis "
-                                  "warnings."))
-        analysis_label.setWordWrap(True)
-        codeanalysis_box = newcb(_("Code analysis")+" (pyflakes/pep8)",
-                      'code_analysis', default=True,
+        analysis_label1 = QLabel(_("Note: add <b>analysis:ignore</b> in "
+                                   "a comment to ignore code/style analysis "
+                                   "warnings."))
+        analysis_label1.setWordWrap(True)
+        pep8_url = '<a href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>'
+        analysis_label2 = QLabel(_('More informations on style guide '
+                                   'for Python code: %s.') % pep8_url)
+        analysis_label2.setWordWrap(True)
+        pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
+                      'code_analysis/pyflakes', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"
-                            "using code introspection tools (pyflakes/pep8),\n"
-                            "lines containing errors or \n"
+                            "using pyflakes, lines containing errors or \n"
                             "warnings will be highlighted"))
-        codeanalysis_box.setEnabled(programs.is_module_installed('pyflakes')\
-                                    or programs.is_module_installed('pep8'))
+        pyflakes_box.setEnabled(programs.is_module_installed('pyflakes'))
+        pep8_box = newcb(_("Style analysis")+' (pep8)',
+                      'code_analysis/pep8', default=False,
+                      tip=_('If enabled, Python source code will be analyzed\n'
+                            'using pep8, lines that are not following PEP8\n'
+                            'style guide will be highlighted'))
+        pep8_box.setEnabled(programs.is_module_installed('pep8'))
+        ancb_layout = QHBoxLayout()
+        ancb_layout.addWidget(pyflakes_box)
+        ancb_layout.addWidget(pep8_box)
         todolist_box = newcb(_("Tasks (TODO, FIXME, XXX, HINT, TIP)"),
                              'todo_list', default=True)
-        ancb_layout = QHBoxLayout()
-        ancb_layout.addWidget(codeanalysis_box)
-        ancb_layout.addWidget(todolist_box)
         realtime_radio = self.create_radiobutton(
                                             _("Perform analysis when "
                                                     "saving file and every"),
@@ -244,8 +252,10 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group.setLayout(introspection_layout)
         
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(analysis_label)
+        analysis_layout.addWidget(analysis_label1)
+        analysis_layout.addWidget(analysis_label2)
         analysis_layout.addLayout(ancb_layout)
+        analysis_layout.addWidget(todolist_box)
         analysis_layout.addLayout(af_layout)
         analysis_layout.addWidget(saveonly_radio)
         analysis_group.setLayout(analysis_layout)
@@ -949,7 +959,8 @@ class Editor(SpyderPluginWidget):
         editorstack.set_filetype_filters(self.get_filetype_filters())
         editorstack.set_valid_types(self.get_valid_types())
         settings = (
-            ('set_codeanalysis_enabled',            'code_analysis'),
+            ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
+            ('set_pep8_enabled',                    'code_analysis/pep8'),
             ('set_todolist_enabled',                'todo_list'),
             ('set_realtime_analysis_enabled',       'realtime_analysis'),
             ('set_realtime_analysis_timeout',       'realtime_analysis/timeout'),
@@ -1278,8 +1289,9 @@ class Editor(SpyderPluginWidget):
         results = editorstack.get_analysis_results()
         
         # Update code analysis buttons
-        state = self.get_option('code_analysis') \
-                and results is not None and len(results)
+        state = (self.get_option('code_analysis/pyflakes') \
+                 or self.get_option('code_analysis/pep8')) \
+                 and results is not None and len(results)
         for action in (self.warning_list_action, self.previous_warning_action,
                        self.next_warning_action):
             action.setEnabled(state)
@@ -1915,8 +1927,10 @@ class Editor(SpyderPluginWidget):
             inspector_o = self.get_option(inspector_n)
             todo_n = 'todo_list'
             todo_o = self.get_option(todo_n)
-            analysis_n = 'code_analysis'
-            analysis_o = self.get_option(analysis_n)
+            pyflakes_n = 'code_analysis/pyflakes'
+            pyflakes_o = self.get_option(pyflakes_n)
+            pep8_n = 'code_analysis/pep8'
+            pep8_o = self.get_option(pep8_n)
             rt_analysis_n = 'realtime_analysis'
             rt_analysis_o = self.get_option(rt_analysis_n)
             rta_timeout_n = 'realtime_analysis/timeout'
@@ -1986,9 +2000,11 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options:
                     editorstack.set_todolist_enabled(todo_o,
                                                      current_finfo=finfo)
-                if analysis_n in options:
-                    editorstack.set_codeanalysis_enabled(analysis_o,
-                                                         current_finfo=finfo)
+                if pyflakes_n in options:
+                    editorstack.set_pyflakes_enabled(pyflakes_o,
+                                                     current_finfo=finfo)
+                if pep8_n in options:
+                    editorstack.set_pep8_enabled(pep8_o, current_finfo=finfo)
                 if rt_analysis_n in options:
                     editorstack.set_realtime_analysis_enabled(rt_analysis_o)
                 if rta_timeout_n in options:
@@ -1998,5 +2014,6 @@ class Editor(SpyderPluginWidget):
             #  last editor instead of showing the one of the current editor)
             if todo_n in options and todo_o and finfo is not None:
                 finfo.run_todo_finder()
-            if analysis_n in options and analysis_o and finfo is not None:
-                finfo.run_code_analysis()
+            if ((pyflakes_n in options and pyflakes_o) or \
+                (pep8_n in options and pep8_o)) and finfo is not None:
+                finfo.run_code_analysis(editorstack.get_checkers())

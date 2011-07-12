@@ -41,7 +41,7 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode, is_keyword
 from spyderlib.utils import log_last_error, log_dt
-from spyderlib.widgets.editortools import PythonCFM, check
+from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters
 
@@ -587,11 +587,11 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/disable wrap mode"""
         self.set_wrap_mode('word' if enable else None)
 
-    def setup_editor(self, linenumbers=True, language=None, code_analysis=False,
+    def setup_editor(self, linenumbers=True, language=None, markers=False,
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
                      occurence_highlighting=True, scrollflagarea=True,
-                     edge_line=True, edge_line_column=79, todo_list=True,
+                     edge_line=True, edge_line_column=79,
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
@@ -619,7 +619,7 @@ class CodeEditor(TextEditBaseWidget):
         # Line number area
         if cloned_from:
             self.setFont(font) # this is required for line numbers area
-        self.setup_margins(linenumbers, code_analysis, todo_list)
+        self.setup_margins(linenumbers, markers)
 
         # Lexer
         self.set_language(language)
@@ -719,16 +719,14 @@ class CodeEditor(TextEditBaseWidget):
             self.highlighter.rehighlight()
 
 
-    def setup_margins(self, linenumbers=True, code_analysis=False,
-                      todo_list=True):
+    def setup_margins(self, linenumbers=True, markers=True):
         """
         Setup margin settings
         (except font, now set in self.set_font)
         """
         self.linenumbers_margin = linenumbers
-        self.markers_margin = code_analysis or todo_list
-        enabled = linenumbers or code_analysis or todo_list
-        self.set_linenumberarea_enabled(enabled)
+        self.markers_margin = markers
+        self.set_linenumberarea_enabled(linenumbers or markers)
 
     def remove_trailing_spaces(self):
         """Remove trailing spaces"""
@@ -2073,8 +2071,7 @@ class TestWidget(QSplitter):
     def __init__(self, parent):
         QSplitter.__init__(self, parent)
         self.editor = CodeEditor(self)
-        self.editor.setup_editor(linenumbers=True, code_analysis=False,
-                                 todo_list=False, tab_mode=False,
+        self.editor.setup_editor(linenumbers=True, markers=True, tab_mode=False,
                                  font=QFont("Courier New", 10),
                                  color_scheme='Pydev')
         self.addWidget(self.editor)
@@ -2102,8 +2099,12 @@ def test(fname):
     win.load(fname)
     win.resize(800, 800)
 
-    analysis_results = check(fname)
-    win.editor.process_code_analysis(analysis_results)
+    from spyderlib.widgets.editortools import (check_with_pyflakes,
+                                               check_with_pep8)
+    source_code = unicode(win.editor.toPlainText()).encode('utf-8')
+    res = check_with_pyflakes(source_code, fname)+\
+          check_with_pep8(source_code, fname)
+    win.editor.process_code_analysis(res)
 
     sys.exit(app.exec_())
 

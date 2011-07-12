@@ -79,7 +79,7 @@ def check_with_pep8(source_code, filename=None):
         tempfd = tempfile.NamedTemporaryFile(suffix=".py")
         filename = tempfd.name
     from subprocess import Popen, PIPE
-    output = Popen([sys.executable, path, filename],
+    output = Popen([sys.executable, path, '-r', filename],
                    stdout=PIPE).communicate()[0].strip().splitlines()
     results = []
     lines = source_code.splitlines()
@@ -90,14 +90,11 @@ def check_with_pep8(source_code, filename=None):
             results.append( (message, lineno, False) )
     return results
 
-def check(source_code, filename=None):
-    """Check source code with pyflakes and pep8"""
-    return check_with_pyflakes(source_code, filename=filename)+\
-           check_with_pep8(source_code, filename=filename)
-
 if __name__ == '__main__':
     fname = __file__
-    check_results = check(file(fname, 'U').read(), fname)
+    code = file(fname, 'U').read()
+    check_results = check_with_pyflakes(code, fname)+\
+                    check_with_pep8(code, fname)
     for message, line, error in check_results:
         print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
 
