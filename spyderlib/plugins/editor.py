@@ -101,7 +101,7 @@ class EditorConfigPage(PluginConfigPage):
         linenumbers_box = newcb(_("Show line numbers"), 'line_numbers')
         edgeline_box = newcb(_("Show vertical line after"), 'edge_line')
         edgeline_spin = self.create_spinbox("", _("characters"),
-                                            'edge_line_column', 80, 1, 500)
+                                            'edge_line_column', 79, 1, 500)
         self.connect(edgeline_box, SIGNAL("toggled(bool)"),
                      edgeline_spin.setEnabled)
         edgeline_spin.setEnabled(self.get_option('edge_line'))

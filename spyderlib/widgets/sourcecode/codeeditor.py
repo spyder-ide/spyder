@@ -327,7 +327,7 @@ class EdgeLine(QWidget):
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.code_editor = editor
-        self.column = 80
+        self.column = 79
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -433,7 +433,7 @@ class CodeEditor(TextEditBaseWidget):
         # Side areas background color
         self.area_background_color = QColor(Qt.white)
 
-        # 80-col edge line
+        # 79-col edge line
         self.edge_line_enabled = True
         self.edge_line = EdgeLine(self)
 
@@ -591,7 +591,7 @@ class CodeEditor(TextEditBaseWidget):
                      font=None, color_scheme=None, wrap=False, tab_mode=True,
                      intelligent_backspace=True, highlight_current_line=True,
                      occurence_highlighting=True, scrollflagarea=True,
-                     edge_line=True, edge_line_column=80, todo_list=True,
+                     edge_line=True, edge_line_column=79, todo_list=True,
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
@@ -1132,7 +1132,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----edgeline
     def viewportEvent(self, event):
-        # 80-column edge line
+        # 79-column edge line
         cr = self.contentsRect()
         offset = self.contentOffset()
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
@@ -1693,7 +1693,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def blockcomment(self):
         """Block comment current line or selection"""
-        comline = self.comment_string + '='*(80-len(self.comment_string)) \
+        comline = self.comment_string + '='*(79-len(self.comment_string)) \
                   + self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():

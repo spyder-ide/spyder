@@ -421,7 +421,7 @@ class EditorStack(QWidget):
         self.is_analysis_done = False
         self.linenumbers_enabled = True
         self.edgeline_enabled = True
-        self.edgeline_column = 80
+        self.edgeline_column = 79
         self.outlineexplorer_enabled = True
         self.codecompletion_auto_enabled = True
         self.codecompletion_case_enabled = False
