@@ -77,9 +77,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
                                        create_python_script_action)
-from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import (get_icon, get_image_path, CONF, DOC_PATH,
-                              get_shortcut)
+from spyderlib.baseconfig import get_conf_path, _, get_module_data_path
+from spyderlib.config import get_icon, get_image_path, CONF, get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.programs import run_python_script, is_module_installed
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -678,9 +677,11 @@ class MainWindow(QMainWindow):
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about)
             # Spyder documentation
-            spyder_doc = osp.join(DOC_PATH, "Spyderdoc.chm")
+            doc_path = get_module_data_path('spyderlib', relpath="doc",
+                                            attr_name='DOCPATH')
+            spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
-                spyder_doc = osp.join(DOC_PATH, "index.html")
+                spyder_doc = osp.join(doc_path, "index.html")
                 if not osp.isfile(spyder_doc): # development version
                     spyder_doc = osp.join(osp.dirname(__file__), os.pardir,
                                           'build', 'lib', 'spyderlib', 'doc',

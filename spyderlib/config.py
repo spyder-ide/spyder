@@ -20,18 +20,9 @@ from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
 from spyderlib.baseconfig import (SUBFOLDER, EDITABLE_TYPES, PICKLABLE_TYPES,
-                                  ITERMAX, EXCLUDED, type2str)
+                                  ITERMAX, EXCLUDED, type2str,
+                                  get_module_data_path)
 
-
-DATA_DEV_PATH = osp.dirname(__file__)
-if not osp.isdir(DATA_DEV_PATH):
-    # Assuming py2exe distribution
-    DATA_DEV_PATH = osp.join(sys.prefix, "spyderlib")
-DOC_DEV_PATH = osp.join(DATA_DEV_PATH, 'doc')
-
-# The two following lines are patched when making the debian package:
-DATA_PATH = DATA_DEV_PATH # @@@DATA_PATH@@@
-DOC_PATH = DOC_DEV_PATH # @@@DOC_PATH@@@
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
               'Bitstream Charter', 'Lucida Grande', 'Verdana', 'Geneva',
@@ -320,7 +311,7 @@ def add_image_path(path):
         for dir in dirs:
             IMG_PATH.append(osp.join(path, dir))
 
-add_image_path(osp.join(DATA_PATH, 'images'))
+add_image_path(get_module_data_path('spyderlib', relpath='images'))
 
 from spyderlib.otherplugins import PLUGIN_PATH
 if PLUGIN_PATH is not None:
