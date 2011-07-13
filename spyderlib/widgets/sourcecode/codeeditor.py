@@ -273,6 +273,7 @@ class LineNumberArea(QWidget):
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.code_editor = editor
+        self.setMouseTracking(True)
 
     def sizeHint(self):
         return QSize(self.code_editor.compute_linenumberarea_width(), 0)
@@ -280,8 +281,8 @@ class LineNumberArea(QWidget):
     def paintEvent(self, event):
         self.code_editor.linenumberarea_paint_event(event)
 
-    def mousePressEvent(self, event):
-        self.code_editor.linenumberarea_mousepress_event(event)
+    def mouseMoveEvent(self, event):
+        self.code_editor.linenumberarea_mousemove_event(event)
 
     def mouseDoubleClickEvent(self, event):
         self.code_editor.linenumberarea_mousedoubleclick_event(event)
@@ -960,7 +961,7 @@ class CodeEditor(TextEditBaseWidget):
 
         return line_number
 
-    def linenumberarea_mousepress_event(self, event):
+    def linenumberarea_mousemove_event(self, event):
         line_number = self.__get_linenumber_from_mouse_event(event)
         block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
