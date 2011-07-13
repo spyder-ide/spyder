@@ -36,13 +36,12 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton
-from spyderlib.baseconfig import get_conf_path
+from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.config import get_icon
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
-from spyderlib.utils.translations import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")
 
 PYLINT_PATH = programs.get_nt_program_name('pylint')

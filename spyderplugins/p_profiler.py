@@ -17,7 +17,7 @@ import sys
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.translations import get_translation
+from spyderlib.baseconfig import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
