@@ -1294,15 +1294,18 @@ class CodeEditor(TextEditBaseWidget):
 
     def cleanup_code_analysis(self):
         """Remove all code analysis markers"""
+        self.setUpdatesEnabled(False)
         self.clear_extra_selections('code_analysis')
         for data in self.blockuserdata_list[:]:
             data.code_analysis = []
             if data.is_empty():
                 del data
+        self.setUpdatesEnabled(True)
         # When the new code analysis results are empty, it is necessary
-        # to update manually the scrollflag area (otherwise, the old flags
-        # will still be displayed):
+        # to update manually the scrollflag and linenumber areas (otherwise, 
+        # the old flags will still be displayed):
         self.scrollflagarea.update()
+        self.linenumberarea.update()
 
     def process_code_analysis(self, check_results):
         """Analyze filename code with pyflakes"""
@@ -1310,6 +1313,7 @@ class CodeEditor(TextEditBaseWidget):
         if check_results is None:
             # Not able to compile module
             return
+        self.setUpdatesEnabled(False)
         cursor = self.textCursor()
         document = self.document()
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
@@ -1349,6 +1353,8 @@ class CodeEditor(TextEditBaseWidget):
 #                                       underline_color=self.warning_color)
 #                        cursor = document.find(text, cursor, flags)
         self.update_extra_selections()
+        self.setUpdatesEnabled(True)
+        self.linenumberarea.update()
 
     def __show_code_analysis_results(self, line_number, code_analysis):
         """Show warning/error messages"""
