@@ -841,8 +841,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         format2 = '<hr><div style=\'font-family: "%s"; font-size: %spt; font-weight: %s\'>' % (family, size, weight)
         if isinstance(text, list):
             text = "\n    ".join(text)
-        else:
-            text = text.replace('\n', '<br>')
+        text = text.replace('\n', '<br>')
         if len(text) > self.calltip_size:
             text = text[:self.calltip_size] + " ..."
         tiptext = format1 + ('<b>%s</b></div>' % title) \
