@@ -153,7 +153,7 @@ class FileListDialog(QDialog):
         
 
 class CodeAnalysisThread(QThread):
-    """Pyflakes code analysis thread"""
+    """Source code/style analysis thread (pyflakes/pep8)"""
     def __init__(self, editor):
         QThread.__init__(self, editor)
         self.editor = editor
@@ -330,7 +330,12 @@ class FileInfo(QObject):
     
     def run_code_analysis(self, checkers):
         if self.editor.is_python() and not self.is_closing:
-            self.analysis_thread.set_filename(self.filename)
+            if self.editor.document().isModified():
+                # Force checker to create a temporary file
+                fname = None
+            else:
+                fname = self.filename
+            self.analysis_thread.set_filename(fname)
             self.analysis_thread.set_checkers(checkers)
             self.analysis_thread.start()
         
@@ -673,24 +678,25 @@ class EditorStack(QWidget):
         editor.setup_margins(linenumbers=self.linenumbers_enabled,
                              markers=self.has_markers())
         
-    def __codeanalysis_settings_changed(self, state, current_finfo):
+    def __codeanalysis_settings_changed(self, current_finfo):
         if self.data:
+            checkers = self.get_checkers()
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
                 finfo.cleanup_analysis_results()
-                if state and current_finfo is not None:
+                if checkers and current_finfo is not None:
                     if current_finfo is not finfo:
-                        finfo.run_code_analysis(self.get_checkers())          
+                        finfo.run_code_analysis(checkers)
         
     def set_pyflakes_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'code_analysis/pyflakes')
         self.pyflakes_enabled = state
-        self.__codeanalysis_settings_changed(state, current_finfo)
+        self.__codeanalysis_settings_changed(current_finfo)
         
     def set_pep8_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'code_analysis/pep8')
         self.pep8_enabled = state
-        self.__codeanalysis_settings_changed(state, current_finfo)
+        self.__codeanalysis_settings_changed(current_finfo)
                         
     def get_checkers(self):
         """Return code analysis checker callbacks"""

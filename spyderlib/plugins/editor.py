@@ -2012,8 +2012,8 @@ class Editor(SpyderPluginWidget):
             # We must update the current editor after the others:
             # (otherwise, code analysis buttons state would correspond to the
             #  last editor instead of showing the one of the current editor)
-            if todo_n in options and todo_o and finfo is not None:
-                finfo.run_todo_finder()
-            if ((pyflakes_n in options and pyflakes_o) or \
-                (pep8_n in options and pep8_o)) and finfo is not None:
-                finfo.run_code_analysis(editorstack.get_checkers())
+            if finfo is not None:
+                if todo_n in options and todo_o:
+                    finfo.run_todo_finder()
+                if pyflakes_n in options or pep8_n in options:
+                    finfo.run_code_analysis(editorstack.get_checkers())

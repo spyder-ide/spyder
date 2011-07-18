@@ -6,7 +6,12 @@
 
 """Editor tools: outline explorer, etc."""
 
-import sys, re,  os.path as osp
+import sys
+import re
+import os
+import os.path as osp
+from subprocess import Popen, PIPE
+import tempfile
 
 from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
                                 QVBoxLayout)
@@ -22,73 +27,53 @@ from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
+from spyderlib.utils import programs
 
 
 #===============================================================================
 # Pyflakes/pep8 code analysis
 #===============================================================================
-def check_with_pyflakes(source_code, filename=None):
-    """Check source code with pyflakes
-    Returns an empty list if pyflakes is not installed"""
-    try:
-        import pyflakes.checker, pyflakes.messages
-    except ImportError:
-        return []
-    import compiler
-    try:
-#        tree = compiler.parse(file(filename, 'U').read() + '\n')
-        tree = compiler.parse(source_code+'\n')
-    except (SyntaxError, IndentationError), e:
-        message = e.args[0]
-        value = sys.exc_info()[1]
-        try:
-            (lineno, _offset, _text) = value[1][1:]
-        except IndexError:
-            # Could not compile script
-            return []
-        return [ (message, lineno, True) ]
-    else:
-        results = []
-        if filename is None:
-            filename = '(none)'
-        w = pyflakes.checker.Checker(tree, filename)
-        w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
-        
-        error_messages = (pyflakes.messages.UndefinedName,
-                          pyflakes.messages.UndefinedExport,
-                          pyflakes.messages.UndefinedLocal,
-                          pyflakes.messages.DuplicateArgument,
-                          pyflakes.messages.LateFutureImport)
-        lines = source_code.splitlines()
-        for warning in w.messages:
-            if 'analysis:ignore' not in lines[warning.lineno-1]:
-                results.append( (warning.message % warning.message_args,
-                                 warning.lineno,
-                                 isinstance(warning, error_messages)) )
-        return results
-
-def check_with_pep8(source_code, filename=None):
-    """Check source code with pep8"""
-    from spyderlib.utils.programs import python_script_exists
-    path = python_script_exists(package=None, module='pep8', get_path=True)
-    if path is None:
-        return []
+def check(checker, source_code, filename=None, options=None):
+    """Check source code with *checker*
+    Returns an empty list if checker is not installed"""
+    if not programs.is_program_installed(checker):
+        return
+    args = [checker]
+    if options is not None:
+        args += options
     if filename is None:
-        # Creating a temporary file
-        import tempfile
-        tempfd = tempfile.NamedTemporaryFile(suffix=".py")
-        filename = tempfd.name
-    from subprocess import Popen, PIPE
-    output = Popen([sys.executable, path, '-r', filename],
-                   stdout=PIPE).communicate()[0].strip().splitlines()
+        # Creating a temporary file because file does not exist yet 
+        # or is not up-to-date
+        tempfd = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
+        tempfd.write(source_code+'\n')
+        tempfd.close()
+        args.append(tempfd.name)
+    else:
+        args.append(filename)
+    output = Popen(args, stdout=PIPE, stderr=PIPE
+                   ).communicate()[0].strip().splitlines()
+    if filename is None:
+        os.unlink(tempfd.name)
     results = []
     lines = source_code.splitlines()
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
         if 'analysis:ignore' not in lines[lineno-1]:
-            message = '<b>PEP8</b> '+line[line.find(': ')+2:]
-            results.append( (message, lineno, False) )
+            message = '<b>%s</b> %s' % (checker, line[line.find(': ')+2:])
+            error = 'syntax' in message
+            results.append((message, lineno, error))
     return results
+
+def check_with_pyflakes(source_code, filename=None):
+    """Check source code with pyflakes
+    Returns an empty list if pyflakes is not installed"""
+    # Setting filename to None all the time because pyflakes won't analyze 
+    # scripts with an indented ending line
+    return check('pyflakes', source_code, filename=None)
+
+def check_with_pep8(source_code, filename=None):
+    """Check source code with pep8"""
+    return check('pep8', source_code, filename=filename, options=['-r'])
 
 if __name__ == '__main__':
     fname = __file__
