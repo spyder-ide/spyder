@@ -939,6 +939,8 @@ class PythonShellWidget(ShellBaseWidget):
             
         elif text.startswith('from '):
             obj_list = self.get_module_completion(text)
+            if obj_list is None:
+                return
             words = text.split(' ')
             if words[-1].find('(') != -1:
                 words = words[:-2] + words[-1].split('(')
