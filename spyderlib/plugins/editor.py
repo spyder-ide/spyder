@@ -195,26 +195,25 @@ class EditorConfigPage(PluginConfigPage):
                                'always_remove_trailing_spaces', default=False)
         
         analysis_group = QGroupBox(_("Analysis"))
-        analysis_label1 = QLabel(_("Note: add <b>analysis:ignore</b> in "
-                                   "a comment to ignore code/style analysis "
-                                   "warnings."))
-        analysis_label1.setWordWrap(True)
         pep8_url = '<a href="http://www.python.org/dev/peps/pep-0008/">PEP8</a>'
-        analysis_label2 = QLabel(_('More informations on style guide '
-                                   'for Python code: %s.') % pep8_url)
-        analysis_label2.setWordWrap(True)
+        analysis_label = QLabel(_("<u>Note</u>: add <b>analysis:ignore</b> in "
+                                  "a comment to ignore code/style analysis "
+                                  "warnings. For more informations on style "
+                                  "guide for Python code, please refer to the "
+                                  "%s page.") % pep8_url)
+        analysis_label.setWordWrap(True)
         pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
                       'code_analysis/pyflakes', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"
                             "using pyflakes, lines containing errors or \n"
                             "warnings will be highlighted"))
-        pyflakes_box.setEnabled(programs.is_module_installed('pyflakes'))
+        pyflakes_box.setEnabled(programs.is_program_installed('pyflakes'))
         pep8_box = newcb(_("Style analysis")+' (pep8)',
                       'code_analysis/pep8', default=False,
                       tip=_('If enabled, Python source code will be analyzed\n'
                             'using pep8, lines that are not following PEP8\n'
                             'style guide will be highlighted'))
-        pep8_box.setEnabled(programs.is_module_installed('pep8'))
+        pep8_box.setEnabled(programs.is_program_installed('pep8'))
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(pyflakes_box)
         ancb_layout.addWidget(pep8_box)
@@ -252,8 +251,18 @@ class EditorConfigPage(PluginConfigPage):
         introspection_group.setLayout(introspection_layout)
         
         analysis_layout = QVBoxLayout()
-        analysis_layout.addWidget(analysis_label1)
-        analysis_layout.addWidget(analysis_label2)
+        analysis_layout.addWidget(analysis_label)
+        def _check_program(name, layout):
+            if programs.is_module_installed(name) and \
+               not programs.is_program_installed(name):
+                msg = _('<i>%s</i> is not properly installed<br>(opening a '
+                        'terminal and typing "%s script.py" do not work)')
+                label = QLabel('<u>%s</u> %s' % (_('Warning:'),
+                                                 msg % (name, name)))
+                label.setWordWrap(True)
+                layout.addWidget(label)
+        _check_program('pyflakes', analysis_layout)
+        _check_program('pep8', analysis_layout)
         analysis_layout.addLayout(ancb_layout)
         analysis_layout.addWidget(todolist_box)
         analysis_layout.addLayout(af_layout)

@@ -318,7 +318,7 @@ if PLUGIN_PATH is not None:
     add_image_path(osp.join(PLUGIN_PATH, 'images'))
 
 
-def get_image_path( name, default="not_found.png" ):
+def get_image_path(name, default="not_found.png"):
     """Return image absolute path"""
     for img_path in IMG_PATH:
         full_path = osp.join(img_path, name)
