@@ -171,8 +171,9 @@ class CodeAnalysisThread(QThread):
         source_code = unicode(self.editor.toPlainText()).encode('utf-8')
         self.analysis_results = []
         for checker in self.checkers:
-            self.analysis_results += checker(source_code,
-                                             filename=self.filename)
+            results = checker(source_code, filename=self.filename)
+            if results is not None:
+                self.analysis_results += results
         
     def get_results(self):
         return self.analysis_results
