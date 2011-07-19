@@ -37,6 +37,7 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack, Printer,
                                       EditorMainWindow)
+from spyderlib.widgets.editortools import get_checker_executable
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
@@ -202,18 +203,21 @@ class EditorConfigPage(PluginConfigPage):
                                   "guide for Python code, please refer to the "
                                   "%s page.") % pep8_url)
         analysis_label.setWordWrap(True)
+        is_pyflakes = get_checker_executable('pyflakes') is not None
+        is_pep8 = get_checker_executable('pep8') is not None
+        analysis_label.setEnabled(is_pyflakes or is_pep8)
         pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
                       'code_analysis/pyflakes', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"
                             "using pyflakes, lines containing errors or \n"
                             "warnings will be highlighted"))
-        pyflakes_box.setEnabled(programs.is_program_installed('pyflakes'))
+        pyflakes_box.setEnabled(is_pyflakes)
         pep8_box = newcb(_("Style analysis")+' (pep8)',
                       'code_analysis/pep8', default=False,
                       tip=_('If enabled, Python source code will be analyzed\n'
                             'using pep8, lines that are not following PEP8\n'
                             'style guide will be highlighted'))
-        pep8_box.setEnabled(programs.is_program_installed('pep8'))
+        pep8_box.setEnabled(is_pep8)
         ancb_layout = QHBoxLayout()
         ancb_layout.addWidget(pyflakes_box)
         ancb_layout.addWidget(pep8_box)
@@ -252,17 +256,6 @@ class EditorConfigPage(PluginConfigPage):
         
         analysis_layout = QVBoxLayout()
         analysis_layout.addWidget(analysis_label)
-        def _check_program(name, layout):
-            if programs.is_module_installed(name) and \
-               not programs.is_program_installed(name):
-                msg = _('<i>%s</i> is not properly installed<br>(opening a '
-                        'terminal and typing "%s script.py" do not work)')
-                label = QLabel('<u>%s</u> %s' % (_('Warning:'),
-                                                 msg % (name, name)))
-                label.setWordWrap(True)
-                layout.addWidget(label)
-        _check_program('pyflakes', analysis_layout)
-        _check_program('pep8', analysis_layout)
         analysis_layout.addLayout(ancb_layout)
         analysis_layout.addWidget(todolist_box)
         analysis_layout.addLayout(af_layout)

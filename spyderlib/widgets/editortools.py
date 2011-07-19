@@ -33,12 +33,32 @@ from spyderlib.utils import programs
 #===============================================================================
 # Pyflakes/pep8 code analysis
 #===============================================================================
-def check(checker, source_code, filename=None, options=None):
-    """Check source code with *checker*
+def get_checker_executable(name):
+    """Return checker executable in the form of a list of arguments
+    for subprocess.Popen"""
+    if programs.is_program_installed(name):
+        # Checker is properly installed
+        return [name]
+    else:
+        path1 = programs.python_script_exists(package=None,
+                                          module=name+'_script', get_path=True)
+        path2 = programs.python_script_exists(package=None, module=name,
+                                              get_path=True)
+        if path1 is not None:  # checker_script.py is available
+            # Checker script is available but has not been installed
+            # (this may work with pyflakes)
+            return [sys.executable, path1]
+        elif path2 is not None:  # checker.py is available
+            # Checker package is available but its script has not been
+            # installed (this works with pep8 but not with pyflakes)
+            return [sys.executable, path2]
+
+def check(name, source_code, filename=None, options=None):
+    """Check source code with checker *name* defined with *args* (list)
     Returns an empty list if checker is not installed"""
-    if not programs.is_program_installed(checker):
-        return
-    args = [checker]
+    args = get_checker_executable(name)
+    if args is None:
+        return []
     if options is not None:
         args += options
     if filename is None:
@@ -59,7 +79,7 @@ def check(checker, source_code, filename=None, options=None):
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
         if 'analysis:ignore' not in lines[lineno-1]:
-            message = '<b>%s</b> %s' % (checker, line[line.find(': ')+2:])
+            message = '<b>%s</b> %s' % (name, line[line.find(': ')+2:])
             error = 'syntax' in message
             results.append((message, lineno, error))
     return results
