@@ -17,7 +17,7 @@ import sys, os
 STDOUT = sys.stdout
 
 from spyderlib.qt.QtGui import QApplication
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import SIGNAL, Signal
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -29,6 +29,7 @@ from spyderlib.plugins import SpyderPluginMixin
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     """Find in files DockWidget"""
     CONF_SECTION = 'find_in_files'
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent=None):
         supported_encodings = self.get_option('supported_encodings')
         

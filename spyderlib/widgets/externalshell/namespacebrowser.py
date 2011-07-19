@@ -15,7 +15,7 @@ STDERR = sys.stderr
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,
                                 QCursor, QInputDialog)
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
 from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
@@ -38,6 +38,8 @@ from spyderlib.config import get_icon
 
 
 class NamespaceBrowser(QWidget):
+    """Namespace browser (global variables explorer widget)"""
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         
@@ -77,6 +79,7 @@ class NamespaceBrowser(QWidget):
               exclude_capitalized=None, exclude_unsupported=None,
               excluded_names=None, truncate=None, minmax=None, collvalue=None,
               remote_editing=None, inplace=None, autorefresh=None):
+        """Setup the namespace browser"""
         assert self.shellwidget is not None
         
         self.editable_types = editable_types
@@ -132,9 +135,7 @@ class NamespaceBrowser(QWidget):
                             oedit_func=self.oedit,
                             plot_func=self.plot, imshow_func=self.imshow,
                             show_image_func=self.show_image)
-        self.connect(self.editor, SIGNAL('option_changed'),
-                     lambda option, value:
-                     self.emit(SIGNAL('option_changed'), option, value))
+        self.editor.sig_option_changed.connect(self.sig_option_changed.emit)
         
         # Setup layout
         hlayout = QHBoxLayout()
@@ -150,9 +151,10 @@ class NamespaceBrowser(QWidget):
         self.setLayout(hlayout)
         hlayout.setContentsMargins(0, 0, 0, 0)
 
-        self.connect(self, SIGNAL('option_changed'), self.option_changed)
+        self.sig_option_changed.connect(self.option_changed)
         
     def set_shellwidget(self, shellwidget):
+        """Bind shellwidget instance to namespace browser"""
         self.shellwidget = shellwidget
         from spyderlib.widgets import internalshell
         self.is_internal_shell = isinstance(self.shellwidget,
@@ -162,6 +164,7 @@ class NamespaceBrowser(QWidget):
         
     def setup_toolbar(self, exclude_private, exclude_uppercase,
                       exclude_capitalized, exclude_unsupported, autorefresh):
+        """Setup toolbar"""
         self.setup_in_progress = True                          
                           
         toolbar = []
@@ -192,31 +195,31 @@ class NamespaceBrowser(QWidget):
                 _("Exclude private references"),
                 tip=_("Exclude references which name starts"
                             " with an underscore"),
-                toggled=lambda state:self.emit(SIGNAL('option_changed'),
-                                               'exclude_private', state))
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_private', state))
         self.exclude_private_action.setChecked(exclude_private)
         
         self.exclude_uppercase_action = create_action(self,
                 _("Exclude all-uppercase references"),
                 tip=_("Exclude references which name is uppercase"),
-                toggled=lambda state:self.emit(SIGNAL('option_changed'),
-                                               'exclude_uppercase', state))
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_uppercase', state))
         self.exclude_uppercase_action.setChecked(exclude_uppercase)
         
         self.exclude_capitalized_action = create_action(self,
                 _("Exclude capitalized references"),
                 tip=_("Exclude references which name starts with an "
                       "uppercase character"),
-                toggled=lambda state:self.emit(SIGNAL('option_changed'),
-                                               'exclude_capitalized', state))
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_capitalized', state))
         self.exclude_capitalized_action.setChecked(exclude_capitalized)
         
         self.exclude_unsupported_action = create_action(self,
                 _("Exclude unsupported data types"),
                 tip=_("Exclude references to unsupported data types"
                             " (i.e. which won't be handled/saved correctly)"),
-                toggled=lambda state:self.emit(SIGNAL('option_changed'),
-                                               'exclude_unsupported', state))
+                toggled=lambda state:
+                self.sig_option_changed.emit('exclude_unsupported', state))
         self.exclude_unsupported_action.setChecked(exclude_unsupported)
         
         options_button = create_toolbutton(self, text=_("Options"),
@@ -242,8 +245,10 @@ class NamespaceBrowser(QWidget):
         return toolbar
 
     def option_changed(self, option, value):
-        setattr(self, option, value)
-        monitor_set_remote_view_settings(self._get_sock(), self)
+        """Option has changed"""
+        setattr(self, unicode(option), value)
+        if not self.is_internal_shell:
+            monitor_set_remote_view_settings(self._get_sock(), self)
         
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser 
@@ -253,12 +258,14 @@ class NamespaceBrowser(QWidget):
             self.refresh_table()
         
     def toggle_auto_refresh(self, state):
+        """Toggle auto refresh state"""
         self.autorefresh = state
         if not self.setup_in_progress and not self.is_internal_shell:
             communicate(self._get_sock(),
                         "set_monitor_auto_refresh(%r)" % state)
             
     def _get_sock(self):
+        """Return socket connection"""
         return self.shellwidget.introspection_socket
     
     def get_internal_shell_filter(self, mode, itermax=None):
@@ -287,6 +294,7 @@ class NamespaceBrowser(QWidget):
         return wsfilter
         
     def refresh_table(self):
+        """Refresh variable table"""
         if self.is_visible and self.isVisible():
             if self.is_internal_shell:
                 # Internal shell
@@ -308,6 +316,7 @@ class NamespaceBrowser(QWidget):
                     pass                
                 
     def process_remote_view(self, remote_view):
+        """Process remote view"""
         if remote_view is not None:
             self.set_data(remote_view)
         
@@ -388,14 +397,17 @@ class NamespaceBrowser(QWidget):
         
     #------ Set, load and save data --------------------------------------------
     def set_data(self, data):
+        """Set data"""
         if data != self.editor.model.get_data():
             self.editor.set_data(data)
             self.editor.adjust_columns()
         
     def collapse(self):
+        """Collapse"""
         self.emit(SIGNAL('collapse()'))
         
     def import_data(self, filenames=None):
+        """Import data from text file"""
         title = _("Import data")
         if filenames is None:
             if self.filename is None:

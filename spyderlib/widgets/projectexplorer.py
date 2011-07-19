@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
                                 QMenu, QWidget, QTreeWidgetItem, QLineEdit,
                                 QFileIconProvider, QMessageBox, QInputDialog)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
-                                 QUrl, QTimer, Slot)
+                                 QUrl, QTimer, Slot, Signal)
 from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 
 import os, sys, re, shutil, cPickle
@@ -715,7 +715,7 @@ class ExplorerTreeWidget(OneColumnTree):
     def open_file(self, fname):
         ext = osp.splitext(fname)[1]
         if ext in self.valid_types:
-            self.parent_widget.emit(SIGNAL("open_file(QString)"), fname)
+            self.parent_widget.sig_open_file.emit(fname)
         else:
             self.startfile(fname)
         
@@ -1333,12 +1333,14 @@ class ProjectExplorerWidget(QWidget):
     Project Explorer
     
     Signals:
-        SIGNAL("open_file(QString)")
+        sig_open_file
         SIGNAL("create_module(QString)")
         SIGNAL("pythonpath_changed()")
         SIGNAL("renamed(QString,QString)")
         SIGNAL("removed(QString)")
     """
+    sig_option_changed = Signal(str, object)
+    sig_open_file = Signal(str)
     def __init__(self, parent=None, include='.', exclude=r'\.pyc$|^\.',
                  show_all=False, valid_types=['.py', '.pyw']):
         QWidget.__init__(self, parent)
@@ -1418,14 +1420,14 @@ class ProjectExplorerWidget(QWidget):
                 import fnmatch
                 include = fnmatch.translate(include)
                 exclude = fnmatch.translate(exclude)
-            self.emit(SIGNAL('option_changed'), 'include', include)
-            self.emit(SIGNAL('option_changed'), 'exclude', exclude)
+            self.sig_option_changed.emit('include', include)
+            self.sig_option_changed.emit('exclude', exclude)
             self.treewidget.include, self.treewidget.exclude = include, exclude
             self.treewidget.refresh()
             
     def toggle_all(self, checked, refresh=True):
         """Toggle all files mode"""
-        self.emit(SIGNAL('option_changed'), 'show_all', checked)
+        self.sig_option_changed.emit('show_all', checked)
         self.treewidget.show_all = checked
         self.treewidget.refresh()
 
@@ -1452,8 +1454,7 @@ class Test(QDialog):
         hlayout1.addWidget(label)
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
-        self.connect(self.explorer, SIGNAL("open_file(QString)"),
-                     self.label1.setText)
+        self.explorer.sig_open_file.connect(self.label1.setText)
         
         hlayout3 = QHBoxLayout()
         vlayout.addLayout(hlayout3)
@@ -1462,7 +1463,7 @@ class Test(QDialog):
         hlayout3.addWidget(label)
         self.label3 = QLabel()
         hlayout3.addWidget(self.label3)
-        self.connect(self.explorer, SIGNAL("option_changed"),
+        self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
 if __name__ == "__main__":

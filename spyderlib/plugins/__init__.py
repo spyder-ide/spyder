@@ -20,7 +20,7 @@ These plugins inherit the following classes
 
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QObject
+from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal, Slot
 
 import sys
 
@@ -54,9 +54,9 @@ class SpyderPluginMixin(object):
     See SpyderPluginWidget class for required widget interface
     
     Signals:
-        'option_changed'
+        sig_option_changed
             Example:
-            self.emit(SIGNAL('option_changed'), 'show_all', checked)
+            plugin.sig_option_changed.emit('show_all', checked)
         'show_message(QString,int)'
     """
     CONF_SECTION = None
@@ -83,7 +83,6 @@ class SpyderPluginMixin(object):
     def initialize_plugin(self):
         """Initialize plugin: connect signals, setup actions, ..."""
         self.plugin_actions = self.get_plugin_actions()
-        QObject.connect(self, SIGNAL('option_changed'), self.set_option)
         QObject.connect(self, SIGNAL('show_message(QString,int)'),
                         self.show_message)
         QObject.connect(self, SIGNAL('update_plugin_title()'),
@@ -199,7 +198,7 @@ class SpyderPluginMixin(object):
         """
         Set a plugin option in configuration file
         Use a SIGNAL to call it, e.g.:
-        self.emit(SIGNAL('option_changed'), 'show_all', checked)
+        plugin.sig_option_changed.emit('show_all', checked)
         """
         CONF.set(self.CONF_SECTION, option, value)
 
@@ -252,6 +251,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder base widget class
     Spyder's widgets either inherit this class or reimplement its interface
     """
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
@@ -260,6 +260,7 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
         """Initialize plugin: connect signals, setup actions, ..."""
         SpyderPluginMixin.initialize_plugin(self)
         self.setWindowTitle(self.get_plugin_title())
+        self.sig_option_changed.connect(self.set_option)
         
     def get_plugin_title(self):
         """

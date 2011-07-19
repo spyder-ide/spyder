@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
 
 import sys
 
@@ -57,10 +57,14 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
         SpyderPluginMixin.__init__(self, parent)
+        
+        # Initialize plugin
+        self.initialize_plugin()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):

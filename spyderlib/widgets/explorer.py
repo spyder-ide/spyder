@@ -26,7 +26,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl
+from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl, Signal
 from spyderlib.qt.compat import getsavefilename
 
 import os, sys, re
@@ -192,13 +192,12 @@ class DirView(QTreeView):
                                               ", ".join(self.name_filters))
         if valid:
             filters = [f.strip() for f in unicode(filters).split(',')]
-            self.parent_widget.emit(SIGNAL('option_changed'),
-                                    'name_filters', filters)
+            self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)
             
     def toggle_all(self, checked):
         """Toggle all files mode"""
-        self.parent_widget.emit(SIGNAL('option_changed'), 'show_all', checked)
+        self.parent_widget.sig_option_changed.emit('show_all', checked)
         self.show_all = checked
         self.set_show_all(checked)
         
@@ -333,7 +332,7 @@ class DirView(QTreeView):
         fname = unicode(fname)
         ext = osp.splitext(fname)[1]
         if ext in self.valid_types:
-            self.parent_widget.emit(SIGNAL("open_file(QString)"), fname)
+            self.parent_widget.sig_open_file.emit(fname)
         else:
             self.startfile(fname)
         
@@ -539,8 +538,7 @@ class ExplorerTreeWidget(DirView):
             
     def toggle_show_cd_only(self, checked):
         """Toggle show current directory only mode"""
-        self.parent_widget.emit(SIGNAL('option_changed'),
-                                'show_cd_only', checked)
+        self.parent_widget.sig_option_changed.emit('show_cd_only', checked)
         self.show_cd_only = checked
         if checked:
             if self.__last_folder is not None:
@@ -627,6 +625,8 @@ class ExplorerTreeWidget(DirView):
 
 class ExplorerWidget(QWidget):
     """Explorer widget"""
+    sig_option_changed = Signal(str, object)
+    sig_open_file = Signal(str)
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
                  show_cd_only=False, show_toolbar=True, show_icontext=True):
@@ -691,12 +691,12 @@ class ExplorerWidget(QWidget):
         
     def toggle_toolbar(self, state):
         """Toggle toolbar"""
-        self.emit(SIGNAL('option_changed'), 'show_toolbar', state)
+        self.sig_option_changed.emit('show_toolbar', state)
         self.toolbar.setVisible(state)
             
     def toggle_icontext(self, state):
         """Toggle icon text"""
-        self.emit(SIGNAL('option_changed'), 'show_icontext', state)
+        self.sig_option_changed.emit('show_icontext', state)
         for action in self.toolbar.actions():
             widget = self.toolbar.widgetForAction(action)
             if state:
@@ -721,8 +721,7 @@ class FileExplorerTest(QWidget):
         hlayout1.addWidget(label)
         self.label1 = QLabel()
         hlayout1.addWidget(self.label1)
-        self.connect(self.explorer, SIGNAL("open_file(QString)"),
-                     self.label1.setText)
+        self.explorer.sig_open_file.connect(self.label1.setText)
         
         hlayout2 = QHBoxLayout()
         vlayout.addLayout(hlayout2)
@@ -741,7 +740,7 @@ class FileExplorerTest(QWidget):
         hlayout3.addWidget(label)
         self.label3 = QLabel()
         hlayout3.addWidget(self.label3)
-        self.connect(self.explorer, SIGNAL("option_changed"),
+        self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
         self.connect(self.explorer, SIGNAL("open_parent_dir()"),

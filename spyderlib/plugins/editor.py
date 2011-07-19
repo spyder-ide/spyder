@@ -387,7 +387,7 @@ class Editor(SpyderPluginWidget):
         self.menu_list = None
         
         # Setup new windows:
-        self.connect(self.main, SIGNAL('all_actions_defined'),
+        self.connect(self.main, SIGNAL('all_actions_defined()'),
                      self.setup_other_windows)
         
         # Find widget

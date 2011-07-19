@@ -9,7 +9,7 @@
 import sys
 
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import SIGNAL, Signal
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -89,6 +89,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     """
     CONF_SECTION = 'variable_explorer'
     CONFIGWIDGET_CLASS = VariableExplorerConfigPage
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent):
         QStackedWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
@@ -121,9 +122,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             nsb = NamespaceBrowser(self)
             nsb.set_shellwidget(shellwidget)
             nsb.setup(**VariableExplorer.get_settings())
-            self.connect(nsb, SIGNAL('option_changed'),
-                         lambda option, value:
-                         self.emit(SIGNAL('option_changed'), option, value))
+            nsb.sig_option_changed.connect(self.sig_option_changed.emit)
             self.addWidget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
             self.set_shellwidget(shellwidget)

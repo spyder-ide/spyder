@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
                                 QHBoxLayout, QButtonGroup)
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import SIGNAL, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
 import os, sys
@@ -145,6 +145,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
     LOG_PATH = get_conf_path('.workingdir')
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)

@@ -46,7 +46,7 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         
         self.set_font(self.get_plugin_font())
         
-        self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
+        self.sig_open_file.connect(self.open_file)
         
     #------ Private API --------------------------------------------------------
     def set_editor_valid_types(self, valid_types):

@@ -23,7 +23,7 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QInputDialog, QDateTimeEdit, QApplication,
                                 QKeySequence)
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
-                                 SLOT, QDateTime)
+                                 SLOT, QDateTime, Signal)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 # Local import
@@ -466,6 +466,8 @@ class DictDelegate(QItemDelegate):
 
 
 class BaseTableView(QTableView):
+    """Base dictionnary editor table view"""
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent):
         QTableView.__init__(self, parent)
         self.array_filename = None
@@ -711,22 +713,22 @@ class BaseTableView(QTableView):
 
     def toggle_inplace(self, state):
         """Toggle in-place editor option"""
-        self.emit(SIGNAL('option_changed'), 'inplace', state)
+        self.sig_option_changed.emit('inplace', state)
         self.delegate.inplace = state
         
     def toggle_truncate(self, state):
         """Toggle display truncating option"""
-        self.emit(SIGNAL('option_changed'), 'truncate', state)
+        self.sig_option_changed.emit('truncate', state)
         self.model.truncate = state
         
     def toggle_minmax(self, state):
         """Toggle min/max display for numpy arrays"""
-        self.emit(SIGNAL('option_changed'), 'minmax', state)
+        self.sig_option_changed.emit('minmax', state)
         self.model.minmax = state
         
     def toggle_collvalue(self, state):
         """Toggle value display for collections"""
-        self.emit(SIGNAL('option_changed'), 'collvalue', state)
+        self.sig_option_changed.emit('collvalue', state)
         self.model.collvalue = state
             
     def edit_item(self):
@@ -1202,7 +1204,7 @@ class RemoteDictEditorTableView(BaseTableView):
             
     def toggle_remote_editing(self, state):
         """Toggle remote editing state"""
-        self.emit(SIGNAL('option_changed'), 'remote_editing', state)
+        self.sig_option_changed.emit('remote_editing', state)
         self.remote_editing_enabled = state
             
     def edit_item(self):

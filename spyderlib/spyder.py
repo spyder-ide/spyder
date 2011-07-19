@@ -823,7 +823,7 @@ class MainWindow(QMainWindow):
         
         # Emitting the signal notifying plugins that main window menu and 
         # toolbar actions are all defined:
-        self.emit(SIGNAL('all_actions_defined'))
+        self.emit(SIGNAL('all_actions_defined()'))
         
         # Window set-up
         self.debug_print("Setting up window...")

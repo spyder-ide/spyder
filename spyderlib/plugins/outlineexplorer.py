@@ -6,7 +6,7 @@
 
 """Outline Explorer Plugin"""
 
-from spyderlib.qt.QtCore import SIGNAL
+from spyderlib.qt.QtCore import SIGNAL, Signal
 
 import sys
 
@@ -22,6 +22,7 @@ from spyderlib.plugins import SpyderPluginMixin
 
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'outline_explorer'
+    sig_option_changed = Signal(str, object)
     def __init__(self, parent=None, fullpath_sorting=True):
         show_fullpath = self.get_option('show_fullpath', False)
         show_all_files = self.get_option('show_all_files', False)

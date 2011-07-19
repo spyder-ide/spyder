@@ -46,7 +46,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if osp.isfile(self.DATAPATH):
             self.load_config()
 
-        self.connect(self, SIGNAL("open_file(QString)"), self.open_file)
+        self.sig_open_file.connect(self.open_file)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):

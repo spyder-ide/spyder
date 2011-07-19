@@ -6,6 +6,8 @@
 
 """Online Help Plugin"""
 
+from spyderlib.qt.QtCore import Signal
+
 import sys, os.path as osp
 
 # For debugging purpose:
@@ -21,6 +23,7 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     """
     Online Help Plugin
     """
+    sig_option_changed = Signal(str, object)
     CONF_SECTION = 'onlinehelp'
     LOG_PATH = get_conf_path('.onlinehelp')
     def __init__(self, parent):
