@@ -343,6 +343,7 @@ class MainWindow(QMainWindow):
             print >>STDOUT, message
         
     def create_toolbar(self, title, object_name, iconsize=24):
+        """Create and return toolbar with *title* and *object_name*"""
         toolbar = self.addToolBar(title)
         toolbar.setObjectName(object_name)
         toolbar.setIconSize( QSize(iconsize, iconsize) )
@@ -844,6 +845,9 @@ class MainWindow(QMainWindow):
         self.debug_print("*** End of MainWindow setup ***")
         
     def load_window_settings(self, prefix, default=False, section='main'):
+        """Load window layout settings from userconfig-based configuration
+        with *prefix*, under *section*
+        default: if True, do not restore inner layout"""
         get_func = CONF.get_default if default else CONF.get
         width, height = get_func(section, prefix+'size')
         if default:
@@ -856,6 +860,8 @@ class MainWindow(QMainWindow):
         return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
     
     def get_window_settings(self):
+        """Return current window settings
+        Symetric to the 'set_window_settings' setter"""
         size = self.window_size
         width, height = size.width(), size.height()
         is_fullscreen = self.isFullScreen()
@@ -870,6 +876,8 @@ class MainWindow(QMainWindow):
         
     def set_window_settings(self, hexstate, width, height, posx, posy,
                             is_maximized, is_fullscreen):
+        """Set window settings
+        Symetric to the 'get_window_settings' accessor"""
         self.setUpdatesEnabled(False)
         self.window_size = QSize(width, height)
         self.window_position = QPoint(posx, posy)
@@ -892,6 +900,8 @@ class MainWindow(QMainWindow):
         self.setUpdatesEnabled(True)
         
     def save_current_window_settings(self, prefix, section='main'):
+        """Save current window settings with *prefix* in
+        the userconfig-based configuration, under *section*"""
         size = self.window_size
         CONF.set(section, prefix+'size', (size.width(), size.height()))
         CONF.set(section, prefix+'is_maximized', self.isMaximized())
@@ -906,6 +916,7 @@ class MainWindow(QMainWindow):
                      not self.statusBar().isHidden())
         
     def setup_layout(self, default=False):
+        """Setup window layout"""
         prefix = ('lightwindow' if self.light else 'window') + '/'
         (hexstate, width, height, posx, posy, is_maximized,
          is_fullscreen) = self.load_window_settings(prefix, default)
@@ -960,6 +971,7 @@ class MainWindow(QMainWindow):
             self.setup_layout(default=True)
             
     def quick_layout_switch(self, index):
+        """Switch to quick layout number *index*"""
         if self.current_quick_layout == index:
             self.set_window_settings(*self.previous_layout_settings)
             self.current_quick_layout = None
@@ -977,6 +989,7 @@ class MainWindow(QMainWindow):
             self.current_quick_layout = index
     
     def quick_layout_set(self, index):
+        """Save current window settings as quick layout number *index*"""
         self.save_current_window_settings('layout_%d/' % index,
                                           section='quick_layouts')
 
@@ -1007,6 +1020,9 @@ class MainWindow(QMainWindow):
         self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
         
     def __focus_widget_properties(self):
+        """Get properties of focus widget
+        Returns tuple (widget, properties) where properties is a tuple of
+        booleans: (is_console, not_readonly, readwrite_editor)"""
         widget = QApplication.focusWidget()
         from spyderlib.widgets.shell import ShellBaseWidget
         from spyderlib.widgets.editor import TextEditBaseWidget

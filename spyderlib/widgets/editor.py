@@ -379,7 +379,7 @@ class FileInfo(QObject):
         
 
 class EditorStack(QWidget):
-    def __init__(self, parent, plugin, actions):
+    def __init__(self, parent, actions):
         QWidget.__init__(self, parent)
         
         self.setAttribute(Qt.WA_DeleteOnClose)
@@ -463,12 +463,7 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-        
-        self.cursor_position_changed_callback = lambda line, index: \
-                self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
-        self.focus_changed_callback = lambda: \
-                                      plugin.emit(SIGNAL("focus_changed()"))
-        
+                
         self.__file_status_flag = False
         
         # Real-time code analysis
@@ -1432,7 +1427,8 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
         # Refresh cursor position status:
         line, index = finfo.editor.get_cursor_line_column()
-        self.emit(SIGNAL('cursorPositionChanged(int,int)'), line, index)
+        self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
+                  line, index)
         
     def __refresh_readonly(self, index):
         finfo = self.data[index]
@@ -1546,6 +1542,7 @@ class EditorStack(QWidget):
 
     #------ Load, reload
     def reload(self, index):
+        """Reload file from disk"""
         finfo = self.data[index]
         txt, finfo.encoding = encoding.read(finfo.filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1556,6 +1553,7 @@ class EditorStack(QWidget):
         codeeditor.validate_rope_project()
         
     def revert(self):
+        """Revert file from disk"""
         index = self.get_stack_index()
         filename = self.data[index].filename
         answer = QMessageBox.warning(self, self.title,
@@ -1619,15 +1617,13 @@ class EditorStack(QWidget):
                      self.emit(SIGNAL('text_changed_at(QString,int)'),
                                fname, position))
         self.connect(editor, SIGNAL('cursorPositionChanged(int,int)'),
-                     self.cursor_position_changed_callback)
+                     self.editor_cursor_position_changed)
         self.connect(editor, SIGNAL('textChanged()'),
                      self.start_stop_analysis_timer)
         self.connect(editor, SIGNAL('modificationChanged(bool)'),
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
-        self.connect(editor, SIGNAL("focus_changed()"),
-                     self.focus_changed_callback)
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             self.connect(editor, SIGNAL("destroyed()"),
@@ -1640,6 +1636,15 @@ class EditorStack(QWidget):
         self.modification_changed(index=self.data.index(finfo))
         
         return finfo
+    
+    def editor_cursor_position_changed(self, line, index):
+        """Cursor position of one of the editor in the stack has changed"""
+        self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
+                  line, index)
+        
+    def editor_focus_changed(self):
+        """Focus of one of the editor in the stack has changed"""
+        self.emit(SIGNAL("editor_focus_changed()"))
     
     def send_to_inspector(self, qstr1, qstr2=None, force=False):
         """qstr1: obj_text, qstr2: doc_text"""
@@ -1818,7 +1823,7 @@ class EditorSplitter(QSplitter):
         self.unregister_editorstack_cb = unregister_editorstack_cb
         
         self.menu_actions = menu_actions
-        self.editorstack = EditorStack(self, self.plugin, menu_actions)
+        self.editorstack = EditorStack(self, menu_actions)
         self.register_editorstack_cb(self.editorstack)
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
@@ -2092,7 +2097,8 @@ class EditorWidget(QSplitter):
                      self.readwrite_status.readonly_changed)
         self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
                      self.encoding_status.encoding_changed)
-        self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
+        self.connect(editorstack,
+                     SIGNAL('editor_cursor_position_changed(int,int)'),
                      self.cursorpos_status.cursor_position_changed)
         self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                      self.eol_status.eol_changed)

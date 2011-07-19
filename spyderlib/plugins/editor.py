@@ -436,10 +436,7 @@ class Editor(SpyderPluginWidget):
             self.set_last_focus_editorstack(self, self.editorstacks[0])
         else:
             self.__load_temp_file()
-        
-        self.connect(self, SIGNAL("focus_changed()"),
-                     self.save_focus_editorstack)
-        
+                
         # Parameters of last file execution:
         self.__last_ic_exec = None # internal console
         self.__last_ec_exec = None # external console
@@ -878,8 +875,6 @@ class Editor(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
                      self.restore_scrollbar_position)
-        self.connect(self, SIGNAL('focus_changed()'),
-                     self.main.plugin_focus_changed)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
         self.connect(self, SIGNAL("open_external_console(QString,QString,QString,bool,bool,bool,QString)"),
@@ -949,7 +944,8 @@ class Editor(SpyderPluginWidget):
                          self.readwrite_status.readonly_changed)
             self.connect(editorstack, SIGNAL('encoding_changed(QString)'),
                          self.encoding_status.encoding_changed)
-            self.connect(editorstack, SIGNAL('cursorPositionChanged(int,int)'),
+            self.connect(editorstack,
+                         SIGNAL('editor_cursor_position_changed(int,int)'),
                          self.cursorpos_status.cursor_position_changed)
             self.connect(editorstack, SIGNAL('refresh_eol_chars(QString)'),
                          self.eol_status.eol_changed)
@@ -1015,6 +1011,11 @@ class Editor(SpyderPluginWidget):
                      SIGNAL('external_console_execute_lines(QString)'), text))
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
                      lambda: self.emit(SIGNAL("update_plugin_title()")))
+
+        self.connect(self, SIGNAL("editor_focus_changed()"),
+                     self.save_focus_editorstack)
+        self.connect(self, SIGNAL('editor_focus_changed()'),
+                     self.main.plugin_focus_changed)
         
         self.connect(editorstack, SIGNAL('close_file(int,int)'),
                      self.close_file_in_all_editorstacks)
