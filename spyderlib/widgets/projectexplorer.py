@@ -478,15 +478,6 @@ class ExplorerTreeWidget(FilteredDirView):
         else:
             FilteredDirView.keyPressEvent(self, event)
 
-    #------QTreeView API--------------------------------------------------------
-    def expandAll(self):
-        """Reimplement QTreeWidget method"""
-        self.clearSelection()
-        for item in self.get_top_level_items():
-            item.setSelected(True)
-        self.expand_selection()
-        self.clearSelection()
-        
     #------DirView API----------------------------------------------------------
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
@@ -572,6 +563,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Reimplement DirView method"""
         self.menu.clear()
         
+        actions = []
         if self.workspace.is_valid():
             # Workspace's root path is already defined
             
@@ -595,7 +587,6 @@ class ExplorerTreeWidget(FilteredDirView):
             add_actions(import_act_menu, (import_folder_act,
                                           import_spyder_act, import_pydev_act))
     
-            actions = []
             fnames = self.get_selected_filenames()
             new_actions = self.create_file_new_actions(fnames)
             if new_actions:
@@ -1096,9 +1087,8 @@ class ExplorerTreeWidget(FilteredDirView):
 
 class WorkspaceSelector(QWidget):
     """Workspace selector widget"""
-    TITLE_EXISTING = _('Select existing workspace directory')
-    TITLE_NEW = _('Create a new workspace directory')
-    
+    TITLE = {True: _('Select existing workspace directory'),
+             False: _('Create a new workspace directory')}
     def __init__(self, parent):
         super(WorkspaceSelector, self).__init__(parent)
         self.browse_btn = None
@@ -1117,25 +1107,24 @@ class WorkspaceSelector(QWidget):
         self.line_edit.setReadOnly(True)
         self.line_edit.setDisabled(True)
         self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
-        self.browse_btn.setToolTip(self.TITLE_EXISTING)
+        self.browse_btn.setToolTip(self.TITLE[True])
         self.connect(self.browse_btn, SIGNAL("clicked()"),
-                     lambda text=self.TITLE_EXISTING:
-                     self.select_directory(text))
+                     lambda: self.select_directory(True))
         self.create_btn = QPushButton(get_std_icon('FileDialogNewFolder'),
                                       "", self)
-        self.create_btn.setToolTip(self.TITLE_NEW)
+        self.create_btn.setToolTip(self.TITLE[False])
         self.connect(self.create_btn, SIGNAL("clicked()"),
-                     lambda text=self.TITLE_NEW:
-                     self.select_directory(text))
+                     lambda: self.select_directory(False))
         layout = QHBoxLayout()
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_btn)
         layout.addWidget(self.create_btn)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
- 
-    def select_directory(self, title):
+    
+    def select_directory(self, existing=True):
         """Select directory"""
+        title = self.TITLE[existing]
         basedir = unicode(self.line_edit.text())
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
@@ -1145,14 +1134,14 @@ class WorkspaceSelector(QWidget):
             self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
             if not directory:
                 break
-            if title == self.TITLE_EXISTING and\
-               not osp.isfile(osp.join(directory, Workspace.CONFIG_NAME)):
+            path = osp.join(directory, Workspace.CONFIG_NAME)
+            if existing and not osp.isfile(path):
                 QMessageBox.critical(self, title,
                                      _("The directory <b>%s</b> "
                                        "is not a Spyder workspace."
                                        ) % osp.basename(directory))
                 continue
-            directory = fixpath(directory)
+            directory = osp.abspath(osp.normpath(directory))
             self.set_workspace(directory)
             self.emit(SIGNAL('selected_workspace(QString)'), directory)
             break
@@ -1189,16 +1178,14 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
-        create_ws_act = create_action(self,
-                                      text=self.selector.create_btn.toolTip(),
-                                      icon=self.selector.create_btn.icon(),
-                                      triggered=lambda:
-                                      self.create_btn.emit(SIGNAL("clicked()")))
         select_ws_act = create_action(self,
-                                      text=self.selector.browse_btn.toolTip(),
-                                      icon=self.selector.browse_btn.icon(),
-                                      triggered=lambda:
-                                      self.browse_btn.emit(SIGNAL("clicked()")))
+                      text=self.selector.browse_btn.toolTip(),
+                      icon=self.selector.browse_btn.icon(),
+                      triggered=lambda: self.selector.select_directory(True))
+        create_ws_act = create_action(self,
+                      text=self.selector.create_btn.toolTip(),
+                      icon=self.selector.create_btn.icon(),
+                      triggered=lambda: self.selector.select_directory(False))
         self.treewidget.set_workspace_actions([select_ws_act, create_ws_act])
         
         layout = QVBoxLayout()
@@ -1208,7 +1195,7 @@ class ProjectExplorerWidget(QWidget):
         
     def set_workspace(self, path):
         """Set current workspace"""
-        path = unicode(path)
+        path = osp.normpath(unicode(path))
         if path is not None and osp.isdir(path):
             self.treewidget.set_workspace(path)
             self.selector.set_workspace(path)
@@ -1241,8 +1228,8 @@ class Test(QWidget):
         self.setLayout(vlayout)
         
         self.explorer = ProjectExplorerWidget(None)
-#        self.explorer.set_workspace(r'D:/Tests/ets350')
-        self.explorer.set_workspace(r'D:/Python')
+        self.explorer.set_workspace(r'D:/Tests/ets330')
+#        self.explorer.set_workspace(r'D:/Python')
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
