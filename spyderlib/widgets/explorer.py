@@ -18,7 +18,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QDrag, QSortFilterProxyModel)
 from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl, Signal
-from spyderlib.qt.compat import getsavefilename, getexistingdirectory
+from spyderlib.qt.compat import (getsavefilename, getexistingdirectory,
+                                 from_qvariant, to_qvariant)
 
 import os
 import sys
@@ -141,6 +142,10 @@ class DirView(QTreeView):
         """Return filename associated with *index*"""
         if index:
             return osp.normpath(unicode(self.fsmodel.filePath(index)))
+        
+    def get_index(self, filename):
+        """Return index associated with filename"""
+        return self.fsmodel.index(filename)
         
     def get_selected_filenames(self):
         """Return selected filenames"""
@@ -637,14 +642,20 @@ class DirView(QTreeView):
     
     def save_expanded_state(self):
         """Save all items expanded state"""
-        self.__expanded_state = {}
-        #XXX: Not implemented yet
+        self.__expanded_state = []
+        for idx in self.model().persistentIndexList():
+            if self.isExpanded(idx):
+                self.__expanded_state.append(self.get_filename(idx))
     
     def restore_expanded_state(self):
         """Restore all items expanded state"""
-        if self.__expanded_state is None:
-            return
-        #XXX: Not implemented yet
+        if self.__expanded_state is not None:
+            # In the old project explorer, the expanded state was a dictionnary:
+            if isinstance(self.__expanded_state, list):
+                for fname in self.__expanded_state:
+                    idx = self.get_index(fname)
+                    if idx.isValid():
+                        self.setExpanded(idx, True)
 
 
 class ProxyModel(QSortFilterProxyModel):
