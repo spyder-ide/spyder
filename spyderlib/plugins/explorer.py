@@ -84,6 +84,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         self.connect(self, SIGNAL("renamed(QString,QString)"),
                      self.main.editor.renamed)
         self.connect(self.main.editor, SIGNAL("open_dir(QString)"), self.chdir)
+        self.connect(self, SIGNAL("create_module(QString)"),
+                     self.main.editor.new)
         self.connect(self, SIGNAL("run(QString)"),
                      lambda fname:
                      self.main.open_external_console(unicode(fname),

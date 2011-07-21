@@ -238,6 +238,12 @@ DEFAULTS = [
              {
               'shortcut': "Ctrl+Shift+P",
               'enable': True,
+              'name_filters': ['*.py', '*.pyw', '*.ipy', '*.pth',
+                               '*.npy', '*.mat', '*.spydata',
+                               '*.txt', '*.csv', '*.dat'],
+              'valid_filetypes': ['', '.py', '.pyw', '.ipy', '.spydata', '.npy',
+                                  '.pth', '.txt', '.csv', '.mat', '.h5'],
+              'show_all': False,
               }),
             ('arrayeditor',
              {
@@ -271,7 +277,7 @@ DEFAULTS = [
                                   '.pth', '.txt', '.csv', '.mat', '.h5'],
               'show_hidden': True,
               'show_all': False,
-              'show_cd_only': False,
+              'show_cd_only': True,
               'show_toolbar': True,
               'show_icontext': True,
               }),

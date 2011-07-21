@@ -1,76 +1,56 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2010 Pierre Raybaut
+# Copyright © 2010-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Project Explorer"""
 
-from spyderlib.qt.QtGui import (QDialog, QVBoxLayout, QLabel, QHBoxLayout,
-                                QMenu, QWidget, QTreeWidgetItem, QLineEdit,
-                                QFileIconProvider, QMessageBox, QInputDialog)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QFileInfo, QFileSystemWatcher,
-                                 QUrl, QTimer, Slot, Signal)
-from spyderlib.qt.compat import getsavefilename, getexistingdirectory
+# pylint: disable=C0103
 
-import os, sys, re, shutil, cPickle
+from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QMenu,
+                                QWidget, QFileIconProvider, QMessageBox,
+                                QInputDialog, QLineEdit, QPushButton)
+from spyderlib.qt.QtCore import Qt, SIGNAL, QFileInfo, Slot, Signal
+from spyderlib.qt.compat import getexistingdirectory
+
+import os
+import sys
+import re
+import shutil
+import cPickle
 import os.path as osp
+import xml.etree.ElementTree as ElementTree
+
+# Local imports
+from spyderlib.utils import count_lines, move_file
+from spyderlib.utils.qthelpers import (get_std_icon, create_action,
+                                       add_actions)
+from spyderlib.baseconfig import _
+from spyderlib.config import get_icon, get_image_path
+from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
+from spyderlib.widgets.formlayout import fedit
+from spyderlib.widgets.pathmanager import PathManager
+
 
 # For debugging purpose:
 STDOUT = sys.stdout
 STDERR = sys.stderr
 
-# Local imports
-from spyderlib.utils import (count_lines, rename_file, remove_file, move_file,
-                             programs)
-from spyderlib.utils.qthelpers import (get_std_icon, create_action,
-                                       create_toolbutton, add_actions,
-                                       set_item_user_text)
-from spyderlib.utils.qthelpers import get_item_user_text as get_item_path
-from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, get_image_path
-from spyderlib.widgets.onecolumntree import OneColumnTree
-from spyderlib.widgets.formlayout import fedit
-from spyderlib.widgets.pathmanager import PathManager
-
-
-def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
-            folders_only=False):
-    """List files and directories"""
-    namelist = []
-    dirlist = []
-    for item in os.listdir(unicode(path)):
-        if re.search(exclude, item) and not show_all:
-            continue
-        if osp.isdir(osp.join(path, item)):
-            dirlist.append(item)
-        elif folders_only:
-            continue
-        elif re.search(include, item) or show_all:
-            namelist.append(item)
-    return sorted(dirlist, key=unicode.lower) + \
-           sorted(namelist, key=unicode.lower)
-
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
 
 def has_children_files(path, include, exclude, show_all):
+    """Return True if path has children files"""
     try:
         return len( listdir(path, include, exclude, show_all) ) > 0
     except (IOError, OSError):
         return False
 
-def has_subdirectories(path, include, exclude, show_all):
-    try:
-        return len( listdir(path, include, exclude,
-                            show_all, folders_only=True) ) > 0
-    except (IOError, OSError):
-        return False
-    
+
 def is_drive_path(path):
+    """Return True if path is a drive (Windows)"""
     path = osp.abspath(path)
     return osp.normpath(osp.join(path, osp.pardir)) == path
+
 
 def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
     """Return appropriate directory icon"""
@@ -98,27 +78,35 @@ class Project(object):
     """Spyder project"""
     CONFIG_NAME = '.spyderproject'
     CONFIG_ATTR = ('name', 'related_projects', 'relative_pythonpath', 'opened')
-    def __init__(self, root_path):
-        self.name = osp.basename(root_path)
+    
+    def __init__(self):
+        self.name = None
+        self.root_path = None
         self.related_projects = [] # storing project path, not project objects
-        self.root_path = unicode(root_path)
-        self.items = {}
-        self.icon_provider = QFileIconProvider()
-        self.namesets = {}
         self.pythonpath = []
-        self.folders = set()
         self.opened = True
 
+    def set_root_path(self, root_path):
+        """Set workspace root path"""
+        if self.name is None:
+            self.name = osp.basename(root_path)
+        self.root_path = unicode(root_path)
         config_path = self.__get_project_config_path()
-        if not osp.exists(config_path):
+        if osp.exists(config_path):
+            self.load()
+        else:
+            if not osp.isdir(self.root_path):
+                os.mkdir(self.root_path)
             self.save()
-            
+
     def _get_relative_pythonpath(self):
+        """Return PYTHONPATH list as relative paths"""
         # Workaround to replace os.path.relpath (new in Python v2.6):
         offset = len(self.root_path)+len(os.pathsep)
         return [path[offset:] for path in self.pythonpath]
 
     def _set_relative_pythonpath(self, value):
+        """Set PYTHONPATH list relative paths"""
         self.pythonpath = [osp.abspath(osp.join(self.root_path, path))
                            for path in value]
         
@@ -126,9 +114,11 @@ class Project(object):
                                    _set_relative_pythonpath)
         
     def __get_project_config_path(self):
+        """Return project configuration path"""
         return osp.join(self.root_path, self.CONFIG_NAME)
         
     def load(self):
+        """Load project data"""
         data = cPickle.loads(file(self.__get_project_config_path(), 'U').read())
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
@@ -141,28 +131,15 @@ class Project(object):
         self.save()
     
     def save(self):
+        """Save project data"""
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
         cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
         
     def delete(self):
+        """Delete project"""
         os.remove(self.__get_project_config_path())
-        
-    def get_name(self):
-        return self.name
-        
-    def set_name(self, name):
-        self.name = name
-        if self.root_path in self.items:
-            self.items[self.root_path].setText(0, self.name)
-        self.save()
-        
-    def get_root_path(self):
-        return self.root_path
-    
-    def get_root_item(self):
-        return self.items[self.root_path]
         
     #------Misc.
     def get_related_projects(self):
@@ -170,16 +147,9 @@ class Project(object):
         return self.related_projects
     
     def set_related_projects(self, related_projects):
+        """Set related projects"""
         self.related_projects = related_projects
         self.save()
-        
-    def get_file_icon(self, filename):
-        ext = osp.splitext(filename)[1][1:]
-        icon_path = get_image_path(ext+'.png', default=None)
-        if icon_path is None:
-            return self.icon_provider.icon(QFileInfo(filename))
-        else:
-            return get_icon(icon_path)
         
     def open(self):
         """Open project"""
@@ -192,240 +162,234 @@ class Project(object):
         self.save()
         
     def is_opened(self):
+        """Return True if project is opened"""
         return self.opened
     
     def is_file_in_project(self, fname):
         """Return True if file *fname* is in one of the project subfolders"""
-        norm = osp.normcase if os.name == 'nt' else osp.normpath
-        fixpath = lambda path: norm(osp.abspath(path))
-        return fixpath(fname).startswith(fixpath(self.root_path))
+        fixed_root = fixpath(self.root_path)
+        return fixpath(fname) == fixed_root \
+               or fixpath(osp.dirname(fname)).startswith(fixed_root)
+               
+    def is_root_path(self, dirname):
+        """Return True if dirname is project's root path"""
+        return fixpath(dirname) == fixpath(self.root_path)
+    
+    def is_in_pythonpath(self, dirname):
+        """Return True if dirname is in project's PYTHONPATH"""
+        return fixpath(dirname) in [fixpath(_p) for _p in self.pythonpath]
         
     #------Python Path
     def get_pythonpath(self):
-        return self.pythonpath[:] # return a copy of pythonpath attribute
-        
-    def __update_pythonpath_icons(self):
-        for path, item in self.items.iteritems():
-            if osp.isfile(path):
-                continue
-            if path == self.root_path and not self.is_opened():
-                item.setIcon(0, get_icon('project_closed.png'))
-            else:
-                item.setIcon(0, get_dir_icon(path, expanded=item.isExpanded(),
-                                             pythonpath=path in self.pythonpath,
-                                             root=self.is_root_item(item)))
+        """Return a copy of pythonpath attribute"""
+        return self.pythonpath[:]
     
     def set_pythonpath(self, pythonpath):
+        """Set project's PYTHONPATH"""
         self.pythonpath = pythonpath
-        self.__update_pythonpath_icons()
         self.save()
         
-    #------Tree widget items
-    def get_items(self):
-        return self.items.values()
-    
-    def is_item_in_project(self, item):
-        for item_i in self.items.values():
-            if item_i is item:
-                return True
+    def remove_from_pythonpath(self, path):
+        """Remove path from project's PYTHONPATH
+        Return True if path was removed, False if it was not found"""
+        pathlist = self.get_pythonpath()
+        if path in pathlist:
+            pathlist.pop(pathlist.index(path))
+            self.set_pythonpath(pathlist)
+            return True
         else:
             return False
         
-    def is_item_in_pythonpath(self, item):
-        for dirname, item_i in self.items.iteritems():
-            if item_i is item:
-                return dirname in self.pythonpath
-            
-    def is_root_item(self, item):
-        return item is self.items[self.root_path]
-                
-    def create_dir_item(self, dirname, parent, preceding,
-                        tree, include, exclude, show_all):
-        if dirname in self.items:
-            item = self.items[dirname]
-            is_expanded = item.isExpanded()
+    def add_to_pythonpath(self, path):
+        """Add path to project's PYTHONPATH
+        Return True if path was added, False if it was already there"""
+        pathlist = self.get_pythonpath()
+        if path in pathlist:
+            return False
         else:
-            if preceding is None:
-                item = QTreeWidgetItem(parent, QTreeWidgetItem.Type)
-            else:
-                item = QTreeWidgetItem(parent, preceding, QTreeWidgetItem.Type)
-            is_expanded = False
-        flags = Qt.ItemIsSelectable|Qt.ItemIsUserCheckable| \
-                Qt.ItemIsEnabled|Qt.ItemIsDropEnabled
-        is_root = dirname == self.root_path
-        if is_root:
-            # Root path: Project root item
-            item.setText(0, self.name)
-            item.setFlags(flags)
-        else:
-            item.setText(0, osp.basename(dirname))
-            item.setFlags(flags|Qt.ItemIsDragEnabled)
-        set_item_user_text(item, dirname)
-        in_path = dirname in self.pythonpath
-        item.setIcon(0, get_dir_icon(dirname, expanded=is_expanded,
-                                     pythonpath=in_path, root=is_root))
-        if not item.childCount() and has_children_files(dirname, include,
-                                                        exclude, show_all):
-            item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-            tree.collapseItem(item)
-        else:
-            item.setChildIndicatorPolicy(\
-                                QTreeWidgetItem.DontShowIndicatorWhenChildless)
-        self.folders.add(dirname)
-        self.items[dirname] = item
-        return item
+            pathlist.insert(0, path)
+            self.set_pythonpath(pathlist)
+            return True
+
+
+class Workspace(object):
+    """Spyder workspace
+    Set of projects with common root path parent directory"""
+    CONFIG_NAME = '.spyderworkspace'
+    CONFIG_ATTR = ('name', 'project_paths', )
+    
+    def __init__(self):
+        self.name = None
+        self.root_path = None
+        self.projects = []
         
-    def create_file_item(self, filename, parent, preceding):
-        if filename in self.items:
-            return self.items[filename]
-        displayed_name = osp.basename(filename)
-        if preceding is None:
-            item = QTreeWidgetItem(parent, QTreeWidgetItem.Type)
-        else:
-            item = QTreeWidgetItem(parent, preceding, QTreeWidgetItem.Type)
-        item.setFlags(Qt.ItemIsSelectable|Qt.ItemIsUserCheckable|
-                      Qt.ItemIsEnabled|Qt.ItemIsDragEnabled)
-        item.setText(0, displayed_name)
-        set_item_user_text(item, filename)
-        item.setIcon(0, self.get_file_icon(filename))
-        self.items[filename] = item
-        return item
-        
-    def refresh(self, tree, include, exclude, show_all):
-        root_item = self.items[self.root_path]
-        if self.is_opened():
-            if root_item.childCount():
-                root_item.setChildIndicatorPolicy(QTreeWidgetItem.ShowIndicator)
-            icon = get_dir_icon(self.root_path, expanded=root_item.isExpanded(),
-                                pythonpath=self.root_path in self.pythonpath,
-                                root=True)
-            root_item.setIcon(0, icon)
+    def _get_project_paths(self):
+        """Return workspace projects root path list"""
+        return [proj.root_path for proj in self.projects]
+
+    def _set_project_paths(self, pathlist):
+        """Set workspace projects root path list"""
+        for root_path in pathlist:
+            self.add_project(root_path)
             
-            self.clean_items(tree)
-            for dirname in self.folders.copy():
-                branch = self.items.get(dirname)
-                if branch is None or not osp.isdir(dirname):
-                    self.folders.remove(dirname)
-                    if branch in self.namesets:
-                        self.namesets.pop(branch)
-                    if dirname in self.items:
-                        item = self.items.pop(dirname)
-                        try:
-                            item.parent().removeChild(item)
-                        except RuntimeError:
-                            #XXX: item has already been deleted, but why?
-                            pass
+    project_paths = property(_get_project_paths, _set_project_paths)
+    
+    def is_valid(self):
+        """Return True if workspace is valid (i.e. root path is defined)"""
+        return self.root_path is not None and osp.isdir(self.root_path)
+    
+    def is_empty(self):
+        """Return True if workspace is empty (i.e. no project)"""
+        if not self.is_valid():
+            return
+        return len(self.projects) == 0
+
+    def set_root_path(self, root_path):
+        """Set workspace root path"""
+        if self.name is None:
+            self.name = osp.basename(root_path)
+        self.root_path = unicode(root_path)
+        config_path = self.__get_workspace_config_path()
+        if osp.exists(config_path):
+            self.load()
+        else:
+            self.save()
+            
+    def set_name(self, name):
+        """Set workspace name"""
+        self.name = name
+        self.save()
+        
+    def __get_workspace_config_path(self):
+        """Return project configuration path"""
+        return osp.join(self.root_path, self.CONFIG_NAME)
+        
+    def load(self):
+        """Load project data"""
+        fdesc = file(self.__get_workspace_config_path(), 'U')
+        data = cPickle.loads(fdesc.read())
+        for attr in self.CONFIG_ATTR:
+            setattr(self, attr, data[attr])
+        self.save()
+    
+    def save(self):
+        """Save project data"""
+        data = {}
+        for attr in self.CONFIG_ATTR:
+            data[attr] = getattr(self, attr)
+        cPickle.dump(data, file(self.__get_workspace_config_path(), 'w'))
+        
+    def delete(self):
+        """Delete workspace"""
+        os.remove(self.__get_workspace_config_path())
+        
+    #------Misc.
+    def is_file_in_workspace(self, fname):
+        """Return True if file *fname* is in one of the projects"""
+        return any([proj.is_file_in_project(fname) for proj in self.projects])
+    
+    def is_in_pythonpath(self, dirname):
+        """Return True if dirname is in workspace's PYTHONPATH"""
+        return any([proj.is_in_pythonpath(dirname) for proj in self.projects])
+    
+    def has_project(self, root_path_or_name):
+        """Return True if workspace has a project
+        with given root path or name"""
+        checklist = [project.root_path for project in self.projects
+                     ]+[project.name for project in self.projects]
+        return root_path_or_name in checklist
+
+    def get_source_project(self, fname):
+        """Return project which contains source *fname*"""
+        for project in self.projects:
+            if project.is_file_in_project(fname):
+                return project
+        
+    def get_project_from_name(self, name):
+        """Return project's object from name"""
+        for project in self.projects:
+            if project.name == name:
+                return project
+
+    def get_folder_names(self):
+        """Return all project folder names (root path basename)"""
+        return [osp.basename(proj.root_path) for proj in self.projects]
+        
+    def add_project(self, root_path):
+        """Create project from root path, add it to workspace
+        Return the created project instance"""
+        project = Project()
+        project.set_root_path(root_path)
+        self.projects.append(project)
+        self.save()
+        
+    def open_projects(self, projects, open_related=True):
+        """Open projects"""
+        for project in projects:
+            project.open()
+            related_projects = project.get_related_projects()
+            if open_related:
+                for projname in related_projects:
+                    for relproj in self.projects:
+                        if relproj.name == projname:
+                            self.open_projects(relproj, open_related=False)
+        self.save()
+        
+    def close_projects(self, projects):
+        """Close projects"""
+        for project in projects:
+            project.close()
+        self.save()
+        
+    def remove_projects(self, projects):
+        """Remove projects"""
+        for project in projects:
+            project.delete()
+            self.projects.pop(self.projects.index(project))
+        self.save()
+        
+    def close_unrelated_projects(self, projects):
+        """Close unrelated projects"""
+        unrelated_projects = []
+        for project in projects:
+            for proj in self.projects:
+                if proj is project:
                     continue
-                try:
-                    self.populate_tree(tree, include, exclude,
-                                       show_all, branch=branch)
-                except RuntimeError:
-                    pass
-        else:
-            tree.collapseItem(root_item)
-            root_item.setChildIndicatorPolicy(QTreeWidgetItem.DontShowIndicator)
-            root_item.setIcon(0, get_icon('project_closed.png'))
-            tree.remove_from_watcher(self)
+                if proj.name in project.get_related_projects():
+                    continue
+                if project.name in proj.get_related_projects():
+                    continue
+                unrelated_projects.append(proj)
+        self.close_projects(unrelated_projects)
+        self.save()
         
-    def get_monitored_pathlist(self):
-        pathlist = [self.root_path]
-        for branch in self.namesets.keys():
-            if isinstance(branch, QTreeWidgetItem) and branch in self.items:
-                pathlist.append(get_item_path(branch))
-        return pathlist
+    def rename_project(self, project, new_name):
+        """Rename project, update the related projects if necessary"""
+        old_name = project.name
+        for proj in self.projects:
+            relproj = proj.get_related_projects()
+            if old_name in relproj:
+                relproj[relproj.index(old_name)] = new_name
+                proj.set_related_projects(relproj)
+        project.set_name(new_name)
+        self.save()
         
-    def remove_from_tree(self, tree):
-        tree.remove_from_watcher(self)
-        root_item = self.items[self.root_path]
-        tree.takeTopLevelItem(tree.indexOfTopLevelItem(root_item))
+    def get_other_projects(self, project):
+        """Return all projects, except given project"""
+        return [_p for _p in self.projects if _p is not project]
         
-    def clean_items(self, tree):
-        """
-        Clean items dictionary following drag'n drop operation:
-        unfortunately, QTreeWidget does not emit any signal following an 
-        item deletion
-        """
-        for name, item in self.items.items():
-            try:
-                item.text(0)
-            except RuntimeError:
-                self.items.pop(name)
-                if name in self.folders:
-                    self.folders.remove(name)
-                if name in self.namesets:
-                    self.namesets.pop(name)
-        
-    def populate_tree(self, tree, include, exclude, show_all, branch=None):
-        dirnames, filenames = [], []
-        if branch is None or branch is tree:
-            branch = tree
-            branch_path = self.root_path
-        else:
-            branch_path = get_item_path(branch)
-        for path in listdir(branch_path, include, exclude, show_all):
-            abspath = osp.abspath(osp.join(branch_path, path))
-            if osp.isdir(abspath):
-                dirnames.append(abspath)
-            else:
-                filenames.append(abspath)
-        # Populating tree: directories
-        if branch is tree:
-            dirs = {branch_path:
-                    self.create_dir_item(branch_path, tree, None,
-                                         tree, include, exclude, show_all)}
-        else:
-            dirs = {branch_path: branch}
-        item_preceding = None
-        for dirname in sorted(dirnames):
-            parent_dirname = abspardir(dirname)
-            parent = dirs.get(parent_dirname)
-            if parent is None and parent_dirname != branch_path:
-                # This is related to directories which contain single
-                # nested subdirectories
-                items_to_create = []
-                while dirs.get(parent_dirname) is None:
-                    items_to_create.append(parent_dirname)
-                    parent_dirname = abspardir(parent_dirname)
-                items_to_create.reverse()
-                for item_dir in items_to_create:
-                    item_parent = dirs[abspardir(item_dir)]
-                    dirs[item_dir] = self.create_dir_item(item_dir, item_parent,
-                            item_preceding, tree, include, exclude, show_all)
-                parent_dirname = abspardir(dirname)
-                parent = dirs[parent_dirname]
-            if item_preceding is None:
-                item_preceding = parent
-            item_preceding = self.create_dir_item(dirname, parent,
-                                                  item_preceding, tree,
-                                                  include, exclude, show_all)
-            dirs[dirname] = item_preceding
-        # Populating tree: files
-        for filename in sorted(filenames):
-            parent_item = dirs[osp.dirname(filename)]
-            item_preceding = self.create_file_item(filename, parent_item,
-                                                   item_preceding)
-        # Removed files and directories
-        old_set = self.namesets.get(branch)
-        new_set = set(filenames+dirnames+[branch_path])
-        self.namesets[branch] = new_set
-        tree.add_to_watcher(self)
-        if old_set is not None:
-            for name in old_set-new_set:
-                # If name is not in self.items, that is because method
-                # 'clean_items' has already removed it
-                if name in self.items:
-                    item = self.items.pop(name)
-    #                try:
-                    item.parent().removeChild(item)
-    #                except RuntimeError:
-    #                    # Item has already been deleted by PyQt
-    #                    pass
+    #------Python Path
+    def get_pythonpath(self):
+        """Return global PYTHONPATH (for all opened projects"""
+        pythonpath = []
+        for project in self.projects:
+            if project.is_opened():
+                pythonpath += project.get_pythonpath()
+        return pythonpath
 
 
 def get_pydev_project_infos(project_path):
     """Return Pydev project infos: name, related projects and PYTHONPATH"""
-    import xml.etree.ElementTree as ElementTree
-    
     root = ElementTree.parse(osp.join(project_path, ".pydevproject"))
     path = []
     project_root = osp.dirname(project_path)
@@ -445,252 +409,76 @@ def get_pydev_project_infos(project_path):
     return name, related_projects, path
 
 
-class ExplorerTreeWidget(OneColumnTree):
-    """
-    ExplorerTreeWidget
-    """
-    def __init__(self, parent):
-        OneColumnTree.__init__(self, parent)
-        self.parent_widget = parent
+class IconProvider(QFileIconProvider):
+    """Project tree widget icon provider"""
+    def __init__(self, treeview):
+        super(IconProvider, self).__init__()
+        self.treeview = treeview
         
-        self.projects = []
-        self.__update_title()
-        
-        self.watcher = QFileSystemWatcher(self)
-        self.watcher_pathlist = []
-        self.connect(self.watcher, SIGNAL("directoryChanged(QString)"),
-                     self.directory_changed)
-        self.connect(self.watcher, SIGNAL("fileChanged(QString)"),
-                     self.file_changed)
+    @Slot(int)
+    @Slot(QFileInfo)
+    def icon(self, icontype_or_qfileinfo):
+        """Reimplement Qt method"""
+        if isinstance(icontype_or_qfileinfo, QFileIconProvider.IconType):
+            return super(IconProvider, self).icon(icontype_or_qfileinfo)
+        else:
+            qfileinfo = icontype_or_qfileinfo
+            fname = osp.normpath(unicode(qfileinfo.absoluteFilePath()))
+            if osp.isdir(fname):
+                project = self.treeview.get_source_project(fname)
+                if project is None:
+                    return super(IconProvider, self).icon(qfileinfo)
+                else:
+                    pythonpath = fname in project.get_pythonpath()
+                    root = fname == project.root_path
+                    return get_dir_icon(fname, False, pythonpath, root)
+            else:
+                ext = osp.splitext(fname)[1][1:]
+                icon_path = get_image_path(ext+'.png', default=None)
+                if icon_path is not None:
+                    return get_icon(icon_path)
+                else:
+                    return super(IconProvider, self).icon(qfileinfo)
 
-        self.include = None
-        self.exclude = None
+
+class ExplorerTreeWidget(FilteredDirView):
+    """Explorer tree widget
+    
+    workspace: this is the explorer tree widget root path
+    (this attribute name is specific to project explorer)"""
+    def __init__(self, parent):
+        FilteredDirView.__init__(self, parent)
+        
+        self.connect(self.fsmodel, SIGNAL('modelReset()'),
+                     self.reset_icon_provider)
+        self.reset_icon_provider()
+        
+        self.workspace = Workspace()
+
+        self.workspace_actions = None
+        self.name_filters = None
         self.show_all = None
         self.valid_types = None
 
-        self.last_folder = ""
+        self.last_folder = None
         
-        self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
-                     self.item_expanded)
-        self.connect(self, SIGNAL('itemCollapsed(QTreeWidgetItem*)'),
-                     self.item_collapsed)
+        self.setSelectionMode(FilteredDirView.ExtendedSelection)
         
-        self.setSelectionMode(OneColumnTree.ExtendedSelection)
+        self.setHeaderHidden(True)
         
         # Enable drag & drop events
         self.setDragEnabled(True)
-        self.setAcceptDrops(True)
-        self.setAutoExpandDelay(500)
-        
-    def closing_widget(self):
-        """Perform actions before widget is closed"""
-        pass
-
-    def get_source_project(self, fname):
-        """Return project which contains source *fname*"""
-        for project in self.projects:
-            if project.is_file_in_project(fname):
-                return project
-        
-    def get_project_from_name(self, name):
-        for project in self.projects:
-            if project.get_name() == name:
-                return project
-        
-    def get_pythonpath(self):
-        pythonpath = []
-        for project in self.projects:
-            if project.is_opened():
-                pythonpath += project.get_pythonpath()
-        return pythonpath
-        
-    def setup(self, include='.', exclude=r'\.pyc$|^\.', show_all=False,
-              valid_types=['.py', '.pyw']):
-        self.include = include
-        self.exclude = exclude
-        self.show_all = show_all
-        self.valid_types = valid_types
-        
-    def __get_project_from_item(self, item):
-        for project in self.projects:
-            if project.is_item_in_project(item):
-                return project
-        
-    def get_actions_from_items(self, items):
-        """Reimplemented OneColumnTree method"""
-        if items:
-            pjitems = [(self.__get_project_from_item(_it), _it)
-                       for _it in items]
-            projects = [_proj for _proj, _it in pjitems]
-            are_root_items = [_proj.is_root_item(_it) for _proj, _it in pjitems]
-            any_project = any(are_root_items)
-            are_folder_items = [osp.isdir(get_item_path(_it)) for _it in items]
-            only_folders = all(are_folder_items)
-            any_folder_in_path = any([_proj.is_item_in_pythonpath(_it)
-                                      for _proj, _it in pjitems])
-            any_folder_not_in_path = only_folders and \
-                                     any([not _proj.is_item_in_pythonpath(_it)
-                                          for _proj, _it in pjitems])
-
-        actions = []
-
-        if items and not only_folders:
-            open_file_act = create_action(self,
-                              text=_('Open'),
-                              triggered=lambda: self.open_file_from_menu(items))
-            actions.append(open_file_act)
-        
-        new_project_act = create_action(self,
-                            text=_('Project...'),
-                            icon=get_icon('project_expanded.png'),
-                            triggered=self.new_project)
-        if items:
-            new_file_act = create_action(self,
-                                text=_('File...'),
-                                icon=get_icon('filenew.png'),
-                                triggered=lambda: self.new_file(items[-1]))
-            new_folder_act = create_action(self,
-                                text=_('Folder...'),
-                                icon=get_icon('folder_collapsed.png'),
-                                triggered=lambda: self.new_folder(items[-1]))
-            new_module_act = create_action(self,
-                                text=_('Module...'),
-                                icon=get_icon('py.png'),
-                                triggered=lambda: self.new_module(items[-1]))
-            new_package_act = create_action(self,
-                                icon=get_icon('package_collapsed.png'),
-                                text=_('Package...'),
-                                triggered=lambda: self.new_package(items[-1]))
-            new_act_menu = QMenu(_('New'), self)
-            add_actions(new_act_menu, (new_project_act, None,
-                                       new_file_act, new_folder_act, None,
-                                       new_module_act, new_package_act))
-            actions.append(new_act_menu)
-        else:
-            new_project_act.setText(_('New project...'))
-            actions.append(new_project_act)
-        
-        import_spyder_act = create_action(self,
-                            text=_('Existing Spyder project'),
-                            icon=get_icon('spyder.svg'),
-                            triggered=self.import_existing_project)
-        import_pydev_act = create_action(self,
-                            text=_('Existing Pydev project'),
-                            icon=get_icon('pydev.png'),
-                            triggered=self.import_existing_pydev_project)
-        import_act_menu = QMenu(_('Import'), self)
-        add_actions(import_act_menu, (import_spyder_act, import_pydev_act))
-        actions += [import_act_menu, None]
-        
-        if not items:
-            return actions
-            
-        open_act = create_action(self,
-                            text=_('Open project'),
-                            icon=get_icon('project_expanded.png'),
-                            triggered=lambda: self.open_project(projects))
-        close_act = create_action(self,
-                            text=_('Close project'),
-                            icon=get_icon('project_closed.png'),
-                            triggered=lambda: self.close_project(projects))
-        close_unrelated_act = create_action(self,
-                text=_('Close unrelated projects'),
-                triggered=lambda: self.close_unrelated_projects(projects))
-        manage_path_act = create_action(self, icon=get_icon('pythonpath.png'),
-                            text=_('PYTHONPATH manager'),
-                            triggered=lambda: self.manage_path(projects))
-        relproj_act = create_action(self,
-                    text=_('Edit related projects'),
-                    triggered=lambda: self.edit_related_projects(projects))
-        relproj_act.setEnabled(len(self.projects) > 1)
-        if any_project:
-            if any([not _proj.is_opened() for _proj in projects]):
-                actions += [open_act]
-            if any([_proj.is_opened() for _proj in projects]):
-                actions += [close_act, close_unrelated_act]
-            actions += [manage_path_act, relproj_act, None]
+        self.setDragDropMode(FilteredDirView.DragDrop)
                 
-        rename_act = create_action(self,
-                            text=_('Rename...'),
-                            icon=get_icon('rename.png'),
-                            triggered=lambda: self.rename(items))
-        delete_act = create_action(self,
-                            text=_('Delete'),
-                            icon=get_icon('delete.png'),
-                            triggered=lambda: self.delete(items))
-        actions += [rename_act, delete_act, None]
-        
-        add_to_path_act = create_action(self,
-                            text=_('Add to PYTHONPATH'),
-                            icon=get_icon('add_to_path.png'),
-                            triggered=lambda: self.add_to_path(items))
-        remove_from_path_act = create_action(self,
-                            text=_('Remove from PYTHONPATH'),
-                            icon=get_icon('remove_from_path.png'),
-                            triggered=lambda: self.remove_from_path(items))
-        properties_act = create_action(self,
-                            text=_('Properties'),
-                            icon=get_icon('advanced.png'),
-                            triggered=lambda: self.show_properties(items))
-        
-        openoutside_act = create_action(self,
-                            text=_("Open outside Spyder"),
-                            icon="magnifier.png",
-                            triggered=lambda: self.open_outside_spyder(items))
-        if os.name == 'nt':
-            _title = _("Open command prompt here")
+    #------QWidget API----------------------------------------------------------
+    def keyPressEvent(self, event):
+        """Reimplement Qt method"""
+        if event.key() == Qt.Key_F2:
+            self.rename(self.currentItem())
         else:
-            _title = _("Open terminal here")
-        terminal_act = create_action(self, text=_title, icon="cmdprompt.png",
-                            triggered=lambda: self.open_terminal(items))
-        _title = _("Open Python interpreter here")
-        interpreter_act = create_action(self, text=_title, icon="python.png",
-                            triggered=lambda: self.open_interpreter(items))
-        
-        if only_folders:
-            if any_folder_not_in_path:
-                actions += [add_to_path_act]
-            if any_folder_in_path:
-                actions += [remove_from_path_act]
-            actions += [None, terminal_act, interpreter_act]
-            if programs.is_module_installed('IPython', '0.10'):
-                ipython_act = create_action(self,
-                        text=_("Open IPython here"),
-                        icon="ipython.png",
-                        triggered=lambda: self.open_ipython(items))
-                actions.append(ipython_act)
-        actions += [None, openoutside_act, properties_act]
-        
-        return actions
-        
-    def add_to_watcher(self, project):
-        for path in project.get_monitored_pathlist():
-            if path in self.watcher_pathlist:
-                continue
-            self.watcher.addPath(path)
-            self.watcher_pathlist.append(path)
-            
-    def remove_from_watcher(self, project):
-        for path in project.get_monitored_pathlist():
-            if path not in self.watcher_pathlist:
-                continue
-            self.watcher.removePath(path)
-            self.watcher_pathlist.pop(self.watcher_pathlist.index(path))
-        
-    def directory_changed(self, qstr):
-        path = osp.abspath(unicode(qstr))
-        for project in self.projects:
-            if path in project.folders:
-                project.refresh(self, self.include, self.exclude, self.show_all)
-        
-    def file_changed(self, qstr):
-        self.directory_changed(osp.dirname(unicode(qstr)))
+            FilteredDirView.keyPressEvent(self, event)
 
-    def is_item_expandable(self, item):
-        """Reimplemented OneColumnTree method"""
-        return item.childIndicatorPolicy() == QTreeWidgetItem.ShowIndicator \
-               and not item.isExpanded()
-        
+    #------QTreeView API--------------------------------------------------------
     def expandAll(self):
         """Reimplement QTreeWidget method"""
         self.clearSelection()
@@ -699,206 +487,349 @@ class ExplorerTreeWidget(OneColumnTree):
         self.expand_selection()
         self.clearSelection()
         
-    def keyPressEvent(self, event):
-        """Reimplement Qt method"""
-        if event.key() == Qt.Key_F2:
-            self.rename(self.currentItem())
+    #------DirView API----------------------------------------------------------
+    def create_file_new_actions(self, fnames):
+        """Return actions for submenu 'New...'"""
+        if self.workspace.is_empty():
+            return []
         else:
-            OneColumnTree.keyPressEvent(self, event)
-
-    def activated(self):
-        """Reimplement OneColumnTree method"""
-        path = get_item_path(self.currentItem())
-        if path is not None and osp.isfile(path):
-            self.open_file(path)
-            
-    def open_file(self, fname):
-        ext = osp.splitext(fname)[1]
-        if ext in self.valid_types:
-            self.parent_widget.sig_open_file.emit(fname)
-        else:
-            self.startfile(fname)
+            return FilteredDirView.create_file_new_actions(self, fnames)
         
-    def startfile(self, fname=None):
-        """Open file in the associated application"""
-        if fname is None:
-            fname = self.get_filename()
-        ok = programs.start_file(fname)
-        if not ok:
-            self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
+    def create_file_manage_actions(self, fnames):
+        """Return file management actions"""
+        actions = []
+        if fnames:
+            only_folders = all([osp.isdir(_fn) for _fn in fnames])
+            projects = [self.get_source_project(fname) for fname in fnames]
+            pjfnames = zip(projects, fnames)
+            any_project = any([_pr.is_root_path(_fn) for _pr, _fn in pjfnames])
+            any_folder_in_path = any([_proj.is_in_pythonpath(_fn)
+                                      for _proj, _fn in pjfnames])
+            any_folder_not_in_path = only_folders and \
+                                     any([not _proj.is_in_pythonpath(_fn)
+                                          for _proj, _fn in pjfnames])
+            open_act = create_action(self,
+                                text=_('Open project'),
+                                icon=get_icon('project_expanded.png'),
+                                triggered=lambda:
+                                self.open_projects(projects))
+            close_act = create_action(self,
+                                text=_('Close project'),
+                                icon=get_icon('project_closed.png'),
+                                triggered=lambda:
+                                self.close_projects(projects))
+            close_unrelated_act = create_action(self,
+                                text=_('Close unrelated projects'),
+                                triggered=lambda:
+                                self.close_unrelated_projects(projects))
+            manage_path_act = create_action(self,
+                                icon=get_icon('pythonpath.png'),
+                                text=_('PYTHONPATH manager'),
+                                triggered=lambda:
+                                self.manage_path(projects))
+            relproj_act = create_action(self,
+                                text=_('Edit related projects'),
+                                triggered=lambda:
+                                self.edit_related_projects(projects))
+            state = self.workspace is not None\
+                    and len(self.workspace.projects) > 1
+            relproj_act.setEnabled(state)
+                        
+            add_to_path_act = create_action(self,
+                                text=_('Add to PYTHONPATH'),
+                                icon=get_icon('add_to_path.png'),
+                                triggered=lambda:
+                                self.add_to_path(fnames))
+            remove_from_path_act = create_action(self,
+                                text=_('Remove from PYTHONPATH'),
+                                icon=get_icon('remove_from_path.png'),
+                                triggered=lambda:
+                                self.remove_from_path(fnames))
+            properties_act = create_action(self,
+                                text=_('Properties'),
+                                icon=get_icon('advanced.png'),
+                                triggered=lambda:
+                                self.show_properties(fnames))
     
-    @Slot(QTreeWidgetItem)
-    def item_expanded(self, item):
-        project = self.__get_project_from_item(item)
-        if osp.isfile(get_item_path(item)):
-            return
-        in_path = project.is_item_in_pythonpath(item)
-        is_root = project.is_root_item(item)
-        if project.is_opened():
-            icon = get_dir_icon(get_item_path(item), expanded=True,
-                                pythonpath=in_path, root=is_root)
-        else:
-            icon = get_icon('project_closed.png')
-        item.setIcon(0, icon)
-        if not item.childCount():
-            # A non-populated item was just expanded
-            for project in self.projects:
-                if project.is_item_in_project(item):
-                    project.populate_tree(self, self.include, self.exclude,
-                                          self.show_all, branch=item)
-                    self.scrollToItem(item)
+            actions = []
+            if any_project:
+                if any([not _proj.is_opened() for _proj in projects]):
+                    actions += [open_act]
+                if any([_proj.is_opened() for _proj in projects]):
+                    actions += [close_act, close_unrelated_act]
+                actions += [manage_path_act, relproj_act, None]
             
-    @Slot(QTreeWidgetItem)
-    def item_collapsed(self, item):
-        project = self.__get_project_from_item(item)
-        in_path = project.is_item_in_pythonpath(item)
-        is_root = project.is_root_item(item)
-        if project.is_opened():
-            icon = get_dir_icon(get_item_path(item), expanded=False,
-                                pythonpath=in_path, root=is_root)
-        else:
-            icon = get_icon('project_closed.png')
-        item.setIcon(0, icon)
+            if only_folders:
+                if any_folder_not_in_path:
+                    actions += [add_to_path_act]
+                if any_folder_in_path:
+                    actions += [remove_from_path_act]
+            actions += [None, properties_act, None]
+            actions += FilteredDirView.create_file_manage_actions(self, fnames)
+        return actions
+
+    def update_menu(self):
+        """Reimplement DirView method"""
+        self.menu.clear()
         
-    def __update_title(self):
-        nb = len(self.projects)
-        title = unicode("%d "+_('project')) % nb
-        if nb > 1:
-            title += "s"
-        self.set_title(title)
+        if self.workspace.is_valid():
+            # Workspace's root path is already defined
+            
+            new_project_act = create_action(self, text=_('Project...'),
+                                        icon=get_icon('project_expanded.png'),
+                                        triggered=self.new_project)
+            
+            import_folder_act = create_action(self,
+                                text=_('Existing directory'),
+                                icon=get_std_icon('DirOpenIcon'),
+                                triggered=self.import_existing_directory)
+            import_spyder_act = create_action(self,
+                                text=_('Existing Spyder project'),
+                                icon=get_icon('spyder.svg'),
+                                triggered=self.import_existing_project)
+            import_pydev_act = create_action(self,
+                                text=_('Existing Pydev project'),
+                                icon=get_icon('pydev.png'),
+                                triggered=self.import_existing_pydev_project)
+            import_act_menu = QMenu(_('Import'), self)
+            add_actions(import_act_menu, (import_folder_act,
+                                          import_spyder_act, import_pydev_act))
+    
+            actions = []
+            fnames = self.get_selected_filenames()
+            new_actions = self.create_file_new_actions(fnames)
+            if new_actions:
+                new_act_menu = QMenu(_('New'), self)
+                add_actions(new_act_menu, [new_project_act, None]+new_actions)
+                actions.append(new_act_menu)
+            else:
+                new_project_act.setText(_('New project...'))
+                actions.append(new_project_act)
+    
+            actions += [import_act_menu, None]
+            if actions:
+                actions.append(None)
+            actions += self.create_file_manage_actions(fnames)
+            if actions:
+                actions.append(None)
+            actions += self.create_folder_manage_actions(fnames)
+            if actions:
+                actions.append(None)
+            actions += self.common_actions
+            
+        if actions:
+            actions.append(None)
+        actions += self.workspace_actions
+            
+        add_actions(self.menu, actions)
         
-    def __sort_toplevel_items(self):
-        self.sort_top_level_items(key=lambda item:
-                                  unicode(item.text(0)).lower())
+    #------Public API-----------------------------------------------------------
+    def set_workspace_actions(self, actions):
+        """Set workspace context menu actions"""
+        self.workspace_actions = actions
         
-    def add_project(self, root_path, silent=False):
-        if self.is_project_already_here(root_path, silent=silent):
+    def set_folder_names(self, folder_names):
+        """Set folder names"""
+        self.setUpdatesEnabled(False)
+        FilteredDirView.set_folder_names(self, folder_names)
+        self.reset_icon_provider()
+        self.setUpdatesEnabled(True)
+        
+    def reset_icon_provider(self):
+        """Reset file system model icon provider
+        The purpose of this is to refresh files/directories icons"""
+        self.fsmodel.setIconProvider(IconProvider(self))
+        
+    def set_workspace(self, root_path):
+        """Set project explorer's workspace directory"""
+        self.workspace = Workspace()
+        self.setModel(None)
+        self.fsmodel = None
+        self.proxymodel = None
+        self.setup_fs_model()
+        self.setup_proxy_model()
+        self.workspace.set_root_path(root_path)
+        self.set_root_path(root_path)
+        for index in range(1, self.model().columnCount()):
+            self.hideColumn(index)
+        self.set_folder_names(self.workspace.get_folder_names())
+        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+#        print "folders:", self.workspace.get_folder_names()
+#        print "is_valid:", self.workspace.is_valid()
+#        print "is_empty:", self.workspace.is_empty()
+        
+    def get_workspace(self):
+        """Return project explorer's workspace directory"""
+        return self.workspace.root_path
+    
+    def is_in_workspace(self, fname):
+        """Return True if file/directory is in workspace"""
+        return self.workspace.is_file_in_workspace(fname)
+    
+    def get_project_path_from_name(self, name):
+        """Return project root path from name, knowing the workspace path"""
+        return osp.join(self.get_workspace(), name)
+
+    def get_source_project(self, fname):
+        """Return project which contains source *fname*"""
+        return self.workspace.get_source_project(fname)
+        
+    def get_project_from_name(self, name):
+        """Return project's object from name"""
+        return self.workspace.get_project_from_name(name)
+        
+    def get_pythonpath(self):
+        """Return global PYTHONPATH (for all opened projects"""
+        return self.workspace.get_pythonpath()
+        
+    def add_project(self, folder, silent=False):
+        """Add project to tree"""
+        if not self.is_valid_project_root_path(folder, silent=silent):
             return
-        project = Project(root_path)
-        project.load()
-        self.projects.append(project)
-        self.__update_title()
-        self.save_expanded_state()
-        project.populate_tree(self, self.include, self.exclude, self.show_all)
-        project.refresh(self, self.include, self.exclude, self.show_all)
-        self.restore_expanded_state()
-        self.__sort_toplevel_items()
+        if not fixpath(folder).startswith(fixpath(self.root_path)):
+            title = _("Import directory")
+            answer = QMessageBox.warning(self, title,
+                            _("The following directory is not in workspace:"
+                              "<br><b>%s</b><br><br>"
+                              "Do you want to continue (and copy the "
+                              "directory to workspace)?") % folder,
+                            QMessageBox.Yes|QMessageBox.No)
+            if answer == QMessageBox.No:
+                return
+            name = self._select_project_name(title,
+                                             default=osp.basename(folder))
+            if name is None:
+                return
+            dst = self.get_project_from_name(name)
+            try:
+                shutil.copytree(folder, dst)
+            except EnvironmentError, error:
+                QMessageBox.critical(self, title,
+                                     _("<b>Unable to %s <i>%s</i></b>"
+                                       "<br><br>Error message:<br>%s"
+                                       ) % (_('copy'), folder, str(error)))
+            folder = dst
+        
+        project = self.workspace.add_project(folder)
+        self.set_folder_names(self.workspace.get_folder_names())
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         return project
         
-    def open_project(self, projects, open_related=True):
-        if not isinstance(projects, (tuple, list)):
-            projects = [projects]
-        for project in projects:
-            project.open()
-            project.refresh(self, self.include, self.exclude, self.show_all)
-            related_projects = project.get_related_projects()
-            if open_related:
-                for projname in related_projects:
-                    for relproj in self.projects:
-                        if relproj.get_name() == projname:
-                            self.open_project(relproj, open_related=False)
+    def open_projects(self, projects, open_related=True):
+        """Open projects"""
+        self.workspace.open_projects(projects, open_related)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         
-    def close_project(self, projects):
-        if not isinstance(projects, (tuple, list)):
-            projects = [projects]
-        for project in projects:
-            project.close()
-            project.refresh(self, self.include, self.exclude, self.show_all)
+    def close_projects(self, projects):
+        """Close projects"""
+        self.workspace.close_projects(projects)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         
-    def remove_project(self, projects):
-        if not isinstance(projects, (tuple, list)):
-            projects = [projects]
-        for project in projects:
-            project.remove_from_tree(self)
-            project.delete()
-            self.projects.pop(self.projects.index(project))
-            self.__update_title()
-            self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+    def remove_projects(self, projects):
+        """Remove projects"""
+        self.workspace.remove_projects(projects)
+        self.set_folder_names(self.workspace.get_folder_names())
+        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
         
     def close_unrelated_projects(self, projects):
-        if not isinstance(projects, (tuple, list)):
-            projects = [projects]
-        unrelated_projects = []
-        for project in projects:
-            for proj in self.projects:
-                if proj is project:
-                    continue
-                if proj.get_name() in project.get_related_projects():
-                    continue
-                if project.get_name() in proj.get_related_projects():
-                    continue
-                unrelated_projects.append(proj)
-        self.close_project(unrelated_projects)
+        """Close unrelated projects"""
+        self.workspace.close_unrelated_projects(projects)
         
-    def __set_last_folder(self):
-        if self.last_folder:
-            return
-        opened_projects = [_p for _p in self.projects if _p.is_opened()]
-        if opened_projects:
-            root_path = opened_projects[0].root_path
-        elif self.projects:
-            root_path = self.projects[0].root_path
-        else:
-            return
-        self.last_folder = osp.join(root_path, osp.pardir)
-        
-    def is_project_already_here(self, root_path, silent=False):
-        if root_path in [project.root_path for project in self.projects]:
+    def is_valid_project_root_path(self, root_path, silent=False):
+        """Return True root_path is a valid project root path"""
+        if self.workspace.has_project(root_path):
             if not silent:
                 QMessageBox.critical(self, _("Project Explorer"),
                                      _("The project <b>%s</b>"
                                        " is already opened!"
                                        ) % osp.basename(root_path))
-            return True
-        else:
             return False
-        
-    def __select_project_root_path(self):
-        self.__set_last_folder()
-        while True:
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
-            folder = getexistingdirectory(self, _("Select project root path"),
-                                          self.last_folder)
-            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
-            if folder:
-                folder = osp.abspath(folder)
-                self.last_folder = folder
-                if self.is_project_already_here(folder):
-                    continue
-                return folder
-            else:
-                return
-        
-    def new_project(self):
-        """Return True if project was created"""
-        folder = self.__select_project_root_path()
-        if folder is None:
-            return
-        title = _('New project')
-        name = osp.basename(folder)
+        elif fixpath(osp.dirname(root_path)) != fixpath(self.root_path):
+            if not silent:
+                QMessageBox.critical(self, _("Project Explorer"),
+                                     _("The project root path must be a "
+                                       "directory of the workspace:<br>"
+                                       "<b>%s</b>") % self.get_workspace())
+            return False
+        else:
+            return True
+    
+    def _select_project_name(self, title, default=None):
+        """Select project name"""
+        name = '' if default is None else default
         while True:
             name, valid = QInputDialog.getText(self, title, _('Project name:'),
                                                QLineEdit.Normal, name)
             if valid and name:
                 name = unicode(name)
-                if name in [project.name for project in self.projects]:
+                pattern = r'[a-zA-Z][a-zA-Z0-9\_\-]*$'
+                match = re.match(pattern, name)
+                path = self.get_project_path_from_name(name)
+                if self.workspace.has_project(name):
                     QMessageBox.critical(self, title,
                                          _("A project named "
                                            "<b>%s</b> already exists") % name)
                     continue
-                project = self.add_project(folder)
-                project.set_name(name)
-                return True
+                elif match is None:
+                    QMessageBox.critical(self, title,
+                                         _("Invalid project name.<br><br>"
+                                           "Name must match the following "
+                                           "regular expression:"
+                                           "<br><b>%s</b>") % pattern)
+                    continue
+                elif osp.isdir(path):
+                    answer = QMessageBox.warning(self, title,
+                                    _("The following directory is not empty:"
+                                      "<br><b>%s</b><br><br>"
+                                      "Do you want to continue?") % path,
+                                    QMessageBox.Yes|QMessageBox.No)
+                    if answer == QMessageBox.No:
+                        continue
+                return name
             else:
-                return False
+                return
+    
+    def new_project(self):
+        """Return True if project was created"""
+        title = _('New project')
+        name = self._select_project_name(title)
+        if name is not None:
+            folder = self.get_project_path_from_name(name)
+            self.add_project(folder)
+        
+    def _select_existing_directory(self):
+        """Select existing source code directory,
+        to be used as a new project root path
+        (copied into the current project's workspace directory if necessary)"""
+        if self.last_folder is None:
+            self.last_folder = self.workspace.root_path
+        while True:
+            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
+            folder = getexistingdirectory(self, _("Select directory"),
+                                          self.last_folder)
+            self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
+            if folder:
+                folder = osp.abspath(folder)
+                self.last_folder = folder
+                if not self.is_valid_project_root_path(folder):
+                    continue
+                return folder
+            else:
+                return
+    
+    def import_existing_directory(self):
+        """Create project from existing directory
+        Eventually copy the whole directory to current workspace"""
+        folder = self._select_existing_directory()
+        if folder is None:
+            return
+        self.add_project(folder)
     
     def __select_existing_project(self, typename, configname):
+        """Select existing project"""
         title = _('Import existing project')
         while True:
-            folder = self.__select_project_root_path()
+            folder = self._select_existing_directory()
             if folder is None:
                 return
             if not osp.isfile(osp.join(folder, configname)):
@@ -928,6 +859,7 @@ class ExplorerTreeWidget(OneColumnTree):
             return folder
     
     def import_existing_project(self):
+        """Import existing project"""
         folders = self.__select_existing_project("Spyder", Project.CONFIG_NAME)
         if folders is None:
             return
@@ -937,6 +869,7 @@ class ExplorerTreeWidget(OneColumnTree):
             self.add_project(folder, silent=True)
     
     def import_existing_pydev_project(self):
+        """Import existing Pydev project"""
         folders = self.__select_existing_project("Pydev", ".pydevproject")
         if folders is None:
             return
@@ -954,218 +887,81 @@ class ExplorerTreeWidget(OneColumnTree):
             finally:
                 project = self.add_project(folder, silent=True)
                 if project is not None:
-                    project.set_name(name)
+                    project.name = name
                     project.set_related_projects(related_projects)
                     project.set_pythonpath(path)
                     self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
-    
-    def __create_new_file(self, item, title, filters, create_func):
-        current_path = get_item_path(item)
-        if osp.isfile(current_path):
-            current_path = osp.dirname(current_path)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), False)
-        fname, _selfilter = getsavefilename(self, title, current_path, filters)
-        self.parent_widget.emit(SIGNAL('redirect_stdio(bool)'), True)
-        if fname:
-            try:
-                create_func(fname)
-            except EnvironmentError, error:
-                QMessageBox.critical(self, _("New file"),
-                                     _("<b>Unable to create file <i>%s</i>"
-                                       "</b><br><br>Error message:<br>%s"
-                                       ) % (fname, str(error)))
-            finally:
-                self.parent_widget.emit(SIGNAL("edit(QString)"), fname)
-    
-    def new_file(self, item):
-        title = _("New file")
-        filters = _("All files")+" (*)"
-        create_func = lambda fname: file(fname, 'wb').write('')
-        self.__create_new_file(item, title, filters, create_func)
-    
-    def __create_new_folder(self, item, title, subtitle, is_package):
-        current_path = get_item_path(item)
-        if osp.isfile(current_path):
-            current_path = osp.dirname(current_path)
-        name, valid = QInputDialog.getText(self, title, subtitle,
-                                           QLineEdit.Normal, "")
-        if valid:
-            dirname = osp.join(current_path, unicode(name))
-            try:
-                os.mkdir(dirname)
-            except EnvironmentError, error:
-                QMessageBox.critical(self, title,
-                                     _("<b>Unable "
-                                       "to create folder <i>%s</i></b>"
-                                       "<br><br>Error message:<br>%s"
-                                       ) % (dirname, str(error)))
-            finally:
-                if is_package:
-                    fname = osp.join(dirname, '__init__.py')
-                    try:
-                        file(fname, 'wb').write('#')
-                    except EnvironmentError, error:
-                        QMessageBox.critical(self, title,
-                                             _("<b>Unable "
-                                               "to create file <i>%s</i></b>"
-                                               "<br><br>Error message:<br>%s"
-                                               ) % (fname, str(error)))
 
-    def new_folder(self, item):
-        title = _('New folder')
-        subtitle = _('Folder name:')
-        self.__create_new_folder(item, title, subtitle, is_package=False)
-        QTimer.singleShot(500, self.refresh)
+    def rename_file(self, fname):
+        """Rename file"""
+        project = self.get_source_project(fname)
+        if project.is_root_path(fname):
+            name, valid = QInputDialog.getText(self, _('Rename'),
+                          _('New name:'), QLineEdit.Normal, project.name)
+            if valid:
+                self.workspace.rename_project(project, unicode(name))
+        elif FilteredDirView.rename_file(self, fname):
+            self.remove_path_from_project_pythonpath(project, fname)
     
-    def new_module(self, item):
-        title = _("New module")
-        filters = _("Python scripts")+" (*.py *.pyw *.ipy)"
-        create_func = lambda fname: self.parent_widget.emit( \
-                                     SIGNAL("create_module(QString)"), fname)
-        self.__create_new_file(item, title, filters, create_func)
-        QTimer.singleShot(500, self.refresh)
+    def remove_tree(self, dirname):
+        """Remove whole directory tree"""
+        FilteredDirView.remove_tree(self, dirname)
+        project = self.get_source_project(dirname)
+        self.remove_path_from_project_pythonpath(project, dirname)
     
-    def new_package(self, item):
-        title = _('New package')
-        subtitle = _('Package name:')
-        self.__create_new_folder(item, title, subtitle, is_package=True)
-        QTimer.singleShot(500, self.refresh)
-    
-    def open_file_from_menu(self, items):
-        if not isinstance(items, (tuple, list)):
-            items = [items]
-        for item in items:
-            project = self.__get_project_from_item(item)
-            if not project.is_root_item(item):
-                fname = get_item_path(item)
-                if osp.isfile(fname):
-                    self.open_file(fname)
-    
-    def rename(self, items):
-        if not isinstance(items, (tuple, list)):
-            items = [items]
-        for item in items:
-            project = self.__get_project_from_item(item)
-            if project.is_root_item(item):
-                name, valid = QInputDialog.getText(self, _('Rename'),
-                              _('New name:'), QLineEdit.Normal, project.name)
-                if valid:
-                    old_name = project.name
-                    new_name = unicode(name)
-                    for proj in self.projects:
-                        relproj = proj.get_related_projects()
-                        if old_name in relproj:
-                            relproj[relproj.index(old_name)] = new_name
-                            proj.set_related_projects(relproj)
-                    project.set_name(new_name)
-                    self.__sort_toplevel_items()
-            else:
-                fname = get_item_path(item)
-                path, valid = QInputDialog.getText(self, _('Rename'),
-                                      _('New name:'), QLineEdit.Normal,
-                                      osp.basename(fname))
-                if valid:
-                    path = osp.join(osp.dirname(fname), unicode(path))
-                    if path == fname:
-                        continue
-                    try:
-                        rename_file(fname, path)
-                        self.parent_widget.emit( \
-                             SIGNAL("renamed(QString,QString)"), fname, path)
-                        self.remove_path_from_project_pythonpath(project, fname)
-                    except EnvironmentError, error:
-                        QMessageBox.critical(self, _("Rename"),
-                                    _("<b>Unable to rename file <i>%s</i></b>"
-                                      "<br><br>Error message:<br>%s"
-                                      ) % (osp.basename(fname), str(error)))
-                project.refresh(self, self.include, self.exclude, self.show_all)
-        
-    def delete(self, items):
-        # Don't forget to change PYTHONPATH accordingly
-        if len(items) > 1:
-            buttons = QMessageBox.Yes|QMessageBox.YesAll| \
-                      QMessageBox.No|QMessageBox.Cancel
+    def delete_file(self, fname, multiple, yes_to_all):
+        """Delete file"""
+        if multiple:
             pj_buttons = QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel
         else:
-            buttons = QMessageBox.Yes|QMessageBox.No
             pj_buttons = QMessageBox.Yes|QMessageBox.No
-        yes_to_all = None
-        for item in items:
-            project = self.__get_project_from_item(item)
-            if project.is_root_item(item):
-                answer = QMessageBox.warning(self, _("Delete"),
-                                _("Do you really want "
-                                  "to delete project <b>%s</b>?<br><br>"
-                                  "Note: project files won't be deleted from "
-                                  "disk.") % project.get_name(), pj_buttons)
-                if answer == QMessageBox.Yes:
-                    self.remove_project(project)
-                elif answer == QMessageBox.Cancel:
-                    return
-            else:
-                fname = get_item_path(item)
-                if yes_to_all is None:
-                    answer = QMessageBox.warning(self, _("Delete"),
-                                         _("Do you really want "
-                                           "to delete <b>%s</b>?"
-                                           ) % osp.basename(fname), buttons)
-                    if answer == QMessageBox.No:
-                        continue
-                    elif answer == QMessageBox.Cancel:
-                        return
-                    elif answer == QMessageBox.YesAll:
-                        yes_to_all = True
-                try:
-                    if osp.isfile(fname):
-                        remove_file(fname)
-                        self.parent_widget.emit(SIGNAL("removed(QString)"),
-                                                fname)
-                    else:
-                        shutil.rmtree(fname)
-                        self.remove_path_from_project_pythonpath(project, fname)
-                        self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
-                                                fname)
-                except EnvironmentError, error:
-                    action_str = _('delete')
-                    QMessageBox.critical(self, _("Project Explorer"),
-                                    _("<b>Unable to %s <i>%s</i></b>"
-                                      "<br><br>Error message:<br>%s"
-                                      ) % (action_str, fname, str(error)))
-        QTimer.singleShot(500, self.refresh)
+        project = self.get_source_project(fname)
+        if project.is_root_path(fname):
+            answer = QMessageBox.warning(self, _("Delete"),
+                            _("Do you really want "
+                              "to delete project <b>%s</b>?<br><br>"
+                              "Note: project files won't be deleted from "
+                              "disk.") % project.name, pj_buttons)
+            if answer == QMessageBox.Yes:
+                self.remove_projects([project])
+                return yes_to_all
+        else:
+            return FilteredDirView.delete_file(self, fname, multiple,
+                                               yes_to_all)
     
-    def add_path_to_project_pythonpath(self, project, path):
-        pathlist = project.get_pythonpath()
-        if path in pathlist:
-            return
-        pathlist.insert(0, path)
-        project.set_pythonpath(pathlist)
-        self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
-    
-    def add_to_path(self, items):
-        if not isinstance(items, (list, tuple)):
-            items = [items]
-        for item in items:
-            project = self.__get_project_from_item(item)
-            path = get_item_path(item)
-            self.add_path_to_project_pythonpath(project, path)
+    def add_to_path(self, fnames):
+        """Add fnames to path"""
+        indexes = []
+        for path in fnames:
+            project = self.get_source_project(path)
+            if project.add_to_pythonpath(path):
+                self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+                indexes.append(self.get_index(path))
+        if indexes:
+            self.reset_icon_provider()
+            for index in indexes:
+                self.update(index)
     
     def remove_path_from_project_pythonpath(self, project, path):
-        pathlist = project.get_pythonpath()
-        if path not in pathlist:
-            return
-        pathlist.pop(pathlist.index(path))
-        project.set_pythonpath(pathlist)
+        """Remove path from project's PYTHONPATH"""
+        ok = project.remove_from_pythonpath(path)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        return ok
     
-    def remove_from_path(self, items):
-        if not isinstance(items, (list, tuple)):
-            items = [items]
-        for item in items:
-            project = self.__get_project_from_item(item)
-            path = get_item_path(item)
-            self.remove_path_from_project_pythonpath(project, path)
+    def remove_from_path(self, fnames):
+        """Remove from path"""
+        indexes = []
+        for path in fnames:
+            project = self.get_source_project(path)
+            if self.remove_path_from_project_pythonpath(project, path):
+                indexes.append(self.get_index(path))
+        if indexes:
+            self.reset_icon_provider()
+            for index in indexes:
+                self.update(index)
     
     def manage_path(self, projects):
+        """Manage path"""
         for project in projects:
             pathlist = project.get_pythonpath()
             dlg = PathManager(self, pathlist, sync=False)
@@ -1174,27 +970,29 @@ class ExplorerTreeWidget(OneColumnTree):
             self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
     
     def edit_related_projects(self, projects):
+        """Edit related projects"""
         title = _('Related projects')
         for project in projects:
             related_projects = project.get_related_projects()
             data = []
-            other_projects = [_p for _p in self.projects if _p is not project]
+            other_projects = self.workspace.get_other_projects(project)
             for proj in other_projects:
-                name = proj.get_name()
+                name = proj.name
                 data.append((name, name in related_projects))
             comment = _("Select projects which are related to "
-                        "<b>%s</b>") % project.get_name()
+                        "<b>%s</b>") % project.name
             result = fedit(data, title=title, comment=comment)
             if result is not None:
                 related_projects = []
                 for index, is_related in enumerate(result):
                     if is_related:
-                        name = other_projects[index].get_name()
+                        name = other_projects[index].name
                         related_projects.append(name)
                 project.set_related_projects(related_projects)
     
-    def show_properties(self, items):
-        pathlist = sorted([get_item_path(_it) for _it in items])
+    def show_properties(self, fnames):
+        """Show properties"""
+        pathlist = sorted(fnames)
         dirlist = [path for path in pathlist if osp.isdir(path)]
         for path in pathlist[:]:
             for folder in dirlist:
@@ -1211,51 +1009,19 @@ class ExplorerTreeWidget(OneColumnTree):
                                   "<b>%s</b> files.<br>"
                                   "<b>%s</b> lines of code."
                                   ) % (str(files), str(lines)))
-        
-    def open_outside_spyder(self, items):
-        for path in sorted([get_item_path(_it) for _it in items]):
-            programs.start_file(path)
-        
-    def open_terminal(self, items):
-        for path in sorted([get_item_path(_it) for _it in items]):
-            self.parent_widget.emit(SIGNAL("open_terminal(QString)"), path)
-            
-    def open_interpreter(self, items):
-        for path in sorted([get_item_path(_it) for _it in items]):
-            self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
-            
-    def open_ipython(self, items):
-        for path in sorted([get_item_path(_it) for _it in items]):
-            self.parent_widget.emit(SIGNAL("open_ipython(QString)"), path)
-        
-    def refresh(self, clear=True):
-#        if clear:
-#            self.clear()
-        for project in self.projects:
-            project.refresh(self, self.include, self.exclude, self.show_all)
             
     #---- Internal drag & drop
-    def supportedDropActions(self):
-        """Reimplement Qt method"""
-        return Qt.MoveAction | Qt.CopyAction
-    
-    def mimeData(self, items):
-        """Reimplement Qt method"""
-        data = OneColumnTree.mimeData(self, items)
-        data.setUrls([QUrl(get_item_path(item)) for item in items])
-        return data
-    
     def dragMoveEvent(self, event):
         """Reimplement Qt method"""
-        item = self.itemAt(event.pos())
-        if item is None:
-            event.ignore()
-        else:
-            dst = get_item_path(item)
+        index = self.indexAt(event.pos())
+        if index:
+            dst = self.get_filename(index)
             if osp.isdir(dst):
                 event.acceptProposedAction()
             else:
                 event.ignore()
+        else:
+            event.ignore()
 
     def dropEvent(self, event):
         """Reimplement Qt method"""
@@ -1264,10 +1030,10 @@ class ExplorerTreeWidget(OneColumnTree):
         if action not in (Qt.MoveAction, Qt.CopyAction):
             return
         
-#        # QTreeWidget must not remove the source items even in MoveAction mode:
+#        # QTreeView must not remove the source items even in MoveAction mode:
 #        event.setDropAction(Qt.CopyAction)
         
-        dst = get_item_path(self.itemAt(event.pos()))
+        dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
         src_list = [unicode(url.toString()) for url in event.mimeData().urls()]
         if len(src_list) > 1:
@@ -1328,6 +1094,70 @@ class ExplorerTreeWidget(OneColumnTree):
 #            print str(func)+":", src, "to:", dst
 
 
+class WorkspaceSelector(QWidget):
+    """Workspace selector widget"""
+    TITLE_EXISTING = _('Select existing workspace directory')
+    TITLE_NEW = _('Create a new workspace directory')
+    
+    def __init__(self, parent):
+        super(WorkspaceSelector, self).__init__(parent)
+        self.browse_btn = None
+        self.create_btn = None
+        self.line_edit = None
+        
+    def set_workspace(self, path):
+        """Set workspace directory"""
+        self.line_edit.setText(path)
+        
+    def setup_widget(self):
+        """Setup workspace selector widget"""
+        self.line_edit = QLineEdit()
+        self.line_edit.setAlignment(Qt.AlignRight)
+        self.line_edit.setToolTip(_("Current workspace directory"))
+        self.line_edit.setReadOnly(True)
+        self.line_edit.setDisabled(True)
+        self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
+        self.browse_btn.setToolTip(self.TITLE_EXISTING)
+        self.connect(self.browse_btn, SIGNAL("clicked()"),
+                     lambda text=self.TITLE_EXISTING:
+                     self.select_directory(text))
+        self.create_btn = QPushButton(get_std_icon('FileDialogNewFolder'),
+                                      "", self)
+        self.create_btn.setToolTip(self.TITLE_NEW)
+        self.connect(self.create_btn, SIGNAL("clicked()"),
+                     lambda text=self.TITLE_NEW:
+                     self.select_directory(text))
+        layout = QHBoxLayout()
+        layout.addWidget(self.line_edit)
+        layout.addWidget(self.browse_btn)
+        layout.addWidget(self.create_btn)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(layout)
+ 
+    def select_directory(self, title):
+        """Select directory"""
+        basedir = unicode(self.line_edit.text())
+        if not osp.isdir(basedir):
+            basedir = os.getcwdu()
+        while True:
+            self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
+            directory = getexistingdirectory(self, title, basedir)
+            self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
+            if not directory:
+                break
+            if title == self.TITLE_EXISTING and\
+               not osp.isfile(osp.join(directory, Workspace.CONFIG_NAME)):
+                QMessageBox.critical(self, title,
+                                     _("The directory <b>%s</b> "
+                                       "is not a Spyder workspace."
+                                       ) % osp.basename(directory))
+                continue
+            directory = fixpath(directory)
+            self.set_workspace(directory)
+            self.emit(SIGNAL('selected_workspace(QString)'), directory)
+            break
+
+
 class ProjectExplorerWidget(QWidget):
     """
     Project Explorer
@@ -1341,108 +1171,82 @@ class ProjectExplorerWidget(QWidget):
     """
     sig_option_changed = Signal(str, object)
     sig_open_file = Signal(str)
-    def __init__(self, parent=None, include='.', exclude=r'\.pyc$|^\.',
-                 show_all=False, valid_types=['.py', '.pyw']):
+    
+    def __init__(self, parent, name_filters=['*.py', '*.pyw'],
+                 valid_types=['.py', '.pyw'], show_all=False):
         QWidget.__init__(self, parent)
+        self.treewidget = None
+        self.selector = None
+        self.setup_layout(name_filters, valid_types, show_all)
         
+    def setup_layout(self, name_filters, valid_types, show_all):
+        """Setup project explorer widget layout"""
+        self.selector = WorkspaceSelector(self)
+        self.selector.setup_widget()
+        self.connect(self.selector, SIGNAL('selected_workspace(QString)'),
+                     self.set_workspace)
+
         self.treewidget = ExplorerTreeWidget(self)
-        self.treewidget.setup(include=include, exclude=exclude,
+        self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
-
-        filters_action = create_toolbutton(self, icon=get_icon('filter.png'),
-                                           tip=_("Edit filename filter"),
-                                           triggered=self.edit_filter)
-        # Show all files
-        all_action = create_toolbutton(self, icon=get_icon('show_all.png'),
-                                       tip=_("Show all files"),
-                                       toggled=self.toggle_all)
-        all_action.setChecked(show_all)
+        create_ws_act = create_action(self,
+                                      text=self.selector.create_btn.toolTip(),
+                                      icon=self.selector.create_btn.icon(),
+                                      triggered=lambda:
+                                      self.create_btn.emit(SIGNAL("clicked()")))
+        select_ws_act = create_action(self,
+                                      text=self.selector.browse_btn.toolTip(),
+                                      icon=self.selector.browse_btn.icon(),
+                                      triggered=lambda:
+                                      self.browse_btn.emit(SIGNAL("clicked()")))
+        self.treewidget.set_workspace_actions([select_ws_act, create_ws_act])
         
-        refresh_btn = create_toolbutton(self, icon=get_icon('reload.png'),
-                        tip=_("Refresh"),
-                        triggered=lambda: self.treewidget.refresh(clear=True))
-        
-        collapse_btn = create_toolbutton(self, text_beside_icon=False)
-        collapse_btn.setDefaultAction(self.treewidget.collapse_selection_action)
-        expand_btn = create_toolbutton(self, text_beside_icon=False)
-        expand_btn.setDefaultAction(self.treewidget.expand_selection_action)
-        restore_btn = create_toolbutton(self, text_beside_icon=False)
-        restore_btn.setDefaultAction(self.treewidget.restore_action)
-        
-        btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignRight)
-        for btn in (filters_action, all_action, refresh_btn,
-                    collapse_btn, expand_btn, restore_btn):
-            btn_layout.addWidget(btn)
-
         layout = QVBoxLayout()
+        layout.addWidget(self.selector)
         layout.addWidget(self.treewidget)
-        layout.addLayout(btn_layout)
         self.setLayout(layout)
+        
+    def set_workspace(self, path):
+        """Set current workspace"""
+        path = unicode(path)
+        if path is not None and osp.isdir(path):
+            self.treewidget.set_workspace(path)
+            self.selector.set_workspace(path)
+            
+    def get_workspace(self):
+        """Return current workspace path"""
+        return self.treewidget.get_workspace()
         
     def closing_widget(self):
         """Perform actions before widget is closed"""
-        self.treewidget.closing_widget()
+        pass
         
     def add_project(self, project):
+        """Add project"""
         return self.treewidget.add_project(project)
-        
-    def get_project_config(self):
-        projects = self.treewidget.projects
-        return [_proj.get_root_path() for _proj in projects]
-    
-    def set_project_config(self, data):
-        for root_path in data:
-            if osp.isdir(root_path):
-                #XXX: It would be better to add the project anyway but to 
-                # notify the user that it's not valid (red icon...)
-                self.add_project(root_path)
 
     def get_pythonpath(self):
+        """Return PYTHONPATH"""
         return self.treewidget.get_pythonpath()
     
     def get_source_project(self, fname):
         """Return project which contains source *fname*"""
         return self.treewidget.get_source_project(fname)
 
-    def edit_filter(self):
-        """Edit include/exclude filter"""
-        include, exclude = self.treewidget.include, self.treewidget.exclude
-        filter = [(_('Type'),
-                   [True, (True, _('regular expressions')),
-                    (False, _('global patterns'))]),
-                  (_('Include'), include),
-                  (_('Exclude'), exclude),]
-        result = fedit(filter, title=_('Edit filter'), parent=self)
-        if result:
-            regexp, include, exclude = result
-            if not regexp:
-                import fnmatch
-                include = fnmatch.translate(include)
-                exclude = fnmatch.translate(exclude)
-            self.sig_option_changed.emit('include', include)
-            self.sig_option_changed.emit('exclude', exclude)
-            self.treewidget.include, self.treewidget.exclude = include, exclude
-            self.treewidget.refresh()
-            
-    def toggle_all(self, checked, refresh=True):
-        """Toggle all files mode"""
-        self.sig_option_changed.emit('show_all', checked)
-        self.treewidget.show_all = checked
-        self.treewidget.refresh()
 
-
-class Test(QDialog):
+class Test(QWidget):
     def __init__(self):
-        QDialog.__init__(self)
+        QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         
-        self.explorer = ProjectExplorerWidget()
-        p1 = self.explorer.add_project(r"D:\Python\spyder")
+        self.explorer = ProjectExplorerWidget(None)
+#        self.explorer.set_workspace(r'D:/Tests/ets350')
+        self.explorer.set_workspace(r'D:/Python')
+#        p1 = self.explorer.add_project(r"D:/Python/spyder")
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()
-#        self.treewidget.close_project(p1)
+#        self.treewidget.close_projects(p1)
 #        _p2 = self.explorer.add_project(r"D:\Python\test_project")
         
         vlayout.addWidget(self.explorer)
@@ -1466,8 +1270,11 @@ class Test(QDialog):
         self.explorer.sig_option_changed.connect(
            lambda x, y: self.label3.setText('option_changed: %r, %r' % (x, y)))
 
+
 if __name__ == "__main__":
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    app = qapplication()
     test = Test()
-    test.exec_()
+    test.resize(640, 480)
+    test.show()
+    app.exec_()

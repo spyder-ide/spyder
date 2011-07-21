@@ -23,7 +23,9 @@ from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_item_user_text)
 
+
 class OneColumnTree(QTreeWidget):
+    """One-column tree widget with context menu, ..."""
     def __init__(self, parent):
         QTreeWidget.__init__(self, parent)
         self.setItemsExpandable(True)

@@ -9,13 +9,13 @@
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import SIGNAL
 
-import sys, cPickle, os.path as osp
+import sys, os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
@@ -23,29 +23,23 @@ from spyderlib.plugins import SpyderPluginMixin
 
 
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
+    """Project explorer plugin"""
     CONF_SECTION = 'project_explorer'
-    DATAPATH = get_conf_path('.projects')
+    
     def __init__(self, parent=None):
-        include = self.get_option('include', '.')
-        exclude = self.get_option('exclude', r'\.pyc$|\.pyo$|\.orig$|^\.')
-        show_all = self.get_option('show_all', False)
-        ProjectExplorerWidget.__init__(self, parent=parent, include=include,
-                                       exclude=exclude, show_all=show_all,
-                                       valid_types=['.py', '.pyw'])
+        ProjectExplorerWidget.__init__(self, parent=parent,
+                            name_filters=self.get_option('name_filters'),
+                            valid_types=self.get_option('valid_filetypes'),
+                            show_all=self.get_option('show_all', False))
         SpyderPluginMixin.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
 
         self.treewidget.header().hide()
-
         self.editor_valid_types = None
-
         self.set_font(self.get_plugin_font())
-        
-        if osp.isfile(self.DATAPATH):
-            self.load_config()
-
+        self.load_config()
         self.sig_open_file.connect(self.open_file)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
@@ -129,16 +123,14 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         
     def save_config(self):
         """Save configuration: opened projects & tree widget state"""
-        data = self.get_project_config()
-        cPickle.dump(data, file(self.DATAPATH, 'w'))
+        self.set_option('workspace', self.get_workspace())
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
                         self.treewidget.get_scrollbar_position())
         
     def load_config(self):
         """Load configuration: opened projects & tree widget state"""
-        data = cPickle.loads(file(self.DATAPATH, 'U').read())
-        self.set_project_config(data)
+        self.set_workspace(self.get_option('workspace', None))
         expanded_state = self.get_option('expanded_state', None)
         # Sometimes the expanded state option may be truncated in .ini file
         # (for an unknown reason), in this case it would be converted to a

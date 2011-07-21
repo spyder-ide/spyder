@@ -18,15 +18,6 @@ Questions for Pierre and others:
 
 from __future__ import with_statement
 
-try:
-    # PyQt4 4.3.3 on Windows (static DLLs) with py2exe installed:
-    # -> pythoncom must be imported first, otherwise py2exe's boot_com_servers
-    #    will raise an exception ("ImportError: DLL load failed [...]") when
-    #    calling any of the QFileDialog static methods (getOpenFileName, ...)
-    import pythoncom #@UnusedImport
-except ImportError:
-    pass
-
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QMessageBox, QVBoxLayout,
                                 QLabel, QTreeWidget, QTreeWidgetItem,
                                 QApplication)
