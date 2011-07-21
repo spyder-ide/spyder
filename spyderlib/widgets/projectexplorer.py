@@ -456,9 +456,6 @@ class ExplorerTreeWidget(FilteredDirView):
         self.workspace = Workspace()
 
         self.workspace_actions = None
-        self.name_filters = None
-        self.show_all = None
-        self.valid_types = None
 
         self.last_folder = None
         

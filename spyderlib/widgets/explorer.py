@@ -88,17 +88,15 @@ class DirView(QTreeView):
     def __init__(self, parent=None):
         super(DirView, self).__init__(parent)
         self.name_filters = None
-        self.fsmodel = None
-        self.setup_fs_model()
-
         self.parent_widget = parent
-        self.name_filters = None
         self.valid_types = None
         self.show_all = None
         self.show_cd_only = None
         self.menu = None
         self.common_actions = None
         self.__expanded_state = None
+        self.fsmodel = None
+        self.setup_fs_model()
                 
     #---- Model
     def setup_fs_model(self):
@@ -170,7 +168,7 @@ class DirView(QTreeView):
         """Setup tree widget"""
         self.setup_view()
         
-        self.name_filters = name_filters
+        self.set_name_filters(name_filters)
         self.valid_types = valid_types
         self.show_all = show_all
         self.show_cd_only = show_cd_only
@@ -710,6 +708,7 @@ class FilteredDirView(DirView):
     def install_model(self):
         """Install proxy model"""
         if self.root_path is not None:
+            self.fsmodel.setNameFilters(self.name_filters)
             self.setModel(self.proxymodel)
         
     def set_root_path(self, root_path):
