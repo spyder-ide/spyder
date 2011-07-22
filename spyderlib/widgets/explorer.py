@@ -17,9 +17,9 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QInputDialog,
                                 QFileSystemModel, QMenu, QWidget, QToolButton,
                                 QLineEdit, QMessageBox, QToolBar, QTreeView,
                                 QDrag, QSortFilterProxyModel)
-from spyderlib.qt.QtCore import Qt, SIGNAL, QMimeData, QSize, QDir, QUrl, Signal
-from spyderlib.qt.compat import (getsavefilename, getexistingdirectory,
-                                 from_qvariant, to_qvariant)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QMimeData, QSize, QDir, QUrl,
+                                 Signal, QTimer)
+from spyderlib.qt.compat import getsavefilename, getexistingdirectory
 
 import os
 import sys
@@ -95,8 +95,10 @@ class DirView(QTreeView):
         self.menu = None
         self.common_actions = None
         self.__expanded_state = None
+        self._to_be_loaded = None
         self.fsmodel = None
         self.setup_fs_model()
+        self._scrollbar_positions = None
                 
     #---- Model
     def setup_fs_model(self):
@@ -115,11 +117,6 @@ class DirView(QTreeView):
         self.install_model()
         self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
                      lambda: self.resizeColumnToContents(0))
-        self.connect(self, SIGNAL('expanded(QModelIndex)'),
-                     lambda: self.resizeColumnToContents(0))
-        self.connect(self, SIGNAL('collapsed(QModelIndex)'),
-                     lambda: self.resizeColumnToContents(0))
-        
         self.setAnimated(False)
         self.setSortingEnabled(True)
         self.sortByColumn(0, Qt.AscendingOrder)
@@ -624,7 +621,14 @@ class DirView(QTreeView):
         
     def set_scrollbar_position(self, position):
         """Set scrollbar positions"""
-        hor, ver = position
+        # Scrollbars will be restored after the expanded state
+        self._scrollbar_positions = position
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
+            self.restore_scrollbar_positions()
+            
+    def restore_scrollbar_positions(self):
+        """Restore scrollbar positions once tree is loaded"""
+        hor, ver = self._scrollbar_positions
         self.horizontalScrollBar().setValue(hor)
         self.verticalScrollBar().setValue(ver)
         
@@ -644,16 +648,43 @@ class DirView(QTreeView):
         for idx in self.model().persistentIndexList():
             if self.isExpanded(idx):
                 self.__expanded_state.append(self.get_filename(idx))
-    
+
+    def restore_directory_state(self, fname):
+        """Restore directory expanded state"""
+        root = osp.normpath(unicode(fname))
+        for basename in os.listdir(root):
+            path = osp.normpath(osp.join(root, basename))
+            if osp.isdir(path) and path in self.__expanded_state:
+                self.__expanded_state.pop(self.__expanded_state.index(path))
+                if self._to_be_loaded is None:
+                    self._to_be_loaded = []
+                self._to_be_loaded.append(path)
+                self.setExpanded(self.get_index(path), True)
+        if not self.__expanded_state:
+            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
+                            self.restore_directory_state)
+                
+    def follow_directories_loaded(self, fname):
+        """Follow directories loaded during startup"""
+        path = osp.normpath(unicode(fname))
+        if path in self._to_be_loaded:
+            self._to_be_loaded.pop(self._to_be_loaded.index(path))
+        if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
+            self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
+                            self.follow_directories_loaded)
+            if self._scrollbar_positions is not None:
+                # The tree view need some time to render branches:
+                QTimer.singleShot(50, self.restore_scrollbar_positions)
+
     def restore_expanded_state(self):
         """Restore all items expanded state"""
         if self.__expanded_state is not None:
             # In the old project explorer, the expanded state was a dictionnary:
             if isinstance(self.__expanded_state, list):
-                for fname in self.__expanded_state:
-                    idx = self.get_index(fname)
-                    if idx.isValid():
-                        self.setExpanded(idx, True)
+                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
+                             self.restore_directory_state)
+                self.connect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
+                             self.follow_directories_loaded)
 
 
 class ProxyModel(QSortFilterProxyModel):
@@ -714,13 +745,15 @@ class FilteredDirView(DirView):
     def set_root_path(self, root_path):
         """Set root path"""
         self.root_path = root_path
-        index = self.fsmodel.setRootPath(root_path)
         self.install_model()
+        index = self.fsmodel.setRootPath(root_path)
         self.setRootIndex(self.proxymodel.mapFromSource(index))
         
     def get_index(self, filename):
         """Return index associated with filename"""
-        return self.proxymodel.mapFromSource(self.fsmodel.index(filename))
+        index = self.fsmodel.index(filename)
+        if index.isValid() and index.model() is self.fsmodel:
+            return self.proxymodel.mapFromSource(index)
         
     def set_folder_names(self, folder_names):
         """Set folder names"""
