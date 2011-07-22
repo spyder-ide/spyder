@@ -159,6 +159,7 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.extra_selections_dict = {}
         
