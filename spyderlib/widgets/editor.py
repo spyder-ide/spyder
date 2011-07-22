@@ -154,28 +154,18 @@ class FileListDialog(QDialog):
 
 class CodeAnalysisThread(QThread):
     """Source code/style analysis thread (pyflakes/pep8)"""
-    def __init__(self, editor):
-        QThread.__init__(self, editor)
-        self.editor = editor
+    def __init__(self, parent):
+        QThread.__init__(self, parent)
         self.filename = None
-        self.analysis_results = []
+        self.source_code = None
+        self.results = []
         self.checkers = []
         
-    def set_filename(self, filename):
-        self.filename = filename
-        
-    def set_checkers(self, checkers):
-        self.checkers = checkers
-        
     def run(self):
-        source_code = unicode(self.editor.toPlainText()).encode('utf-8')
-        self.analysis_results = []
+        """Run source code analysis"""
+        self.results = []
         for checker in self.checkers:
-            self.analysis_results += checker(source_code,
-                                             filename=self.filename)
-        
-    def get_results(self):
-        return self.analysis_results
+            self.results += checker(self.source_code, filename=self.filename)
 
 
 class ToDoFinderThread(QThread):
@@ -183,21 +173,15 @@ class ToDoFinderThread(QThread):
     PATTERN = r"# ?TODO ?:?[^#]*|# ?FIXME ?:?[^#]*|# ?XXX ?:?[^#]*|# ?HINT ?:?[^#]*|# ?TIP ?:?[^#]*"
     def __init__(self, parent):
         QThread.__init__(self, parent)
-        self.text = None
-        self.todo_results = []
-        
-    def set_text(self, text):
-        self.text = unicode(text)
+        self.source_code = None
+        self.results = []
         
     def run(self):
-        todo_results = []
-        for line, text in enumerate(self.text.splitlines()):
+        """Run TODO finder"""
+        self.results = []
+        for line, text in enumerate(self.source_code.splitlines()):
             for todo in re.findall(self.PATTERN, text):
-                todo_results.append( (todo, line+1) )
-        self.todo_results = todo_results
-        
-    def get_results(self):
-        return self.todo_results
+                self.results.append((todo, line+1))
 
 
 class FileInfo(QObject):
@@ -228,7 +212,7 @@ class FileInfo(QObject):
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
             
-        self.analysis_thread = CodeAnalysisThread(self.editor)
+        self.analysis_thread = CodeAnalysisThread(self)
         self.connect(self.analysis_thread, SIGNAL('finished()'),
                      self.code_analysis_finished)
         
@@ -237,6 +221,7 @@ class FileInfo(QObject):
                      self.todo_finished)
         
     def close_threads(self):
+        """Close threads"""
         self.is_closing = True
         while self.analysis_thread.isRunning():
             pass
@@ -244,10 +229,12 @@ class FileInfo(QObject):
             pass
         
     def text_changed(self):
+        """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
                   self.filename, self.editor.get_position('cursor'))
         
     def trigger_code_completion(self, automatic):
+        """Trigger code completion"""
         source_code = unicode(self.editor.toPlainText())
         offset = self.editor.get_position('cursor')
         text = self.editor.get_text('sol', 'cursor')
@@ -282,6 +269,7 @@ class FileInfo(QObject):
                 return
         
     def trigger_calltip(self, position, auto=True):
+        """Trigger calltip"""
         # auto is True means that trigger_calltip was called automatically,
         # i.e. the user has just entered an opening parenthesis -- in that 
         # case, we don't want to force the object inspector to be visible, 
@@ -320,6 +308,7 @@ class FileInfo(QObject):
                                      at_position=position)
                     
     def go_to_definition(self, position):
+        """Go to definition"""
         source_code = unicode(self.editor.toPlainText())
         offset = position
         fname, lineno = self.rope_project.get_definition_location(source_code,
@@ -328,47 +317,56 @@ class FileInfo(QObject):
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       fname, lineno, "")
     
+    def get_source_code(self):
+        """Return associated editor source code"""
+        return unicode(self.editor.toPlainText()).encode('utf-8')
+    
     def run_code_analysis(self, checkers):
+        """Run code analysis"""
         if self.editor.is_python() and not self.is_closing:
+            anth = self.analysis_thread
             if self.editor.document().isModified():
                 # Force checker to create a temporary file
-                fname = None
+                anth.filename = None
             else:
-                fname = self.filename
-            self.analysis_thread.set_filename(fname)
-            self.analysis_thread.set_checkers(checkers)
-            self.analysis_thread.start()
+                anth.filename = self.filename
+            anth.source_code = self.get_source_code()
+            anth.checkers = checkers
+            anth.start()
         
     def code_analysis_finished(self):
         """Code analysis thread has finished"""
-        self.set_analysis_results( self.analysis_thread.get_results() )
+        self.set_analysis_results(self.analysis_thread.results)
         self.emit(SIGNAL('analysis_results_changed()'))
         
-    def set_analysis_results(self, analysis_results):
+    def set_analysis_results(self, results):
         """Set analysis results and update warning markers in editor"""
-        self.analysis_results = analysis_results
-        self.editor.process_code_analysis(analysis_results)
+        self.analysis_results = results
+        self.editor.process_code_analysis(results)
         
     def cleanup_analysis_results(self):
+        """Clean-up analysis results"""
         self.analysis_results = []
         self.editor.cleanup_code_analysis()
             
     def run_todo_finder(self):
+        """Run TODO finder"""
         if self.editor.is_python() and not self.is_closing:
-            self.todo_thread.set_text(self.editor.toPlainText())
+            self.todo_thread.source_code = self.get_source_code()
             self.todo_thread.start()
         
     def todo_finished(self):
         """Code analysis thread has finished"""
-        self.set_todo_results( self.todo_thread.get_results() )
+        self.set_todo_results(self.todo_thread.results)
         self.emit(SIGNAL('todo_results_changed()'))
         
-    def set_todo_results(self, todo_results):
+    def set_todo_results(self, results):
         """Set TODO results and update markers in editor"""
-        self.todo_results = todo_results
-        self.editor.process_todo(todo_results)
+        self.todo_results = results
+        self.editor.process_todo(results)
         
     def cleanup_todo_results(self):
+        """Clean-up TODO finder results"""
         self.todo_results = []
         
     def breakpoints_changed(self):
