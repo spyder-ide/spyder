@@ -666,6 +666,8 @@ class DirView(QTreeView):
                 
     def follow_directories_loaded(self, fname):
         """Follow directories loaded during startup"""
+        if self._to_be_loaded is None:
+            return
         path = osp.normpath(unicode(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.pop(self._to_be_loaded.index(path))
