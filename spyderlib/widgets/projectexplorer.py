@@ -1078,19 +1078,29 @@ class ExplorerTreeWidget(FilteredDirView):
                                      _("<b>Unable to %s <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % (action_str, src, str(error)))
-                    
-#            print str(func)+":", src, "to:", dst
 
 
 class WorkspaceSelector(QWidget):
     """Workspace selector widget"""
-    TITLE = {True: _('Select existing workspace directory'),
-             False: _('Create a new workspace directory')}
+    TITLE = _('Select an existing workspace directory, or create a new one')
+    WHAT = _("What is the workspace?")
+    TIP = _("The project explorer shows a tree view of projects: the root of "
+            "this tree is called the workspace.<br><br>"
+            "Each project is associated to a simple source code folder "
+            "containing a configuration file (named <b>.spyderproject</b>) "
+            "which stores the project settings (PYTHONPATH, related projects, "
+            "...). The workspace is also associated to a folder containing a "
+            "configuration file (named <b>.spyderworkspace</b>) <u>and</u> "
+            "the folders associated to its projects.<br><br>"
+            "In other words, the workspace is nothing but a list of projects "
+            "whose associated folder share the same parent directory.")
+
     def __init__(self, parent):
         super(WorkspaceSelector, self).__init__(parent)
         self.browse_btn = None
         self.create_btn = None
         self.line_edit = None
+        self.first_time = True
         
     def set_workspace(self, path):
         """Set workspace directory"""
@@ -1100,44 +1110,44 @@ class WorkspaceSelector(QWidget):
         """Setup workspace selector widget"""
         self.line_edit = QLineEdit()
         self.line_edit.setAlignment(Qt.AlignRight)
-        self.line_edit.setToolTip(_("Current workspace directory"))
+        self.line_edit.setToolTip(_("This is the current workspace directory")\
+                                  +'<br><br>'+'<u><b>'+self.WHAT+'</b></u>'\
+                                  +'<br><br>'+self.TIP)
         self.line_edit.setReadOnly(True)
         self.line_edit.setDisabled(True)
         self.browse_btn = QPushButton(get_std_icon('DirOpenIcon'), "", self)
-        self.browse_btn.setToolTip(self.TITLE[True])
+        self.browse_btn.setToolTip(self.TITLE)
         self.connect(self.browse_btn, SIGNAL("clicked()"),
-                     lambda: self.select_directory(True))
-        self.create_btn = QPushButton(get_std_icon('FileDialogNewFolder'),
-                                      "", self)
-        self.create_btn.setToolTip(self.TITLE[False])
-        self.connect(self.create_btn, SIGNAL("clicked()"),
-                     lambda: self.select_directory(False))
+                     self.select_directory)
         layout = QHBoxLayout()
         layout.addWidget(self.line_edit)
         layout.addWidget(self.browse_btn)
-        layout.addWidget(self.create_btn)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
     
-    def select_directory(self, existing=True):
+    def select_directory(self):
         """Select directory"""
-        title = self.TITLE[existing]
+        if self.first_time:
+            QMessageBox.information(self, self.WHAT, self.TIP)
+            self.first_time = False
         basedir = unicode(self.line_edit.text())
         if not osp.isdir(basedir):
             basedir = os.getcwdu()
         while True:
             self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
-            directory = getexistingdirectory(self, title, basedir)
+            directory = getexistingdirectory(self, self.TITLE, basedir)
             self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
             if not directory:
                 break
             path = osp.join(directory, Workspace.CONFIG_NAME)
-            if existing and not osp.isfile(path):
-                QMessageBox.critical(self, title,
-                                     _("The directory <b>%s</b> "
-                                       "is not a Spyder workspace."
-                                       ) % osp.basename(directory))
-                continue
+            if not osp.isfile(path):
+                answer = QMessageBox.warning(self, self.TITLE,
+                              _("The following directory is not a Spyder "
+                                "workspace:<br>%s<br><br>Do you want to "
+                                "create a new workspace in this directory?"
+                                ) % directory, QMessageBox.Yes|QMessageBox.No)
+                if answer == QMessageBox.No:
+                    continue
             directory = osp.abspath(osp.normpath(directory))
             self.set_workspace(directory)
             self.emit(SIGNAL('selected_workspace(QString)'), directory)
@@ -1176,14 +1186,10 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
         select_ws_act = create_action(self,
-                      text=self.selector.browse_btn.toolTip(),
-                      icon=self.selector.browse_btn.icon(),
-                      triggered=lambda: self.selector.select_directory(True))
-        create_ws_act = create_action(self,
-                      text=self.selector.create_btn.toolTip(),
-                      icon=self.selector.create_btn.icon(),
-                      triggered=lambda: self.selector.select_directory(False))
-        self.treewidget.set_workspace_actions([select_ws_act, create_ws_act])
+                                      text=self.selector.browse_btn.toolTip(),
+                                      icon=self.selector.browse_btn.icon(),
+                                      triggered=self.selector.select_directory)
+        self.treewidget.set_workspace_actions([select_ws_act])
         
         layout = QVBoxLayout()
         layout.addWidget(self.selector)
