@@ -725,6 +725,8 @@ class ExplorerTreeWidget(FilteredDirView):
         
     def is_valid_project_root_path(self, root_path, silent=False):
         """Return True root_path is a valid project root path"""
+        fixed_wr = fixpath(self.root_path)  # workspace root path
+        fixed_pr = fixpath(osp.dirname(root_path))  # project root path
         if self.workspace.has_project(root_path):
             if not silent:
                 QMessageBox.critical(self, _("Project Explorer"),
@@ -732,15 +734,15 @@ class ExplorerTreeWidget(FilteredDirView):
                                        " is already opened!"
                                        ) % osp.basename(root_path))
             return False
-        elif fixpath(osp.dirname(root_path)) != fixpath(self.root_path):
+        elif fixed_pr != fixed_wr and fixed_pr.startswith(fixed_wr):
             if not silent:
-                QMessageBox.critical(self, _("Project Explorer"),
-                                     _("The project root path must be a "
-                                       "directory of the workspace:<br>"
-                                       "<b>%s</b>") % self.get_workspace())
-            return False
-        else:
-            return True
+                QMessageBox.warning(self, _("Project Explorer"),
+                                    _("The project root path directory "
+                                      "is inside the workspace but not as the "
+                                      "expected tree level. It is not a "
+                                      "directory of the workspace:<br>"
+                                      "<b>%s</b>") % self.get_workspace())
+        return True
     
     def _select_project_name(self, title, default=None):
         """Select project name"""
