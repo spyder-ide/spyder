@@ -505,6 +505,7 @@ class CodeEditor(TextEditBaseWidget):
         self.occurence_color = QColor(Qt.yellow).lighter(160)
 
         # Context menu
+        self.gotodef_action = None
         self.setup_context_menu()
 
         # Tab key behavior
@@ -661,6 +662,7 @@ class CodeEditor(TextEditBaseWidget):
         """Enable/Disable go-to-definition feature, which is implemented in
         child class -> Editor widget"""
         self.go_to_definition_enabled = enable
+        self.gotodef_action.setEnabled(enable)
 
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
@@ -1803,12 +1805,16 @@ class CodeEditor(TextEditBaseWidget):
                            _("Comment")+"/"+_("Uncomment"),
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
+        self.gotodef_action = create_action(self, _("Go to definition"),
+                           triggered=self.go_to_definition_from_cursor)
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
                                 None, selectall_action, None,
-                                toggle_comment_action))
+                                toggle_comment_action, None,
+                                self.gotodef_action))
+            
         # Read-only context-menu
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
@@ -1986,6 +1992,19 @@ class CodeEditor(TextEditBaseWidget):
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
         QPlainTextEdit.leaveEvent(self, event)
+        
+    def go_to_definition_from_cursor(self, cursor=None):
+        """Go to definition from cursor instance (QTextCursor)"""
+        if cursor is None:
+            cursor = self.textCursor()
+        position = cursor.position()
+        text = unicode(cursor.selectedText())
+        if len(text) == 0:
+            cursor.select(QTextCursor.WordUnderCursor)
+            text = unicode(cursor.selectedText())
+        if self.go_to_definition_enabled and text is not None and \
+           (self.is_python() or self.is_cython()) and not is_keyword(text):
+            self.emit(SIGNAL("go_to_definition(int)"), position)
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
@@ -1998,14 +2017,9 @@ class CodeEditor(TextEditBaseWidget):
             self.paste()
         elif event.button() == Qt.LeftButton \
              and (event.modifiers() & Qt.ControlModifier):
-            cursor = self.cursorForPosition(event.pos())
-            position = cursor.position()
-            cursor.select(QTextCursor.WordUnderCursor)
-            text = unicode(cursor.selectedText())
             QPlainTextEdit.mousePressEvent(self, event)
-            if self.go_to_definition_enabled and text is not None and \
-               (self.is_python() or self.is_cython()) and not is_keyword(text):
-                self.emit(SIGNAL("go_to_definition(int)"), position)
+            cursor = self.cursorForPosition(event.pos())
+            self.go_to_definition_from_cursor(cursor)
         else:
             QPlainTextEdit.mousePressEvent(self, event)
 
