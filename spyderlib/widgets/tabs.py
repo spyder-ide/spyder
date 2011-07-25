@@ -16,6 +16,8 @@ from spyderlib.qt.QtGui import (QTabWidget, QMenu, QDrag, QApplication,
                                 QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QPoint, QMimeData, QByteArray
 
+import os.path as osp
+
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
@@ -125,12 +127,45 @@ class BaseTabs(QTabWidget):
     def update_browse_tabs_menu(self):
         """Update browse tabs menu"""
         self.browse_tabs_menu.clear()
+        names = []
+        dirnames = []
         for index in range(self.count()):
             if self.menu_use_tooltips:
-                text = self.tabToolTip(index)
+                text = unicode(self.tabToolTip(index))
             else:
-                text = self.tabText(index)
-            tab_action = create_action(self, text, icon=self.tabIcon(index),
+                text = unicode(self.tabText(index))
+            names.append(text)
+            if osp.isfile(text):
+                # Testing if tab names are filenames
+                dirnames.append(osp.dirname(text))
+        offset = None
+        
+        # If tab names are all filenames, removing common path:
+        if len(names) == len(dirnames):
+            length = None
+            # Finding the shorter path, should be closer to the common path:
+            for dirname in dirnames:
+                if length is None or len(dirname) < length:
+                    length = len(dirname)
+                    path = dirname
+            offset = None
+            tail = None
+            # Finding the common path:
+            while tail is None or tail:
+                for dirname in dirnames:
+                    if not dirname.startswith(path):
+                        break
+                else:
+                    offset = len(path)+1
+                    break
+                path, tail = osp.split(path)
+            if offset is not None and offset <= 3:
+                # Common path is not a path but a drive letter...
+                offset = None
+                
+        for index, text in enumerate(names):
+            tab_action = create_action(self, text[offset:],
+                                       icon=self.tabIcon(index),
                                        toggled=lambda state, index=index:
                                                self.setCurrentIndex(index),
                                        tip=self.tabToolTip(index))
