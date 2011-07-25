@@ -37,6 +37,10 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
+    def __init__(self, plugin, parent):
+        PluginConfigPage.__init__(self, plugin, parent)
+        self.get_name = lambda: _("Console")
+
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
         font_group = self.create_fontgroup(option=None, text=None,
@@ -394,6 +398,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.insert(index_to, filename)
         self.shellwidgets.insert(index_to, shell)
         self.icons.insert(index_to, icons)
+        self.emit(SIGNAL('update_plugin_title()'))
 
     def close_console(self, index=None):
         if not self.tabwidget.count():
@@ -405,6 +410,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.filenames.pop(index)
         self.shellwidgets.pop(index)
         self.icons.pop(index)
+        self.emit(SIGNAL('update_plugin_title()'))
         
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
@@ -691,7 +697,13 @@ class ExternalConsole(SpyderPluginWidget):
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
-        return _('Console')
+        title = _('Console')
+        if self.filenames:
+            index = self.tabwidget.currentIndex()
+            fname = self.filenames[index]
+            if fname:
+                title += ' - '+unicode(fname)
+        return title
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -805,6 +817,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
+        self.emit(SIGNAL('update_plugin_title()'))
     
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
