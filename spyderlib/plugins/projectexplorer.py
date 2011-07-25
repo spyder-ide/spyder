@@ -81,7 +81,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.connect(self, SIGNAL("create_module(QString)"),
                      self.main.editor.new)
         self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
-        self.connect(self, SIGNAL("removed(QString)"), self.main.editor.removed)
+        self.connect(self, SIGNAL("removed(QString)"),
+                     self.main.editor.removed)
         self.connect(self, SIGNAL("removed_tree(QString)"),
                      self.main.editor.removed_tree)
         self.connect(self, SIGNAL("renamed(QString,QString)"),

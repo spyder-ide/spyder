@@ -782,10 +782,14 @@ class ExplorerTreeWidget(FilteredDirView):
     def new_project(self):
         """Return True if project was created"""
         title = _('New project')
-        name = self._select_project_name(title)
-        if name is not None:
-            folder = self.get_project_path_from_name(name)
-            self.add_project(folder)
+        if self.workspace.is_valid():
+            name = self._select_project_name(title)
+            if name is not None:
+                folder = self.get_project_path_from_name(name)
+                self.add_project(folder)
+        else:
+            QMessageBox.critical(self, title, _("The current workspace has "
+                                                "not been configured yet"))
         
     def _select_existing_directory(self):
         """Select existing source code directory,
