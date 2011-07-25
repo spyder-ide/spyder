@@ -53,10 +53,9 @@ def get_checker_executable(name):
             # installed (this works with pep8 but not with pyflakes)
             return [sys.executable, path2]
 
-def check(name, source_code, filename=None, options=None):
-    """Check source code with checker *name* defined with *args* (list)
+def check(args, source_code, filename=None, options=None):
+    """Check source code with checker defined with *args* (list)
     Returns an empty list if checker is not installed"""
-    args = get_checker_executable(name)
     if args is None:
         return []
     if options is not None:
@@ -79,7 +78,7 @@ def check(name, source_code, filename=None, options=None):
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
         if 'analysis:ignore' not in lines[lineno-1]:
-            message = '<b>%s</b> %s' % (name, line[line.find(': ')+2:])
+            message = line[line.find(': ')+2:]
             error = 'syntax' in message
             results.append((message, lineno, error))
     return results
@@ -89,11 +88,13 @@ def check_with_pyflakes(source_code, filename=None):
     Returns an empty list if pyflakes is not installed"""
     # Setting filename to None all the time because pyflakes won't analyze 
     # scripts with an indented ending line
-    return check('pyflakes', source_code, filename=None)
+    args = get_checker_executable('pyflakes')
+    return check(args, source_code, filename=None)
 
 def check_with_pep8(source_code, filename=None):
     """Check source code with pep8"""
-    return check('pep8', source_code, filename=filename, options=['-r'])
+    args = get_checker_executable('pep8')
+    return check(args, source_code, filename=filename, options=['-r'])
 
 if __name__ == '__main__':
     fname = __file__
