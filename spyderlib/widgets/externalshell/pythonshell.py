@@ -456,7 +456,7 @@ class ExternalPythonShell(ExternalShellBase):
         #-------------------------Python specific-------------------------------
             
         if self.arguments:
-            p_args.extend( split_clo(self.arguments) )
+            p_args.extend(split_clo(self.arguments))
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)

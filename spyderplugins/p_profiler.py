@@ -21,7 +21,7 @@ from spyderlib.baseconfig import get_translation
 _ = get_translation("p_profiler", dirname="spyderplugins")
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
-from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage, runconfig
 
 from spyderplugins.widgets.profilergui import (ProfilerWidget,
                                                is_profiler_installed)
@@ -114,7 +114,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     #------ Public API ---------------------------------------------------------        
     def run_profiler(self):
         """Run profiler"""
-        self.analyze( self.main.editor.get_current_filename() )
+        self.analyze(self.main.editor.get_current_filename())
 
     def analyze(self, filename):
         """Reimplement analyze method"""
@@ -122,7 +122,16 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
-        ProfilerWidget.analyze(self, filename)
+        pythonpath = self.main.get_spyder_pythonpath()
+        runconf = runconfig.get_run_configuration(filename)
+        wdir, args = None, None
+        if runconf is not None:
+            if runconf.wdir_enabled:
+                wdir = runconf.wdir
+            if runconf.args_enabled:
+                args = runconf.args
+        ProfilerWidget.analyze(self, filename, wdir=wdir, args=args,
+                               pythonpath=pythonpath)
 
 
 #===============================================================================

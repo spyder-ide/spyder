@@ -25,7 +25,10 @@ from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, Qt, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
 
-import sys, os, time
+import sys
+import os
+import os.path as osp
+import time
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -33,10 +36,12 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
+from spyderlib.utils.programs import split_clo
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.config import get_icon
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
+from spyderlib.widgets.externalshell import baseshell
 _ = get_translation("p_profiler", dirname="spyderplugins")
 
 
@@ -140,10 +145,9 @@ class ProfilerWidget(QWidget):
         else:
             pass # self.show_data()
         
-    def analyze(self, filename):
+    def analyze(self, filename, wdir=None, args=None, pythonpath=None):
         if not is_profiler_installed():
             return
-        filename = unicode(filename) # filename is a QString instance
         self.kill_if_running()
         #index, _data = self.get_data(filename)
         index = None # FIXME: storing data is not implemented yet
@@ -154,7 +158,9 @@ class ProfilerWidget(QWidget):
             self.filecombo.setCurrentIndex(self.filecombo.findText(filename))
         self.filecombo.selected()
         if self.filecombo.is_valid():
-            self.start()
+            if wdir is None:
+                wdir = osp.dirname(filename)
+            self.start(wdir, args, pythonpath)
             
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
@@ -173,14 +179,14 @@ class ProfilerWidget(QWidget):
         if self.error_output:
             TextEditor(self.error_output, title=_("Profiler output"),
                        readonly=True, size=(700, 500)).exec_()
-        
-    def start(self):
+
+    def start(self, wdir=None, args=None, pythonpath=None):
         self.datelabel.setText(_('Profiling, please wait...'))
         filename = unicode(self.filecombo.currentText())
         
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
-        self.process.setWorkingDirectory(os.path.dirname(filename))
+        self.process.setWorkingDirectory(wdir)
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.read_output)
         self.connect(self.process, SIGNAL("readyReadStandardError()"),
@@ -189,12 +195,25 @@ class ProfilerWidget(QWidget):
                      SIGNAL("finished(int,QProcess::ExitStatus)"),
                      self.finished)
         self.connect(self.stop_button, SIGNAL("clicked()"), self.process.kill)
+
+        if pythonpath is not None:
+            env = [unicode(_pth) for _pth in self.process.systemEnvironment()]
+            baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
+            self.process.setEnvironment(env)
         
         self.output = ''
         self.error_output = ''
         
-        p_args = ['-m', 'cProfile', '-o', self.DATAPATH,
-                  os.path.basename(filename)]
+        p_args = ['-m', 'cProfile', '-o', self.DATAPATH]
+        if os.name == 'nt':
+            # On Windows, one has to replace backslashes by slashes to avoid 
+            # confusion with escape characters (otherwise, for example, '\t' 
+            # will be interpreted as a tabulation):
+            p_args.append(osp.normpath(filename).replace(os.sep, '/'))
+        else:
+            p_args.append(filename)
+        if args:
+            p_args.extend(split_clo(args))
         executable = sys.executable
         if executable.endswith("spyder.exe"):
             # py2exe distribution
@@ -355,10 +374,10 @@ class ProfilerDataTree(QTreeWidget):
         node_type = 'function'
         filename, line_number, function_name = functionKey
         if function_name == '<module>':
-            modulePath, moduleName = os.path.split(filename)
+            modulePath, moduleName = osp.split(filename)
             node_type = 'module'
             if moduleName == '__init__.py':
-                modulePath, moduleName = os.path.split(modulePath)
+                modulePath, moduleName = osp.split(modulePath)
             function_name = '<' + moduleName + '>'
         if not filename or filename == '~':
             file_and_line = '(built-in)'
