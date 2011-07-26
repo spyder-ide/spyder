@@ -2252,7 +2252,7 @@ class EditorPluginExample(QSplitter):
         
     def go_to_file(self, fname, lineno, text):
         editorstack = self.editorstacks[0]
-        editorstack.set_current_filename(fname)
+        editorstack.set_current_filename(unicode(fname))
         editor = editorstack.get_current_editor()
         editor.go_to_line(lineno, word=text)
 

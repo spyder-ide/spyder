@@ -1198,6 +1198,7 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget.set_workspace_actions([select_ws_act])
         
         layout = QVBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.selector)
         layout.addWidget(self.treewidget)
         self.setLayout(layout)
