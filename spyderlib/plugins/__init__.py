@@ -20,7 +20,7 @@ These plugins inherit the following classes
 
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal, Slot
+from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 import sys
 
@@ -204,7 +204,7 @@ class SpyderPluginMixin(object):
         Use a SIGNAL to call it, e.g.:
         plugin.sig_option_changed.emit('show_all', checked)
         """
-        CONF.set(self.CONF_SECTION, option, value)
+        CONF.set(self.CONF_SECTION, str(option), value)
 
     def get_option(self, option, default=NoDefault):
         """Get a plugin option from configuration file"""
