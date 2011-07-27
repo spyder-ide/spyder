@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """Qt utilities"""
 
-import os.path as osp, os, webbrowser
+import os.path as osp
+import os
+import webbrowser
 
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
@@ -29,11 +31,10 @@ from spyderlib.utils import programs
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
+
 def qapplication(translate=True):
-    """
-    Return QApplication instance
-    Creates it if it doesn't already exist
-    """
+    """Return QApplication instance
+    Creates it if it doesn't already exist"""
     app = QApplication.instance()
     if not app:
         app = QApplication([])
@@ -41,24 +42,25 @@ def qapplication(translate=True):
         install_translator(app)
     return app
 
+
 QT_TRANSLATOR = None
 def install_translator(qapp):
     """Install Qt translator to the QApplication instance"""
     global QT_TRANSLATOR
     if QT_TRANSLATOR is None:
-        locale = QLocale.system().name()
-        # Qt-specific translator
         qt_translator = QTranslator()
-        paths = QLibraryInfo.location(QLibraryInfo.TranslationsPath)
-        if qt_translator.load("qt_"+locale, paths):
+        if qt_translator.load("qt_"+QLocale.system().name(),
+                      QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
             QT_TRANSLATOR = qt_translator # Keep reference alive
     if QT_TRANSLATOR is not None:
         qapp.installTranslator(QT_TRANSLATOR)
+
 
 def keybinding(attr):
     """Return keybinding"""
     ks = getattr(QKeySequence, attr)
     return from_qvariant(QKeySequence.keyBindings(ks)[0], str)
+
 
 def _process_mime_path(path, extlist):
     if path.startswith(r"file://"):
@@ -74,6 +76,7 @@ def _process_mime_path(path, extlist):
     if osp.exists(path):
         if extlist is None or osp.splitext(path)[1] in extlist:
             return path
+
 
 def mimedata2url(source, extlist=None):
     """
@@ -94,14 +97,17 @@ def mimedata2url(source, extlist=None):
     if pathlist:
         return pathlist
 
+
 def keyevent2tuple(event):
     """Convert QKeyEvent instance into a tuple"""
     return (event.type(), event.key(), event.modifiers(), event.text(),
             event.isAutoRepeat(), event.count())
+
     
 def tuple2keyevent(past_event):
     """Convert tuple into a QKeyEvent instance"""
     return QKeyEvent(*past_event)
+
 
 def restore_keyevent(event):
     if isinstance(event, tuple):
@@ -114,6 +120,7 @@ def restore_keyevent(event):
     ctrl = modifiers & Qt.ControlModifier
     shift = modifiers & Qt.ShiftModifier
     return event, text, key, ctrl, shift
+
 
 def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
                       toggled=None, triggered=None,
@@ -140,6 +147,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
         button.setShortcut(shortcut)
     return button
 
+
 def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
     """Create a QToolButton directly from a QAction object"""
     if parent is None:
@@ -151,12 +159,14 @@ def action2button(action, autoraise=True, text_beside_icon=False, parent=None):
         button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
     return button
 
+
 def toggle_actions(actions, enable):
     """Enable/disable actions"""
     if actions is not None:
         for action in actions:
             if action is not None:
                 action.setEnabled(enable)
+
 
 def create_action(parent, text, shortcut=None, icon=None, tip=None,
                   toggled=None, triggered=None, data=None,
@@ -184,6 +194,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
     #  since the context thing doesn't work quite well with these widgets)
     action.setShortcutContext(context)
     return action
+
 
 def add_actions(target, actions, insert_before=None):
     """Add actions to a menu"""
@@ -216,6 +227,7 @@ def get_item_user_text(item):
     """Get QTreeWidgetItem user role string"""
     return from_qvariant(item.data(0, Qt.UserRole), unicode)
 
+
 def set_item_user_text(item, text):
     """Set QTreeWidgetItem user role string"""
     item.setData(0, Qt.UserRole, to_qvariant(text))
@@ -232,6 +244,7 @@ def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     return create_action( parent, title, shortcut=shortcut, icon=icon,
                           triggered=lambda u=url: callback(u) )
 
+
 def create_module_bookmark_actions(parent, bookmarks):
     """
     Create bookmark actions depending on module installation:
@@ -243,6 +256,7 @@ def create_module_bookmark_actions(parent, bookmarks):
             act = create_bookmark_action(parent, url, title, get_icon(icon))
             actions.append(act)
     return actions
+
         
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""
@@ -255,6 +269,7 @@ def create_program_action(parent, text, icon, name, nt_name=None):
     if programs.is_program_installed(name):
         return create_action(parent, text, icon=icon,
                              triggered=lambda: programs.run_program(name))
+
         
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
@@ -312,6 +327,7 @@ def get_std_icon(name, size=None):
     else:
         return QIcon( icon.pixmap(size, size) )
 
+
 def get_filetype_icon(fname):
     """Return file type icon"""
     ext = osp.splitext(fname)[1]
@@ -347,6 +363,7 @@ class ShowStdIcons(QWidget):
         self.setWindowTitle('Standard Platform Icons')
         self.setWindowIcon(get_std_icon('TitleBarMenuButton'))
 
+
 def show_std_icons():
     """
     Show all standard Icons
@@ -356,6 +373,7 @@ def show_std_icons():
     dialog.show()
     import sys
     sys.exit(app.exec_())
+
 
 if __name__ == "__main__":
     show_std_icons()
