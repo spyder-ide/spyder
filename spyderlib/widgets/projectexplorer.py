@@ -52,26 +52,20 @@ def is_drive_path(path):
     return osp.normpath(osp.join(path, osp.pardir)) == path
 
 
-def get_dir_icon(dirname, expanded=False, pythonpath=False, root=False):
+def get_dir_icon(dirname, project):
     """Return appropriate directory icon"""
     if is_drive_path(dirname):
         return get_std_icon('DriveHDIcon')
-    prefix = 'pp_' if pythonpath else ''
-    if root:
-        if expanded:
-            return get_icon(prefix+'project_expanded.png')
+    prefix = 'pp_' if dirname in project.get_pythonpath() else ''
+    if dirname == project.root_path:
+        if project.is_opened():
+            return get_icon(prefix+'project.png')
         else:
-            return get_icon(prefix+'project_collapsed.png')
+            return get_icon('project_closed.png')
     elif osp.isfile(osp.join(dirname, '__init__.py')):
-        if expanded:
-            return get_icon(prefix+'package_expanded.png')
-        else:
-            return get_icon(prefix+'package_collapsed.png')
+        return get_icon(prefix+'package.png')
     else:
-        if expanded:
-            return get_icon(prefix+'folder_expanded.png')
-        else:
-            return get_icon(prefix+'folder_collapsed.png')
+        return get_icon(prefix+'folder.png')
 
 
 class Project(object):
@@ -362,6 +356,7 @@ class Workspace(object):
                 unrelated_projects.append(proj)
         self.close_projects(unrelated_projects)
         self.save()
+        return unrelated_projects
         
     def rename_project(self, project, new_name):
         """Rename project, update the related projects if necessary"""
@@ -429,9 +424,7 @@ class IconProvider(QFileIconProvider):
                 if project is None:
                     return super(IconProvider, self).icon(qfileinfo)
                 else:
-                    pythonpath = fname in project.get_pythonpath()
-                    root = fname == project.root_path
-                    return get_dir_icon(fname, False, pythonpath, root)
+                    return get_dir_icon(fname, project)
             else:
                 ext = osp.splitext(fname)[1][1:]
                 icon_path = get_image_path(ext+'.png', default=None)
@@ -707,11 +700,19 @@ class ExplorerTreeWidget(FilteredDirView):
         """Open projects"""
         self.workspace.open_projects(projects, open_related)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.reset_icon_provider()
+        for project in projects:
+            self.update(self.get_index(project.root_path))
         
     def close_projects(self, projects):
         """Close projects"""
         self.workspace.close_projects(projects)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.reset_icon_provider()
+        for project in projects:
+            index = self.get_index(project.root_path)
+            self.update(index)
+            self.collapse(index)
         
     def remove_projects(self, projects):
         """Remove projects"""
@@ -721,7 +722,11 @@ class ExplorerTreeWidget(FilteredDirView):
         
     def close_unrelated_projects(self, projects):
         """Close unrelated projects"""
-        self.workspace.close_unrelated_projects(projects)
+        unrelated_projects = self.workspace.close_unrelated_projects(projects)
+        if unrelated_projects:
+            self.reset_icon_provider()
+            for project in unrelated_projects:
+                self.update(self.get_index(project.root_path))
         
     def is_valid_project_root_path(self, root_path, silent=False):
         """Return True root_path is a valid project root path"""
