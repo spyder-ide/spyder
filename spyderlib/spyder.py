@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -10,10 +10,36 @@ Spyder, the Scientific PYthon Development EnviRonment
 
 Developped and maintained by Pierre Raybaut
 
-Copyright © 2009-2010 Pierre Raybaut
+Copyright © 2009-2011 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
+
+import os
+
+
+# Windows platforms only: hiding the attached console window
+set_attached_console_visible = None
+is_attached_console_visible = None
+if os.name == 'nt':
+    try:
+        import win32gui, win32console, win32con
+        win32console.GetConsoleWindow() # do nothing, this is just a test
+        def set_attached_console_visible(state):
+            """Show/hide console window attached to current window
+            
+            This is for Windows platforms only. Requires pywin32 library."""
+            win32gui.ShowWindow(win32console.GetConsoleWindow(),
+                                win32con.SW_SHOW if state else win32con.SW_HIDE)
+        def is_attached_console_visible():
+            """Return True if attached console window is visible"""
+            return win32gui.IsWindowVisible(win32console.GetConsoleWindow())
+    except (ImportError, NotImplementedError):
+        # This is not a Windows platform (ImportError)
+        # or pywin32 is not installed (ImportError)
+        # or GetConsoleWindow is not implemented on current platform
+        pass
+
 
 from spyderlib import qt #@UnusedImport
 
@@ -22,8 +48,14 @@ from spyderlib import requirements
 requirements.check_path()
 requirements.check_qt()
 
-import sys, os, platform, re, webbrowser, os.path as osp
-original_sys_exit = sys.exit
+import sys
+import os.path as osp
+import platform
+import re
+import webbrowser
+
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
 
 # For debugging purpose only
 STDOUT = sys.stdout
@@ -786,6 +818,12 @@ class MainWindow(QMainWindow):
                                        "Ctrl+Shift+Alt+F%d" % index)
                 ql_actions += [qli_act, qlsi_act]
             add_actions(quick_layout_menu, ql_actions)
+            if set_attached_console_visible is not None:
+                cmd_act = create_action(self,
+                                    _("Attached console window (debugging)"),
+                                    toggled=set_attached_console_visible)
+                cmd_act.setChecked(is_attached_console_visible())
+                add_actions(self.view_menu, (None, cmd_act))
             add_actions(self.view_menu, (None, self.maximize_action,
                                          self.fullscreen_action, None,
                                          reset_layout_action, quick_layout_menu,
@@ -1512,6 +1550,9 @@ def initialize(debug):
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
     app = qapplication()
     
+    if set_attached_console_visible is not None:
+        set_attached_console_visible(debug)
+    
     #----Monkey patching PyQt4.QtGui.QApplication
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
@@ -1587,6 +1628,7 @@ def run_spyder(app, options):
     Patch matplotlib for figure integration
     Start QApplication event loop
     """
+    #TODO: insert here
     # Main window
     main = MainWindow(options)
     try:
@@ -1691,7 +1733,7 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                        % (osp.basename(save_session_name),
                                           error_message))
-    original_sys_exit()
+    ORIGINAL_SYS_EXIT()
 
 if __name__ == "__main__":
     main()
