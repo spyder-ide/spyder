@@ -413,6 +413,7 @@ class FindOptions(QWidget):
                      lambda valid: self.emit(SIGNAL('find()')))
             
         vlayout = QVBoxLayout()
+        vlayout.setContentsMargins(0, 0, 0, 0)
         vlayout.addLayout(hlayout1)
         vlayout.addLayout(hlayout2)
         vlayout.addLayout(hlayout3)
