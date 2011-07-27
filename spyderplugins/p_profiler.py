@@ -50,7 +50,6 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     """Profiler (after python's profile and pstats)"""
     CONF_SECTION = 'profiler'
     CONFIGWIDGET_CLASS = ProfilerConfigPage
-    sig_option_changed = Signal(str, object)
     def __init__(self, parent=None):
         ProfilerWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))

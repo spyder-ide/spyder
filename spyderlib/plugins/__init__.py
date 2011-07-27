@@ -68,6 +68,7 @@ class SpyderPluginMixin(object):
                QDockWidget.DockWidgetFloatable | \
                QDockWidget.DockWidgetMovable
     DISABLE_ACTIONS_WHEN_HIDDEN = True
+    sig_option_changed = None
     def __init__(self, main):
         """Bind widget to a QMainWindow instance"""
         super(SpyderPluginMixin, self).__init__()
@@ -87,6 +88,9 @@ class SpyderPluginMixin(object):
                         self.show_message)
         QObject.connect(self, SIGNAL('update_plugin_title()'),
                         self.__update_plugin_title)
+        if self.sig_option_changed is not None:
+            self.sig_option_changed.connect(self.set_option)
+        self.setWindowTitle(self.get_plugin_title())
         
     def update_margins(self):
         layout = self.layout()
@@ -252,15 +256,10 @@ class SpyderPluginWidget(QWidget, SpyderPluginMixin):
     Spyder's widgets either inherit this class or reimplement its interface
     """
     sig_option_changed = Signal(str, object)
+    
     def __init__(self, parent):
         QWidget.__init__(self, parent)
         SpyderPluginMixin.__init__(self, parent)
-        
-    def initialize_plugin(self):
-        """Initialize plugin: connect signals, setup actions, ..."""
-        SpyderPluginMixin.initialize_plugin(self)
-        self.setWindowTitle(self.get_plugin_title())
-        self.sig_option_changed.connect(self.set_option)
         
     def get_plugin_title(self):
         """

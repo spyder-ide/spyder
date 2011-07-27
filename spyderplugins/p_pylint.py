@@ -57,7 +57,6 @@ class Pylint(PylintWidget, SpyderPluginMixin):
     """Python source code analysis based on pylint"""
     CONF_SECTION = 'pylint'
     CONFIGWIDGET_CLASS = PylintConfigPage
-    sig_option_changed = Signal(str, object)
     def __init__(self, parent=None):
         PylintWidget.__init__(self, parent=parent,
                               max_entries=self.get_option('max_entries', 50))
