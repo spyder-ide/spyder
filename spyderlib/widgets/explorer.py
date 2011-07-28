@@ -31,7 +31,7 @@ import shutil
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import get_std_icon, create_action, add_actions
+from spyderlib.utils.qthelpers import create_action, add_actions
 from spyderlib.utils import (encoding, rename_file, remove_file, programs,
                              move_file)
 from spyderlib.baseconfig import _
@@ -229,7 +229,6 @@ class DirView(QTreeView):
         """Return file management actions"""
         actions = []
         if fnames:
-            only_folders = all([osp.isdir(_fn) for _fn in fnames])
             only_files = all([osp.isfile(_fn) for _fn in fnames])
             only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
                                 for _fn in fnames])
@@ -248,20 +247,12 @@ class DirView(QTreeView):
             rename_action = create_action(self, _("Rename..."),
                                           icon="rename.png",
                                           triggered=self.rename)
-            browse_action = create_action(self, _("Browse"),
-                                          icon=get_std_icon("CommandLink"),
-                                          triggered=self.clicked)
             open_action = create_action(self, _("Open"), triggered=self.open)
             
-            if only_modules in ('.py', '.pyw', '.ipy'):
+            if only_modules:
                 actions.append(run_action)
-            if only_valid or os.name != 'nt':
-                if only_folders:
-                    actions.append(browse_action)
-                elif only_files:
-                    actions.append(edit_action)
-                else:
-                    actions.append(open_action)
+            if only_valid and only_files:
+                actions.append(edit_action)
             else:
                 actions.append(open_action)
             actions += [delete_action, rename_action]
@@ -341,13 +332,11 @@ class DirView(QTreeView):
     def clicked(self):
         """Selected item was double-clicked or enter/return was pressed"""
         fnames = self.get_selected_filenames()
-        if fnames:
-            fname = fnames[0]
-            if fname:
-                if osp.isdir(fname):
-                    self.directory_clicked(fname)
-                else:
-                    self.open([fname])
+        for fname in fnames:
+            if osp.isdir(fname):
+                self.directory_clicked(fname)
+            else:
+                self.open([fname])
                 
     def directory_clicked(self, dirname):
         """Directory was just clicked"""
@@ -380,8 +369,7 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            ext = osp.splitext(fname)[1]
-            if ext in self.valid_types:
+            if osp.splitext(fname)[1] in self.valid_types:
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
