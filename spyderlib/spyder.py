@@ -1540,15 +1540,18 @@ def get_options():
     return commands, message
     """
     import optparse
-    parser = optparse.OptionParser("Spyder")
+    parser = optparse.OptionParser(usage="spyder [options]")
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
     parser.add_option('--session', dest="startup_session", default='',
                       help="Startup session")
+    parser.add_option('--defaults', dest="reset_to_defaults",
+                      action='store_true', default=False,
+                      help="Reset to configuration settings to defaults")
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
-                      help="Reset to default session")
+                      help="Remove all configuration files!")
     parser.add_option('--optimize', dest="optimize",
                       action='store_true', default=False,
                       help="Optimize Spyder bytecode (this may require "
@@ -1687,10 +1690,16 @@ def main():
     
     app = initialize(debug=options.debug)
     if options.reset_session:
+        # <!> Remove all configuration files!
         reset_session()
 #        CONF.reset_to_defaults(save=True)
         return
+    elif options.reset_to_defaults:
+        # Reset Spyder settings to defaults
+        CONF.reset_to_defaults(save=True)
+        return
     elif options.optimize:
+        # Optimize the whole Spyder's source code directory
         import spyderlib
         run_python_script(module="compileall", args=[spyderlib.__path__[0]],
                           p_args=['-O'])

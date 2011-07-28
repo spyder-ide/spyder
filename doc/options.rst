@@ -9,7 +9,8 @@ Options:
   -l, --light           Light version (all add-ons are disabled)
   --session=STARTUP_SESSION
                         Startup session
-  --reset               Reset to default session
+  --defaults            Reset to configuration settings to defaults
+  --reset               Remove all configuration files!
   --optimize            Optimize Spyder bytecode (this may require
                         administrative privileges)
   -w WORKING_DIRECTORY, --workdir=WORKING_DIRECTORY
