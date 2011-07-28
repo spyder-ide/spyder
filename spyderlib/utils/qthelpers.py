@@ -6,9 +6,8 @@
 
 """Qt utilities"""
 
-import os.path as osp
 import os
-import webbrowser
+import os.path as osp
 
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
@@ -237,12 +236,8 @@ def create_bookmark_action(parent, url, title, icon=None, shortcut=None):
     """Create bookmark action"""
     if icon is None:
         icon = get_icon('browser.png')
-    if os.name == 'nt':
-        callback = os.startfile
-    else:
-        callback = webbrowser.open
     return create_action( parent, title, shortcut=shortcut, icon=icon,
-                          triggered=lambda u=url: callback(u) )
+                          triggered=lambda u=url: programs.start_file(u) )
 
 
 def create_module_bookmark_actions(parent, bookmarks):

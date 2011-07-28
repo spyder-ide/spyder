@@ -15,10 +15,27 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+from spyderlib import qt #@UnusedImport
+
+# Check requirements
+from spyderlib import requirements
+requirements.check_path()
+requirements.check_qt()
+
+import sys
 import os
+import os.path as osp
+import platform
+import re
 
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
 
-# Windows platforms only: hiding the attached console window
+# For debugging purpose only
+STDOUT = sys.stdout
+STDERR = sys.stderr
+
+# Windows platforms only: support for hiding the attached console window
 set_attached_console_visible = None
 is_attached_console_visible = None
 if os.name == 'nt':
@@ -39,27 +56,6 @@ if os.name == 'nt':
         # or pywin32 is not installed (ImportError)
         # or GetConsoleWindow is not implemented on current platform
         pass
-
-
-from spyderlib import qt #@UnusedImport
-
-# Check requirements
-from spyderlib import requirements
-requirements.check_path()
-requirements.check_qt()
-
-import sys
-import os.path as osp
-import platform
-import re
-import webbrowser
-
-# Keeping a reference to the original sys.exit before patching it
-ORIGINAL_SYS_EXIT = sys.exit
-
-# For debugging purpose only
-STDOUT = sys.stdout
-STDERR = sys.stderr
 
 # Workaround: importing rope.base.project here, otherwise this module can't
 # be imported if Spyder was executed from another folder than spyderlib
@@ -141,17 +137,6 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return python_doc
-    
-def open_python_doc():
-    """
-    Open Python documentation
-    (Windows: open .chm documentation if found)
-    """
-    python_doc = get_python_doc_path()
-    if os.name == 'nt':
-        os.startfile(python_doc)
-    else:
-        webbrowser.open(python_doc)
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
@@ -714,7 +699,8 @@ class MainWindow(QMainWindow):
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
                                           icon=get_icon('python.png'),
-                                          triggered=open_python_doc)
+                                          triggered=lambda:
+                                          start_file(get_python_doc_path()))
                 self.help_menu_actions += [None, pydoc_act]
             # Qt assistant link
             qta_act = create_program_action(self, _("Qt Assistant"),
