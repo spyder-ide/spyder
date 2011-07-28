@@ -65,6 +65,10 @@ class ProfilerWidget(QWidget):
         self.output = None
         self.error_output = None
         
+        self._last_wdir = None
+        self._last_args = None
+        self._last_pythonpath = None
+        
         self.filecombo = PythonModulesComboBox(self)
         
         self.start_button = create_toolbutton(self, icon=get_icon('run.png'),
@@ -181,8 +185,22 @@ class ProfilerWidget(QWidget):
                        readonly=True, size=(700, 500)).exec_()
 
     def start(self, wdir=None, args=None, pythonpath=None):
-        self.datelabel.setText(_('Profiling, please wait...'))
         filename = unicode(self.filecombo.currentText())
+        if wdir is None:
+            wdir = self._last_wdir
+            if wdir is None:
+                wdir = osp.basename(filename)
+        if args is None:
+            args = self._last_args
+            if args is None:
+                args = []
+        if pythonpath is None:
+            pythonpath = self._last_pythonpath
+        self._last_wdir = wdir
+        self._last_args = args
+        self._last_pythonpath = pythonpath
+        
+        self.datelabel.setText(_('Profiling, please wait...'))
         
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
