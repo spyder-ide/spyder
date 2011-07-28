@@ -9,14 +9,14 @@
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import SIGNAL
 
-import sys, os.path as osp
+import sys
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.config import get_icon, VALID_EXT
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -29,7 +29,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def __init__(self, parent=None):
         ProjectExplorerWidget.__init__(self, parent=parent,
                             name_filters=self.get_option('name_filters'),
-                            valid_types=self.get_option('valid_filetypes'),
+                            valid_types=VALID_EXT,
                             show_all=self.get_option('show_all', False))
         SpyderPluginMixin.__init__(self, parent)
 
@@ -37,10 +37,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         self.initialize_plugin()
 
         self.treewidget.header().hide()
-        self.editor_valid_types = None
         self.set_font(self.get_plugin_font())
         self.load_config()
-        self.sig_open_file.connect(self.open_file)
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -72,8 +70,6 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.pythonpath_changed()
-        valid_types = self.main.editor.get_valid_types()
-        self.set_editor_valid_types(valid_types)
         self.connect(self.main, SIGNAL('restore_scrollbar_position()'),
                      self.restore_scrollbar_position)
         self.connect(self, SIGNAL("pythonpath_changed()"),
@@ -89,6 +85,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                      self.main.editor.renamed)
         self.main.editor.set_projectexplorer(self)
         self.main.add_dockwidget(self)
+
+        self.sig_open_file.connect(self.main.open_file)
         
     def refresh_plugin(self):
         """Refresh project explorer widget"""
@@ -146,21 +144,3 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         scrollbar_pos = self.get_option('scrollbar_position', None)
         if scrollbar_pos is not None:
             self.treewidget.set_scrollbar_position(scrollbar_pos)
-        
-    def set_editor_valid_types(self, valid_types):
-        self.editor_valid_types = valid_types
-        self.treewidget.valid_types += valid_types
-
-    def open_file(self, fname):
-        """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        """
-        fname = unicode(fname)
-        ext = osp.splitext(fname)[1]
-        if ext in self.editor_valid_types:
-            self.emit(SIGNAL("edit(QString)"), fname)
-        elif ext in ('.spydata', '.npy', '.mat'):
-            self.emit(SIGNAL("import_data(QString)"), fname)
-        else:
-            self.treewidget.startfile(fname)

@@ -110,9 +110,11 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        keybinding, qapplication,
                                        create_python_script_action)
 from spyderlib.baseconfig import get_conf_path, _, get_module_data_path
-from spyderlib.config import get_icon, get_image_path, CONF, get_shortcut
+from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
+                              EDIT_EXT, IMPORT_EXT)
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib.utils.programs import run_python_script, is_module_installed
+from spyderlib.utils.programs import (run_python_script, is_module_installed,
+                                      start_file)
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 
@@ -374,6 +376,7 @@ class MainWindow(QMainWindow):
         if self.debug:
             print >>STDOUT, message
         
+    #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
         """Create and return toolbar with *title* and *object_name*"""
         toolbar = self.addToolBar(title)
@@ -381,22 +384,6 @@ class MainWindow(QMainWindow):
         toolbar.setIconSize( QSize(iconsize, iconsize) )
         return toolbar
     
-    def apply_settings(self):
-        """Apply settings changed in 'Preferences' dialog box"""
-        default = self.DOCKOPTIONS
-        if CONF.get('main', 'vertical_tabs'):
-            default = default|QMainWindow.VerticalTabs
-        if CONF.get('main', 'animated_docks'):
-            default = default|QMainWindow.AnimatedDocks
-        self.setDockOptions(default)
-        
-        for child in self.widgetlist:
-            features = child.FEATURES
-            if CONF.get('main', 'vertical_dockwidget_titlebars'):
-                features = features|QDockWidget.DockWidgetVerticalTitleBar
-            child.dockwidget.setFeatures(features)
-            child.update_margins()
-        
     def setup(self):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
@@ -1316,6 +1303,7 @@ class MainWindow(QMainWindow):
                  os.environ['PYTHON_QT_LIBRARY'], spyderlib.qt.__version__,
                  platform.system()) )
     
+    #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
         console, extconsole, editor, inspector or historylog"""
@@ -1395,6 +1383,23 @@ class MainWindow(QMainWindow):
         self.extconsole.raise_()
         self.extconsole.execute_python_code(lines)
         
+    def open_file(self, fname):
+        """
+        Open filename with the appropriate application
+        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
+        or open file outside Spyder (if extension is not supported)
+        """
+        fname = unicode(fname)
+        ext = osp.splitext(fname)[1]
+        if ext in EDIT_EXT:
+            self.editor.load(fname)
+        elif self.variableexplorer is not None and ext in IMPORT_EXT\
+             and ext in ('.spydata', '.mat', '.npy', '.h5'):
+            self.variableexplorer.import_data(fname)
+        else:
+            start_file(fname)
+        
+    #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
         return self.path+self.project_path
@@ -1438,6 +1443,23 @@ class MainWindow(QMainWindow):
         """Show Windows current user environment variables"""
         self.dialog_manager.show(WinUserEnvDialog(self))
         
+    #---- Preferences
+    def apply_settings(self):
+        """Apply settings changed in 'Preferences' dialog box"""
+        default = self.DOCKOPTIONS
+        if CONF.get('main', 'vertical_tabs'):
+            default = default|QMainWindow.VerticalTabs
+        if CONF.get('main', 'animated_docks'):
+            default = default|QMainWindow.AnimatedDocks
+        self.setDockOptions(default)
+        
+        for child in self.widgetlist:
+            features = child.FEATURES
+            if CONF.get('main', 'vertical_dockwidget_titlebars'):
+                features = features|QDockWidget.DockWidgetVerticalTitleBar
+            child.dockwidget.setFeatures(features)
+            child.update_margins()
+        
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)
@@ -1460,6 +1482,7 @@ class MainWindow(QMainWindow):
         dlg.exec_()
         self.prefs_index = dlg.get_current_index()
 
+    #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
                           default=NoDefault):
         """
@@ -1487,6 +1510,7 @@ class MainWindow(QMainWindow):
         for index in sorted(toberemoved, reverse=True):
             self.shortcut_data.pop(index)
         
+    #---- Sessions
     def load_session(self, filename=None):
         """Load session"""
         if filename is None:

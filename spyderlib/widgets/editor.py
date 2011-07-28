@@ -28,7 +28,7 @@ from spyderlib.utils import encoding, sourcecode, programs
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, get_font
+from spyderlib.config import get_icon, get_font, EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
@@ -425,8 +425,6 @@ class EditorStack(QWidget):
         self.revert_action = None
         self.tempfile_path = None
         self.title = _("Editor")
-        self.filetype_filters = None
-        self.valid_types = None
         self.pyflakes_enabled = True
         self.pep8_enabled = True
         self.todolist_enabled = True
@@ -660,12 +658,6 @@ class EditorStack(QWidget):
         
     def set_title(self, text):
         self.title = text
-        
-    def set_filetype_filters(self, filetype_filters):
-        self.filetype_filters = filetype_filters
-        
-    def set_valid_types(self, valid_types):
-        self.valid_types = valid_types
         
     def __update_editor_margins(self, editor):
         editor.setup_margins(linenumbers=self.linenumbers_enabled,
@@ -1247,7 +1239,7 @@ class EditorStack(QWidget):
     def select_savename(self, original_filename):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                                   original_filename, self.filetype_filters)
+                                   original_filename, EDIT_FILTERS)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             return osp.normpath(filename)
@@ -1776,7 +1768,7 @@ class EditorStack(QWidget):
         Inform Qt about the types of data that the widget accepts"""
         source = event.mimeData()
         if source.hasUrls():
-            if mimedata2url(source, extlist=self.valid_types):
+            if mimedata2url(source, extlist=EDIT_EXT):
                 event.acceptProposedAction()
             else:
                 event.ignore()
@@ -1790,7 +1782,7 @@ class EditorStack(QWidget):
         Unpack dropped data and handle it"""
         source = event.mimeData()
         if source.hasUrls():
-            files = mimedata2url(source, extlist=self.valid_types)
+            files = mimedata2url(source, extlist=EDIT_EXT)
             if files:
                 for fname in files:
                     self.emit(SIGNAL('plugin_load(QString)'), fname)

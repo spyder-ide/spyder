@@ -21,7 +21,8 @@ from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
 from spyderlib.baseconfig import (SUBFOLDER, EDITABLE_TYPES, PICKLABLE_TYPES,
                                   ITERMAX, EXCLUDED, type2str,
-                                  get_module_data_path)
+                                  get_module_data_path, _)
+from spyderlib.utils.iofuncs import iofunctions
 
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
@@ -34,6 +35,58 @@ MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Courier New',
              'Monaco', 'Courier', 'monospace', 'Fixed', 'Terminal']
 MEDIUM = 10
 SMALL = 9
+
+# Extensions supported by Spyder's Editor
+EDIT_FILETYPES = (
+    (_("Python files"), ('.py', '.pyw', '.ipy')),
+    (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
+    (_("C files"), ('.c', '.h')),
+    (_("C++ files"), ('.cc', '.cpp', '.h', '.cxx', '.hpp', '.hh')),
+    (_("OpenCL files"), ('.cl', )),
+    (_("Fortran files"), ('.f', '.for', '.f90', '.f95', '.f2k')),
+    (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
+    (_("Batch files"), ('.bat', '.cmd')),
+    (_("Text files"), ('.txt',)),
+    (_("reStructured Text files"), ('.txt', '.rst')),
+    (_("gettext files"), ('.po', '.pot')),
+    (_("Web page files"), ('.css', '.htm', '.html',)),
+    (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
+                                '.reg', '.cfg', '.desktop')),
+    (_("All files"), ('',)))
+
+def _get_filters(filetypes):
+    filters = []
+    for title, ftypes in filetypes:
+        filters.append("%s (*%s)" % (title, " *".join(ftypes)))
+    return "\n".join(filters)
+
+def _get_extensions(filetypes):
+    ftype_list = []
+    for _title, ftypes in filetypes:
+        ftype_list += list(ftypes)
+    return ftype_list
+
+EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
+EDIT_EXT = _get_extensions(EDIT_FILETYPES)
+
+# Extensions supported by Spyder's Variable explorer
+IMPORT_EXT = iofunctions.load_extensions.values()
+
+# Extensions that should be visible in Spyder's file/project explorers
+SHOW_EXT = ['.png', '.ico', '.svg']
+
+# Extensions supported by Spyder (Editor or Variable explorer)
+VALID_EXT = EDIT_EXT+IMPORT_EXT
+
+# Find in files include/exclude patterns
+INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT]),
+                    r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
+                    '.']
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
+
+# Name filters for file/project explorers (excluding files without extension)
+NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
+               ['README', 'INSTALL', 'LICENSE']
 
 DEFAULTS = [
             ('main',
@@ -238,11 +291,7 @@ DEFAULTS = [
              {
               'shortcut': "Ctrl+Shift+P",
               'enable': True,
-              'name_filters': ['*.py', '*.pyw', '*.ipy', '*.pth',
-                               '*.npy', '*.mat', '*.spydata',
-                               '*.txt', '*.csv', '*.dat'],
-              'valid_filetypes': ['', '.py', '.pyw', '.ipy', '.spydata', '.npy',
-                                  '.pth', '.txt', '.csv', '.mat', '.h5'],
+              'name_filters': NAME_FILTERS,
               'show_all': False,
               }),
             ('arrayeditor',
@@ -270,11 +319,7 @@ DEFAULTS = [
              {
               'enable': True,
               'wrap': True,
-              'name_filters': ['*.py', '*.pyw', '*.ipy', '*.pth',
-                               '*.npy', '*.mat', '*.spydata',
-                               '*.txt', '*.csv', '*.dat'],
-              'valid_filetypes': ['', '.py', '.pyw', '.ipy', '.spydata', '.npy',
-                                  '.pth', '.txt', '.csv', '.mat', '.h5'],
+              'name_filters': NAME_FILTERS,
               'show_hidden': True,
               'show_all': False,
               'show_cd_only': True,
@@ -285,9 +330,9 @@ DEFAULTS = [
              {
               'enable': True,
               'supported_encodings': ["utf-8", "iso-8859-1", "cp1252"],
-              'include': [r'\.pyw?$|\.ipy$|\.txt$|\.c$|\.cpp$|\.cl$|\.h$|\.hpp$|\.f$|\.ini$', '.'],
+              'include': INCLUDE_PATTERNS,
               'include_regexp': True,
-              'exclude': [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn'],
+              'exclude': EXCLUDE_PATTERNS,
               'exclude_regexp': True,
               'search_text_regexp': True,
               'search_text': [''],

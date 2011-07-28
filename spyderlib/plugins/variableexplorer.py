@@ -193,12 +193,6 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         """Register plugin in Spyder's main window"""
         self.main.extconsole.set_variableexplorer(self)
         self.main.add_dockwidget(self)
-        if self.main.explorer is not None:
-            self.connect(self.main.explorer, SIGNAL("import_data(QString)"),
-                         self.import_data)
-        if self.main.projectexplorer is not None:
-            self.connect(self.main.projectexplorer,
-                         SIGNAL("import_data(QString)"), self.import_data)
         
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""

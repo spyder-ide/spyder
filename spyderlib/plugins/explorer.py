@@ -14,13 +14,15 @@
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import SIGNAL
 
-import sys, os.path as osp
+import sys
+import os.path as osp
 
 # For debugging purpose:
 STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
@@ -31,28 +33,19 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     CONF_SECTION = 'explorer'
     def __init__(self, parent=None):
         ExplorerWidget.__init__(self, parent=parent,
-                            name_filters=self.get_option('name_filters'),
-                            valid_types=self.get_option('valid_filetypes'),
-                            show_all=self.get_option('show_all'),
-                            show_cd_only=self.get_option('show_cd_only'),
-                            show_toolbar=self.get_option('show_toolbar'),
-                            show_icontext=self.get_option('show_icontext'))
+                                name_filters=self.get_option('name_filters'),
+                                valid_types=VALID_EXT,
+                                show_all=self.get_option('show_all'),
+                                show_cd_only=self.get_option('show_cd_only'),
+                                show_toolbar=self.get_option('show_toolbar'),
+                                show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)
 
         # Initialize plugin
         self.initialize_plugin()
         
-        self.editor_valid_types = None
-        
         self.set_font(self.get_plugin_font())
         
-        self.sig_open_file.connect(self.open_file)
-        
-    #------ Private API --------------------------------------------------------
-    def set_editor_valid_types(self, valid_types):
-        self.editor_valid_types = valid_types
-        self.treewidget.valid_types += valid_types
-
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
         """Return widget title"""
@@ -77,8 +70,6 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
-        valid_types = self.main.editor.get_valid_types()
-        self.set_editor_valid_types(valid_types)
         self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
         self.connect(self, SIGNAL("removed(QString)"), self.main.editor.removed)
         self.connect(self, SIGNAL("renamed(QString,QString)"),
@@ -109,6 +100,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      lambda dirname:
                      self.main.workingdirectory.chdir(dirname,
                                                       refresh_explorer=False))
+
+        self.sig_open_file.connect(self.main.open_file)
         
     def refresh_plugin(self, new_path=None, force_current=True):
         """Refresh explorer widget"""
@@ -128,20 +121,6 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         """Set working directory"""
         self.treewidget.chdir(directory)
         
-    def open_file(self, fname):
-        """
-        Open filename with the appropriate application
-        Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
-        """
-        fname = unicode(fname)
-        ext = osp.splitext(fname)[1]
-        if ext in self.editor_valid_types:
-            self.emit(SIGNAL("edit(QString)"), fname)
-        elif ext in ('.spydata', '.npy', '.mat'):
-            self.emit(SIGNAL("import_data(QString)"), fname)
-        else:
-            self.treewidget.startfile(fname)
-        
     def change_font(self):
         """Change font"""
         font, valid = QFontDialog.getFont(self.get_plugin_font(), self,
@@ -154,4 +133,3 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         """Set explorer widget font"""
         self.setFont(font)
         self.treewidget.setFont(font)
-

@@ -28,7 +28,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import get_icon, CONF, get_color_scheme
+from spyderlib.config import get_icon, CONF, get_color_scheme, EDIT_FILTERS
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_std_icon, get_filetype_icon)
@@ -342,27 +342,7 @@ class Editor(SpyderPluginWidget):
         
         # Initialize plugin
         self.initialize_plugin()
-        
-        self.filetypes = ((_("Python files"), ('.py', '.pyw', '.ipy')),
-                          (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
-                          (_("C files"), ('.c', '.h')),
-                          (_("C++ files"),
-                           ('.cc', '.cpp', '.h', '.cxx', '.hpp', '.hh')),
-                          (_("OpenCL files"), ('.cl', )),
-                          (_("Fortran files"),
-                           ('.f', '.for', '.f90', '.f95', '.f2k')),
-                          (_("Patch and diff files"),
-                           ('.patch', '.diff', '.rej')),
-                          (_("Batch files"), ('.bat', '.cmd')),
-                          (_("Text files"), ('.txt',)),
-                          (_("reStructured Text files"), ('.txt', '.rst')),
-                          (_("gettext files"), ('.po', '.pot')),
-                          (_("Web page files"), ('.css', '.htm', '.html',)),
-                          (_("Configuration files"),
-                           ('.properties', '.session', '.ini', '.inf',
-                            '.reg', '.cfg')),
-                          (_("All files"), ('',)))
-        
+                
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
@@ -954,8 +934,6 @@ class Editor(SpyderPluginWidget):
         editorstack.set_io_actions(self.new_action, self.open_action,
                                    self.save_action, self.revert_action)
         editorstack.set_tempfile_path(self.TEMPFILE_PATH)
-        editorstack.set_filetype_filters(self.get_filetype_filters())
-        editorstack.set_valid_types(self.get_valid_types())
         settings = (
             ('set_pyflakes_enabled',                'code_analysis/pyflakes'),
             ('set_pep8_enabled',                    'code_analysis/pep8'),
@@ -1133,18 +1111,6 @@ class Editor(SpyderPluginWidget):
     
         
     #------ Accessors
-    def get_filetype_filters(self):
-        filters = []
-        for title, ftypes in self.filetypes:
-            filters.append("%s (*%s)" % (title, " *".join(ftypes)))
-        return "\n".join(filters)
-
-    def get_valid_types(self):
-        ftype_list = []
-        for _title, ftypes in self.filetypes:
-            ftype_list += list(ftypes)
-        return ftype_list
-
     def get_filenames(self):
         return [finfo.filename for finfo in self.editorstacks[0].data]
 
@@ -1470,7 +1436,7 @@ class Editor(SpyderPluginWidget):
             self.emit(SIGNAL('redirect_stdio(bool)'), False)
             parent_widget = self.get_current_editorstack()
             filenames, _selfilter = getopenfilenames(parent_widget,
-                        _("Open file"), basedir, self.get_filetype_filters())
+                                         _("Open file"), basedir, EDIT_FILTERS)
             self.emit(SIGNAL('redirect_stdio(bool)'), True)
             if filenames:
                 filenames = [osp.normpath(fname) for fname in filenames]
