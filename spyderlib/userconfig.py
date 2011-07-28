@@ -98,7 +98,10 @@ class UserConfig(ConfigParser):
             # If config file already exists, it overrides Default options:
             self.load_from_ini()
             old_ver = self.get_version(version)
-            if version != old_ver:
+            _major = lambda _t: _t[:_t.find('.')]
+            _minor = lambda _t: _t[:_t.rfind('.')]
+            # Resetting to defaults only if major/minor version is different
+            if _minor(version) != _minor(old_ver):
                 if backup:
                     try:
                         shutil.copyfile(fname, "%s-%s.bak" % (fname, old_ver))
@@ -106,7 +109,7 @@ class UserConfig(ConfigParser):
                         pass
                 # Version has changed -> overwriting .ini file
                 self.reset_to_defaults(save=False)
-                if remove_obsolete:
+                if remove_obsolete or _major(version) != _major(old_ver):
                     self.__remove_deprecated_options()
                 # Set new version number
                 self.set_version(version, save=False)
