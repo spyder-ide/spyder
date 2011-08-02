@@ -459,8 +459,6 @@ class EditorStack(QWidget):
         if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
-                
-        self.__file_status_flag = False
         
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
@@ -1430,19 +1428,13 @@ class EditorStack(QWidget):
         self.emit(SIGNAL('readonly_changed(bool)'), read_only)
         
     def __check_file_status(self, index):
-        if self.__file_status_flag:
-            # Avoid infinite loop: when the QMessageBox.question pops, it
-            # gets focus and then give it back to the CodeEditor instance,
-            # triggering a refresh cycle which calls this method
-            return
-        
+        """Check if file has been changed in any way outside Spyder:
+        1. removed, moved or renamed outside Spyder
+        2. modified outside Spyder"""
         finfo = self.data[index]
         if finfo.newly_created:
             return
-        
-        self.__file_status_flag = True
-        name = osp.basename(finfo.filename)
-        
+        name = osp.basename(finfo.filename)        
         # First, testing if file still exists (removed, moved or offline):
         if not osp.isfile(finfo.filename):
             answer = QMessageBox.warning(self, self.title,
@@ -1453,6 +1445,10 @@ class EditorStack(QWidget):
                                 QMessageBox.Yes | QMessageBox.No)
             if answer == QMessageBox.Yes:
                 self.close_file(index)
+            else:
+                finfo.newly_created = True
+                finfo.editor.document().setModified(True)
+                self.modification_changed(index=index)
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
@@ -1471,9 +1467,6 @@ class EditorStack(QWidget):
                         finfo.lastmodified = lastm
                 else:
                     self.reload(index)
-                    
-        # Finally, resetting temporary flag:
-        self.__file_status_flag = False
         
     def refresh(self, index=None):
         """Refresh tabwidget"""
