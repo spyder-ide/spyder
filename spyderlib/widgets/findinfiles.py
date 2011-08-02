@@ -451,7 +451,7 @@ class FindOptions(QWidget):
             self.custom_dir.setChecked(True)
         
     def set_search_text(self, text):
-        self.search_text.setEditText(text)
+        self.search_text.add_text(text)
         self.search_text.lineEdit().selectAll()
         self.search_text.setFocus()
         
