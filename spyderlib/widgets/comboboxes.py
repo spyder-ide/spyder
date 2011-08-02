@@ -51,7 +51,13 @@ class BaseComboBox(QComboBox):
             self.removeItem(index)
             index = self.findText(text)
         self.insertItem(0, text)
-        self.setCurrentIndex(0)
+        index = self.findText('')
+        if index != -1:
+            self.removeItem(index)
+            self.insertItem(0, '')
+            self.setCurrentIndex(1)
+        else:
+            self.setCurrentIndex(0)
 
     def keyPressEvent(self, event):
         """Handle key press events"""
