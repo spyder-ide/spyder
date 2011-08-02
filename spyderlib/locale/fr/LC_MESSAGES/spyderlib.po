@@ -72,6 +72,10 @@ msgstr "Général"
 msgid "Interface"
 msgstr "Interface"
 
+#: spyderlib\plugins\configdialog.py:605
+msgid "Qt windows style"
+msgstr "Style de fenêtres Qt"
+
 #: spyderlib\plugins\configdialog.py:600
 msgid "Vertical dockwidget title bars"
 msgstr "Barres de titre orientées verticalement"

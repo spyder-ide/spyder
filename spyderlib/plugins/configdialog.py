@@ -21,7 +21,8 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QMessageBox, QLabel, QLineEdit, QSpinBox,
                                 QPushButton, QFontComboBox, QGroupBox,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
-                                QRadioButton, QButtonGroup, QSplitter)
+                                QRadioButton, QButtonGroup, QSplitter,
+                                QStyleFactory)
 from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
@@ -237,8 +238,8 @@ class SpyderConfigPage(ConfigPage):
         for combobox, (option, default) in self.comboboxes.items():
             value = self.get_option(option, default)
             for index in range(combobox.count()):
-                if from_qvariant(combobox.itemData(index), unicode
-                                 ) == unicode(value):
+                if from_qvariant(combobox.itemData(index, Qt.UserRole),
+                                 unicode) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
             self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
@@ -596,6 +597,11 @@ class MainConfigPage(GeneralConfigPage):
     
     def setup_page(self):
         interface_group = QGroupBox(_("Interface"))
+        styles = [str(txt) for txt in QStyleFactory.keys()]
+        choices = zip(styles, [style.lower() for style in styles])
+        style_combo = self.create_combobox(_('Qt windows style'), choices,
+                                           'windows_style',
+                                           default=self.main.default_style)
         newcb = self.create_checkbox
         vertdock_box = newcb(_("Vertical dockwidget title bars"),
                              'vertical_dockwidget_titlebars')
@@ -615,6 +621,7 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_spin)
         
         interface_layout = QVBoxLayout()
+        interface_layout.addWidget(style_combo)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)

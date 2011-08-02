@@ -64,7 +64,7 @@ try:
 except ImportError:
     pass
 
-from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
+from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen, qApp,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction)
 from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
@@ -198,6 +198,8 @@ class MainWindow(QMainWindow):
     
     def __init__(self, options=None):
         QMainWindow.__init__(self)
+        
+        self.default_style = str(qApp.style().objectName())
         
         self.dialog_manager = DialogManager()
         
@@ -1432,6 +1434,8 @@ class MainWindow(QMainWindow):
     #---- Preferences
     def apply_settings(self):
         """Apply settings changed in 'Preferences' dialog box"""
+        qApp.setStyle(CONF.get('main', 'windows_style', self.default_style))
+        
         default = self.DOCKOPTIONS
         if CONF.get('main', 'vertical_tabs'):
             default = default|QMainWindow.VerticalTabs
