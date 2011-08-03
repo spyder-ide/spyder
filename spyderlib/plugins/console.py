@@ -217,7 +217,6 @@ class Console(SpyderPluginWidget):
             if filename:
                 os.chdir( os.path.dirname(filename) )
                 filename = os.path.basename(filename)
-                self.emit(SIGNAL("refresh()"))
             else:
                 return
         command = "runfile(%s, args=%s)" % (repr(osp.abspath(filename)),

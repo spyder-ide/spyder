@@ -500,8 +500,12 @@ class ExternalPythonShell(ExternalShellBase):
         self.process.setReadChannel(QProcess.StandardOutput)
         if self.process.waitForReadyRead(1):
             self.write_output()
-            
-        self.shell.write_error(self.get_stderr())
+        
+        txt = self.get_stderr()
+        if txt.startswith('>>>'):
+            # New prompt: refreshing variable explorer
+            self.namespacebrowser.refresh_table()
+        self.shell.write_error(txt)
         QApplication.processEvents()
         
     def send_to_process(self, text):
