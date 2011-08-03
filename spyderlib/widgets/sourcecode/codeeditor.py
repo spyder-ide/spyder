@@ -270,67 +270,96 @@ class GoToLineDialog(QDialog):
 # Viewport widgets
 #===============================================================================
 class LineNumberArea(QWidget):
+    """Line number area (on the left side of the text editor widget)"""
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.code_editor = editor
         self.setMouseTracking(True)
 
     def sizeHint(self):
+        """Override Qt method"""
         return QSize(self.code_editor.compute_linenumberarea_width(), 0)
 
     def paintEvent(self, event):
+        """Override Qt method"""
         self.code_editor.linenumberarea_paint_event(event)
 
     def mouseMoveEvent(self, event):
+        """Override Qt method"""
         self.code_editor.linenumberarea_mousemove_event(event)
 
     def mouseDoubleClickEvent(self, event):
+        """Override Qt method"""
         self.code_editor.linenumberarea_mousedoubleclick_event(event)
 
+
 class ScrollFlagArea(QWidget):
+    """Source code editor's scroll flag area"""
     WIDTH = 12
     FLAGS_DX = 4
-    FLAGS_DY = 4
+    FLAGS_DY = 2
+    
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.code_editor = editor
+        self.vsb = editor.verticalScrollBar()
+        self.connect(self.vsb, SIGNAL('valueChanged(int)'),
+                     lambda value: self.repaint())
 
     def sizeHint(self):
+        """Override Qt method"""
         return QSize(self.WIDTH, 0)
 
     def paintEvent(self, event):
+        """Override Qt method"""
         self.code_editor.scrollflagarea_paint_event(event)
 
-    def __get_scale(self):
-        sb = self.code_editor.verticalScrollBar()
-        return float(self.height())/(sb.maximum()-sb.minimum()+sb.pageStep())
+    def mousePressEvent(self, event):
+        """Override Qt method"""
+        value = self.position_to_value(event.pos().y()-1)
+        self.vsb.setValue(value-.5*self.vsb.pageStep())
+        
+    def get_scale_factor(self, slider=False):
+        """Return scrollbar's scale factor:
+        ratio between pixel span height and value span height"""
+        delta = 0 if slider else 2
+        vsb = self.vsb
+        position_height = vsb.height()-delta-1
+        value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
+        return float(position_height)/value_height
+        
+    def value_to_position(self, y, slider=False):
+        """Convert value to position"""
+        offset = 0 if slider else 1
+        return (y-self.vsb.minimum())*self.get_scale_factor(slider)+offset
+        
+    def position_to_value(self, y, slider=False):
+        """Convert position to value"""
+        offset = 0 if slider else 1
+        return self.vsb.minimum()+max([0, (y-offset)/self.get_scale_factor(slider)])
 
-    def scrollflag_to_scrollbar(self, y):
-        sb = self.code_editor.verticalScrollBar()
-        return sb.minimum()+max([0, y/self.__get_scale()-.5*sb.pageStep()])
-
-    def scrollbar_to_scrollflag(self, y):
-        sb = self.code_editor.verticalScrollBar()
-        return (y-sb.minimum())*self.__get_scale()
-
-    def make_flag_qrect(self, line_nb):
-        y = self.scrollbar_to_scrollflag(line_nb)
-        return QRect(self.FLAGS_DX/2, y-self.FLAGS_DY/2,
+    def make_flag_qrect(self, position):
+        """Make flag QRect"""
+        return QRect(self.FLAGS_DX/2, position-self.FLAGS_DY/2,
                      self.WIDTH-self.FLAGS_DX, self.FLAGS_DY)
 
-    def mousePressEvent(self, event):
-        y = event.pos().y()
-        sb = self.code_editor.verticalScrollBar()
-        sb.setValue( self.scrollflag_to_scrollbar(y) )
+    def make_slider_range(self, value):
+        """Make slider range QRect"""
+        pos1 = self.value_to_position(value, slider=True)
+        pos2 = self.value_to_position(value + self.vsb.pageStep(), slider=True)
+        return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
+
 
 class EdgeLine(QWidget):
+    """Source code editor's edge line (default: 79 columns, PEP8)"""
     def __init__(self, editor):
         QWidget.__init__(self, editor)
         self.code_editor = editor
         self.column = 79
 
     def paintEvent(self, event):
+        """Override Qt method"""
         painter = QPainter(self)
         color = QColor(Qt.darkGray)
         color.setAlphaF(.5)
@@ -357,6 +386,7 @@ class BlockUserData(QTextBlockUserData):
         bud_list = self.editor.blockuserdata_list
         bud_list.pop(bud_list.index(self))
 
+
 def get_primary_at(source_code, offset):
     """Return Python object in *source_code* at *offset*"""
     try:
@@ -366,11 +396,15 @@ def get_primary_at(source_code, offset):
     except ImportError:
         return
 
+
 def set_scrollflagarea_painter(painter, light_color):
+    """Set scroll flag area painter pen and brush colors"""
     painter.setPen(QColor(light_color).darker(120))
     painter.setBrush(QBrush(QColor(light_color)))
 
+
 def get_file_language(filename, text=None):
+    """Get file language from filename"""
     ext = osp.splitext(filename)[1]
     if ext.startswith('.'):
         ext = ext[1:] # file extension with leading dot
@@ -388,10 +422,9 @@ def get_file_language(filename, text=None):
                 break
     return language
 
+
 class CodeEditor(TextEditBaseWidget):
-    """
-    Source Code Editor Widget based exclusively on Qt
-    """
+    """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES = {
                  ('py', 'pyw', 'python', 'ipy'): (syntaxhighlighters.PythonSH,
                                                   '#', PythonCFM),
@@ -907,6 +940,7 @@ class CodeEditor(TextEditBaseWidget):
             self.update_linenumberarea_width(0)
 
     def linenumberarea_paint_event(self, event):
+        """Painting line number area"""
         font_height = self.fontMetrics().height()
         painter = QPainter(self.linenumberarea)
         painter.fillRect(event.rect(), self.area_background_color)
@@ -951,6 +985,7 @@ class CodeEditor(TextEditBaseWidget):
             block_number += 1
 
     def __get_linenumber_from_mouse_event(self, event):
+        """Return line number from mouse event"""
         block = self.firstVisibleBlock()
         line_number = block.blockNumber()
         top = self.blockBoundingGeometry(block).translated(
@@ -966,6 +1001,7 @@ class CodeEditor(TextEditBaseWidget):
         return line_number
 
     def linenumberarea_mousemove_event(self, event):
+        """Handling line number area mouse move event"""
         line_number = self.__get_linenumber_from_mouse_event(event)
         block = self.document().findBlockByNumber(line_number-1)
         data = block.userData()
@@ -973,6 +1009,7 @@ class CodeEditor(TextEditBaseWidget):
             self.__show_code_analysis_results(line_number, data.code_analysis)
 
     def linenumberarea_mousedoubleclick_event(self, event):
+        """Handling line number area mouse double-click event"""
         line_number = self.__get_linenumber_from_mouse_event(event)
         shift = event.modifiers() & Qt.ShiftModifier
         self.add_remove_breakpoint(line_number, edit_condition=shift)
@@ -981,6 +1018,7 @@ class CodeEditor(TextEditBaseWidget):
     #------Breakpoints
     def add_remove_breakpoint(self, line_number=None, condition=None,
                               edit_condition=False):
+        """Add/remove breakpoint"""
         if not self.is_python() and not self.is_cython():
             return
         if line_number is None:
@@ -1022,6 +1060,7 @@ class CodeEditor(TextEditBaseWidget):
         self.emit(SIGNAL('breakpoints_changed()'))
 
     def get_breakpoints(self):
+        """Get breakpoints"""
         breakpoints = []
         block = self.document().firstBlock()
         for line_number in xrange(1, self.document().blockCount()+1):
@@ -1032,6 +1071,7 @@ class CodeEditor(TextEditBaseWidget):
         return breakpoints
 
     def clear_breakpoints(self):
+        """Clear breakpoints"""
         for data in self.blockuserdata_list[:]:
             data.breakpoint = False
 #            data.breakpoint_condition = None # not necessary, but logical
@@ -1039,6 +1079,7 @@ class CodeEditor(TextEditBaseWidget):
                 del data
 
     def set_breakpoints(self, breakpoints):
+        """Set breakpoints"""
         self.clear_breakpoints()
         for line_number, condition in breakpoints:
             self.add_remove_breakpoint(line_number, condition)
@@ -1046,43 +1087,56 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----Code introspection
     def do_code_completion(self):
+        """Trigger code completion"""
         if not self.is_completion_widget_visible():
             self.emit(SIGNAL('trigger_code_completion(bool)'), False)
 
     def do_go_to_definition(self):
+        """Trigger go-to-definition"""
         self.emit(SIGNAL("go_to_definition(int)"), self.textCursor().position())
 
 
     #-----edge line
     def set_edge_line_enabled(self, state):
+        """Toggle edge line visibility"""
         self.edge_line_enabled = state
         self.edge_line.setVisible(state)
 
     def set_edge_line_column(self, column):
+        """Set edge line column value"""
         self.edge_line.column = column
         self.edge_line.update()
 
 
     #-----scrollflagarea
     def set_scrollflagarea_enabled(self, state):
+        """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
         self.update_linenumberarea_width(0)
 
     def get_scrollflagarea_width(self):
+        """Return scroll flag area width"""
         if self.scrollflagarea_enabled:
             return ScrollFlagArea.WIDTH
         else:
             return 0
 
     def scrollflagarea_paint_event(self, event):
+        """Painting the scroll flag area"""
         make_flag = self.scrollflagarea.make_flag_qrect
+        make_slider = self.scrollflagarea.make_slider_range
+        
+        # Filling the whole painting area
         painter = QPainter(self.scrollflagarea)
         painter.fillRect(event.rect(), self.area_background_color)
         block = self.document().firstBlock()
+        
+        # Painting warnings and todos
         for line_number in xrange(1, self.document().blockCount()+1):
             data = block.userData()
             if data:
+                position = self.scrollflagarea.value_to_position(line_number)
                 if data.code_analysis:
                     # Warnings
                     color = self.warning_color
@@ -1091,22 +1145,32 @@ class CodeEditor(TextEditBaseWidget):
                             color = self.error_color
                             break
                     set_scrollflagarea_painter(painter, color)
-                    painter.drawRect(make_flag(line_number))
+                    painter.drawRect(make_flag(position))
                 if data.todo:
                     # TODOs
                     set_scrollflagarea_painter(painter, self.todo_color)
-                    painter.drawRect(make_flag(line_number))
+                    painter.drawRect(make_flag(position))
                 if data.breakpoint:
                     # Breakpoints
-                    set_scrollflagarea_painter(painter,
-                                                     self.breakpoint_color)
-                    painter.drawRect(make_flag(line_number))
+                    set_scrollflagarea_painter(painter, self.breakpoint_color)
+                    painter.drawRect(make_flag(position))
             block = block.next()
+            
         # Occurences
         if self.occurences:
             set_scrollflagarea_painter(painter, self.occurence_color)
-            for line in self.occurences:
-                painter.drawRect(make_flag(line))
+            for line_number in self.occurences:
+                position = self.scrollflagarea.value_to_position(line_number)
+                painter.drawRect(make_flag(position))
+
+        # Painting the slider range
+        pen_color = QColor(Qt.white)
+        pen_color.setAlphaF(.8)
+        painter.setPen(pen_color)
+        brush_color = QColor(Qt.white)
+        brush_color.setAlphaF(.5)
+        painter.setBrush(QBrush(brush_color))
+        painter.drawRect(make_slider(self.firstVisibleBlock().blockNumber()))
 
     def resizeEvent(self, event):
         """Reimplemented Qt method to handle line number area resizing"""
@@ -1118,6 +1182,7 @@ class CodeEditor(TextEditBaseWidget):
         self.__set_scrollflagarea_geometry(cr)
 
     def __set_scrollflagarea_geometry(self, contentrect):
+        """Set scroll flag area geometry"""
         cr = contentrect
         if self.verticalScrollBar().isVisible():
             vsbw = self.verticalScrollBar().contentsRect().width()
@@ -1135,6 +1200,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----edgeline
     def viewportEvent(self, event):
+        """Override Qt method"""
         # 79-column edge line
         cr = self.contentsRect()
         offset = self.contentOffset()
@@ -1169,6 +1235,7 @@ class CodeEditor(TextEditBaseWidget):
         self.remove_selected_text()
 
     def _apply_highlighter_color_scheme(self):
+        """Apply syntax highlighter color scheme"""
         hl = self.highlighter
         if hl is not None:
             self.set_palette(background=hl.get_background_color(),
@@ -1182,6 +1249,7 @@ class CodeEditor(TextEditBaseWidget):
         self.highlight_current_line()
 
     def apply_highlighter_settings(self, color_scheme=None):
+        """Apply syntax highlighter settings"""
         if self.highlighter_class is not None:
             if not isinstance(self.highlighter, self.highlighter_class):
                 # Highlighter object has not been constructed yet
@@ -1214,6 +1282,7 @@ class CodeEditor(TextEditBaseWidget):
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
+        """Set syntax highlighter color scheme"""
         self.color_scheme = color_scheme
         if self.highlighter is not None:
             self.highlighter.set_color_scheme(color_scheme)
@@ -1255,6 +1324,7 @@ class CodeEditor(TextEditBaseWidget):
         TextEditBaseWidget.paste(self)
 
     def get_block_data(self, block):
+        """Return block data (from syntax highlighter)"""
         return self.highlighter.block_data.get(block)
 
     def get_fold_level(self, block_nb):
@@ -2117,6 +2187,7 @@ class TestWidget(QSplitter):
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
+    app.setStyle('Plastique')
     win = TestWidget(None)
     win.show()
     win.load(fname)
@@ -2125,8 +2196,8 @@ def test(fname):
     from spyderlib.widgets.editortools import (check_with_pyflakes,
                                                check_with_pep8)
     source_code = unicode(win.editor.toPlainText()).encode('utf-8')
-    res = check_with_pyflakes(source_code, fname)+\
-          check_with_pep8(source_code, fname)
+    res = check_with_pyflakes(source_code, fname)#+\
+#          check_with_pep8(source_code, fname)
     win.editor.process_code_analysis(res)
 
     sys.exit(app.exec_())
