@@ -30,9 +30,50 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.utils import programs
 
 
-#===============================================================================
+#==============================================================================
 # Pyflakes/pep8 code analysis
-#===============================================================================
+#==============================================================================
+def find_tasks(source_code):
+    """Find tasks in source code (TODO, FIXME, XXX, ...)"""
+    pattern = r"# ?TODO ?:?[^#]*|# ?FIXME ?:?[^#]*|"\
+              r"# ?XXX ?:?[^#]*|# ?HINT ?:?[^#]*|# ?TIP ?:?[^#]*"
+    results = []
+    for line, text in enumerate(source_code.splitlines()):
+        for todo in re.findall(pattern, text):
+            results.append((todo, line+1))
+    return results
+
+
+def check_with_pyflakes(source_code, filename=None):
+    """Check source code with pyflakes
+    Returns an empty list if pyflakes is not installed"""
+    if filename is None:
+        filename = '<string>'
+    source_code += '\n'
+    import _ast
+    from spyderlib.utils.external.pyflakes.checker import Checker
+    # First, compile into an AST and handle syntax errors.
+    try:
+        tree = compile(source_code, filename, "exec", _ast.PyCF_ONLY_AST)
+    except SyntaxError, value:
+        # If there's an encoding problem with the file, the text is None.
+        if value.text is None:
+            return []
+        else:
+            return [(value.args[0], value.lineno)]
+    else:
+        # Okay, it's syntactically valid.  Now check it.
+        w = Checker(tree, filename)
+        w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
+        results = []
+        lines = source_code.splitlines()
+        for warning in w.messages:
+            if 'analysis:ignore' not in lines[warning.lineno-1]:
+                results.append((warning.message % warning.message_args,
+                                warning.lineno))
+        return results
+
+
 def get_checker_executable(name):
     """Return checker executable in the form of a list of arguments
     for subprocess.Popen"""
@@ -52,6 +93,7 @@ def get_checker_executable(name):
             # Checker package is available but its script has not been
             # installed (this works with pep8 but not with pyflakes)
             return [sys.executable, path2]
+
 
 def check(args, source_code, filename=None, options=None):
     """Check source code with checker defined with *args* (list)
@@ -79,30 +121,24 @@ def check(args, source_code, filename=None, options=None):
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
         if 'analysis:ignore' not in lines[lineno-1]:
             message = line[line.find(': ')+2:]
-            error = 'syntax' in message
-            results.append((message, lineno, error))
+            results.append((message, lineno))
     return results
 
-def check_with_pyflakes(source_code, filename=None):
-    """Check source code with pyflakes
-    Returns an empty list if pyflakes is not installed"""
-    # Setting filename to None all the time because pyflakes won't analyze 
-    # scripts with an indented ending line
-    args = get_checker_executable('pyflakes')
-    return check(args, source_code, filename=None)
 
 def check_with_pep8(source_code, filename=None):
     """Check source code with pep8"""
     args = get_checker_executable('pep8')
     return check(args, source_code, filename=filename, options=['-r'])
 
+
 if __name__ == '__main__':
     fname = __file__
     code = file(fname, 'U').read()
     check_results = check_with_pyflakes(code, fname)+\
                     check_with_pep8(code, fname)
-    for message, line, error in check_results:
-        print "Message: %s -- Line: %s -- Error? %s" % (message, line, error)
+    for message, line in check_results:
+        print "Message: %s -- Line: %s" % (message, line)
+
 
 #===============================================================================
 # Class browser

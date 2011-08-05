@@ -1391,7 +1391,8 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         document = self.document()
         flags = QTextDocument.FindCaseSensitively|QTextDocument.FindWholeWords
-        for message, line_number, error in check_results:
+        for message, line_number in check_results:
+            error = 'syntax' in message
             # Note: line_number start from 1 (not 0)
             block = self.document().findBlockByNumber(line_number-1)
             data = block.userData()

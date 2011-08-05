@@ -203,15 +203,12 @@ class EditorConfigPage(PluginConfigPage):
                                   "guide for Python code, please refer to the "
                                   "%s page.") % pep8_url)
         analysis_label.setWordWrap(True)
-        is_pyflakes = get_checker_executable('pyflakes') is not None
         is_pep8 = get_checker_executable('pep8') is not None
-        analysis_label.setEnabled(is_pyflakes or is_pep8)
         pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
                       'code_analysis/pyflakes', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"
                             "using pyflakes, lines containing errors or \n"
                             "warnings will be highlighted"))
-        pyflakes_box.setEnabled(is_pyflakes)
         pep8_box = newcb(_("Style analysis")+' (pep8)',
                       'code_analysis/pep8', default=False,
                       tip=_('If enabled, Python source code will be analyzed\n'

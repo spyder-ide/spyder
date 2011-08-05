@@ -33,8 +33,9 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import (OutlineExplorerWidget,
-                                           check_with_pyflakes, check_with_pep8)
+from spyderlib.widgets.editortools import (OutlineExplorerWidget, find_tasks,
+                                           check_with_pyflakes,
+                                           check_with_pep8)
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
@@ -170,7 +171,6 @@ class CodeAnalysisThread(QThread):
 
 class ToDoFinderThread(QThread):
     """TODO finder thread"""
-    PATTERN = r"# ?TODO ?:?[^#]*|# ?FIXME ?:?[^#]*|# ?XXX ?:?[^#]*|# ?HINT ?:?[^#]*|# ?TIP ?:?[^#]*"
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.source_code = None
@@ -178,10 +178,7 @@ class ToDoFinderThread(QThread):
         
     def run(self):
         """Run TODO finder"""
-        self.results = []
-        for line, text in enumerate(self.source_code.splitlines()):
-            for todo in re.findall(self.PATTERN, text):
-                self.results.append((todo, line+1))
+        self.results = find_tasks(self.source_code)
 
 
 class FileInfo(QObject):
@@ -426,7 +423,7 @@ class EditorStack(QWidget):
         self.tempfile_path = None
         self.title = _("Editor")
         self.pyflakes_enabled = True
-        self.pep8_enabled = True
+        self.pep8_enabled = False
         self.todolist_enabled = True
         self.realtime_analysis_enabled = False
         self.is_analysis_done = False
@@ -2250,6 +2247,7 @@ class EditorPluginExample(QSplitter):
         event.accept()
         
     def load(self, fname):
+        QApplication.processEvents()
         editorstack = self.editorstacks[0]
         editorstack.load(fname)
         editorstack.analyze_script()
@@ -2331,12 +2329,12 @@ def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     test = EditorPluginExample()
-    test.resize(900, 800)
+    test.resize(900, 700)
+    test.show()
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
     test.load("sourcecode/codeeditor.py")
-    test.show()
     sys.exit(app.exec_())
     
 if __name__ == "__main__":
