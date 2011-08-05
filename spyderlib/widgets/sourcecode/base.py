@@ -592,11 +592,17 @@ class TextEditBaseWidget(QPlainTextEdit):
         """Delete selected text"""
         self.textCursor().removeSelectedText()
         
-    def replace(self, text):
-        """Replace selected text by *text*"""
+    def replace(self, text, pattern=None):
+        """Replace selected text by *text*
+        If *pattern* is not None, replacing selected text using regular
+        expression text substitution"""
         cursor = self.textCursor()
         cursor.beginEditBlock()
+        if pattern is not None:
+            seltxt = unicode(cursor.selectedText())
         cursor.removeSelectedText()
+        if pattern is not None:
+            text = re.sub(unicode(pattern), unicode(text), unicode(seltxt))
         cursor.insertText(text)
         cursor.endEditBlock()
         
@@ -675,11 +681,12 @@ class TextEditBaseWidget(QPlainTextEdit):
             moves += [QTextCursor.End]
         if not regexp:
             text = re.escape(unicode(text))
-        regexp = QRegExp(r"\b%s\b" % text if words else text,
-                         Qt.CaseSensitive if case else Qt.CaseInsensitive)
+        pattern = QRegExp(r"\b%s\b" % text if words else text,
+                          Qt.CaseSensitive if case else Qt.CaseInsensitive,
+                          QRegExp.RegExp2)
         for move in moves:
             cursor.movePosition(move)
-            found_cursor = self.document().find(regexp, cursor, findflag)
+            found_cursor = self.document().find(pattern, cursor, findflag)
             if not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True

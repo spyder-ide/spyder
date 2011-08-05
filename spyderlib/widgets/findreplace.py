@@ -259,6 +259,7 @@ class FindReplace(QWidget):
         if (self.editor is not None):
             replace_text = self.replace_text.currentText()
             search_text = self.search_text.currentText()
+            pattern = search_text if self.re_button.isChecked() else None
             first = True
             while True:
                 if first:
@@ -288,8 +289,7 @@ class FindReplace(QWidget):
                     if self.editor.is_position_inf(position1, position0):
                         wrapped = True
                     position0 = position1
-                
-                self.editor.replace(replace_text)
+                self.editor.replace(replace_text, pattern=pattern)
                 if not self.find_next():
                     break
                 if not self.all_check.isChecked():
