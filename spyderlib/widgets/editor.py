@@ -45,7 +45,7 @@ from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 # For debugging purpose:
 STDOUT = sys.stdout
 DEBUG = False
-        
+
 
 class FileListDialog(QDialog):
     def __init__(self, parent, tabs, fullpath_sorting):
@@ -151,41 +151,73 @@ class FileListDialog(QDialog):
             self.listwidget.setCurrentRow(new_current_index)
         for btn in self.buttons:
             btn.setEnabled(lw_index > 0)
-        
 
-class CodeAnalysisThread(QThread):
-    """Source code/style analysis thread (pyflakes/pep8)"""
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
-        self.filename = None
-        self.source_code = None
-        self.results = []
-        self.checkers = []
-        
+
+class AnalysisThread(QThread):
+    """Analysis thread"""
+    def __init__(self, parent, checker, end_callback, source_code):
+        super(AnalysisThread, self).__init__(parent)
+        self.checker = checker
+        self.end_callback = end_callback
+        self.source_code = source_code
+    
     def run(self):
-        """Run source code analysis"""
-        self.results = []
-        for checker in self.checkers:
-            self.results += checker(self.source_code, filename=self.filename)
+        """Run analysis"""
+        self.end_callback(self.checker(self.source_code))
 
 
-class ToDoFinderThread(QThread):
-    """TODO finder thread"""
-    def __init__(self, parent):
-        QThread.__init__(self, parent)
-        self.source_code = None
-        self.results = []
+class ThreadManager(QObject):
+    """Analysis thread manager"""
+    def __init__(self, parent, maximum_simultaneous_threads=1):
+        super(ThreadManager, self).__init__(parent)
+        self.maximum_simultaneous_threads = maximum_simultaneous_threads
+        self.started_threads = {}
+        self.pending_threads = []
         
-    def run(self):
-        """Run TODO finder"""
-        self.results = find_tasks(self.source_code)
+    def close_threads(self, parent):
+        """Close threads associated to parent_id"""
+        parent_id = id(parent)
+        self.pending_threads = [(_th, _id) for (_th, _id)
+                                in self.pending_threads if _id != parent_id]
+        for thread in self.started_threads.get(parent_id, []):
+            if DEBUG:
+                print >>STDOUT, "Waiting for thread %r to finish" % thread
+            while thread.isRunning():
+                # We can't terminate thread safely, so we simply wait...
+                QApplication.processEvents()
+        
+    def add_thread(self, checker, end_callback, source_code, parent):
+        """Add thread to queue"""
+        parent_id = id(parent)
+        thread = AnalysisThread(self, checker, end_callback, source_code)
+        self.pending_threads.append((thread, parent_id))
+        if DEBUG:
+            print >>STDOUT, "Added thread %r to queue" % thread
+        QTimer.singleShot(10, self.update_queue)
+    
+    def update_queue(self):
+        """Update queue"""
+        if self.pending_threads:
+            started = 0
+            for threadlist in self.started_threads.values():
+                started += len(threadlist)
+            if DEBUG:
+                print >>STDOUT, "Updating queue:"
+                print >>STDOUT, "    started:", started
+                print >>STDOUT, "    pending:", len(self.pending_threads)
+            if started < self.maximum_simultaneous_threads:
+                thread, parent_id = self.pending_threads.pop(0)
+                self.connect(thread, SIGNAL('finished()'), self.update_queue)
+                if DEBUG:
+                    print >>STDOUT, "===>starting:", thread
+                thread.start()
 
 
 class FileInfo(QObject):
     """File properties"""
-    def __init__(self, filename, encoding, editor, new):
+    def __init__(self, filename, encoding, editor, new, threadmanager):
         QObject.__init__(self)
-        self.is_closing = False
+        self.threadmanager = threadmanager
         self.filename = filename
         self.newly_created = new
         self.encoding = encoding
@@ -208,22 +240,9 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
-            
-        self.analysis_thread = CodeAnalysisThread(self)
-        self.connect(self.analysis_thread, SIGNAL('finished()'),
-                     self.code_analysis_finished)
         
-        self.todo_thread = ToDoFinderThread(self)
-        self.connect(self.todo_thread, SIGNAL('finished()'),
-                     self.todo_finished)
-        
-    def close_threads(self):
-        """Close threads"""
-        self.is_closing = True
-        while self.analysis_thread.isRunning():
-            pass
-        while self.todo_thread.isRunning():
-            pass
+        self.pyflakes_results = None
+        self.pep8_results = None
         
     def text_changed(self):
         """Editor's text has changed"""
@@ -318,22 +337,40 @@ class FileInfo(QObject):
         """Return associated editor source code"""
         return unicode(self.editor.toPlainText()).encode('utf-8')
     
-    def run_code_analysis(self, checkers):
+    def run_code_analysis(self, run_pyflakes, run_pep8):
         """Run code analysis"""
-        if self.editor.is_python() and not self.is_closing:
-            anth = self.analysis_thread
-            if self.editor.document().isModified():
-                # Force checker to create a temporary file
-                anth.filename = None
-            else:
-                anth.filename = self.filename
-            anth.source_code = self.get_source_code()
-            anth.checkers = checkers
-            anth.start()
+        self.pyflakes_results = []
+        self.pep8_results = []
+        if self.editor.is_python():
+            source_code = self.get_source_code()
+            if run_pyflakes:
+                self.pyflakes_results = None
+            if run_pep8:
+                self.pep8_results = None
+            if run_pyflakes:
+                self.threadmanager.add_thread(check_with_pyflakes,
+                                              self.pyflakes_analysis_finished,
+                                              source_code, self)
+            if run_pep8:
+                self.threadmanager.add_thread(check_with_pep8,
+                                              self.pep8_analysis_finished,
+                                              source_code, self)
+        
+    def pyflakes_analysis_finished(self, results):
+        """Pyflakes code analysis thread has finished"""
+        self.pyflakes_results = results
+        if self.pep8_results is not None:
+            self.code_analysis_finished()
+        
+    def pep8_analysis_finished(self, results):
+        """Pep8 code analysis thread has finished"""
+        self.pep8_results = results
+        if self.pyflakes_results is not None:
+            self.code_analysis_finished()
         
     def code_analysis_finished(self):
         """Code analysis thread has finished"""
-        self.set_analysis_results(self.analysis_thread.results)
+        self.set_analysis_results(self.pyflakes_results+self.pep8_results)
         self.emit(SIGNAL('analysis_results_changed()'))
         
     def set_analysis_results(self, results):
@@ -348,13 +385,13 @@ class FileInfo(QObject):
             
     def run_todo_finder(self):
         """Run TODO finder"""
-        if self.editor.is_python() and not self.is_closing:
-            self.todo_thread.source_code = self.get_source_code()
-            self.todo_thread.start()
+        if self.editor.is_python():
+            self.threadmanager.add_thread(find_tasks, self.todo_finished,
+                                          self.get_source_code(), self)
         
-    def todo_finished(self):
+    def todo_finished(self, results):
         """Code analysis thread has finished"""
-        self.set_todo_results(self.todo_thread.results)
+        self.set_todo_results(results)
         self.emit(SIGNAL('todo_results_changed()'))
         
     def set_todo_results(self, results):
@@ -378,6 +415,8 @@ class EditorStack(QWidget):
         QWidget.__init__(self, parent)
         
         self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        self.threadmanager = ThreadManager(self)
         
         self.newwindow_action = None
         self.horsplit_action = None
@@ -660,13 +699,13 @@ class EditorStack(QWidget):
         
     def __codeanalysis_settings_changed(self, current_finfo):
         if self.data:
-            checkers = self.get_checkers()
+            run_pyflakes, run_pep8 = self.pyflakes_enabled, self.pep8_enabled
             for finfo in self.data:
                 self.__update_editor_margins(finfo.editor)
                 finfo.cleanup_analysis_results()
-                if checkers and current_finfo is not None:
+                if (run_pyflakes or run_pep8) and current_finfo is not None:
                     if current_finfo is not finfo:
-                        finfo.run_code_analysis(checkers)
+                        finfo.run_code_analysis(run_pyflakes, run_pep8)
         
     def set_pyflakes_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'code_analysis/pyflakes')
@@ -677,20 +716,12 @@ class EditorStack(QWidget):
         # CONF.get(self.CONF_SECTION, 'code_analysis/pep8')
         self.pep8_enabled = state
         self.__codeanalysis_settings_changed(current_finfo)
-                        
-    def get_checkers(self):
-        """Return code analysis checker callbacks"""
-        checkers = []
-        if self.pyflakes_enabled:
-            checkers += [check_with_pyflakes]
-        if self.pep8_enabled:
-            checkers += [check_with_pep8]
-        return checkers
     
     def has_markers(self):
         """Return True if this editorstack has a marker margin for TODOs or
         code analysis"""
-        return self.todolist_enabled or len(self.get_checkers()) > 0
+        return self.todolist_enabled or self.pyflakes_enabled\
+               or self.pep8_enabled
     
     def set_todolist_enabled(self, state, current_finfo=None):
         # CONF.get(self.CONF_SECTION, 'todo_list')
@@ -1099,7 +1130,7 @@ class EditorStack(QWidget):
         is_ok = force or self.save_if_changed(cancelable=True, index=index)
         if is_ok:
             finfo = self.data[index]
-            finfo.close_threads()
+            self.threadmanager.close_threads(finfo)
             # Removing editor reference from outline explorer settings:
             if self.outlineexplorer is not None:
                 self.outlineexplorer.remove_editor(finfo.editor)
@@ -1287,9 +1318,9 @@ class EditorStack(QWidget):
             index = self.get_stack_index()
         if self.data:
             finfo = self.data[index]
-            checkers = self.get_checkers()
-            if checkers:
-                finfo.run_code_analysis(checkers)
+            run_pyflakes, run_pep8 = self.pyflakes_enabled, self.pep8_enabled
+            if run_pyflakes or run_pep8:
+                finfo.run_code_analysis(run_pyflakes, run_pep8)
             if self.todolist_enabled:
                 finfo.run_todo_finder()
         self.is_analysis_done = True
@@ -1551,7 +1582,7 @@ class EditorStack(QWidget):
         Returns finfo object (instead of editor as in previous releases)
         """
         editor = codeeditor.CodeEditor(self)
-        finfo = FileInfo(fname, enc, editor, new)
+        finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
         self.add_to_data(finfo, set_current)
         self.connect(finfo, SIGNAL("send_to_inspector(QString,QString,bool)"),
                      self.send_to_inspector)

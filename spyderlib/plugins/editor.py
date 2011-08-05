@@ -1982,4 +1982,4 @@ class Editor(SpyderPluginWidget):
                 if todo_n in options and todo_o:
                     finfo.run_todo_finder()
                 if pyflakes_n in options or pep8_n in options:
-                    finfo.run_code_analysis(editorstack.get_checkers())
+                    finfo.run_code_analysis(pyflakes_o, pep8_o)
