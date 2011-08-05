@@ -227,8 +227,9 @@ class ExternalPythonShell(ExternalShellBase):
         
     def set_introspection_socket(self, introspection_socket):
         self.introspection_socket = introspection_socket
-        monitor_set_remote_view_settings(introspection_socket,
-                                         self.namespacebrowser)
+        if self.namespacebrowser is not None:
+            monitor_set_remote_view_settings(introspection_socket,
+                                             self.namespacebrowser)
         
     def set_autorefresh_timeout(self, interval):
         communicate(self.introspection_socket,

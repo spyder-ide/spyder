@@ -56,7 +56,8 @@ class IntrospectionServer(threading.Thread):
             sock.listen(2)
             conn, _addr = sock.accept()
             shell_id = read_packet(conn)
-            self.send_socket(shell_id, conn)
+            if shell_id is not None:
+                self.send_socket(shell_id, conn)
 
 class NotificationServer(IntrospectionServer):
     """Notification server"""

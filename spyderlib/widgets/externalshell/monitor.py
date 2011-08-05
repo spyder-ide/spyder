@@ -482,3 +482,5 @@ class Monitor(threading.Thread):
                 if command is not PACKET_NOT_RECEIVED:
                     write_packet(self.i_request, output, already_pickled=True)
 
+        self.i_request.close()
+        self.n_request.close()
