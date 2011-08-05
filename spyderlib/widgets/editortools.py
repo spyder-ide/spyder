@@ -102,11 +102,12 @@ def check(args, source_code, filename=None, options=None):
         return []
     if options is not None:
         args += options
+    source_code += '\n'
     if filename is None:
         # Creating a temporary file because file does not exist yet 
         # or is not up-to-date
         tempfd = tempfile.NamedTemporaryFile(suffix=".py", delete=False)
-        tempfd.write(source_code+'\n')
+        tempfd.write(source_code)
         tempfd.close()
         args.append(tempfd.name)
     else:
