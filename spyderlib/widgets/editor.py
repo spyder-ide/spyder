@@ -1562,6 +1562,7 @@ class EditorStack(QWidget):
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
         codeeditor.validate_rope_project()
+        self._refresh_outlineexplorer(index, update=True)
         
     def revert(self):
         """Revert file from disk"""
