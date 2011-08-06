@@ -79,7 +79,7 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             'light_background')
         ipybg_box = newcb(_("Set the appropriate IPython color option"),
                           'ipython_set_color')
-        ipython_is_installed = programs.is_module_installed('IPython', '0.10')
+        ipython_is_installed = programs.is_module_installed('IPython', '0.1')
         ipybg_box.setEnabled(ipython_is_installed)
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(bg_label)
@@ -248,7 +248,7 @@ It is strongly recommended to remove it on Windows platforms
             ipython_layout.addWidget(ipython_edit)
         else:
             ipython_label = QLabel(_("<b>Note:</b><br>"
-                                     "IPython <u>v0.10</u> is not "
+                                     "IPython >=<u>v0.10</u> is not "
                                      "installed on this computer."))
             ipython_label.setWordWrap(True)
             ipython_layout.addWidget(ipython_label)
@@ -344,7 +344,7 @@ class ExternalConsole(SpyderPluginWidget):
         python_startup = self.get_option('open_python_at_startup', None)
         ipython_startup = self.get_option('open_ipython_at_startup', None)
         if ipython_startup is None:
-            ipython_startup = programs.is_module_installed('IPython', '0.10')
+            ipython_startup = programs.is_module_installed('IPython', '0.1')
             self.set_option('open_ipython_at_startup', ipython_startup)
         if python_startup is None:
             python_startup = not ipython_startup
@@ -744,7 +744,7 @@ class ExternalConsole(SpyderPluginWidget):
                             'ipython.png',
                             _("Open an IPython interpreter"),
                             triggered=self.open_ipython)
-        if programs.is_module_installed('IPython', '0.10'):
+        if programs.is_module_installed('IPython', '0.1'):
             self.menu_actions.insert(1, ipython_action)
             run_menu_actions.append(ipython_action)
         
@@ -866,7 +866,7 @@ class ExternalConsole(SpyderPluginWidget):
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
         if self.get_option('open_ipython_at_startup'):
-            if programs.is_module_installed('IPython', '0.10'):
+            if programs.is_module_installed('IPython', '0.1'):
                 self.open_ipython()
             else:
                 self.set_option('open_ipython_at_startup', False)

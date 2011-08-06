@@ -178,11 +178,46 @@ if __name__ == "__main__":
             # For pyreadline v1.5-1.6 only:
             import pyreadline
             pyreadline.GetOutputFile = lambda: None
-        import IPython.Shell
         del __is_ipython
-        __ipythonshell__ = IPython.Shell.start(user_ns={'runfile': runfile,
-                                                        'debugfile': debugfile})
-        __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
+        try:
+            # IPython >=v0.11
+            # Support for these recent versions of IPython is limited:
+            # command line options are not parsed yet since there are still
+            # major issues to be fixed on Windows platforms regarding pylab
+            # support.
+            from IPython.frontend.terminal.embed import InteractiveShellEmbed
+            banner2 = None
+            if os.name == 'nt':
+                # Patching IPython to avoid enabling readline:
+                # we can't simply disable readline in IPython options because
+                # it would also mean no text coloring support in terminal
+                from IPython.core.interactiveshell import InteractiveShell, io
+                def patched_init_io(self):
+                    io.stdout = io.IOStream(sys.stdout)
+                    io.stderr = io.IOStream(sys.stderr)
+                InteractiveShell.init_io = patched_init_io
+                banner2 = """Warning:
+Spyder does not support GUI interactions with IPython >=v0.11
+on Windows platforms (only IPython v0.10 is fully supported).
+"""
+            __ipythonshell__ = InteractiveShellEmbed(user_ns={
+                                                     'runfile': runfile,
+                                                     'debugfile': debugfile},
+                                                     banner2=banner2)#,
+#                                                     display_banner=False)
+#            __ipythonshell__.shell.show_banner()
+#            __ipythonshell__.enable_pylab(gui='qt')
+            #TODO: parse command line options using the two lines commented
+            #      above (banner has to be shown afterwards)
+            #FIXME: Windows platforms: pylab/GUI loop support is not working
+            __ipythonshell__.stdin_encoding = os.environ['SPYDER_ENCODING']
+        except ImportError:
+            # IPython v0.10
+            import IPython.Shell
+            __ipythonshell__ = IPython.Shell.start(user_ns={
+                                                   'runfile': runfile,
+                                                   'debugfile': debugfile})
+            __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
         
         # Workaround #2 to make the HDF5 I/O variable explorer plugin work:
         # we import h5py only after initializing IPython in order to avoid 
