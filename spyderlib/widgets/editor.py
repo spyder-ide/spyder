@@ -496,6 +496,8 @@ class EditorStack(QWidget):
             ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
         
+        self.__file_status_flag = False
+        
         # Real-time code analysis
         self.analysis_timer = QTimer(self)
         self.analysis_timer.setSingleShot(True)
@@ -1459,6 +1461,13 @@ class EditorStack(QWidget):
         """Check if file has been changed in any way outside Spyder:
         1. removed, moved or renamed outside Spyder
         2. modified outside Spyder"""
+        if self.__file_status_flag:
+            # Avoid infinite loop: when the QMessageBox.question pops, it
+            # gets focus and then give it back to the CodeEditor instance,
+            # triggering a refresh cycle which calls this method
+            return
+        self.__file_status_flag = True
+
         finfo = self.data[index]
         if finfo.newly_created:
             return
@@ -1495,6 +1504,9 @@ class EditorStack(QWidget):
                         finfo.lastmodified = lastm
                 else:
                     self.reload(index)
+
+        # Finally, resetting temporary flag:
+        self.__file_status_flag = False
         
     def refresh(self, index=None):
         """Refresh tabwidget"""
