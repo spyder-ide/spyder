@@ -428,7 +428,11 @@ class Monitor(threading.Thread):
                         logging.debug("struct.error -> quitting monitor")
                     break
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                    self.ipython_shell = glbs['__ipythonshell__'].IP
+                    # IPython >=v0.11
+                    self.ipython_shell = glbs['__ipythonshell__']
+                    if not hasattr(self.ipython_shell, 'user_ns'):
+                        # IPython v0.10
+                        self.ipython_shell = self.ipython_shell.IP
                     self.ipython_shell.modcompletion = moduleCompletion
                     glbs = self.ipython_shell.user_ns
                 namespace = {}

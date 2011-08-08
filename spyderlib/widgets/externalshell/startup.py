@@ -211,6 +211,7 @@ on Windows platforms (only IPython v0.10 is fully supported).
             #      above (banner has to be shown afterwards)
             #FIXME: Windows platforms: pylab/GUI loop support is not working
             __ipythonshell__.stdin_encoding = os.environ['SPYDER_ENCODING']
+            del banner2
         except ImportError:
             # IPython v0.10
             import IPython.Shell
