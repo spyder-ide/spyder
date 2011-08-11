@@ -27,17 +27,19 @@ from spyderlib.qt.QtGui import QFileDialog
 
 PYQT_API_1 = False
 if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
+    import sip
     try:
-        from PyQt4.QtCore import QVariant
-        PYQT_API_1 = True # PyQt API #1
-    except ImportError:
-        pass
+        PYQT_API_1 = sip.getapi('QVariant') == 1 # PyQt API #1
+    except AttributeError:
+        # PyQt <v4.6
+        PYQT_API_1 = True
     def to_qvariant(pyobj=None):
         """Convert Python object to QVariant
         This is a transitional function from PyQt API #1 (QVariant exist) 
         to PyQt API #2 and Pyside (QVariant does not exist)"""
         if PYQT_API_1:
             # PyQt API #1
+            from PyQt4.QtCore import QVariant
             return QVariant(pyobj)
         else:
             # PyQt API #2
