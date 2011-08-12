@@ -26,7 +26,7 @@ from spyderlib.qt.QtGui import QFileDialog
 #===============================================================================
 
 PYQT_API_1 = False
-if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
+if os.environ['QT_API'] == 'pyqt':
     import sip
     try:
         PYQT_API_1 = sip.getapi('QVariant') == 1 # PyQt API #1

@@ -6,7 +6,7 @@
 
 import os
 
-if os.environ['PYTHON_QT_LIBRARY'] == 'PyQt4':
+if os.environ['QT_API'] == 'pyqt':
     from PyQt4.QtWebKit import *
 else:
     from PySide.QtWebKit import *

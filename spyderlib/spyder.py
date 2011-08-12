@@ -1289,7 +1289,7 @@ class MainWindow(QMainWindow):
                  __project_url__, __forum_url__,
                  platform.python_version(),
                  spyderlib.qt.QtCore.__version__,
-                 os.environ['PYTHON_QT_LIBRARY'], spyderlib.qt.__version__,
+                 os.environ['QT_API'], spyderlib.qt.__version__,
                  platform.system()) )
     
     #---- Global callbacks (called from plugins)
