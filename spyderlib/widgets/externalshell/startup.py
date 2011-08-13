@@ -6,21 +6,21 @@
 
 """Startup file used by ExternalPythonShell"""
 
-import sys
+import sys, os
 
 def __run_pythonstartup_script():
-    import os
     filename = os.environ.get('PYTHONSTARTUP')
     if filename and os.path.isfile(filename):
         execfile(filename)
 
 def __run_init_commands():
-    import os
     return os.environ.get('PYTHONINITCOMMANDS')
 
-def __is_ipython():
-    import os
+def __is_ipython_shell():
     return os.environ.get('IPYTHON', False)
+
+def __is_ipython_kernel():
+    return os.environ.get('IPYTHON_KERNEL', False)
 
 def __create_banner():
     """Create shell banner"""
@@ -97,7 +97,6 @@ def runfile(filename, args=None, wdir=None):
     wdir: working directory
     """
     global __umd__
-    import os
     if os.environ.get("UMD_ENABLED", "").lower() == "true":
         if __umd__ is None:
             namelist = os.environ.get("UMD_NAMELIST", None)
@@ -148,15 +147,17 @@ def debugfile(filename, args=None, wdir=None):
 if __name__ == "__main__":
     __remove_from_syspath__()
     
-    if not __is_ipython():
+    if not __is_ipython_shell() and not __is_ipython_kernel():
         __remove_sys_argv__()
         __create_banner()
-    __commands__ = __run_init_commands()
-
-    if __commands__:
-        for command in __commands__.split(';'):
-            exec command
-    __run_pythonstartup_script()
+        
+    if not __is_ipython_kernel():
+        __commands__ = __run_init_commands()
+    
+        if __commands__:
+            for command in __commands__.split(';'):
+                exec command
+        __run_pythonstartup_script()
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
@@ -167,8 +168,13 @@ if __name__ == "__main__":
     __doc__ = ''
     __name__ = '__main__'
 
-    if __is_ipython():
-        import os
+    if __is_ipython_kernel():
+        # IPython >=v0.11 Kernel
+        from IPython.zmq.ipkernel import IPKernelApp
+        __ipythonkernel__ = IPKernelApp()
+        __ipythonkernel__.initialize(sys.argv[1:])
+        __ipythonkernel__.start()
+    elif __is_ipython_shell():
         if os.name == 'nt':
             # Windows platforms: monkey-patching *pyreadline* module
             # to make IPython work in a remote process
@@ -184,7 +190,7 @@ if __name__ == "__main__":
             # For pyreadline v1.5-1.6 only:
             import pyreadline
             pyreadline.GetOutputFile = lambda: None
-        del __is_ipython
+        del __is_ipython_shell
         try:
             # IPython >=v0.11
             # Support for these recent versions of IPython is limited:

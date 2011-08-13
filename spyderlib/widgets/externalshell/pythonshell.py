@@ -145,7 +145,8 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None, commands=[],
                  interact=False, debug=False, path=[], python_args='',
-                 ipython=False, arguments='', stand_alone=None,
+                 ipython_shell=False, ipython_kernel=False,
+                 arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
@@ -204,8 +205,9 @@ class ExternalPythonShell(ExternalShellBase):
         assert isinstance(arguments, basestring)
         self.arguments = arguments
         
-        self.ipython = ipython
-        if self.ipython:
+        self.is_ipython_shell = ipython_shell
+        self.is_ipython_kernel = ipython_kernel
+        if self.is_ipython_shell or self.is_ipython_kernel:
             interact = False
         
         self.shell.set_externalshell(self)
@@ -215,9 +217,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.debug_action.setChecked(debug)
         
         self.introspection_socket = None
-        self.interpreter = fname is None
+        self.is_interpreter = fname is None
         
-        if self.interpreter:
+        if self.is_interpreter:
             self.terminate_button.hide()
         
         self.commands = ["import sys", "sys.path.insert(0, '')"] + commands
@@ -295,7 +297,7 @@ class ExternalPythonShell(ExternalShellBase):
 
     def is_interpreter(self):
         """Return True if shellwidget is a Python/IPython interpreter"""
-        return self.interpreter
+        return self.is_interpreter
         
     def get_shell_widget(self):
         if self.stand_alone is None:
@@ -325,10 +327,11 @@ class ExternalPythonShell(ExternalShellBase):
 
     def set_buttons_runnning_state(self, state):
         ExternalShellBase.set_buttons_runnning_state(self, state)
-        self.interact_action.setEnabled(not state and not self.interpreter)
-        self.debug_action.setEnabled(not state and not self.interpreter)
+        self.interact_action.setEnabled(not state and not self.is_interpreter)
+        self.debug_action.setEnabled(not state and not self.is_interpreter)
         self.args_action.setEnabled(not state and
-                                    (not self.interpreter or self.ipython))
+                                    (not self.is_interpreter or\
+                                     self.is_ipython_shell))
         if state:
             if self.arguments:
                 argstr = _("Arguments: %s") % self.arguments
@@ -337,7 +340,7 @@ class ExternalPythonShell(ExternalShellBase):
         else:
             argstr = _("Arguments...")
         self.args_action.setText(argstr)
-        self.terminate_button.setVisible(not self.interpreter and state)
+        self.terminate_button.setVisible(not self.is_interpreter and state)
         if not state:
             self.toggle_globals_explorer(False)
         for btn in (self.cwd_button, self.env_button, self.syspath_button):
@@ -366,7 +369,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.shell.clear()
             
         self.process = QProcess(self)
-        if self.ipython:
+        if self.is_ipython_shell:
             self.process.setProcessChannelMode(QProcess.MergedChannels)
         else:
             self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -411,13 +414,18 @@ class ExternalPythonShell(ExternalShellBase):
             self.connect(self.notification_thread, SIGNAL('pdb(QString,int)'),
                          lambda fname, lineno:
                          self.emit(SIGNAL('pdb(QString,int)'), fname, lineno))
+            self.connect(self.notification_thread,
+                         SIGNAL('new_ipython_kernel(QString)'),
+                         lambda args:
+                         self.emit(SIGNAL('create_ipython_frontend(QString)'),
+                         args))
             if self.namespacebrowser is not None:
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
         
         # Python init commands (interpreter only)
-        if self.commands and self.interpreter:
+        if self.commands and self.is_interpreter:
             env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
             self.process.setEnvironment(env)
         
@@ -430,16 +438,18 @@ class ExternalPythonShell(ExternalShellBase):
                    % self.ignore_sip_setapi_errors)
         
         # User Module Deleter
-        if self.interpreter:
+        if self.is_interpreter:
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
         
         # IPython related configuration
-        if self.ipython:
+        if self.is_ipython_shell:
             env.append('IPYTHON=True')
             # Do not call msvcrt.getch in IPython.genutils.page_more:
             env.append('TERM=emacs')
+        elif self.is_ipython_kernel:
+            env.append('IPYTHON_KERNEL=True')
             
         pathlist = []
 

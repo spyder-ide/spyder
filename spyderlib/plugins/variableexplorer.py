@@ -9,7 +9,7 @@
 import sys
 
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
-from spyderlib.qt.QtCore import SIGNAL, Signal
+from spyderlib.qt.QtCore import Signal
 
 # For debugging purpose:
 STDOUT = sys.stdout

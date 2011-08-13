@@ -238,14 +238,18 @@ It is strongly recommended to remove it on Windows platforms
         pyqt_group.setLayout(pyqt_layout)
         
         # IPython Group
-        ipython_group = QGroupBox(_("IPython"))
+        ipython_group = QGroupBox(
+                            _("IPython interpreter command line options"))
         ipython_layout = QVBoxLayout()
         if ipython_is_installed:
-            ipython_edit = self.create_lineedit(_(
-                            "IPython interpreter command line options:\n"
-                            "(Qt4 and matplotlib support: -q4thread -pylab)"),
-                            'ipython_options', alignment=Qt.Vertical)
-            ipython_layout.addWidget(ipython_edit)
+            if programs.is_module_installed('IPython', '0.12'):
+                ipython_edit_012 = self.create_lineedit("IPython >=v0.12",
+                             'ipython_kernel_options', alignment=Qt.Horizontal)
+                ipython_layout.addWidget(ipython_edit_012)
+            else:
+                ipython_edit_010 = self.create_lineedit("IPython v0.10",
+                                    'ipython_options', alignment=Qt.Horizontal)
+                ipython_layout.addWidget(ipython_edit_010)
         else:
             ipython_label = QLabel(_("<b>Note:</b><br>"
                                      "IPython >=<u>v0.10</u> is not "
@@ -332,7 +336,8 @@ class ExternalConsole(SpyderPluginWidget):
         self.historylog = None # History log plugin
         self.variableexplorer = None # Variable explorer plugin
         
-        self.ipython_count = 0
+        self.ipython_shell_count = 0
+        self.ipython_kernel_count = 0
         self.python_count = 0
         self.terminal_count = 0
 
@@ -353,6 +358,9 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('ipython_options', None) is None:
             self.set_option('ipython_options',
                             self.get_default_ipython_options())
+        if self.get_option('ipython_kernel_options', None) is None:
+            self.set_option('ipython_kernel_options',
+                            self.get_default_ipython_kernel_options())
         
         self.shellwidgets = []
         self.filenames = []
@@ -484,7 +492,8 @@ class ExternalConsole(SpyderPluginWidget):
         shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipython=False, python_args=''):
+              python=True, ipython_shell=False, ipython_kernel=False,
+              python_args=''):
         """
         Start new console
         
@@ -554,7 +563,9 @@ class ExternalConsole(SpyderPluginWidget):
                 sa_settings = None
             shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
                            interact, debug, path=pythonpath,
-                           python_args=python_args, ipython=ipython,
+                           python_args=python_args,
+                           ipython_shell=ipython_shell,
+                           ipython_kernel=ipython_kernel,
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
@@ -624,11 +635,23 @@ class ExternalConsole(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
             if fname is None:
-                if ipython:
-                    self.ipython_count += 1
-                    tab_name = "IPython %d" % self.ipython_count
+                if ipython_shell:
+                    self.ipython_shell_count += 1
+                    tab_name = "IPython %d" % self.ipython_shell_count
                     tab_icon1 = get_icon('ipython.png')
                     tab_icon2 = get_icon('ipython_t.png')
+                elif ipython_kernel:
+                    self.ipython_kernel_count += 1
+                    tab_name = "IPyKernel %d" % self.ipython_kernel_count
+                    tab_icon1 = get_icon('ipython.png')
+                    tab_icon2 = get_icon('ipython_t.png')
+                    kernel_name = "IPK%d" % self.ipython_kernel_count
+                    self.connect(shellwidget,
+                                 SIGNAL('create_ipython_frontend(QString)'),
+                                 lambda args:
+                                 self.main.new_ipython_frontend(
+                                 args, kernel_widget=shellwidget,
+                                 kernel_name=kernel_name))
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
@@ -738,6 +761,13 @@ class ExternalConsole(SpyderPluginWidget):
         run_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
+        
+        ipython_kernel_action = create_action(self,
+                            _("Start a new IPython kernel"), None,
+                            'ipython.png', triggered=self.start_ipython_kernel)
+        if programs.is_module_installed('IPython', '0.12'):
+            self.menu_actions.insert(1, ipython_kernel_action)
+            run_menu_actions.append(ipython_kernel_action)
         
         ipython_action = create_action(self,
                             _("Open IPython interpreter"), None,
@@ -896,14 +926,31 @@ class ExternalConsole(SpyderPluginWidget):
                 break
         return " ".join(default_options)
         
+    def get_default_ipython_kernel_options(self):
+        """Return default ipython kernel command line arguments"""
+        default_options = ["python"]
+        if programs.is_module_installed('matplotlib'):
+            default_options.append("--pylab=inline")
+        return " ".join(default_options)
+        
     def open_ipython(self, wdir=None):
         """Open IPython"""
         if wdir is None:
             wdir = os.getcwdu()
         args = self.get_option('ipython_options', "")
         self.start(fname=None, wdir=unicode(wdir), args=args,
-                   interact=True, debug=False, python=True, ipython=True)
-        
+                   interact=True, debug=False, python=True, ipython_shell=True)
+
+    def start_ipython_kernel(self, wdir=None):
+        """Start new IPython kernel"""
+        if wdir is None:
+            wdir = os.getcwdu()
+        args = self.get_option('ipython_kernel_options',
+                               "python --pylab=inline")
+        self.start(fname=None, wdir=unicode(wdir), args=args,
+                   interact=True, debug=False, python=True,
+                   ipython_kernel=True)
+
     def open_terminal(self, wdir=None):
         """Open terminal"""
         if wdir is None:

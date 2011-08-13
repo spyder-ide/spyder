@@ -15,6 +15,13 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+import os
+try:
+    # Eventually switch to PyQt API #2
+    os.environ['QT_API'] = 'pyqt'
+    from IPython.external import qt #@UnusedImport
+except ImportError:
+    pass
 from spyderlib import qt #@UnusedImport
 
 # Check requirements
@@ -23,7 +30,6 @@ requirements.check_path()
 requirements.check_qt()
 
 import sys
-import os
 import os.path as osp
 import platform
 import re
@@ -66,7 +72,8 @@ except ImportError:
 
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
-                                QKeySequence, QDockWidget, QAction)
+                                QKeySequence, QDockWidget, QAction, QLineEdit,
+                                QInputDialog)
 from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
@@ -252,6 +259,7 @@ class MainWindow(QMainWindow):
         self.outlineexplorer = None
         self.historylog = None
         self.extconsole = None
+        self.ipython_frontends = []
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
@@ -294,6 +302,7 @@ class MainWindow(QMainWindow):
         # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
+        self.view_menu_actions = []
         self.help_menu = None
         self.help_menu_actions = []
         
@@ -759,6 +768,13 @@ class MainWindow(QMainWindow):
             add_actions(web_resources,
                         create_module_bookmark_actions(self, self.BOOKMARKS))
             self.help_menu_actions.append(web_resources)
+            
+            # IPython frontend action
+            if is_module_installed('IPython', '0.12'):
+                ipf_action = create_action(self, _("New IPython frontend..."),
+                                           icon="ipython.png",
+                                           triggered=self.new_ipython_frontend)
+                self.run_menu_actions += [None, ipf_action]
 
             # Third-party plugins
             for mod in get_spyderplugins_mods(prefix='p_', extension='.py'):
@@ -1028,6 +1044,13 @@ class MainWindow(QMainWindow):
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget(shell)
+        else:
+            widget = QApplication.focusWidget()
+            for ipf in self.ipython_frontends:
+                if widget is ipf or widget is ipf.get_focus_widget():
+                    if ipf.kernel_widget is not None:
+                        self.variableexplorer.set_shellwidget(
+                        ipf.kernel_widget)
         
     def update_file_menu(self):
         """Update file menu"""
@@ -1387,6 +1410,29 @@ class MainWindow(QMainWindow):
             self.variableexplorer.import_data(fname)
         else:
             start_file(fname)
+            
+    def new_ipython_frontend(self, args=None,
+                             kernel_widget=None, kernel_name=None):
+        """Create a new IPython frontend"""
+        if args is None:
+            example = '(example: --existing --shell=56742 --iopub=52543 '\
+                      '--stdin=60596 --hb=1644)'
+            while True:
+                args, valid = QInputDialog.getText(self, _('IPython'),
+                                  _('IPython kernel parameters:')+'\n'+example,
+                                  QLineEdit.Normal)
+                if valid:
+                    args = unicode(args)
+                    if re.match('^--existing --shell=(\d+) --iopub=(\d+) '\
+                                '--stdin=(\d+) --hb=(\d+)$', args):
+                        kernel_name = args
+                        break
+                else:
+                    return
+        from spyderlib.plugins.ipython import IPythonPlugin
+        ipython_plugin = IPythonPlugin(self, args, kernel_widget, kernel_name)
+        ipython_plugin.register_plugin()
+        self.ipython_frontends.append(ipython_plugin)
         
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):

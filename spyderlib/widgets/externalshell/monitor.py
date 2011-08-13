@@ -140,6 +140,7 @@ class Monitor(threading.Thread):
                  shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
         self.ipython_shell = None
+        self.ipython_kernel = None
         self.setDaemon(True)
         
         self.pdb_obj = None
@@ -427,6 +428,15 @@ class Monitor(threading.Thread):
                     if DEBUG:
                         logging.debug("struct.error -> quitting monitor")
                     break
+                if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
+                    self.ipython_kernel = glbs['__ipythonkernel__']
+                    glbs['__ipythonshell__'] = self.ipython_kernel.shell
+                    argv = ['--existing'] +\
+                           ['--%s=%d' % (name, port) for name, port
+                            in self.ipython_kernel.ports.items()]
+                    opts = ' '.join(argv)
+                    communicate(self.n_request,
+                                dict(command="ipython_kernel", data=opts))
                 if self.ipython_shell is None and '__ipythonshell__' in glbs:
                     # IPython >=v0.11
                     self.ipython_shell = glbs['__ipythonshell__']
