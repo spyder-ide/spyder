@@ -703,7 +703,7 @@ class MainWindow(QMainWindow):
                     spyder_doc = osp.join(osp.dirname(__file__), os.pardir,
                                           'build', 'lib', 'spyderlib', 'doc',
                                           "index.html")
-            doc_action = create_bookmark_action(self, spyder_doc,
+            doc_action = create_bookmark_action(self, 'file://' + spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             self.help_menu_actions = [about_action, doc_action]
