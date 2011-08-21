@@ -270,7 +270,13 @@ class Monitor(threading.Thread):
         """Return completion list for object named *name*
         ** IPython only **"""
         if self.ipython_shell:
-            return self.ipython_shell.complete(name)
+            complist = self.ipython_shell.complete(name)
+            if len(complist) == 2 and isinstance(complist[1], list):
+                # IPython v0.11
+                return complist[1]
+            else:
+                # IPython v0.10
+                return complist
             
     def getmodcomplist(self, name):
         """Return module completion list for object named *name*"""
