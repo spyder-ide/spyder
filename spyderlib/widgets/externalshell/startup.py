@@ -173,6 +173,7 @@ if __name__ == "__main__":
         from IPython.zmq.ipkernel import IPKernelApp
         __ipythonkernel__ = IPKernelApp()
         __ipythonkernel__.initialize(sys.argv[1:])
+        __ipythonshell__ = __ipythonkernel__.shell
         __ipythonkernel__.start()
     elif __is_ipython_shell():
         if os.name == 'nt':

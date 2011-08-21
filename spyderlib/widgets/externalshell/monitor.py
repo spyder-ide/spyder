@@ -436,7 +436,6 @@ class Monitor(threading.Thread):
                     break
                 if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
                     self.ipython_kernel = glbs['__ipythonkernel__']
-                    glbs['__ipythonshell__'] = self.ipython_kernel.shell
                     argv = ['--existing'] +\
                            ['--%s=%d' % (name, port) for name, port
                             in self.ipython_kernel.ports.items()]
