@@ -432,7 +432,7 @@ class ExternalConsole(SpyderPluginWidget):
         for index in [current_index]+range(self.tabwidget.count()):
             shellwidget = self.tabwidget.widget(index)
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
-                if not interpreter_only or shellwidget.is_interpreter():
+                if not interpreter_only or shellwidget.is_interpreter:
                     self.tabwidget.setCurrentIndex(index)
                     return shellwidget
                 
@@ -452,7 +452,7 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidgets:
             # First, iterate on interpreters only:
             for shellwidget in shellwidgets:
-                if shellwidget.is_interpreter():
+                if shellwidget.is_interpreter:
                     return shellwidget.shell
             else:
                 return shellwidgets[0].shell
