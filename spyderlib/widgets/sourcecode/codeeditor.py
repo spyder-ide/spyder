@@ -1417,16 +1417,18 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.StartOfBlock)
                 regexp = QRegExp(r"\b%s\b" % QRegExp.escape(text),
                                  Qt.CaseSensitive)
-                cursor = document.find(regexp, cursor, flags)
                 color = self.error_color if error else self.warning_color
-                self.__highlight_selection('code_analysis', cursor,
-                                           underline_color=QColor(color))
-#                old_pos = None
-#                if cursor:
-#                    while cursor.blockNumber() <= line2 and cursor.position() != old_pos:
-#                        self.__highlight_selection('code_analysis', cursor,
-#                                       underline_color=self.warning_color)
-#                        cursor = document.find(text, cursor, flags)
+                # Highlighting all occurences (this is a compromise as pyflakes
+                # do not provide the column number -- see Issue 709 on Spyder's
+                # GoogleCode project website)
+                old_pos = None
+                cursor = document.find(regexp, cursor, flags)
+                if cursor:
+                    while cursor and cursor.blockNumber() == line2 \
+                          and cursor.position() != old_pos:
+                        self.__highlight_selection('code_analysis', cursor,
+                                       underline_color=QColor(color))
+                        cursor = document.find(text, cursor, flags)
         self.update_extra_selections()
         self.setUpdatesEnabled(True)
         self.linenumberarea.update()
