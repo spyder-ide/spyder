@@ -302,7 +302,7 @@ class MainWindow(QMainWindow):
         # otherwise the external tools menu is lost after leaving setup method
         self.external_tools_menu_actions = []
         self.view_menu = None
-        self.view_menu_actions = []
+        self.windows_toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
         
@@ -786,8 +786,11 @@ class MainWindow(QMainWindow):
                     print >>STDERR, "%s: %s" % (mod, str(error))
                                 
             # View menu
-            self.view_menu = self.createPopupMenu()
-            self.view_menu.setTitle(_("&View"))
+            self.view_menu = self.menuBar().addMenu(_("&View"))
+            self.windows_toolbars_menu = QMenu(_("Windows and toolbars"), self)
+            self.connect(self.windows_toolbars_menu, SIGNAL("aboutToShow()"),
+                         self.update_windows_toolbars_menu)
+            self.view_menu.addMenu(self.windows_toolbars_menu)
             reset_layout_action = create_action(self, _("Reset window layout"),
                                             triggered=self.reset_window_layout)
             quick_layout_menu = QMenu(_("Custom window layouts"), self)
@@ -1131,6 +1134,12 @@ class MainWindow(QMainWindow):
             action.setEnabled(True)
         self.replace_action.setEnabled(readwrite_editor)
         self.replace_action.setEnabled(readwrite_editor)
+        
+    def update_windows_toolbars_menu(self):
+        """Update windows&toolbars menu"""
+        self.windows_toolbars_menu.clear()
+        popmenu = self.createPopupMenu()
+        add_actions(self.windows_toolbars_menu, popmenu.actions())
         
     def set_splash(self, message):
         """Set splash message"""
