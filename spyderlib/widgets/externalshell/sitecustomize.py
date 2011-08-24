@@ -25,10 +25,6 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     except ImportError:
         pass
 
-# Removing PyQt4 input hook which is not working well on Windows
-if os.environ.get("REMOVE_PYQT_INPUTHOOK", "").lower() == "true":
-    from PyQt4.QtCore import pyqtRemoveInputHook
-    pyqtRemoveInputHook()
 
 if os.name == 'nt': # Windows platforms
             
@@ -58,6 +54,21 @@ if os.name == 'nt': # Windows platforms
         except ImportError:
             # Unfortunately, pywin32 is not installed...
             pass
+
+
+# * Removing PyQt4 input hook which is not working well on Windows since 
+#   opening a subprocess do not create a real console (with keyboard events...)
+# * Replacing it with our own input hook
+# XXX: test it with PySide?
+if os.environ.get("REPLACE_PYQT_INPUTHOOK", "").lower() == "true":
+   if not os.environ.get('IPYTHON', False):
+        # For now, the Spyder's input hook does not work with IPython:
+        # with IPython v0.10 or non-Windows platforms, this is not a
+        # problem. However, with IPython v0.11 on Windows, this will be
+        # fixed by patching IPython to force it to use our inputhook.
+        from spyderlib.widgets.externalshell.inputhook import manager
+        manager.install_qt_inputhook()
+
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
@@ -216,7 +227,8 @@ try:
 except ValueError:
     pass
 
-# Removing PyQt4 input hook which is not working well on Windows
+# Ignore PyQt4's sip API changes (this should be used wisely -e.g. for
+# debugging- as dynamic API change is not supported by PyQt)
 if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
     try:
         import sip
