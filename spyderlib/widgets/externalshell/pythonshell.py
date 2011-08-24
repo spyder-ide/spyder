@@ -151,7 +151,7 @@ class ExternalPythonShell(ExternalShellBase):
                  pythonstartup=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4',
-                 remove_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
+                 replace_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
@@ -174,7 +174,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
-        self.remove_pyqt_inputhook = remove_pyqt_inputhook
+        self.replace_pyqt_inputhook = replace_pyqt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
@@ -433,7 +433,7 @@ class ExternalPythonShell(ExternalShellBase):
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
-        env.append('REMOVE_PYQT_INPUTHOOK=%s' % self.remove_pyqt_inputhook)
+        env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
         env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
                    % self.ignore_sip_setapi_errors)
         
@@ -524,6 +524,15 @@ class ExternalPythonShell(ExternalShellBase):
             text = unicode(text)
         if not text.endswith('\n'):
             text += '\n'
+        if self.replace_pyqt_inputhook and not self.is_ipython_shell:
+            # For now, the Spyder's input hook does not work with IPython:
+            # with IPython v0.10 or non-Windows platforms, this is not a
+            # problem. However, with IPython v0.11 on Windows, this will be
+            # fixed by patching IPython to force it to use our inputhook.
+            #
+            # The text '<exit_input_hook_loop>' is of course arbitrary.
+            # See spyderlib/widgets/externalshell/inputhook.py.
+            self.process.write('<exit_input_hook_loop>\n')
         self.process.write(locale_codec.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         

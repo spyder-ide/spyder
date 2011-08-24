@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-08-22 22:04+Paris, Madrid (heure d'été)\n"
+"POT-Creation-Date: 2011-08-13 16:42+Paris, Madrid (heure d'été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -82,7 +82,7 @@ msgstr ""
 #: spyderlib\plugins\configdialog.py:383 spyderlib\plugins\configdialog.py:399
 #: spyderlib\plugins\runconfig.py:128 spyderlib\plugins\runconfig.py:176
 #: spyderlib\plugins\workingdirectory.py:297 spyderlib\widgets\explorer.py:496
-#: spyderlib\widgets\externalshell\pythonshell.py:566
+#: spyderlib\widgets\externalshell\pythonshell.py:575
 #: spyderlib\widgets\findinfiles.py:510 spyderlib\widgets\pathmanager.py:213
 #: spyderlib\widgets\projectexplorer.py:807
 msgid "Select directory"
@@ -344,7 +344,7 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:81 spyderlib\plugins\editor.py:476
 #: spyderlib\plugins\editor.py:1404 spyderlib\plugins\inspector.py:248
-#: spyderlib\widgets\editor.py:463
+#: spyderlib\widgets\editor.py:470
 #: spyderlib\widgets\sourcecode\codeeditor.py:224
 #: spyderlib\widgets\sourcecode\codeeditor.py:2183
 msgid "Editor"
@@ -1079,14 +1079,14 @@ msgid "PyQt"
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:220
-msgid "Remove PyQt input hook"
+msgid "Replace PyQt input hook by Spyder's"
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:222
 msgid ""
 "PyQt installs an input hook that allows creating and interacting\n"
-"with widgets in an interactive interpreter without blocking it. \n"
-"It is strongly recommended to remove it on Windows platforms \n"
+"with Qt widgets in an interactive interpreter without blocking it. \n"
+"On Windows platforms, it is strongly recommended to replace it by Spyder's\n"
 "(it has no effect in IPython)."
 msgstr ""
 
@@ -1235,7 +1235,7 @@ msgid "Scroll automatically to last entry"
 msgstr ""
 
 #: spyderlib\plugins\history.py:101 spyderlib\plugins\inspector.py:301
-#: spyderlib\widgets\editor.py:555 spyderlib\widgets\explorer.py:932
+#: spyderlib\widgets\editor.py:562 spyderlib\widgets\explorer.py:932
 #: spyderlib\widgets\externalshell\baseshell.py:151
 #: spyderlib\widgets\externalshell\namespacebrowser.py:225
 msgid "Options"
@@ -1741,7 +1741,7 @@ msgstr ""
 msgid "Show and edit current user environment variables in Windows registry (i.e. for all sessions)"
 msgstr ""
 
-#: spyderlib\spyder.py:549 spyderlib\spyder.py:830
+#: spyderlib\spyder.py:548 spyderlib\spyder.py:819
 msgid "External Tools"
 msgstr ""
 
@@ -1872,67 +1872,67 @@ msgstr ""
 #: spyderlib\spyder.py:790
 msgid "Windows and toolbars"
 msgstr ""
-
+#: spyderlib\spyder.py:783
 #: spyderlib\spyder.py:794
 msgid "Reset window layout"
 msgstr ""
 
-#: spyderlib\spyder.py:796
+#: spyderlib\spyder.py:785
 msgid "Custom window layouts"
 msgstr ""
 
-#: spyderlib\spyder.py:802
+#: spyderlib\spyder.py:791
 msgid "Switch to/from layout %d"
 msgstr ""
 
-#: spyderlib\spyder.py:808
+#: spyderlib\spyder.py:797
 msgid "Set layout %d"
 msgstr ""
 
-#: spyderlib\spyder.py:818
+#: spyderlib\spyder.py:807
 msgid "Attached console window (debugging)"
 msgstr ""
 
-#: spyderlib\spyder.py:998 spyderlib\spyder.py:1016
+#: spyderlib\spyder.py:827
 #: spyderlib\utils\environ.py:94 spyderlib\utils\environ.py:107
 msgid "Warning"
 msgstr ""
 
-#: spyderlib\spyder.py:999
+#: spyderlib\spyder.py:995
 msgid ""
 "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr ""
 
-#: spyderlib\spyder.py:1017
+#: spyderlib\spyder.py:1013
 msgid "Quick switch layout #%d has not yet been defined."
 msgstr ""
 
-#: spyderlib\spyder.py:1202
+#: spyderlib\spyder.py:1192
 msgid "Maximize current plugin"
 msgstr ""
 
-#: spyderlib\spyder.py:1203
+#: spyderlib\spyder.py:1193
 msgid "Maximize current plugin to fit the whole application window"
 msgstr ""
 
-#: spyderlib\spyder.py:1207
+#: spyderlib\spyder.py:1197
 msgid "Restore current plugin"
 msgstr ""
 
-#: spyderlib\spyder.py:1208
+#: spyderlib\spyder.py:1198
 msgid "Restore current plugin to its original size and position within the application window"
 msgstr ""
 
-#: spyderlib\spyder.py:1277
+#: spyderlib\spyder.py:1267
 msgid "(not installed)"
 msgstr ""
 
-#: spyderlib\spyder.py:1288
+#: spyderlib\spyder.py:1278
 msgid "About %s"
 msgstr ""
 
-#: spyderlib\spyder.py:1289
+#: spyderlib\spyder.py:1279
 msgid ""
 "<b>%s %s</b>\n"
 "            <br>Scientific PYthon Development EnviRonment\n"
@@ -1959,23 +1959,23 @@ msgid ""
 "            <p>Python %s, Qt %s, %s %s on %s"
 msgstr ""
 
-#: spyderlib\spyder.py:1430
+#: spyderlib\spyder.py:1420
 msgid "IPython"
 msgstr ""
 
-#: spyderlib\spyder.py:1431
+#: spyderlib\spyder.py:1421
 msgid "IPython kernel parameters:"
 msgstr ""
 
-#: spyderlib\spyder.py:1565
+#: spyderlib\spyder.py:1555
 msgid "Open session"
 msgstr ""
 
-#: spyderlib\spyder.py:1566 spyderlib\spyder.py:1577
+#: spyderlib\spyder.py:1556 spyderlib\spyder.py:1567
 msgid "Spyder sessions"
 msgstr ""
 
-#: spyderlib\spyder.py:1576
+#: spyderlib\spyder.py:1566
 msgid "Save session"
 msgstr ""
 
@@ -2267,7 +2267,7 @@ msgstr ""
 msgid "Nothing to be imported from clipboard."
 msgstr ""
 
-#: spyderlib\widgets\editor.py:57 spyderlib\widgets\editor.py:446
+#: spyderlib\widgets\editor.py:57 spyderlib\widgets\editor.py:453
 msgid "File list management"
 msgstr ""
 
@@ -2291,103 +2291,103 @@ msgstr ""
 msgid "Hint: press <b>Alt</b> to show accelerators"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:449
+#: spyderlib\widgets\editor.py:456
 msgid "Copy path to clipboard"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:965
+#: spyderlib\widgets\editor.py:972
 msgid "Temporary file"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1053
+#: spyderlib\widgets\editor.py:1060
 msgid "New window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1054
+#: spyderlib\widgets\editor.py:1061
 msgid "Create a new editor window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1057
+#: spyderlib\widgets\editor.py:1064
 msgid "Split vertically"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1059
+#: spyderlib\widgets\editor.py:1066
 msgid "Split vertically this editor window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1061
+#: spyderlib\widgets\editor.py:1068
 msgid "Split horizontally"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1063
+#: spyderlib\widgets\editor.py:1070
 msgid "Split horizontally this editor window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1065
+#: spyderlib\widgets\editor.py:1072
 msgid "Close this panel"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1192
+#: spyderlib\widgets\editor.py:1199
 msgid "<b>%s</b> has been modified.<br>Do you want to save changes?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1251
+#: spyderlib\widgets\editor.py:1258
 msgid "Save"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1252
+#: spyderlib\widgets\editor.py:1259
 msgid "<b>Unable to save script '%s'</b><br><br>Error message:<br>%s"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1269
+#: spyderlib\widgets\editor.py:1276
 msgid "Save Python script"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1478
+#: spyderlib\widgets\editor.py:1485
 msgid "<b>%s</b> is unavailable (this file may have been removed, moved or renamed outside Spyder).<br>Do you want to close it?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1497
+#: spyderlib\widgets\editor.py:1504
 msgid "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and loose all your changes?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1584
+#: spyderlib\widgets\editor.py:1591
 msgid "All changes to <b>%s</b> will be lost.<br>Do you want to revert file from disk?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1708
+#: spyderlib\widgets\editor.py:1715
 msgid "Loading %s..."
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1718
+#: spyderlib\widgets\editor.py:1725
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1993
+#: spyderlib\widgets\editor.py:2000
 msgid "Permissions:"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2008
+#: spyderlib\widgets\editor.py:2015
 msgid "End-of-lines:"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2023
+#: spyderlib\widgets\editor.py:2030
 msgid "Encoding:"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2037
+#: spyderlib\widgets\editor.py:2044
 msgid "Line:"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2041
+#: spyderlib\widgets\editor.py:2048
 msgid "Column:"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2180
+#: spyderlib\widgets\editor.py:2187
 msgid "Close window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2182
+#: spyderlib\widgets\editor.py:2189
 msgid "Close this window"
 msgstr ""
 

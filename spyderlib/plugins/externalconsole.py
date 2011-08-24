@@ -217,12 +217,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         
         # PyQt Group
         pyqt_group = QGroupBox(_("PyQt"))
-        pyqt_hook_box = newcb(_("Remove PyQt input hook"),
-                              'remove_pyqt_inputhook',
+        pyqt_hook_box = newcb(_("Replace PyQt input hook by Spyder's"),
+                              'replace_pyqt_inputhook',
                               tip=_(
 """PyQt installs an input hook that allows creating and interacting
-with widgets in an interactive interpreter without blocking it. 
-It is strongly recommended to remove it on Windows platforms 
+with Qt widgets in an interactive interpreter without blocking it. 
+On Windows platforms, it is strongly recommended to replace it by Spyder's
 (it has no effect in IPython)."""))
         pyqt_setapi_box = newcb(_("Ignore API change errors "
                                         "(sip.setapi)"),
@@ -547,8 +547,8 @@ class ExternalConsole(SpyderPluginWidget):
             mpl_patch_enabled = self.get_option('mpl_patch/enabled')
             mpl_backend = self.get_option('mpl_patch/backend')
             ets_backend = self.get_option('ets_backend', 'qt4')
-            remove_pyqt_inputhook = self.get_option('remove_pyqt_inputhook',
-                                                    os.name == 'nt')
+            replace_pyqt_inputhook = self.get_option('replace_pyqt_inputhook',
+                                                     os.name == 'nt')
             ignore_sip_setapi_errors = self.get_option(
                                            'ignore_sip_setapi_errors', True)
             umd_enabled = self.get_option('umd/enabled')
@@ -573,7 +573,7 @@ class ExternalConsole(SpyderPluginWidget):
                            monitor_enabled=monitor_enabled,
                            mpl_patch_enabled=mpl_patch_enabled,
                            mpl_backend=mpl_backend,
-                           remove_pyqt_inputhook=remove_pyqt_inputhook,
+                           replace_pyqt_inputhook=replace_pyqt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,

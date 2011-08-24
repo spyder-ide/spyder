@@ -173,6 +173,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.exit_flag = True
         if self.multithreaded:
             self.interpreter.stdin_write.write('\n')
+        self.interpreter.restore_stds()
         
     def edit_script(self, filename, external_editor):
         filename = unicode(filename)
