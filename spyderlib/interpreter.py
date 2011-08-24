@@ -220,6 +220,8 @@ has the same effect as typing a particular string at the help> prompt.
             
     def run_line(self):
         line = self.stdin_read.readline()
+        if self.exit_flag:
+            return
         # Remove last character which is always '\n':
         self.run_command(line[:-1])
         
