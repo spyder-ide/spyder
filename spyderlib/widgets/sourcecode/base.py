@@ -11,7 +11,11 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys, re, string, os
+import sys
+import re
+import sre_constants
+import string
+import os
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
@@ -659,9 +663,39 @@ class TextEditBaseWidget(QPlainTextEdit):
     def remove_text(self, position_from, position_to):
         cursor = self.__select_text(position_from, position_to)
         cursor.removeSelectedText()
+        
+    def find_multiline_pattern(self, regexp, cursor, findflag):
+        """Reimplement QTextDocument's find method
+        
+        Add support for *multiline* regular expressions"""
+        pattern = unicode(regexp.pattern())
+        text = unicode(self.toPlainText())
+        try:
+            regobj = re.compile(pattern)
+        except sre_constants.error:
+            return
+        if findflag & QTextDocument.FindBackward:
+            # Find backward
+            offset = min([cursor.selectionEnd(), cursor.selectionStart()])
+            text = text[:offset]
+            matches = [_m for _m in regobj.finditer(text, 0, offset)]
+            if matches:
+                match = matches[-1]
+            else:
+                return
+        else:
+            # Find forward
+            offset = max([cursor.selectionEnd(), cursor.selectionStart()])
+            match = regobj.search(text, offset)
+        if match:
+            pos1, pos2 = match.span()
+            fcursor = self.textCursor()
+            fcursor.setPosition(pos1)
+            fcursor.setPosition(pos2, QTextCursor.KeepAnchor)
+            return fcursor
 
-    def find_text(self, text, changed=True,
-                  forward=True, case=False, words=False, regexp=False):
+    def find_text(self, text, changed=True, forward=True, case=False,
+                  words=False, regexp=False):
         """Find text"""
         cursor = self.textCursor()
         findflag = QTextDocument.FindFlag()
@@ -686,8 +720,15 @@ class TextEditBaseWidget(QPlainTextEdit):
                           QRegExp.RegExp2)
         for move in moves:
             cursor.movePosition(move)
-            found_cursor = self.document().find(pattern, cursor, findflag)
-            if not found_cursor.isNull():
+            if regexp and '\\n' in text:
+                # Multiline regular expression
+                found_cursor = self.find_multiline_pattern(pattern, cursor,
+                                                           findflag)
+            else:
+                # Single line find: using the QTextDocument's find function,
+                # probably much more efficient than ours
+                found_cursor = self.document().find(pattern, cursor, findflag)
+            if found_cursor is not None and not found_cursor.isNull():
                 self.setTextCursor(found_cursor)
                 return True
         return False
