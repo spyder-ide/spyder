@@ -15,7 +15,12 @@ Editor widget based on QtGui.QPlainTextEdit
 
 from __future__ import division
 
-import sys, os, re, os.path as osp, time
+import sys
+import os
+import re
+import sre_constants
+import os.path as osp
+import time
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
@@ -536,6 +541,11 @@ class CodeEditor(TextEditBaseWidget):
                      self.__mark_occurences)
         self.occurences = []
         self.occurence_color = QColor(Qt.yellow).lighter(160)
+        
+        # Mark found results
+        self.connect(self, SIGNAL('textChanged()'), self.__text_has_changed)
+        self.found_results = []
+        self.found_results_color = QColor(Qt.magenta).lighter(180)
 
         # Context menu
         self.gotodef_action = None
@@ -891,6 +901,43 @@ class CodeEditor(TextEditBaseWidget):
         self.occurences.pop(-1)
         self.scrollflagarea.update()
 
+    #-----highlight found results (find/replace widget)
+    def highlight_found_results(self, pattern, words=False, regexp=False):
+        """Highlight all found patterns"""
+        pattern = unicode(pattern)
+        if not regexp:
+            pattern = re.escape(unicode(pattern))
+        pattern = r"\b%s\b" % pattern if words else pattern
+        text = unicode(self.toPlainText())
+        try:
+            regobj = re.compile(pattern)
+        except sre_constants.error:
+            return
+        extra_selections = []
+        self.found_results = []
+        for match in regobj.finditer(text):
+            pos1, pos2 = match.span()
+            selection = QTextEdit.ExtraSelection()
+            selection.format.setBackground(self.found_results_color)
+            selection.cursor = self.textCursor()
+            selection.cursor.setPosition(pos1)
+            self.found_results.append(selection.cursor.blockNumber())
+            selection.cursor.setPosition(pos2, QTextCursor.KeepAnchor)
+            extra_selections.append(selection)
+        self.set_extra_selections('find', extra_selections)
+        self.update_extra_selections()
+        
+    def clear_found_results(self):
+        """Clear found results highlighting"""
+        self.found_results = []
+        self.clear_extra_selections('find')
+        self.scrollflagarea.update()
+        
+    def __text_has_changed(self):
+        """Text has changed, eventually clear found results highlighting"""
+        if self.found_results:
+            self.clear_found_results()
+
     #-----markers
     def get_markers_margin(self):
         if self.markers_margin:
@@ -1160,6 +1207,13 @@ class CodeEditor(TextEditBaseWidget):
         if self.occurences:
             set_scrollflagarea_painter(painter, self.occurence_color)
             for line_number in self.occurences:
+                position = self.scrollflagarea.value_to_position(line_number)
+                painter.drawRect(make_flag(position))
+            
+        # Found results
+        if self.found_results:
+            set_scrollflagarea_painter(painter, self.found_results_color)
+            for line_number in self.found_results:
                 position = self.scrollflagarea.value_to_position(line_number)
                 painter.drawRect(make_flag(position))
 

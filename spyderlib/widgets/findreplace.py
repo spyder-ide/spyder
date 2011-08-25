@@ -40,6 +40,7 @@ class FindReplace(QWidget):
         QWidget.__init__(self, parent)
         self.enable_replace = enable_replace
         self.editor = None
+        self.is_code_editor = None
         
         glayout = QGridLayout()
         glayout.setContentsMargins(0, 0, 0, 0)
@@ -78,17 +79,26 @@ class FindReplace(QWidget):
         self.case_button.setCheckable(True)
         self.connect(self.case_button, SIGNAL("toggled(bool)"),
                      lambda state: self.find())
+                     
         self.words_button = create_toolbutton(self,
                                               icon=get_icon("whole_words.png"),
                                               tip=_("Whole words"))
         self.words_button.setCheckable(True)
         self.connect(self.words_button, SIGNAL("toggled(bool)"),
                      lambda state: self.find())
+                     
+        self.highlight_button = create_toolbutton(self,
+                                              icon=get_icon("highlight.png"),
+                                              tip=_("Highlight matches"))
+        self.highlight_button.setCheckable(True)
+        self.connect(self.highlight_button, SIGNAL("toggled(bool)"),
+                     self.toggle_highlighting)
 
         hlayout = QHBoxLayout()
         self.widgets = [self.close_button, self.search_text,
                         self.previous_button, self.next_button,
-                        self.re_button, self.case_button, self.words_button]
+                        self.re_button, self.case_button, self.words_button,
+                        self.highlight_button]
         for widget in self.widgets[1:]:
             hlayout.addWidget(widget)
         glayout.addLayout(hlayout, 0, 1)
@@ -166,6 +176,18 @@ class FindReplace(QWidget):
             else:
                 self.show_replace()
                 self.replace_text.setFocus()
+                
+    def toggle_highlighting(self, state):
+        """Toggle the 'highlight all results' feature"""
+        if self.editor is not None:
+            if state:
+                text = self.search_text.currentText()
+                words = self.words_button.isChecked()
+                regexp = self.re_button.isChecked()
+                self.editor.highlight_found_results(text, words=words,
+                                                    regexp=regexp)
+            else:
+                self.editor.clear_found_results()
         
     def show(self):
         """Overrides Qt Method"""
@@ -189,6 +211,8 @@ class FindReplace(QWidget):
         self.emit(SIGNAL("visibility_changed(bool)"), False)
         if self.editor is not None:
             self.editor.setFocus()
+            if self.is_code_editor:
+                self.editor.clear_found_results()
         
     def show_replace(self):
         """Show replace widgets"""
@@ -204,6 +228,8 @@ class FindReplace(QWidget):
     def refresh(self):
         """Refresh widget"""
         if self.isHidden():
+            if self.editor is not None and self.is_code_editor:
+                self.editor.clear_found_results()
             return
         state = self.editor is not None
         for widget in self.widgets:
@@ -221,8 +247,13 @@ class FindReplace(QWidget):
         from spyderlib.qt.QtWebKit import QWebView
         self.words_button.setVisible(not isinstance(editor, QWebView))
         self.re_button.setVisible(not isinstance(editor, QWebView))
+        from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
+        self.is_code_editor = isinstance(editor, CodeEditor)
+        self.highlight_button.setVisible(self.is_code_editor)
         if refresh:
             self.refresh()
+        if self.isHidden() and editor is not None and self.is_code_editor:
+            editor.clear_found_results()
         
     def find_next(self):
         """Find next occurence"""
@@ -247,11 +278,15 @@ class FindReplace(QWidget):
             self.search_text.lineEdit().setStyleSheet("")
             return None
         else:
-            found = self.editor.find_text(text, changed, forward,
-                                          case=self.case_button.isChecked(),
-                                          words=self.words_button.isChecked(),
-                                          regexp=self.re_button.isChecked())
+            case = self.case_button.isChecked()
+            words = self.words_button.isChecked()
+            regexp = self.re_button.isChecked()
+            found = self.editor.find_text(text, changed, forward, case=case,
+                                          words=words, regexp=regexp)
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
+            if self.is_code_editor and self.highlight_button.isChecked():
+                self.editor.highlight_found_results(text, words=words,
+                                                    regexp=regexp)
             return found
             
     def replace_find(self):

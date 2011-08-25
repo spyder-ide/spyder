@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2011-08-25 12:15+Paris, Madrid\n"
+"POT-Creation-Date: 2011-08-25 16:56+Paris, Madrid\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -157,7 +157,7 @@ msgid "Background:"
 msgstr "Fond :"
 
 #: spyderlib\plugins\configdialog.py:655
-#: spyderlib\widgets\sourcecode\codeeditor.py:232
+#: spyderlib\widgets\sourcecode\codeeditor.py:237
 msgid "Current line:"
 msgstr "Ligne actuelle :"
 
@@ -345,8 +345,8 @@ msgstr "Chemin d'accès de l'exécutable :"
 #: spyderlib\plugins\editor.py:81 spyderlib\plugins\editor.py:476
 #: spyderlib\plugins\editor.py:1404 spyderlib\plugins\inspector.py:248
 #: spyderlib\widgets\editor.py:470
-#: spyderlib\widgets\sourcecode\codeeditor.py:224
-#: spyderlib\widgets\sourcecode\codeeditor.py:2185
+#: spyderlib\widgets\sourcecode\codeeditor.py:229
+#: spyderlib\widgets\sourcecode\codeeditor.py:2233
 msgid "Editor"
 msgstr "Éditeur"
 
@@ -537,7 +537,7 @@ msgstr ""
 "veuillez visiter la page de la %s."
 
 #: spyderlib\plugins\editor.py:207
-#: spyderlib\widgets\sourcecode\codeeditor.py:1439
+#: spyderlib\widgets\sourcecode\codeeditor.py:1487
 msgid "Code analysis"
 msgstr "Analyse de code"
 
@@ -816,12 +816,12 @@ msgid "Go to next cursor position"
 msgstr "Aller à la position suivante du curseur"
 
 #: spyderlib\plugins\editor.py:700
-#: spyderlib\widgets\sourcecode\codeeditor.py:1880
+#: spyderlib\widgets\sourcecode\codeeditor.py:1928
 msgid "Comment"
 msgstr "Commenter"
 
 #: spyderlib\plugins\editor.py:700
-#: spyderlib\widgets\sourcecode\codeeditor.py:1880
+#: spyderlib\widgets\sourcecode\codeeditor.py:1928
 msgid "Uncomment"
 msgstr "Décommenter"
 
@@ -1198,7 +1198,11 @@ msgid ""
 "PyQt API #1 is the default API for Python 2. PyQt API #2 is the default \n"
 "API for Python 3 and is compatible with PySide.\n"
 "Note that switching to API #2 may require to enable the Matplotlib patch."
-msgstr "L'API n°1 de PyQt est l'API par défaut pour Python 2. L'API n°2 est l'API \npar défaut pour Python 3 : c'est l'API qui est compatible avec PySide.\nLa sélection de l'API n°2 peut nécessiter l'activation du patch de Matplotlib."
+msgstr ""
+"L'API n°1 de PyQt est l'API par défaut pour Python 2. L'API n°2 est l'API \n"
+"par défaut pour Python 3 : c'est l'API qui est compatible avec PySide.\n"
+"La sélection de l'API n°2 peut nécessiter l'activation du patch de "
+"Matplotlib."
 
 #: spyderlib\plugins\externalconsole.py:227
 msgid "Replace PyQt input hook by Spyder's"
@@ -1226,7 +1230,13 @@ msgid ""
 "Enabling this option will ignore errors when changing PyQt API.\n"
 "As PyQt does not support dynamic API changes, it is strongly recommended\n"
 "to use this feature wisely, e.g. for debugging purpose.\n"
-msgstr "L'activation de cette option permet d'ignorer les erreurs liées aux changements\nd'API de PyQt. Vu que PyQt ne prend pas en charge le changement dynamique\n d'API, il est fortement recommandé d'utiliser cette fonctionnalité exceptionnellement,\npar exemple pour du débogage."
+msgstr ""
+"L'activation de cette option permet d'ignorer les erreurs liées aux "
+"changements\n"
+"d'API de PyQt. Vu que PyQt ne prend pas en charge le changement dynamique\n"
+" d'API, il est fortement recommandé d'utiliser cette fonctionnalité "
+"exceptionnellement,\n"
+"par exemple pour du débogage."
 
 #: spyderlib\plugins\externalconsole.py:254
 msgid "IPython interpreter command line options"
@@ -1846,39 +1856,39 @@ msgstr "Rechercher le &précédent"
 msgid "&Replace text"
 msgstr "&Remplacer"
 
-#: spyderlib\spyder.py:427 spyderlib\widgets\sourcecode\codeeditor.py:1856
+#: spyderlib\spyder.py:427 spyderlib\widgets\sourcecode\codeeditor.py:1904
 msgid "Undo"
 msgstr "Annuler"
 
-#: spyderlib\spyder.py:429 spyderlib\widgets\sourcecode\codeeditor.py:1859
+#: spyderlib\spyder.py:429 spyderlib\widgets\sourcecode\codeeditor.py:1907
 msgid "Redo"
 msgstr "Répéter"
 
 #: spyderlib\spyder.py:430 spyderlib\widgets\arrayeditor.py:318
 #: spyderlib\widgets\dicteditor.py:512 spyderlib\widgets\shell.py:120
-#: spyderlib\widgets\sourcecode\codeeditor.py:1865
+#: spyderlib\widgets\sourcecode\codeeditor.py:1913
 msgid "Copy"
 msgstr "Copier"
 
 #: spyderlib\spyder.py:432 spyderlib\widgets\shell.py:116
-#: spyderlib\widgets\sourcecode\codeeditor.py:1862
+#: spyderlib\widgets\sourcecode\codeeditor.py:1910
 msgid "Cut"
 msgstr "Couper"
 
 #: spyderlib\spyder.py:433 spyderlib\widgets\dicteditor.py:509
 #: spyderlib\widgets\shell.py:124
-#: spyderlib\widgets\sourcecode\codeeditor.py:1868
+#: spyderlib\widgets\sourcecode\codeeditor.py:1916
 msgid "Paste"
 msgstr "Coller"
 
 #: spyderlib\spyder.py:435 spyderlib\widgets\explorer.py:420
 #: spyderlib\widgets\projectexplorer.py:919 spyderlib\widgets\shell.py:133
-#: spyderlib\widgets\sourcecode\codeeditor.py:1871
+#: spyderlib\widgets\sourcecode\codeeditor.py:1919
 msgid "Delete"
 msgstr "Supprimer"
 
 #: spyderlib\spyder.py:438 spyderlib\widgets\shell.py:137
-#: spyderlib\widgets\sourcecode\codeeditor.py:1875
+#: spyderlib\widgets\sourcecode\codeeditor.py:1923
 msgid "Select All"
 msgstr "Sélectionner tout"
 
@@ -2329,19 +2339,19 @@ msgstr "Réduire"
 msgid "Zoom in"
 msgstr "Agrandir"
 
-#: spyderlib\widgets\browser.py:129
+#: spyderlib\widgets\browser.py:139
 msgid "Home"
 msgstr "Accueil"
 
-#: spyderlib\widgets\browser.py:169
+#: spyderlib\widgets\browser.py:179
 msgid "Find text"
 msgstr "Rechercher"
 
-#: spyderlib\widgets\browser.py:188
+#: spyderlib\widgets\browser.py:198
 msgid "Address:"
 msgstr "Adresse :"
 
-#: spyderlib\widgets\browser.py:222
+#: spyderlib\widgets\browser.py:232
 msgid "Unable to load page"
 msgstr "Impossible de charger la page"
 
@@ -3114,23 +3124,27 @@ msgstr "Chaîne de caractères à rechercher"
 msgid "Case Sensitive"
 msgstr "Respecter la casse"
 
-#: spyderlib\widgets\findreplace.py:83
+#: spyderlib\widgets\findreplace.py:84
 msgid "Whole words"
 msgstr "Mots entiers"
 
-#: spyderlib\widgets\findreplace.py:97
+#: spyderlib\widgets\findreplace.py:91
+msgid "Highlight matches"
+msgstr "Surligner les résultats"
+
+#: spyderlib\widgets\findreplace.py:106
 msgid "Replace with:"
 msgstr "Remplacer par :"
 
-#: spyderlib\widgets\findreplace.py:99
+#: spyderlib\widgets\findreplace.py:108
 msgid "Replace string"
 msgstr "Chaîne de caractères de remplacement"
 
-#: spyderlib\widgets\findreplace.py:102
+#: spyderlib\widgets\findreplace.py:111
 msgid "Replace/find"
 msgstr "Remplacer/rechercher"
 
-#: spyderlib\widgets\findreplace.py:111
+#: spyderlib\widgets\findreplace.py:120
 msgid "Replace all"
 msgstr "Remplacer tout"
 
@@ -3598,27 +3612,27 @@ msgstr "Effacer le contenu de la console"
 msgid "Documentation"
 msgstr "Documentation"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:227
+#: spyderlib\widgets\sourcecode\codeeditor.py:232
 msgid "Go to line:"
 msgstr "Aller à la ligne :"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:234
+#: spyderlib\widgets\sourcecode\codeeditor.py:239
 msgid "Line count:"
 msgstr "Nombre de lignes :"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1042
+#: spyderlib\widgets\sourcecode\codeeditor.py:1083
 msgid "Breakpoint"
 msgstr "Point d'arrêt"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1043
+#: spyderlib\widgets\sourcecode\codeeditor.py:1084
 msgid "Condition:"
 msgstr "Condition :"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1493
+#: spyderlib\widgets\sourcecode\codeeditor.py:1541
 msgid "To do"
 msgstr "À faire"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1883
+#: spyderlib\widgets\sourcecode\codeeditor.py:1931
 msgid "Go to definition"
 msgstr "Aller à la définition de l'objet"
 
