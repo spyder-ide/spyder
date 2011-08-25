@@ -17,12 +17,14 @@ Licensed under the terms of the MIT License
 
 import os
 try:
-    # Eventually switch to PyQt API #2
+    # Test if IPython v0.11+ is installed
+    from IPython import deathrow #analysis:ignore
+    # Switch to PyQt API #2
     os.environ['QT_API'] = 'pyqt'
-    from IPython.external import qt #@UnusedImport
+    from IPython.external import qt #analysis:ignore
 except ImportError:
     pass
-from spyderlib import qt #@UnusedImport
+from spyderlib import qt #analysis:ignore
 
 # Check requirements
 from spyderlib import requirements
