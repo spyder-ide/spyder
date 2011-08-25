@@ -150,7 +150,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend='Qt4Agg', ets_backend='qt4',
+                 mpl_backend='Qt4Agg', ets_backend='qt4', pyqt_api=0,
                  replace_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
@@ -174,6 +174,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
+        self.pyqt_api = pyqt_api
         self.replace_pyqt_inputhook = replace_pyqt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.umd_enabled = umd_enabled
@@ -434,6 +435,8 @@ class ExternalPythonShell(ExternalShellBase):
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
+        if self.pyqt_api:
+            env.append('PYQT_API=%d' % self.pyqt_api)
         env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
                    % self.ignore_sip_setapi_errors)
         

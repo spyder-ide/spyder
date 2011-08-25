@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 # Spyder's ExternalPythonShell sitecustomize
 
-import sys, os, os.path as osp
+import sys
+import os
+import os.path as osp
+
 
 # Prepending this spyderlib package's path to sys.path to be sure 
 # that another version of spyderlib won't be imported instead:
@@ -16,6 +19,19 @@ if not spyderlib_path.startswith(sys.prefix):
         sys.path.remove(spyderlib_path)
     sys.path.insert(0, spyderlib_path)
 os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
+
+
+# Set PyQt4 API to #1 or #2
+pyqt_api = int(os.environ.get("PYQT_API", "0"))
+if pyqt_api:
+    import sip
+    try:
+        for qtype in ('QString', 'QVariant'):
+            sip.setapi(qtype, pyqt_api)
+    except AttributeError:
+        # Old version of sip
+        pass
+
 
 if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     try:

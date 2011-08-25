@@ -6,6 +6,8 @@
 
 """Patching matplotlib's FigureManager"""
 
+import sys
+
 
 def set_backend(backend):
     """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
@@ -18,6 +20,14 @@ def apply():
     from spyderlib.qt import is_pyqt46
     from spyderlib.qt.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
     from spyderlib.qt.QtCore import Qt, SIGNAL, QObject
+    
+    # Avoid using matplotlib's formlayout version which is not compatible 
+    # with PyQt4 API #2 and PySide (at least up to Matplotlib v1.0.1)
+    from spyderlib.widgets import formlayout
+    sys.modules['matplotlib.backends.qt4_editor.formlayout'] = formlayout
+    import matplotlib.backends.qt4_editor
+    matplotlib.backends.qt4_editor.formlayout = formlayout
+    
     from matplotlib.backends import backend_qt4
     
     # Class added to matplotlib to fix a bug with PyQt4 v4.6+

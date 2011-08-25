@@ -180,6 +180,7 @@ DEFAULTS = [
               'umd/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
               'ipython_set_color': True,
+              'pyqt_api': 0,
               'replace_pyqt_inputhook': os.name == 'nt',
               'ignore_sip_setapi_errors': True,
               }),
