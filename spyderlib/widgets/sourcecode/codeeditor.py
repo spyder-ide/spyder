@@ -905,6 +905,8 @@ class CodeEditor(TextEditBaseWidget):
     def highlight_found_results(self, pattern, words=False, regexp=False):
         """Highlight all found patterns"""
         pattern = unicode(pattern)
+        if not pattern:
+            return
         if not regexp:
             pattern = re.escape(unicode(pattern))
         pattern = r"\b%s\b" % pattern if words else pattern
