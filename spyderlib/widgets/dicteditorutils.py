@@ -18,18 +18,14 @@ try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
 except ImportError:
-    class ndarray(FakeObject):
-        """Fake ndarray"""
-        pass
+    ndarray = array = matrix = FakeObject
 
 #----PIL Images support
 try:
     from PIL.Image import Image
     import PIL.Image
 except:
-    class Image(FakeObject):
-        """Fake PIL Image"""
-        pass
+    Image = FakeObject
 
 #----Misc.
 def address(obj):
