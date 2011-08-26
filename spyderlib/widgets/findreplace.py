@@ -181,13 +181,9 @@ class FindReplace(QWidget):
         """Toggle the 'highlight all results' feature"""
         if self.editor is not None:
             if state:
-                text = self.search_text.currentText()
-                words = self.words_button.isChecked()
-                regexp = self.re_button.isChecked()
-                self.editor.highlight_found_results(text, words=words,
-                                                    regexp=regexp)
+                self.highlight_matches()
             else:
-                self.editor.clear_found_results()
+                self.clear_matches()
         
     def show(self):
         """Overrides Qt Method"""
@@ -211,8 +207,7 @@ class FindReplace(QWidget):
         self.emit(SIGNAL("visibility_changed(bool)"), False)
         if self.editor is not None:
             self.editor.setFocus()
-            if self.is_code_editor:
-                self.editor.clear_found_results()
+            self.clear_matches()
         
     def show_replace(self):
         """Show replace widgets"""
@@ -228,8 +223,8 @@ class FindReplace(QWidget):
     def refresh(self):
         """Refresh widget"""
         if self.isHidden():
-            if self.editor is not None and self.is_code_editor:
-                self.editor.clear_found_results()
+            if self.editor is not None:
+                self.clear_matches()
             return
         state = self.editor is not None
         for widget in self.widgets:
@@ -252,18 +247,18 @@ class FindReplace(QWidget):
         self.highlight_button.setVisible(self.is_code_editor)
         if refresh:
             self.refresh()
-        if self.isHidden() and editor is not None and self.is_code_editor:
-            editor.clear_found_results()
+        if self.isHidden() and editor is not None:
+            self.clear_matches()
         
     def find_next(self):
         """Find next occurence"""
-        state = self.find(changed=False, forward=True)
+        state = self.find(changed=False, forward=True, rehighlight=False)
         self.editor.setFocus()
         return state
         
     def find_previous(self):
         """Find previous occurence"""
-        state = self.find(changed=False, forward=False)
+        state = self.find(changed=False, forward=False, rehighlight=False)
         self.editor.setFocus()
         return state
         
@@ -271,7 +266,25 @@ class FindReplace(QWidget):
         """Find text has changed"""
         self.find(changed=True, forward=True)
         
-    def find(self, changed=True, forward=True):
+    def highlight_matches(self):
+        """Highlight found results"""
+        if self.is_code_editor and self.highlight_button.isChecked():
+            #TODO: start a timer instead of calling this method right now
+            # (this will avoid CPU overload for large files while entering
+            #  the search pattern) -- see the occurence highlighting timer
+            #  in spyderlib/widgets/sourcecode/codeeditor.py
+            text = self.search_text.currentText()
+            words = self.words_button.isChecked()
+            regexp = self.re_button.isChecked()
+            self.editor.highlight_found_results(text, words=words,
+                                                regexp=regexp)
+                                                
+    def clear_matches(self):
+        """Clear all highlighted matches"""
+        if self.is_code_editor:
+            self.editor.clear_found_results()
+        
+    def find(self, changed=True, forward=True, rehighlight=True):
         """Call the find function"""
         text = self.search_text.currentText()
         if len(text) == 0:
@@ -284,9 +297,11 @@ class FindReplace(QWidget):
             found = self.editor.find_text(text, changed, forward, case=case,
                                           words=words, regexp=regexp)
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
-            if self.is_code_editor and self.highlight_button.isChecked():
-                self.editor.highlight_found_results(text, words=words,
-                                                    regexp=regexp)
+            if found:
+                if rehighlight or not self.editor.found_results:
+                    self.highlight_matches()
+            else:
+                self.clear_matches()
             return found
             
     def replace_find(self):
@@ -304,7 +319,8 @@ class FindReplace(QWidget):
                         # Text was already found, do nothing
                         pass
                     else:
-                        if not self.find(changed=False, forward=True):
+                        if not self.find(changed=False, forward=True,
+                                         rehighlight=False):
                             break
                     first = False
                     wrapped = False
