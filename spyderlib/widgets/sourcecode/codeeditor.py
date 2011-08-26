@@ -2252,8 +2252,8 @@ def test(fname):
     win.load(fname)
     win.resize(800, 800)
 
-    from spyderlib.widgets.editortools import (check_with_pyflakes,
-                                               check_with_pep8)
+    from spyderlib.utils.codeanalysis import (check_with_pyflakes,
+                                              check_with_pep8)
     source_code = unicode(win.editor.toPlainText()).encode('utf-8')
     res = check_with_pyflakes(source_code, fname)#+\
 #          check_with_pep8(source_code, fname)

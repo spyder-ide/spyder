@@ -26,7 +26,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils import encoding, sourcecode, codeanalysis
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import get_icon, CONF, get_color_scheme, EDIT_FILTERS
 from spyderlib.utils import programs
@@ -37,7 +37,6 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack, Printer,
                                       EditorMainWindow)
-from spyderlib.widgets.editortools import get_checker_executable
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
@@ -203,7 +202,7 @@ class EditorConfigPage(PluginConfigPage):
                                   "guide for Python code, please refer to the "
                                   "%s page.") % pep8_url)
         analysis_label.setWordWrap(True)
-        is_pep8 = get_checker_executable('pep8') is not None
+        is_pep8 = codeanalysis.get_checker_executable('pep8') is not None
         pyflakes_box = newcb(_("Code analysis")+" (pyflakes)",
                       'code_analysis/pyflakes', default=True,
                       tip=_("If enabled, Python source code will be analyzed\n"

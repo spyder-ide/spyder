@@ -24,7 +24,7 @@ from spyderlib.qt.compat import getsavefilename
 import os, sys, re, os.path as osp
 
 # Local imports
-from spyderlib.utils import encoding, sourcecode, programs
+from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _
@@ -33,9 +33,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        get_filetype_icon, create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editortools import (OutlineExplorerWidget, find_tasks,
-                                           check_with_pyflakes,
-                                           check_with_pep8)
+from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
@@ -155,59 +153,89 @@ class FileListDialog(QDialog):
 
 class AnalysisThread(QThread):
     """Analysis thread"""
-    def __init__(self, parent, checker, end_callback, source_code):
+    def __init__(self, parent, checker, source_code):
         super(AnalysisThread, self).__init__(parent)
         self.checker = checker
-        self.end_callback = end_callback
+        self.results = None
         self.source_code = source_code
     
     def run(self):
         """Run analysis"""
-        self.end_callback(self.checker(self.source_code))
+        self.results = self.checker(self.source_code)
 
 
 class ThreadManager(QObject):
     """Analysis thread manager"""
-    def __init__(self, parent, maximum_simultaneous_threads=1):
+    def __init__(self, parent, max_simultaneous_threads=2):
         super(ThreadManager, self).__init__(parent)
-        self.maximum_simultaneous_threads = maximum_simultaneous_threads
+        self.max_simultaneous_threads = max_simultaneous_threads
         self.started_threads = {}
         self.pending_threads = []
+        self.end_callbacks = {}
         
     def close_threads(self, parent):
         """Close threads associated to parent_id"""
-        parent_id = id(parent)
-        self.pending_threads = [(_th, _id) for (_th, _id)
-                                in self.pending_threads if _id != parent_id]
-        for thread in self.started_threads.get(parent_id, []):
+        if DEBUG:
+            print >>STDOUT, "Call to 'close_threads'"
+        if parent is None:
+            # Closing all threads
+            self.pending_threads = []
+            threadlist = []
+            for threads in self.started_threads.values():
+                threadlist += threads
+        else:
+            parent_id = id(parent)
+            self.pending_threads = [(_th, _id) for (_th, _id)
+                                    in self.pending_threads
+                                    if _id != parent_id]
+            threadlist = self.started_threads.get(parent_id, [])
+        for thread in threadlist:
             if DEBUG:
                 print >>STDOUT, "Waiting for thread %r to finish" % thread
             while thread.isRunning():
                 # We can't terminate thread safely, so we simply wait...
                 QApplication.processEvents()
+                
+    def close_all_threads(self):
+        """Close all threads"""
+        if DEBUG:
+            print >>STDOUT, "Call to 'close_all_threads'"
+        self.close_threads(None)
         
     def add_thread(self, checker, end_callback, source_code, parent):
         """Add thread to queue"""
         parent_id = id(parent)
-        thread = AnalysisThread(self, checker, end_callback, source_code)
+        thread = AnalysisThread(self, checker, source_code)
+        self.end_callbacks[id(thread)] = end_callback
         self.pending_threads.append((thread, parent_id))
         if DEBUG:
             print >>STDOUT, "Added thread %r to queue" % thread
-        QTimer.singleShot(10, self.update_queue)
+        QTimer.singleShot(50, self.update_queue)
     
     def update_queue(self):
         """Update queue"""
-        if self.pending_threads:
-            started = 0
-            for threadlist in self.started_threads.values():
-                started += len(threadlist)
-            if DEBUG:
-                print >>STDOUT, "Updating queue:"
-                print >>STDOUT, "    started:", started
-                print >>STDOUT, "    pending:", len(self.pending_threads)
-            if started < self.maximum_simultaneous_threads:
+        started = 0
+        for parent_id, threadlist in self.started_threads.items():
+            still_running = []
+            for thread in threadlist:
+                if thread.isFinished():
+                    end_callback = self.end_callbacks.pop(id(thread))
+                    end_callback(thread.results)
+                    thread = None
+                else:
+                    still_running.append(thread)
+                    started += 1
+            threadlist = None
+            self.started_threads[parent_id] = still_running
+        if DEBUG:
+            print >>STDOUT, "Updating queue:"
+            print >>STDOUT, "    started:", started
+            print >>STDOUT, "    pending:", len(self.pending_threads)
+        if self.pending_threads and started < self.max_simultaneous_threads:
                 thread, parent_id = self.pending_threads.pop(0)
                 self.connect(thread, SIGNAL('finished()'), self.update_queue)
+                threadlist = self.started_threads.get(parent_id, [])
+                self.started_threads[parent_id] = threadlist+[thread]
                 if DEBUG:
                     print >>STDOUT, "===>starting:", thread
                 thread.start()
@@ -348,11 +376,11 @@ class FileInfo(QObject):
             if run_pep8:
                 self.pep8_results = None
             if run_pyflakes:
-                self.threadmanager.add_thread(check_with_pyflakes,
+                self.threadmanager.add_thread(codeanalysis.check_with_pyflakes,
                                               self.pyflakes_analysis_finished,
                                               source_code, self)
             if run_pep8:
-                self.threadmanager.add_thread(check_with_pep8,
+                self.threadmanager.add_thread(codeanalysis.check_with_pep8,
                                               self.pep8_analysis_finished,
                                               source_code, self)
         
@@ -386,7 +414,8 @@ class FileInfo(QObject):
     def run_todo_finder(self):
         """Run TODO finder"""
         if self.editor.is_python():
-            self.threadmanager.add_thread(find_tasks, self.todo_finished,
+            self.threadmanager.add_thread(codeanalysis.find_tasks,
+                                          self.todo_finished,
                                           self.get_source_code(), self)
         
     def todo_finished(self, results):
@@ -591,6 +620,7 @@ class EditorStack(QWidget):
         self.tabs.add_corner_widgets(widgets)
         
     def closeEvent(self, event):
+        self.threadmanager.close_all_threads()
         self.disconnect(self.analysis_timer, SIGNAL("timeout()"),
                         self.analyze_script)
         QWidget.closeEvent(self, event)
@@ -2288,6 +2318,7 @@ class EditorPluginExample(QSplitter):
         if DEBUG:
             print >>STDOUT, len(self.editorwindows), ":", self.editorwindows
             print >>STDOUT, len(self.editorstacks), ":", self.editorstacks
+        
         event.accept()
         
     def load(self, fname):
