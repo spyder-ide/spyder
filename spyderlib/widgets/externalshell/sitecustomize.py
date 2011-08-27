@@ -222,7 +222,8 @@ def interaction(self, frame, traceback):
 @monkeypatch_method(pdb.Pdb, 'Pdb')
 def reset(self):
     self._old_Pdb_reset()
-    monitor.register_pdb_session(self)
+    if monitor is not None:
+        monitor.register_pdb_session(self)
     self.set_spyder_breakpoints()
 
 #XXX: notify spyder on any pdb command (is that good or too lazy? i.e. is more 
