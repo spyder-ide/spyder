@@ -15,8 +15,9 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import get_conf_path, str2type
+from spyderlib.baseconfig import get_conf_path, get_supported_types
 
+SUPPORTED_TYPES = get_supported_types()
 
 LOG_FILENAME = get_conf_path('monitor.log')
 
@@ -27,8 +28,7 @@ if DEBUG:
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
-REMOTE_SETTINGS = ('editable_types', 'picklable_types', 'itermax',
-                   'exclude_private', 'exclude_uppercase',
+REMOTE_SETTINGS = ('itermax', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
                    'excluded_names', 'truncate', 'minmax', 'collvalue',
                    'inplace', 'remote_editing', 'autorefresh')
@@ -51,16 +51,12 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
           (dict, list, tuple)
     """
     from spyderlib.widgets.dicteditorutils import globalsfilter
-    assert mode in ('editable', 'picklable')
+    assert mode in SUPPORTED_TYPES.keys()
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
-    if mode == 'picklable':
-        fparam = 'picklable_types'
-    else:
-        fparam = 'editable_types'
     return globalsfilter(data, itermax=settings['itermax'],
-                         filters=tuple(str2type(settings[fparam])),
+                         filters=tuple(SUPPORTED_TYPES[mode]),
                          exclude_private=settings['exclude_private'],
                          exclude_uppercase=settings['exclude_uppercase'],
                          exclude_capitalized=settings['exclude_capitalized'],

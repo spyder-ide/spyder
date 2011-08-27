@@ -33,8 +33,10 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.baseconfig import str2type, _
+from spyderlib.baseconfig import _, get_supported_types
 from spyderlib.config import get_icon
+
+SUPPORTED_TYPES = get_supported_types()
 
 
 class NamespaceBrowser(QWidget):
@@ -51,8 +53,6 @@ class NamespaceBrowser(QWidget):
         self.setup_in_progress = None
         
         # Remote dict editor settings
-        self.editable_types = None
-        self.picklable_types = None
         self.itermax = None
         self.exclude_private = None
         self.exclude_uppercase = None
@@ -74,16 +74,13 @@ class NamespaceBrowser(QWidget):
         
         self.filename = None
             
-    def setup(self, editable_types=None, picklable_types=None, itermax=None,
-              exclude_private=None, exclude_uppercase=None,
+    def setup(self, itermax=None, exclude_private=None, exclude_uppercase=None,
               exclude_capitalized=None, exclude_unsupported=None,
               excluded_names=None, truncate=None, minmax=None, collvalue=None,
               remote_editing=None, inplace=None, autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
-        self.editable_types = editable_types
-        self.picklable_types = picklable_types
         self.itermax = itermax
         self.exclude_private = exclude_private
         self.exclude_uppercase = exclude_uppercase
@@ -275,14 +272,11 @@ class NamespaceBrowser(QWidget):
               (dict, list, tuple)
             * mode (string): 'editable' or 'picklable'
         """
-        assert mode in ('editable', 'picklable')
+        assert mode in SUPPORTED_TYPES.keys()
         if itermax is None:
             itermax = self.itermax
-        if mode == 'picklable':
-            strlist = self.picklable_types
-        else:
-            strlist = self.editable_types
-        def wsfilter(input_dict, itermax=itermax, filters=str2type(strlist)):
+        def wsfilter(input_dict, itermax=itermax,
+                     filters=tuple(SUPPORTED_TYPES[mode])):
             """Keep only objects that can be pickled"""
             return globalsfilter(
                          input_dict, itermax=itermax, filters=filters,

@@ -99,9 +99,34 @@ def get_translation(modname, dirname=None):
 _ = get_translation("spyderlib")
 
 
-#===============================================================================
+#==============================================================================
 # Namespace Browser (Variable Explorer) configuration management
-#===============================================================================
+#==============================================================================
+
+def get_supported_types():
+    """Return a dictionnary containing types lists supported by the 
+    namespace browser:
+    dict(picklable=picklable_types,
+         editableeditables_types)
+         
+    See:
+    get_remote_data function in spyderlib/widgets/externalshell/monitor.py
+    get_internal_shell_filter method in namespacebrowser.py"""
+    from datetime import date
+    editable_types = [int, long, float, list, dict, tuple, str, unicode, date]
+    try:
+        from numpy import ndarray, matrix
+        editable_types += [ndarray, matrix]
+    except ImportError:
+        pass
+    picklable_types = editable_types[:]
+    try:
+        from PIL.Image import Image
+        editable_types.append(Image)
+    except ImportError:
+        pass
+    return dict(picklable=picklable_types, editable=editable_types)
+
 # Max number of filter iterations for worskpace display:
 # (for workspace saving, itermax == -1, see Workspace.save)
 ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
@@ -109,11 +134,3 @@ ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
 EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
             'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
             'Inf', 'Infinity']
-
-def type2str(types):
-    """Convert types to strings"""
-    return [typ.__name__ for typ in types]
-
-def str2type(strings):
-    """Convert strings to types"""
-    return tuple( [eval(string) for string in strings] )

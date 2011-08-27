@@ -201,26 +201,3 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         ar_timeout = self.get_option('autorefresh/timeout')
         for shellwidget in self.main.extconsole.shellwidgets:
             shellwidget.set_autorefresh_timeout(ar_timeout)
-
-
-#==============================================================================
-# The following settings have to be reset at runtime:
-#==============================================================================
-from spyderlib.baseconfig import type2str
-from datetime import date
-EDITABLE_TYPES = [int, long, float, list, dict, tuple, str, unicode, date]
-try:
-    from numpy import ndarray, matrix
-    EDITABLE_TYPES += [ndarray, matrix]
-except ImportError:
-    pass
-PICKLABLE_TYPES = EDITABLE_TYPES[:]
-try:
-    from PIL.Image import Image
-    EDITABLE_TYPES.append(Image)
-except ImportError:
-    pass
-
-for option, value in (('editable_types', type2str(EDITABLE_TYPES)),
-                      ('picklable_types', type2str(PICKLABLE_TYPES))):
-    CONF.set(VariableExplorer.CONF_SECTION, option, value)
