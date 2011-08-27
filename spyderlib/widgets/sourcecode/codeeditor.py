@@ -1480,7 +1480,8 @@ class CodeEditor(TextEditBaseWidget):
                 old_pos = None
                 cursor = document.find(regexp, cursor, flags)
                 if cursor:
-                    while cursor and cursor.blockNumber() == line2 \
+                    while cursor and cursor.blockNumber() <= line2 \
+                          and cursor.blockNumber() >= line_number-1 \
                           and cursor.position() != old_pos:
                         self.__highlight_selection('code_analysis', cursor,
                                        underline_color=QColor(color))
