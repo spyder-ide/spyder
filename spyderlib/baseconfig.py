@@ -102,20 +102,6 @@ _ = get_translation("spyderlib")
 #===============================================================================
 # Namespace Browser (Variable Explorer) configuration management
 #===============================================================================
-from datetime import date
-EDITABLE_TYPES = [int, long, float, list, dict, tuple, str, unicode, date]
-try:
-    from numpy import ndarray, matrix
-    EDITABLE_TYPES += [ndarray, matrix]
-except ImportError:
-    pass
-PICKLABLE_TYPES = EDITABLE_TYPES[:]
-try:
-    from PIL.Image import Image
-    EDITABLE_TYPES.append(Image)
-except ImportError:
-    pass
-
 # Max number of filter iterations for worskpace display:
 # (for workspace saving, itermax == -1, see Workspace.save)
 ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?

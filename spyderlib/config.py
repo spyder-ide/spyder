@@ -19,8 +19,7 @@ from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
-from spyderlib.baseconfig import (SUBFOLDER, EDITABLE_TYPES, PICKLABLE_TYPES,
-                                  ITERMAX, EXCLUDED, type2str,
+from spyderlib.baseconfig import (SUBFOLDER, ITERMAX, EXCLUDED,
                                   get_module_data_path, _)
 from spyderlib.utils.iofuncs import iofunctions
 
@@ -189,8 +188,6 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+V",
               'autorefresh': True,
               'autorefresh/timeout': 2000,
-              'editable_types': type2str(EDITABLE_TYPES),
-              'picklable_types': type2str(PICKLABLE_TYPES),
               'itermax': ITERMAX,
               'excluded_names': EXCLUDED,
               'exclude_private': True,
