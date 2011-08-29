@@ -610,7 +610,7 @@ class EditorStack(QWidget):
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
-        if hasattr(self.tabs, 'setDocumentMode'):
+        if hasattr(self.tabs, 'setDocumentMode') and not sys.platform == 'darwin':
             self.tabs.setDocumentMode(True)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.current_changed)
