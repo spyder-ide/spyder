@@ -148,7 +148,7 @@ class ExternalPythonShell(ExternalShellBase):
                  ipython_shell=False, ipython_kernel=False,
                  arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
-                 pythonstartup=None,
+                 pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend='Qt4Agg', ets_backend='qt4', pyqt_api=0,
                  replace_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
@@ -170,6 +170,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         
         self.pythonstartup = pythonstartup
+        self.pythonexecutable = pythonexecutable
         self.monitor_enabled = monitor_enabled
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
@@ -487,10 +488,12 @@ class ExternalPythonShell(ExternalShellBase):
                      self.process.kill)
         
         #-------------------------Python specific-------------------------------
-        executable = sys.executable
-        if executable.endswith("spyder.exe"):
-            # py2exe distribution
-            executable = "python.exe"
+        executable = self.pythonexecutable
+        if executable is None:
+            executable = sys.executable
+            if executable.endswith("spyder.exe"):
+                # py2exe distribution
+                executable = "python.exe"
         self.process.start(executable, p_args)
         #-------------------------Python specific-------------------------------
             

@@ -156,6 +156,23 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         umd_layout.addWidget(umd_namelist_btn)
         umd_group.setLayout(umd_layout)
         
+        # Python executable Group
+        pyexec_group = QGroupBox(_("Python executable"))
+        pyexec_label = QLabel(_("Path to Python interpreter "
+                                "executable binary:"))
+        if os.name == 'nt':
+            filters = _("Executables")+" (*.exe)"
+        else:
+            filters = None
+        pyexec_file = self.create_browsefile('', 'pythonexecutable',
+                                             default=sys.executable,
+                                             filters=filters)
+        
+        pyexec_layout = QVBoxLayout()
+        pyexec_layout.addWidget(pyexec_label)
+        pyexec_layout.addWidget(pyexec_file)
+        pyexec_group.setLayout(pyexec_layout)
+        
         # Startup Group
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
@@ -320,7 +337,8 @@ to use this feature wisely, e.g. for debugging purpose.
                     _("Display"))
         tabs.addTab(self.create_tab(monitor_group, source_group),
                     _("Introspection"))
-        tabs.addTab(self.create_tab(startup_group, pystartup_group, umd_group),
+        tabs.addTab(self.create_tab(pyexec_group, startup_group,
+                                    pystartup_group, umd_group),
                     _("Advanced settings"))
         tabs.addTab(self.create_tab(pyqt_group, ipython_group, mpl_group,
                                     ets_group),
@@ -551,6 +569,8 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
+            pythonexecutable = self.get_option('pythonexecutable',
+                                               sys.executable)
             if self.get_option('pythonstartup/default', True):
                 pythonstartup = None
             else:
@@ -581,6 +601,7 @@ class ExternalConsole(SpyderPluginWidget):
                            ipython_kernel=ipython_kernel,
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
+                           pythonexecutable=pythonexecutable,
                            umd_enabled=umd_enabled, umd_namelist=umd_namelist,
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
