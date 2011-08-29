@@ -688,7 +688,7 @@ class ExplorerTreeWidget(FilteredDirView):
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to %s <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (_('copy'), folder, str(error)))
+                                       ) % (_('copy'), folder, unicode(error)))
             folder = dst
         
         project = self.workspace.add_project(folder)
@@ -882,7 +882,7 @@ class ExplorerTreeWidget(FilteredDirView):
                             _('Import existing Pydev project'),
                             _("<b>Unable to read Pydev project <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (osp.basename(folder), str(error)))
+                              ) % (osp.basename(folder), unicode(error)))
             finally:
                 project = self.add_project(folder, silent=True)
                 if project is not None:
@@ -1088,7 +1088,7 @@ class ExplorerTreeWidget(FilteredDirView):
                 QMessageBox.critical(self, _("Project Explorer"),
                                      _("<b>Unable to %s <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (action_str, src, str(error)))
+                                       ) % (action_str, src, unicode(error)))
 
 
 class WorkspaceSelector(QWidget):

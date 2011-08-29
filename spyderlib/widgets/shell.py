@@ -260,7 +260,7 @@ class ShellBaseWidget(ConsoleBaseWidget):
                                      _("<b>Unable to save file '%s'</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % (osp.basename(filename),
-                                            str(error)))
+                                            unicode(error)))
         
         
     #------ Basic keypress event handler

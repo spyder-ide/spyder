@@ -442,7 +442,7 @@ class DirView(QTreeView):
             QMessageBox.critical(self, _("Project Explorer"),
                             _("<b>Unable to %s <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (action_str, fname, str(error)))
+                              ) % (action_str, fname, unicode(error)))
         return False
         
     def delete(self, fnames=None):
@@ -475,7 +475,7 @@ class DirView(QTreeView):
                 QMessageBox.critical(self, _("Rename"),
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (osp.basename(fname), str(error)))
+                              ) % (osp.basename(fname), unicode(error)))
     
     def rename(self, fnames=None):
         """Rename files"""
@@ -509,7 +509,7 @@ class DirView(QTreeView):
                 QMessageBox.critical(self, _("Error"),
                                      _("<b>Unable to move <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (basename, str(error)))
+                                       ) % (basename, unicode(error)))
         
     def create_new_folder(self, current_path, title, subtitle, is_package):
         """Create new folder"""
@@ -528,7 +528,7 @@ class DirView(QTreeView):
                                      _("<b>Unable "
                                        "to create folder <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (dirname, str(error)))
+                                       ) % (dirname, unicode(error)))
             finally:
                 if is_package:
                     fname = osp.join(dirname, '__init__.py')
@@ -540,7 +540,7 @@ class DirView(QTreeView):
                                              _("<b>Unable "
                                                "to create file <i>%s</i></b>"
                                                "<br><br>Error message:<br>%s"
-                                               ) % (fname, str(error)))
+                                               ) % (fname, unicode(error)))
 
     def new_folder(self, basedir):
         """New folder"""
@@ -576,7 +576,7 @@ class DirView(QTreeView):
                 QMessageBox.critical(self, _("New file"),
                                      _("<b>Unable to create file <i>%s</i>"
                                        "</b><br><br>Error message:<br>%s"
-                                       ) % (fname, str(error)))
+                                       ) % (fname, unicode(error)))
 
     def new_file(self, basedir):
         """New file"""
