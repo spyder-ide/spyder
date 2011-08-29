@@ -8,13 +8,21 @@
 Spyder third-party plugins configuration management
 """
 
-import os.path as osp, os
+import os
+import os.path as osp
+
+# Local imports
+from spyderlib.utils import programs
+
 
 PLUGIN_PATH = None
-from spyderlib.utils import programs
 if programs.is_module_installed("spyderplugins"):
     import spyderplugins
     PLUGIN_PATH = osp.abspath(spyderplugins.__path__[0])
+    if not osp.isdir(PLUGIN_PATH):
+        # py2exe/cx_Freeze distribution: ignoring extra plugins
+        PLUGIN_PATH = None
+
 
 def get_spyderplugins(prefix, extension):
     """Scan spyderplugins module and
@@ -29,6 +37,7 @@ def get_spyderplugins(prefix, extension):
                 continue
             plist.append(modname)
     return plist
+
 
 def get_spyderplugins_mods(prefix, extension):
     """Scan spyderplugins module and
