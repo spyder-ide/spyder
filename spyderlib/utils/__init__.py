@@ -183,3 +183,12 @@ def log_dt(fname, context, t0):
     print >>fd, "%s: %d ms" % (context, 10*round(1e2*(time.time()-t0)))
     print >>fd, ""
     print >>fd, ""
+
+
+def get_python_executable():
+    """Return path to Python executable"""
+    executable = sys.executable
+    if executable.endswith("spyder.exe"):
+        # py2exe distribution
+        executable = "python.exe"
+    return executable

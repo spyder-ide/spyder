@@ -27,7 +27,7 @@ STDOUT = sys.stdout
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, CONF
 from spyderlib.utils import (programs, remove_trailing_single_backslash,
-                             get_error_match)
+                             get_error_match, get_python_executable)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -165,7 +165,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         else:
             filters = None
         pyexec_file = self.create_browsefile('', 'pythonexecutable',
-                                             default=sys.executable,
                                              filters=filters)
         
         pyexec_layout = QVBoxLayout()
@@ -372,7 +371,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.terminal_count = 0
 
         try:
-            from sip import setapi #@UnusedImport
+            from sip import setapi #analysis:ignore
         except ImportError:
             self.set_option('ignore_sip_setapi_errors', False)
 
@@ -391,6 +390,13 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('ipython_kernel_options', None) is None:
             self.set_option('ipython_kernel_options',
                             self.get_default_ipython_kernel_options())
+        
+        if not osp.isfile(self.get_option('pythonexecutable',
+                                          get_python_executable())):
+            # This is absolutely necessary, in case the Python interpreter
+            # executable has been moved since last Spyder execution (following
+            # a Python distribution upgrade for example)
+            self.set_option('pythonexecutable', get_python_executable())
         
         self.shellwidgets = []
         self.filenames = []
@@ -569,8 +575,7 @@ class ExternalConsole(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         show_elapsed_time = self.get_option('show_elapsed_time')
         if python:
-            pythonexecutable = self.get_option('pythonexecutable',
-                                               sys.executable)
+            pythonexecutable = self.get_option('pythonexecutable')
             if self.get_option('pythonstartup/default', True):
                 pythonstartup = None
             else:

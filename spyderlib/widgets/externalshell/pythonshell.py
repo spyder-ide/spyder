@@ -22,6 +22,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon, DialogManager, add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
+from spyderlib.utils import get_python_executable
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
@@ -490,10 +491,7 @@ class ExternalPythonShell(ExternalShellBase):
         #-------------------------Python specific-------------------------------
         executable = self.pythonexecutable
         if executable is None:
-            executable = sys.executable
-            if executable.endswith("spyder.exe"):
-                # py2exe distribution
-                executable = "python.exe"
+            executable = get_python_executable()
         self.process.start(executable, p_args)
         #-------------------------Python specific-------------------------------
             
