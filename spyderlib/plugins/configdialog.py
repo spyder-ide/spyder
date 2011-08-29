@@ -82,8 +82,10 @@ class ConfigPage(QWidget):
 
 
 class ConfigDialog(QDialog):
+    """Spyder configuration ('Preferences') dialog box"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)

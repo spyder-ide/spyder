@@ -1536,8 +1536,13 @@ class MainWindow(QMainWindow):
             dlg.set_current_index(self.prefs_index)
         dlg.show()
         dlg.check_all_settings()
+        self.connect(dlg.pages_widget, SIGNAL("currentChanged(int)"),
+                     self.__preference_page_changed)
         dlg.exec_()
-        self.prefs_index = dlg.get_current_index()
+        
+    def __preference_page_changed(self, index):
+        """Preference page index has changed"""
+        self.prefs_index = index
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
