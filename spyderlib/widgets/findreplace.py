@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QShortcut, QKeySequence)
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
 
 import sys
 
@@ -53,8 +53,8 @@ class FindReplace(QWidget):
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
-        self.connect(self.search_text, SIGNAL("editTextChanged(QString)"),
-                     self.text_has_changed)
+        self.connect(self.search_text.lineEdit(),
+                     SIGNAL("textEdited(QString)"), self.text_has_been_edited)
         
         self.previous_button = create_toolbutton(self,
                                              triggered=self.find_previous,
@@ -148,6 +148,12 @@ class FindReplace(QWidget):
         
         escape_sc = QShortcut(QKeySequence("Escape"), parent, self.hide)
         escape_sc.setContext(Qt.WidgetWithChildrenShortcut)
+
+        self.highlight_timer = QTimer(self)
+        self.highlight_timer.setSingleShot(True)
+        self.highlight_timer.setInterval(1000)
+        self.connect(self.highlight_timer, SIGNAL("timeout()"),
+                     self.highlight_matches)
         
     def get_shortcut_data(self):
         """
@@ -262,17 +268,14 @@ class FindReplace(QWidget):
         self.editor.setFocus()
         return state
         
-    def text_has_changed(self, text):
-        """Find text has changed"""
-        self.find(changed=True, forward=True)
+    def text_has_been_edited(self, text):
+        """Find text has been edited (this slot won't be triggered when 
+        setting the search pattern combo box text programmatically"""
+        self.find(changed=True, forward=True, start_highlight_timer=True)
         
     def highlight_matches(self):
         """Highlight found results"""
         if self.is_code_editor and self.highlight_button.isChecked():
-            #TODO: start a timer instead of calling this method right now
-            # (this will avoid CPU overload for large files while entering
-            #  the search pattern) -- see the occurence highlighting timer
-            #  in spyderlib/widgets/sourcecode/codeeditor.py
             text = self.search_text.currentText()
             words = self.words_button.isChecked()
             regexp = self.re_button.isChecked()
@@ -284,7 +287,8 @@ class FindReplace(QWidget):
         if self.is_code_editor:
             self.editor.clear_found_results()
         
-    def find(self, changed=True, forward=True, rehighlight=True):
+    def find(self, changed=True, forward=True,
+             rehighlight=True, start_highlight_timer=False):
         """Call the find function"""
         text = self.search_text.currentText()
         if len(text) == 0:
@@ -299,7 +303,11 @@ class FindReplace(QWidget):
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
             if found:
                 if rehighlight or not self.editor.found_results:
-                    self.highlight_matches()
+                    self.highlight_timer.stop()
+                    if start_highlight_timer:
+                        self.highlight_timer.start()
+                    else:
+                        self.highlight_matches()
             else:
                 self.clear_matches()
             return found
