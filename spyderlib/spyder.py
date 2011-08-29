@@ -1286,6 +1286,14 @@ class MainWindow(QMainWindow):
         except ImportError:
             rope_version = not_installed
         import spyderlib.qt.QtCore
+        qt_api = os.environ['QT_API']
+        qt_lib = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[qt_api]
+        if qt_api == 'pyqt':
+            import sip
+            try:
+                qt_lib += (" (API v%d)" % sip.getapi('QString'))
+            except AttributeError:
+                pass
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             _("""<b>%s %s</b>
@@ -1323,7 +1331,7 @@ class MainWindow(QMainWindow):
                  __project_url__, __forum_url__,
                  platform.python_version(),
                  spyderlib.qt.QtCore.__version__,
-                 os.environ['QT_API'], spyderlib.qt.__version__,
+                 qt_lib, spyderlib.qt.__version__,
                  platform.system()) )
     
     #---- Global callbacks (called from plugins)
