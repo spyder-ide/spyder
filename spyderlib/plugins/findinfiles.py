@@ -83,7 +83,8 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             if widget.has_selected_text():
                 text = widget.get_selected_text()
         self.set_search_text(text)
-        self.find()
+        if text:
+            self.find()
         
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
