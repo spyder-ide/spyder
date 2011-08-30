@@ -348,8 +348,9 @@ class MainWindow(QMainWindow):
         # List of satellite widgets (registered in add_dockwidget):
         self.widgetlist = []
         
-        # Flag used if closing() is called by the exit() shell command
+        # Flags used if closing() is called by the exit() shell command
         self.already_closed = False
+        self.is_starting_up = True
         
         self.window_size = None
         self.window_position = None
@@ -878,6 +879,7 @@ class MainWindow(QMainWindow):
                              self.update_edit_menu)
         
         self.debug_print("*** End of MainWindow setup ***")
+        self.is_starting_up = False
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1173,7 +1175,7 @@ class MainWindow(QMainWindow):
         
     def closing(self, cancelable=False):
         """Exit tasks"""
-        if self.already_closed:
+        if self.already_closed or self.is_starting_up:
             return True
         prefix = ('lightwindow' if self.light else 'window') + '/'
         self.save_current_window_settings(prefix)
@@ -1806,6 +1808,7 @@ def main():
                                      u"<br><br>Error message:<br>%s"
                                       % (osp.basename(next_session_name),
                                          error_message))
+        mainwindow = None
         try:
             mainwindow = run_spyder(app, options)
         except BaseException:
@@ -1814,6 +1817,7 @@ def main():
             traceback.print_exc(file=STDERR)
             traceback.print_exc(file=open('spyder_crash.log', 'wb'))            
         if mainwindow is None:
+            # An exception occured
             return
         next_session_name = mainwindow.next_session_name
         save_session_name = mainwindow.save_session_name
