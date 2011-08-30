@@ -25,6 +25,7 @@ parser.add_option('-d', '--debug', dest="debug", action='store_true',
 options, _args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'),\
        "Invalid GUI toolkit option '%s'" % options.gui
+sys.argv.append("--showconsole")  # Windows only: show parent console
 
 print("Executing Spyder from source checkout")
 

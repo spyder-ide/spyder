@@ -1623,6 +1623,9 @@ def get_options():
     parser.add_option('-d', '--debug', dest="debug", action='store_true',
                       default=False,
                       help="Debug mode (stds are not redirected)")
+    parser.add_option('--showconsole', dest="show_console",
+                      action='store_true', default=False,
+                      help="Show parent console (Windows only)")
     parser.add_option('--multithread', dest="multithreaded",
                       action='store_true', default=False,
                       help="Internal console is executed in another thread "
@@ -1635,12 +1638,9 @@ def get_options():
     return options
 
 
-def initialize(debug):
+def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
     app = qapplication()
-    
-    if set_attached_console_visible is not None:
-        set_attached_console_visible(debug)
     
     #----Monkey patching PyQt4.QtGui.QApplication
     class FakeQApplication(QApplication):
@@ -1749,8 +1749,11 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
     options = get_options()
+
+    if set_attached_console_visible is not None:
+        set_attached_console_visible(options.debug or options.show_console)
     
-    app = initialize(debug=options.debug)
+    app = initialize()
     if options.reset_session:
         # <!> Remove all configuration files!
         reset_session()
