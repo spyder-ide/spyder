@@ -632,10 +632,14 @@ class DirView(QTreeView):
     
     def save_expanded_state(self):
         """Save all items expanded state"""
-        self.__expanded_state = []
-        for idx in self.model().persistentIndexList():
-            if self.isExpanded(idx):
-                self.__expanded_state.append(self.get_filename(idx))
+        model = self.model()
+        # If model is not installed, 'model' will be None: this happens when
+        # using the Project Explorer without having selected a workspace yet
+        if model is not None:
+            self.__expanded_state = []
+            for idx in model.persistentIndexList():
+                if self.isExpanded(idx):
+                    self.__expanded_state.append(self.get_filename(idx))
 
     def restore_directory_state(self, fname):
         """Restore directory expanded state"""
