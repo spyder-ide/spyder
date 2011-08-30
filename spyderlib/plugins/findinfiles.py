@@ -104,7 +104,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
-        self.set_pythonpath_callback(self.main.get_spyder_pythonpath)
+        self.get_pythonpath_callback = self.main.get_spyder_pythonpath
         self.main.add_dockwidget(self)
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                      self.main.editor.load)
@@ -127,6 +127,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
+        self.closing_widget()  # stop search thread and clean-up
         options = self.find_options.get_options(all=True)
         if options is not None:
             search_text, text_re, search_path, \

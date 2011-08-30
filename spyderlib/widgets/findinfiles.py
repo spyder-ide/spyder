@@ -692,9 +692,8 @@ class FindInFilesWidget(QWidget):
         
         self.setWindowTitle(_('Find in files'))
 
-        self.search_thread = SearchThread(self)
-        self.connect(self.search_thread, SIGNAL("finished(bool)"),
-                     self.search_complete)
+        self.search_thread = None
+        self.get_pythonpath_callback = None
         
         self.find_options = FindOptions(self, search_text, search_text_regexp,
                                         search_path,
@@ -738,29 +737,44 @@ class FindInFilesWidget(QWidget):
         self.setLayout(layout)
             
     def set_search_text(self, text):
+        """Set search pattern"""
         self.find_options.set_search_text(text)
-        
-    def set_pythonpath_callback(self, callback):
-        self.search_thread.get_pythonpath_callback = callback
 
     def find(self):
         """Call the find function"""
         options = self.find_options.get_options()
         if options is None:
             return
+        self.stop(ignore_results=True)
+        self.search_thread = SearchThread(self)
+        self.search_thread.get_pythonpath_callback = \
+                                                self.get_pythonpath_callback
+        self.connect(self.search_thread, SIGNAL("finished(bool)"),
+                     self.search_complete)
         self.search_thread.initialize(*options)
         self.search_thread.start()
         self.find_options.ok_button.setEnabled(False)
         self.find_options.stop_button.setEnabled(True)
             
-    def stop(self):
-        if self.search_thread.isRunning():
+    def stop(self, ignore_results=False):
+        """Stop current search thread and clean-up"""
+        if self.search_thread is not None and self.search_thread.isRunning():
+            if ignore_results:
+                self.disconnect(self.search_thread, SIGNAL("finished(bool)"),
+                                self.search_complete)
             self.search_thread.stop()
-            
+        
+    def closing_widget(self):
+        """Perform actions before widget is closed"""
+        self.stop(ignore_results=True)
+        self.search_thread = None
+        
     def search_complete(self, completed):
+        """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
+        self.search_thread = None
         if found is not None:
             results, pathlist, nb, error_flag = found
             search_text = unicode( self.find_options.search_text.currentText() )
