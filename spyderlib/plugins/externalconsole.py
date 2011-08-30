@@ -408,7 +408,7 @@ class ExternalConsole(SpyderPluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
-        if hasattr(self.tabwidget, 'setDocumentMode'):
+        if hasattr(self.tabwidget, 'setDocumentMode') and not sys.platform == 'darwin':
             self.tabwidget.setDocumentMode(True)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_plugin)
