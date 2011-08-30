@@ -31,7 +31,11 @@ if _modname == 'pyqt':
         os.environ['QT_API'] = _modname = 'pyside'
 
 if _modname == 'pyside':
-    import PySide
-    __version__ = PySide.__version__
-    from PySide import *
-    is_pyqt46 = False
+    try:
+        import PySide
+        __version__ = PySide.__version__
+    except ImportError:
+        raise ImportError("Spyder requires PySide or PyQt to be installed")
+    else:
+        from PySide import *
+        is_pyqt46 = False

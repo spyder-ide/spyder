@@ -8,7 +8,7 @@
 Module checking Spyder requirements
 """
 
-def check_requirement(package, module_name, version_attr, required_str):
+def check_version(package, module_name, version_attr, required_str):
     wng = "\n%s v%s or higher is required" % (package, required_str)
     try:
         module = __import__(module_name)
@@ -47,8 +47,8 @@ def check_path():
                      "environment variable" % dirname)
 
 def check_qt():
-    wng1 = check_requirement("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
-    wng2 = check_requirement("PySide", "PySide", "__version__", "1.0")
+    wng1 = check_version("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
+    wng2 = check_version("PySide", "PySide", "__version__", "1.0")
     if wng1 and wng2:
         show_warning("Please check Spyder installation requirements:\n"
                      +wng1+"\nor"+wng2)
