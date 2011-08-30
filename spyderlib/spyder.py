@@ -1145,7 +1145,8 @@ class MainWindow(QMainWindow):
         
     def set_splash(self, message):
         """Set splash message"""
-        self.debug_print(message)
+        if message:
+            self.debug_print(message)
         self.splash.show()
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.white))
