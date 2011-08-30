@@ -495,7 +495,12 @@ class Monitor(threading.Thread):
                     logging.debug("sending result")
                     logging.debug("****** Introspection request /End ******")
                 if command is not PACKET_NOT_RECEIVED:
-                    write_packet(self.i_request, output, already_pickled=True)
+                    if write_packet is None:
+                        # This may happen during interpreter shutdown
+                        break
+                    else:
+                        write_packet(self.i_request, output,
+                                     already_pickled=True)
 
         self.i_request.close()
         self.n_request.close()
