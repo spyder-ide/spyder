@@ -34,7 +34,7 @@ print("Executing Spyder from source checkout")
 # Retrieving Mercurial revision number
 DEVPATH = os.path.dirname(os.path.abspath(__file__))
 try:
-    output = subprocess.Popen(['hg', 'id', '-nib', DEVPATH],
+    output = subprocess.Popen('hg id -nib "%s"' % DEVPATH, shell=True,
                               stdout=subprocess.PIPE).communicate()
     hgid, hgnum, hgbranch = output[0].strip().split()
     print("Revision %s:%s, Branch: %s" % (hgnum, hgid, hgbranch))
