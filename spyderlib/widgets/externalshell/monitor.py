@@ -486,21 +486,34 @@ class Monitor(threading.Thread):
                     logging.debug("error!")
                 log_last_error(LOG_FILENAME, command)
             finally:
-                if DEBUG:
-                    logging.debug("updating remote view")
-                if self.refresh_after_eval:
-                    self.update_remote_view(namespace)
-                    self.refresh_after_eval = False
-                if DEBUG:
-                    logging.debug("sending result")
-                    logging.debug("****** Introspection request /End ******")
-                if command is not PACKET_NOT_RECEIVED:
-                    if write_packet is None:
+                try:
+                    if DEBUG:
+                        logging.debug("updating remote view")
+                    if self.refresh_after_eval:
+                        self.update_remote_view(namespace)
+                        self.refresh_after_eval = False
+                    if DEBUG:
+                        logging.debug("sending result")
+                        logging.debug("****** Introspection request /End ******")
+                    if command is not PACKET_NOT_RECEIVED:
+                        if write_packet is None:
+                            # This may happen during interpreter shutdown
+                            break
+                        else:
+                            write_packet(self.i_request, output,
+                                         already_pickled=True)
+                except AttributeError, error:
+                    if "'NoneType' object has no attribute" in str(error):
                         # This may happen during interpreter shutdown
                         break
                     else:
-                        write_packet(self.i_request, output,
-                                     already_pickled=True)
+                        raise
+                except TypeError, error:
+                    if "'NoneType' object is not subscriptable" in str(error):
+                        # This may happen during interpreter shutdown
+                        break
+                    else:
+                        raise
 
         self.i_request.close()
         self.n_request.close()
