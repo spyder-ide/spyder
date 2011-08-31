@@ -17,21 +17,18 @@ import sys
 import optparse
 
 # Parsing command line options
-parser = optparse.OptionParser(usage="python bootstrap.py [options]")
+parser = optparse.OptionParser(usage="python bootstrap.py [options] [-- spyder_options]",
+             epilog="Arguments for Spyder's main script are specified after the -- symbol\n"\
+                    "(example: `python bootstrap.py -- --debug --light`). Type "\
+                    "`python bootstrap.py -- --help` to read more about Spyder options.\n")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
-parser.add_option('--args', dest="args", default=None,
-                  help="Send arguments directly to Spyder's main script"\
-                  "(example: --args=\"--debug --light\"). Type "\
-                  "`python bootstrap.py --args --help` for more information.")
-options, _args = parser.parse_args()
+options, args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'),\
        "Invalid GUI toolkit option '%s'" % options.gui
+# Prepare arguments for Spyder's main script
+sys.argv = [sys.argv[0]] + args
 sys.argv.append("--showconsole")  # Windows only: show parent console
-# Remove unsupported/Add supported arguments for Spyder's main script
-sys.argv = [sys.argv[0]]
-if options.args:
-    sys.argv += options.args.split()
 
 print("Executing Spyder from source checkout")
 
