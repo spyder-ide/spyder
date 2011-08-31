@@ -8,10 +8,10 @@
 
 import sys, os
 
-def __run_pythonstartup_script():
+def __run_pythonstartup_script(namespace):
     filename = os.environ.get('PYTHONSTARTUP')
     if filename and os.path.isfile(filename):
-        execfile(filename)
+        execfile(filename, namespace)
 
 def __run_init_commands():
     return os.environ.get('PYTHONINITCOMMANDS')
@@ -157,7 +157,7 @@ if __name__ == "__main__":
         if __commands__:
             for command in __commands__.split(';'):
                 exec command
-        __run_pythonstartup_script()
+        __run_pythonstartup_script(globals())
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',
                   '__create_banner', '__commands__', 'command', '__file__',
