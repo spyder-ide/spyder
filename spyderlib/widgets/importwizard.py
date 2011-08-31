@@ -431,6 +431,12 @@ class ImportWizard(QDialog):
                  title=None, icon=None, contents_title=None, varname=None):
         QDialog.__init__(self, parent)
         
+        # Destroying the C++ object right after closing the dialog box,
+        # otherwise it may be garbage-collected in another QThread
+        # (e.g. the editor's analysis thread in Spyder), thus leading to
+        # a segmentation fault on UNIX or an application crash on Windows
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
         if title is None:
             title = _("Import wizard")
         self.setWindowTitle(title)
@@ -536,6 +542,8 @@ class ImportWizard(QDialog):
     
     def get_data(self):
         """Return processed data"""
+        # It is import to avoid accessing Qt C++ object as it has probably
+        # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.var_name, self.clip_data
 
     def _simplify_shape(self, alist, rec=0):

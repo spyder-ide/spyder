@@ -29,6 +29,12 @@ class PathManager(QDialog):
     def __init__(self, parent=None, pathlist=None, ro_pathlist=None, sync=True):
         QDialog.__init__(self, parent)
         
+        # Destroying the C++ object right after closing the dialog box,
+        # otherwise it may be garbage-collected in another QThread
+        # (e.g. the editor's analysis thread in Spyder), thus leading to
+        # a segmentation fault on UNIX or an application crash on Windows
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
         assert isinstance(pathlist, list)
         self.pathlist = pathlist
         if ro_pathlist is None:

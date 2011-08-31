@@ -224,6 +224,14 @@ def validate_rope_project():
 class GoToLineDialog(QDialog):
     def __init__(self, editor):
         QDialog.__init__(self, editor)
+        
+        # Destroying the C++ object right after closing the dialog box,
+        # otherwise it may be garbage-collected in another QThread
+        # (e.g. the editor's analysis thread in Spyder), thus leading to
+        # a segmentation fault on UNIX or an application crash on Windows
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
+        self.lineno = None
         self.editor = editor
 
         self.setWindowTitle(_("Editor"))
@@ -234,6 +242,8 @@ class GoToLineDialog(QDialog):
         validator = QIntValidator(self.lineedit)
         validator.setRange(1, editor.get_line_count())
         self.lineedit.setValidator(validator)
+        self.connect(self.lineedit, SIGNAL('textChanged(QString)'),
+                     self.text_has_changed)
         cl_label = QLabel(_("Current line:"))
         cl_label_v = QLabel("<b>%d</b>" % editor.get_cursor_line_number())
         last_label = QLabel(_("Line count:"))
@@ -266,9 +276,20 @@ class GoToLineDialog(QDialog):
         self.setLayout(layout)
 
         self.lineedit.setFocus()
+        
+    def text_has_changed(self, text):
+        """Line edit's text has changed"""
+        text = unicode(text)
+        if text:
+            self.lineno = int(text)
+        else:
+            self.lineno = None
 
     def get_line_number(self):
-        return int(self.lineedit.text())
+        """Return line number"""
+        # It is import to avoid accessing Qt C++ object as it has probably
+        # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
+        return self.lineno
 
 
 #===============================================================================

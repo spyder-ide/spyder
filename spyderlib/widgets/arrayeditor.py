@@ -426,6 +426,13 @@ class ArrayEditor(QDialog):
     """Array Editor Dialog"""    
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        
+        # Destroying the C++ object right after closing the dialog box,
+        # otherwise it may be garbage-collected in another QThread
+        # (e.g. the editor's analysis thread in Spyder), thus leading to
+        # a segmentation fault on UNIX or an application crash on Windows
+        self.setAttribute(Qt.WA_DeleteOnClose)
+        
         self.data = None
     
     def setup_and_check(self, data, title='', readonly=False,
@@ -530,6 +537,8 @@ class ArrayEditor(QDialog):
         
     def get_value(self):
         """Return modified array -- this is *not* a copy"""
+        # It is import to avoid accessing Qt C++ object as it has probably
+        # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data
 
     def error(self, message):

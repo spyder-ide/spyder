@@ -400,6 +400,12 @@ class FormDialog(QDialog):
     def __init__(self, data, title="", comment="",
                  icon=None, parent=None, apply=None):
         QDialog.__init__(self, parent)
+        
+        # Destroying the C++ object right after closing the dialog box,
+        # otherwise it may be garbage-collected in another QThread
+        # (e.g. the editor's analysis thread in Spyder), thus leading to
+        # a segmentation fault on UNIX or an application crash on Windows
+        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.apply_callback = apply
         
@@ -464,6 +470,8 @@ class FormDialog(QDialog):
         
     def get(self):
         """Return form result"""
+        # It is import to avoid accessing Qt C++ object as it has probably
+        # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data
 
 
