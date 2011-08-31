@@ -28,7 +28,6 @@ assert options.gui in (None, 'pyqt', 'pyside'),\
        "Invalid GUI toolkit option '%s'" % options.gui
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
-sys.argv.append("--showconsole")  # Windows only: show parent console
 
 print("Executing Spyder from source checkout")
 
@@ -73,5 +72,7 @@ print("03. Imported Spyder %s (Qt %s via %s %s)" % \
      QT_LIB, spyder.qt.__version__))
 
 # Executing Spyder
+print("0x. Enforcing parent console (Windows only)") 
+sys.argv.append("--showconsole")  # Windows only: show parent console
 print("04. Executing spyder.main()")
 spyder.main()
