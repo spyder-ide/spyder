@@ -144,6 +144,45 @@ def debugfile(filename, args=None, wdir=None):
     debugger.run("runfile(%r, args=%r, wdir=%r)" % (filename, args, wdir))
 
 
+def evalsc(command):
+    """Evaluate special commands
+    (analog to IPython's magic commands but far less powerful/complete)"""
+    assert command.startswith(('%', '!'))
+    system_command = command.startswith('!')
+    command = command[1:].strip()
+    if system_command:
+        # System command
+        if command.startswith('cd '):
+            evalsc('%'+command)
+        else:
+            from subprocess import Popen, PIPE
+            Popen(command, shell=True, stdin=PIPE)
+            print '\n'
+    else:
+        # General command
+        import re
+        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
+        cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_ \.]+)", command)
+        if cd_match:
+            os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
+        elif clear_match:
+            varnames = clear_match.groups()[0].replace(' ', '').split(',')
+            for varname in varnames:
+                try:
+                    globals().pop(varname)
+                except KeyError:
+                    pass
+        elif command in ('cd', 'pwd'):
+            print os.getcwdu()
+        elif command == 'ls':
+            if os.name == 'nt':
+                evalsc('!dir')
+            else:
+                evalsc('!ls')
+        else:
+            raise NotImplementedError, "Unsupported command: '%s'" % command
+            
+
 if __name__ == "__main__":
     __remove_from_syspath__()
     

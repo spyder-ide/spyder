@@ -522,8 +522,6 @@ class ExternalPythonShell(ExternalShellBase):
     def send_to_process(self, text):
         if not isinstance(text, basestring):
             text = unicode(text)
-        if not text.endswith('\n'):
-            text += '\n'
         if self.replace_pyqt_inputhook and not self.is_ipython_shell:
             # For now, the Spyder's input hook does not work with IPython:
             # with IPython v0.10 or non-Windows platforms, this is not a
@@ -534,6 +532,10 @@ class ExternalPythonShell(ExternalShellBase):
             # ignored because of the input hook non-blocking stdin mechanism.
             # See spyderlib/widgets/externalshell/inputhook.py.
             self.process.write('\n')
+        if not self.is_ipython_shell and text.startswith(('%', '!')):
+            text = 'evalsc(r"%s")\n' % text
+        if not text.endswith('\n'):
+            text += '\n'
         self.process.write(locale_codec.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         
