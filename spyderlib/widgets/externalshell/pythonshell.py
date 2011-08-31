@@ -249,20 +249,16 @@ class ExternalPythonShell(ExternalShellBase):
         if self.namespacebrowser_button is None \
            and self.stand_alone is not None:
             self.namespacebrowser_button = create_toolbutton(self,
-                          text=_("Variables"),
-                          icon=get_icon('dictedit.png'),
-                          tip=_("Show/hide global variables explorer"),
-                          toggled=self.toggle_globals_explorer,
-                          text_beside_icon=True)
+                  text=_("Variables"), icon=get_icon('dictedit.png'),
+                  tip=_("Show/hide global variables explorer"),
+                  toggled=self.toggle_globals_explorer, text_beside_icon=True)
         if self.terminate_button is None:
             self.terminate_button = create_toolbutton(self,
-                          text=_("Terminate"),
-                          icon=get_icon('terminate.png'),
-                          tip=_("Attempts to terminate the process.\n"
-                                      "The process may not exit as a result of "
-                                      "clicking this button\n"
-                                      "(it is given the chance to prompt "
-                                      "the user for any unsaved files, etc)."))
+                  text=_("Terminate"), icon=get_icon('terminate.png'),
+                  tip=_("Attempts to terminate the process.\n The process may "
+                        "not exit as a result of clicking this button\n (it is"
+                        "given the chance to prompt the user for any unsaved "
+                        "files, etc)."))
         buttons = []
         if self.namespacebrowser_button is not None:
             buttons.append(self.namespacebrowser_button)
@@ -534,9 +530,10 @@ class ExternalPythonShell(ExternalShellBase):
             # problem. However, with IPython v0.11 on Windows, this will be
             # fixed by patching IPython to force it to use our inputhook.
             #
-            # The text '<exit_input_hook_loop>' is of course arbitrary.
+            # We must send an EOL character to the process, which will be
+            # ignored because of the input hook non-blocking stdin mechanism.
             # See spyderlib/widgets/externalshell/inputhook.py.
-            self.process.write('<exit_input_hook_loop>\n')
+            self.process.write('\n')
         self.process.write(locale_codec.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         

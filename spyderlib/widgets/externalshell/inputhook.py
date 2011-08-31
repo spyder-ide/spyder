@@ -47,7 +47,7 @@ def generic_inputhook(update_callback):
     while True:
         try:
             _line = queue.get(timeout=.1) #analysis:ignore
-            # _line contains '<exit_input_hook_loop>\n':
+            # _line contains an arbitrary text that should be ignored:
             # see spyderlib/widgets/externalshell/pythonshell.py
         except Queue.Empty:
             update_callback()
