@@ -21,9 +21,9 @@ parser = optparse.OptionParser(usage="python bootstrap.py [options]")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--args', dest="args", default=None,
-                  help="Send command line options directly to Spyder's main "\
-                  "script (example: --args=\"--debug --light\"). Please type "\
-                  "`python spyderlib/spyder.py --help` for more details.")
+                  help="Send arguments directly to Spyder's main script"\
+                  "(example: --args=\"--debug --light\"). Type "\
+                  "`python bootstrap.py --args --help` for more information.")
 options, _args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'),\
        "Invalid GUI toolkit option '%s'" % options.gui
