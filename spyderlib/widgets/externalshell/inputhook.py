@@ -29,50 +29,75 @@ import threading
 
 
 def readline_and_queue(fd, queue):
+    """Read line from standard input (blocking process) then queue it"""
     line = fd.readline()
     queue.put(line)
     queue.task_done()
 
-def generic_inputhook(update_callback):
-    """Generic input hook for Spyder's console
-    
-    This input hook uses a non-blocking readline mechanism to check if entered 
-    text is available, and in the meantime it processes Qt events.
-    """
+
+def create_queue_and_thread():
+    """Create non-blocking readline queue and thread"""
     queue = Queue.Queue()
     readline_thread = threading.Thread(target=readline_and_queue,
                                        args=(sys.stdin, queue))
     readline_thread.setDaemon(True)
-    readline_thread.start()
+    return queue, readline_thread
+
+
+def tk_inputhook(update_callback):
+    """Tkinter input hook for Spyder's console
+    
+    This input hook uses a non-blocking readline mechanism to check if entered 
+    text is available, and in the meantime it processes Tkinter events.
+    """
+    manager.initialize_tkinter()
+    app = manager.tk_application
+    queue, thread = create_queue_and_thread()
+    thread.start()
     while True:
         try:
             _line = queue.get(timeout=.1) #analysis:ignore
             # _line contains an arbitrary text that should be ignored:
             # see spyderlib/widgets/externalshell/pythonshell.py
         except Queue.Empty:
-            update_callback()
+            if app:
+                app.update()
         else:
             break
     queue.join()
     return 0
 
 
-def tk_update_callback():
-    """Update callback for the Tkinter GUI toolkit"""
-    manager.initialize_tkinter()
-    app = manager.gui_application
-    if app:
-        app.update()
-
-tk_inputhook = lambda: generic_inputhook(tk_update_callback)
-
-
-def qt_update_callback():
-    """Update callback for the Qt GUI toolkit"""
+def qt_inputhook():
+    """Qt input hook for Spyder's console
+    
+    This input hook uses a non-blocking readline mechanism to check if entered 
+    text is available, and in the meantime it processes Qt events.
+    """
     from PyQt4 import QtCore
-    QtCore.QCoreApplication.processEvents()
-
-qt_inputhook = lambda: generic_inputhook(qt_update_callback)
+    app = QtCore.QCoreApplication.instance()
+    if app and app.thread() is QtCore.QThread.currentThread():
+        timer = QtCore.QTimer()
+        QtCore.QObject.connect(timer, QtCore.SIGNAL('timeout()'),
+                               app, QtCore.SLOT('quit()'))
+    else:
+        timer = None
+    queue, thread = create_queue_and_thread()
+    thread.start()
+    while True:
+        try:
+            _line = queue.get(timeout=.1) #analysis:ignore
+            # _line contains an arbitrary text that should be ignored:
+            # see spyderlib/widgets/externalshell/pythonshell.py
+        except Queue.Empty:
+            if timer is not None:
+                timer.start(50)
+                QtCore.QCoreApplication.exec_()
+                timer.stop()
+        else:
+            break
+    queue.join()
+    return 0
 
 
 class InputHookManager(object):
@@ -83,7 +108,7 @@ class InputHookManager(object):
     
     def __init__(self):
         self.PYFUNC = ctypes.PYFUNCTYPE(ctypes.c_int)
-        self.gui_application = None # Qt or Tk application instance
+        self.tk_application = None # Tk application instance
         self._callback_pyfunctype = None
         self._callback = None
 
@@ -116,19 +141,13 @@ class InputHookManager(object):
 
     def install_qt_inputhook(self):
         """Install PyQt4 input hook"""
-        from PyQt4 import QtCore, QtGui
+        from PyQt4 import QtCore
         QtCore.pyqtRemoveInputHook()
-        
         self.set_inputhook(qt_inputhook)
-
-        app = QtCore.QCoreApplication.instance()
-        if app is None:
-            app = QtGui.QApplication([])
-        self.gui_application = app
         
     def initialize_tkinter(self):
         """Initialize Tkinter and return tk application instance"""
-        if self.gui_application is None:
+        if self.tk_application is None:
             import Tkinter
             try:
                 app = Tkinter.Tk()
@@ -137,7 +156,7 @@ class InputHookManager(object):
                 pass
             else:
                 app.withdraw()
-                self.gui_application = app
+                self.tk_application = app
 
     def install_tk_inputhook(self, app=None):
         """Install Tkinter input hook"""
