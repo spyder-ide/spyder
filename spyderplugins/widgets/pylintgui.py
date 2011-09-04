@@ -352,7 +352,7 @@ class PylintWidget(QWidget):
             line_nb = line[i1+1:i2].strip()
             if not line_nb:
                 continue
-            line_nb = int(line_nb)
+            line_nb = int(line_nb.split(',')[0])
             message = line[i2+1:]
             item = (module, line_nb, message, msg_id)
             results[line[0]+':'].append(item)
