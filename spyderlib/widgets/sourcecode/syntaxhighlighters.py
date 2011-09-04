@@ -687,7 +687,10 @@ class BaseWebSH(BaseSH):
         self.setCurrentBlockState(previous_state)
         match = self.PROG.search(text)        
 
-        while match:
+        match_count = 0
+        n_characters = len(text)
+        # There should never be more matches than characters in the text.
+        while match and match_count < n_characters:
             match_dict = match.groupdict()
             for key, value in match_dict.items():
                 if value:
@@ -710,8 +713,9 @@ class BaseWebSH(BaseSH):
                             self.setCurrentBlockState(self.NORMAL)
                             self.setFormat(start, end-start,
                                            self.formats[key])
-                
+            
             match = self.PROG.search(text, match.end())
+            match_count += 1
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
