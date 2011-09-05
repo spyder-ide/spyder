@@ -51,12 +51,13 @@ EDIT_FILETYPES = (
     (_("Web page files"), ('.css', '.htm', '.html',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
-    (_("All files"), ('',)))
+                 )
 
 def _get_filters(filetypes):
     filters = []
     for title, ftypes in filetypes:
         filters.append("%s (*%s)" % (title, " *".join(ftypes)))
+    filters.append("%s (*)" % _("All files"))
     return "\n".join(filters)
 
 def _get_extensions(filetypes):
