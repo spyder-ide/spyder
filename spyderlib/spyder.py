@@ -75,8 +75,8 @@ except ImportError:
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
                                 QKeySequence, QDockWidget, QAction, QLineEdit,
-                                QInputDialog)
-from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray
+                                QInputDialog, QDesktopServices)
+from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
 
@@ -696,6 +696,11 @@ class MainWindow(QMainWindow):
                                     _("About %s...") % "Spyder",
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.about)
+            report_action = create_action(self,
+                                    _("Report issue..."),
+                                    icon=get_icon('bug.png'),
+                                    triggered=self.report_issue
+                                    )
             # Spyder documentation
             doc_path = get_module_data_path('spyderlib', relpath="doc",
                                             attr_name='DOCPATH')
@@ -709,7 +714,7 @@ class MainWindow(QMainWindow):
             doc_action = create_bookmark_action(self, 'file://' + spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
-            self.help_menu_actions = [about_action, doc_action]
+            self.help_menu_actions = [about_action, report_action, doc_action]
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
@@ -1336,7 +1341,11 @@ class MainWindow(QMainWindow):
                  spyderlib.qt.QtCore.__version__,
                  qt_lib, spyderlib.qt.__version__,
                  platform.system()) )
-    
+
+    def report_issue(self):
+        QDesktopServices.openUrl(
+            QUrl("http://code.google.com/p/spyderlib/issues/entry"))
+
     #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
         """Return editor plugin which has focus:
