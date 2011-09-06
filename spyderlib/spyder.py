@@ -1343,8 +1343,37 @@ class MainWindow(QMainWindow):
                  platform.system()) )
 
     def report_issue(self):
-        QDesktopServices.openUrl(
-            QUrl("http://code.google.com/p/spyderlib/issues/entry"))
+        qt_api = os.environ['QT_API']
+        qt_lib = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[qt_api]
+        if qt_api == 'pyqt':
+            import sip
+            try:
+                qt_lib += (" (API v%d)" % sip.getapi('QString'))
+            except AttributeError:
+                pass
+        import spyderlib.qt.QtCore
+        issue_template = """\
+Spyder Version:  %s
+Python Version:  %s
+Qt Version:      %s, %s %s on %s
+
+What steps will reproduce the problem?
+1.
+2.
+3.
+
+What is the expected output? What do you see instead?
+
+
+Please provide any additional information below.
+""" % (__version__,
+       platform.python_version(),
+       spyderlib.qt.QtCore.__version__, qt_lib, spyderlib.qt.__version__,
+       platform.system())
+       
+        url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
+        url.addQueryItem("comment", issue_template)
+        QDesktopServices.openUrl(url)
 
     #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
