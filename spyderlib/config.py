@@ -25,15 +25,24 @@ from spyderlib.utils.iofuncs import iofunctions
 
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'Verdana', 'Geneva',
-              'Lucid', 'Arial', 'Helvetica', 'Avant Garde', 'sans-serif']
-SANS_SERIF.insert(0, unicode(QFont().family()))
+              'Bitstream Charter', 'Times', 'Lucida Grande', 'Calibri',
+              'MS Shell Dlg 2', 'Verdana', 'Geneva', 'Lucid', 'Arial',
+              'Helvetica', 'Avant Garde', 'sans-serif']
 
-MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Courier New',
+MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
-             'Monaco', 'Courier', 'monospace', 'Fixed', 'Terminal']
-MEDIUM = 10
-SMALL = 9
+             'Courier New', 'Courier', 'monospace', 'Fixed', 'Terminal']
+
+if sys.platform == 'darwin':
+    BIG = MEDIUM = SMALL = 12
+elif os.name == 'nt':
+    BIG = 12    
+    MEDIUM = 10
+    SMALL = 9
+else:
+    BIG = 12    
+    MEDIUM = 9
+    SMALL = 9
 
 # Extensions supported by Spyder's Editor
 EDIT_FILETYPES = (
@@ -268,7 +277,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'rich_text/font/family': SANS_SERIF,
-              'rich_text/font/size': 11,
+              'rich_text/font/size': BIG,
               'rich_text/font/italic': False,
               'rich_text/font/bold': False,
               'wrap': True,
