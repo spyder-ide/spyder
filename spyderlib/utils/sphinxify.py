@@ -10,7 +10,10 @@ Processes docstrings with Sphinx. Can also be used as a commandline script:
 AUTHORS:
 
 - Tim Joseph Dumol (2009-09-29): initial version
-- Carlos Cordoba (2010-09-21): Some changes to make it work with spyderlib
+- Carlos Cordoba (2010-09-21): Some changes to make it work with Spyder
+
+Taken from the Sage project
+http://www.sagemath.org/
 """
 #**************************************************
 # Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
@@ -20,16 +23,8 @@ AUTHORS:
 import os, re, shutil, os.path as osp
 from tempfile import mkdtemp
 
-# We import Sphinx on demand, to reduce Sage startup time.
-# Sphinx = None
 from sphinx.application import Sphinx #@UnusedImport
-from pygments import plugin #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
-
-try:
-    from sage.misc.misc import SAGE_DOC
-except ImportError:
-    SAGE_DOC = ''  # used to be None
 
 
 CSS_PATH = osp.join(osp.dirname(__file__), 'css')
@@ -105,13 +100,11 @@ def sphinxify(docstring, format='html'):
 
     # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
     # buildername, confoverrides, status, warning, freshenv).
-    temp_confdir = False
-    confdir = os.path.join(SAGE_DOC, 'en', 'introspect')
-    if not SAGE_DOC and not os.path.exists(confdir):
-        # This may be inefficient.  TODO: Find a faster way to do this.
-        temp_confdir = True
-        confdir = mkdtemp()
-        generate_configuration(confdir)
+    
+    # This may be inefficient.  TODO: Find a faster way to do this.
+    temp_confdir = True
+    confdir = mkdtemp()
+    generate_configuration(confdir)
 
     doctreedir = os.path.join(srcdir, 'doctrees')
     confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
@@ -198,7 +191,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u""
-copyright = u'2005--2009, The Sage Development Team'
+copyright = u'2009--2011, The Spyder Development Team'
 
 #version = '3.1.2'
 # The full version, including alpha/beta/rc tags.
@@ -256,7 +249,7 @@ html_style = 'default.css'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
-#html_logo = 'sagelogo-word.ico'
+#html_logo = ''
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -266,9 +259,9 @@ html_style = 'default.css'
 # If we're using jsMath, we prepend its location to the static path
 # array.  We can override / overwrite selected files by putting them
 # in the remaining paths.
-if 'SAGE_DOC_JSMATH' in os.environ:
-    jsmath_static = os.path.join(SAGE_ROOT, 'local/notebook/javascript/jsmath')
-    html_static_path.insert(0, jsmath_static)
+#if 'SAGE_DOC_JSMATH' in os.environ:
+#    jsmath_static = os.path.join(SAGE_ROOT, 'local/notebook/javascript/jsmath')
+#    html_static_path.insert(0, jsmath_static)
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -321,7 +314,7 @@ latex_documents = []
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = 'sagelogo-word.png'
+#latex_logo = ''
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
@@ -339,10 +332,10 @@ latex_preamble = '\usepackage{amsmath}\n\usepackage{amsfonts}\n'
 
 #####################################################
 # add LaTeX macros for Sage
-try:
-    from sage.misc.latex_macros import sage_latex_macros
-except ImportError:
-    sage_latex_macros = []
+#try:
+#    from sage.misc.latex_macros import sage_latex_macros
+#except ImportError:
+sage_latex_macros = []
 
 try:
     pngmath_latex_preamble  # check whether this is already defined
@@ -411,21 +404,10 @@ def process_docstring_module_title(app, what, name, obj, options, docstringlines
         else:
             break
 
-def skip_NestedClass(app, what, name, obj, skip, options):
-    """
-    Don't include the docstring for any class/function/object in
-    sage.misc.misc whose ``name`` contains "MainClass.NestedClass".
-    (This is to avoid some Sphinx warnings when processing
-    sage.misc.misc.)  Otherwise, abide by Sphinx's decision.
-    """
-    skip_nested = str(obj).find("sage.misc.misc") != -1 and name.find("MainClass.NestedClass") != -1
-    return skip or skip_nested
-
 def setup(app):
     app.connect('autodoc-process-docstring', process_docstring_cython)
     app.connect('autodoc-process-docstring', process_directives)
     app.connect('autodoc-process-docstring', process_docstring_module_title)
-    app.connect('autodoc-skip-member', skip_NestedClass)
 
 #################################################################
 # Taken from `$SAGE_ROOT$/devel/sage/doc/en/introspect/conf.py` #
