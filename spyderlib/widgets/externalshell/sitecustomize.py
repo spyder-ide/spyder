@@ -72,20 +72,6 @@ if os.name == 'nt': # Windows platforms
             pass
 
 
-# * Removing PyQt4 input hook which is not working well on Windows since 
-#   opening a subprocess do not create a real console (with keyboard events...)
-# * Replacing it with our own input hook
-# XXX: test it with PySide?
-if os.environ.get("REPLACE_PYQT_INPUTHOOK", "").lower() == "true":
-   if not os.environ.get('IPYTHON', False):
-        # For now, the Spyder's input hook does not work with IPython:
-        # with IPython v0.10 or non-Windows platforms, this is not a
-        # problem. However, with IPython v0.11 on Windows, this will be
-        # fixed by patching IPython to force it to use our inputhook.
-        from spyderlib.widgets.externalshell.inputhook import manager
-        manager.install_qt_inputhook()
-
-
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
 encoding = None
@@ -122,13 +108,71 @@ else:
                       os.environ["SPYDER_AR_STATE"].lower() == "true")
     monitor.start()
     
-    # Quite limited feature: notify only when a result is displayed in console
-    # (does not notify at every prompt)
-    def displayhook(obj):
-        sys.__displayhook__(obj)
-        monitor.refresh()
-
-    sys.displayhook = displayhook
+    # * Removing PyQt4 input hook which is not working well on Windows since 
+    #   opening a subprocess do not attach a real console to it
+    #   (with keyboard events...)
+    # * Replacing it with our own input hook
+    # XXX: test it with PySide?
+    if os.environ.get("REPLACE_PYQT_INPUTHOOK", "").lower() == "true"\
+       and not os.environ.get('IPYTHON', False):
+        # For now, the Spyder's input hook does not work with IPython:
+        # with IPython v0.10 or non-Windows platforms, this is not a
+        # problem. However, with IPython v0.11 on Windows, this will be
+        # fixed by patching IPython to force it to use our inputhook.
+        def qt_inputhook():
+            """Qt input hook for Spyder's console
+            
+            This input hook wait for available stdin data (notified by
+            ExternalPythonShell through the monitor's inputhook_flag
+            attribute), and in the meantime it processes Qt events."""
+            monitor.refresh()  # Refreshing the variable explorer
+            try:
+                # This call fails for Python without readline support
+                # (or on Windows platforms) when PyOS_InputHook is called
+                # for the second consecutive time, because the 100-bytes
+                # stdin buffer is full.
+                # For more details, see the `PyOS_StdioReadline` function
+                # in Python source code (Parser/myreadline.c)
+                sys.stdin.tell()
+            except IOError:
+                return 0
+            app = QtCore.QCoreApplication.instance()
+            if app and app.thread() is QtCore.QThread.currentThread():
+                timer = QtCore.QTimer()
+                QtCore.QObject.connect(timer, QtCore.SIGNAL('timeout()'),
+                                       app, QtCore.SLOT('quit()'))
+                monitor.toggle_inputhook_flag(False)
+                while not monitor.inputhook_flag:
+                    timer.start(50)
+                    QtCore.QCoreApplication.exec_()
+                    timer.stop()
+#                # Socket-based alternative:
+#                socket = QtNetwork.QLocalSocket()
+#                socket.connectToServer(os.environ['SPYDER_SHELL_ID'])
+#                socket.waitForConnected(-1)
+#                while not socket.waitForReadyRead(10):
+#                    timer.start(50)
+#                    QtCore.QCoreApplication.exec_()
+#                    timer.stop()
+#                socket.read(3)
+#                socket.disconnectFromServer()
+            return 0
+        # Removing PyQt's PyOS_InputHook implementation:
+        from PyQt4 import QtCore
+        QtCore.pyqtRemoveInputHook()
+        # Installing Spyder's PyOS_InputHook implementation:
+        import ctypes
+        cb_pyfunctype = ctypes.PYFUNCTYPE(ctypes.c_int)(qt_inputhook)
+        pyos_ih = ctypes.c_void_p.in_dll(ctypes.pythonapi, "PyOS_InputHook")
+        pyos_ih.value = ctypes.cast(cb_pyfunctype, ctypes.c_void_p).value
+    else:
+        # Quite limited feature: notify only when a result is displayed in
+        # console (does not notify at every prompt)
+        def displayhook(obj):
+            sys.__displayhook__(obj)
+            monitor.refresh()
+    
+        sys.displayhook = displayhook
 
 
 #===============================================================================

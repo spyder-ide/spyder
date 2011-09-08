@@ -246,7 +246,8 @@ Note that switching to API #2 may require to enable the Matplotlib patch."""))
 """PyQt installs an input hook that allows creating and interacting
 with Qt widgets in an interactive interpreter without blocking it. 
 On Windows platforms, it is strongly recommended to replace it by Spyder's
-(it has no effect in IPython)."""))
+(note that this feature requires the monitor to be enabled and 
+that it has no effect in IPython)."""))
         pyqt_ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
                                     'ignore_sip_setapi_errors', tip=_(
 """Enabling this option will ignore errors when changing PyQt API.

@@ -433,6 +433,11 @@ class ExternalPythonShell(ExternalShellBase):
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
+#        # Socket-based alternative (see input hook in sitecustomize.py):
+#        if self.replace_pyqt_inputhook:
+#            from PyQt4.QtNetwork import QLocalServer
+#            self.local_server = QLocalServer()
+#            self.local_server.listen(str(id(self)))
         if self.pyqt_api:
             env.append('PYQT_API=%d' % self.pyqt_api)
         env.append('IGNORE_SIP_SETAPI_ERRORS=%s'
@@ -511,12 +516,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.process.setReadChannel(QProcess.StandardOutput)
         if self.process.waitForReadyRead(1):
             self.write_output()
-        
-        txt = self.get_stderr()
-        if txt.startswith('>>>'):
-            # New prompt: refreshing variable explorer
-            self.namespacebrowser.refresh_table()
-        self.shell.write_error(txt)
+        self.shell.write_error(self.get_stderr())
         QApplication.processEvents()
         
     def send_to_process(self, text):
@@ -527,11 +527,11 @@ class ExternalPythonShell(ExternalShellBase):
             # with IPython v0.10 or non-Windows platforms, this is not a
             # problem. However, with IPython v0.11 on Windows, this will be
             # fixed by patching IPython to force it to use our inputhook.
-            #
-            # We must send an EOL character to the process, which will be
-            # ignored because of the input hook non-blocking stdin mechanism.
-            # See spyderlib/widgets/externalshell/inputhook.py.
-            self.process.write('\n')
+            communicate(self.introspection_socket,
+                        "toggle_inputhook_flag(True)")
+#            # Socket-based alternative (see input hook in sitecustomize.py):
+#            while self.local_server.hasPendingConnections():
+#                self.local_server.nextPendingConnection().write('go!')
         if not self.is_ipython_shell and text.startswith(('%', '!')):
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):

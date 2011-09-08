@@ -147,6 +147,8 @@ class Monitor(threading.Thread):
         self.refresh_after_eval = False
         self.remote_view_settings = None
         
+        self.inputhook_flag = False
+        
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
         self.i_request.connect( (host, introspection_port) )
@@ -171,6 +173,7 @@ class Monitor(threading.Thread):
                        "setenv": self.setenv,
                        "isdefined": isdefined,
                        "thread": thread,
+                       "toggle_inputhook_flag": self.toggle_inputhook_flag,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
                        "__set_remote_view_settings__":
@@ -188,6 +191,13 @@ class Monitor(threading.Thread):
                        "__save_globals__": self.saveglobals,
                        "__load_globals__": self.loadglobals,
                        "_" : None}
+                       
+    def toggle_inputhook_flag(self, state):
+        """Toggle the input hook flag
+        
+        The only purpose of this flag is to unblock the PyOS_InputHook
+        callback when text is available in stdin (see sitecustomize.py)"""
+        self.inputhook_flag = state
         
     def set_timeout(self, timeout):
         """Set monitor timeout (in milliseconds!)"""
