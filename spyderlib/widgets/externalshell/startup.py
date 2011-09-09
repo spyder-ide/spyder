@@ -196,6 +196,8 @@ if __name__ == "__main__":
         if __commands__:
             for command in __commands__.split(';'):
                 exec command
+
+    if not __is_ipython_shell() and not __is_ipython_kernel():
         __run_pythonstartup_script(globals())
 
     for _name in ['__run_pythonstartup_script', '__run_init_commands',

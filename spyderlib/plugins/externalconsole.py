@@ -24,7 +24,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, get_module_path
 from spyderlib.config import get_icon, CONF
 from spyderlib.utils import (programs, remove_trailing_single_backslash,
                              get_error_match, get_python_executable)
@@ -384,6 +384,20 @@ class ExternalConsole(SpyderPluginWidget):
         if python_startup is None:
             python_startup = not ipython_startup
             self.set_option('open_python_at_startup', python_startup)
+
+        scientific = programs.is_module_installed('numpy') and\
+                     programs.is_module_installed('scipy') and\
+                     programs.is_module_installed('matplotlib')
+        if self.get_option('pythonstartup/default', None) is None:
+            self.set_option('pythonstartup/default', not scientific)
+        if not osp.isfile(self.get_option('pythonstartup', '')):
+            startup_script = osp.join(get_module_path('spyderlib'),
+                                      'scientific_startup.py')
+            self.set_option('pythonstartup', startup_script)
+            self.set_option('pythonstartup/default', not scientific)
+        # default/custom settings are mutually exclusive:
+        self.set_option('pythonstartup/custom',
+                        not self.get_option('pythonstartup/default'))
         
         if self.get_option('ipython_options', None) is None:
             self.set_option('ipython_options',
