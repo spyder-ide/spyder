@@ -264,7 +264,8 @@ to use this feature wisely, e.g. for debugging purpose.
         pyqt_layout = QVBoxLayout()
         pyqt_layout.addWidget(pyqt_setapi_box)
         pyqt_layout.addWidget(pyqt_ignore_api_box)
-        pyqt_layout.addWidget(pyqt_hook_box)
+        if os.name == 'nt':
+            pyqt_layout.addWidget(pyqt_hook_box)
         pyqt_group.setLayout(pyqt_layout)
         
         # IPython Group
