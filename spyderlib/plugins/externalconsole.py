@@ -26,8 +26,9 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.baseconfig import _, get_module_path
 from spyderlib.config import get_icon, CONF
-from spyderlib.utils import (programs, remove_trailing_single_backslash,
-                             get_error_match, get_python_executable)
+from spyderlib.utils import programs
+from spyderlib.utils.misc import (get_error_match, get_python_executable,
+                                  remove_trailing_single_backslash)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell

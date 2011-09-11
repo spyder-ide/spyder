@@ -44,8 +44,8 @@ from spyderlib.config import CONF, get_font, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.utils import encoding, sourcecode, is_keyword
-from spyderlib.utils import log_last_error, log_dt
+from spyderlib.utils import encoding, sourcecode
+from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters
@@ -907,7 +907,7 @@ class CodeEditor(TextEditBaseWidget):
             if text is None:
                 return
         if (self.is_python() or self.is_cython()) and \
-           (is_keyword(unicode(text)) or unicode(text) == 'self'):
+           (sourcecode.is_keyword(unicode(text)) or unicode(text) == 'self'):
             return
 
         # Highlighting all occurences of word *text*
@@ -2117,8 +2117,8 @@ class CodeEditor(TextEditBaseWidget):
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
-            if text and (self.is_python() or self.is_cython()) \
-               and not is_keyword(unicode(text)):
+            if text and (self.is_python() or self.is_cython())\
+               and not sourcecode.is_keyword(unicode(text)):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                                                 QCursor(Qt.PointingHandCursor))
@@ -2155,8 +2155,9 @@ class CodeEditor(TextEditBaseWidget):
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
             text = unicode(cursor.selectedText())
-        if self.go_to_definition_enabled and text is not None and \
-           (self.is_python() or self.is_cython()) and not is_keyword(text):
+        if self.go_to_definition_enabled and text is not None\
+           and (self.is_python() or self.is_cython())\
+           and not sourcecode.is_keyword(text):
             self.emit(SIGNAL("go_to_definition(int)"), position)
 
     def mousePressEvent(self, event):

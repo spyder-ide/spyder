@@ -26,7 +26,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
-from spyderlib.utils import get_error_match
+from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        DialogManager)
 from spyderlib.utils.environ import EnvDialog

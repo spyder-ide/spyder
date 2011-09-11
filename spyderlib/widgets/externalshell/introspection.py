@@ -6,8 +6,10 @@ from spyderlib.qt.QtCore import QThread, SIGNAL, Signal
 import threading
 import socket
 
+# Local imports
 from spyderlib.baseconfig import get_conf_path
-from spyderlib.utils import select_port, log_last_error
+from spyderlib.utils.misc import select_port
+from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.bsdsocket import read_packet, write_packet
 
 

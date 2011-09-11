@@ -32,8 +32,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions
-from spyderlib.utils import (encoding, rename_file, remove_file, programs,
-                             move_file)
+from spyderlib.utils import misc, encoding, programs
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
@@ -429,7 +428,7 @@ class DirView(QTreeView):
                 yes_to_all = True
         try:
             if osp.isfile(fname):
-                remove_file(fname)
+                misc.remove_file(fname)
                 self.parent_widget.emit(SIGNAL("removed(QString)"),
                                         fname)
             else:
@@ -467,7 +466,7 @@ class DirView(QTreeView):
             if path == fname:
                 return
             try:
-                rename_file(fname, path)
+                misc.rename_file(fname, path)
                 self.parent_widget.emit( \
                      SIGNAL("renamed(QString,QString)"), fname, path)
                 return True
@@ -504,7 +503,7 @@ class DirView(QTreeView):
         for fname in fnames:
             basename = osp.basename(fname)
             try:
-                move_file(fname, osp.join(folder, basename))
+                misc.move_file(fname, osp.join(folder, basename))
             except EnvironmentError, error:
                 QMessageBox.critical(self, _("Error"),
                                      _("<b>Unable to move <i>%s</i></b>"

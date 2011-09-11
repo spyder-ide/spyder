@@ -95,7 +95,8 @@ try:
 except ImportError:
     pass
 
-# Communication between ExternalShell and the QProcess
+
+# Communication between Spyder and the remote process
 if os.environ.get('SPYDER_SHELL_ID') is None:
     monitor = None
 else:

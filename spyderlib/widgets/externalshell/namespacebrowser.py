@@ -27,7 +27,8 @@ from spyderlib.widgets.externalshell.monitor import (
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView)
 from spyderlib.widgets.dicteditorutils import globalsfilter
-from spyderlib.utils import encoding, fix_reference_name
+from spyderlib.utils import encoding
+from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.programs import is_module_installed
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)

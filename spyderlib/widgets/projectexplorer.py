@@ -23,7 +23,7 @@ import os.path as osp
 import xml.etree.ElementTree as ElementTree
 
 # Local imports
-from spyderlib.utils import count_lines, move_file
+from spyderlib.utils import misc
 from spyderlib.utils.qthelpers import (get_std_icon, create_action,
                                        add_actions)
 from spyderlib.baseconfig import _
@@ -999,7 +999,7 @@ class ExplorerTreeWidget(FilteredDirView):
                     pathlist.pop(pathlist.index(path))
         files, lines = 0, 0
         for path in pathlist:
-            f, l = count_lines(path)
+            f, l = misc.count_lines(path)
             files += f
             lines += l
         QMessageBox.information(self, _("Project Explorer"),
@@ -1076,7 +1076,7 @@ class ExplorerTreeWidget(FilteredDirView):
                         shutil.copytree(src, dst)
                 else:
                     if osp.isfile(src):
-                        move_file(src, dst)
+                        misc.move_file(src, dst)
                     else:
                         shutil.move(src, dst)
                     self.parent_widget.emit(SIGNAL("removed(QString)"), src)

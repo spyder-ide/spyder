@@ -17,7 +17,7 @@ STDOUT = sys.stdout
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.widgets.browser import WebBrowser
-from spyderlib.utils import select_port
+from spyderlib.utils.misc import select_port
 
 
 class PydocServer(QThread):

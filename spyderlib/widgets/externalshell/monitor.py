@@ -9,7 +9,8 @@
 import os, threading, socket, thread, struct, cPickle as pickle
 
 # Local imports
-from spyderlib.utils import fix_reference_name, log_last_error
+from spyderlib.utils.misc import fix_reference_name
+from spyderlib.utils.debug import log_last_error
 from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,

@@ -19,10 +19,11 @@ from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       get_std_icon, DialogManager, add_actions)
+                                       get_std_icon, DialogManager,
+                                       add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
-from spyderlib.utils import get_python_executable
+from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget

@@ -40,4 +40,15 @@ def has_mixed_eol_chars(text):
 def fix_indentation(text):
     """Replace tabs by spaces"""
     return text.replace('\t', ' '*4)
+
     
+def is_builtin(text):
+    """Test if passed string is the name of a Python builtin object"""
+    import __builtin__
+    return text in [str(name) for name in dir(__builtin__)
+                    if not name.startswith('_')]
+
+def is_keyword(text):
+    """Test if passed string is the name of a Python keyword"""
+    import keyword
+    return text in keyword.kwlist
