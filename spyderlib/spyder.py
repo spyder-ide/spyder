@@ -565,10 +565,16 @@ class MainWindow(QMainWindow):
                                           'enable this feature')
             # Qt-related tools
             additact = [None]
-            qtdact = create_program_action(self, _("Qt Designer"),
-                                           'qtdesigner.png', "designer")
-            qtlact = create_program_action(self, _("Qt Linguist"),
-                                           'qtlinguist.png', "linguist")
+            for name in ("designer", "designer-qt4"):
+                qtdact = create_program_action(self, _("Qt Designer"),
+                                               'qtdesigner.png', name)
+                if qtdact:
+                    break
+            for name in ("linguist", "linguist-qt4"):
+                qtlact = create_program_action(self, _("Qt Linguist"),
+                                               'qtlinguist.png', "linguist")
+                if qtlact:
+                    break
             args = ['-no-opengl'] if os.name == 'nt' else []
             qteact = create_python_script_action(self,
                                    _("Qt examples"), 'qt.png', "PyQt4",
