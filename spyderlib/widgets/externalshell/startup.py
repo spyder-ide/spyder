@@ -276,6 +276,7 @@ on Windows platforms (only IPython v0.10 is fully supported).
                                                    'runfile': runfile,
                                                    'debugfile': debugfile})
             __ipythonshell__.IP.stdin_encoding = os.environ['SPYDER_ENCODING']
+            __ipythonshell__.IP.autoindent = 0
         
         # Workaround #2 to make the HDF5 I/O variable explorer plugin work:
         # we import h5py only after initializing IPython in order to avoid 
