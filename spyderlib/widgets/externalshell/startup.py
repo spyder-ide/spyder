@@ -179,6 +179,9 @@ def evalsc(command):
                 evalsc('!dir')
             else:
                 evalsc('!ls')
+        elif command == 'scientific':
+            from spyderlib import baseconfig
+            execfile(baseconfig.SCIENTIFIC_STARTUP, globals())
         else:
             raise NotImplementedError, "Unsupported command: '%s'" % command
             

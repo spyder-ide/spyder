@@ -61,8 +61,12 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
         if relpath is not None:
             datapath = osp.abspath(osp.join(datapath, relpath))
         return datapath
-    
-    
+
+
+SCIENTIFIC_STARTUP = osp.join(get_module_path('spyderlib'),
+                              'scientific_startup.py')
+
+
 #==============================================================================
 # Translations
 #==============================================================================

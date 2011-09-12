@@ -24,7 +24,7 @@ import os.path as osp
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.baseconfig import _, get_module_path
+from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
 from spyderlib.config import get_icon, CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
@@ -393,9 +393,7 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('pythonstartup/default', None) is None:
             self.set_option('pythonstartup/default', not scientific)
         if not osp.isfile(self.get_option('pythonstartup', '')):
-            startup_script = osp.join(get_module_path('spyderlib'),
-                                      'scientific_startup.py')
-            self.set_option('pythonstartup', startup_script)
+            self.set_option('pythonstartup', SCIENTIFIC_STARTUP)
             self.set_option('pythonstartup/default', not scientific)
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
