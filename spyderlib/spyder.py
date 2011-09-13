@@ -565,12 +565,12 @@ class MainWindow(QMainWindow):
                                           'enable this feature')
             # Qt-related tools
             additact = [None]
-            for name in ("designer", "designer-qt4"):
+            for name in ("designer-qt4", "designer"):
                 qtdact = create_program_action(self, _("Qt Designer"),
                                                'qtdesigner.png', name)
                 if qtdact:
                     break
-            for name in ("linguist", "linguist-qt4"):
+            for name in ("linguist-qt4", "linguist"):
                 qtlact = create_program_action(self, _("Qt Linguist"),
                                                'qtlinguist.png', "linguist")
                 if qtlact:
