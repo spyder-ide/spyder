@@ -19,9 +19,12 @@ import os
 try:
     # Test if IPython v0.11+ is installed
     from IPython import deathrow #analysis:ignore
-    # Switch to PyQt API #2
-    os.environ['QT_API'] = 'pyqt'
-    from IPython.external import qt #analysis:ignore
+    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
+        # If PyQt is the selected GUI toolkit (at this stage, only the
+        # bootstrap script has eventually set this option),
+        # switch to PyQt API #2 by simply importing the IPython qt module
+        os.environ['QT_API'] = 'pyqt'
+        from IPython.external import qt #analysis:ignore
 except ImportError:
     pass
 from spyderlib import qt #analysis:ignore
