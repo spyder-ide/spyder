@@ -29,7 +29,7 @@ def find_program(basename):
     names = [basename]
     if os.name == 'nt':
         # Windows platforms
-        extensions = ('.exe', '.bat')
+        extensions = ('.exe', '.bat', '.cmd')
         if not basename.endswith(extensions):
             names = [basename+ext for ext in extensions]+[basename]
     for name in names:
@@ -38,13 +38,13 @@ def find_program(basename):
             return path
 
 
-def run_program(name, args=[]):
+def run_program(name, args=[], cwd=None):
     """Run program in a separate process"""
     assert isinstance(args, (tuple, list))
-    path = is_program_installed(name)
+    path = find_program(name)
     if not path:
         raise RuntimeError("Program %s was not found" % name)
-    subprocess.Popen([path]+args)
+    subprocess.Popen([path]+args, cwd=cwd)
 
 
 def start_file(filename):

@@ -262,8 +262,7 @@ def create_program_action(parent, text, icon, name, nt_name=None):
     path = programs.find_program(name)
     if path is not None:
         return create_action(parent, text, icon=icon,
-                             triggered=lambda:
-                             programs.run_program(osp.basename(path)))
+                             triggered=lambda: programs.run_program(name))
 
         
 def create_python_script_action(parent, text, icon, package, module, args=[]):

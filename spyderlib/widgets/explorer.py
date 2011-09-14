@@ -32,7 +32,7 @@ STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions
-from spyderlib.utils import misc, encoding, programs
+from spyderlib.utils import misc, encoding, programs, scm
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
@@ -262,6 +262,21 @@ class DirView(QTreeView):
         if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
             actions.append(move_action)
         actions += [None]
+        
+        # SCM support is quite limited for now, so we are enabling the SCM
+        # related actions only when a single file/folder is selected:
+        dirname = fnames[0] if osp.isdir(fnames[0]) else fnames[0]
+        if len(fnames) == 1 and scm.is_scm_repository(dirname):
+            scm_ci = create_action(self, _("Commit"),
+                                   icon="scm_commit.png",
+                                   triggered=lambda fnames=[dirname]:
+                                   self.scm_command(fnames, tool='commit'))
+            scm_log = create_action(self, _("Browse repository"),
+                                    icon="scm_browse.png",
+                                    triggered=lambda fnames=[dirname]:
+                                    self.scm_command(fnames, tool='browse'))
+            actions += [None, scm_ci, scm_log]
+        
         return actions
 
     def create_folder_manage_actions(self, fnames):
@@ -620,6 +635,17 @@ class DirView(QTreeView):
         create_func = lambda fname: self.parent_widget.emit( \
                                      SIGNAL("create_module(QString)"), fname)
         self.create_new_file(basedir, title, filters, create_func)
+        
+    #----- SCM actions
+    def scm_command(self, fnames, tool):
+        """SCM command (Mercurial, git...)"""
+        try:
+            for path in sorted(fnames):
+                scm.run_scm_tool(path, tool=tool)
+        except RuntimeError, error:
+            QMessageBox.critical(self, _("Error"),
+                                 _("<b>Unable to find external program.</b>"
+                                   "<br><br>%s") % unicode(error))
         
     #----- Settings
     def get_scrollbar_position(self):
