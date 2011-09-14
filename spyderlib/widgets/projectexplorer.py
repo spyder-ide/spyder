@@ -472,93 +472,21 @@ class ExplorerTreeWidget(FilteredDirView):
         if self.workspace.is_empty():
             return []
         else:
-            return FilteredDirView.create_file_new_actions(self, fnames)
-        
-    def create_file_manage_actions(self, fnames):
-        """Return file management actions"""
-        actions = []
-        if fnames:
-            only_folders = all([osp.isdir(_fn) for _fn in fnames])
-            projects = [self.get_source_project(fname) for fname in fnames]
-            pjfnames = zip(projects, fnames)
-            any_project = any([_pr.is_root_path(_fn) for _pr, _fn in pjfnames])
-            any_folder_in_path = any([_proj.is_in_pythonpath(_fn)
-                                      for _proj, _fn in pjfnames])
-            any_folder_not_in_path = only_folders and \
-                                     any([not _proj.is_in_pythonpath(_fn)
-                                          for _proj, _fn in pjfnames])
-            open_act = create_action(self,
-                                text=_('Open project'),
-                                icon=get_icon('project_expanded.png'),
-                                triggered=lambda:
-                                self.open_projects(projects))
-            close_act = create_action(self,
-                                text=_('Close project'),
-                                icon=get_icon('project_closed.png'),
-                                triggered=lambda:
-                                self.close_projects(projects))
-            close_unrelated_act = create_action(self,
-                                text=_('Close unrelated projects'),
-                                triggered=lambda:
-                                self.close_unrelated_projects(projects))
-            manage_path_act = create_action(self,
-                                icon=get_icon('pythonpath.png'),
-                                text=_('PYTHONPATH manager'),
-                                triggered=lambda:
-                                self.manage_path(projects))
-            relproj_act = create_action(self,
-                                text=_('Edit related projects'),
-                                triggered=lambda:
-                                self.edit_related_projects(projects))
-            state = self.workspace is not None\
-                    and len(self.workspace.projects) > 1
-            relproj_act.setEnabled(state)
-                        
-            add_to_path_act = create_action(self,
-                                text=_('Add to PYTHONPATH'),
-                                icon=get_icon('add_to_path.png'),
-                                triggered=lambda:
-                                self.add_to_path(fnames))
-            remove_from_path_act = create_action(self,
-                                text=_('Remove from PYTHONPATH'),
-                                icon=get_icon('remove_from_path.png'),
-                                triggered=lambda:
-                                self.remove_from_path(fnames))
-            properties_act = create_action(self,
-                                text=_('Properties'),
-                                icon=get_icon('advanced.png'),
-                                triggered=lambda:
-                                self.show_properties(fnames))
-    
-            actions = []
-            if any_project:
-                if any([not _proj.is_opened() for _proj in projects]):
-                    actions += [open_act]
-                if any([_proj.is_opened() for _proj in projects]):
-                    actions += [close_act, close_unrelated_act]
-                actions += [manage_path_act, relproj_act, None]
-            
-            if only_folders:
-                if any_folder_not_in_path:
-                    actions += [add_to_path_act]
-                if any_folder_in_path:
-                    actions += [remove_from_path_act]
-            actions += [None, properties_act, None]
-            actions += FilteredDirView.create_file_manage_actions(self, fnames)
-        return actions
-
-    def update_menu(self):
-        """Reimplement DirView method"""
-        self.menu.clear()
-        
-        actions = []
-        if self.workspace.is_valid():
-            # Workspace's root path is already defined
-            
             new_project_act = create_action(self, text=_('Project...'),
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.new_project)
-            
+            new_actions = FilteredDirView.create_file_new_actions(self, fnames)
+            if new_actions:
+                return [new_project_act, None]+new_actions
+            else:
+                new_project_act.setText(_('New project...'))
+                return [new_project_act]
+        
+    def create_file_import_actions(self, fnames):
+        """Return actions for submenu 'Import...'"""
+        if self.workspace.is_empty():
+            return []
+        else:
             import_folder_act = create_action(self,
                                 text=_('Existing directory'),
                                 icon=get_std_icon('DirOpenIcon'),
@@ -571,35 +499,84 @@ class ExplorerTreeWidget(FilteredDirView):
                                 text=_('Existing Pydev project'),
                                 icon=get_icon('pydev.png'),
                                 triggered=self.import_existing_pydev_project)
-            import_act_menu = QMenu(_('Import'), self)
-            add_actions(import_act_menu, (import_folder_act,
-                                          import_spyder_act, import_pydev_act))
-    
-            fnames = self.get_selected_filenames()
-            new_actions = self.create_file_new_actions(fnames)
-            if new_actions:
-                new_act_menu = QMenu(_('New'), self)
-                add_actions(new_act_menu, [new_project_act, None]+new_actions)
-                actions.append(new_act_menu)
-            else:
-                new_project_act.setText(_('New project...'))
-                actions.append(new_project_act)
-    
-            actions += [import_act_menu, None]
-            if actions:
-                actions.append(None)
-            actions += self.create_file_manage_actions(fnames)
-            if actions:
-                actions.append(None)
-            actions += self.create_folder_manage_actions(fnames)
-            if actions:
-                actions.append(None)
-            actions += self.common_actions
-            
-        if actions:
-            actions.append(None)
-            
-        add_actions(self.menu, actions)
+            return [import_folder_act, import_spyder_act, import_pydev_act]
+        
+    def create_file_manage_actions(self, fnames):
+        """Reimplement DirView method"""
+        only_folders = all([osp.isdir(_fn) for _fn in fnames])
+        projects = [self.get_source_project(fname) for fname in fnames]
+        pjfnames = zip(projects, fnames)
+        any_project = any([_pr.is_root_path(_fn) for _pr, _fn in pjfnames])
+        any_folder_in_path = any([_proj.is_in_pythonpath(_fn)
+                                  for _proj, _fn in pjfnames])
+        any_folder_not_in_path = only_folders and \
+                                 any([not _proj.is_in_pythonpath(_fn)
+                                      for _proj, _fn in pjfnames])
+        open_act = create_action(self,
+                            text=_('Open project'),
+                            icon=get_icon('project_expanded.png'),
+                            triggered=lambda:
+                            self.open_projects(projects))
+        close_act = create_action(self,
+                            text=_('Close project'),
+                            icon=get_icon('project_closed.png'),
+                            triggered=lambda:
+                            self.close_projects(projects))
+        close_unrelated_act = create_action(self,
+                            text=_('Close unrelated projects'),
+                            triggered=lambda:
+                            self.close_unrelated_projects(projects))
+        manage_path_act = create_action(self,
+                            icon=get_icon('pythonpath.png'),
+                            text=_('PYTHONPATH manager'),
+                            triggered=lambda:
+                            self.manage_path(projects))
+        relproj_act = create_action(self,
+                            text=_('Edit related projects'),
+                            triggered=lambda:
+                            self.edit_related_projects(projects))
+        state = self.workspace is not None\
+                and len(self.workspace.projects) > 1
+        relproj_act.setEnabled(state)
+                    
+        add_to_path_act = create_action(self,
+                            text=_('Add to PYTHONPATH'),
+                            icon=get_icon('add_to_path.png'),
+                            triggered=lambda:
+                            self.add_to_path(fnames))
+        remove_from_path_act = create_action(self,
+                            text=_('Remove from PYTHONPATH'),
+                            icon=get_icon('remove_from_path.png'),
+                            triggered=lambda:
+                            self.remove_from_path(fnames))
+        properties_act = create_action(self,
+                            text=_('Properties'),
+                            icon=get_icon('advanced.png'),
+                            triggered=lambda:
+                            self.show_properties(fnames))
+
+        actions = []
+        if any_project:
+            if any([not _proj.is_opened() for _proj in projects]):
+                actions += [open_act]
+            if any([_proj.is_opened() for _proj in projects]):
+                actions += [close_act, close_unrelated_act]
+            actions += [manage_path_act, relproj_act, None]
+        
+        if only_folders:
+            if any_folder_not_in_path:
+                actions += [add_to_path_act]
+            if any_folder_in_path:
+                actions += [remove_from_path_act]
+        actions += [None, properties_act, None]
+        actions += FilteredDirView.create_file_manage_actions(self, fnames)
+        return actions
+
+    def update_menu(self):
+        """Reimplement DirView method"""
+        if self.workspace.is_valid():
+            # Workspace's root path is already defined
+            FilteredDirView.update_menu(self)
         
     #------Public API-----------------------------------------------------------
     def set_folder_names(self, folder_names):

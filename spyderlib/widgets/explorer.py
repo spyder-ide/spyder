@@ -223,89 +223,110 @@ class DirView(QTreeView):
                                          self.new_package(fnames[-1]))
         return [new_file_act, new_folder_act, None,
                 new_module_act, new_package_act]
+        
+    def create_file_import_actions(self, fnames):
+        """Return actions for submenu 'Import...'"""
+        return []
 
     def create_file_manage_actions(self, fnames):
         """Return file management actions"""
+        only_files = all([osp.isfile(_fn) for _fn in fnames])
+        only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
+                            for _fn in fnames])
+        only_valid = all([osp.splitext(_fn)[1] in self.valid_types
+                          for _fn in fnames])
+        run_action = create_action(self, _("Run"), icon="run_small.png",
+                                   triggered=self.run)
+        edit_action = create_action(self, _("Edit"), icon="edit.png",
+                                    triggered=self.clicked)
+        move_action = create_action(self, _("Move..."),
+                                    icon="move.png",
+                                    triggered=self.move)
+        delete_action = create_action(self, _("Delete..."),
+                                      icon="delete.png",
+                                      triggered=self.delete)
+        rename_action = create_action(self, _("Rename..."),
+                                      icon="rename.png",
+                                      triggered=self.rename)
+        open_action = create_action(self, _("Open"), triggered=self.open)
+        
         actions = []
-        if fnames:
-            only_files = all([osp.isfile(_fn) for _fn in fnames])
-            only_modules = all([osp.splitext(_fn)[1] in ('.py', '.pyw', '.ipy')
-                                for _fn in fnames])
-            only_valid = all([osp.splitext(_fn)[1] in self.valid_types
-                              for _fn in fnames])
-            run_action = create_action(self, _("Run"), icon="run_small.png",
-                                       triggered=self.run)
-            edit_action = create_action(self, _("Edit"), icon="edit.png",
-                                        triggered=self.clicked)
-            move_action = create_action(self, _("Move..."),
-                                        icon="move.png",
-                                        triggered=self.move)
-            delete_action = create_action(self, _("Delete..."),
-                                          icon="delete.png",
-                                          triggered=self.delete)
-            rename_action = create_action(self, _("Rename..."),
-                                          icon="rename.png",
-                                          triggered=self.rename)
-            open_action = create_action(self, _("Open"), triggered=self.open)
-            
-            if only_modules:
-                actions.append(run_action)
-            if only_valid and only_files:
-                actions.append(edit_action)
-            else:
-                actions.append(open_action)
-            actions += [delete_action, rename_action]
-            basedir = fixpath(osp.dirname(fnames[0]))
-            if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
-                actions.append(move_action)
-            actions += [None]
+        if only_modules:
+            actions.append(run_action)
+        if only_valid and only_files:
+            actions.append(edit_action)
+        else:
+            actions.append(open_action)
+        actions += [delete_action, rename_action]
+        basedir = fixpath(osp.dirname(fnames[0]))
+        if all([fixpath(osp.dirname(_fn)) == basedir for _fn in fnames]):
+            actions.append(move_action)
+        actions += [None]
         return actions
 
     def create_folder_manage_actions(self, fnames):
         """Return folder management actions"""
         actions = []
-        if fnames and all([osp.isdir(_fn) for _fn in fnames]):
-            if os.name == 'nt':
-                _title = _("Open command prompt here")
-            else:
-                _title = _("Open terminal here")
-            action = create_action(self, _title, icon="cmdprompt.png",
+        if os.name == 'nt':
+            _title = _("Open command prompt here")
+        else:
+            _title = _("Open terminal here")
+        action = create_action(self, _title, icon="cmdprompt.png",
+                               triggered=lambda fnames=fnames:
+                               self.open_terminal(fnames))
+        actions.append(action)
+        _title = _("Open Python interpreter here")
+        action = create_action(self, _title, icon="python.png",
+                               triggered=lambda fnames=fnames:
+                               self.open_interpreter(fnames))
+        actions.append(action)
+        if programs.is_module_installed('IPython', '0.1'):
+            _title = _("Open IPython here")
+            action = create_action(self, _title, icon="ipython.png",
                                    triggered=lambda fnames=fnames:
-                                   self.open_terminal(fnames))
+                                   self.open_ipython(fnames))
             actions.append(action)
-            _title = _("Open Python interpreter here")
-            action = create_action(self, _title, icon="python.png",
-                                   triggered=lambda fnames=fnames:
-                                   self.open_interpreter(fnames))
-            actions.append(action)
-            if programs.is_module_installed('IPython', '0.1'):
-                _title = _("Open IPython here")
-                action = create_action(self, _title, icon="ipython.png",
-                                       triggered=lambda fnames=fnames:
-                                       self.open_ipython(fnames))
-                actions.append(action)
         return actions
-
-    def update_menu(self):
-        """Update option menu"""
-        self.menu.clear()
         
+    def create_context_menu_actions(self):
+        """Create context menu actions"""
         actions = []
         fnames = self.get_selected_filenames()
         new_actions = self.create_file_new_actions(fnames)
         if new_actions:
-            new_act_menu = QMenu(_('New'), self)
-            add_actions(new_act_menu, new_actions)
-            actions.append(new_act_menu)
+            # Creating a submenu only if there is more than one entry
+            if len(new_actions) > 1:
+                new_act_menu = QMenu(_('New'), self)
+                add_actions(new_act_menu, new_actions)
+                actions.append(new_act_menu)
+            else:
+                actions += new_actions
+        import_actions = self.create_file_import_actions(fnames)
+        if import_actions:
+            # Creating a submenu only if there is more than one entry
+            if len(import_actions) > 1:
+                import_act_menu = QMenu(_('Import'), self)
+                add_actions(import_act_menu, import_actions)
+                actions.append(import_act_menu)
+            else:
+                actions += import_actions
         if actions:
             actions.append(None)
-        actions += self.create_file_manage_actions(fnames)
+        if fnames:
+            actions += self.create_file_manage_actions(fnames)
         if actions:
             actions.append(None)
-        actions += self.create_folder_manage_actions(fnames)
+        if fnames and all([osp.isdir(_fn) for _fn in fnames]):
+            actions += self.create_folder_manage_actions(fnames)
         if actions:
             actions.append(None)
         actions += self.common_actions
+        return actions
+
+    def update_menu(self):
+        """Update context menu"""
+        self.menu.clear()
+        actions = self.create_context_menu_actions()
         add_actions(self.menu, actions)
     
     #---- Events
