@@ -12,7 +12,7 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
 
@@ -26,7 +26,7 @@ from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
-from spyderplugins.widgets.pylintgui import PylintWidget, is_pylint_installed
+from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
 
 
 class PylintConfigPage(PluginConfigPage):
@@ -101,7 +101,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         
         pylint_act = create_action(self, _("Run pylint code analysis"),
                                    triggered=self.run_pylint)
-        pylint_act.setEnabled(is_pylint_installed())
+        pylint_act.setEnabled(PYLINT_PATH is not None)
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis", default="F8")
         

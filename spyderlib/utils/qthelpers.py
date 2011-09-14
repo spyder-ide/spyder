@@ -255,15 +255,15 @@ def create_module_bookmark_actions(parent, bookmarks):
         
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""
-    if os.name == 'nt':
-        if nt_name is not None:
-            name = nt_name
-        name = programs.get_nt_program_name(name)
     if isinstance(icon, basestring):
         icon = get_icon(icon)
-    if programs.is_program_installed(name):
+    if os.name == 'nt' and nt_name is not None:
+        name = nt_name
+    path = programs.find_program(name)
+    if path is not None:
         return create_action(parent, text, icon=icon,
-                             triggered=lambda: programs.run_program(name))
+                             triggered=lambda:
+                             programs.run_program(osp.basename(path)))
 
         
 def create_python_script_action(parent, text, icon, package, module, args=[]):

@@ -68,10 +68,7 @@ def clear_all_breakpoints():
     CONF.set('run', 'breakpoints', {})
 
 
-WINPDB_PATH = programs.get_nt_program_name('winpdb')
-
-def is_winpdb_installed():
-    return programs.is_program_installed(WINPDB_PATH)
+WINPDB_PATH = programs.find_program('winpdb')
 
 
 class EditorConfigPage(PluginConfigPage):
@@ -731,7 +728,7 @@ class Editor(SpyderPluginWidget):
         
         self.winpdb_action = create_action(self, _("Debug with winpdb"),
                                            triggered=self.run_winpdb)
-        self.winpdb_action.setEnabled(is_winpdb_installed())
+        self.winpdb_action.setEnabled(WINPDB_PATH is not None)
         self.register_shortcut(self.winpdb_action, context="Editor",
                                name="Debug with winpdb", default="F7")
         
@@ -1245,7 +1242,7 @@ class Editor(SpyderPluginWidget):
             enable = editor.is_python()
             for action in self.pythonfile_dependent_actions:
                 if action is self.winpdb_action:
-                    action.setEnabled(enable and is_winpdb_installed())
+                    action.setEnabled(enable and WINPDB_PATH is not None)
                 else:
                     action.setEnabled(enable)
                 

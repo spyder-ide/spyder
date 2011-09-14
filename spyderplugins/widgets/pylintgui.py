@@ -19,7 +19,12 @@ from spyderlib.qt.QtCore import SIGNAL, QProcess, QByteArray, QTextCodec
 locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getopenfilename
 
-import sys, os, time, cPickle, os.path as osp, re
+import sys
+import os
+import os.path as osp
+import time
+import cPickle
+import re
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -35,10 +40,9 @@ from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
 _ = get_translation("p_pylint", dirname="spyderplugins")
 
-PYLINT_PATH = programs.get_nt_program_name('pylint')
 
-def is_pylint_installed():
-    return programs.is_program_installed(PYLINT_PATH)
+PYLINT_PATH = programs.find_program('pylint')
+
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
 class ResultsTree(OneColumnTree):
@@ -202,7 +206,7 @@ class PylintWidget(QWidget):
         self.process = None
         self.set_running_state(False)
         
-        if not is_pylint_installed():
+        if PYLINT_PATH is None:
             for widget in (self.treewidget, self.filecombo,
                            self.start_button, self.stop_button):
                 widget.setDisabled(True)
@@ -221,7 +225,7 @@ class PylintWidget(QWidget):
             self.show_data()
         
     def analyze(self, filename):
-        if not is_pylint_installed():
+        if PYLINT_PATH is None:
             return
         filename = unicode(filename) # filename is a QString instance
         self.kill_if_running()

@@ -26,7 +26,7 @@ from subprocess import Popen, PIPE
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.programs import is_program_installed
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        get_filetype_icon)
 from spyderlib.baseconfig import _
@@ -40,6 +40,7 @@ def abspardir(path):
     return osp.abspath(osp.join(path, os.pardir))
 
 def get_common_path(pathlist):
+    """Return common path for all paths in pathlist"""
     common = osp.commonprefix(pathlist)
     if len(common) > 1:
         if not osp.isdir(common):
@@ -47,9 +48,11 @@ def get_common_path(pathlist):
         return osp.abspath(common)
 
 def is_hg_installed():
-    return is_program_installed('hg.exe' if os.name == 'nt' else 'hg')
+    """Return True if Mercurial is installed"""
+    return programs.find_program('hg') is not None
 
 def get_hg_root(path):
+    """Return Mercurial root directory path"""
     previous_path = path
     while not osp.isdir(osp.join(path, '.hg')):
         path = abspardir(path)
@@ -123,6 +126,7 @@ def get_hg_root(path):
 #    return results, nb
 
 class SearchThread(QThread):
+    """Find in files search thread"""
     def __init__(self, parent):
         QThread.__init__(self, parent)
         self.mutex = QMutex()
@@ -288,9 +292,7 @@ class SearchThread(QThread):
 
 
 class FindOptions(QWidget):
-    """
-    Find widget with options
-    """
+    """Find widget with options"""
     def __init__(self, parent, search_text, search_text_regexp, search_path,
                  include, include_idx, include_regexp,
                  exclude, exclude_idx, exclude_regexp,

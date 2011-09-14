@@ -70,9 +70,8 @@ def get_checker_executable(name):
         return [name]
     else:
         path1 = programs.python_script_exists(package=None,
-                                          module=name+'_script', get_path=True)
-        path2 = programs.python_script_exists(package=None, module=name,
-                                              get_path=True)
+                                              module=name+'_script')
+        path2 = programs.python_script_exists(package=None, module=name)
         if path1 is not None:  # checker_script.py is available
             # Checker script is available but has not been installed
             # (this may work with pyflakes)

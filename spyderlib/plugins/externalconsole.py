@@ -974,9 +974,9 @@ class ExternalConsole(SpyderPluginWidget):
         default_options.append("-colors LightBG")
         default_options.append("-xmode Plain")
         for editor_name in ("scite", "gedit"):
-            real_name = programs.get_nt_program_name(editor_name)
-            if programs.is_program_installed(real_name):
-                default_options.append("-editor "+real_name)
+            path = programs.find_program(editor_name)
+            if path is not None:
+                default_options.append("-editor "+osp.basename(path))
                 break
         return " ".join(default_options)
         
