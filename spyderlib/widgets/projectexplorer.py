@@ -448,8 +448,6 @@ class ExplorerTreeWidget(FilteredDirView):
         
         self.workspace = Workspace()
 
-        self.workspace_actions = None
-
         self.last_folder = None
         
         self.setSelectionMode(FilteredDirView.ExtendedSelection)
@@ -600,15 +598,10 @@ class ExplorerTreeWidget(FilteredDirView):
             
         if actions:
             actions.append(None)
-        actions += self.workspace_actions
             
         add_actions(self.menu, actions)
         
     #------Public API-----------------------------------------------------------
-    def set_workspace_actions(self, actions):
-        """Set workspace context menu actions"""
-        self.workspace_actions = actions
-        
     def set_folder_names(self, folder_names):
         """Set folder names"""
         self.setUpdatesEnabled(False)
@@ -1196,11 +1189,6 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
-        select_ws_act = create_action(self,
-                                      text=self.selector.browse_btn.toolTip(),
-                                      icon=self.selector.browse_btn.icon(),
-                                      triggered=self.selector.select_directory)
-        self.treewidget.set_workspace_actions([select_ws_act])
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
