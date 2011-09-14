@@ -1088,16 +1088,13 @@ class WorkspaceSelector(QWidget):
     """Workspace selector widget"""
     TITLE = _('Select an existing workspace directory, or create a new one')
     WHAT = _("What is the workspace?")
-    TIP = _("The project explorer shows a tree view of projects: the root of "
-            "this tree is called the workspace.<br><br>"
-            "Each project is associated to a simple source code folder "
-            "containing a configuration file (named <b>.spyderproject</b>) "
-            "which stores the project settings (PYTHONPATH, related projects, "
-            "...). The workspace is also associated to a folder containing a "
-            "configuration file (named <b>.spyderworkspace</b>) <u>and</u> "
-            "the folders associated to its projects.<br><br>"
-            "In other words, the workspace is nothing but a list of projects "
-            "whose associated folder share the same parent directory.")
+    TIP = _("A Spyder project is a folder with source code files (and any "
+            "other kind of related files) and a configuration file (named "
+            "<b>.spyderproject</b>) which stores the project settings "
+            "(PYTHONPATH, related projects, ...).<br><br>"
+            "The workspace is a directory, which contains Spyder projects "
+            "(<u>top level</u> subdirectories) and a configuration file "
+            "(named <b>.spyderworkspace</b>). ")
 
     def __init__(self, parent):
         super(WorkspaceSelector, self).__init__(parent)
