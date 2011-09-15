@@ -637,7 +637,13 @@ class TextEditBaseWidget(QPlainTextEdit):
 
     def get_text_line(self, line_nb):
         """Return text line at line number *line_nb*"""
-        return unicode(self.toPlainText()).splitlines()[line_nb-1]
+        # Taking into account the case when a file ends in an empty line,
+        # since splitlines doesn't return that line as the last element
+        # TODO: Make this function more efficient
+        try:
+            return unicode(self.toPlainText()).splitlines()[line_nb]
+        except IndexError:
+            return self.get_line_separator()
     
     def get_text(self, position_from, position_to):
         """
