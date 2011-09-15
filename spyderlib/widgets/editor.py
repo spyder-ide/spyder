@@ -1804,11 +1804,17 @@ class EditorStack(QWidget):
                 min_indent = min(_indent(line), min_indent)
         if min_indent:
             text = ls.join([line[min_indent:] for line in text.split(ls)])
-
-        last_line = text.split(ls)[-1]
-        if last_line.strip() == editor.get_text_line(line_to).strip():
-            # If last line is complete, add an EOL character
+        
+        # Add an EOL character if a block stars with various Python
+        # reserved words, so that it gets evaluated automatically
+        # by the console
+        first_line = lines[0].lstrip()
+        last_line = editor.get_text_line(line_to).strip()
+        words = ['def', 'for', 'if', 'while', 'try', 'with', 'class']
+        if any([first_line.startswith(w) for w in words]):
             text += ls
+            if last_line != '':
+                text += ls
         
         return text
     
