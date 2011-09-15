@@ -8,9 +8,9 @@
 
 # pylint: disable=C0103
 
-from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QMenu,
-                                QWidget, QFileIconProvider, QMessageBox,
-                                QInputDialog, QLineEdit, QPushButton)
+from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
+                                QFileIconProvider, QMessageBox, QInputDialog,
+                                QLineEdit, QPushButton)
 from spyderlib.qt.QtCore import Qt, SIGNAL, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
@@ -24,8 +24,7 @@ import xml.etree.ElementTree as ElementTree
 
 # Local imports
 from spyderlib.utils import misc
-from spyderlib.utils.qthelpers import (get_std_icon, create_action,
-                                       add_actions)
+from spyderlib.utils.qthelpers import get_std_icon, create_action
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
@@ -469,37 +468,31 @@ class ExplorerTreeWidget(FilteredDirView):
     #------DirView API----------------------------------------------------------
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
-        if self.workspace.is_empty():
-            return []
-        else:
-            new_project_act = create_action(self, text=_('Project...'),
+        new_project_act = create_action(self, text=_('Project...'),
                                         icon=get_icon('project_expanded.png'),
                                         triggered=self.new_project)
+        if self.workspace.is_empty():
+            new_project_act.setText(_('New project...'))
+            return [new_project_act]
+        else:
             new_actions = FilteredDirView.create_file_new_actions(self, fnames)
-            if new_actions:
-                return [new_project_act, None]+new_actions
-            else:
-                new_project_act.setText(_('New project...'))
-                return [new_project_act]
+            return [new_project_act, None]+new_actions
         
     def create_file_import_actions(self, fnames):
         """Return actions for submenu 'Import...'"""
-        if self.workspace.is_empty():
-            return []
-        else:
-            import_folder_act = create_action(self,
+        import_folder_act = create_action(self,
                                 text=_('Existing directory'),
                                 icon=get_std_icon('DirOpenIcon'),
                                 triggered=self.import_existing_directory)
-            import_spyder_act = create_action(self,
+        import_spyder_act = create_action(self,
                                 text=_('Existing Spyder project'),
                                 icon=get_icon('spyder.svg'),
                                 triggered=self.import_existing_project)
-            import_pydev_act = create_action(self,
+        import_pydev_act = create_action(self,
                                 text=_('Existing Pydev project'),
                                 icon=get_icon('pydev.png'),
                                 triggered=self.import_existing_pydev_project)
-            return [import_folder_act, import_spyder_act, import_pydev_act]
+        return [import_folder_act, import_spyder_act, import_pydev_act]
         
     def create_file_manage_actions(self, fnames):
         """Reimplement DirView method"""
@@ -571,12 +564,14 @@ class ExplorerTreeWidget(FilteredDirView):
         actions += [None, properties_act, None]
         actions += FilteredDirView.create_file_manage_actions(self, fnames)
         return actions
-
-    def update_menu(self):
+        
+    def create_context_menu_actions(self):
         """Reimplement DirView method"""
         if self.workspace.is_valid():
             # Workspace's root path is already defined
-            FilteredDirView.update_menu(self)
+            return FilteredDirView.create_context_menu_actions(self)
+        else:
+            return []
         
     #------Public API-----------------------------------------------------------
     def set_folder_names(self, folder_names):

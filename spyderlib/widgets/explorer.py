@@ -308,23 +308,21 @@ class DirView(QTreeView):
         actions = []
         fnames = self.get_selected_filenames()
         new_actions = self.create_file_new_actions(fnames)
-        if new_actions:
+        if len(new_actions) > 1:
             # Creating a submenu only if there is more than one entry
-            if len(new_actions) > 1:
-                new_act_menu = QMenu(_('New'), self)
-                add_actions(new_act_menu, new_actions)
-                actions.append(new_act_menu)
-            else:
-                actions += new_actions
+            new_act_menu = QMenu(_('New'), self)
+            add_actions(new_act_menu, new_actions)
+            actions.append(new_act_menu)
+        else:
+            actions += new_actions
         import_actions = self.create_file_import_actions(fnames)
-        if import_actions:
+        if len(import_actions) > 1:
             # Creating a submenu only if there is more than one entry
-            if len(import_actions) > 1:
-                import_act_menu = QMenu(_('Import'), self)
-                add_actions(import_act_menu, import_actions)
-                actions.append(import_act_menu)
-            else:
-                actions += import_actions
+            import_act_menu = QMenu(_('Import'), self)
+            add_actions(import_act_menu, import_actions)
+            actions.append(import_act_menu)
+        else:
+            actions += import_actions
         if actions:
             actions.append(None)
         if fnames:
@@ -341,8 +339,7 @@ class DirView(QTreeView):
     def update_menu(self):
         """Update context menu"""
         self.menu.clear()
-        actions = self.create_context_menu_actions()
-        add_actions(self.menu, actions)
+        add_actions(self.menu, self.create_context_menu_actions())
     
     #---- Events
     def contextMenuEvent(self, event):
