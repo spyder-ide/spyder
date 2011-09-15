@@ -970,9 +970,6 @@ class Editor(SpyderPluginWidget):
                      self.ending_long_process)
         
         # Redirect signals
-        self.connect(editorstack, SIGNAL("refresh_explorer(QString)"),
-                     lambda text:
-                     self.emit(SIGNAL("refresh_explorer(QString)"), text))
         self.connect(editorstack, SIGNAL('redirect_stdio(bool)'),
                      lambda state:
                      self.emit(SIGNAL('redirect_stdio(bool)'), state))

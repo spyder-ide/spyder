@@ -578,17 +578,13 @@ class DirView(QTreeView):
         """New folder"""
         title = _('New folder')
         subtitle = _('Folder name:')
-        path = self.create_new_folder(basedir, title, subtitle, is_package=False)
-#        if path:
-#            self.refresh_folder(osp.dirname(path))
+        self.create_new_folder(basedir, title, subtitle, is_package=False)
     
     def new_package(self, basedir):
         """New package"""
         title = _('New package')
         subtitle = _('Package name:')
-        path = self.create_new_folder(basedir, title, subtitle, is_package=True)
-#        if path:
-#            self.refresh_folder(osp.dirname(path))
+        self.create_new_folder(basedir, title, subtitle, is_package=True)
     
     def create_new_file(self, current_path, title, filters, create_func):
         """Create new file
@@ -622,7 +618,6 @@ class DirView(QTreeView):
                 file(fname, 'wb').write('')
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
-#            self.refresh_folder(osp.dirname(fname))
             self.open([fname])
     
     def new_module(self, basedir):
@@ -842,13 +837,13 @@ class ExplorerTreeWidget(DirView):
         self.show_cd_only = checked
         if checked:
             if self.__last_folder is not None:
-                self.refresh_folder(self.__last_folder)
+                self.set_current_folder(self.__last_folder)
         elif self.__original_root_index is not None:
             self.setRootIndex(self.__original_root_index)
         
     #---- Refreshing widget
-    def refresh_folder(self, folder):
-        """Refresh folder"""
+    def set_current_folder(self, folder):
+        """Set current folder and return associated model index"""
         index = self.fsmodel.setRootPath(folder)
         self.__last_folder = folder
         if self.show_cd_only:
@@ -857,22 +852,15 @@ class ExplorerTreeWidget(DirView):
             self.setRootIndex(index)
         return index
         
-    def set_folder(self, folder, force_current=False):
-        """Set folder"""
-        if not force_current:
-            return
-        index = self.refresh_folder(folder)
-        self.expand(index)
-        self.setCurrentIndex(index)
-        
     def refresh(self, new_path=None, force_current=False):
-        """
-        Refresh widget
-        force=False: won't refresh widget if path has not changed
-        """
+        """Refresh widget
+        force=False: won't refresh widget if path has not changed"""
         if new_path is None:
             new_path = os.getcwdu()
-        self.set_folder(new_path, force_current=force_current)
+        if force_current:
+            index = self.set_current_folder(new_path)
+            self.expand(index)
+            self.setCurrentIndex(index)
         self.emit(SIGNAL("set_previous_enabled(bool)"),
                   self.histindex is not None and self.histindex > 0)
         self.emit(SIGNAL("set_next_enabled(bool)"),

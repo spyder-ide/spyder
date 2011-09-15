@@ -1221,7 +1221,7 @@ class EditorStack(QWidget):
             self.set_stack_index(index)
             finfo = self.data[index]
             if finfo.filename == self.tempfile_path or yes_all:
-                if not self.save(refresh_explorer=False):
+                if not self.save():
                     return False
             elif finfo.editor.document().isModified():
                 answer = QMessageBox.question(self, self.title,
@@ -1230,10 +1230,10 @@ class EditorStack(QWidget):
                               ) % osp.basename(finfo.filename),
                             buttons)
                 if answer == QMessageBox.Yes:
-                    if not self.save(refresh_explorer=False):
+                    if not self.save():
                         return False
                 elif answer == QMessageBox.YesAll:
-                    if not self.save(refresh_explorer=False):
+                    if not self.save():
                         return False
                     yes_all = True
                 elif answer == QMessageBox.NoAll:
@@ -1242,7 +1242,7 @@ class EditorStack(QWidget):
                     return False
         return True
     
-    def save(self, index=None, force=False, refresh_explorer=True):
+    def save(self, index=None, force=False):
         """Save file"""
         if index is None:
             # Save the currently edited file
@@ -1278,10 +1278,6 @@ class EditorStack(QWidget):
             finfo.editor.rehighlight()
             
             self._refresh_outlineexplorer(index)
-            if refresh_explorer:
-                # Refresh the explorer widget if it exists:
-                self.emit(SIGNAL("refresh_explorer(QString)"),
-                          osp.dirname(finfo.filename))
             return True
         except EnvironmentError, error:
             QMessageBox.critical(self, _("Save"),
@@ -1337,9 +1333,7 @@ class EditorStack(QWidget):
         for index in range(self.get_stack_count()):
             if self.data[index].editor.document().isModified():
                 folders.add(osp.dirname(self.data[index].filename))
-                self.save(index, refresh_explorer=False)
-        for folder in folders:
-            self.emit(SIGNAL("refresh_explorer(QString)"), folder)
+                self.save(index)
     
     #------ Update UI
     def start_stop_analysis_timer(self):

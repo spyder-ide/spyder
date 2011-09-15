@@ -336,7 +336,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         os.chdir( unicode(directory) )
         self.refresh_plugin()
         if refresh_explorer:
-            self.emit(SIGNAL("refresh_explorer(QString)"), directory)
+            self.emit(SIGNAL("set_explorer_cwd(QString)"), directory)
         self.emit(SIGNAL("refresh_findinfiles()"))
         
     def set_as_current_console_wd(self):
