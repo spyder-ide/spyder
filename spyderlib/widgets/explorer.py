@@ -90,7 +90,6 @@ class DirView(QTreeView):
         self.parent_widget = parent
         self.valid_types = None
         self.show_all = None
-        self.show_cd_only = None
         self.menu = None
         self.common_actions = None
         self.__expanded_state = None
@@ -159,15 +158,13 @@ class DirView(QTreeView):
         
     #---- Tree view widget
     def setup(self, name_filters=['*.py', '*.pyw'],
-              valid_types= ('.py', '.pyw'), show_all=False,
-              show_cd_only=False):
+              valid_types= ('.py', '.pyw'), show_all=False):
         """Setup tree widget"""
         self.setup_view()
         
         self.set_name_filters(name_filters)
         self.valid_types = valid_types
         self.show_all = show_all
-        self.show_cd_only = show_cd_only
         
         # Setup context menu
         self.menu = QMenu(self)
@@ -802,14 +799,17 @@ class FilteredDirView(DirView):
 
 
 class ExplorerTreeWidget(DirView):
-    """File/directory explorer tree widget"""
-    def __init__(self, parent=None):
+    """File/directory explorer tree widget
+    show_cd_only: Show current directory only
+    (True/False: enable/disable the option
+     None: enable the option and do not allow the user to disable it)"""
+    def __init__(self, parent=None, show_cd_only=None):
         DirView.__init__(self, parent)
                 
         self.history = []
         self.histindex = None
 
-        self.show_cd_only = None
+        self.show_cd_only = show_cd_only
         self.__original_root_index = None
         self.__last_folder = None
 
@@ -822,14 +822,20 @@ class ExplorerTreeWidget(DirView):
     #---- Context menu
     def setup_common_actions(self):
         """Setup context menu common actions"""
-        # Show current directory only
-        cd_only_action = create_action(self, _("Show current directory only"),
-                                       toggled=self.toggle_show_cd_only)
-        cd_only_action.setChecked(self.show_cd_only)
-        self.toggle_show_cd_only(self.show_cd_only)
-        
         actions = super(ExplorerTreeWidget, self).setup_common_actions()
-        return actions+[cd_only_action]
+        if self.show_cd_only is None:
+            # Enabling the 'show current directory only' option but do not
+            # allow the user to disable it
+            self.show_cd_only = True
+        else:
+            # Show current directory only
+            cd_only_action = create_action(self,
+                                           _("Show current directory only"),
+                                           toggled=self.toggle_show_cd_only)
+            cd_only_action.setChecked(self.show_cd_only)
+            self.toggle_show_cd_only(self.show_cd_only)
+            actions.append(cd_only_action)
+        return actions
             
     def toggle_show_cd_only(self, checked):
         """Toggle show current directory only mode"""
@@ -923,13 +929,12 @@ class ExplorerWidget(QWidget):
     
     def __init__(self, parent=None, name_filters=['*.py', '*.pyw'],
                  valid_types=('.py', '.pyw'), show_all=False,
-                 show_cd_only=False, show_toolbar=True, show_icontext=True):
+                 show_cd_only=None, show_toolbar=True, show_icontext=True):
         QWidget.__init__(self, parent)
         
-        self.treewidget = ExplorerTreeWidget(self)
+        self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
         self.treewidget.setup(name_filters=name_filters,
-                              valid_types=valid_types, show_all=show_all,
-                              show_cd_only=show_cd_only)
+                              valid_types=valid_types, show_all=show_all)
         self.treewidget.chdir(os.getcwdu())
         
         toolbar_action = create_action(self, _("Show toolbar"),
@@ -1004,7 +1009,7 @@ class FileExplorerTest(QWidget):
         QWidget.__init__(self)
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
-        self.explorer = ExplorerWidget(self, show_cd_only=True)
+        self.explorer = ExplorerWidget(self, show_cd_only=None)
         vlayout.addWidget(self.explorer)
         
         hlayout1 = QHBoxLayout()

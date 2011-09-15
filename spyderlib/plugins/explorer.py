@@ -36,7 +36,6 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                                 name_filters=self.get_option('name_filters'),
                                 valid_types=VALID_EXT,
                                 show_all=self.get_option('show_all'),
-                                show_cd_only=self.get_option('show_cd_only'),
                                 show_toolbar=self.get_option('show_toolbar'),
                                 show_icontext=self.get_option('show_icontext'))
         SpyderPluginMixin.__init__(self, parent)

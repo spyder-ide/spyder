@@ -330,7 +330,6 @@ DEFAULTS = [
               'name_filters': NAME_FILTERS,
               'show_hidden': True,
               'show_all': False,
-              'show_cd_only': True,
               'show_toolbar': True,
               'show_icontext': True,
               }),
