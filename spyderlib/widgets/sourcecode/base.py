@@ -68,8 +68,8 @@ class CompletionWidget(QListWidget):
         # Retrieving current screen height
         desktop = QApplication.desktop()
         srect = desktop.availableGeometry(desktop.screenNumber(self))
-        screen_height = srect.height()
-        screen_width = srect.width()
+        screen_right = srect.right()
+        screen_bottom = srect.bottom()
         
         point = self.textedit.cursorRect().bottomRight()
         point.setX(point.x()+self.textedit.get_linenumberarea_width())
@@ -79,9 +79,9 @@ class CompletionWidget(QListWidget):
         comp_right = point.x()+self.width()
         ancestor = self.parent()
         if ancestor is None:
-            anc_right = screen_width
+            anc_right = screen_right
         else:
-            anc_right = min([ancestor.x()+ancestor.width(), screen_width])
+            anc_right = min([ancestor.x()+ancestor.width(), screen_right])
         
         # Moving completion widget to the left
         # if there is not enough space to the right
@@ -92,9 +92,9 @@ class CompletionWidget(QListWidget):
         comp_bottom = point.y()+self.height()
         ancestor = self.parent()
         if ancestor is None:
-            anc_bottom = screen_height
+            anc_bottom = screen_bottom
         else:
-            anc_bottom = min([ancestor.y()+ancestor.height(), screen_height])
+            anc_bottom = min([ancestor.y()+ancestor.height(), screen_bottom])
         
         # Moving completion widget above if there is not enough space below
         x_position = point.x()
