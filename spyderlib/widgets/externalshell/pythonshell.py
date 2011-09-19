@@ -418,6 +418,11 @@ The process may not exit as a result of clicking this button
                          lambda args:
                          self.emit(SIGNAL('create_ipython_frontend(QString)'),
                          args))
+            self.connect(self.notification_thread,
+                         SIGNAL('open_file(QString,int)'),
+                         lambda fname, lineno:
+                         self.emit(SIGNAL('open_file(QString,int)'),
+                                   fname, lineno))
             if self.namespacebrowser is not None:
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)

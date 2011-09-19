@@ -24,7 +24,9 @@ from spyderlib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
 
 
-import sys, os, threading
+import sys
+import os
+import threading
 from time import time
 from subprocess import Popen
 
@@ -37,6 +39,7 @@ from spyderlib.qt.QtCore import SIGNAL, QObject
 from spyderlib.utils.qthelpers import create_action, get_std_icon
 from spyderlib.interpreter import Interpreter
 from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
+from spyderlib.utils.misc import get_error_match
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
@@ -130,8 +133,14 @@ class InternalShell(PythonShellWidget):
         
         # Clear status bar
         self.emit(SIGNAL("status(QString)"), '')
-                
-                
+        
+        # Embedded shell -- requires the monitor (which installs the
+        # '_open_in_spyder' function in builtins)
+        if hasattr(__builtin__, '_open_in_spyder'):
+            self.connect(self, SIGNAL("go_to_error(QString)"),
+                         self.open_with_external_spyder)
+
+
     #------ Interpreter
     def start_interpreter(self, namespace):
         """Start Python interpreter"""
@@ -222,9 +231,18 @@ class InternalShell(PythonShellWidget):
             ) % ('Shell special commands:', 'Internal editor:',
                  'External editor:', 'Run script:', 'Remove references:',
                  'System commands:', 'Python help:', 'GUI-based editor:') )
-                
-                
+
+
     #------ External editing
+    def open_with_external_spyder(self, text):
+        """Load file in external Spyder's editor, if available
+        This method is used only for embedded consoles
+        (could also be useful if we ever implement the magic %edit command)"""
+        match = get_error_match(unicode(text))
+        if match:
+            fname, lnb = match.groups()
+            __builtin__._open_in_spyder(fname, int(lnb))
+
     def external_editor(self, filename, goto=-1):
         """Edit in an external editor
         Recommended: SciTE (e.g. to go to line where an error did occur)"""
