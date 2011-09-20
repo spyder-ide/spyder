@@ -223,6 +223,11 @@ class Monitor(threading.Thread):
         """Notify the ExternalPythonShell regarding pdb current frame"""
         communicate(self.n_request,
                     dict(command="pdb_step", data=(fname, lineno)))
+
+    def notify_open_file(self, fname, lineno=1):
+        """Open file in Spyder's editor"""
+        communicate(self.n_request,
+                    dict(command="open_file", data=(fname, lineno)))
         
     #------ Code completion / Calltips
     def _eval(self, text, glbs):

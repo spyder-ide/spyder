@@ -688,6 +688,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.connect(shellwidget.shell, SIGNAL("focus_changed()"),
                      lambda: self.emit(SIGNAL("focus_changed()")))
         if python:
+            if self.main.editor is not None:
+                self.connect(shellwidget, SIGNAL('open_file(QString,int)'),
+                             self.open_file_in_spyder)
             if fname is None:
                 if ipython_shell:
                     self.ipython_shell_count += 1
@@ -749,6 +752,12 @@ class ExternalConsole(SpyderPluginWidget):
         # Start process and give focus to console
         shellwidget.start_shell()
         shellwidget.shell.setFocus()
+        
+    def open_file_in_spyder(self, fname, lineno):
+        """Open file in Spyder's editor from remote process"""
+        self.main.editor.activateWindow()
+        self.main.editor.raise_()
+        self.main.editor.load(fname, lineno)
         
     #------ Private API --------------------------------------------------------
     def process_started(self, shell_id):

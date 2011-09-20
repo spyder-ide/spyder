@@ -109,6 +109,9 @@ else:
                       os.environ["SPYDER_AR_STATE"].lower() == "true")
     monitor.start()
     
+    import __builtin__
+    __builtin__._open_in_spyder = monitor.notify_open_file
+    
     # * Removing PyQt4 input hook which is not working well on Windows since 
     #   opening a subprocess do not attach a real console to it
     #   (with keyboard events...)

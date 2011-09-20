@@ -166,6 +166,9 @@ class NotificationThread(QThread):
                     self.sig_process_remote_view.emit(data)
                 elif command == 'ipython_kernel':
                     self.emit(SIGNAL('new_ipython_kernel(QString)'), data)
+                elif command == 'open_file':
+                    fname, lineno = data
+                    self.emit(SIGNAL('open_file(QString,int)'), fname, lineno)
                 else:
                     raise RuntimeError('Unsupported command: %r' % command)
                 if DEBUG:
