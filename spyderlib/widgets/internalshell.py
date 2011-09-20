@@ -15,14 +15,8 @@
 
 #----Builtins
 import __builtin__
-try:
-    from IPython.deep_reload import reload
-    __builtin__.dreload = reload
-except ImportError:
-    pass
 from spyderlib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
-
 
 import sys
 import os
