@@ -1498,12 +1498,11 @@ class CodeEditor(TextEditBaseWidget):
                 # Highlighting all occurences (this is a compromise as pyflakes
                 # do not provide the column number -- see Issue 709 on Spyder's
                 # GoogleCode project website)
-                old_pos = None
                 cursor = document.find(regexp, cursor, flags)
                 if cursor:
                     while cursor and cursor.blockNumber() <= line2 \
                           and cursor.blockNumber() >= line_number-1 \
-                          and cursor.position() != old_pos:
+                          and cursor.position() > 0:
                         self.__highlight_selection('code_analysis', cursor,
                                        underline_color=QColor(color))
                         cursor = document.find(text, cursor, flags)
