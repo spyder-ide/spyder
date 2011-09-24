@@ -674,7 +674,8 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def insert_text(self, text):
         """Insert text at cursor position"""
-        self.textCursor().insertText(text)
+        if not self.isReadOnly():
+            self.textCursor().insertText(text)
     
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
