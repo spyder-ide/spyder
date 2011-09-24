@@ -149,6 +149,7 @@ class Monitor(threading.Thread):
         self.remote_view_settings = None
         
         self.inputhook_flag = False
+        self.first_inputhook_call = True
         
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
@@ -215,6 +216,16 @@ class Monitor(threading.Thread):
     def refresh(self):
         """Refresh variable explorer in ExternalPythonShell"""
         communicate(self.n_request, dict(command="refresh"))
+        
+    def refresh_from_inputhook(self):
+        """Refresh variable explorer from the PyOS_InputHook.
+        See sitecustomize.py"""
+        # Refreshing variable explorer, except on first input hook call
+        # (otherwise, on slow machines, this may freeze Spyder)
+        if self.first_inputhook_call:
+            self.first_inputhook_call = False
+        else:
+            self.refresh()
         
     def register_pdb_session(self, pdb_obj):
         self.pdb_obj = pdb_obj
