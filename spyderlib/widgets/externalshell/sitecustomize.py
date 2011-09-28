@@ -129,7 +129,9 @@ else:
             This input hook wait for available stdin data (notified by
             ExternalPythonShell through the monitor's inputhook_flag
             attribute), and in the meantime it processes Qt events."""
-            monitor.refresh()  # Refreshing the variable explorer
+            # Refreshing variable explorer, except on first input hook call:
+            # (otherwise, on slow machines, this may freeze Spyder)
+            monitor.refresh_from_inputhook()
             try:
                 # This call fails for Python without readline support
                 # (or on Windows platforms) when PyOS_InputHook is called

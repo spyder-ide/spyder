@@ -495,6 +495,13 @@ class DirView(QTreeView):
             path = osp.join(osp.dirname(fname), unicode(path))
             if path == fname:
                 return
+            if osp.exists(path):
+                if QMessageBox.warning(self, _("Rename"),
+                         _("Do you really want to rename <b>%s</b> and "
+                           "overwrite the existing file <b>%s</b>?"
+                           ) % (osp.basename(fname), osp.basename(path)),
+                         QMessageBox.Yes|QMessageBox.No) == QMessageBox.No:
+                    return
             try:
                 misc.rename_file(fname, path)
                 self.parent_widget.emit( \

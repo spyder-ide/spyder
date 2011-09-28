@@ -674,7 +674,8 @@ class TextEditBaseWidget(QPlainTextEdit):
     
     def insert_text(self, text):
         """Insert text at cursor position"""
-        self.textCursor().insertText(text)
+        if not self.isReadOnly():
+            self.textCursor().insertText(text)
     
     def replace_text(self, position_from, position_to, text):
         cursor = self.__select_text(position_from, position_to)
@@ -857,6 +858,61 @@ class TextEditBaseWidget(QPlainTextEdit):
         Paste the duplicated text *before* the current line/selected text
         """
         self.__duplicate_line_or_selection(after_current_line=False)
+        
+    def __move_line_or_selection(self, after_current_line=True):
+        """Move current line or selected text"""
+        cursor = self.textCursor()
+        cursor.beginEditBlock()
+        orig_sel = start_pos, end_pos = (cursor.selectionStart(),
+                                         cursor.selectionEnd())
+        if unicode(cursor.selectedText()):
+            # Check if start_pos is at the start of a block
+            cursor.setPosition(start_pos)
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            start_pos = cursor.position()
+
+            cursor.setPosition(end_pos)
+            # Check if end_pos is at the start of a block: if so, starting
+            # changes from the previous block
+            cursor.movePosition(QTextCursor.StartOfBlock,
+                                QTextCursor.KeepAnchor)
+            if unicode(cursor.selectedText()):
+                cursor.movePosition(QTextCursor.NextBlock)
+                end_pos = cursor.position()
+        else:
+            cursor.movePosition(QTextCursor.StartOfBlock)
+            start_pos = cursor.position()
+            cursor.movePosition(QTextCursor.NextBlock)
+            end_pos = cursor.position()
+        cursor.setPosition(start_pos)
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        
+        sel_text = unicode(cursor.selectedText())
+        cursor.removeSelectedText()
+        
+        if after_current_line:
+            text = unicode(cursor.block().text())
+            orig_sel = (orig_sel[0]+len(text)+1, orig_sel[1]+len(text)+1)
+            cursor.movePosition(QTextCursor.NextBlock)
+        else:
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            text = unicode(cursor.block().text())
+            orig_sel = (orig_sel[0]-len(text)-1, orig_sel[1]-len(text)-1)
+        cursor.insertText(sel_text)
+
+        cursor.endEditBlock()
+
+        cursor.setPosition(orig_sel[0])
+        cursor.setPosition(orig_sel[1], QTextCursor.KeepAnchor)
+        self.setTextCursor(cursor)
+    
+    def move_line_up(self):
+        """Move up current line or selected text"""
+        self.__move_line_or_selection(after_current_line=False)
+        
+    def move_line_down(self):
+        """Move down current line or selected text"""
+        self.__move_line_or_selection(after_current_line=True)
         
     def extend_selection_to_complete_lines(self):
         """Extend current selection to complete lines"""
