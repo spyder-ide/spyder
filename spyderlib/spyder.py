@@ -117,7 +117,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
                                        create_python_script_action)
-from spyderlib.baseconfig import get_conf_path, _, get_module_data_path
+from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
+                                  get_module_source_path)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
                               EDIT_EXT, IMPORT_EXT)
 from spyderlib.otherplugins import get_spyderplugins_mods
@@ -713,14 +714,19 @@ class MainWindow(QMainWindow):
             # Spyder documentation
             doc_path = get_module_data_path('spyderlib', relpath="doc",
                                             attr_name='DOCPATH')
+            # * Trying to find the chm doc
             spyder_doc = osp.join(doc_path, "Spyderdoc.chm")
             if not osp.isfile(spyder_doc):
+                spyder_doc = osp.join(doc_path, os.pardir, os.pardir,
+                                      "Spyderdoc.chm")
+            # * Trying to find the html doc
+            if not osp.isfile(spyder_doc):
                 spyder_doc = osp.join(doc_path, "index.html")
-                if not osp.isfile(spyder_doc): # development version
-                    spyder_doc = osp.join(osp.dirname(__file__), os.pardir,
-                                          'build', 'lib', 'spyderlib', 'doc',
-                                          "index.html")
-            doc_action = create_bookmark_action(self, 'file://' + spyder_doc,
+                if not osp.isfile(spyder_doc):  # development version
+                    spyder_doc = osp.join(get_module_source_path('spyderlib'),
+                                          os.pardir, 'build', 'lib',
+                                          'spyderlib', 'doc', "index.html")
+            doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
             self.help_menu_actions = [about_action, report_action, doc_action]

@@ -20,14 +20,22 @@ http://www.sagemath.org/
 #
 # Distributed under the terms of the BSD License
 #**************************************************
-import os, re, shutil, os.path as osp
+
+import os
+import re
+import shutil
+import os.path as osp
 from tempfile import mkdtemp
 
 from sphinx.application import Sphinx #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
 
-
-CSS_PATH = osp.join(osp.dirname(__file__), 'css')
+# Local imports
+from spyderlib.baseconfig import get_module_source_path
+# Note: we do not use __file__ because it won't be working in the stand-alone
+# version of Spyder (i.e. the py2exe or cx_Freeze build)
+CSS_PATH = osp.join(get_module_source_path('spyderlib.utils', 'sphinxify.py'),
+                    'css')
 
 
 def is_sphinx_markup(docstring):

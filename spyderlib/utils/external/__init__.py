@@ -9,6 +9,5 @@ Put here only untouched libraries, else put them in utils.
 """
 
 import sys
-import os.path as osp
-
-sys.path.insert(0, osp.dirname(__file__))
+from spyderlib.baseconfig import get_module_source_path
+sys.path.insert(0, get_module_source_path(__name__))

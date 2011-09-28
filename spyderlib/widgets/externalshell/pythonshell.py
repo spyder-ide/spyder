@@ -24,10 +24,9 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import split_clo
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, get_module_source_path
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.widgets.externalshell import startup
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import (communicate, write_packet,
                                              monitor_set_remote_view_settings)
@@ -161,13 +160,9 @@ class ExternalPythonShell(ExternalShellBase):
         
         self.dialog_manager = DialogManager()
         
-        startup_file = startup.__file__
-        if 'library.zip' in startup_file:
-            # py2exe distribution
-            from spyderlib.config import DATA_DEV_PATH
-            startup_file = osp.join(DATA_DEV_PATH, "widgets", "externalshell",
-                                    "startup.py")
-        self.fname = startup_file if fname is None else fname
+        startup_fn = get_module_source_path('spyderlib.widgets.externalshell',
+                                            'startup.py')
+        self.fname = startup_fn if fname is None else fname
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         

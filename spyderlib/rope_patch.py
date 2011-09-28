@@ -7,10 +7,13 @@
 """
 Patching rope:
 
-[1] For better performances, see this thread:
+[1] For compatibility with Spyder's standalone version, build with py2exe or
+    cx_Freeze
+
+[2] For better performances, see this thread:
 http://groups.google.com/group/rope-dev/browse_thread/thread/57de5731f202537a
 
-[2] To avoid considering folders without __init__.py as Python packages, thus
+[3] To avoid considering folders without __init__.py as Python packages, thus
 avoiding side effects as non-working introspection features on a Python module
 or package when a folder in current directory has the same name.
 See this thread:
@@ -20,15 +23,31 @@ http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 def apply():
     """Monkey patching rope
     
-    See [1] and [2] in module docstring."""
+    See [1], [2] and [3] in module docstring."""
     import rope
     if rope.VERSION not in ('0.9.3', '0.9.2'):
         raise ImportError, "rope %s can't be patched" % rope.VERSION
+
+    # [1] Patching project.Project for compatibility with py2exe/cx_Freeze dist.
+    from rope.base import project
+    class PatchedProject(project.Project):
+        def _default_config(self):
+            try:
+                # Original implementation
+                import rope.base.default_config
+                import inspect
+                return inspect.getsource(rope.base.default_config)
+            except IOError:
+                # py2exe/cx_Freeze distribution
+                from spyderlib.baseconfig import get_module_source_path
+                fname = get_module_source_path('spyderlib', 'default_config.py')
+                return open(fname, 'rb').read()
+    project.Project = PatchedProject
     
     # Patching pycore.PyCore...
     from rope.base import pycore
     class PatchedPyCore(pycore.PyCore):
-        # [1] ...so that forced builtin modules (i.e. modules that were 
+        # [2] ...so that forced builtin modules (i.e. modules that were 
         # declared as 'extension_modules' in rope preferences) will be indeed
         # recognized as builtins by rope, as expected
         def get_module(self, name, folder=None):
@@ -42,7 +61,7 @@ def apply():
                 raise pycore.ModuleNotFoundError(
                                             'Module %s not found' % name)
             return self.resource_to_pyobject(module)
-        # [2] ...to avoid considering folders without __init__.py as Python
+        # [3] ...to avoid considering folders without __init__.py as Python
         # packages
         def _find_module_in_folder(self, folder, modname):
             module = folder
@@ -62,7 +81,7 @@ def apply():
                     return module.get_child(packages[-1] + '.py')
     pycore.PyCore = PatchedPyCore
     
-    # [1] Patching BuiltinFunction for the calltip/doc functions to be 
+    # [2] Patching BuiltinFunction for the calltip/doc functions to be 
     # able to retrieve the function signatures with forced builtins
     from rope.base import builtins, pyobjects
     from spyderlib.utils.dochelpers import getargs
@@ -80,7 +99,7 @@ def apply():
             self.function = function
     builtins.BuiltinFunction = PatchedBuiltinFunction
 
-    # [1] Patching BuiltinName for the go to definition feature to simply work 
+    # [2] Patching BuiltinName for the go to definition feature to simply work 
     # with forced builtins
     from rope.base import libutils
     import inspect

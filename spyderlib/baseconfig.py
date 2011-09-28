@@ -63,8 +63,29 @@ def get_module_data_path(modname, relpath=None, attr_name='DATAPATH'):
         return datapath
 
 
-SCIENTIFIC_STARTUP = osp.join(get_module_path('spyderlib'),
-                              'scientific_startup.py')
+def get_module_source_path(modname, basename=None):
+    """Return module *modname* source path
+    If *basename* is specified, return *modname.basename* path where 
+    *modname* is a package containing the module *basename*
+    
+    *basename* is a filename (not a module name), so it must include the
+    file extension: .py or .pyw
+    
+    Handles py2exe/cx_Freeze distributions"""
+    srcpath = get_module_path(modname)
+    parentdir = osp.join(srcpath, osp.pardir)
+    if osp.isfile(parentdir):
+        # Parent directory is not a directory but the 'library.zip' file:
+        # this is either a py2exe or a cx_Freeze distribution
+        srcpath = osp.abspath(osp.join(osp.join(parentdir, osp.pardir),
+                                       modname))
+    if basename is not None:
+        srcpath = osp.abspath(osp.join(srcpath, basename))
+    return srcpath
+
+
+SCIENTIFIC_STARTUP = get_module_source_path('spyderlib',
+                                            'scientific_startup.py')
 
 
 #==============================================================================
