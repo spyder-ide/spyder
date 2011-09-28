@@ -1801,7 +1801,10 @@ def main():
     options = get_options()
 
     if set_attached_console_visible is not None:
-        set_attached_console_visible(options.debug or options.show_console)
+        set_attached_console_visible(options.debug or options.show_console\
+                                     or options.reset_session\
+                                     or options.reset_to_defaults\
+                                     or options.optimize)
     
     app = initialize()
     if options.reset_session:
