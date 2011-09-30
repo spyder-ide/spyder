@@ -20,6 +20,25 @@ try:
 except ImportError:
     ndarray = array = matrix = FakeObject
 
+
+def get_numpy_dtype(obj):
+    """Return NumPy data type associated to obj
+    Return None if NumPy is not available or if obj is not a NumPy object"""
+    if ndarray is not FakeObject:
+        # NumPy is available
+        import numpy as np
+        for np_dtype in (np.complex192, np.complex128,
+                         np.complex64, np.complex,
+                         np.long, np.longdouble, np.longfloat, np.longlong,
+                         np.float96, np.float64,
+                         np.float32, np.float16, np.float,
+                         np.uint64, np.int64, np.uint32, np.int32,
+                         np.uint16, np.int16, np.uint8, np.int8,
+                         np.uint0, np.int0, np.uint, np.int):
+            if isinstance(obj, np_dtype):
+                return np_dtype
+
+
 #----PIL Images support
 try:
     from PIL.Image import Image
@@ -27,11 +46,13 @@ try:
 except:
     Image = FakeObject
 
+
 #----Misc.
 def address(obj):
     """Return object address as a string: '<classname @ address>'"""
     return "<%s @ %s>" % (obj.__class__.__name__,
                           hex(id(obj)).upper().replace('X','x'))
+
 
 #----date and datetime objects support
 import datetime
@@ -48,15 +69,19 @@ def datestr_to_datetime(value):
     print value, "-->", v
     return v
 
-#----Background colors for supported types 
+
+#----Background colors for supported types
+ARRAY_COLOR = "#00ff00"
+SCALAR_COLOR = "#0000ff"
 COLORS = {
           bool:               "#ff00ff",
-          (int, float, long): "#0000ff",
+          (int, float,
+           complex, long):    SCALAR_COLOR,
           list:               "#ffff00",
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
           (str, unicode):     "#800000",
-          ndarray:            "#00ff00",
+          ndarray:            ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -69,7 +94,14 @@ def get_color_name(value):
         if isinstance(value, typ):
             return name
     else:
-        return "#ffffff"
+        np_dtype = get_numpy_dtype(value)
+        if np_dtype is not None:
+            if value.size == 1:
+                return SCALAR_COLOR
+            else:
+                return ARRAY_COLOR
+        else:
+            return "#ffffff"
 
 #----Sorting
 def sort_against(lista, listb, reverse=False):

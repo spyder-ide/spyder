@@ -31,12 +31,10 @@ from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
-from spyderlib.widgets.dicteditorutils import (sort_against, get_size, get_type,
-                                               value_to_display, get_color_name,
-                                               is_known_type, FakeObject,
-                                               Image, ndarray, array, PIL,
-                                               unsorted_unique, try_to_eval,
-                                               datestr_to_datetime)
+from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
+                   get_type, value_to_display, get_color_name, is_known_type,
+                   FakeObject, Image, ndarray, array, PIL, unsorted_unique,
+                   try_to_eval, datestr_to_datetime, get_numpy_dtype)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
@@ -47,10 +45,25 @@ def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
     value = from_qvariant(value, unicode)
     try:
-        if isinstance(default_value, str):
+        np_dtype = get_numpy_dtype(default_value)
+        if isinstance(default_value, bool):
+            # We must test for boolean before NumPy data types
+            # because `bool` class derives from `int` class
+            try:
+                value = bool(float(value))
+            except ValueError:
+                value = value.lower() == "true"
+        elif np_dtype is not None:
+            if 'complex' in str(type(default_value)):
+                value = np_dtype(complex(value))
+            else:
+                value = np_dtype(value)
+        elif isinstance(default_value, str):
             value = str(value)
         elif isinstance(default_value, unicode):
             value = unicode(value)
+        elif isinstance(default_value, complex):
+            value = complex(value)
         elif isinstance(default_value, float):
             value = float(value)
         elif isinstance(default_value, int):
@@ -272,7 +285,7 @@ class DictModel(ReadOnlyDictModel):
     def get_bgcolor(self, index):
         """Background color depending on value"""
         value = self.get_value(index)
-        if index.column()<3:
+        if index.column() < 3:
             color = ReadOnlyDictModel.get_bgcolor(self, index)
         else:
             if self.remote:
@@ -287,7 +300,7 @@ class DictModel(ReadOnlyDictModel):
         """Cell content change"""
         if not index.isValid():
             return False
-        if index.column()<3:
+        if index.column() < 3:
             return False
         value = display_to_value(value, self.get_value(index),
                                  ignore_errors=True)
@@ -314,7 +327,7 @@ class DictDelegate(QItemDelegate):
 
     def createEditor(self, parent, option, index):
         """Overriding method createEditor"""
-        if index.column()<3:
+        if index.column() < 3:
             return None
         try:
             value = self.get_value(index)
@@ -444,6 +457,7 @@ class DictDelegate(QItemDelegate):
                                          self.get_value(index),
                                          ignore_errors=False)
             except Exception, msg:
+                raise
                 QMessageBox.critical(editor, _("Edit item"),
                                      _("<b>Unable to assign data to item.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -1104,25 +1118,6 @@ class DictEditor(QDialog):
         # It is import to avoid accessing Qt C++ object as it has probably
         # already been destroyed, due to the Qt.WA_DeleteOnClose attribute
         return self.data_copy
-    
-    
-def dedit(seq):
-    """
-    Edit the sequence 'seq' in a GUI-based editor and return the edited copy
-    (if Cancel is pressed, return None)
-
-    The object 'seq' is a container (dict, list or tuple)
-
-    (instantiate a new QApplication if necessary,
-    so it can be called directly from the interpreter)
-    """
-    app = qapplication()
-    dialog = DictEditor()
-    dialog.setup(seq)
-    dialog.show()
-    app.exec_()
-    if dialog.result():
-        return dialog.get_value()
 
 
 #----Remote versions of DictDelegate and DictEditorTableView
@@ -1252,12 +1247,20 @@ def get_test_data():
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
             'float': 1.2233,
+            'int': 223,
+            'bool': True,
             'array': np.random.rand(10, 10),
             '1D-array': np.linspace(-10, 10),
             'empty_array': np.array([]),
             'image': image,
             'date': testdate,
             'datetime': datetime.datetime(1945, 5, 8),
+            'complex': 2+1j,
+            'complex64': np.complex64(2+1j),
+            'int8_scalar': np.int8(8),
+            'int16_scalar': np.int16(16),
+            'int32_scalar': np.int32(32),
+            'bool_scalar': np.bool(8),
             'unsupported1': np.arccos,
             'unsupported2': np.cast,
             1: (1, 2, 3), -5: ("a", "b", "c"), 2.5: np.array((4.0, 6.0, 8.0)),            
@@ -1265,8 +1268,11 @@ def get_test_data():
 
 def test():
     """Dictionary editor test"""
-    out = dedit( get_test_data() )
-    print "out:", out
+    _app = qapplication() #analysis:ignore
+    dialog = DictEditor()
+    dialog.setup(get_test_data())
+    if dialog.exec_():
+        print "out:", dialog.get_value()
     
 def remote_editor_test():
     """Remote dictionary editor test"""

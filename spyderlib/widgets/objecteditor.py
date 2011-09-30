@@ -101,8 +101,7 @@ def oedit(obj, modal=True, namespace=None):
         return conv_func(dialog.get_value())
     
     if modal:
-        dialog.exec_()
-        if dialog.result():
+        if dialog.exec_():
             return end_func(dialog)
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
