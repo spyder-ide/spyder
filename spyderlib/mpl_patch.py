@@ -126,7 +126,7 @@ def apply():
                             text += ": "+ylabel
                         text += " (%s)"
                     elif ylabel:
-                        text = "%s (%s)" % ylabel
+                        text = ylabel+" (%s)"
                     else:
                         text = "%s"
                     titles.append(text % repr(axes))
