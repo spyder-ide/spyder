@@ -28,21 +28,19 @@ def apply():
     if rope.VERSION not in ('0.9.3', '0.9.2'):
         raise ImportError, "rope %s can't be patched" % rope.VERSION
 
-    # [1] Patching project.Project for compatibility with py2exe/cx_Freeze dist.
-    from rope.base import project
-    class PatchedProject(project.Project):
-        def _default_config(self):
-            try:
-                # Original implementation
-                import rope.base.default_config
-                import inspect
-                return inspect.getsource(rope.base.default_config)
-            except IOError:
+    # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
+    #     distributions
+    from spyderlib.baseconfig import is_py2exe_or_cx_Freeze
+    if is_py2exe_or_cx_Freeze():
+        from rope.base import project
+        class PatchedProject(project.Project):
+            def _default_config(self):
                 # py2exe/cx_Freeze distribution
                 from spyderlib.baseconfig import get_module_source_path
-                fname = get_module_source_path('spyderlib', 'default_config.py')
+                fname = get_module_source_path('spyderlib',
+                                               'default_config.py')
                 return open(fname, 'rb').read()
-    project.Project = PatchedProject
+        project.Project = PatchedProject
     
     # Patching pycore.PyCore...
     from rope.base import pycore
