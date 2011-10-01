@@ -34,8 +34,7 @@ from docutils.utils import SystemMessage as SystemMessage
 from spyderlib.baseconfig import get_module_source_path
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CSS_PATH = osp.join(get_module_source_path('spyderlib.utils', 'sphinxify.py'),
-                    'css')
+CSS_PATH = osp.join(get_module_source_path('spyderlib.utils'), 'css')
 
 
 def is_sphinx_markup(docstring):
