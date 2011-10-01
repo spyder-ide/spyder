@@ -213,18 +213,22 @@ class InternalShell(PythonShellWidget):
     def help(self):
         """Help on Spyder console"""
         QMessageBox.about(self, _("Help"),
-            _("""<b>%s</b>
-            <p><i>%s</i><br>    edit foobar.py
-            <p><i>%s</i><br>    xedit foobar.py
-            <p><i>%s</i><br>    run foobar.py
-            <p><i>%s</i><br>    clear x, y
-            <p><i>%s</i><br>    !ls
-            <p><i>%s</i><br>    object?
-            <p><i>%s</i><br>    result = oedit(object)
-            """
-            ) % ('Shell special commands:', 'Internal editor:',
-                 'External editor:', 'Run script:', 'Remove references:',
-                 'System commands:', 'Python help:', 'GUI-based editor:') )
+                          """<b>%s</b>
+                          <p><i>%s</i><br>    edit foobar.py
+                          <p><i>%s</i><br>    xedit foobar.py
+                          <p><i>%s</i><br>    run foobar.py
+                          <p><i>%s</i><br>    clear x, y
+                          <p><i>%s</i><br>    !ls
+                          <p><i>%s</i><br>    object?
+                          <p><i>%s</i><br>    result = oedit(object)
+                          """ % (_('Shell special commands:'),
+                                 _('Internal editor:'),
+                                 _('External editor:'),
+                                 _('Run script:'),
+                                 _('Remove references:'),
+                                 _('System commands:'),
+                                 _('Python help:'),
+                                 _('GUI-based editor:')))
 
 
     #------ External editing

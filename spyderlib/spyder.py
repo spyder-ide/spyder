@@ -1319,7 +1319,7 @@ class MainWindow(QMainWindow):
                 pass
         QMessageBox.about(self,
             _("About %s") % "Spyder",
-            _("""<b>%s %s</b>
+            """<b>%s %s</b>
             <br>Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2010 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
@@ -1342,7 +1342,7 @@ class MainWindow(QMainWindow):
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %s, Qt %s, %s %s on %s"""
-            ) % ("Spyder", __version__,
+            % ("Spyder", __version__,
                  "<span style=\'color: #444444\'><b>",
                  pyflakes_version,
                  "</b></span>",
