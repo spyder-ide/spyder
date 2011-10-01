@@ -39,7 +39,7 @@ def check_with_pyflakes(source_code, filename=None):
         filename = '<string>'
     source_code += '\n'
     import _ast
-    from spyderlib.utils.external.pyflakes.checker import Checker
+    from pyflakes.checker import Checker
     # First, compile into an AST and handle syntax errors.
     try:
         tree = compile(source_code, filename, "exec", _ast.PyCF_ONLY_AST)
@@ -60,6 +60,13 @@ def check_with_pyflakes(source_code, filename=None):
                 results.append((warning.message % warning.message_args,
                                 warning.lineno))
         return results
+
+# Required version: Why 0.5.0? Because it's based on _ast (thread-safe)
+PYFLAKES_REQVER = '0.5.0'
+
+def is_pyflakes_installed():
+    """Return True if pyflakes required version is installed"""
+    return programs.is_module_installed('pyflakes', PYFLAKES_REQVER)
 
 
 def get_checker_executable(name):
