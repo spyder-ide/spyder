@@ -34,11 +34,12 @@ OTHER DEALINGS IN THE SOFTWARE.
 """
 
 # History:
+# 1.0.11: added support for PySide
 # 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.10'
+__version__ = '1.0.11'
 __license__ = __doc__
 
 DEBUG = False
@@ -267,6 +268,7 @@ class FormWidget(QWidget):
             elif isinstance(value, (str, unicode)):
                 field = QLineEdit(value, self)
             elif isinstance(value, (list, tuple)):
+                value = list(value)  # in case this is a tuple
                 selindex = value.pop(0)
                 field = QComboBox(self)
                 if isinstance(value[0], (list, tuple)):
