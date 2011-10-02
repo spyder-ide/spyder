@@ -84,9 +84,13 @@ class RunConfiguration(object):
         
 def _get_run_configurations():
     history_count = CONF.get('run', 'history', 20)
-    return [(filename, options)
-            for filename, options in CONF.get('run', 'configurations', [])
-            if osp.isfile(filename)][:history_count]
+    try:
+        return [(filename, options)
+                for filename, options in CONF.get('run', 'configurations', [])
+                if osp.isfile(filename)][:history_count]
+    except ValueError:
+        CONF.set('run', 'configurations', [])
+        return []
 
 def _set_run_configurations(configurations):
     history_count = CONF.get('run', 'history', 20)
