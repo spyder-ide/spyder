@@ -35,10 +35,11 @@ def create_executable():
                                 '.css', '.doctree',
                                 '.qm', '.py',),
                                copy_to_root=False)
-    dist.add_modules('PyQt4', 'matplotlib', 'h5py', 'rst2pdf', 'scipy.io')
+    dist.add_modules('PyQt4', 'matplotlib', 'h5py', 'scipy.io')
     dist.includes += ['spyderlib.widgets.externalshell.startup',
                       'spyderlib.widgets.externalshell.sitecustomize',
                       'IPython']
+    dist.excludes += ['sphinx']
     if osp.isfile("Spyderdoc.chm"):
         dist.add_data_file("Spyderdoc.chm")
     dist.add_data_file(osp.join("rope", "base", "default_config.py"))
