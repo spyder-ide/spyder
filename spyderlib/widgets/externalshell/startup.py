@@ -6,7 +6,8 @@
 
 """Startup file used by ExternalPythonShell"""
 
-import sys, os
+import sys
+import os
 
 def __run_pythonstartup_script(namespace):
     filename = os.environ.get('PYTHONSTARTUP')

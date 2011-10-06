@@ -129,8 +129,8 @@ class InternalShell(PythonShellWidget):
         self.emit(SIGNAL("status(QString)"), '')
         
         # Embedded shell -- requires the monitor (which installs the
-        # '_open_in_spyder' function in builtins)
-        if hasattr(__builtin__, '_open_in_spyder'):
+        # 'open_in_spyder' function in builtins)
+        if hasattr(__builtin__, 'open_in_spyder'):
             self.connect(self, SIGNAL("go_to_error(QString)"),
                          self.open_with_external_spyder)
 
@@ -239,7 +239,7 @@ class InternalShell(PythonShellWidget):
         match = get_error_match(unicode(text))
         if match:
             fname, lnb = match.groups()
-            __builtin__._open_in_spyder(fname, int(lnb))
+            __builtin__.open_in_spyder(fname, int(lnb))
 
     def external_editor(self, filename, goto=-1):
         """Edit in an external editor
