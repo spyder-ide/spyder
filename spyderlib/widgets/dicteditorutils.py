@@ -27,16 +27,8 @@ def get_numpy_dtype(obj):
     if ndarray is not FakeObject:
         # NumPy is available
         import numpy as np
-        for np_dtype in (np.complex192, np.complex128,
-                         np.complex64, np.complex,
-                         np.long, np.longdouble, np.longfloat, np.longlong,
-                         np.float96, np.float64,
-                         np.float32, np.float16, np.float,
-                         np.uint64, np.int64, np.uint32, np.int32,
-                         np.uint16, np.int16, np.uint8, np.int8,
-                         np.uint0, np.int0, np.uint, np.int):
-            if isinstance(obj, np_dtype):
-                return np_dtype
+        if isinstance(obj, np.object):
+            return obj.dtype.type
 
 
 #----PIL Images support
