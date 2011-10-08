@@ -267,6 +267,7 @@ to use this feature wisely, e.g. for debugging purpose.
         if os.name == 'nt':
             pyqt_layout.addWidget(pyqt_hook_box)
         pyqt_group.setLayout(pyqt_layout)
+        pyqt_group.setEnabled(programs.is_module_installed('PyQt4'))
         
         # IPython Group
         ipython_group = QGroupBox(
@@ -423,7 +424,8 @@ class ExternalConsole(SpyderPluginWidget):
         
         layout = QVBoxLayout()
         self.tabwidget = Tabs(self, self.menu_actions)
-        if hasattr(self.tabwidget, 'setDocumentMode') and not sys.platform == 'darwin':
+        if hasattr(self.tabwidget, 'setDocumentMode')\
+           and not sys.platform == 'darwin':
             self.tabwidget.setDocumentMode(True)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_plugin)
