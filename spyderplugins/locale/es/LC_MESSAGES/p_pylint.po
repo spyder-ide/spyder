@@ -1,0 +1,147 @@
+# -*- coding: utf-8 -*-
+# Spyder Profiler's spanish translation file
+# Copyright (C) 2011 Spyder Development team
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: 2.1\n"
+"POT-Creation-Date: 2011-05-15 14:42+Paris, Madrid (heure d'été)\n"
+"PO-Revision-Date: 2011-10-09 11:05-0500\n"
+"Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
+"Language-Team: Python\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Poedit-Language: Spanish\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-Basepath: ../../../../\n"
+
+#: spyderplugins/p_pylint.py:34
+#: spyderplugins/p_pylint.py:125
+msgid "History"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:35
+msgid ""
+"Pylint plugin results are stored here:\n"
+"%s\n"
+"\n"
+"The following option will be applied at next startup.\n"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:41
+msgid "History: "
+msgstr ""
+
+#: spyderplugins/p_pylint.py:42
+msgid " results"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:68
+msgid "Pylint"
+msgstr "Análisis del código"
+
+#: spyderplugins/p_pylint.py:84
+msgid "History..."
+msgstr ""
+
+#: spyderplugins/p_pylint.py:86
+msgid "Set history maximum entries"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:99
+msgid "Run pylint code analysis"
+msgstr "Realizar un análisis del código"
+
+#: spyderplugins/p_pylint.py:126
+msgid "Maximum entries"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:76
+msgid "Results for "
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:81
+msgid "Convention"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:83
+msgid "Refactor"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:85
+msgid "Warning"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:87
+#: spyderplugins/widgets/pylintgui.py:309
+msgid "Error"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:162
+msgid "Analyze"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:163
+msgid "Run analysis"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:167
+msgid "Stop"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:168
+msgid "Stop current analysis"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:176
+#: spyderplugins/widgets/pylintgui.py:246
+msgid "Select Python script"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:182
+msgid "Output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:184
+msgid "Complete Pylint output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:218
+msgid "Pylint script was not found. Please add \"%s\" to PATH."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:221
+msgid "Please install <b>pylint</b>:"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:247
+msgid "Python scripts"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:283
+msgid "Pylint output"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:310
+msgid "Process failed to start"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:407
+msgid "Source code has not been rated yet."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:413
+msgid "Analysis did not succeed (see output for more details)."
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:426
+msgid "Global evaluation:"
+msgstr ""
+
+#: spyderplugins/widgets/pylintgui.py:430
+msgid "previous run:"
+msgstr ""
+
