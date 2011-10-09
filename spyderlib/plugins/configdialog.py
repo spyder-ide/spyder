@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QPushButton, QFontComboBox, QGroupBox,
                                 QComboBox, QColor, QGridLayout, QTabWidget,
                                 QRadioButton, QButtonGroup, QSplitter,
-                                QStyleFactory)
+                                QStyleFactory, QScrollArea)
 from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
@@ -94,11 +94,10 @@ class ConfigDialog(QDialog):
 
         self.contents_widget = QListWidget()
         self.contents_widget.setMovement(QListView.Static)
-        self.contents_widget.setMinimumWidth(160 if os.name == 'nt' else 200)
         self.contents_widget.setSpacing(1)
 
         bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Apply
-                                     |QDialogButtonBox.Cancel)
+                                |QDialogButtonBox.Cancel)
         self.apply_btn = bbox.button(QDialogButtonBox.Apply)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
@@ -167,7 +166,10 @@ class ConfigDialog(QDialog):
                      self.contents_widget.setCurrentRow(row))
         self.connect(widget, SIGNAL("apply_button_enabled(bool)"),
                      self.apply_btn.setEnabled)
-        self.pages_widget.addWidget(widget)
+        scrollarea = QScrollArea(self)
+        scrollarea.setWidgetResizable(True)
+        scrollarea.setWidget(widget)
+        self.pages_widget.addWidget(scrollarea)
         item = QListWidgetItem(self.contents_widget)
         item.setIcon(widget.get_icon())
         item.setText(widget.get_name())
