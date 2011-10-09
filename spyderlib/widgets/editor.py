@@ -1779,61 +1779,14 @@ class EditorStack(QWidget):
         finfo.editor.fix_indentation()
 
     #------ Run
-    def __process_lines(self):
-        editor = self.get_current_editor()
-        ls = editor.get_line_separator()
-        
-        _indent = lambda line: len(line)-len(line.lstrip())
-        
-        line_from, line_to = editor.get_selection_bounds()
-        text = editor.get_selected_text()
-
-        lines = text.split(ls)
-        if len(lines) > 1:
-            # Multiline selection -> eventually fixing indentation
-            original_indent = _indent(editor.get_text_line(line_from))
-            text = (" "*(original_indent-_indent(lines[0])))+text
-        
-        # If there is a common indent to all lines, remove it
-        min_indent = 999
-        for line in text.split(ls):
-            if line.strip():
-                min_indent = min(_indent(line), min_indent)
-        if min_indent:
-            text = ls.join([line[min_indent:] for line in text.split(ls)])
-        
-        # Add an EOL character if a block stars with various Python
-        # reserved words, so that it gets evaluated automatically
-        # by the console
-        first_line = lines[0].lstrip()
-        last_line = editor.get_text_line(line_to).strip()
-        words = ['def', 'for', 'if', 'while', 'try', 'with', 'class']
-        if any([first_line.startswith(w) for w in words]):
-            text += ls
-            if last_line != '':
-                text += ls
-        
-        return text
-    
-    def __run_in_external_console(self, lines):
-        self.emit(SIGNAL('external_console_execute_lines(QString)'), lines)
-    
     def run_selection_or_block(self):
         """
         Run selected text in console and set focus to console
         *or*, if there is no selection,
         Run current block of lines in console and go to next block
         """
-        editor = self.get_current_editor()
-        if editor.has_selected_text():
-            # Run selected text in external console and set focus to console
-            self.__run_in_external_console( self.__process_lines() )
-        else:
-            # Run current block in external console and go to next block
-            editor.select_current_block()
-            self.__run_in_external_console( self.__process_lines() )
-            editor.setFocus()
-            editor.clear_selection()
+        self.emit(SIGNAL('external_console_execute_lines(QString)'),
+                  self.get_current_editor().get_executable_text())
             
     #------ Drag and drop
     def dragEnterEvent(self, event):

@@ -800,6 +800,51 @@ class TextEditBaseWidget(QPlainTextEdit):
         block_end = self.document().findBlock(end)
         return sorted([block_start.blockNumber(), block_end.blockNumber()])
         
+    def get_executable_text(self):
+        """Return selected text or current line as an processed text,
+        to be executable in a Python/IPython interpreter"""
+        no_selection = not self.has_selected_text()
+        if no_selection:
+            self.select_current_block()
+        
+        ls = self.get_line_separator()
+        
+        _indent = lambda line: len(line)-len(line.lstrip())
+        
+        line_from, line_to = self.get_selection_bounds()
+        text = self.get_selected_text()
+
+        lines = text.split(ls)
+        if len(lines) > 1:
+            # Multiline selection -> eventually fixing indentation
+            original_indent = _indent(self.get_text_line(line_from))
+            text = (" "*(original_indent-_indent(lines[0])))+text
+        
+        # If there is a common indent to all lines, remove it
+        min_indent = 999
+        for line in text.split(ls):
+            if line.strip():
+                min_indent = min(_indent(line), min_indent)
+        if min_indent:
+            text = ls.join([line[min_indent:] for line in text.split(ls)])
+        
+        # Add an EOL character if a block stars with various Python
+        # reserved words, so that it gets evaluated automatically
+        # by the console
+        first_line = lines[0].lstrip()
+        last_line = self.get_text_line(line_to).strip()
+        words = ['def', 'for', 'if', 'while', 'try', 'with', 'class']
+        if any([first_line.startswith(w) for w in words]):
+            text += ls
+            if last_line != '':
+                text += ls
+
+        if no_selection:
+            self.setFocus()
+            self.clear_selection()
+        
+        return text
+    
     def get_line_count(self):
         """Return document total line number"""
         return self.blockCount()
