@@ -24,12 +24,15 @@ os.environ['SPYDER_PARENT_DIR'] = spyderlib_path
 # Set PyQt4 API to #1 or #2
 pyqt_api = int(os.environ.get("PYQT_API", "0"))
 if pyqt_api:
-    import sip
     try:
-        for qtype in ('QString', 'QVariant'):
-            sip.setapi(qtype, pyqt_api)
-    except AttributeError:
-        # Old version of sip
+        import sip
+        try:
+            for qtype in ('QString', 'QVariant'):
+                sip.setapi(qtype, pyqt_api)
+        except AttributeError:
+            # Old version of sip
+            pass
+    except ImportError:
         pass
 
 
