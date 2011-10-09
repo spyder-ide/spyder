@@ -341,7 +341,10 @@ class Editor(SpyderPluginWidget):
         
         # Initialize plugin
         self.initialize_plugin()
-                
+        
+        # Configuration dialog size
+        self.configdialog_size = None
+        
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
         self.eol_status = EOLStatus(self, statusbar)
@@ -1772,7 +1775,10 @@ class Editor(SpyderPluginWidget):
         dialog = RunConfigDialog(self)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
+        if self.configdialog_size is not None:
+            dialog.resize(self.configdialog_size)
         if dialog.exec_():
+            self.configdialog_size = dialog.win_size
             fname = dialog.file_to_run
             if fname is not None:
                 self.load(fname)
@@ -1789,8 +1795,11 @@ class Editor(SpyderPluginWidget):
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
                 dialog.setup(fname)
+                if self.configdialog_size is not None:
+                    dialog.resize(self.configdialog_size)
                 if not dialog.exec_():
                     return
+                self.configdialog_size = dialog.win_size
                 runconf = dialog.get_configuration()
                 
             wdir = runconf.get_working_directory()

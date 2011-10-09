@@ -220,10 +220,23 @@ class RunConfigOptions(QWidget):
             return False
 
 
-class RunConfigOneDialog(QDialog):
+class SizeMixin(object):
+    """Mixin to keep widget size accessible
+    even when C++ object has been deleted"""
+    def __init__(self):
+        self.win_size = None
+
+    def resizeEvent(self, event):
+        """Reimplement Qt method"""
+        QDialog.resizeEvent(self, event)
+        self.win_size = self.size()
+
+
+class RunConfigOneDialog(QDialog, SizeMixin):
     """Run configuration dialog box: single file version"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        SizeMixin.__init__(self)
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -271,10 +284,11 @@ class RunConfigOneDialog(QDialog):
         return self.runconfigoptions.runconf
 
 
-class RunConfigDialog(QDialog):
+class RunConfigDialog(QDialog, SizeMixin):
     """Run configuration dialog box: multiple file version"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
+        SizeMixin.__init__(self)
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
