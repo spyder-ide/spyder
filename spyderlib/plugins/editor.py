@@ -812,14 +812,15 @@ class Editor(SpyderPluginWidget):
         
         run_menu_actions = [run_action, debug_action, configure_action,
                             breakpoints_menu, None,
-                            re_run_action, run_selected_action]
+                            re_run_action, run_selected_action, None,
+                            self.winpdb_action]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, debug_action, configure_action,
                                run_selected_action, re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
         source_menu_actions = [eol_menu, trailingspaces_action,
-                               fixindentation_action, None, self.winpdb_action]
+                               fixindentation_action]
         self.main.source_menu_actions += source_menu_actions
         
         source_toolbar_actions = [self.todo_list_action,

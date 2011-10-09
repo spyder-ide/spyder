@@ -93,7 +93,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         self.register_shortcut(profiler_act, context="Profiler",
                                name="Run profiler", default="F10")
         
-        self.main.run_menu_actions += [None, profiler_act]
+        self.main.run_menu_actions += [profiler_act]
         self.main.editor.pythonfile_dependent_actions += [profiler_act]
                     
     def refresh_plugin(self):

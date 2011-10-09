@@ -105,7 +105,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         self.register_shortcut(pylint_act, context="Pylint",
                                name="Run analysis", default="F8")
         
-        self.main.source_menu_actions += [pylint_act]
+        self.main.source_menu_actions += [None, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
                     
     def refresh_plugin(self):

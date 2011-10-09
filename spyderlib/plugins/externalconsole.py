@@ -821,7 +821,7 @@ class ExternalConsole(SpyderPluginWidget):
                             'run_small.png', _("Run a Python script"),
                             triggered=self.run_script)
 
-        run_menu_actions = [interpreter_action]
+        interact_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
@@ -830,7 +830,7 @@ class ExternalConsole(SpyderPluginWidget):
                             'ipython.png', triggered=self.start_ipython_kernel)
         if programs.is_module_installed('IPython', '0.12'):
             self.menu_actions.insert(1, ipython_kernel_action)
-            run_menu_actions.append(ipython_kernel_action)
+            interact_menu_actions.append(ipython_kernel_action)
         
         ipython_action = create_action(self,
                             _("Open IPython interpreter"), None,
@@ -839,12 +839,12 @@ class ExternalConsole(SpyderPluginWidget):
                             triggered=self.open_ipython)
         if programs.is_module_installed('IPython', '0.1'):
             self.menu_actions.insert(1, ipython_action)
-            run_menu_actions.append(ipython_action)
+            interact_menu_actions.append(ipython_action)
         
-        self.main.run_menu_actions += [None]+run_menu_actions
+        self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         
-        return self.menu_actions+run_menu_actions+tools_menu_actions
+        return self.menu_actions+interact_menu_actions+tools_menu_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
