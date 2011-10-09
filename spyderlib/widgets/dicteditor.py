@@ -33,7 +33,7 @@ from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                    get_type, value_to_display, get_color_name, is_known_type,
-                   FakeObject, Image, ndarray, array, PIL, unsorted_unique,
+                   FakeObject, Image, ndarray, array, unsorted_unique,
                    try_to_eval, datestr_to_datetime, get_numpy_dtype)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
@@ -368,7 +368,7 @@ class DictDelegate(QItemDelegate):
             editor = ArrayEditor(parent)
             if not editor.setup_and_check(arr, title=key, readonly=readonly):
                 return
-            conv_func = lambda arr: PIL.Image.fromarray(arr, mode=value.mode)
+            conv_func = lambda arr: Image.fromarray(arr, mode=value.mode)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly,
                                             conv=conv_func))
@@ -1238,7 +1238,9 @@ class RemoteDictEditorTableView(BaseTableView):
 def get_test_data():
     """Create test data"""
     import numpy as np
-    image = PIL.Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    import PIL
+    image = PIL.Image.fromarray(
+                        np.random.random_integers(255, size=(100, 100)))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     return {'str': 'kjkj kj k j j kj k jkj',
