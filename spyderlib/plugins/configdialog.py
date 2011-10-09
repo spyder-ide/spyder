@@ -137,10 +137,18 @@ class ConfigDialog(QDialog):
         """Set current page index"""
         self.contents_widget.setCurrentRow(index)
         
+    def get_page(self, index=None):
+        """Return page widget"""
+        if index is None:
+            widget = self.pages_widget.currentWidget()
+        else:
+            widget = self.pages_widget.widget(index)
+        return widget.widget()
+        
     def accept(self):
         """Reimplement Qt method"""
         for index in range(self.pages_widget.count()):
-            configpage = self.pages_widget.widget(index)
+            configpage = self.get_page(index)
             if not configpage.is_valid():
                 return
             configpage.apply_changes()
@@ -149,13 +157,13 @@ class ConfigDialog(QDialog):
     def button_clicked(self, button):
         if button is self.apply_btn:
             # Apply button was clicked
-            configpage = self.pages_widget.currentWidget()
+            configpage = self.get_page()
             if not configpage.is_valid():
                 return
             configpage.apply_changes()
             
     def current_page_changed(self, index):
-        widget = self.pages_widget.widget(index)
+        widget = self.get_page(index)
         self.apply_btn.setVisible(widget.apply_callback is not None)
         self.apply_btn.setEnabled(widget.is_modified)
         
