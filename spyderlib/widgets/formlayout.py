@@ -402,12 +402,6 @@ class FormDialog(QDialog):
     def __init__(self, data, title="", comment="",
                  icon=None, parent=None, apply=None):
         QDialog.__init__(self, parent)
-        
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
 
         self.apply_callback = apply
         
@@ -505,7 +499,6 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
           * the first element will be the selected index (or value)
           * the other elements can be couples (key, value) or only values
     """
-    
     # Create a QApplication instance if no instance currently exists
     # (e.g. if the module is used directly from the interpreter)
     if QApplication.startingUp():
@@ -514,7 +507,6 @@ def fedit(data, title="", comment="", icon=None, parent=None, apply=None):
     dialog = FormDialog(data, title, comment, icon, parent, apply)
     if dialog.exec_():
         return dialog.get()
-
 
 
 if __name__ == "__main__":
