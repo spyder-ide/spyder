@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Spyder's spanish translation file
-# Copyright (C) 2011 The Spyder developers
+# Copyright (C) 2011 Spyder Development team
 #
 msgid ""
 msgstr ""
