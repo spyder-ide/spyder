@@ -23,8 +23,8 @@ from spyderlib.utils import programs
 #==============================================================================
 def find_tasks(source_code):
     """Find tasks in source code (TODO, FIXME, XXX, ...)"""
-    pattern = r"# ?TODO ?:?[^#]*|# ?FIXME ?:?[^#]*|"\
-              r"# ?XXX ?:?[^#]*|# ?HINT ?:?[^#]*|# ?TIP ?:?[^#]*"
+    pattern = r"#? ?TODO ?:?[^#]*|#? ?FIXME ?:?[^#]*|"\
+              r"#? ?XXX ?:?[^#]*|#? ?HINT ?:?[^#]*|#? ?TIP ?:?[^#]*"
     results = []
     for line, text in enumerate(source_code.splitlines()):
         for todo in re.findall(pattern, text):
