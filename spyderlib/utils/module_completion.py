@@ -119,19 +119,8 @@ def moduleCompletion(line):
         if '__init__' in completion_list:
             completion_list.remove('__init__')
         return completion_list
-
-    words = line.split(' ')
-    if len(words) == 3 and words[0] == 'from':
-        if words[2].startswith('i') or words[2] == '':
-            return ['import ']
-        else:
-            return []
-
-    if len(words) < 3 and (words[0] in ['import','from']):
-        if len(words) == 1:
-            return getRootModules()
         
-        mod = words[1].split('.')
+    def dotCompletion(mod):
         if len(mod) < 2:
             return filter(lambda x: x.startswith(mod[0]), getRootModules())
         
@@ -140,18 +129,43 @@ def moduleCompletion(line):
                                  completion_list)
         completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
         return completion_list
+
+    words = line.split(' ')
+    
+    if len(words) == 3 and words[0] == 'from':
+        if words[2].startswith('i') or words[2] == '':
+            return ['import ']
+        else:
+            return []
+            
+    if words[0] == 'import':
+        if ',' == words[-1][-1]:
+            return [' ']
+        
+        mod = words[-1].split('.')
+        return dotCompletion(mod)
+        
+    if len(words) < 3 and (words[0] == 'from'):
+        if len(words) == 1:
+            return getRootModules()
+        
+        mod = words[1].split('.')
+        return dotCompletion(mod)
     
     if len(words) >= 3 and words[0] == 'from':
         mod = words[1]
         completion_list = tryImport(mod)
         if words[2] == 'import' and words[3] != '':
-            if words[-1].find('(') != -1:
+            if '(' in words[-1]:
                 words = words[:-2] + words[-1].split('(')
-            if words[-1].find(',') != -1:
+            if ',' in words[-1]:
                 words = words[:-2] + words[-1].split(',')
             return filter(lambda x: x.startswith(words[-1]), completion_list)
         else:
             return completion_list
+    
+    return []
+        
 
 if __name__ == "__main__":
     # Some simple tests.
