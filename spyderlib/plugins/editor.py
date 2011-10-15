@@ -877,12 +877,12 @@ class Editor(SpyderPluginWidget):
     #------ Focus tabwidget
     def __get_focus_editorstack(self):
         fwidget = QApplication.focusWidget()
-        if isinstance(fwidget, codeeditor.CodeEditor):
-            for editorstack in self.editorstacks:
-                if fwidget is editorstack.get_current_editor():
-                    return editorstack
-        elif isinstance(fwidget, EditorStack):
+        if isinstance(fwidget, EditorStack):
             return fwidget
+        else:
+            for editorstack in self.editorstacks:
+                if editorstack.isAncestorOf(fwidget):
+                    return editorstack
         
     def set_last_focus_editorstack(self, editorwindow, editorstack):
         self.last_focus_editorstack[editorwindow] = editorstack
@@ -1315,14 +1315,13 @@ class Editor(SpyderPluginWidget):
             if len(self.recent_files) > self.get_option('max_recent_files'):
                 self.recent_files.pop(-1)
     
-    def _clone_file_everywhere(self, from_editorstack):
-        """Clone current file in all editorstacks"""
-        finfo = self.get_current_finfo()
-        for editorstack in self.editorstacks:
-            if editorstack is not from_editorstack:
-                editor = editorstack.clone_editor_from(finfo,
-                                                       set_current=False)
-                self.register_widget_shortcuts("Editor", editor)
+    def _clone_file_everywhere(self, finfo):
+        """Clone file (*src_editor* widget) in all editorstacks
+        Cloning from the first editorstack in which every single new editor
+        is created (when loading or creating a new file)"""
+        for editorstack in self.editorstacks[1:]:
+            editor = editorstack.clone_editor_from(finfo, set_current=False)
+            self.register_widget_shortcuts("Editor", editor)
     
     def new(self, fname=None, editorstack=None):
         """
@@ -1365,9 +1364,12 @@ class Editor(SpyderPluginWidget):
             if index and not editorstack.close_file(index):
                 return
         
-        editor = editorstack.new(fname, enc, text)
+        # Creating the editor widget in the first editorstack (the one that
+        # can't be destroyed), then cloning this editor widget in all other
+        # editorstacks:
+        editor = self.editorstacks[0].new(fname, enc, text)
         self.register_widget_shortcuts("Editor", editor)
-        self._clone_file_everywhere(from_editorstack=editorstack)
+        self._clone_file_everywhere()
         if not created_from_here:
             self.save(force=True)
                 
@@ -1447,7 +1449,8 @@ class Editor(SpyderPluginWidget):
             else:
                 return
             
-        if self.dockwidget and not self.ismaximized:
+        if self.dockwidget and not self.ismaximized\
+           and not self.dockwidget.isAncestorOf(QApplication.focusWidget()):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()
@@ -1478,12 +1481,18 @@ class Editor(SpyderPluginWidget):
                 if not osp.isfile(filename):
                     continue
                 # --
-                current = self.get_current_editorstack(editorwindow)
-                current_editor = current.load(filename, set_current=True)
+                current_es = self.get_current_editorstack(editorwindow)
+
+                # Creating the editor widget in the first editorstack (the one
+                # that can't be destroyed), then cloning this editor widget in
+                # all other editorstacks:
+                finfo = self.editorstacks[0].load(filename, set_current=False)
+                self._clone_file_everywhere(finfo)
+                current_editor = current_es.set_current_filename(filename)
                 current_editor.set_breakpoints(load_breakpoints(filename))
                 self.register_widget_shortcuts("Editor", current_editor)
-                self._clone_file_everywhere(from_editorstack=current)
-                current.analyze_script()
+                
+                current_es.analyze_script()
                 self.__add_recent_file(filename)
             if goto is not None: # 'word' is assumed to be None as well
                 current_editor.go_to_line(goto[index], word=word)

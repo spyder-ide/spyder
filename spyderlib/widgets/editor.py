@@ -1031,7 +1031,6 @@ class EditorStack(QWidget):
         self.set_stack_title(index, False)
         if set_current:
             self.set_stack_index(index)
-        if set_current:
             self.current_changed(index)
         self.update_actions()
         self.update_filelistdialog()
@@ -1756,7 +1755,7 @@ class EditorStack(QWidget):
                                 QMessageBox.Ok)
             self.set_os_eol_chars(index)
         self.is_analysis_done = False
-        return finfo.editor
+        return finfo
     
     def set_os_eol_chars(self, index=None):
         if index is None:
