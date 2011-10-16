@@ -73,6 +73,9 @@ class ExtPythonShellWidget(PythonShellWidget):
         except socket.error:
             # Process was just closed            
             pass
+        except MemoryError:
+            # Happens when monitor is not ready on slow machines
+            pass
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
