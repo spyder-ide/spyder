@@ -123,7 +123,7 @@ class RopeProject(object):
             return []
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
+                                                   filename.encode('utf-8'))
         except Exception, _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
@@ -147,7 +147,7 @@ class RopeProject(object):
             return []
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
+                                                   filename.encode('utf-8'))
         except Exception, _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
@@ -185,7 +185,7 @@ class RopeProject(object):
             return (None, None)
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                           filename)
+                                                   filename.encode('utf-8'))
         except Exception, _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
