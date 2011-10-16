@@ -26,7 +26,6 @@ from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
 MODULES_PATH = get_conf_path('db')
-TIMEOUT_STORAGE = 0.5 #Time in seconds after which the modules will be stored
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
 db = PickleShareDB(MODULES_PATH)
@@ -40,13 +39,10 @@ def getRootModules():
     if db.has_key('rootmodules'):
         return db['rootmodules']
     t = time()
-    store = False
     for path in sys.path:
         modules += moduleList(path)        
-        if time() - t >= TIMEOUT_STORAGE and not store:
-            store = True
         if time() - t > TIMEOUT_GIVEUP:
-            print "This is taking too long, we give up."
+            print "Module list generation is taking too long, we give up."
             print
             db['rootmodules'] = []
             return []
@@ -57,8 +53,7 @@ def getRootModules():
     if '__init__' in modules:
         modules.remove('__init__')
     modules = list(set(modules))
-    if store:
-        db['rootmodules'] = modules
+    db['rootmodules'] = modules
     return modules
 
 def moduleList(path):
