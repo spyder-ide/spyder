@@ -140,7 +140,7 @@ def get_error_match(text):
 
 def get_python_executable():
     """Return path to Python executable"""
-    executable = sys.executable
+    executable = sys.executable.replace("pythonw.exe", "python.exe")
     if executable.endswith("spyder.exe"):
         # py2exe distribution
         executable = "python.exe"

@@ -407,12 +407,20 @@ class ExternalConsole(SpyderPluginWidget):
             self.set_option('ipython_kernel_options',
                             self.get_default_ipython_kernel_options())
         
-        if not osp.isfile(self.get_option('pythonexecutable',
-                                          get_python_executable())):
+        executable = self.get_option('pythonexecutable',
+                                     get_python_executable())
+        if not osp.isfile(executable):
             # This is absolutely necessary, in case the Python interpreter
             # executable has been moved since last Spyder execution (following
             # a Python distribution upgrade for example)
             self.set_option('pythonexecutable', get_python_executable())
+        elif executable.endswith('pythonw.exe'):
+            # That should not be necessary because this case is already taken
+            # care of by the `get_python_executable` function but, this was
+            # implemented too late, so we have to fix it here too, in case
+            # the Python executable has already been set with pythonw.exe:
+            self.set_option('pythonexecutable',
+                            executable.replace("pythonw.exe", "python.exe"))
         
         self.shellwidgets = []
         self.filenames = []
