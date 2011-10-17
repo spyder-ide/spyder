@@ -927,8 +927,7 @@ class CodeEditor(TextEditBaseWidget):
                                        background_color=self.occurence_color)
             cursor = self.__find_next(text, cursor)
         self.update_extra_selections()
-        if self.occurences:
-            self.occurences.pop(-1)
+        self.occurences.pop(-1)
         self.scrollflagarea.update()
 
     #-----highlight found results (find/replace widget)
