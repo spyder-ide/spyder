@@ -26,6 +26,7 @@ import re
 import shutil
 import os.path as osp
 from tempfile import mkdtemp
+import codecs
 
 from sphinx.application import Sphinx #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
@@ -101,7 +102,7 @@ def sphinxify(docstring, format='html'):
     # This is needed for jsMath to work.
     docstring = docstring.replace('\\\\', '\\')
 
-    filed = open(rst_name, 'w')
+    filed = codecs.open(rst_name, 'w', encoding='utf-8')
     filed.write(docstring)
     filed.close()
 
@@ -128,7 +129,7 @@ def sphinxify(docstring, format='html'):
         return output
 
     if os.path.exists(output_name):
-        output = open(output_name, 'r').read()
+        output = codecs.open(output_name, 'r', encoding='utf-8').read()
         output = output.replace('<pre>', '<pre class="literal-block">')
 
         # Translate URLs for media from something like
