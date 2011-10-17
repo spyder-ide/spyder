@@ -117,6 +117,9 @@ def value_to_display(value, truncate=False,
             return 'Min: %r\nMax: %r' % (value.min(), value.max())
         except TypeError:
             pass
+        except ValueError:
+            # Happens when one of the array cell contains a sequence
+            pass
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
     if not isinstance(value, (str, unicode)):
