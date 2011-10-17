@@ -191,19 +191,14 @@ class TextEditBaseWidget(QPlainTextEdit):
         self.indent_chars = " "*4
         
         # Code completion / calltips
-        #XXX: I can't remember what the following was about... so, to fix
-        # Issue 701 ("When Console/Editor dockwidget is undocked, code 
-        # completion's combo box is hidden behind console/editor window"), 
-        # I have commented this and set 'parent' to None, always:
-#        if parent is not None:
-#            mainwin = parent
-#            while not isinstance(mainwin, QMainWindow):
-#                mainwin = mainwin.parent()
-#                if mainwin is None:
-#                    break
-#            if mainwin is not None:
-#                parent = mainwin
-        parent = None
+        if parent is not None:
+            mainwin = parent
+            while not isinstance(mainwin, QMainWindow):
+                mainwin = mainwin.parent()
+                if mainwin is None:
+                    break
+            if mainwin is not None:
+                parent = mainwin
         self.completion_widget = CompletionWidget(self, parent)
         self.codecompletion_auto = False
         self.codecompletion_case = True
