@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -31,6 +31,10 @@ from spyderplugins.widgets.pylintgui import PylintWidget, PYLINT_PATH
 
 class PylintConfigPage(PluginConfigPage):
     def setup_page(self):
+        settings_group = QGroupBox(_("Settings"))
+        save_box = self.create_checkbox(_("Save script before analyzing it"),
+                                        'save_before', default=True)
+        
         hist_group = QGroupBox(_("History"))
         hist_label = QLabel(_("Pylint plugin results are stored here:\n"
                               "%s\n\nThe following option "
@@ -42,12 +46,17 @@ class PylintConfigPage(PluginConfigPage):
                             _(" results"), 'max_entries', default=50,
                             min_=10, max_=1000000, step=10)
 
+        settings_layout = QVBoxLayout()
+        settings_layout.addWidget(save_box)
+        settings_group.setLayout(settings_layout)
+
         hist_layout = QVBoxLayout()
         hist_layout.addWidget(hist_label)
         hist_layout.addWidget(hist_spin)
         hist_group.setLayout(hist_layout)
 
         vlayout = QVBoxLayout()
+        vlayout.addWidget(settings_group)
         vlayout.addWidget(hist_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -65,7 +74,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         # Initialize plugin
         self.initialize_plugin()
         
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         return _("Pylint")
@@ -122,7 +131,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         # next Spyder startup, which is soon enough
         pass
         
-    #------ Public API ---------------------------------------------------------
+    #------ Public API --------------------------------------------------------
     def change_history_depth(self):
         "Change history max entries"""
         depth, valid = QInputDialog.getInteger(self, _('History'),
@@ -134,6 +143,9 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         
     def run_pylint(self):
         """Run pylint code analysis"""
+        if self.get_option('save_before', True)\
+           and not self.main.editor.save():
+            return
         self.analyze( self.main.editor.get_current_filename() )
         
     def analyze(self, filename):
@@ -145,8 +157,8 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         PylintWidget.analyze(self, filename)
 
 
-#===============================================================================
+#==============================================================================
 # The following statements are required to register this 3rd party plugin:
-#===============================================================================
+#==============================================================================
 PLUGIN_CLASS = Pylint
 
