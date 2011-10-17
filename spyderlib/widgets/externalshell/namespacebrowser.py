@@ -387,7 +387,7 @@ class NamespaceBrowser(QWidget):
         
     def oedit(self, name):
         command = "from spyderlib.widgets.objecteditor import oedit; " \
-                  "oedit('%s', modal=False, namespace=globals());" % name
+                  "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
         
     #------ Set, load and save data --------------------------------------------

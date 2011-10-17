@@ -71,6 +71,8 @@ def oedit(obj, modal=True, namespace=None):
             namespace = globals()
         keeper.set_namespace(namespace)
         obj = namespace[obj_name]
+        # keep QApplication reference alive in the Python interpreter:
+        namespace['__qapp__'] = app
 
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
