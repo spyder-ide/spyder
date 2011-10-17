@@ -123,7 +123,6 @@ class SpyderPluginMixin(object):
         self.connect(dock, SIGNAL('visibilityChanged(bool)'),
                      self.visibility_changed)
         self.dockwidget = dock
-        self.refresh_plugin()
         short = self.get_option("shortcut", None)
         if short is not None:
             shortcut = QShortcut(QKeySequence(short),

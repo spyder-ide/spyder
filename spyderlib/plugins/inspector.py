@@ -326,7 +326,7 @@ class ObjectInspector(SpyderPluginWidget):
         layout.addWidget(self.rich_text)
         self.setLayout(layout)
         
-        QTimer.singleShot(8000, self.refresh_plugin)
+        self._starting_up = True
             
     #------ SpyderPluginWidget API ---------------------------------------------    
     def get_plugin_title(self):
@@ -363,6 +363,9 @@ class ObjectInspector(SpyderPluginWidget):
         
     def refresh_plugin(self):
         """Refresh widget"""
+        if self._starting_up:
+            self._starting_up = False
+            QTimer.singleShot(5000, self.refresh_plugin)
         self.set_object_text(None, force_refresh=False)
 
     def apply_plugin_settings(self, options):
