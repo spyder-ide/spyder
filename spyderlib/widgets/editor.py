@@ -1725,10 +1725,10 @@ class EditorStack(QWidget):
         Create new filename with *encoding* and *text*
         """
         finfo = self.create_new_editor(filename, encoding, text,
-                                       set_current=True, new=True)
+                                       set_current=False, new=True)
         finfo.editor.set_cursor_position('eof')
         finfo.editor.insert_text(os.linesep)
-        return finfo.editor
+        return finfo
         
     def load(self, filename, set_current=True):
         """

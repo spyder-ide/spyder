@@ -1343,7 +1343,9 @@ class Editor(SpyderPluginWidget):
         create_fname = lambda n: unicode(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
-            editorstack = self.get_current_editorstack()
+            current_es = self.get_current_editorstack()
+        else:
+            current_es = editorstack
         created_from_here = fname is None
         if created_from_here:
             while True:
@@ -1360,16 +1362,17 @@ class Editor(SpyderPluginWidget):
         else:
             # QString when triggered by a Qt signal
             fname = osp.abspath(unicode(fname))
-            index = editorstack.has_filename(fname)
-            if index and not editorstack.close_file(index):
+            index = current_es.has_filename(fname)
+            if index and not current_es.close_file(index):
                 return
         
         # Creating the editor widget in the first editorstack (the one that
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
-        editor = self.editorstacks[0].new(fname, enc, text)
-        self.register_widget_shortcuts("Editor", editor)
-        self._clone_file_everywhere()
+        finfo = self.editorstacks[0].new(fname, enc, text)
+        self._clone_file_everywhere(finfo)
+        current_editor = current_es.set_current_filename(finfo.filename)
+        self.register_widget_shortcuts("Editor", current_editor)
         if not created_from_here:
             self.save(force=True)
                 
