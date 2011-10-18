@@ -27,7 +27,8 @@ def get_numpy_dtype(obj):
     if ndarray is not FakeObject:
         # NumPy is available
         import numpy as np
-        if isinstance(obj, np.object):
+        if isinstance(obj, np.object) and hasattr(obj, 'dtype'):
+            # Note: only scalar and array objects have the method 'dtype'
             return obj.dtype.type
 
 
