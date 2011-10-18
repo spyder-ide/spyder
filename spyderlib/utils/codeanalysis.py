@@ -21,13 +21,14 @@ from spyderlib.utils import programs
 #==============================================================================
 # Pyflakes/pep8 code analysis
 #==============================================================================
+TASKS_PATTERN = r"#? ?TODO ?:?[^#]*|#? ?FIXME ?:?[^#]*|"\
+                r"#? ?XXX ?:?[^#]*|#? ?HINT ?:?[^#]*|#? ?TIP ?:?[^#]*"
+
 def find_tasks(source_code):
     """Find tasks in source code (TODO, FIXME, XXX, ...)"""
-    pattern = r"#? ?TODO ?:?[^#]*|#? ?FIXME ?:?[^#]*|"\
-              r"#? ?XXX ?:?[^#]*|#? ?HINT ?:?[^#]*|#? ?TIP ?:?[^#]*"
     results = []
     for line, text in enumerate(source_code.splitlines()):
-        for todo in re.findall(pattern, text):
+        for todo in re.findall(TASKS_PATTERN, text):
             results.append((todo, line+1))
     return results
 
