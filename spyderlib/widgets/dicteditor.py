@@ -520,6 +520,8 @@ class BaseTableView(QTableView):
             self.collvalue_action.setChecked(collvalue)
             return
         
+        resize_action = create_action(self, _("Resize rows to contents"),
+                                      triggered=self.resizeRowsToContents)
         self.paste_action = create_action(self, _("Paste"),
                                           icon=get_icon('editpaste.png'),
                                           triggered=self.paste)
@@ -578,13 +580,15 @@ class BaseTableView(QTableView):
                         self.save_array_action, self.insert_action,
                         self.remove_action, self.copy_action, self.paste_action,
                         None, self.rename_action,self.duplicate_action,
-                        None, self.truncate_action, self.inplace_action,
-                        self.collvalue_action]
+                        None, resize_action, None, self.truncate_action,
+                        self.inplace_action, self.collvalue_action]
         if ndarray is not FakeObject:
             menu_actions.append(self.minmax_action)
         add_actions(menu, menu_actions)
         self.empty_ws_menu = QMenu(self)
-        add_actions(self.empty_ws_menu, [self.insert_action, self.paste_action])
+        add_actions(self.empty_ws_menu,
+                    [self.insert_action, self.paste_action,
+                     None, resize_action])
         return menu
     
     #------ Remote/local API ---------------------------------------------------
