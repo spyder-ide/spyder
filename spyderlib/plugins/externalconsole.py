@@ -17,7 +17,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
-import sys, os
+import sys
+import os
 import os.path as osp
 
 # For debugging purpose:
@@ -378,15 +379,6 @@ class ExternalConsole(SpyderPluginWidget):
             from sip import setapi #analysis:ignore
         except ImportError:
             self.set_option('ignore_sip_setapi_errors', False)
-
-        python_startup = self.get_option('open_python_at_startup', None)
-        ipython_startup = self.get_option('open_ipython_at_startup', None)
-        if ipython_startup is None:
-            ipython_startup = programs.is_module_installed('IPython', '0.1')
-            self.set_option('open_ipython_at_startup', ipython_startup)
-        if python_startup is None:
-            python_startup = not ipython_startup
-            self.set_option('open_python_at_startup', python_startup)
 
         scientific = programs.is_module_installed('numpy') and\
                      programs.is_module_installed('scipy') and\
@@ -968,13 +960,24 @@ class ExternalConsole(SpyderPluginWidget):
     #------ Public API ---------------------------------------------------------
     def open_interpreter_at_startup(self):
         """Open an interpreter at startup, IPython if module is available"""
-        if self.get_option('open_ipython_at_startup'):
-            if programs.is_module_installed('IPython', '0.1'):
+        if self.get_option('open_ipython_at_startup', False):
+            if programs.is_module_installed('IPython', '0.10'):
+                # IPython v0.10.x is fully supported by Spyder, not v0.11+
                 self.open_ipython()
             else:
+                # If IPython v0.11+ is installed (or if IPython is not
+                # installed at all), we must -at least the first time- force
+                # the user to start with the standard Python interpreter which
+                # has been enhanced to support most of the IPython features
+                # needed within an advanced IDE as Spyder:
+                # http://spyder-ide.blogspot.com/2011/09/new-enhanced-scientific-python.html
+                # The main motivation here is to be sure that the novice user
+                # will have an experience as close as possible to MATLAB with
+                # a ready-to-use interpreter with standard scientific modules
+                # preloaded and with non-blocking interactive plotting.
                 self.set_option('open_ipython_at_startup', False)
                 self.set_option('open_python_at_startup', True)
-        if self.get_option('open_python_at_startup'):
+        if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
             
     def open_interpreter(self, wdir=None):

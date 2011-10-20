@@ -14,14 +14,17 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
-import os, sys, os.path as osp
+import os
+import sys
+import os.path as osp
+
 from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
 from spyderlib.baseconfig import (SUBFOLDER, ITERMAX, EXCLUDED,
                                   get_module_data_path, _)
-from spyderlib.utils.iofuncs import iofunctions
+from spyderlib.utils import iofuncs, codeanalysis
 
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
@@ -79,7 +82,7 @@ EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)
 
 # Extensions supported by Spyder's Variable explorer
-IMPORT_EXT = iofunctions.load_extensions.values()
+IMPORT_EXT = iofuncs.iofunctions.load_extensions.values()
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.png', '.ico', '.svg']
@@ -343,7 +346,7 @@ DEFAULTS = [
               'exclude_regexp': True,
               'search_text_regexp': True,
               'search_text': [''],
-              'search_text_samples': [r'# ?TODO|# ?FIXME|# ?XXX|# ?HINT|# ?TIP'],
+              'search_text_samples': [codeanalysis.TASKS_PATTERN],
               'in_python_path': False,
               'more_options': True,
               }),
