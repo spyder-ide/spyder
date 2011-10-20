@@ -555,48 +555,49 @@ class ArrayEditor(QDialog):
         QDialog.reject(self)
     
     
-def aedit(data, title="", xlabels=None, ylabels=None,
-          readonly=False, parent=None):
-    """
-    Edit the array 'data' with the ArrayEditor and return the edited copy
-    (if Cancel is pressed, return None)
-    (instantiate a new QApplication if necessary,
-    so it can be called directly from the interpreter)
-    """
-    app = qapplication()
-    dialog = ArrayEditor(parent)
-    if dialog.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
-                              readonly=readonly):
-        dialog.show()
-        app.exec_()
-        if dialog.result():
-            return dialog.get_value()
+def test_edit(data, title="", xlabels=None, ylabels=None,
+              readonly=False, parent=None):
+    """Test subroutine"""
+    dlg = ArrayEditor(parent)
+    if dlg.setup_and_check(data, title, xlabels=xlabels, ylabels=ylabels,
+                           readonly=readonly) and dlg.exec_():
+        return dlg.get_value()
+    else:
+        import sys
+        sys.exit()
 
 
 def test():
     """Array editor test"""
+    _app = qapplication()
+    
     arr = np.array(["kjrekrjkejr"])
-    print "out:", aedit(arr, "string array")
+    print "out:", test_edit(arr, "string array")
     arr = np.array([u"kjrekrjkejr"])
-    print "out:", aedit(arr, "unicode array")
+    print "out:", test_edit(arr, "unicode array")
     arr = np.zeros((2,2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
-    print "out:", aedit(arr, "record array")
+    print "out:", test_edit(arr, "record array")
     arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
-                   dtype=[(('title 1', 'x'), '|i1'), (('title 2', 'y'), '>f4')])
-    print "out:", aedit(arr, "record array with titles")
+                   dtype=[(('title 1', 'x'), '|i1'),
+                          (('title 2', 'y'), '>f4')])
+    print "out:", test_edit(arr, "record array with titles")
     arr = np.random.rand(5, 5)
-    print "out:", aedit(arr, "float array", xlabels=['a', 'b', 'c', 'd', 'e'])
-    arr = np.round(np.random.rand(5, 5)*10)+np.round(np.random.rand(5, 5)*10)*1j
-    print "out:", aedit(arr, "complex array", xlabels=np.linspace(-12, 12, 5),
-                        ylabels=np.linspace(-12, 12, 5))
+    print "out:", test_edit(arr, "float array",
+                            xlabels=['a', 'b', 'c', 'd', 'e'])
+    arr = np.round(np.random.rand(5, 5)*10)+\
+                   np.round(np.random.rand(5, 5)*10)*1j
+    print "out:", test_edit(arr, "complex array",
+                            xlabels=np.linspace(-12, 12, 5),
+                            ylabels=np.linspace(-12, 12, 5))
     arr_in = np.array([True, False, True])
     print "in:", arr_in
-    arr_out = aedit(arr_in, "bool array")
+    arr_out = test_edit(arr_in, "bool array")
     print "out:", arr_out
     print arr_in is arr_out
     arr = np.array([1, 2, 3], dtype="int8")
-    print "out:", aedit(arr, "int array")
+    print "out:", test_edit(arr, "int array")
+
 
 if __name__ == "__main__":
     test()
