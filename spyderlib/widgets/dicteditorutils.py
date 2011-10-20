@@ -23,13 +23,22 @@ except ImportError:
 
 def get_numpy_dtype(obj):
     """Return NumPy data type associated to obj
-    Return None if NumPy is not available or if obj is not a NumPy object"""
+    Return None if NumPy is not available
+    or if obj is not a NumPy array or scalar"""
     if ndarray is not FakeObject:
         # NumPy is available
         import numpy as np
-        if isinstance(obj, np.object) and hasattr(obj, 'dtype'):
-            # Note: only scalar and array objects have the method 'dtype'
-            return obj.dtype.type
+        if isinstance(obj, np.object):
+            # Note: TTBOMK, there is no type associated to both NumPy arrays 
+            # and scalars, so we must handle the AttributeError exception.
+            # Thus, we could have skipped the `isinstance(obj, np.object)` 
+            # test, but keeping it is the only way to be sure that the object 
+            # is really a NumPy object instead of an object simply following 
+            # the same interface.
+            try:
+                return obj.dtype.type
+            except AttributeError:
+                return
 
 
 #----PIL Images support
