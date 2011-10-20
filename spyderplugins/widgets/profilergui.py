@@ -379,8 +379,8 @@ class ProfilerDataTree(QTreeWidget):
         self.initialize_view() # Clear before re-populating
         self.setItemsExpandable(True)
         self.setSortingEnabled(False)
-        #rootKey = self.find_root()  # This root contains profiler overhead
-        rootKey = self.find_root_skip_profilerfuns()
+        rootKey = self.find_root()  # This root contains profiler overhead
+#        rootKey = self.find_root_skip_profilerfuns()
         self.populate_tree(self, self.find_callees(rootKey))
         self.resizeColumnToContents(0)
         self.setSortingEnabled(True)
@@ -517,7 +517,8 @@ def test():
     widget = ProfilerWidget(None)
     widget.show()
     #widget.analyze(__file__)
-    widget.analyze('../../rope_profiling/test.py')
+    widget.analyze(osp.join(osp.dirname(__file__), os.pardir, os.pardir,
+                            'rope_profiling', 'test.py'))
     sys.exit(app.exec_())
     
 if __name__ == '__main__':
