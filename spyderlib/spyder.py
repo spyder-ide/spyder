@@ -123,8 +123,7 @@ from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
                               EDIT_EXT, IMPORT_EXT)
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.programs import (run_python_script, is_module_installed,
-                                      start_file,
-                                      run_python_script_in_terminal)
+                                      start_file, run_python_script_in_terminal)
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils.module_completion import getRootModules, MODULES_PATH
@@ -145,13 +144,13 @@ def get_python_doc_path():
         python_chm = [path for path in os.listdir(doc_path)
                       if re.match(r"(?i)Python[0-9]{3}.chm", path)]
         if python_chm:
-            return osp.join(doc_path, python_chm[0])
+            return 'file:///' + osp.join(doc_path, python_chm[0])
     else:
         vinf = sys.version_info
         doc_path = '/usr/share/doc/python%d.%d/html' % (vinf[0], vinf[1])
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
-        return python_doc
+        return 'file:///' + python_doc
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
@@ -730,6 +729,7 @@ class MainWindow(QMainWindow):
                     spyder_doc = osp.join(get_module_source_path('spyderlib'),
                                           os.pardir, 'build', 'lib',
                                           'spyderlib', 'doc', "index.html")
+            spyder_doc = 'file:///' + spyder_doc
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
@@ -758,9 +758,10 @@ class MainWindow(QMainWindow):
                                 icon = get_icon(ext[1:]+".png")
                             else:
                                 icon = get_std_icon("DirIcon")
+                            path = 'file:///' + path
                             action = create_action(self, text, icon=icon,
                                                    triggered=lambda path=path:
-                                                             os.startfile(path))
+                                                             start_file(path))
                             self.help_menu_actions.append(action)
                             break
                 self.help_menu_actions.append(None)

@@ -134,7 +134,9 @@ class DirView(QTreeView):
     def get_filename(self, index):
         """Return filename associated with *index*"""
         if index:
-            return osp.normpath(unicode(self.fsmodel.filePath(index)))
+            name = u'file:///' + \
+                   osp.normpath(unicode(self.fsmodel.filePath(index)))
+            return name
         
     def get_index(self, filename):
         """Return index associated with filename"""
