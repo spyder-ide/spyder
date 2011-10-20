@@ -21,8 +21,9 @@ from spyderlib.utils import programs
 #==============================================================================
 # Pyflakes/pep8 code analysis
 #==============================================================================
-TASKS_PATTERN = r"#? ?TODO ?:?[^#]*|#? ?FIXME ?:?[^#]*|"\
-                r"#? ?XXX ?:?[^#]*|#? ?HINT ?:?[^#]*|#? ?TIP ?:?[^#]*"
+TASKS_PATTERN = r"(^| |#)TODO( |:)[^#]*|(^| |#)FIXME( |:)[^#]*|"\
+                r"(^| |#)XXX( |:)[^#]*|(^| |#)HINT( |:)[^#]*|"\
+                r"(^| |#)TIP( |:)[^#]*"
 
 def find_tasks(source_code):
     """Find tasks in source code (TODO, FIXME, XXX, ...)"""
