@@ -21,14 +21,17 @@ print ""
 print "Imported NumPy %s, SciPy %s, Matplotlib %s" %\
       (np.__version__, sp.__version__, mpl.__version__),
 
-try:
-    import guiqwt
-    import guiqwt.pyplot as plt_
-    import guidata
-    plt_.ion()
-    print "+ guidata %s, guiqwt %s" % (guidata.__version__, guiqwt.__version__)
-except ImportError:
-    pass
+import os
+if os.environ.get('QT_API') != 'pyside':
+    try:
+        import guiqwt
+        import guiqwt.pyplot as plt_
+        import guidata
+        plt_.ion()
+        print "+ guidata %s, guiqwt %s" % (guidata.__version__,
+                                           guiqwt.__version__)
+    except ImportError:
+        pass
 
 def setscientific():
     """Set 'scientific' in __builtin__"""
