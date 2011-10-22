@@ -329,8 +329,7 @@ class ScrollFlagArea(QWidget):
         QWidget.__init__(self, editor)
         self.setAttribute(Qt.WA_OpaquePaintEvent)
         self.code_editor = editor
-        self.vsb = editor.verticalScrollBar()
-        self.connect(self.vsb, SIGNAL('valueChanged(int)'),
+        self.connect(editor.verticalScrollBar(), SIGNAL('valueChanged(int)'),
                      lambda value: self.repaint())
 
     def sizeHint(self):
@@ -343,14 +342,15 @@ class ScrollFlagArea(QWidget):
 
     def mousePressEvent(self, event):
         """Override Qt method"""
+        vsb = self.code_editor.verticalScrollBar()
         value = self.position_to_value(event.pos().y()-1)
-        self.vsb.setValue(value-.5*self.vsb.pageStep())
+        vsb.setValue(value-.5*vsb.pageStep())
         
     def get_scale_factor(self, slider=False):
         """Return scrollbar's scale factor:
         ratio between pixel span height and value span height"""
         delta = 0 if slider else 2
-        vsb = self.vsb
+        vsb = self.code_editor.verticalScrollBar()
         position_height = vsb.height()-delta-1
         value_height = vsb.maximum()-vsb.minimum()+vsb.pageStep()
         return float(position_height)/value_height
@@ -358,12 +358,14 @@ class ScrollFlagArea(QWidget):
     def value_to_position(self, y, slider=False):
         """Convert value to position"""
         offset = 0 if slider else 1
-        return (y-self.vsb.minimum())*self.get_scale_factor(slider)+offset
+        vsb = self.code_editor.verticalScrollBar()
+        return (y-vsb.minimum())*self.get_scale_factor(slider)+offset
         
     def position_to_value(self, y, slider=False):
         """Convert position to value"""
         offset = 0 if slider else 1
-        return self.vsb.minimum()+max([0, (y-offset)/self.get_scale_factor(slider)])
+        vsb = self.code_editor.verticalScrollBar()
+        return vsb.minimum()+max([0, (y-offset)/self.get_scale_factor(slider)])
 
     def make_flag_qrect(self, position):
         """Make flag QRect"""
@@ -372,8 +374,9 @@ class ScrollFlagArea(QWidget):
 
     def make_slider_range(self, value):
         """Make slider range QRect"""
+        vsb = self.code_editor.verticalScrollBar()
         pos1 = self.value_to_position(value, slider=True)
-        pos2 = self.value_to_position(value + self.vsb.pageStep(), slider=True)
+        pos2 = self.value_to_position(value + vsb.pageStep(), slider=True)
         return QRect(1, pos1, self.WIDTH-2, pos2-pos1+1)
 
 
