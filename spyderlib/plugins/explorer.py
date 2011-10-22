@@ -79,8 +79,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
         self.connect(self, SIGNAL("run(QString)"),
                      lambda fname:
                      self.main.open_external_console(unicode(fname),
-                                                 osp.dirname(unicode(fname)),
-                                                 '', False, False, True, ''))
+                                         osp.dirname(unicode(fname)),
+                                         '', False, False, True, '', False))
         # Signal "set_explorer_cwd(QString)" will refresh only the
         # contents of path passed by the signal in explorer:
         self.connect(self.main.workingdirectory,

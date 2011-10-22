@@ -22,7 +22,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon, DialogManager,
                                        add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
-from spyderlib.utils.programs import split_clo
+from spyderlib.utils.programs import split_clo, get_python_args
 from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _, get_module_source_path
 from spyderlib.config import get_icon
@@ -379,20 +379,10 @@ The process may not exit as a result of clicking this button
 
         #-------------------------Python specific-------------------------------
         # Python arguments
-        p_args = ['-u']
-        if self.python_args is not None:
-            p_args += self.python_args.split()
-        if self.interact_action.isChecked():
-            p_args.append('-i')
-        if self.debug_action.isChecked():
-            p_args.extend(['-m', 'pdb'])
-        if os.name == 'nt' and self.debug_action.isChecked():
-            # When calling pdb on Windows, one has to replace backslashes by
-            # slashes to avoid confusion with escape characters (otherwise, 
-            # for example, '\t' will be interpreted as a tabulation):
-            p_args.append(osp.normpath(self.fname).replace(os.sep, '/'))
-        else:
-            p_args.append(self.fname)
+        p_args = ['-u'] + get_python_args(self.fname, self.python_args,
+                                          self.interact_action.isChecked(),
+                                          self.debug_action.isChecked(),
+                                          self.arguments)
         
         env = [unicode(_path) for _path in self.process.systemEnvironment()]
         if self.pythonstartup:
@@ -474,9 +464,6 @@ The process may not exit as a result of clicking this button
         
         self.process.setEnvironment(env)
         #-------------------------Python specific-------------------------------
-            
-        if self.arguments:
-            p_args.extend(split_clo(self.arguments))
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)

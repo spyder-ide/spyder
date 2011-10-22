@@ -14,7 +14,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
-import os, sys
+import os
+import sys
 import os.path as osp
 
 # For debugging purpose:
@@ -37,6 +38,7 @@ class RunConfiguration(object):
             self.wdir = osp.dirname(fname)
             self.wdir_enabled = True
         self.current = False
+        self.systerm = False
         self.interact = False
         self.python_args = ''
         self.python_args_enabled = False
@@ -47,6 +49,7 @@ class RunConfiguration(object):
         self.wdir = options.get('workdir', os.getcwdu())
         self.wdir_enabled = options.get('workdir/enabled', False)
         self.current = options.get('current', False)
+        self.systerm = options.get('systerm', False)
         self.interact = options.get('interact', False)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
@@ -58,6 +61,7 @@ class RunConfiguration(object):
                 'workdir/enabled': self.wdir_enabled,
                 'workdir': self.wdir,
                 'current': self.current,
+                'systerm': self.systerm,
                 'interact': self.interact,
                 'python_args/enabled': self.python_args_enabled,
                 'python_args': self.python_args,
@@ -140,11 +144,14 @@ class RunConfigOptions(QWidget):
         radio_layout = QVBoxLayout()
         radio_group.setLayout(radio_layout)
         self.current_radio = QRadioButton(_("Execute in current Python "
-                                                  "or IPython interpreter"))
+                                            "or IPython interpreter"))
         radio_layout.addWidget(self.current_radio)
         self.new_radio = QRadioButton(_("Execute in a new dedicated "
-                                              "Python interpreter"))
+                                        "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
+        self.systerm_radio = QRadioButton(_("Execute in an external "
+                                            "system terminal"))
+        radio_layout.addWidget(self.systerm_radio)
         
         new_group = QGroupBox(_("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
@@ -152,7 +159,7 @@ class RunConfigOptions(QWidget):
         new_layout = QGridLayout()
         new_group.setLayout(new_layout)
         self.interact_cb = QCheckBox(_("Interact with the Python "
-                                             "interpreter after execution"))
+                                       "interpreter after execution"))
         new_layout.addWidget(self.interact_cb, 1, 0, 1, -1)
         self.pclo_cb = QCheckBox(_("Command line options:"))
         new_layout.addWidget(self.pclo_cb, 2, 0)
@@ -162,7 +169,7 @@ class RunConfigOptions(QWidget):
         self.pclo_edit.setEnabled(False)
         new_layout.addWidget(self.pclo_edit, 2, 1)
         pclo_label = QLabel(_("The <b>-u</b> option is "
-                                    "added to these commands"))
+                              "added to these commands"))
         pclo_label.setWordWrap(True)
         new_layout.addWidget(pclo_label, 3, 1)
         
@@ -192,6 +199,8 @@ class RunConfigOptions(QWidget):
         self.wd_edit.setText(self.runconf.wdir)
         if self.runconf.current:
             self.current_radio.setChecked(True)
+        elif self.runconf.systerm:
+            self.systerm_radio.setChecked(True)
         else:
             self.new_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
@@ -204,6 +213,7 @@ class RunConfigOptions(QWidget):
         self.runconf.wdir_enabled = self.wd_cb.isChecked()
         self.runconf.wdir = unicode(self.wd_edit.text())
         self.runconf.current = self.current_radio.isChecked()
+        self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
         self.runconf.python_args = unicode(self.pclo_edit.text())

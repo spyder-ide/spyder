@@ -860,8 +860,6 @@ class Editor(SpyderPluginWidget):
                      self.restore_scrollbar_position)
         self.connect(self.main.console,
                      SIGNAL("edit_goto(QString,int,QString)"), self.load)
-        self.connect(self, SIGNAL("open_external_console(QString,QString,QString,bool,bool,bool,QString)"),
-                     self.main.open_external_console)
         self.connect(self, SIGNAL('external_console_execute_lines(QString)'),
                      self.main.execute_python_code_in_external_console)
         self.connect(self, SIGNAL('redirect_stdio(bool)'),
@@ -1819,11 +1817,12 @@ class Editor(SpyderPluginWidget):
             python_args = runconf.get_python_arguments()
             interact = runconf.interact
             current = runconf.current
+            systerm = runconf.systerm
             
             python = True # Note: in the future, it may be useful to run
             # something in a terminal instead of a Python interp.
             self.__last_ec_exec = (fname, wdir, args, interact, debug,
-                                   python, python_args, current)
+                                   python, python_args, current, systerm)
             self.re_run_file()
             if not interact and not debug:
                 # If external console dockwidget is hidden, it will be
@@ -1843,13 +1842,14 @@ class Editor(SpyderPluginWidget):
         if self.__last_ec_exec is None:
             return
         (fname, wdir, args, interact, debug,
-         python, python_args, current) = self.__last_ec_exec
+         python, python_args, current, systerm) = self.__last_ec_exec
         if current:
             self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                       fname, wdir, args, debug)
         else:
-            self.emit(SIGNAL('open_external_console(QString,QString,QString,bool,bool,bool,QString)'),
-                      fname, wdir, args, interact, debug, python, python_args)
+            self.main.open_external_console(fname, wdir, args, interact,
+                                            debug, python, python_args,
+                                            systerm)
 
     def run_selection_or_block(self):
         """Run selection or current line in external console"""

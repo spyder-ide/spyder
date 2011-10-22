@@ -84,6 +84,48 @@ def run_python_script(package=None, module=None, args=[], p_args=[]):
     subprocess.Popen([sys.executable]+p_args+[path]+args)
 
 
+def get_python_args(fname, python_args, interact, debug, end_args):
+    """Construct Python interpreter arguments"""
+    p_args = []
+    if python_args is not None:
+        p_args += python_args.split()
+    if interact:
+        p_args.append('-i')
+    if debug:
+        p_args.extend(['-m', 'pdb'])
+    if os.name == 'nt' and debug:
+        # When calling pdb on Windows, one has to replace backslashes by
+        # slashes to avoid confusion with escape characters (otherwise, 
+        # for example, '\t' will be interpreted as a tabulation):
+        p_args.append(osp.normpath(fname).replace(os.sep, '/'))
+    else:
+        p_args.append(fname)
+    if end_args:
+        p_args.extend(split_clo(end_args))
+    return p_args
+
+
+def run_python_script_in_terminal(fname, wdir, args, interact,
+                                  debug, python_args):
+    """Run Python script in an external system terminal"""
+    p_args = ['python']
+    p_args += get_python_args(fname, python_args, interact, debug, args)
+    if os.name == 'nt':
+        subprocess.Popen('start cmd.exe /c ' + ' '.join(p_args),
+                         shell=True, cwd=wdir)
+    elif os.name == 'posix':
+        cmd = 'gnome-terminal'
+        if is_program_installed(cmd):
+            run_program(cmd, ['-x'] + p_args, cwd=wdir)
+            return
+        cmd = 'konsole'
+        if is_program_installed(cmd):
+            run_program(cmd, ['-e'] + p_args, cwd=wdir)
+            return
+    else:
+        raise NotImplementedError
+
+
 def is_module_installed(module_name, version=None):
     """Return True if module *module_name* is installed
     
