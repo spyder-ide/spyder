@@ -117,10 +117,14 @@ else:
         """Open in Spyder's editor the source file
 (may be a filename or a Python module/package)"""
         if not isinstance(source, basestring):
-            source = source.__file__
-            if source.endswith('.pyc'):
-                source = source[:-1]
-            monitor.notify_open_file(source, lineno=lineno)
+            try:
+                source = source.__file__
+            except AttributeError:
+                raise ValueError("source argument must be either "
+                                 "a string or a module object")
+        if source.endswith('.pyc'):
+            source = source[:-1]
+        monitor.notify_open_file(source, lineno=lineno)
     __builtin__.open_in_spyder = open_in_spyder
     
     # * Removing PyQt4 input hook which is not working well on Windows since 
