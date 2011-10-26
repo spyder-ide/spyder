@@ -5,3 +5,4 @@ recursive-include app_example *.py *.pyw *.bat *.qm *.svg *.png
 include scripts/*
 include MANIFEST.in
 include README
+include bootstrap.py
