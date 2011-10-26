@@ -116,7 +116,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
-                                       create_python_script_action)
+                                       create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
@@ -144,13 +144,13 @@ def get_python_doc_path():
         python_chm = [path for path in os.listdir(doc_path)
                       if re.match(r"(?i)Python[0-9]{3}.chm", path)]
         if python_chm:
-            return 'file:///' + osp.join(doc_path, python_chm[0])
+            return file_uri(osp.join(doc_path, python_chm[0]))
     else:
         vinf = sys.version_info
         doc_path = '/usr/share/doc/python%d.%d/html' % (vinf[0], vinf[1])
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
-        return 'file:///' + python_doc
+        return file_uri(python_doc)
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
@@ -729,7 +729,7 @@ class MainWindow(QMainWindow):
                     spyder_doc = osp.join(get_module_source_path('spyderlib'),
                                           os.pardir, 'build', 'lib',
                                           'spyderlib', 'doc', "index.html")
-            spyder_doc = 'file:///' + spyder_doc
+            spyder_doc = file_uri(spyder_doc)
             doc_action = create_bookmark_action(self, spyder_doc,
                                _("Spyder documentation"), shortcut="F1",
                                icon=get_std_icon('DialogHelpButton'))
@@ -758,7 +758,7 @@ class MainWindow(QMainWindow):
                                 icon = get_icon(ext[1:]+".png")
                             else:
                                 icon = get_std_icon("DirIcon")
-                            path = 'file:///' + path
+                            path = file_uri(path)
                             action = create_action(self, text, icon=icon,
                                                    triggered=lambda path=path:
                                                              start_file(path))
@@ -1500,6 +1500,7 @@ Please provide any additional information below.
              and ext in ('.spydata', '.mat', '.npy', '.h5'):
             self.variableexplorer.import_data(fname)
         else:
+            fname = file_uri(fname)
             start_file(fname)
             
     def new_ipython_frontend(self, args=None,

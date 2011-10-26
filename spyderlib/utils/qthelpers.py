@@ -6,7 +6,7 @@
 
 """Qt utilities"""
 
-import os
+import os, re
 import os.path as osp
 
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
@@ -41,6 +41,17 @@ def qapplication(translate=True):
         install_translator(app)
     return app
 
+def file_uri(fname):
+    """Select the right file uri scheme according to the operating system"""
+    if os.name == 'nt':
+        # Local file
+        if re.search(r'^[a-zA-Z]:', fname):
+            return 'file:///' + fname
+        # UNC based path
+        else:
+            return 'file://' + fname
+    else:
+        return 'file://' + fname
 
 QT_TRANSLATOR = None
 def install_translator(qapp):

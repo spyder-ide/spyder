@@ -31,7 +31,7 @@ import shutil
 STDOUT = sys.stdout
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, add_actions
+from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, scm
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
@@ -134,9 +134,7 @@ class DirView(QTreeView):
     def get_filename(self, index):
         """Return filename associated with *index*"""
         if index:
-            name = u'file:///' + \
-                   osp.normpath(unicode(self.fsmodel.filePath(index)))
-            return name
+            return osp.normpath(unicode(self.fsmodel.filePath(index)))
         
     def get_index(self, filename):
         """Return index associated with filename"""
@@ -411,6 +409,7 @@ class DirView(QTreeView):
         """Open file outside Spyder with the appropriate application
         If this does not work, opening unknown file in Spyder, as text file"""
         for path in sorted(fnames):
+            path = file_uri(path)
             ok = programs.start_file(path)
             if not ok:
                 self.parent_widget.emit(SIGNAL("edit(QString)"), path)
