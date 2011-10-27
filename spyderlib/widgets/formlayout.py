@@ -324,10 +324,13 @@ class FormWidget(QWidget):
                 value = unicode(field.text())
             elif isinstance(value, (list, tuple)):
                 index = int(field.currentIndex())
-                if isinstance(value[0], (list, tuple)):
-                    value = value[index][0]
+                if isinstance(value[0], int):
+                    # Return an int index, if initialization was an int
+                    value = index
                 else:
-                    value = value[index]
+                    value = value[index+1]
+                    if isinstance(value, (list, tuple)):
+                        value = value[0]
             elif isinstance(value, bool):
                 value = field.checkState() == Qt.Checked
             elif isinstance(value, float):
