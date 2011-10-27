@@ -1,7 +1,7 @@
 Spyder - Scientific PYthon Development EnviRonment
 ==================================================
 
-Copyright © 2009-2010 Pierre Raybaut
+Copyright © 2009-2011 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 
@@ -35,17 +35,17 @@ Licensed under the terms of the MIT License
         For example, the Python interactive shell widget used in Spyder may be
         embedded in your own PyQt4 application.
 
-    Building dependencies
+    Build dependencies
 
         When installing Spyder from the .zip source package (using the 
         command `python setup.py install`), the requirements are:
-            Python 2.x (x>=5)
-            sphinx >= v0.6 (documentation generation)
+            Python 2.5+
+            sphinx 0.6+ (documentation generation)
 
     Runtime dependencies
     
-        Python 2.x (x>=5)
-        PyQt4 4.x (x>=4)
+        Python 2.5+
+        PyQt4 4.4+
             
         Recommended modules
             pyflakes >v0.3.0 (real-time code analysis)
@@ -58,6 +58,12 @@ Licensed under the terms of the MIT License
 	    
         Optional modules
             pylint (powerful code analysis)
+
+    Running from source
+      
+        It is possible to run Spyder directly from unpacked source folder.
+        Especially useful for troubleshooting and development of Spyder itself.
+            `python bootstrap.py`
 
     Installation
     
