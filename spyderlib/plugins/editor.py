@@ -1308,10 +1308,11 @@ class Editor(SpyderPluginWidget):
         """Add to recent file list"""
         if fname is None:
             return
-        if not fname in self.recent_files:
-            self.recent_files.insert(0, fname)
-            if len(self.recent_files) > self.get_option('max_recent_files'):
-                self.recent_files.pop(-1)
+        if fname in self.recent_files:
+            self.recent_files.remove(fname)
+        self.recent_files.insert(0, fname)
+        if len(self.recent_files) > self.get_option('max_recent_files'):
+            self.recent_files.pop(-1)
     
     def _clone_file_everywhere(self, finfo):
         """Clone file (*src_editor* widget) in all editorstacks
