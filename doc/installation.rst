@@ -15,16 +15,16 @@ Recommended modules:
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
     * matplotlib (2D/3D plotting)
-    * IPython (enhanced Python interpreter)
 
 Optional modules:
+    * IPython (enhanced Python interpreter)
     * pylint (code analysis)
     * pep8 (style analysis)
 
 .. note::
 
     Since v2.0, the `QScintilla` library (source code editor widgets for 
-    `PyQt4`) is not longer needed as Spyder is relying on pure Python/Qt
+    `PyQt4`) is no longer needed as Spyder is relying on pure Python/Qt
     features (provided by `PyQt4` or `PySide`).
 
 
@@ -33,7 +33,17 @@ Installation
 
 From the source package:
     `python setup.py install`
-        
+
+
+Running from source
+-------------------
+
+It is also possible to run Spyder directly from unpacked source folder:
+    `python bootstrap.py`
+
+This is especially useful for troubleshooting and development of Spyder itself.
+
+
 Help and support
 ----------------
 

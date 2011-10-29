@@ -65,17 +65,17 @@ from spyderlib import __version__, __project_url__
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
-      long_description="""The spyderlib module provides powerful console and 
-editor related widgets to your PyQt4 application. It also includes a 
-Scientific Python development environment named 'Spyder', an alternative to
-IDLE with powerful interactive features such as variable explorer (with 
-GUI-based editors for dictionaries, lists, NumPy arrays, etc.), object 
-inspector, online help, and a lot more.""",
+      long_description="""The spyderlib library provides powerful console and 
+editor related widgets to your Qt application (PyQt4 or PySide). It also 
+includes a Scientific Python development environment named 'Spyder', an 
+alternative to IDLE with powerful interactive features such as variable 
+explorer (with GUI-based editors for dictionaries, lists, NumPy arrays, etc.), 
+object inspector, online help, and a lot more.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="Pierre Raybaut",
       url=__project_url__,
       license='MIT',
-      keywords='PyQt4 editor shell console widgets IDE',
+      keywords='PyQt4 PySide editor shell console widgets IDE',
       platforms=['any'],
       packages=get_subpackages(LIBNAME)+get_subpackages('spyderplugins'),
       package_data={LIBNAME:

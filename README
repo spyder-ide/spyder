@@ -45,19 +45,20 @@ Licensed under the terms of the MIT License
     Runtime dependencies
     
         Python 2.5+
-        PyQt4 4.4+
+        PyQt4 4.4+ or PySide 1.0.7+
             
         Recommended modules
             pyflakes v0.5.0+ (real-time code analysis)
-            rope >=v0.9.2 (editor code completion, calltips and go-to-definition)
-            sphinx >= v0.6 (object inspector's rich text mode)
+            rope v0.9.2+ (editor code completion, calltips and go-to-definition)
+            sphinx v0.6+ (object inspector's rich text mode)
             numpy (N-dimensional arrays)
             scipy (signal/image processing)
             matplotlib (2D/3D plotting)
-            IPython (enhanced Python interpreter)
 	    
         Optional modules
+            IPython (enhanced Python interpreter)
             pylint (powerful code analysis)
+            pep8 (style analysis)
 
     Running from source
       
