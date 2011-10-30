@@ -6,7 +6,7 @@ Dependencies
 
 Requirements:
     * Python 2.5+ 
-    * PyQt4 4.4+ or PySide 1.0.7+
+    * PyQt4 4.4+ or PySide 1.0.8+
 
 Recommended modules:
     * pyflakes v0.5.0+ (real-time code analysis)
