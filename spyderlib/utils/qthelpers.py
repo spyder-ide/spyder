@@ -36,7 +36,9 @@ def qapplication(translate=True):
     Creates it if it doesn't already exist"""
     app = QApplication.instance()
     if not app:
-        app = QApplication([])
+        # Set Application name for Gnome 3
+        # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
+        app = QApplication(['Spyder'])
     if translate:
         install_translator(app)
     return app
