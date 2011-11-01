@@ -82,7 +82,7 @@ object inspector, online help, and a lot more.""",
                     get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css')),
                     'spyderplugins':
                     get_package_data('spyderplugins', ('.mo', '.svg', '.png'))},
-      requires=["rope (>0.9.0)", "sphinx (>0.6.0)", "PyQt4 (>4.3)"],
+      requires=["rope (>0.9.2)", "sphinx (>0.6.0)", "PyQt4 (>4.4)"],
       scripts=[osp.join('scripts', fname) for fname in 
                (['spyder', 'spyder.bat'] if os.name == 'nt' else ['spyder'])],
       classifiers=['License :: OSI Approved :: MIT License',
