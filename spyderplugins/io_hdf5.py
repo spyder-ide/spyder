@@ -1,4 +1,9 @@
 # -*- coding:utf-8 -*-
+#
+# Copyright © 2011 David Anthony Powell
+# Licensed under the terms of the MIT License
+# (see spyderlib/__init__.py for details)
+
 """I/O plugin for loading/saving HDF5 files
 
 Note that this is a fairly dumb implementation which reads the whole HDF5 file into
