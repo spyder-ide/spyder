@@ -14,7 +14,9 @@ The Scientific PYthon Development EnviRonment
 from distutils.core import setup
 from distutils.command.build import build
 from sphinx import setup_command
-import os, os.path as osp, sys
+import os
+import os.path as osp
+import sys
 
 
 def get_package_data(name, extlist):
@@ -28,6 +30,7 @@ def get_package_data(name, extlist):
                 flist.append(osp.join(dirpath, fname)[offset:])
     return flist
 
+
 def get_subpackages(name):
     """Return subpackages of package *name*"""
     splist = []
@@ -36,12 +39,14 @@ def get_subpackages(name):
             splist.append(".".join(dirpath.split(os.sep)))
     return splist
 
+
 # Sphinx build (documentation)
 class MyBuild(build):
     def has_doc(self):
         setup_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.isdir(os.path.join(setup_dir, 'doc'))
     sub_commands = build.sub_commands + [('build_doc', has_doc)]
+
 
 class MyBuildDoc(setup_command.BuildDoc):
     def run(self):
@@ -54,6 +59,7 @@ class MyBuildDoc(setup_command.BuildDoc):
         except UnicodeDecodeError:
             print >>sys.stderr, "ERROR: unable to build documentation because Sphinx do not handle source path with non-ASCII characters. Please try to move the source package to another location (path with *only* ASCII characters)."        
         sys.path.pop(0)
+
 
 cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
 
@@ -82,7 +88,7 @@ object inspector, online help, and a lot more.""",
                     get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css')),
                     'spyderplugins':
                     get_package_data('spyderplugins', ('.mo', '.svg', '.png'))},
-      requires=["rope (>0.9.2)", "sphinx (>0.6.0)", "PyQt4 (>4.4)"],
+      requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in 
                (['spyder', 'spyder.bat'] if os.name == 'nt' else ['spyder'])],
       classifiers=['License :: OSI Approved :: MIT License',
