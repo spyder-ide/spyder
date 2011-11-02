@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -14,9 +15,8 @@
    height="150.31233"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="0.48.2 r9819"
    sodipodi:docname="spyder.svg"
-   sodipodi:docbase="/home/sdeibel"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="D:\Python\spyder\doc_src\_static\spyder.png"
    inkscape:export-xdpi="77.629997"
@@ -29,7 +29,25 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-sa/3.0/" />
       </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-sa/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#ShareAlike" />
+      </cc:License>
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
@@ -42,12 +60,13 @@
      pagecolor="#ffffff"
      id="base"
      inkscape:zoom="2.0279948"
-     inkscape:cx="-53.646496"
+     inkscape:cx="-160.92069"
      inkscape:cy="56.434504"
      inkscape:window-x="0"
      inkscape:window-y="22"
      inkscape:current-layer="svg2"
-     showgrid="false" />
+     showgrid="false"
+     inkscape:window-maximized="0" />
   <defs
      id="defs4">
     <linearGradient
@@ -361,7 +380,7 @@
        sodipodi:cy="45.035332"
        sodipodi:rx="5.9274387"
        sodipodi:ry="10.808859"
-       d="M 102.50982,45.035332 A 5.9274387,10.808859 0 1 1 90.654943,45.035332 A 5.9274387,10.808859 0 1 1 102.50982,45.035332 z"
+       d="m 102.50982,45.035332 c 0,5.969568 -2.653804,10.808859 -5.927438,10.808859 -3.273634,0 -5.927439,-4.839291 -5.927439,-10.808859 0,-5.969568 2.653805,-10.808859 5.927439,-10.808859 3.273634,0 5.927438,4.839291 5.927438,10.808859 z"
        transform="matrix(0.6055665,0.6055665,-0.6286135,0.6286135,75.900286,-31.30135)" />
   </g>
 </svg>

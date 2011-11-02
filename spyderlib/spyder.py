@@ -594,11 +594,15 @@ class MainWindow(QMainWindow):
                 self.external_tools_menu_actions += additact
                 
             # Sift
-            sift_act = create_python_script_action(self, _("Sift"),
-                                                   'sift.svg', "guiqwt",
-                                                   osp.join("tests", "sift"))
-            if sift_act:
-                self.external_tools_menu_actions += [None, sift_act]
+            if is_module_installed('guidata') \
+               and is_module_installed('guiqwt'):
+                from guidata import configtools
+                from guiqwt import config  # (loading icons) analysis:ignore
+                sift_icon = configtools.get_icon('sift.svg')
+                sift_act = create_python_script_action(self, _("Sift"),
+                               sift_icon, "guiqwt", osp.join("tests", "sift"))
+                if sift_act:
+                    self.external_tools_menu_actions += [None, sift_act]
                 
             # ViTables
             vitables_act = create_program_action(self, _("ViTables"),
