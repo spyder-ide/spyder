@@ -112,6 +112,8 @@ class EditorConfigPage(PluginConfigPage):
         occurence_spin = self.create_spinbox("", " ms",
                                              'occurence_highlighting/timeout',
                                              min_=100, max_=1000000, step=100)
+        self.connect(occurence_box, SIGNAL("toggled(bool)"),
+                     occurence_spin.setEnabled)
         occurence_layout = QHBoxLayout()
         occurence_layout.addWidget(occurence_box)
         occurence_layout.addWidget(occurence_spin)
