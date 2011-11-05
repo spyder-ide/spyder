@@ -16,11 +16,15 @@ from spyderlib.utils import programs
 
 SCM_INFOS = {
              '.hg':  dict(name="Mercurial",
-                          commit=('hgtk', ['commit']),
-                          browse=('hgtk', ['log'])),
+                          commit=( ('hgtk', ['commit']),
+                                   ('thg', ['commit']) ),
+                          browse=( ('hgtk', ['log']),
+                                   ('thg', ['log']) )
+                          ),
              '.git': dict(name="git",
-                          commit=('gitk', []),
-                          browse=('git', ['gui'])),
+                          commit=( ('gitk', []), ),
+                          browse=( ('git', ['gui']) )
+                          ),
              }
 
 
@@ -60,9 +64,10 @@ def run_scm_tool(path, tool):
     Supported SCM tools: 'commit', 'browse'
     Return False if the SCM tool is not installed"""
     infos = get_scm_infos(get_scm_root(path))
-    name, args = infos[tool]
-    if programs.find_program(name):
-        programs.run_program(name, args, cwd=path)
+    for name, args in infos[tool]:
+        if programs.find_program(name):
+            programs.run_program(name, args, cwd=path)
+            return
     else:
         raise RuntimeError(_("Please install the %s tool named '%s'")
                            % (infos['name'], name))
