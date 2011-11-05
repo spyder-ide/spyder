@@ -400,7 +400,8 @@ class DirView(QTreeView):
         if fnames is None:
             fnames = self.get_selected_filenames()
         for fname in fnames:
-            if osp.splitext(fname)[1] in self.valid_types:
+            ext = osp.splitext(fname)[1]
+            if osp.isfile(fname) and ext in self.valid_types:
                 self.parent_widget.sig_open_file.emit(fname)
             else:
                 self.open_outside_spyder([fname])
