@@ -9,14 +9,22 @@
 import sys
 
 
-def set_backend(backend):
-    """Set matplotlib's backend: Qt4Agg, WXAgg, ..."""
+def is_available():
+    """Is Matplotlib installed version supported by this patch?"""
     import matplotlib
-    matplotlib.use(backend)
+    mpl_ver = matplotlib.__version__.split('.')
+    if int(mpl_ver[0]) < 1 or int(mpl_ver[0]) == 1 and int(mpl_ver[1]) == 0:
+        # Matplotlib <=v1.0 is installed
+        return True
 
 
 def apply():
     """Monkey patching matplotlib Qt4 backend figures"""
+    if not is_available():
+        return
+
+    # Warning: do not move these import statements outside this function,
+    # otherwise, PyQt would be imported as soon as this module would be.
     from spyderlib.qt import is_pyqt46
     from spyderlib.qt.QtGui import QIcon, QCursor, QInputDialog, QMainWindow
     from spyderlib.qt.QtCore import Qt, SIGNAL, QObject

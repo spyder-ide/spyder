@@ -36,10 +36,18 @@ if pyqt_api:
         pass
 
 
+mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
+if mpl_backend:
+    try:
+        import matplotlib
+        matplotlib.use(mpl_backend)
+    except ImportError:
+        pass
+
+
 if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
     try:
         from spyderlib import mpl_patch
-        mpl_patch.set_backend(os.environ.get("MATPLOTLIB_BACKEND", "Qt4Agg"))
         mpl_patch.apply()
     except ImportError:
         pass

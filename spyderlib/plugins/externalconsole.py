@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox)
+                                QTabWidget, QFontComboBox, QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
@@ -294,29 +294,41 @@ to use this feature wisely, e.g. for debugging purpose.
         
         # Matplotlib Group
         mpl_group = QGroupBox(_("Matplotlib"))
-        mpl_label = QLabel(_("Patching Matplotlib library will add a button "
-                             "to customize figure options (Qt4Agg only) and "
-                             "allows to change the GUI backend."))
-        mpl_label.setWordWrap(True)
-        mpl_patch_box = newcb(_("Patch Matplotlib figures"),
-                              'mpl_patch/enabled')
-        mpl_backend_edit = self.create_lineedit(_("Matplotlib backend "
-                                                  "(default: Qt4Agg):"),
-                                                'mpl_patch/backend', "Qt4Agg",
-                                                _("Set the GUI toolkit "
-                                                  "used by Matplotlib to "
-                                                  "show figures"),
-                                                alignment=Qt.Vertical)
-        self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
+        mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
+        mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
+                                'matplotlib/backend/value', "Qt4Agg",
+                                _("Set the GUI toolkit used by Matplotlib to "
+                                  "show figures (default: Qt4Agg)"),
+                                alignment=Qt.Horizontal)
+        self.connect(mpl_backend_box, SIGNAL("toggled(bool)"),
                      mpl_backend_edit.setEnabled)
-        mpl_backend_edit.setEnabled(self.get_option('mpl_patch/enabled'))
+        mpl_backend_layout = QHBoxLayout()
+        mpl_backend_layout.addWidget(mpl_backend_box)
+        mpl_backend_layout.addWidget(mpl_backend_edit)
+        mpl_backend_edit.setEnabled(
+                                self.get_option('matplotlib/backend/enabled'))
+        mpl_patch_box = newcb(_("Patch Matplotlib figures"),
+                              'matplotlib/patch', False)
+        mpl_patch_label = QLabel(_("Patching Matplotlib library will add a "
+                                   "button to customize figure options "
+                                   "(Qt4Agg only) and fix some issues."))
+        mpl_patch_label.setWordWrap(True)
+        self.connect(mpl_patch_box, SIGNAL("toggled(bool)"),
+                     mpl_patch_label.setEnabled)
+        
+        mpl_installed = programs.is_module_installed('matplotlib')
+        if mpl_installed:
+            from spyderlib import mpl_patch
+            if not mpl_patch.is_available():
+                mpl_patch_box.hide()
+                mpl_patch_label.hide()
         
         mpl_layout = QVBoxLayout()
-        mpl_layout.addWidget(mpl_label)
+        mpl_layout.addLayout(mpl_backend_layout)
         mpl_layout.addWidget(mpl_patch_box)
-        mpl_layout.addWidget(mpl_backend_edit)
+        mpl_layout.addWidget(mpl_patch_label)
         mpl_group.setLayout(mpl_layout)
-        mpl_group.setEnabled(programs.is_module_installed('matplotlib'))
+        mpl_group.setEnabled(mpl_installed)
         
         # ETS Group
         ets_group = QGroupBox(_("Enthought Tool Suite"))
@@ -324,9 +336,8 @@ to use this feature wisely, e.g. for debugging purpose.
                              "PyQt4 (qt4) and wxPython (wx) graphical "
                              "user interfaces."))
         ets_label.setWordWrap(True)
-        ets_edit = self.create_lineedit(_("ETS_TOOLKIT (default value: qt4):"),
-                                        'ets_backend', default='qt4',
-                                        alignment=Qt.Vertical)
+        ets_edit = self.create_lineedit(_("ETS_TOOLKIT:"), 'ets_backend',
+                                        default='qt4', alignment=Qt.Horizontal)
         
         ets_layout = QVBoxLayout()
         ets_layout.addWidget(ets_label)
@@ -598,8 +609,11 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            mpl_patch_enabled = self.get_option('mpl_patch/enabled')
-            mpl_backend = self.get_option('mpl_patch/backend')
+            mpl_patch_enabled = self.get_option('matplotlib/patch')
+            if self.get_option('matplotlib/backend/enabled'):
+                mpl_backend = self.get_option('matplotlib/backend/value')
+            else:
+                mpl_backend = None
             ets_backend = self.get_option('ets_backend', 'qt4')
             pyqt_api = self.get_option('pyqt_api', 0)
             replace_pyqt_inputhook = self.get_option('replace_pyqt_inputhook',

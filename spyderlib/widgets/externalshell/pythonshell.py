@@ -154,7 +154,7 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend='Qt4Agg', ets_backend='qt4', pyqt_api=0,
+                 mpl_backend=None, ets_backend='qt4', pyqt_api=0,
                  replace_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
@@ -424,7 +424,8 @@ The process may not exit as a result of clicking this button
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
-        env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
+        if self.mpl_backend:
+            env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
 #        if self.replace_pyqt_inputhook:

@@ -187,8 +187,9 @@ DEFAULTS = [
               'show_elapsed_time': True,
               'show_icontext': False,
               'monitor/enabled': True,
-              'mpl_patch/enabled': True,
-              'mpl_patch/backend': 'Qt4Agg',
+              'matplotlib/patch': True,
+              'matplotlib/backend/enabled': True,
+              'matplotlib/backend/value': 'Qt4Agg',
               'umd/enabled': True,
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
@@ -196,7 +197,7 @@ DEFAULTS = [
               'ipython_set_color': True,
               'pyqt_api': 0,
               'replace_pyqt_inputhook': os.name == 'nt',
-              'ignore_sip_setapi_errors': True,
+              'ignore_sip_setapi_errors': False,
               }),
             ('variable_explorer',
              {
@@ -356,7 +357,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.1.0',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.1.2',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

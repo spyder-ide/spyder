@@ -833,9 +833,8 @@ class BaseTableView(QTableView):
         except ImportError:
             try:
                 if 'matplotlib' not in sys.modules:
-                    from spyderlib import mpl_patch
-                    mpl_patch.set_backend("Qt4Agg")
-                    mpl_patch.apply()
+                    import matplotlib
+                    matplotlib.use("Qt4Agg")
                 return True
             except ImportError:
                 QMessageBox.warning(self, _("Import error"),
