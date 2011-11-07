@@ -238,12 +238,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pyqt_setapi_box = self.create_combobox(
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
-                'pyqt_api', default=0, tip=_(
+                'pyqt/api_version', default=0, tip=_(
 """PyQt API #1 is the default API for Python 2. PyQt API #2 is the default 
 API for Python 3 and is compatible with PySide.
 Note that switching to API #2 may require to enable the Matplotlib patch."""))
         pyqt_hook_box = newcb(_("Replace PyQt input hook by Spyder's"),
-                              'replace_pyqt_inputhook',
+                              'pyqt/replace_inputhook',
                               tip=_(
 """PyQt installs an input hook that allows creating and interacting
 with Qt widgets in an interactive interpreter without blocking it. 
@@ -251,7 +251,7 @@ On Windows platforms, it is strongly recommended to replace it by Spyder's
 (note that this feature requires the monitor to be enabled and 
 that it has no effect in IPython)."""))
         pyqt_ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                    'ignore_sip_setapi_errors', tip=_(
+                                    'pyqt/ignore_sip_setapi_errors', tip=_(
 """Enabling this option will ignore errors when changing PyQt API.
 As PyQt does not support dynamic API changes, it is strongly recommended
 to use this feature wisely, e.g. for debugging purpose.
@@ -389,7 +389,7 @@ class ExternalConsole(SpyderPluginWidget):
         try:
             from sip import setapi #analysis:ignore
         except ImportError:
-            self.set_option('ignore_sip_setapi_errors', False)
+            self.set_option('pyqt/ignore_sip_setapi_errors', False)
 
         scientific = programs.is_module_installed('numpy') and\
                      programs.is_module_installed('scipy') and\
@@ -615,11 +615,11 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 mpl_backend = None
             ets_backend = self.get_option('ets_backend', 'qt4')
-            pyqt_api = self.get_option('pyqt_api', 0)
-            replace_pyqt_inputhook = self.get_option('replace_pyqt_inputhook',
+            pyqt_api = self.get_option('pyqt/api_version', 0)
+            replace_pyqt_inputhook = self.get_option('pyqt/replace_inputhook',
                                                      os.name == 'nt')
             ignore_sip_setapi_errors = self.get_option(
-                                           'ignore_sip_setapi_errors', True)
+                                            'pyqt/ignore_sip_setapi_errors')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')

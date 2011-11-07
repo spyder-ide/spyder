@@ -155,7 +155,7 @@ class ExternalPythonShell(ExternalShellBase):
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend=None, ets_backend='qt4', pyqt_api=0,
-                 replace_pyqt_inputhook=True, ignore_sip_setapi_errors=True,
+                 replace_pyqt_inputhook=True, ignore_sip_setapi_errors=False,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
