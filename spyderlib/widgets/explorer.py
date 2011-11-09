@@ -204,6 +204,8 @@ class DirView(QTreeView):
         
     def create_file_new_actions(self, fnames):
         """Return actions for submenu 'New...'"""
+        if not fnames:
+            return []
         new_file_act = create_action(self, _("File..."), icon='filenew.png',
                                      triggered=lambda:
                                      self.new_file(fnames[-1]))
@@ -304,24 +306,22 @@ class DirView(QTreeView):
         """Create context menu actions"""
         actions = []
         fnames = self.get_selected_filenames()
-        if fnames:
-            new_actions = self.create_file_new_actions(fnames)
-            if len(new_actions) > 1:
-                # Creating a submenu only if there is more than one entry
-                new_act_menu = QMenu(_('New'), self)
-                add_actions(new_act_menu, new_actions)
-                actions.append(new_act_menu)
-            else:
-                actions += new_actions
-        if fnames:
-            import_actions = self.create_file_import_actions(fnames)
-            if len(import_actions) > 1:
-                # Creating a submenu only if there is more than one entry
-                import_act_menu = QMenu(_('Import'), self)
-                add_actions(import_act_menu, import_actions)
-                actions.append(import_act_menu)
-            else:
-                actions += import_actions
+        new_actions = self.create_file_new_actions(fnames)
+        if len(new_actions) > 1:
+            # Creating a submenu only if there is more than one entry
+            new_act_menu = QMenu(_('New'), self)
+            add_actions(new_act_menu, new_actions)
+            actions.append(new_act_menu)
+        else:
+            actions += new_actions
+        import_actions = self.create_file_import_actions(fnames)
+        if len(import_actions) > 1:
+            # Creating a submenu only if there is more than one entry
+            import_act_menu = QMenu(_('Import'), self)
+            add_actions(import_act_menu, import_actions)
+            actions.append(import_act_menu)
+        else:
+            actions += import_actions
         if actions:
             actions.append(None)
         if fnames:
