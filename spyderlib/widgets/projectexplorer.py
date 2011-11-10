@@ -91,6 +91,15 @@ class Project(object):
             if not osp.isdir(self.root_path):
                 os.mkdir(self.root_path)
             self.save()
+            
+    def rename(self, new_name):
+        """Rename project and rename its root path accordingly"""
+        old_name = self.name
+        self.name = new_name
+        pypath = self.relative_pythonpath
+        self.root_path = self.root_path[:-len(old_name)]+new_name
+        self.relative_pythonpath = pypath
+        self.save()
 
     def _get_relative_pythonpath(self):
         """Return PYTHONPATH list as relative paths"""
@@ -365,7 +374,7 @@ class Workspace(object):
             if old_name in relproj:
                 relproj[relproj.index(old_name)] = new_name
                 proj.set_related_projects(relproj)
-        project.set_name(new_name)
+        project.rename(new_name)
         self.save()
         
     def get_other_projects(self, project):
@@ -850,14 +859,14 @@ class ExplorerTreeWidget(FilteredDirView):
 
     def rename_file(self, fname):
         """Rename file"""
-        project = self.get_source_project(fname)
-        if project.is_root_path(fname):
-            name, valid = QInputDialog.getText(self, _('Rename'),
-                          _('New name:'), QLineEdit.Normal, project.name)
-            if valid:
-                self.workspace.rename_project(project, unicode(name))
-        elif FilteredDirView.rename_file(self, fname):
-            self.remove_path_from_project_pythonpath(project, fname)
+        path = FilteredDirView.rename_file(self, fname)
+        if path:
+            project = self.get_source_project(fname)
+            if project.is_root_path(fname):
+                self.workspace.rename_project(project, osp.basename(path))
+                self.set_folder_names(self.workspace.get_folder_names())
+            else:
+                self.remove_path_from_project_pythonpath(project, fname)
     
     def remove_tree(self, dirname):
         """Remove whole directory tree"""

@@ -512,7 +512,7 @@ class DirView(QTreeView):
                 misc.rename_file(fname, path)
                 self.parent_widget.emit( \
                      SIGNAL("renamed(QString,QString)"), fname, path)
-                return True
+                return path
             except EnvironmentError, error:
                 QMessageBox.critical(self, _("Rename"),
                             _("<b>Unable to rename file <i>%s</i></b>"
