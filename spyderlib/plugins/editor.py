@@ -1337,9 +1337,9 @@ class Editor(SpyderPluginWidget):
         if encoding_match:
             enc = encoding_match.group(1)
         # Initialize template variables
-        username = os.environ.get('USERNAME','-')  # Windows, Linux
+        username = os.environ.get('USERNAME', None) # Windows, Linux
         if not username:
-            username = os.environ.get('USER', '-') # Mac OS
+            username = os.environ.get('USER', '-')  # Mac OS
         VARS = {
             'date':time.ctime(),
             'username':username,
