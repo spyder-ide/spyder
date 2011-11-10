@@ -1336,9 +1336,16 @@ class Editor(SpyderPluginWidget):
         encoding_match = re.search('-*- coding: ?([a-z0-9A-Z\-]*) -*-', text)
         if encoding_match:
             enc = encoding_match.group(1)
+        # Initialize template variables
+        username = os.environ.get('USERNAME','-')  # Windows, Linux
+        if not username:
+            username = os.environ.get('USER', '-') # Mac OS
+        VARS = {
+            'date':time.ctime(),
+            'username':username,
+        }
         try:
-            text = text % {'date': time.ctime(),
-                           'username': os.environ.get('USERNAME', '-')}
+            text = text % VARS
         except:
             pass
         create_fname = lambda n: unicode(_("untitled")) + ("%d.py" % n)
