@@ -352,6 +352,8 @@ class DirView(QTreeView):
             self.clicked()
         elif event.key() == Qt.Key_F2:
             self.rename()
+        elif event.key() == Qt.Key_Delete:
+            self.delete()
         else:
             QTreeView.keyPressEvent(self, event)
 
