@@ -456,14 +456,6 @@ class ExplorerTreeWidget(FilteredDirView):
         # Enable drag & drop events
         self.setDragEnabled(True)
         self.setDragDropMode(FilteredDirView.DragDrop)
-                
-    #------QWidget API----------------------------------------------------------
-    def keyPressEvent(self, event):
-        """Reimplement Qt method"""
-        if event.key() == Qt.Key_F2:
-            self.rename(self.currentItem())
-        else:
-            FilteredDirView.keyPressEvent(self, event)
 
     #------DirView API----------------------------------------------------------
     def create_file_new_actions(self, fnames):
