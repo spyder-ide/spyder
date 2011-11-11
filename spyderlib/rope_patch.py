@@ -18,6 +18,9 @@ avoiding side effects as non-working introspection features on a Python module
 or package when a folder in current directory has the same name.
 See this thread:
 http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
+
+[4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
+it breaks the work of Sphinx on the Object Inspector.
 """
 
 def apply():
@@ -119,3 +122,28 @@ def apply():
                     return (module, lineno)
             return (None, None)
     builtins.BuiltinName = PatchedBuiltinName
+    
+    # [4] Patching PyDocExtractor so that _get_class_docstring and
+    # _get_single_function_docstring don't add a 2 spaces indent to
+    # every docstring. The only value that we are modifying is the indent
+    # keyword, from 2 to 0.
+    from rope.contrib import codeassist
+    class PatchedPyDocExtractor(codeassist.PyDocExtractor):
+        def _get_class_docstring(self, pyclass):
+            contents = self._trim_docstring(pyclass.get_doc(), indents=0)
+            supers = [super.get_name() for super in pyclass.get_superclasses()]
+            doc = 'class %s(%s):\n\n' % (pyclass.get_name(), ', '.join(supers)) + contents
+
+            if '__init__' in pyclass:
+                init = pyclass['__init__'].get_object()
+                if isinstance(init, pyobjects.AbstractFunction):
+                    doc += '\n\n' + self._get_single_function_docstring(init)
+            return doc
+            
+        def _get_single_function_docstring(self, pyfunction):
+            signature = self._get_function_signature(pyfunction)
+            docs = pyfunction.get_doc()
+            docs = self._trim_docstring(pyfunction.get_doc(), indents=0)
+            return docs
+            return signature + ':\n\n' + docs
+    codeassist.PyDocExtractor = PatchedPyDocExtractor 
