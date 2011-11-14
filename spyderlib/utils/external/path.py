@@ -29,7 +29,7 @@ Date:    9 Mar 2007
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs
+import sys, warnings, os, fnmatch, glob, shutil, codecs, locale
 # deprecated in python 2.6
 warnings.filterwarnings('ignore', r'.*md5.*')
 import md5
@@ -53,7 +53,13 @@ else:
 _base = str
 _getcwd = os.getcwd
 try:
-    if os.path.supports_unicode_filenames:
+    # ============
+    # Spyder patch
+    # ============
+    # It's not only neccesary to know that the filesystem supports UTF-8. It's
+    # also needed to check that the locale's encoding is UTF-8.
+    if os.path.supports_unicode_filenames and \
+        locale.getpreferredencoding() == 'UTF-8':
         _base = unicode
         _getcwd = os.getcwdu
 except AttributeError:
