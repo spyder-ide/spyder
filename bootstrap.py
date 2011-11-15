@@ -30,7 +30,17 @@ assert options.gui in (None, 'pyqt', 'pyside'),\
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
 
+
 print("Executing Spyder from source checkout")
+
+# Warn if Spyder is executed from non-ASCII directory
+# http://code.google.com/p/spyderlib/issues/detail?id=812
+try:
+  os.path.join(os.getcwd(), u'test')
+except UnicodeDecodeError:
+  print("STOP: You're executing Spyder from a path that contains non-ASCII characters,")
+  print("      which is known to cause problems (see issue #812).")
+  raw_input("Press Enter to continue or Ctrl-C to abort...")
 
 # Retrieving Mercurial revision number
 DEVPATH = os.path.dirname(os.path.abspath(__file__))
