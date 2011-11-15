@@ -71,7 +71,7 @@ except ImportError:
 
 
 try:
-    import Image
+    from spyderlib.pil_patch import Image
     if sys.byteorder == 'little':
         _ENDIAN = '<'
     else:

@@ -18,7 +18,7 @@ try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
 except ImportError:
-    ndarray = array = matrix = FakeObject
+    ndarray = array = matrix = FakeObject  # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -43,10 +43,10 @@ def get_numpy_dtype(obj):
 
 #----PIL Images support
 try:
-    import Image
-    Image.Image
-except:
-    Image = FakeObject
+    from spyderlib import pil_patch
+    Image = pil_patch.Image.Image
+except ImportError:
+    Image = FakeObject  # analysis:ignore
 
 
 #----Misc.
@@ -62,7 +62,7 @@ try:
     from dateutil.parser import parse as dateparse
 except ImportError:
     from string import atoi
-    def dateparse(datestr):
+    def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
         return datetime.datetime( *map(atoi, datestr.split(',')) )
 def datestr_to_datetime(value):

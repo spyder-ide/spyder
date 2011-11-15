@@ -151,7 +151,7 @@ def get_supported_types():
         pass
     picklable_types = editable_types[:]
     try:
-        import Image
+        from spyderlib.pil_patch import Image
         editable_types.append(Image.Image)
     except ImportError:
         pass

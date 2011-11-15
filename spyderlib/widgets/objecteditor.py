@@ -89,7 +89,7 @@ def oedit(obj, modal=True, namespace=None):
         if not dialog.setup_and_check(data, title=obj_name,
                                       readonly=readonly):
             return
-        import Image
+        from spyderlib.pil_patch import Image
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
@@ -117,7 +117,8 @@ def oedit(obj, modal=True, namespace=None):
 
 def test():
     """Run object editor test"""
-    import datetime, numpy as np, Image
+    import datetime, numpy as np
+    from spyderlib.pil_patch import Image
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],

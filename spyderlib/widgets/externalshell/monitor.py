@@ -320,7 +320,7 @@ class Monitor(threading.Thread):
     def is_image(self, glbs, name):
         """Return True if object is an instance of class PIL.Image.Image"""
         try:
-            import Image
+            from spyderlib.pil_patch import Image
             return isinstance(glbs[name], Image.Image)
         except ImportError:
             return False
