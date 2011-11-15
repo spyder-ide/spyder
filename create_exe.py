@@ -23,7 +23,12 @@ def create_executable():
                script="spyderlib/spyder.py",
                target_name="spyder.exe", icon="spyder.ico")
     spyderlib.add_to_distribution(dist)
-    dist.add_modules('matplotlib', 'h5py', 'scipy.io')
+    dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata')
+    try:
+        import guiqwt  # analysis:ignore
+        dist.add_modules('guiqwt')
+    except ImportError:
+        pass
     dist.includes += ['spyderlib.widgets.externalshell.startup',
                       'spyderlib.widgets.externalshell.sitecustomize',
                       'IPython']
