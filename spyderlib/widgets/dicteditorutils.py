@@ -43,8 +43,8 @@ def get_numpy_dtype(obj):
 
 #----PIL Images support
 try:
-    from PIL.Image import Image
-    import PIL.Image
+    import Image
+    Image.Image
 except:
     Image = FakeObject
 

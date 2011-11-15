@@ -71,7 +71,7 @@ except ImportError:
 
 
 try:
-    import PIL.Image
+    import Image
     if sys.byteorder == 'little':
         _ENDIAN = '<'
     else:
@@ -91,7 +91,7 @@ try:
               "YCbCr": ('|u1', 4),
               }
     def __image_to_array(filename):
-        img = PIL.Image.open(filename)
+        img = Image.open(filename)
         try:
             dtype, extra = DTYPES[img.mode]
         except KeyError:

@@ -320,8 +320,8 @@ class Monitor(threading.Thread):
     def is_image(self, glbs, name):
         """Return True if object is an instance of class PIL.Image.Image"""
         try:
-            from PIL.Image import Image
-            return isinstance(glbs[name], Image)
+            import Image
+            return isinstance(glbs[name], Image.Image)
         except ImportError:
             return False
 

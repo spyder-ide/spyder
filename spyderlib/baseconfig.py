@@ -151,8 +151,8 @@ def get_supported_types():
         pass
     picklable_types = editable_types[:]
     try:
-        from PIL.Image import Image
-        editable_types.append(Image)
+        import Image
+        editable_types.append(Image.Image)
     except ImportError:
         pass
     return dict(picklable=picklable_types, editable=editable_types)

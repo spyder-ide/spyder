@@ -22,7 +22,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
                                        get_std_icon, DialogManager,
                                        add_actions)
 from spyderlib.utils.environ import RemoteEnvDialog
-from spyderlib.utils.programs import split_clo, get_python_args
+from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _, get_module_source_path
 from spyderlib.config import get_icon

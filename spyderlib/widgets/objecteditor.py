@@ -89,8 +89,8 @@ def oedit(obj, modal=True, namespace=None):
         if not dialog.setup_and_check(data, title=obj_name,
                                       readonly=readonly):
             return
-        import PIL.Image
-        conv_func = lambda data: PIL.Image.fromarray(data, mode=obj.mode)
+        import Image
+        conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     elif isinstance(obj, (dict, tuple, list)):
@@ -117,8 +117,8 @@ def oedit(obj, modal=True, namespace=None):
 
 def test():
     """Run object editor test"""
-    import datetime, numpy as np, PIL.Image
-    image = PIL.Image.fromarray(np.random.random_integers(255, size=(100, 100)))
+    import datetime, numpy as np, Image
+    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     example = {'str': 'kjkj kj k j j kj k jkj',
                'list': [1, 3, 4, 'kjkj', None],
                'dict': {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]},

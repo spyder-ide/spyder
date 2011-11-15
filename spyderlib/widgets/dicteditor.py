@@ -1241,9 +1241,8 @@ class RemoteDictEditorTableView(BaseTableView):
 def get_test_data():
     """Create test data"""
     import numpy as np
-    import PIL
-    image = PIL.Image.fromarray(
-                        np.random.random_integers(255, size=(100, 100)))
+    import Image
+    image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     return {'str': 'kjkj kj k j j kj k jkj',
