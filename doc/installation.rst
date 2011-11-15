@@ -28,20 +28,47 @@ Optional modules:
     features (provided by `PyQt4` or `PySide`).
 
 
-Installation
-------------
-
-From the source package:
-    `python setup.py install`
-
-
 Running from source
 -------------------
 
-It is also possible to run Spyder directly from unpacked source folder:
+It is possible to run Spyder directly from unpacked source folder 
+using Spyder's bootstrap script:
     `python bootstrap.py`
 
-This is especially useful for troubleshooting and development of Spyder itself.
+This is especially useful for beta-testing, troubleshooting and development 
+of Spyder itself.
+
+
+Installation
+------------
+
+This section explains how to install the latest *stable* release of Spyder.
+If you prefer testing the development version, please use the bootstrap script
+(see previous section).
+
+From the source package (see section 'Building dependencies'), you may 
+install Spyder using the integrated setup.py script based on Python 
+standard library `distutils` with the following command:
+    `python setup.py install`
+
+Note that `distutils` does *not* uninstall previous versions of Python 
+packages: it simply copies files on top of an existing installation. 
+When using this command, it is thus highly recommended to uninstall 
+manually any previous version of Spyder by removing the associated 
+directories ('spyderlib' and 'spyderplugins' in your site-packages 
+directory).
+
+From the Python package index, you may simply install Spyder *and* 
+upgrade an existing installation using `pip`:
+http://pypi.python.org/pypi
+
+But the easiest way to install the last stable release of Spyder is:
+    * on Windows:
+        * using an executable installer: http://spyderlib.googlecode.com
+        * or through Python(x,y): http://www.pythonxy.com
+    * on Mac OSX, through MacPorts
+    * on GNU/Linux, through your package manager
+For more details on supported platforms, please go to http://spyderlib.googlecode.com.
 
 
 Help and support
