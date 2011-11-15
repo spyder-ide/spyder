@@ -911,6 +911,14 @@ class MainWindow(QMainWindow):
         self.debug_print("*** End of MainWindow setup ***")
         self.is_starting_up = False
         
+    def post_visible_setup(self):
+        """Actions to be performed only after the main window's `show` method 
+        was triggered"""
+        self.emit(SIGNAL('restore_scrollbar_position()'))
+        self.extconsole.setMinimumHeight(0)
+        if self.projectexplorer is not None:
+            self.projectexplorer.check_for_io_errors()
+        
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
         with *prefix*, under *section*
@@ -1806,8 +1814,7 @@ def run_spyder(app, options):
                 pass
         raise
     main.show()
-    main.emit(SIGNAL('restore_scrollbar_position()'))
-    main.extconsole.setMinimumHeight(0)
+    main.post_visible_setup()
     app.exec_()
     return main
 

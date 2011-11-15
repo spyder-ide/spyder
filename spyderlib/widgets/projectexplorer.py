@@ -78,6 +78,7 @@ class Project(object):
         self.related_projects = [] # storing project path, not project objects
         self.pythonpath = []
         self.opened = True
+        self.ioerror_flag = False
 
     def set_root_path(self, root_path):
         """Set workspace root path"""
@@ -121,7 +122,11 @@ class Project(object):
         
     def load(self):
         """Load project data"""
-        data = cPickle.loads(file(self.__get_project_config_path(), 'U').read())
+        try:
+            data = cPickle.loads(file(self.__get_project_config_path(),
+                                      'U').read())
+        except (IOError, OSError):
+            self.ioerror_flag = True
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
             print >>STDERR, "Warning: converting old configuration file " \
@@ -137,7 +142,10 @@ class Project(object):
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
-        cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
+        try:
+            cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
+        except (IOError, OSError):
+            self.ioerror_flag = True
         
     def delete(self):
         """Delete project"""
@@ -224,6 +232,7 @@ class Workspace(object):
         self.name = None
         self.root_path = None
         self.projects = []
+        self.ioerror_flag = False
         
     def _get_project_paths(self):
         """Return workspace projects root path list"""
@@ -269,7 +278,10 @@ class Workspace(object):
     def load(self):
         """Load project data"""
         fdesc = file(self.__get_workspace_config_path(), 'U')
-        data = cPickle.loads(fdesc.read())
+        try:
+            data = cPickle.loads(fdesc.read())
+        except (IOError, OSError):
+            self.ioerror_flag = True
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
@@ -279,13 +291,31 @@ class Workspace(object):
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
-        cPickle.dump(data, file(self.__get_workspace_config_path(), 'w'))
+        try:
+            cPickle.dump(data, file(self.__get_workspace_config_path(), 'w'))
+        except (IOError, OSError):
+            self.ioerror_flag = True
         
     def delete(self):
         """Delete workspace"""
         os.remove(self.__get_workspace_config_path())
         
     #------Misc.
+    def get_ioerror_warning_message(self):
+        """Return a warning message if IOError exception was raised when 
+        loading/saving the workspace or one of its projects"""
+        txt = ""
+        projlist = [_p.name for _p in self.projects if _p.ioerror_flag]
+        if self.ioerror_flag:
+            txt += _("its own configuration file")
+            if projlist:
+                txt += _(" and ")
+            else:
+                txt += "."
+        if projlist:
+            txt += _("the following projects:<br>%s") % ", ".join(projlist)
+        return txt
+        
     def is_file_in_workspace(self, fname):
         """Return True if file *fname* is in one of the projects"""
         return any([proj.is_file_in_project(fname) for proj in self.projects])
@@ -586,6 +616,16 @@ class ExplorerTreeWidget(FilteredDirView):
         """Reset file system model icon provider
         The purpose of this is to refresh files/directories icons"""
         self.fsmodel.setIconProvider(IconProvider(self))
+
+    def check_for_io_errors(self):
+        """Eventually show a warning message box if IOError exception was
+        raised when loading/saving the workspace or one of its projects"""
+        txt = self.workspace.get_ioerror_warning_message()
+        if txt:
+            QMessageBox.critical(self, _('Workspace'),
+                    _("The workspace was unable to load or save %s<br><br>"
+                      "Please check if you have the permission to write the "
+                      "associated configuration files.") % txt)
         
     def set_workspace(self, root_path):
         """Set project explorer's workspace directory"""
@@ -1172,6 +1212,11 @@ class ProjectExplorerWidget(QWidget):
         if path is not None and osp.isdir(path):
             self.treewidget.set_workspace(path)
             self.selector.set_workspace(path)
+    
+    def check_for_io_errors(self):
+        """Check for I/O errors that may occured when loading/saving 
+        projects or the workspace itself and warn the user"""
+        self.treewidget.check_for_io_errors()
             
     def get_workspace(self):
         """Return current workspace path"""
