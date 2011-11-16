@@ -20,10 +20,9 @@ from spyderlib.qt.compat import getopenfilenames, getsavefilename
 
 # Local imports
 from spyderlib.widgets.externalshell.monitor import (
-                monitor_set_global, monitor_get_global, monitor_del_global,
-                monitor_copy_global, monitor_save_globals, monitor_load_globals,
-                monitor_is_array, monitor_is_image, monitor_is_none,
-                communicate, monitor_set_remote_view_settings)
+            monitor_set_global, monitor_get_global, monitor_del_global,
+            monitor_copy_global, monitor_save_globals, monitor_load_globals,
+            communicate, monitor_set_remote_view_settings)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView)
 from spyderlib.widgets.dicteditorutils import globalsfilter
@@ -318,10 +317,11 @@ class NamespaceBrowser(QWidget):
     #------ Remote Python process commands -------------------------------------
     def get_value(self, name):
         value = monitor_get_global(self._get_sock(), name)
-        if value is None and not monitor_is_none(self._get_sock(), name):
-            import pickle
-            msg = unicode(_("Object <b>%s</b> is not picklable") % name)
-            raise pickle.PicklingError(msg)
+        if value is None:
+            if communicate(self._get_sock(), '%s is not None' % name):
+                import pickle
+                msg = unicode(_("Object <b>%s</b> is not picklable") % name)
+                raise pickle.PicklingError(msg)
         return value
         
     def set_value(self, name, value):
@@ -340,32 +340,31 @@ class NamespaceBrowser(QWidget):
     def is_list(self, name):
         """Return True if variable is a list or a tuple"""
         return communicate(self._get_sock(),
-                           "isinstance(globals()['%s'], (tuple, list))" % name)
+                           'isinstance(%s, (tuple, list))' % name)
         
     def is_dict(self, name):
         """Return True if variable is a dictionary"""
-        return communicate(self._get_sock(),
-                           "isinstance(globals()['%s'], dict)" % name)
+        return communicate(self._get_sock(), 'isinstance(%s, dict)' % name)
         
     def get_len(self, name):
         """Return sequence length"""
-        return communicate(self._get_sock(), "len(globals()['%s'])" % name)
+        return communicate(self._get_sock(), "len(%s)" % name)
         
     def is_array(self, name):
         """Return True if variable is a NumPy array"""
-        return monitor_is_array(self._get_sock(), name)
+        return communicate(self._get_sock(), 'is_array("%s")' % name)
         
     def is_image(self, name):
         """Return True if variable is a PIL.Image image"""
-        return monitor_is_image(self._get_sock(), name)
+        return communicate(self._get_sock(), 'is_image("%s")' % name)
         
     def get_array_shape(self, name):
         """Return array's shape"""
-        return communicate(self._get_sock(), "globals()['%s'].shape" % name)
+        return communicate(self._get_sock(), "%s.shape" % name)
         
     def get_array_ndim(self, name):
         """Return array's ndim"""
-        return communicate(self._get_sock(), "globals()['%s'].ndim" % name)
+        return communicate(self._get_sock(), "%s.ndim" % name)
         
     def plot(self, name):
         command = "import spyderlib.pyplot; " \

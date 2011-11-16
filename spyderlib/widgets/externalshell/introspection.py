@@ -20,7 +20,7 @@ from spyderlib.utils.bsdsocket import read_packet, write_packet
 
 LOG_FILENAME = get_conf_path('introspection.log')
 
-DEBUG = False
+DEBUG = True
 
 if DEBUG:
     import logging

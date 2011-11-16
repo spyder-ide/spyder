@@ -214,7 +214,7 @@ DEFAULTS = [
               'truncate': True,
               'minmax': False,
               'collvalue': False,
-              'remote_editing': True,
+              'remote_editing': False,
               }),
             ('editor',
              {

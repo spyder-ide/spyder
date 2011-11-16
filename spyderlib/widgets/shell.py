@@ -983,7 +983,7 @@ class PythonShellWidget(ShellBaseWidget):
             return
         
         # Builtins and globals
-        import re, __builtin__, keyword
+        import __builtin__, keyword
         if not text.endswith('.') and last_obj \
            and re.match(r'[a-zA-Z_0-9]*$', last_obj):
             b_k_g = dir(__builtin__)+self.get_globals_keys()+keyword.kwlist

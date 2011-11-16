@@ -79,11 +79,11 @@ class ExtPythonShellWidget(PythonShellWidget):
             
     def get_dir(self, objtxt):
         """Return dir(object)"""
-        return self.ask_monitor("__get_dir__('%s',globals())" % objtxt)
+        return self.ask_monitor("__get_dir__('%s')" % objtxt)
 
     def get_globals_keys(self):
         """Return shell globals() keys"""
-        return self.ask_monitor("globals().keys()")
+        return self.ask_monitor("get_globals_keys()")
     
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
@@ -91,29 +91,28 @@ class ExtPythonShellWidget(PythonShellWidget):
             
     def iscallable(self, objtxt):
         """Is object callable?"""
-        return self.ask_monitor("__iscallable__('%s',globals())" % objtxt)
+        return self.ask_monitor("__iscallable__('%s')" % objtxt)
     
     def get_arglist(self, objtxt):
         """Get func/method argument list"""
-        return self.ask_monitor("__get_arglist__('%s',globals())" % objtxt)
+        return self.ask_monitor("__get_arglist__('%s')" % objtxt)
             
     def get__doc__(self, objtxt):
         """Get object __doc__"""
-        return self.ask_monitor("__get__doc____('%s',globals())" % objtxt)
+        return self.ask_monitor("__get__doc____('%s')" % objtxt)
     
     def get_doc(self, objtxt):
         """Get object documentation"""
-        return self.ask_monitor("__get_doc__('%s',globals())" % objtxt)
+        return self.ask_monitor("__get_doc__('%s')" % objtxt)
     
     def get_source(self, objtxt):
         """Get object source"""
-        return self.ask_monitor("__get_source__('%s',globals())" % objtxt)
+        return self.ask_monitor("__get_source__('%s')" % objtxt)
     
     def is_defined(self, objtxt, force_import=False):
         """Return True if object is defined"""
-        return self.ask_monitor(
-                        "isdefined('%s', force_import=%s, namespace=globals())"
-                        % (objtxt, force_import))
+        return self.ask_monitor("isdefined('%s', force_import=%s)"
+                                % (objtxt, force_import))
 
     def get_completion(self, objtxt):
         """Return completion list associated to object name"""
