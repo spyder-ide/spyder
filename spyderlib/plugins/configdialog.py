@@ -6,7 +6,8 @@
 
 """Configuration dialog / Preferences"""
 
-import os, os.path as osp
+import os
+import os.path as osp
 
 from spyderlib.baseconfig import _
 from spyderlib.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
@@ -255,8 +256,11 @@ class SpyderConfigPage(ConfigPage):
         for combobox, (option, default) in self.comboboxes.items():
             value = self.get_option(option, default)
             for index in range(combobox.count()):
-                if from_qvariant(combobox.itemData(index, Qt.UserRole),
-                                 unicode) == unicode(value):
+                data = from_qvariant(combobox.itemData(index), unicode)
+                # For PyQt API v2, it is necessary to convert `data` to 
+                # unicode in case the original type was not a string, like an 
+                # integer for example (see spyderlib.qt.compat.from_qvariant):
+                if unicode(data) == unicode(value):
                     break
             combobox.setCurrentIndex(index)
             self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
