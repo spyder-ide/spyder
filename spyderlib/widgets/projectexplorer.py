@@ -799,8 +799,13 @@ class ExplorerTreeWidget(FilteredDirView):
                 folder = self.get_project_path_from_name(name)
                 self.add_project(folder)
         else:
-            QMessageBox.critical(self, title, _("The current workspace has "
-                                                "not been configured yet"))
+            answer = QMessageBox.critical(self, title,
+                                          _("The current workspace has "
+                                            "not been configured yet.\n"
+                                            "Do you want to do this now?"),
+                                          QMessageBox.Yes|QMessageBox.Cancel)
+            if answer == QMessageBox.Yes:
+                self.emit(SIGNAL('select_workspace()'))
         
     def _select_existing_directory(self):
         """Select existing source code directory,
@@ -1201,6 +1206,8 @@ class ProjectExplorerWidget(QWidget):
         self.treewidget = ExplorerTreeWidget(self)
         self.treewidget.setup(name_filters=name_filters,
                               show_all=show_all, valid_types=valid_types)
+        self.connect(self.treewidget, SIGNAL('select_workspace()'),
+                     self.selector.select_directory)
         
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
