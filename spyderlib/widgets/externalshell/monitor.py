@@ -22,7 +22,7 @@ SUPPORTED_TYPES = get_supported_types()
 
 LOG_FILENAME = get_conf_path('monitor.log')
 
-DEBUG = True
+DEBUG = False
 
 if DEBUG:
     import logging
