@@ -52,7 +52,7 @@ EDIT_FILETYPES = (
     (_("Python files"), ('.py', '.pyw', '.ipy')),
     (_("Cython/Pyrex files"), ('.pyx', '.pxd', '.pxi')),
     (_("C files"), ('.c', '.h')),
-    (_("C++ files"), ('.cc', '.cpp', '.h', '.cxx', '.hpp', '.hh')),
+    (_("C++ files"), ('.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx')),
     (_("OpenCL files"), ('.cl', )),
     (_("Fortran files"), ('.f', '.for', '.f90', '.f95', '.f2k')),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
