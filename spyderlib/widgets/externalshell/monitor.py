@@ -183,22 +183,32 @@ class Monitor(threading.Thread):
                        "__load_globals__": self.loadglobals,
                        "_" : None}
 
+    @property
+    def pdb_frame(self):
+        """Return current Pdb frame if there is any"""
+        if self.pdb_obj is not None and self.pdb_obj.curframe is not None:
+            return self.pdb_obj.curframe
+
+    @property
+    def pdb_locals(self):
+        """Return current Pdb frame locals if available
+        Otherwise return an empty dictionary"""
+        if self.pdb_frame:
+            return self.pdb_obj.curframe_locals
+        else:
+            return {}
+
     def mlocals(self):
         """Return current locals -- handles Pdb frames"""
-        if self.pdb_obj is not None and self.pdb_obj.curframe is None:
-            self.pdb_obj = None
         ns = {}
         ns.update(self._mlocals)
-        if self.pdb_obj is not None:
-            ns.update(self.pdb_obj.curframe_locals)
+        ns.update(self.pdb_locals)
         return ns
 
     def mglobals(self):
         """Return current globals -- handles Pdb frames"""
-        if self.pdb_obj is not None and self.pdb_obj.curframe is None:
-            self.pdb_obj = None
-        if self.pdb_obj is not None:
-            return self.pdb_obj.curframe.f_globals
+        if self.pdb_frame is not None:
+            return self.pdb_frame.f_globals
         else:
             from __main__ import __dict__ as namespace
             return namespace
@@ -208,22 +218,22 @@ class Monitor(threading.Thread):
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
         glbs = self.mglobals()
-        if self.pdb_obj is None:
+        if self.pdb_frame is None:
             return glbs
         else:
             ns = {}
             ns.update(glbs)
-            ns.update(self.pdb_obj.curframe_locals)
+            ns.update(self.pdb_locals)
             return ns
     
     def get_reference_namespace(self, name):
         """Return namespace where reference name is defined,
         eventually returns the globals() if reference has not yet been defined"""
         glbs = self.mglobals()
-        if self.pdb_obj is None:
+        if self.pdb_frame is None:
             return glbs
         else:
-            lcls = self.pdb_obj.curframe_locals
+            lcls = self.pdb_locals
             if name in lcls:
                 return lcls
             else:
