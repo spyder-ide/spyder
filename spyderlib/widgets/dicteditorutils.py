@@ -87,11 +87,13 @@ COLORS = {
           Image:              "#008000",
           datetime.date:      "#808000",
           }
+CUSTOM_TYPE_COLOR = "#7755aa"
+UNSUPPORTED_COLOR = "#ffffff"
 
 def get_color_name(value):
     """Return color name depending on value type"""
     if not is_known_type(value):
-        return "#7755aa"
+        return CUSTOM_TYPE_COLOR
     for typ, name in COLORS.iteritems():
         if isinstance(value, typ):
             return name
@@ -103,7 +105,12 @@ def get_color_name(value):
             else:
                 return ARRAY_COLOR
         else:
-            return "#ffffff"
+            return UNSUPPORTED_COLOR
+
+def is_editable_type(value):
+    """Return True if data type is editable with a standard GUI-based editor,
+    like DictEditor, ArrayEditor, QDateEdit or a simple QLineEdit"""
+    return get_color_name(value) not in (UNSUPPORTED_COLOR, CUSTOM_TYPE_COLOR)
 
 #----Sorting
 def sort_against(lista, listb, reverse=False):

@@ -34,7 +34,8 @@ from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                    get_type, value_to_display, get_color_name, is_known_type,
                    FakeObject, Image, ndarray, array, unsorted_unique,
-                   try_to_eval, datestr_to_datetime, get_numpy_dtype)
+                   try_to_eval, datestr_to_datetime, get_numpy_dtype,
+                   is_editable_type)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
@@ -87,6 +88,21 @@ def display_to_value(value, default_value, ignore_errors=True):
     return value
 
 
+class ProxyObject(object):
+    """Dictionary proxy to an unknown object"""
+    def __init__(self, obj):
+        self.__obj__ = obj
+    
+    def __len__(self):
+        return len(dir(self.__obj__))
+    
+    def __getitem__(self, key):
+        return getattr(self.__obj__, key)
+    
+    def __setitem__(self, key, value):
+        setattr(self.__obj__, key, value)
+        
+
 class ReadOnlyDictModel(QAbstractTableModel):
     """DictEditor Read-Only Table Model"""
     def __init__(self, parent, data, title="", names=False,
@@ -117,7 +133,8 @@ class ReadOnlyDictModel(QAbstractTableModel):
     def set_data(self, data, dictfilter=None):
         """Set model data"""
         self._data = data
-        if dictfilter is not None and not self.remote:
+        if dictfilter is not None and not self.remote and\
+           isinstance(data, (tuple, list, dict)):
             data = dictfilter(data)
         self.showndata = data
         self.header0 = _("Index")
@@ -135,7 +152,11 @@ class ReadOnlyDictModel(QAbstractTableModel):
             if not self.names:
                 self.header0 = _("Key")
         else:
-            raise TypeError("Invalid data type")
+            self.keys = dir(data)
+            self._data = data = self.showndata = ProxyObject(data)
+            self.title += _("Object")
+            if not self.names:
+                self.header0 = _("Attribute")
         self.title += ' ('+str(len(self.keys))+' '+ _("elements")+')'
         if self.remote:
             self.sizes = [ data[self.keys[index]]['size']
@@ -396,13 +417,21 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = QLineEdit
-        else:
+        elif self.inplace or is_editable_type(value):
             editor = QLineEdit(parent)
             editor.setFont(get_font('dicteditor'))
             editor.setAlignment(Qt.AlignLeft)
             self.connect(editor, SIGNAL("returnPressed()"),
                          self.commitAndCloseEditor)
             return editor
+        #---editor = DictEditor for an arbitrary object
+        else:
+            editor = DictEditor()
+            editor.setup(value, key, icon=self.parent().windowIcon(),
+                         readonly=readonly)
+            self.create_dialog(editor, dict(model=index.model(), editor=editor,
+                                            key=key, readonly=readonly))
+            return None
             
     def create_dialog(self, editor, data):
         self._editors[id(editor)] = data
@@ -1083,9 +1112,16 @@ class DictEditor(QDialog):
         if isinstance(data, dict):
             # dictionnary
             self.data_copy = data.copy()
-        else:
+            datalen = len(data)
+        elif isinstance(data, (tuple, list)):
             # list, tuple
             self.data_copy = data[:]
+            datalen = len(data)
+        else:
+            # unknown object
+            import copy
+            self.data_copy = copy.deepcopy(data)
+            datalen = len(dir(data))
         self.widget = DictEditorWidget(self, self.data_copy, title=title,
                                        readonly=readonly, remote=remote)
         
@@ -1106,7 +1142,7 @@ class DictEditor(QDialog):
         constant = 121
         row_height = 30
         error_margin = 20
-        height = constant + row_height*min([20, len(data)]) + error_margin
+        height = constant + row_height*min([20, datalen]) + error_margin
         self.resize(width, height)
         
         self.setWindowTitle(self.widget.get_title())
@@ -1245,7 +1281,14 @@ def get_test_data():
     image = Image.fromarray(np.random.random_integers(255, size=(100, 100)))
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
-    return {'str': 'kjkj kj k j j kj k jkj',
+    class Foobar(object):
+        def __init__(self):
+            self.text = "toto"
+            self.testdict = testdict
+            self.testdate = testdate
+    foobar = Foobar()
+    return {'object': foobar,
+            'str': 'kjkj kj k j j kj k jkj',
             'unicode': u'éù',
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),

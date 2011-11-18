@@ -93,11 +93,9 @@ def oedit(obj, modal=True, namespace=None):
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
     elif isinstance(obj, (str, unicode)):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
-    elif isinstance(obj, (dict, tuple, list)):
+    else:
         dialog = DictEditor()
         dialog.setup(obj, title=obj_name, readonly=readonly)
-    else:
-        raise RuntimeError("Unsupported datatype")
     
     def end_func(dialog):
         return conv_func(dialog.get_value())
@@ -130,6 +128,11 @@ def test():
                'datetime': datetime.datetime(1945, 5, 8),
                }
     image = oedit(image)
+    class Foobar(object):
+        def __init__(self):
+            self.text = "toto"
+    foobar = Foobar()
+    print oedit(foobar)
     print oedit(example)
     print oedit(np.random.rand(10, 10))
     print oedit(oedit.__doc__)
