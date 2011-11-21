@@ -748,6 +748,8 @@ class FindInFilesWidget(QWidget):
         if options is None:
             return
         self.stop(ignore_results=True)
+        if self.search_thread is not None:
+            self.search_thread.setParent(None)
         self.search_thread = SearchThread(self)
         self.search_thread.get_pythonpath_callback = \
                                                 self.get_pythonpath_callback
@@ -769,6 +771,8 @@ class FindInFilesWidget(QWidget):
     def closing_widget(self):
         """Perform actions before widget is closed"""
         self.stop(ignore_results=True)
+        if self.search_thread is not None:
+            self.search_thread.setParent(None)
         self.search_thread = None
         
     def search_complete(self, completed):
@@ -776,6 +780,7 @@ class FindInFilesWidget(QWidget):
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
+        self.search_thread.setParent(None)
         self.search_thread = None
         if found is not None:
             results, pathlist, nb, error_flag = found

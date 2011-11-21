@@ -227,6 +227,7 @@ class ThreadManager(QObject):
                 if thread.isFinished():
                     end_callback = self.end_callbacks.pop(id(thread))
                     end_callback(thread.results)
+                    thread.setParent(None)
                     thread = None
                 else:
                     still_running.append(thread)
