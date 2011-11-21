@@ -233,19 +233,22 @@ class ThreadManager(QObject):
                     still_running.append(thread)
                     started += 1
             threadlist = None
-            self.started_threads[parent_id] = still_running
+            if still_running:
+                self.started_threads[parent_id] = still_running
+            else:
+                self.started_threads.pop(parent_id)
         if DEBUG:
             print >>STDOUT, "Updating queue:"
             print >>STDOUT, "    started:", started
             print >>STDOUT, "    pending:", len(self.pending_threads)
         if self.pending_threads and started < self.max_simultaneous_threads:
-                thread, parent_id = self.pending_threads.pop(0)
-                self.connect(thread, SIGNAL('finished()'), self.update_queue)
-                threadlist = self.started_threads.get(parent_id, [])
-                self.started_threads[parent_id] = threadlist+[thread]
-                if DEBUG:
-                    print >>STDOUT, "===>starting:", thread
-                thread.start()
+            thread, parent_id = self.pending_threads.pop(0)
+            self.connect(thread, SIGNAL('finished()'), self.update_queue)
+            threadlist = self.started_threads.get(parent_id, [])
+            self.started_threads[parent_id] = threadlist+[thread]
+            if DEBUG:
+                print >>STDOUT, "===>starting:", thread
+            thread.start()
 
 
 class FileInfo(QObject):
