@@ -68,7 +68,7 @@ div.section p {
     border: 1px solid #FF6 !important;
 }
 
-#notes h1, #examples h1, #methods h1, #usage h1 {
+#notes h1, #examples h1, #methods h1, #usage h1, #references h1 {
     background-color: #E6E6E6;
     border: 1px solid #CCC;
     color: #355F7C;
