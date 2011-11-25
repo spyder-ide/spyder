@@ -18,10 +18,12 @@ import spyderlib
 def create_executable():
     """Build executable using ``guidata.disthelpers``"""
     dist = Distribution()
-    dist.setup(name="Spyder", version=spyderlib.__version__,
+    name = "spyder"
+    ver = spyderlib.__version__
+    dist.setup(name="Spyder", version=ver, script="spyderlib/spyder.py",
                description=u"Scientific PYthon Development EnviRonment",
-               script="spyderlib/spyder.py",
-               target_name="spyder.exe", icon="spyder.ico")
+               target_name="%s.exe" % name, icon="%s.ico" % name,
+               target_dir="%s-win32-sa-%s" % (name, ver))
     spyderlib.add_to_distribution(dist)
     dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata')
     try:
@@ -37,7 +39,7 @@ def create_executable():
         dist.add_data_file("Spyderdoc.chm")
     dist.add_data_file(osp.join("rope", "base", "default_config.py"))
     # Building executable
-    dist.build('cx_Freeze')
+    dist.build('cx_Freeze', create_archive='move')
 
 
 if __name__ == '__main__':
