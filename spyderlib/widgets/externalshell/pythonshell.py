@@ -235,8 +235,12 @@ class ExternalPythonShell(ExternalShellBase):
                                              self.namespacebrowser)
         
     def set_autorefresh_timeout(self, interval):
-        communicate(self.introspection_socket,
-                    "set_monitor_timeout(%d)" % interval)
+        if self.introspection_socket is not None:
+            try:
+                communicate(self.introspection_socket,
+                            "set_monitor_timeout(%d)" % interval)
+            except socket.error:
+                pass
         
     def closeEvent(self, event):
         self.quit_monitor()
