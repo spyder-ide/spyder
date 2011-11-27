@@ -136,8 +136,7 @@ _ = get_translation("spyderlib")
 def get_supported_types():
     """Return a dictionnary containing types lists supported by the 
     namespace browser:
-    dict(picklable=picklable_types,
-         editableeditables_types)
+    dict(picklable=picklable_types, editable=editables_types)
          
     See:
     get_remote_data function in spyderlib/widgets/externalshell/monitor.py

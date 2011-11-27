@@ -69,8 +69,8 @@ def make_remote_view(data, settings, more_excluded_names=None):
     Make a remote view of dictionary *data*
     -> globals explorer
     """
-    from spyderlib.widgets.dicteditorutils import (get_type, get_size,
-                                              get_color_name, value_to_display)
+    from spyderlib.widgets.dicteditorutils import (get_human_readable_type,
+                                    get_size, get_color_name, value_to_display)
     assert all([name in REMOTE_SETTINGS for name in settings])
     data = get_remote_data(data, settings, mode='editable',
                            more_excluded_names=more_excluded_names)
@@ -79,7 +79,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
         view = value_to_display(value, truncate=settings['truncate'],
                                 minmax=settings['minmax'],
                                 collvalue=settings['collvalue'])
-        remote[key] = {'type':  get_type(value),
+        remote[key] = {'type':  get_human_readable_type(value),
                        'size':  get_size(value),
                        'color': get_color_name(value),
                        'view':  view}
