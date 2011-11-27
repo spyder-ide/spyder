@@ -156,10 +156,11 @@ def get_supported_types():
         pass
     return dict(picklable=picklable_types, editable=editable_types)
 
-# Max number of filter iterations for worskpace display:
-# (for workspace saving, itermax == -1, see Workspace.save)
-ITERMAX = -1 #XXX: To be adjusted if it takes too much to compute... 2, 3?
+# Variable explorer display / check all elements data types for sequences:
+# (when saving the variable explorer contents, check_all is True,
+#  see widgets/externalshell/namespacebrowser.py:NamespaceBrowser.save_data)
+CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
-EXCLUDED = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
-            'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
-            'Inf', 'Infinity']
+EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
+                  'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
+                  'Inf', 'Infinity', 'sctypes']

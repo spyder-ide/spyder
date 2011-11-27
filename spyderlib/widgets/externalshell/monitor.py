@@ -29,7 +29,7 @@ if DEBUG:
     logging.basicConfig(filename=get_conf_path('monitor_debug.log'),
                         level=logging.DEBUG)
 
-REMOTE_SETTINGS = ('itermax', 'exclude_private', 'exclude_uppercase',
+REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'exclude_capitalized', 'exclude_unsupported',
                    'excluded_names', 'truncate', 'minmax', 'collvalue',
                    'inplace', 'remote_editing', 'autorefresh')
@@ -48,15 +48,13 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * settings: variable explorer settings (dictionary)
         * mode (string): 'editable' or 'picklable'
         * more_excluded_names: additional excluded names (list)
-        * itermax: maximum iterations when walking in sequences
-          (dict, list, tuple)
     """
     from spyderlib.widgets.dicteditorutils import globalsfilter
     assert mode in SUPPORTED_TYPES.keys()
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
-    return globalsfilter(data, itermax=settings['itermax'],
+    return globalsfilter(data, check_all=settings['check_all'],
                          filters=tuple(SUPPORTED_TYPES[mode]),
                          exclude_private=settings['exclude_private'],
                          exclude_uppercase=settings['exclude_uppercase'],

@@ -22,7 +22,7 @@ from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
 
 # Local import
 from spyderlib.userconfig import UserConfig, get_home_dir, NoDefault
-from spyderlib.baseconfig import (SUBFOLDER, ITERMAX, EXCLUDED,
+from spyderlib.baseconfig import (SUBFOLDER, CHECK_ALL, EXCLUDED_NAMES,
                                   get_module_data_path, _)
 from spyderlib.utils import iofuncs, codeanalysis
 
@@ -204,8 +204,8 @@ DEFAULTS = [
               'shortcut': "Ctrl+Shift+V",
               'autorefresh': True,
               'autorefresh/timeout': 2000,
-              'itermax': ITERMAX,
-              'excluded_names': EXCLUDED,
+              'check_all': CHECK_ALL,
+              'excluded_names': EXCLUDED_NAMES,
               'exclude_private': True,
               'exclude_uppercase': True,
               'exclude_capitalized': False,
@@ -357,7 +357,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.1.2',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.2.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

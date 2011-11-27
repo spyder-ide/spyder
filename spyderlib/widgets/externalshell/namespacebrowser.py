@@ -53,7 +53,7 @@ class NamespaceBrowser(QWidget):
         self.setup_in_progress = None
         
         # Remote dict editor settings
-        self.itermax = None
+        self.check_all = None
         self.exclude_private = None
         self.exclude_uppercase = None
         self.exclude_capitalized = None
@@ -74,14 +74,15 @@ class NamespaceBrowser(QWidget):
         
         self.filename = None
             
-    def setup(self, itermax=None, exclude_private=None, exclude_uppercase=None,
-              exclude_capitalized=None, exclude_unsupported=None,
-              excluded_names=None, truncate=None, minmax=None, collvalue=None,
+    def setup(self, check_all=None, exclude_private=None,
+              exclude_uppercase=None, exclude_capitalized=None,
+              exclude_unsupported=None, excluded_names=None,
+              truncate=None, minmax=None, collvalue=None,
               remote_editing=None, inplace=None, autorefresh=None):
         """Setup the namespace browser"""
         assert self.shellwidget is not None
         
-        self.itermax = itermax
+        self.check_all = check_all
         self.exclude_private = exclude_private
         self.exclude_uppercase = exclude_uppercase
         self.exclude_capitalized = exclude_capitalized
@@ -178,8 +179,8 @@ class NamespaceBrowser(QWidget):
                                         icon=get_icon('fileimport.png'),
                                         triggered=self.import_data)
         self.save_button = create_toolbutton(self, text=_("Save data"),
-                                icon=get_icon('filesave.png'),
-                                triggered=lambda: self.save_data(self.filename))
+                            icon=get_icon('filesave.png'),
+                            triggered=lambda: self.save_data(self.filename))
         self.save_button.setEnabled(False)
         save_as_button = create_toolbutton(self,
                                            text=_("Save data as..."),
@@ -265,21 +266,21 @@ class NamespaceBrowser(QWidget):
         """Return socket connection"""
         return self.shellwidget.introspection_socket
     
-    def get_internal_shell_filter(self, mode, itermax=None):
+    def get_internal_shell_filter(self, mode, check_all=None):
         """
         Return internal shell data types filter:
-            * itermax: maximum iterations when walking in sequences
+            * check_all: check all elements data types for sequences
               (dict, list, tuple)
             * mode (string): 'editable' or 'picklable'
         """
         assert mode in SUPPORTED_TYPES.keys()
-        if itermax is None:
-            itermax = self.itermax
-        def wsfilter(input_dict, itermax=itermax,
+        if check_all is None:
+            check_all = self.check_all
+        def wsfilter(input_dict, check_all=check_all,
                      filters=tuple(SUPPORTED_TYPES[mode])):
             """Keep only objects that can be pickled"""
             return globalsfilter(
-                         input_dict, itermax=itermax, filters=filters,
+                         input_dict, check_all=check_all, filters=filters,
                          exclude_private=self.exclude_private,
                          exclude_uppercase=self.exclude_uppercase,
                          exclude_capitalized=self.exclude_capitalized,
@@ -314,7 +315,7 @@ class NamespaceBrowser(QWidget):
         if remote_view is not None:
             self.set_data(remote_view)
         
-    #------ Remote Python process commands -------------------------------------
+    #------ Remote Python process commands ------------------------------------
     def get_value(self, name):
         value = monitor_get_global(self._get_sock(), name)
         if value is None:
@@ -389,7 +390,7 @@ class NamespaceBrowser(QWidget):
                   "oedit('%s', modal=False, namespace=locals());" % name
         self.shellwidget.send_to_process(command)
         
-    #------ Set, load and save data --------------------------------------------
+    #------ Set, load and save data -------------------------------------------
     def set_data(self, data):
         """Set data"""
         if data != self.editor.model.get_data():
@@ -452,7 +453,7 @@ class NamespaceBrowser(QWidget):
                     else:
                         base_name = osp.basename(self.filename)
                         editor = ImportWizard(self, text, title=base_name,
-                                          varname=fix_reference_name(base_name))
+                                      varname=fix_reference_name(base_name))
                         if editor.exec_():
                             var_name, clip_data = editor.get_data()
                             monitor_set_global(self._get_sock(),
@@ -467,7 +468,7 @@ class NamespaceBrowser(QWidget):
                     interpreter = self.shellwidget.interpreter
                     for key in namespace.keys():
                         new_key = fix_reference_name(key,
-                                         blacklist=interpreter.namespace.keys())
+                                     blacklist=interpreter.namespace.keys())
                         if new_key != key:
                             namespace[new_key] = namespace.pop(key)
                     if error_message is None:
@@ -502,7 +503,8 @@ class NamespaceBrowser(QWidget):
         QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         QApplication.processEvents()
         if self.is_internal_shell:
-            wsfilter = self.get_internal_shell_filter('picklable', itermax=-1)
+            wsfilter = self.get_internal_shell_filter('picklable',
+                                                      check_all=True)
             namespace = wsfilter(self.shellwidget.interpreter.namespace).copy()
             error_message = iofunctions.save(namespace, filename)
         else:
