@@ -22,7 +22,7 @@ from spyderlib.qt.compat import getopenfilenames, getsavefilename
 from spyderlib.widgets.externalshell.monitor import (
             monitor_set_global, monitor_get_global, monitor_del_global,
             monitor_copy_global, monitor_save_globals, monitor_load_globals,
-            communicate, monitor_set_remote_view_settings)
+            communicate, REMOTE_SETTINGS)
 from spyderlib.widgets.dicteditor import (RemoteDictEditorTableView,
                                           DictEditorTableView)
 from spyderlib.widgets.dicteditorutils import globalsfilter
@@ -246,7 +246,9 @@ class NamespaceBrowser(QWidget):
         """Option has changed"""
         setattr(self, unicode(option), value)
         if not self.is_internal_shell:
-            monitor_set_remote_view_settings(self._get_sock(), self)
+            settings = self.get_view_settings()
+            communicate(self._get_sock(),
+                        'set_remote_view_settings()', settings=[settings])
         
     def visibility_changed(self, enable):
         """Notify the widget whether its container (the namespace browser 
@@ -287,6 +289,13 @@ class NamespaceBrowser(QWidget):
                          exclude_unsupported=self.exclude_unsupported,
                          excluded_names=self.excluded_names)
         return wsfilter
+
+    def get_view_settings(self):
+        """Return dict editor view settings"""
+        settings = {}
+        for name in REMOTE_SETTINGS:
+            settings[name] = getattr(self, name)
+        return settings
         
     def refresh_table(self):
         """Refresh variable table"""

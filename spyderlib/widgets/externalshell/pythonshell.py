@@ -28,8 +28,7 @@ from spyderlib.baseconfig import _, get_module_source_path
 from spyderlib.config import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
-from spyderlib.widgets.externalshell.monitor import (communicate, write_packet,
-                                             monitor_set_remote_view_settings)
+from spyderlib.widgets.externalshell.monitor import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
@@ -231,8 +230,9 @@ class ExternalPythonShell(ExternalShellBase):
     def set_introspection_socket(self, introspection_socket):
         self.introspection_socket = introspection_socket
         if self.namespacebrowser is not None:
-            monitor_set_remote_view_settings(introspection_socket,
-                                             self.namespacebrowser)
+            settings = self.namespacebrowser.get_view_settings()
+            communicate(introspection_socket,
+                        'set_remote_view_settings()', settings=[settings])
         
     def set_autorefresh_timeout(self, interval):
         if self.introspection_socket is not None:

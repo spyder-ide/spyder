@@ -34,13 +34,6 @@ REMOTE_SETTINGS = ('check_all', 'exclude_private', 'exclude_uppercase',
                    'excluded_names', 'truncate', 'minmax', 'collvalue',
                    'inplace', 'remote_editing', 'autorefresh')
 
-def monitor_set_remote_view_settings(sock, namespacebrowser):
-    """Set monitor's remote view settings from namespacebrowser instance"""
-    settings = {}
-    for name in REMOTE_SETTINGS:
-        settings[name] = getattr(namespacebrowser, name)
-    communicate(sock, '__set_remote_view_settings__()', settings=[settings])
-
 def get_remote_data(data, settings, mode, more_excluded_names=None):
     """
     Return globals according to filter described in *settings*:
@@ -165,7 +158,7 @@ class Monitor(threading.Thread):
                        "toggle_inputhook_flag": self.toggle_inputhook_flag,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
-                       "__set_remote_view_settings__":
+                       "set_remote_view_settings":
                                                 self.set_remote_view_settings,
                        "__get_dir__": self.get_dir,
                        "__iscallable__": self.iscallable,
