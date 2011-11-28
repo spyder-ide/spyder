@@ -704,7 +704,8 @@ class FindInFilesWidget(QWidget):
                                         supported_encodings, in_python_path,
                                         more_options)
         self.connect(self.find_options, SIGNAL('find()'), self.find)
-        self.connect(self.find_options, SIGNAL('stop()'), self.stop)
+        self.connect(self.find_options, SIGNAL('stop()'),
+                     self.stop_and_reset_thread)
         
         self.result_browser = ResultsBrowser(self)
         
@@ -747,10 +748,7 @@ class FindInFilesWidget(QWidget):
         options = self.find_options.get_options()
         if options is None:
             return
-        self.stop(ignore_results=True)
-        if self.search_thread is not None:
-            self.search_thread.setParent(None)
-            self.search_thread = None
+        self.stop_and_reset_thread(ignore_results=True)
         self.search_thread = SearchThread(self)
         self.search_thread.get_pythonpath_callback = \
                                                 self.get_pythonpath_callback
@@ -761,29 +759,29 @@ class FindInFilesWidget(QWidget):
         self.find_options.ok_button.setEnabled(False)
         self.find_options.stop_button.setEnabled(True)
             
-    def stop(self, ignore_results=False):
+    def stop_and_reset_thread(self, ignore_results=False):
         """Stop current search thread and clean-up"""
-        if self.search_thread is not None and self.search_thread.isRunning():
-            if ignore_results:
-                self.disconnect(self.search_thread, SIGNAL("finished(bool)"),
-                                self.search_complete)
-            self.search_thread.stop()
-            self.search_thread.wait()
+        if self.search_thread is not None:
+            if self.search_thread.isRunning():
+                if ignore_results:
+                    self.disconnect(self.search_thread,
+                                    SIGNAL("finished(bool)"),
+                                    self.search_complete)
+                self.search_thread.stop()
+                self.search_thread.wait()
+            self.search_thread.setParent(None)
+            self.search_thread = None
         
     def closing_widget(self):
         """Perform actions before widget is closed"""
-        self.stop(ignore_results=True)
-        if self.search_thread is not None:
-            self.search_thread.setParent(None)
-        self.search_thread = None
+        self.stop_and_reset_thread(ignore_results=True)
         
     def search_complete(self, completed):
         """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
         found = self.search_thread.get_results()
-        self.search_thread.setParent(None)
-        self.search_thread = None
+        self.stop_and_reset_thread()
         if found is not None:
             results, pathlist, nb, error_flag = found
             search_text = unicode( self.find_options.search_text.currentText() )

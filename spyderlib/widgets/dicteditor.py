@@ -32,10 +32,10 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
-                   get_type, value_to_display, get_color_name, is_known_type,
-                   FakeObject, Image, ndarray, array, unsorted_unique,
-                   try_to_eval, datestr_to_datetime, get_numpy_dtype,
-                   is_editable_type)
+                   get_human_readable_type, value_to_display, get_color_name,
+                   is_known_type, FakeObject, Image, ndarray, array,
+                   unsorted_unique, try_to_eval, datestr_to_datetime,
+                   get_numpy_dtype, is_editable_type)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
@@ -166,7 +166,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
         else:
             self.sizes = [ get_size(data[self.keys[index]])
                            for index in range(len(self.keys)) ]
-            self.types = [ get_type(data[self.keys[index]])
+            self.types = [ get_human_readable_type(data[self.keys[index]])
                            for index in range(len(self.keys)) ]
         self.reset()
 
@@ -301,7 +301,7 @@ class DictModel(ReadOnlyDictModel):
         self._data[ self.keys[index.row()] ] = value
         self.showndata[ self.keys[index.row()] ] = value
         self.sizes[index.row()] = get_size(value)
-        self.types[index.row()] = get_type(value)
+        self.types[index.row()] = get_human_readable_type(value)
 
     def get_bgcolor(self, index):
         """Background color depending on value"""

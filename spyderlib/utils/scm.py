@@ -16,10 +16,10 @@ from spyderlib.utils import programs
 
 SCM_INFOS = {
              '.hg':  dict(name="Mercurial",
-                          commit=( ('hgtk', ['commit']),
-                                   ('thg', ['commit']) ),
-                          browse=( ('hgtk', ['log']),
-                                   ('thg', ['log']) )
+                          commit=( ('thg', ['commit']),
+                                   ('hgtk', ['commit']) ),
+                          browse=( ('thg', ['log']),
+                                   ('hgtk', ['log']) )
                           ),
              '.git': dict(name="git",
                           commit=( ('gitk', []), ),

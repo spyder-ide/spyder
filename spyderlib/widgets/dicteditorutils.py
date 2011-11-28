@@ -99,18 +99,18 @@ def get_color_name(value):
             return name
     else:
         np_dtype = get_numpy_dtype(value)
-        if np_dtype is not None:
-            if value.size == 1:
-                return SCALAR_COLOR
-            else:
-                return ARRAY_COLOR
-        else:
+        if np_dtype is None:
             return UNSUPPORTED_COLOR
+        elif value.size == 1:
+            return SCALAR_COLOR
+        else:
+            return ARRAY_COLOR
 
 def is_editable_type(value):
     """Return True if data type is editable with a standard GUI-based editor,
     like DictEditor, ArrayEditor, QDateEdit or a simple QLineEdit"""
     return get_color_name(value) not in (UNSUPPORTED_COLOR, CUSTOM_TYPE_COLOR)
+
 
 #----Sorting
 def sort_against(lista, listb, reverse=False):
@@ -122,6 +122,7 @@ def unsorted_unique(lista):
     set = {}
     map(set.__setitem__,lista,[])
     return set.keys()
+
 
 #----Display <--> Value
 def value_to_display(value, truncate=False,
@@ -168,47 +169,54 @@ def get_size(item):
 
 def get_type_string(item):
     """Return type string of an object"""
-    if isinstance(item, ndarray):
-        return item.dtype.name
-    elif isinstance(item, Image):
-        return "Image"
-    else:
-        found = re.findall(r"<type '([\S]*)'>", str(type(item)))
-        if found:
-            return found[0]
-
-def get_type(item):
-    """Return type of an item"""
-    text = get_type_string(item)
-    if text is None:
-        text = unicode('unknown')
-    return text[text.find('.')+1:]
+    found = re.findall(r"<type '([\S]*)'>", str(type(item)))
+    if found:
+        return found[0]
 
 def is_known_type(item):
     """Return True if object has a known type"""
     return get_type_string(item) is not None
 
+def get_human_readable_type(item):
+    """Return human-readable type string of an item"""
+    if isinstance(item, ndarray):
+        return item.dtype.name
+    elif isinstance(item, Image):
+        return "Image"
+    else:
+        text = get_type_string(item)
+        if text is None:
+            text = unicode('unknown')
+        else:
+            return text[text.find('.')+1:]
+
 
 #----Globals filter: filter namespace dictionaries (to be edited in DictEditor)
-def is_supported(value, iter=0, itermax=-1, filters=None):
+def is_supported(value, check_all=False, filters=None, iterate=True):
     """Return True if the value is supported, False otherwise"""
     assert filters is not None
-    if iter == itermax:
-        return True
+    if not is_editable_type(value):
+        return False
     elif not isinstance(value, filters):
         return False
-    elif isinstance(value, (list, tuple, set)):
-        for val in value:
-            if not is_supported(val, iter+1, filters=filters):
-                return False
-    elif isinstance(value, dict):
-        for key, val in value.iteritems():
-            if not is_supported(key, iter+1, filters=filters) \
-               or not is_supported(val, iter+1, filters=filters):
-                return False
+    elif iterate:
+        if isinstance(value, (list, tuple, set)):
+            for val in value:
+                if not is_supported(val, filters=filters, iterate=check_all):
+                    return False
+                if not check_all:
+                    break
+        elif isinstance(value, dict):
+            for key, val in value.iteritems():
+                if not is_supported(key, filters=filters, iterate=check_all) \
+                   or not is_supported(val, filters=filters,
+                                       iterate=check_all):
+                    return False
+                if not check_all:
+                    break
     return True
 
-def globalsfilter(input_dict, itermax=-1, filters=None,
+def globalsfilter(input_dict, check_all=False, filters=None,
                   exclude_private=None, exclude_capitalized=None,
                   exclude_uppercase=None, exclude_unsupported=None,
                   excluded_names=None):
@@ -221,8 +229,8 @@ def globalsfilter(input_dict, itermax=-1, filters=None,
                     and len(key) > 1 and not key[1:].isdigit()) or \
                    (key in excluded_names) or \
                    (exclude_unsupported and \
-                    not is_supported(value, itermax=itermax, filters=filters))
+                    not is_supported(value, check_all=check_all,
+                                     filters=filters))
         if not excluded:
             output_dict[key] = value
     return output_dict
-
