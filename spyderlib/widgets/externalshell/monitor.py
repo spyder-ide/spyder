@@ -173,6 +173,7 @@ class Monitor(threading.Thread):
                        "__save_globals__": self.saveglobals,
                        "__load_globals__": self.loadglobals,
                        "_" : None}
+        self._mglobals = None
 
     @property
     def pdb_frame(self):
@@ -201,8 +202,29 @@ class Monitor(threading.Thread):
         if self.pdb_frame is not None:
             return self.pdb_frame.f_globals
         else:
-            from __main__ import __dict__ as namespace
-            return namespace
+            if self._mglobals is None:
+                from __main__ import __dict__ as glbs
+                self._mglobals = glbs
+            else:
+                glbs = self._mglobals
+            if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
+                self.ipython_kernel = glbs['__ipythonkernel__']
+                argv = ['--existing'] +\
+                       ['--%s=%d' % (name, port) for name, port
+                        in self.ipython_kernel.ports.items()]
+                opts = ' '.join(argv)
+                communicate(self.n_request,
+                            dict(command="ipython_kernel", data=opts))
+            if self.ipython_shell is None and '__ipythonshell__' in glbs:
+                # IPython >=v0.11
+                self.ipython_shell = glbs['__ipythonshell__']
+                if not hasattr(self.ipython_shell, 'user_ns'):
+                    # IPython v0.10
+                    self.ipython_shell = self.ipython_shell.IP
+                self.ipython_shell.modcompletion = moduleCompletion
+                glbs = self.ipython_shell.user_ns
+            self._mglobals = glbs
+            return glbs
     
     def get_current_namespace(self):
         """Return current namespace, i.e. globals() if not debugging,
@@ -513,22 +535,6 @@ class Monitor(threading.Thread):
                     if DEBUG:
                         logging.debug("struct.error -> quitting monitor")
                     break
-                if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
-                    self.ipython_kernel = glbs['__ipythonkernel__']
-                    argv = ['--existing'] +\
-                           ['--%s=%d' % (name, port) for name, port
-                            in self.ipython_kernel.ports.items()]
-                    opts = ' '.join(argv)
-                    communicate(self.n_request,
-                                dict(command="ipython_kernel", data=opts))
-                if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                    # IPython >=v0.11
-                    self.ipython_shell = glbs['__ipythonshell__']
-                    if not hasattr(self.ipython_shell, 'user_ns'):
-                        # IPython v0.10
-                        self.ipython_shell = self.ipython_shell.IP
-                    self.ipython_shell.modcompletion = moduleCompletion
-                    glbs = self.ipython_shell.user_ns
                 if timed_out:
                     if DEBUG:
                         logging.debug("connection timed out -> updating remote view")
