@@ -1339,11 +1339,12 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>%s %s</b>
             <br>Scientific PYthon Development EnviRonment
-            <p>Copyright &copy; 2009-2010 Pierre Raybaut
+            <p>Copyright &copy; 2009-2011 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
-            <p>Created, developed and maintained by Pierre Raybaut
-            <br>Many thanks to Christopher Brown, Alexandre Radicchi,
-            Ludovic Aubry and all the Spyder beta-testers and regular users.
+            <p>Created by Pierre Raybaut
+            <br>Developed and maintained by the 
+            <a href="%s/people/list">Spyder Development Team</a>
+            <br>Many thanks to all the Spyder beta-testers and regular users.
             <p>Source code editor: Python code real-time analysis is powered by 
             %spyflakes %s%s (&copy; 2005 
             <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
@@ -1360,7 +1361,7 @@ class MainWindow(QMainWindow):
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %s, Qt %s, %s %s on %s"""
-            % ("Spyder", __version__,
+            % ("Spyder", __version__, __project_url__,
                  "<span style=\'color: #444444\'><b>",
                  pyflakes_version,
                  "</b></span>",
