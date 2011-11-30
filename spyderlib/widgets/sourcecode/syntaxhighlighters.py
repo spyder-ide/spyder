@@ -358,7 +358,7 @@ class PythonSH(BaseSH):
                     else:
                         self.setFormat(start, end-start, self.formats[key])
                         if key == "comment":
-                            if re.match(r'^#--[-]+[\ -]*?[^- ]+',
+                            if re.match(r'^# ?--[-]+[\ -]*?[^- ]+',
                                         text.lstrip()):
                                 oedata = OutlineExplorerData()
                                 oedata.text = unicode(text).strip()
