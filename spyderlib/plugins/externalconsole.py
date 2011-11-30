@@ -180,7 +180,13 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                               'open_python_at_startup')
         ipystartup_box = newcb(_("Open an IPython interpreter at startup"),
                                'open_ipython_at_startup')
-        ipystartup_box.setEnabled(ipython_is_installed)
+        is_ipython_010 = programs.is_module_installed('IPython', '0.10')
+        ipystartup_box.setEnabled(is_ipython_010)
+        if not is_ipython_010:
+            ipystartup_box.setToolTip(
+                        _("This option is not available for IPython\n"
+                          "versions which are not fully supported\n"
+                          "through Spyder's console (i.e. IPython v0.11+)."))
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
