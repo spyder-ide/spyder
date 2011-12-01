@@ -54,7 +54,7 @@ def start_file(filename):
     from spyderlib.qt.QtGui import QDesktopServices
     from spyderlib.qt.QtCore import QUrl
     url = QUrl()
-    url.setPath(filename)
+    url.setUrl(filename)
     return QDesktopServices.openUrl(url)
 
 
