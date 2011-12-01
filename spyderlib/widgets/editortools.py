@@ -522,7 +522,9 @@ class OutlineExplorerWidget(QWidget):
         restore_btn.setDefaultAction(self.treewidget.restore_action)
         return (fromcursor_btn, collapse_btn, expand_btn, restore_btn)
         
-    def set_current_editor(self, editor, fname, update):
+    def set_current_editor(self, editor, fname, update, clear):
+        if clear:
+            self.treewidget.remove_editor()
         if editor.highlighter is not None:
             self.treewidget.set_current_editor(editor, fname, update)
         

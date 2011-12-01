@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2011 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -12,11 +12,11 @@
 # pylint: disable=R0201
 
 from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont, QAction,
-                                QApplication, QWidget, QHBoxLayout, QLabel,
-                                QKeySequence, QShortcut, QMainWindow, QSplitter,
-                                QListWidget, QListWidgetItem, QDialog,
-                                QLineEdit)
+from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
+                                QAction, QApplication, QWidget, QHBoxLayout,
+                                QLabel, QKeySequence, QShortcut, QMainWindow,
+                                QSplitter, QListWidget, QListWidgetItem,
+                                QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer)
 from spyderlib.qt.compat import getsavefilename
@@ -29,8 +29,9 @@ from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, get_font, EDIT_FILTERS, EDIT_EXT
-from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
-                                       get_filetype_icon, create_toolbutton)
+from spyderlib.utils.qthelpers import (create_action, add_actions,
+                                       mimedata2url, get_filetype_icon,
+                                       create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
@@ -128,7 +129,8 @@ class FileListDialog(QDialog):
         if count == 0:
             self.accept()
             return
-        self.listwidget.setTextElideMode(Qt.ElideMiddle if self.fullpath_sorting
+        self.listwidget.setTextElideMode(Qt.ElideMiddle
+                                         if self.fullpath_sorting
                                          else Qt.ElideRight)
         current_row = self.listwidget.currentRow()
         if current_row >= 0:
@@ -358,7 +360,8 @@ class FileInfo(QObject):
             self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
                       obj_fullname, doc_text, not auto)
         if signatures:
-            signatures = ['<b>'+s.replace('(', '(</b>').replace(')', '<b>)</b>')
+            signatures = ['<b>'+s.replace('(', '(</b>'
+                                          ).replace(')', '<b>)</b>')
                           for s in signatures]
             self.editor.show_calltip(obj_fullname, '<br>'.join(signatures),
                                      at_position=position)
@@ -625,7 +628,8 @@ class EditorStack(QWidget):
         self.tabs = BaseTabs(self, menu=self.menu, menu_use_tooltips=True,
                              corner_widgets=corner_widgets)
         self.tabs.set_close_function(self.close_file)
-        if hasattr(self.tabs, 'setDocumentMode') and not sys.platform == 'darwin':
+        if hasattr(self.tabs, 'setDocumentMode') \
+           and not sys.platform == 'darwin':
             self.tabs.setDocumentMode(True)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.current_changed)
@@ -1095,19 +1099,19 @@ class EditorStack(QWidget):
     def __get_split_actions(self):
         # New window
         self.newwindow_action = create_action(self, _("New window"),
-                    icon="newwindow.png", tip=_("Create a new editor window"),
-                    triggered=lambda: self.emit(SIGNAL("create_new_window()")))
+                icon="newwindow.png", tip=_("Create a new editor window"),
+                triggered=lambda: self.emit(SIGNAL("create_new_window()")))
         # Splitting
         self.versplit_action = create_action(self, _("Split vertically"),
-                    icon="versplit.png",
-                    tip=_("Split vertically this editor window"),
-                    triggered=lambda: self.emit(SIGNAL("split_vertically()")))
+                icon="versplit.png",
+                tip=_("Split vertically this editor window"),
+                triggered=lambda: self.emit(SIGNAL("split_vertically()")))
         self.horsplit_action = create_action(self, _("Split horizontally"),
-                    icon="horsplit.png",
-                    tip=_("Split horizontally this editor window"),
-                    triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
+                icon="horsplit.png",
+                tip=_("Split horizontally this editor window"),
+                triggered=lambda: self.emit(SIGNAL("split_horizontally()")))
         self.close_action = create_action(self, _("Close this panel"),
-                    icon="close_panel.png", triggered=self.close)
+                icon="close_panel.png", triggered=self.close)
         return [None, self.newwindow_action, None, 
                 self.versplit_action, self.horsplit_action, self.close_action]
         
@@ -1155,10 +1159,9 @@ class EditorStack(QWidget):
         
     #------ Close file, tabwidget...
     def close_file(self, index=None, force=False):
-        """
-        Close file (index=None -> close current file)
-        Keep current file index unchanged (if current file that is being closed)
-        """
+        """Close file (index=None -> close current file)
+        Keep current file index unchanged (if current file 
+        that is being closed)"""
         current_index = self.get_stack_index()
         count = self.get_stack_count()
         if index is None:
@@ -1268,7 +1271,8 @@ class EditorStack(QWidget):
             self.remove_trailing_spaces(index)
         txt = unicode(finfo.editor.get_text_with_eol())
         try:
-            finfo.encoding = encoding.write(txt, finfo.filename, finfo.encoding)
+            finfo.encoding = encoding.write(txt, finfo.filename,
+                                            finfo.encoding)
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
@@ -1278,11 +1282,11 @@ class EditorStack(QWidget):
             self.analyze_script(index)
             codeeditor.validate_rope_project()
             
-            #XXX CodeEditor-only: re-scan the whole text to rebuild outline explorer 
-            #    data from scratch (could be optimized because rehighlighting
-            #    text means searching for all syntax coloring patterns instead 
-            #    of only searching for class/def patterns which would be 
-            #    sufficient for outline explorer data.
+            #XXX CodeEditor-only: re-scan the whole text to rebuild outline 
+            # explorer data from scratch (could be optimized because 
+            # rehighlighting text means searching for all syntax coloring 
+            # patterns instead of only searching for class/def patterns which 
+            # would be sufficient for outline explorer data.
             finfo.editor.rehighlight()
             
             self._refresh_outlineexplorer(index)
@@ -1454,7 +1458,7 @@ class EditorStack(QWidget):
             if fwidget is finfo.editor:
                 self.refresh()
         
-    def _refresh_outlineexplorer(self, index=None, update=True):
+    def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
         """Refresh outline explorer panel"""
         oe = self.outlineexplorer
         if oe is None:
@@ -1473,7 +1477,7 @@ class EditorStack(QWidget):
                 enable = True
                 oe.setEnabled(True)
                 oe.set_current_editor(finfo.editor, finfo.filename,
-                                      update=update)
+                                      update=update, clear=clear)
         if not enable:
             oe.setEnabled(False)
             
@@ -1612,7 +1616,7 @@ class EditorStack(QWidget):
         finfo.editor.document().setModified(False)
         finfo.editor.set_cursor_position(position)
         codeeditor.validate_rope_project()
-        self._refresh_outlineexplorer(index, update=True)
+        self._refresh_outlineexplorer(index, update=True, clear=True)
         
     def revert(self):
         """Revert file from disk"""
@@ -1965,9 +1969,9 @@ class EditorSplitter(QSplitter):
             editor.setFocus()
 
 
-#===============================================================================
+#==============================================================================
 # Status bar widgets
-#===============================================================================
+#==============================================================================
 class StatusBarWidget(QWidget):
     def __init__(self, parent, statusbar):
         QWidget.__init__(self, parent)
@@ -2097,7 +2101,8 @@ class EditorWidget(QSplitter):
 
         # Refreshing outline explorer
         for index in range(editorsplitter.editorstack.get_stack_count()):
-            editorsplitter.editorstack._refresh_outlineexplorer(index, update=True)
+            editorsplitter.editorstack._refresh_outlineexplorer(index,
+                                                                update=True)
         
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
