@@ -4,7 +4,12 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Outline Explorer Plugin"""
+"""Outline Explorer Plugin
+
+Data for outline are provided by method .get_outlineexplorer_data() of
+highlighter of assigned editor. For example, for Python files code editor uses
+highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
+"""
 
 from spyderlib.qt.QtCore import SIGNAL, Signal
 
