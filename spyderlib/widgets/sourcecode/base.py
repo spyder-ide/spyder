@@ -1170,7 +1170,8 @@ class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):
     def set_style(self):
         """
         Set font style with the following attributes:
-        'foreground_color', 'background_color', 'italic', 'bold' and 'underline'
+        'foreground_color', 'background_color', 'italic',
+        'bold' and 'underline'
         """
         if self.current_format is None:
             assert self.base_format is not None

@@ -97,6 +97,14 @@ class ANSIEscapeCodeHandler(object):
             self.background_color = self.default_background_color
         self.set_style()
         
+    def set_style(self):
+        """
+        Set font style with the following attributes:
+        'foreground_color', 'background_color', 'italic',
+        'bold' and 'underline'
+        """
+        raise NotImplementedError
+        
     def reset(self):
         self.current_format = None
         self.intensity = 0

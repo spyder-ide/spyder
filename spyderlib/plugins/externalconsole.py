@@ -71,12 +71,26 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                'merge_output_channels',
                tip=_("Merging the output channels of the process means that\n"
                      "the standard error won't be written in red anymore,\n"
-                     "but this has the effect of speeding up display."))
+                     "but this has the effect of speeding up display.\n\n"
+                     "This option has no effect on IPython."))
+        colorize_sys_stderr_box = newcb(
+               _("Colorize standard error channel using ANSI escape codes"),
+               'colorize_sys_stderr',
+               tip=_("This method is the only way to have colorized standard\n"
+                     "error channel when the output channels have been "
+                     "merged.\n\nThis option has no effect on IPython."))
+        self.connect(merge_channels_box, SIGNAL("toggled(bool)"),
+                     colorize_sys_stderr_box.setEnabled)
+        self.connect(merge_channels_box, SIGNAL("toggled(bool)"),
+                     colorize_sys_stderr_box.setChecked)
+        colorize_sys_stderr_box.setEnabled(
+                                    self.get_option('merge_output_channels'))
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(buffer_spin)
         display_layout.addWidget(wrap_mode_box)
         display_layout.addWidget(merge_channels_box)
+        display_layout.addWidget(colorize_sys_stderr_box)
         display_group.setLayout(display_layout)
         
         # Background Color Group
@@ -633,6 +647,7 @@ class ExternalConsole(SpyderPluginWidget):
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
+            colorize_sys_stderr = self.get_option('colorize_sys_stderr')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
@@ -659,6 +674,7 @@ class ExternalConsole(SpyderPluginWidget):
                            replace_pyqt_inputhook=replace_pyqt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
                            merge_output_channels=merge_output_channels,
+                           colorize_sys_stderr=colorize_sys_stderr,
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,
                            light_background=light_background,

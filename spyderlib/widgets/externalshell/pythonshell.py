@@ -154,7 +154,7 @@ class ExternalPythonShell(ExternalShellBase):
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend=None, ets_backend='qt4', pyqt_api=0,
                  replace_pyqt_inputhook=True, ignore_sip_setapi_errors=False,
-                 merge_output_channels=False,
+                 merge_output_channels=False, colorize_sys_stderr=False,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
@@ -178,6 +178,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.replace_pyqt_inputhook = replace_pyqt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
+        self.colorize_sys_stderr = colorize_sys_stderr
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -432,6 +433,7 @@ The process may not exit as a result of clicking this button
         if self.mpl_backend:
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
         env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
+        env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
 #        if self.replace_pyqt_inputhook:
 #            from PyQt4.QtNetwork import QLocalServer

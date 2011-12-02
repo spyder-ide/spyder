@@ -4,6 +4,34 @@
 import sys
 import os
 import os.path as osp
+import re
+
+
+# Colorization of sys.stderr (standard Python interpreter)
+if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true"\
+   and not os.environ.get('IPYTHON', False):
+    class StderrProxy(object):
+        """Proxy to sys.stderr file object overriding only the `write` method 
+        to provide red colorization for the whole stream, and blue-underlined 
+        for traceback file links""" 
+        def __init__(self):
+            self.old_stderr = sys.stderr
+            sys.stderr = self
+        
+        def __getattr__(self, name):
+            return getattr(self.old_stderr, name)
+            
+        def write(self, text):
+            for text in text.splitlines(True):
+                if re.match(r'  File \"[^\<]', text):
+                    # Show error links in blue underlined text
+                    colored_text = '  '+'\x1b[4;34m'+text[2:]+'\x1b[0m'
+                else:
+                    # Show error messages in red
+                    colored_text = '\x1b[31m'+text+'\x1b[0m'
+                self.old_stderr.write(colored_text)
+    
+    stderrproxy = StderrProxy()
 
 
 # Prepending this spyderlib package's path to sys.path to be sure 
