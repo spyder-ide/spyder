@@ -155,16 +155,17 @@ else:
             # Refreshing variable explorer, except on first input hook call:
             # (otherwise, on slow machines, this may freeze Spyder)
             monitor.refresh_from_inputhook()
-            try:
-                # This call fails for Python without readline support
-                # (or on Windows platforms) when PyOS_InputHook is called
-                # for the second consecutive time, because the 100-bytes
-                # stdin buffer is full.
-                # For more details, see the `PyOS_StdioReadline` function
-                # in Python source code (Parser/myreadline.c)
-                sys.stdin.tell()
-            except IOError:
-                return 0
+            if os.name == 'nt':
+                try:
+                    # This call fails for Python without readline support
+                    # (or on Windows platforms) when PyOS_InputHook is called
+                    # for the second consecutive time, because the 100-bytes
+                    # stdin buffer is full.
+                    # For more details, see the `PyOS_StdioReadline` function
+                    # in Python source code (Parser/myreadline.c)
+                    sys.stdin.tell()
+                except IOError:
+                    return 0
             app = QtCore.QCoreApplication.instance()
             if app and app.thread() is QtCore.QThread.currentThread():
                 timer = QtCore.QTimer()
