@@ -154,6 +154,7 @@ class ExternalPythonShell(ExternalShellBase):
                  monitor_enabled=True, mpl_patch_enabled=True,
                  mpl_backend=None, ets_backend='qt4', pyqt_api=0,
                  replace_pyqt_inputhook=True, ignore_sip_setapi_errors=False,
+                 merge_output_channels=False,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
@@ -176,6 +177,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.pyqt_api = pyqt_api
         self.replace_pyqt_inputhook = replace_pyqt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
+        self.merge_output_channels = merge_output_channels
         self.umd_enabled = umd_enabled
         self.umd_namelist = umd_namelist
         self.umd_verbose = umd_verbose
@@ -369,7 +371,7 @@ The process may not exit as a result of clicking this button
         self.shell.clear()
             
         self.process = QProcess(self)
-        if self.is_ipython_shell:
+        if self.merge_output_channels or self.is_ipython_shell:
             self.process.setProcessChannelMode(QProcess.MergedChannels)
         else:
             self.process.setProcessChannelMode(QProcess.SeparateChannels)

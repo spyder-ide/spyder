@@ -198,6 +198,7 @@ DEFAULTS = [
               'umd/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
               'ipython_set_color': True,
+              'merge_output_channels': False,
               }),
             ('variable_explorer',
              {

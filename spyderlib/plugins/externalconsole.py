@@ -66,10 +66,17 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             'max_line_count', min_=0, max_=1000000, step=100,
                             tip=_("Set maximum line count"))
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
+        merge_channels_box = newcb(
+               _("Merge process standard output/error channels"),
+               'merge_output_channels',
+               tip=_("Merging the output channels of the process means that\n"
+                     "the standard error won't be written in red anymore,\n"
+                     "but this has the effect of speeding up display."))
         
         display_layout = QVBoxLayout()
         display_layout.addWidget(buffer_spin)
         display_layout.addWidget(wrap_mode_box)
+        display_layout.addWidget(merge_channels_box)
         display_group.setLayout(display_layout)
         
         # Background Color Group
@@ -625,6 +632,7 @@ class ExternalConsole(SpyderPluginWidget):
                                                      os.name == 'nt')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
+            merge_output_channels = self.get_option('merge_output_channels')
             umd_enabled = self.get_option('umd/enabled')
             umd_namelist = self.get_option('umd/namelist')
             umd_verbose = self.get_option('umd/verbose')
@@ -650,6 +658,7 @@ class ExternalConsole(SpyderPluginWidget):
                            mpl_backend=mpl_backend, pyqt_api=pyqt_api,
                            replace_pyqt_inputhook=replace_pyqt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
+                           merge_output_channels=merge_output_channels,
                            autorefresh_timeout=ar_timeout,
                            autorefresh_state=ar_state,
                            light_background=light_background,
