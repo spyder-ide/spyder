@@ -524,7 +524,7 @@ class OutlineExplorerWidget(QWidget):
         
     def set_current_editor(self, editor, fname, update, clear):
         if clear:
-            self.treewidget.remove_editor()
+            self.remove_editor(editor)
         if editor.highlighter is not None:
             self.treewidget.set_current_editor(editor, fname, update)
         
