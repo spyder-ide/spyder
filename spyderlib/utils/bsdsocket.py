@@ -6,11 +6,15 @@
 
 """BSD socket interface communication utilities"""
 
-import socket, struct, cPickle as pickle
+import socket
+import struct
+import cPickle as pickle
+import threading
 
 
 SZ = struct.calcsize("l")
-    
+
+
 def write_packet(sock, data, already_pickled=False):
     """Write *data* to socket *sock*"""
     if already_pickled:
@@ -18,6 +22,7 @@ def write_packet(sock, data, already_pickled=False):
     else:
         sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
     sock.send(struct.pack("l", len(sent_data)) + sent_data)
+
 
 def read_packet(sock, timeout=None):
     """
@@ -44,17 +49,33 @@ def read_packet(sock, timeout=None):
         except (EOFError, pickle.UnpicklingError):
             return
 
-# old com implementation: (see solution (1) in Issue 434)
+
+# Using a lock object to avoid communication issues described in Issue 857:
+# http://code.google.com/p/spyderlib/issues/detail?id=857
+COMMUNICATE_LOCK = threading.Lock()
+
+# * Old com implementation *
+# See solution (1) in Issue 434:
+# http://code.google.com/p/spyderlib/issues/detail?id=434#c13
 def communicate(sock, command, settings=[]):
-## new com implementation: (see solution (2) in Issue 434)
-#def communicate(sock, command, settings=[], timeout=None):
     """Communicate with monitor"""
-    write_packet(sock, command)
-    for option in settings:
-        write_packet(sock, option)
-    # old com implementation: (see solution (1) in Issue 434)
-    return read_packet(sock)
-#    # new com implementation: (see solution (2) in Issue 434)
+    try:
+        COMMUNICATE_LOCK.acquire()
+        write_packet(sock, command)
+        for option in settings:
+            write_packet(sock, option)
+        return read_packet(sock)
+    finally:
+        COMMUNICATE_LOCK.release()
+
+## new com implementation:
+## See solution (2) in Issue 434:
+## http://code.google.com/p/spyderlib/issues/detail?id=434#c13
+#def communicate(sock, command, settings=[], timeout=None):
+#    """Communicate with monitor"""
+#    write_packet(sock, command)
+#    for option in settings:
+#        write_packet(sock, option)
 #    if timeout == 0.:
 #        # non blocking socket is not really supported:
 #        # setting timeout to 0. here is equivalent (in current monitor's 
@@ -72,6 +93,7 @@ def communicate(sock, command, settings=[]):
 #            logging.debug("was expecting '%s', received '%s'" \
 #                          % (command, output_command))
 #            logging.debug("###### communicate/warning /End   ######")
+
 
 class PacketNotReceived(object):
     pass
