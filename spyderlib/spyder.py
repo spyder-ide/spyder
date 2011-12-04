@@ -1256,11 +1256,9 @@ class MainWindow(QMainWindow):
         self.maximize_action.setToolTip(tip)
         
     def maximize_dockwidget(self, restore=False):
-        """
-        Shortcut: Ctrl+Alt+Shift+M
+        """Shortcut: Ctrl+Alt+Shift+M
         First call: maximize current dockwidget
-        Second call (or restore=True): restore original window layout
-        """
+        Second call (or restore=True): restore original window layout"""
         if self.state_before_maximizing is None:
             if restore:
                 return
@@ -1279,6 +1277,11 @@ class MainWindow(QMainWindow):
             #  and the latter won't be refreshed if not visible)
             self.last_plugin.show()
             self.last_plugin.visibility_changed(True)
+            if self.last_plugin is self.editor:
+                # Automatically show the outline if the editor was maximized:
+                self.addDockWidget(Qt.RightDockWidgetArea,
+                                   self.outlineexplorer.dockwidget)
+                self.outlineexplorer.dockwidget.show()
         else:
             # Restore original layout (before maximizing current dockwidget)
             self.last_plugin.dockwidget.setWidget(self.last_plugin)
