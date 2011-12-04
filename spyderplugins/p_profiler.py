@@ -9,7 +9,7 @@
 """Profiler Plugin"""
 
 from spyderlib.qt.QtGui import QVBoxLayout, QGroupBox, QLabel
-from spyderlib.qt.QtCore import SIGNAL, Qt, Signal
+from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
 

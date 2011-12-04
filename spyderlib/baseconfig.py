@@ -16,7 +16,6 @@ sip API incompatibility issue in spyderlib's non-gui modules)
 import os.path as osp, os, sys
 
 # Local imports
-from spyderlib.userconfig import get_home_dir
 from spyderlib import __version__
 
 
@@ -27,8 +26,11 @@ SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
 # Configuration paths
 #==============================================================================
 def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename"""
-    conf_dir = osp.join(get_home_dir(), SUBFOLDER)
+    """Return absolute path for configuration file with specified filename
+    as a unicode string (decoding it by guessing the codec if necessary)"""
+    from spyderlib.userconfig import get_home_dir
+    from spyderlib.utils.encoding import decode
+    conf_dir = osp.join(decode(get_home_dir()), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
@@ -117,7 +119,7 @@ def get_translation(modname, dirname=None):
                 x = x.encode("utf-8")
             return unicode(lgettext(x), "utf-8")
         return translate_gettext
-    except IOError, _e:
+    except IOError, _e:  # analysis:ignore
         #print "Not using translations (%s)" % _e
         def translate_dumb(x):
             if not isinstance(x, unicode):
