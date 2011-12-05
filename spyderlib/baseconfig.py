@@ -31,7 +31,7 @@ def get_conf_path(filename=None):
     from spyderlib import userconfig
     from spyderlib.utils import encoding
     home_dir, _enc = encoding.decode(userconfig.get_home_dir())
-    conf_dir = osp.join(home_dir, SUBFOLDER)
+    conf_dir = osp.join(unicode(home_dir), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
