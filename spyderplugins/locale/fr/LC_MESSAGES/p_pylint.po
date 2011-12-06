@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2011-10-17 14:12+Paris, Madrid\n"
+"POT-Creation-Date: 2011-12-06 21:58+Paris, Madrid\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -22,47 +22,47 @@ msgstr "Options"
 msgid "Save script before analyzing it"
 msgstr "Enregistrer le script avant de l'analyser"
 
-#: spyderplugins/p_pylint.py:38 spyderplugins/p_pylint.py:137
+#: spyderplugins/p_pylint.py:38 spyderplugins/p_pylint.py:147
 msgid "History"
 msgstr "Historique"
 
 #: spyderplugins/p_pylint.py:39
-msgid ""
-"Pylint plugin results are stored here:\n"
-"%s\n"
-"\n"
-"The following option will be applied at next startup.\n"
-msgstr ""
-"Les résultats de l'extension Pylint sont stockés ici :\n"
-"%s\n"
-"\n"
-"L'option suivante ne sera appliquée qu'au prochain démarrage.\n"
+msgid "The following option will be applied at next startup."
+msgstr "L'option suivante ne sera appliquée qu'au prochain démarrage."
 
-#: spyderplugins/p_pylint.py:45
+#: spyderplugins/p_pylint.py:42
 msgid "History: "
 msgstr "Historique : "
 
-#: spyderplugins/p_pylint.py:46
+#: spyderplugins/p_pylint.py:43
 msgid " results"
 msgstr " résultats"
 
-#: spyderplugins/p_pylint.py:80
+#: spyderplugins/p_pylint.py:46
+msgid "Results"
+msgstr "Résultats"
+
+#: spyderplugins/p_pylint.py:47
+msgid "Pylint plugin results are stored here:"
+msgstr "Les résultats des analyses de code Pylint sont stockés ici :"
+
+#: spyderplugins/p_pylint.py:90
 msgid "Pylint"
 msgstr "Pylint"
 
-#: spyderplugins/p_pylint.py:96
+#: spyderplugins/p_pylint.py:106
 msgid "History..."
 msgstr "Historique..."
 
-#: spyderplugins/p_pylint.py:98
+#: spyderplugins/p_pylint.py:108
 msgid "Set history maximum entries"
 msgstr "Modifier le nombre d'entrées maximum de l'historique"
 
-#: spyderplugins/p_pylint.py:111
+#: spyderplugins/p_pylint.py:121
 msgid "Run pylint code analysis"
 msgstr "Analyser le code source avec pylint"
 
-#: spyderplugins/p_pylint.py:138
+#: spyderplugins/p_pylint.py:148
 msgid "Maximum entries"
 msgstr "Nombre maximum d'entrées"
 

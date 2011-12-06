@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2011-10-17 14:12+Paris, Madrid\n"
+"POT-Creation-Date: 2011-12-06 21:58+Paris, Madrid\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,43 +23,47 @@ msgstr ""
 msgid "Save script before analyzing it"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:38 spyderplugins/p_pylint.py:137
+#: spyderplugins/p_pylint.py:38 spyderplugins/p_pylint.py:147
 msgid "History"
 msgstr ""
 
 #: spyderplugins/p_pylint.py:39
-msgid ""
-"Pylint plugin results are stored here:\n"
-"%s\n"
-"\n"
-"The following option will be applied at next startup.\n"
+msgid "The following option will be applied at next startup."
 msgstr ""
 
-#: spyderplugins/p_pylint.py:45
+#: spyderplugins/p_pylint.py:42
 msgid "History: "
 msgstr ""
 
-#: spyderplugins/p_pylint.py:46
+#: spyderplugins/p_pylint.py:43
 msgid " results"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:80
+#: spyderplugins/p_pylint.py:46
+msgid "Results"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:47
+msgid "Pylint plugin results are stored here:"
+msgstr ""
+
+#: spyderplugins/p_pylint.py:90
 msgid "Pylint"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:96
+#: spyderplugins/p_pylint.py:106
 msgid "History..."
 msgstr ""
 
-#: spyderplugins/p_pylint.py:98
+#: spyderplugins/p_pylint.py:108
 msgid "Set history maximum entries"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:111
+#: spyderplugins/p_pylint.py:121
 msgid "Run pylint code analysis"
 msgstr ""
 
-#: spyderplugins/p_pylint.py:138
+#: spyderplugins/p_pylint.py:148
 msgid "Maximum entries"
 msgstr ""
 

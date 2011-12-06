@@ -36,28 +36,38 @@ class PylintConfigPage(PluginConfigPage):
                                         'save_before', default=True)
         
         hist_group = QGroupBox(_("History"))
-        hist_label = QLabel(_("Pylint plugin results are stored here:\n"
-                              "%s\n\nThe following option "
-                              "will be applied at next startup.\n"
-                              ) % PylintWidget.DATAPATH)
-        hist_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        hist_label.setWordWrap(True)
+        hist_label1 = QLabel(_("The following option will be applied at next "
+                               "startup."))
+        hist_label1.setWordWrap(True)
         hist_spin = self.create_spinbox(_("History: "),
                             _(" results"), 'max_entries', default=50,
                             min_=10, max_=1000000, step=10)
+
+        results_group = QGroupBox(_("Results"))
+        results_label1 = QLabel(_("Pylint plugin results are stored here:"))
+        results_label1.setWordWrap(True)
+        results_label2 = QLabel(PylintWidget.DATAPATH)
+        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        results_label2.setWordWrap(True)
 
         settings_layout = QVBoxLayout()
         settings_layout.addWidget(save_box)
         settings_group.setLayout(settings_layout)
 
         hist_layout = QVBoxLayout()
-        hist_layout.addWidget(hist_label)
+        hist_layout.addWidget(hist_label1)
         hist_layout.addWidget(hist_spin)
         hist_group.setLayout(hist_layout)
+
+        results_layout = QVBoxLayout()
+        results_layout.addWidget(results_label1)
+        results_layout.addWidget(results_label2)
+        results_group.setLayout(results_layout)
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(settings_group)
         vlayout.addWidget(hist_group)
+        vlayout.addWidget(results_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 

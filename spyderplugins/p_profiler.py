@@ -30,15 +30,17 @@ from spyderplugins.widgets.profilergui import (ProfilerWidget,
 class ProfilerConfigPage(PluginConfigPage):
     def setup_page(self):
         results_group = QGroupBox(_("Results"))
-        results_label = QLabel(_("Profiler plugin results "\
-                                 "(the output of python's profile/cProfile)\n"
-                                 "are stored here:"
-                                 )+("\n%s\n" % ProfilerWidget.DATAPATH))
-        results_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        results_label.setWordWrap(True)
+        results_label1 = QLabel(_("Profiler plugin results "\
+                                  "(the output of python's profile/cProfile)\n"
+                                  "are stored here:"))
+        results_label1.setWordWrap(True)
+        results_label2 = QLabel(ProfilerWidget.DATAPATH)
+        results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        results_label2.setWordWrap(True)
 
         results_layout = QVBoxLayout()
-        results_layout.addWidget(results_label)
+        results_layout.addWidget(results_label1)
+        results_layout.addWidget(results_label2)
         results_group.setLayout(results_layout)
 
         vlayout = QVBoxLayout()

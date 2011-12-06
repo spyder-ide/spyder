@@ -26,12 +26,9 @@ SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
 # Configuration paths
 #==============================================================================
 def get_conf_path(filename=None):
-    """Return absolute path for configuration file with specified filename
-    as a unicode string (decoding it by guessing the codec if necessary)"""
+    """Return absolute path for configuration file with specified filename"""
     from spyderlib import userconfig
-    from spyderlib.utils import encoding
-    home_dir, _enc = encoding.decode(userconfig.get_home_dir())
-    conf_dir = osp.join(unicode(home_dir), SUBFOLDER)
+    conf_dir = osp.join(userconfig.get_home_dir(), SUBFOLDER)
     if not osp.isdir(conf_dir):
         os.mkdir(conf_dir)
     if filename is None:
