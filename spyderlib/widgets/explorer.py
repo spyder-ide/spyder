@@ -264,7 +264,7 @@ class DirView(QTreeView):
         
         # SCM support is quite limited for now, so we are enabling the SCM
         # related actions only when a single file/folder is selected:
-        dirname = fnames[0] if osp.isdir(fnames[0]) else fnames[0]
+        dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and scm.is_scm_repository(dirname):
             scm_ci = create_action(self, _("Commit"),
                                    icon="scm_commit.png",
