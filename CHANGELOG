@@ -1,0 +1,320 @@
+= History of changes =
+
+== Version 2.1.4 ==
+
+=== Bug fixes (since v2.1.3) ===
+
+  * Console:
+    * *Critical bugfix* for IPython support: variable explorer link was broken (regression introduced with v2.1.3)
+
+=== Other changes (since v2.1.1) ===
+
+  * Console:
+    * option "Open an IPython interperter at startup" is now *explicitely* disabled for IPython v0.11+ (these versions of IPython are not fully supported through Spyder's console plugin)
+
+----
+
+== Version 2.1.3 ==
+
+=== Enhancements (since v2.1.2) ===
+
+  * Variable explorer performance were improved, especially when dealing with very long sequences -- See this discussion: http://groups.google.com/group/spyderlib/browse_thread/thread/3a7ef892695e417a
+  * Variable explorer / dictionary editor: added support for unknown objects -- this allows browsing any object attributes -- This is still experimental.
+
+=== Bug fixes (since v2.1.2) ===
+
+  * General:
+    * Spyder preferences/bugfix: comboboxes with keys other than strings (e.g. the PyQt API selection combo box) were not initialized properly
+    * Fixed memory leaks (QThread objects) in the "Editor" and "Find in files" plugins. In those two plugins, QThread objects were created, then started but were never garbage-collected after they finished their execution
+  * Editor:
+    * Supported file types: added missing C++ file extensions (.cc,
+.hh, .hxx)
+  * Variable explorer:
+    * Debugging: added support for editing objects within functions
+    * Debugging: when debugging, variable explorer link was broken after restarting program
+    * handling errors when trying to enable/disable autorefresh (if one of the running console has no monitor enabled)
+  * Project explorer:
+    * when the workspace has not yet been defined, creating a new project not only warns the user but also proposes to set it right away
+
+----
+
+== Version 2.1.2 ==
+
+
+=== Bug fixes (since v2.1.1) ===
+
+  * General:
+    * Patched external path library to avoid a crash with a user HOME directory with non-ascii characters
+    * Doc/README: warning the user about the fact that the 'python setup.py install' method does not uninstall a previous version
+  * Console:
+    * Fixed "!AccessInit: hash collision: 3 for both 1 and 1" error (see Issue 595)
+  * Project explorer:
+    * empty workspace/critical bugfix: impossible to create/import projects from context menu (this bug was introduced with a recent revision and stayed unnoticed until then because one has to test this from an empty workspace)
+    * it is now possible to rename projects (safely)
+    * now handling the I/O errors (e.g. read-only configuration files) occuring when loading/saving projects or the workspace: warning the user when an !IOError exception was raised and mention the projects which could not be saved properly
+  * File/Project explorer:
+    * keyboard shortcut 'F2' (rename file/directory) was broken
+    * the "Open" action (context menu) was failing silently for directories (expected behavior: open an external file explorer to browse the directory)
+    * programs.start_file/bugfix: feature was not working on Windows 7
+  * Editor:
+    * Fix empty username in new file template on OS X (patch by Christoph Gohle)
+  * Object inspector:
+    * Rich text mode was not showing headings when invoked from editor (Issue 690)
+
+=== Enhancements (since v2.1.1) ===
+
+  * File/Project explorer:
+    * Added "Delete" keyboard shortcut to remove selected file(s)/folder(s)
+    * SCM integration: added support for !TortoiseHg v2 (only v1 was supported)
+  * Console/Matplotlib options: the backend may now be set separately from the Matplotlib patch
+
+=== Other changes (since v2.1.1) ===
+
+  * Console:
+    * The Matplotlib patch is only applied for Matplotlib <=v1.0
+    * !PyQt API version issues (error like "!ValueError: API 'QString' has already been set to version 1"): the "ignore setapi errors" option is disabled by default, to avoid masking these errors and associated tracebacks
+
+----
+
+== Version 2.1.1 ==
+
+_Note:_ v2.1.1 is a minor update of v2.1.0 (licence issues and minor bug fixes -- see the [http://code.google.com/p/spyderlib/source/list?name=v2.1.1 Mercurial changelog]).
+
+Follow Spyder news on our official blog:
+http://spyder-ide.blogspot.com/
+
+=== Compatibility/Requirements ===
+
+Since version 2.1:
+  * Spyder is now compatible with:
+    * !PyQt's API v1 (i.e. compatible with !PyQt 4.4 and 4.5), the default Python 2 API
+    * *and* !PyQt's API v2 (this is the future: default Python 3 API and !PySide-compatible API)
+    * *and* with !PySide (!PySide support is still experimental as this library is still young but its stability is evolving rapidly)
+  * Editor/code analysis: Spyder now requires *pyflakes v0.5.0* (included in Windows installers).
+
+=== New features since v2.0.12 ===
+
+*New major features*:
+  * New *Profiler* plugin (thanks to Santiago Jaramillo)
+  * New experimental *IPython* plugin embedding IPython's Qt console: see [http://spyder-ide.blogspot.com/2011/08/preview-of-new-ipython-plugin-for.html here]
+  * General:
+    * Main window:
+      * added "Custom window layouts" management (see menu "View")/handling 3 custom layouts: default shortcuts Shift+Alt+FX to switch to/from layout #X and Ctrl+Shift+Alt+FX to set layout #X
+      * "General" preferences page: added option to set the Qt windows style, depending on platform (Plastique, Cleanlooks, CDE, Windows...)
+      * Menu "?": added menu entry to report Spyder issues, filling automatically informations on your configuration
+      * Reorganized "Run"/"Source" menu, added "Interpreters" menu
+      * Fixed application name for Gnome 3/Fedora 15
+    * Command line options: added option "--defaults" to reset settings (stored in .spyder.ini) to defaults (a lot of settings are preserved: shortcuts, window layouts, ...) -- this is less brutal than "--reset" which reset all settings by removing all configuration files related to Spyder
+
+  * *Outline* (function/class browser) is now a plugin in itself, embedded in its own dockwidget: Spyder's window layout is even more customizable than before
+  * *Code completion*
+    * (Editor/Console): entries starting with an underscore character are now placed to the end of the suggested list
+    * (Editor/Console): Import statements are now completed correctly
+  * *Console*:
+    * Major code cleaning: running Python applications in Spyder has never been cleaner and is very close to a simple Python interpreter
+    * Added built-in function `open_in_spyder` to open a file in Spyder's source code editor from the console
+    * Standard Python interpreter:
+      * now refresh the variable explorer at each new prompt (even if auto-refresh is disabled -- actually, this is the typical use case)
+      * added support for basic special commands (%pwd, %ls, %clear) and system commands (starting with '!', e.g. !dir or !ls)
+      * added [http://spyder-ide.blogspot.com/2011/09/new-enhanced-scientific-python.html "scientific" startup script] with support for numpy, scipy and matplotlib
+    * Preferences (External modules tab):
+      * added an option to set !PyQt API to v1 or v2 -- this avoids issues with Enthought Tool Suite or any other library/program using !PyQt API v2 which is *not* the default API for Python 2
+      * changed matplotlib patch to fix compatiblity issue with !PyQt API v2
+    * Preferences (Advanced Settings tab): added option "Python executable" to customize path to Python interpreter executable binary
+  * *Variable explorer*:
+    * New HDF5 plugin ([http://code.google.com/u/DavidAnthonyPowell/ DavidAnthonyPowell]): import/export HDF5 files to/from the variable explorer
+    * Dictionary editor/Variable explorer:
+      * Added support for more NumPy data types
+      * Added action "Resize rows to contents" (partially implements feature requested with Issue 807)
+  * *Editor*:
+    * find/replace:
+      * added support for *multiline* regular expression search pattern
+      * added support for *multiline* regular expression text replacement
+      * added button "Highlight matches" to highlight all found results
+    * syntax highlighting: added support for OpenCL, gettext files, patch/diff files, CSS and HTML files
+    * support for "2 spaces" and "tabs" indentation characters
+    * new code analysis feature: added support for the [http://pypi.python.org/pypi/pep8 pep8] style guide checker
+    * "Comment" and "Uncomment" actions were replaced by a single "Comment/Uncommment" toggle action
+    * (Fixes  Issue 811 ) "Run configuration": added "Run in an external system terminal" option
+  * *File explorer* and *Project explorer*:
+    * great performance improvement (using a multithreaded file system model)
+    * Added minimalist SCM support (Mercurial and git are currently supported)
+  * *File explorer*: added an option to "Show current directory only"
+  * *Project explorer*: this plugin was entirely rewritten to improve performances and usability
+  * *Pylint plugin*:
+    * added option to save file before analyzing it
+
+Spyder's console embedded in your application (spyderlib.widgets.internalshell):
+  * in traceback, a clickable link now opens the associated file in Spyder (if application was launched from Spyder with monitor enabled)
+  * Application sample embedding Spyder's internal shell: upgraded to guidata v1.4+ (simplified build script a lot!)
+
+Windows platforms specific changes:
+  * (requires pywin32) Hiding the attached console window:
+    * allow running Spyder with 'python.exe' without visible console (this avoid using 'pythonw.exe' which does not attach a console to the process, hence preventing standard I/O to be redirected in a subprocess executed within Spyder, e.g. in your own program)
+    * the attached console may be shown/hidden from menu entry "View > Attached console window (debugging)"
+  * Major change for Windows/!PyQt users: standard Python interpreter now supports interactive GUI manipulations thanks to a new Spyder-specific input hook (replacing !PyQt's input hook which is not working within Spyder on Windows platforms) -- the input hook works even better than !PyQt's builtin input hook (with a Python interpreter opened outside Spyder)!
+  * Spyder's stand-alone version building process was improved. This version is now available on project's download page.
+
+=== Bug fixes (since v2.0.12) ===
+
+*Spyder's main window*:
+  * !QtDesigner and !QtLinguist were not detected on Fedora
+  * Console/Editor: code completion widget was partially hidden when working on two monitors and if Spyder's window was on the right screen
+  * Fixed bugs due to too early/frequent calls to plugin refresh methods during startup
+
+*Console*:
+  * IPython Interpreter: Turn off autoindent magic to avoid indentation errors with code with inline comments
+
+*Editor*:
+  * Fortran syntax highlighter was made case insensitive
+  * Fixed !IndentationError when running first line of a file
+  * Read only files allowed ".", "[", "(", etc. to be entered into the text editor
+  * Fixed segmentation faults occuring after using the vertical-horizontal splitting feature
+  * If a file name had non-ascii characters then code completion
+(and all other rope-based features) in the editor stopped working
+  * Code analysis: fixed tasks pattern (for example, previous one was matching "TIP" in "MULTIPLICATION"... now it will match only single "TIP:" or "TIP ")
+  * (Fixes  Issue 704 ) Outline was showing the delimiters of block comments ('#------...-'), causing nesting inconsistencies because block comments are not indented properly with respect to the code around
+  * Fixed several bugs with the "Run selection or current block" feature.
+
+*Object inspector*:
+  * Rich text mode was failing for non-ascii docstrings
+
+*Find/Replace widget*:
+  * Combo box history was populated only when pressing Enter (now pressing F3 to find next occurence will add the current entry to history)
+
+----
+
+== Version 2.0.12 ==
+
+=== Bug fixes (since v2.0.11) ===
+
+  * (Fixes Issue 476) Editor/bugfix: print preview was not working
+  * Completion widget/bugfix (editor/console): combo box was truncated by main window depending on its size
+  * widgets.sourcecode.base.TextEditBaseWidget/bugfix: parenting to None was not working
+  * Console/Text wrap mode: character wrapping was not implemented since we switched from QTextEdit to QPlainTextEdit
+  * (Fixes Issue 649) Patch submitted by [http://code.google.com/u/DavidAnthonyPowell/ DavidAnthonyPowell] - Syntax highlighter does not recognise imaginary, binary or octal numbers
+  * Spyder's layout: fixed window position/size issues when maximized/fullscreen mode was active
+  * Object inspector: fixed minor bug (simple traceback in the internal console) when handling a sphinx error
+  * (Fixes Issue 667) Editor/bugfix: Shift+Enter inserted lines that did not get line numbers
+  * (Fixes Issue 672) Editor: TODO/FIXME were not detected if not followed by ':' (HINT/TIP were properly detected)
+
+=== Enhancements (since v2.0.11) ===
+
+  * (Fixes Issue 655) Editor/pyflakes-powered code analysis: warnings are now ignored for lines containing "pyflakes:ignore"
+
+=== Other changes (since v2.0.11) ===
+
+  * Internal console (Spyder debugging only): turned off the multithreaded mode
+
+----
+
+== Version 2.0.11 ==
+
+=== Bug fixes (since v2.0.9) ===
+
+  * (Fixes Issue 616) Pylint plugin: tree widget header text was not updated when analyizing a new script (the last analyzed script name was still shown)
+  * Editor/completion widget/bugfix: pressing shift was hiding the completion combo box
+  * (Fixes Issue 630) Added missing default settings for "Spyder light" (only necessary when installing from scratch and without any remaining .spyder.ini file)
+  * Editor/Console-bugfix: info tooltips (calltips) were hidden right after being shown (i.e. when typing any character after the left parenthesis)
+  * (Fixes Issue 631) Drag and drop of files into editor on Linux was pasting path instead of opening the file
+  * (Fixes Issue 640) Editor: block comment was not working correctly at end of file
+  * Code completion widget (Editor/Console) - bugfix: parenting to the ancestor widget was necessary on Linux
+  * (Fixes Issue 546) (Contributor: [http://code.google.com/u/alex.fargus/ Alex Fargus]) C/Cpp syntax highlighting bugfix
+  * (Fixes Issue 646) IPython integration: fixed pyreadline monkey-patch for pyreadline v1.7
+
+=== Enhancements (since v2.0.9) ===
+
+  * File explorer widget/plugin: improved performances (widget is now populated in a separate thread)
+  * Spyder crash dialog: warning the user about the '--reset' option (this will remove all configuration files)
+
+----
+
+== Version 2.0.9 ==
+
+=== Bug fixes (since v2.0.8) ===
+
+  * Console: added option to ignore PyQt/sip errors when trying to set sip API (fixed Enthought Tool Suite 3.6.0 compatibility issue)
+  * utils.dochelpers.getargtxt/bugfix: retrieving builtin function arguments was no longer working
+  * (Fixes Issue 499) Editor-related keyboard shortcuts were not applied after opening files
+  * (Fixes Issue 575) Tab scroll buttons were not shown on OS X resulting in clamped/changing window sizes
+  * (Fixes Issue 574) Debugging: Spyder only synced at debugger breakpoints
+  * (Fixes Issue 576) "Source / Remove trailing spaces" was removing newline at the end of file (+ added support for "undo")
+  * (Fixes Issue 582) Console: changing font preferences was requiring a restart to be fully taken into account
+  * (Fixes Issue 562) Spyder was unable to restore editor's outline explorer tree when mixed ' and " characters were found in tree entries
+  * (Fixes Issue 590) Shell/"Clear line" shortcut was not correct: this is actually "Shift+Escape" (not "Escape")
+  * (Fixes Issue 591) History log was systematically erased when updating Spyder version
+  * Outline explorer/bugfix: when opening file, the 'show/hide all files' option was not applied (this was then applied when switching from a file to another)
+  * (Fixes Issue 602) Backported from v2.1 a couple of bugfixes related to Editor and multiple panels
+  * Object inspector: when raised automatically above other dockwidgets, plugin refresh was unnecessarily triggered
+  * Editor/code completion-bugfix: some key events (e.g. Ctrl+V) were lost during code completion-related hang-up
+  * (Fixes Issue 599) Multiline text pasting was not working in a newly opened console (i.e. first prompt)
+
+=== Enhancements (since v2.0.8) ===
+
+  * Major change/Translations: moved from 'QtLinguist' to 'gettext' (localizing Spyder should now be easier)
+  * Console: increased default maximum line count (buffer depth) up to 10,000 lines (instead of only 300 lines)
+  * Editor's rope-based introspection features (code completion, calltips, go to definition): new rope monkey-patch providing major performance improvements
+  * File explorer/Project explorer - opening file with associated application: now supported on all platforms
+  * Added action "Reset window layout" in "View" menu to reset main window layout to default
+  * Documentation: added page on debugging
+  * Editor: added syntax highlighters for diff/patch files (.diff, .patch, .rej) and gettext files (.po, .pot)
+  * (Fixes Issue 537) Global working directory toolbar: removed label considering the fact that the toolbar widgets are quite explicit on its role (and the combo box tooltip is explaining it in detail)
+  * (Fixes Issue 598) Added a .desktop file in source package
+  * (Fixes Issue 87) Editor plugin's title now show the current script filename
+
+----
+
+== Version 2.0.8 ==
+
+=== Bug fixes (since v2.0.6) ===
+
+  * Consoles/bugfix: saving history log (see context menu) was not working following a recent code cleaning/refactoring
+  * On non-Windows platforms, the file selection dialog "All files (*.*)" filter was not matching files without extension
+  * dochelpers.isdefined/bugfix: ignoring syntax errors while evaluating object
+  * Preferences Dialog (dialog box + keyboard shortcut page): improved size/resize behavior
+  * Editor: when cursor was on the very last line, Duplicate/Delete line features were getting stuck in an infinite loop
+  * Editor/duplicate line feature - fixed unexpected behavior: when duplicating selected text, text selection was extended to duplicated part
+  * Editor/bugfix with multiple editor windows: when opening file on one editor window, the top-left corner menu (file list) was not updated correctly in other editor windows
+  * Editor/fixed unexpected behavior: when clicking on the main window's outline explorer while a separate editor window had focus, the latter was used to show the associated line of code
+  * Project explorer: added new debugging options (profiling 'rope' calls)
+  * Console/Advanced settings/UMD module list: removing all entries (empty module list) was not working
+  * Editor/File list management dialog (Ctrl+E): double clicking/pressing Return on a listwidget item will switch to the associated file
+  * Editor/Tab bar: fixed missing tooltips issue (and missing file switch menu entries)
+  * Code completion/bugfix: list widget was not hiding as expected when pressing ':'
+  * Editor/fixed unexpected behavior: when some text was selected, "Ctrl+Left mouse click" was trying to "go to definition" instead of doing the standard drag n'drop feature
+  * Editor/bugfix: disabling code completion/calltips for non-Python source code (was not working -as expected- but was taking time to simply not work...)
+  * Editor/go to line: fixed unicode error
+  * Code editor/bugfix: cursor position was not restored when undoing an indent operation with "tab always indent" feature turned on *and* the cursor at the end of the line
+  * Tab behavior when "tab always indents" is turned off: inserting 4-(len(leading_text) % 4) spaces (instead of 4)
+  * Object inspector/bugfix: ignoring unknown objects when called automatically from editor/console, i.e. do not log, do not show 'no doc available'
+
+=== Other changes (since v2.0.6) ===
+
+  * Code editor syntax highlighting: added more keywords to Cython syntax highlighter (cpdef, inline, cimport and DEF)
+  * Added example of application using the Spyder's internal shell as a debugging console (demonstrates also the py2exe deployment procedure)
+  * Object inspector: added "Source" combo box (Console/Editor) -> object inspected from editor are now analyzed only with rope (if available) and then shown in object inspector
+  * Added keyboard shortcut to open Preferences Dialog (default: Ctrl+Alt+Shift+P)
+  * Editor: added "Copy line" feature (Ctrl+Alt+Down), similar to "Duplicate line" (Ctrl+Alt+Up) but paste text before the current line/selected text (instead of after)
+  * Array editor: added option to set row/col labels (resp. ylabels and xlabels)
+  * Editor/rope: improved performance for calltips/doc feature
+
+----
+
+== Version 2.0.6 ==
+
+=== Bug fixes (since v2.0.5) ===
+
+  * Console: menu entries "Environment variables", "Current working directory" and "Show sys.path" were not disabled when the Monitor was turned off
+  * Preferences dialog box/Keyboard shortcuts:
+    * conflicts are now ignored if shortcuts have different contexts *except* if one of this context is '`_`' (i.e. global context)
+    * conflict warnings are now also shown when showing the preferences dialog box (not only when modifying shortcuts and applying changes)
+  * Drag/drop Python script to console: fixed TypeError (TypeError: start() got an unexpected keyword argument 'ask_for_arguments')
+  * Console base widget: added support for FF (Form Feed) ANSI sequence - Fixes bug in IPython console: 'cls' and 'clear' magic commands were inactive in IPython consoles
+  * Editor: code completion was sometimes very slow when editing files within a Spyder project
+  * Code editor: fixed "Delete line" feature (Ctrl+D) / was not working with multiline selection
+
+=== Other changes (since v2.0.5) ===
+
+  * Editor/80-column vertical edge line: added options to show/hide this line and change the column number
+  * Editor: added "Comment"/"Uncomment" actions to context menu
+  * Source code and shell editor widgets: code refactoring/cleaning (this should help people using these widgets outside Spyder)
