@@ -1,5 +1,28 @@
 = History of changes =
 
+== Version 2.1.5 ==
+
+=== Bug fixes (since v2.1.4) ===
+
+  * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
+  * File/Project explorer:
+    * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
+    * SCM support: commit/log actions were not working when right-clicking on a file instead of a folder
+  * Console:
+    * Monitor/Introspection: fixed socket communication issue due to a !MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
+  * Windows platforms:
+    * "Preferences" dialog was not shown if account username contained non-ASCII characters
+
+=== Other changes (since v2.1.4) ===
+
+  * "Maximize current plugin" action: now automatically shows the "Outline" plugin when maximizing the "Editor" plugin
+  * Console/New options for standard Python interpreters (no effect on !IPython):
+    * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
+    * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
+  * Editor/Outline comment separators: allow space betwee hash and dash, e.g "# --- Outline Separator"
+
+----
+
 == Version 2.1.4 ==
 
 === Bug fixes (since v2.1.3) ===
@@ -7,7 +30,7 @@
   * Console:
     * *Critical bugfix* for IPython support: variable explorer link was broken (regression introduced with v2.1.3)
 
-=== Other changes (since v2.1.1) ===
+=== Other changes (since v2.1.3) ===
 
   * Console:
     * option "Open an IPython interperter at startup" is now *explicitely* disabled for IPython v0.11+ (these versions of IPython are not fully supported through Spyder's console plugin)
@@ -39,7 +62,6 @@
 ----
 
 == Version 2.1.2 ==
-
 
 === Bug fixes (since v2.1.1) ===
 
