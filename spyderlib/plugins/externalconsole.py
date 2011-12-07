@@ -140,10 +140,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
         # UMD Group
         umd_group = QGroupBox(_("User Module Deleter (UMD)"))
-        umd_label = QLabel(_("UMD forces Python to reload modules "
-                             "imported when executing a script in the "
-                             "external console with the 'runfile' function"))
-        umd_label.setWordWrap(True)
+        umd_label = QLabel(_("UMD forces Python to reload modules which were "
+                             "imported when executing a \nscript in the "
+                             "external console with the 'runfile' function."))
         umd_enabled_box = newcb(_("Enable UMD"), 'umd/enabled',
                                 msg_if_enabled=True, msg_warning=_(
                         "This option will enable the User Module Deleter (UMD) "
@@ -217,8 +216,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         # PYTHONSTARTUP replacement
         pystartup_group = QGroupBox(_("PYTHONSTARTUP replacement"))
         pystartup_label = QLabel(_("This option will override the "
-                                   "PYTHONSTARTUP environment variable."))
-        pystartup_label.setWordWrap(True)
+                                   "PYTHONSTARTUP environment variable which\n"
+                                   "defines the script to be executed during "
+                                   "the Python interpreter startup."))
         default_radio = self.create_radiobutton(
                                         _("Default PYTHONSTARTUP script"),
                                         'pythonstartup/default', True)
