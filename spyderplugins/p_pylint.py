@@ -46,7 +46,12 @@ class PylintConfigPage(PluginConfigPage):
         results_group = QGroupBox(_("Results"))
         results_label1 = QLabel(_("Pylint plugin results are stored here:"))
         results_label1.setWordWrap(True)
+
+        # Warning: do not try to regroup the following QLabel contents with 
+        # widgets above -- this string was isolated here in a single QLabel
+        # on purpose: to fix Issue 863
         results_label2 = QLabel(PylintWidget.DATAPATH)
+
         results_label2.setTextInteractionFlags(Qt.TextSelectableByMouse)
         results_label2.setWordWrap(True)
 
