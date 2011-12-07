@@ -100,7 +100,7 @@ EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|build',
 
 # Name filters for file/project explorers (excluding files without extension)
 NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
-               ['README', 'INSTALL', 'LICENSE']
+               ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
 
 DEFAULTS = [
             ('main',
