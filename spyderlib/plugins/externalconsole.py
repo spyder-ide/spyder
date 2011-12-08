@@ -976,7 +976,12 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     # Black background
                     self.set_option(ipython_n, args.replace(" "+lbgo, ""
-                                    ).replace(lbgo+" ", ""))
+                                    ).replace(lbgo+" ", "").replace(lbgo, ""))
+            else:
+                lbgo = "-colors LightBG"
+                if self.get_option(whitebg_n):
+                    self.set_option(ipython_n, lbgo)
+        
         font = self.get_plugin_font()
         showtime = self.get_option('show_elapsed_time')
         icontext = self.get_option('show_icontext')
