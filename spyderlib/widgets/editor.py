@@ -357,8 +357,15 @@ class FileInfo(QObject):
         if not obj_fullname:
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
+            if signatures:
+                signature = signatures[0]
+                module = obj_fullname.split('.')[0]
+                note = '\n    Function of %s module\n\n' % module
+                text = signature + note + doc_text
+            else:
+                text = doc_text
             self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
-                      obj_fullname, doc_text, not auto)
+                      obj_fullname, text, not auto)
         if signatures:
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
