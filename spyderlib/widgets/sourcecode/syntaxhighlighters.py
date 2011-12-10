@@ -304,7 +304,7 @@ class PythonSH(BaseSH):
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
-    OECOMMENT = re.compile('^# ?--[-]+[\ -]*?[^- ]+')
+    OECOMMENT = re.compile('^(# ?--[-]+|##[#]+ )[ -]*[^- ]+')
     
     def __init__(self, parent, font=None, color_scheme='Spyder'):
         BaseSH.__init__(self, parent, font, color_scheme)
@@ -762,10 +762,10 @@ if __name__ == '__main__':
     valid_comments = [
       '# --- First variant',
       '#------ 2nd variant',
-    #  '### 3rd variant'
+      '### 3rd variant'
     ]
     invalid_comments = [
-      '#---', '#--------', '#---   '
+      '#---', '#--------', '#---   ', '# -------'
     ]
     for line in valid_comments:
         if not PythonSH.OECOMMENT.match(line):
