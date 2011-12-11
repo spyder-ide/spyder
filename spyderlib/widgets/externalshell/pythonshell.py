@@ -59,7 +59,15 @@ class ExtPythonShellWidget(PythonShellWidget):
                 continue
             self.write(line+os.linesep, flush=True)
             self.execute_command(line)
-            self.emit(SIGNAL("wait_for_ready_read()"))
+            # Workaround for Issue 502
+            # Emmiting wait_for_ready_read was making the console hang
+            # in Mac OS X
+            # See http://code.google.com/p/spyderlib/issues/detail?id=502
+            if sys.platform.startswith("darwin"):
+                import time
+                time.sleep(0.025)
+            else:
+                self.emit(SIGNAL("wait_for_ready_read()"))
             self.flush()
 
     #------ Code completion / Calltips
