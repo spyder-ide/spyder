@@ -10,7 +10,7 @@
     * SCM support: commit/log actions were not working when right-clicking on a file instead of a folder
   * Console:
     * Monitor/Introspection: fixed socket communication issue due to a !MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
-    * Fix critcal console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
+    * Fix long-standing critical console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
     * Apply the right scheme color to the IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
   * Windows platforms:
     * "Preferences" dialog was not shown if account username contained non-ASCII characters
