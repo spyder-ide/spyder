@@ -106,9 +106,9 @@ def oedit(obj, modal=True, namespace=None):
     else:
         keeper.create_dialog(dialog, obj_name, end_func)
         import os
-        replaced_pyqt_inputhook = os.environ.get("REPLACE_PYQT_INPUTHOOK", ""
-                                                 ).lower() == "true"
-        if os.name == 'nt' and not replaced_pyqt_inputhook \
+        qt_inputhook = os.environ.get("INSTALL_QT_INPUTHOOK",
+                                      "").lower() == "true"
+        if os.name == 'nt' and not qt_inputhook \
            and not os.environ.get('IPYTHON', False):
             app.exec_()
 

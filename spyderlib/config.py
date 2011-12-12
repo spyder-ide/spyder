@@ -187,8 +187,10 @@ DEFAULTS = [
               'show_elapsed_time': True,
               'show_icontext': False,
               'monitor/enabled': True,
+              'qt/install_inputhook': os.name == 'nt' \
+                                      or os.environ.get('QT_API') == 'pyside',
+              'qt/api': None,
               'pyqt/api_version': 0,
-              'pyqt/replace_inputhook': os.name == 'nt',
               'pyqt/ignore_sip_setapi_errors': False,
               'matplotlib/patch': True,
               'matplotlib/backend/enabled': True,

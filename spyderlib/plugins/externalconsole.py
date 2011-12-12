@@ -20,6 +20,7 @@ from spyderlib.qt.compat import getopenfilename
 import sys
 import os
 import os.path as osp
+import imp
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -260,6 +261,48 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_layout.addWidget(monitor_box)
         monitor_group.setLayout(monitor_layout)
         
+        # Qt Group
+        # Do not test if PyQt4 or PySide is installed with the function 
+        # spyderlib.utils.programs.is_module_installed because it will 
+        # fail (both libraries can't be imported at the same time):
+        try:
+            imp.find_module('PyQt4')
+            has_pyqt4 = True
+        except ImportError:
+            has_pyqt4 = False
+        try:
+            imp.find_module('PySide')
+            has_pyside = True
+        except ImportError:
+            has_pyside = False
+        opts = []
+        if has_pyqt4:
+            opts.append( ('PyQt4', 'pyqt') )
+        if has_pyside:
+            opts.append( ('PySide', 'pyside') )
+        qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
+        qt_setapi_box = self.create_combobox(
+                         _("Qt-Python bindings library selection:"),
+                         [(_("Default library"), None)]+opts,
+                         'qt/api', default=None, tip=_(
+"""This option will act on libraries such as Matplotlib, guidata or ETS"""))
+        qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
+                              'qt/install_inputhook',
+                              tip=_(
+"""PyQt installs an input hook that allows creating and interacting
+with Qt widgets in an interactive interpreter without blocking it. 
+On Windows platforms, it is strongly recommended to replace it by Spyder's. 
+Regarding PySide, note that it does not install an input hook, so it is 
+required to enable this feature in order to be able to manipulate PySide/Qt 
+objects interactively. Note that this feature requires the monitor to be 
+enabled and that it has no effect in IPython."""))
+        
+        qt_layout = QVBoxLayout()
+        qt_layout.addWidget(qt_setapi_box)
+        qt_layout.addWidget(qt_hook_box)
+        qt_group.setLayout(qt_layout)
+        qt_group.setEnabled(has_pyqt4 or has_pyside)
+        
         # PyQt Group
         pyqt_group = QGroupBox(_("PyQt"))
         pyqt_setapi_box = self.create_combobox(
@@ -269,14 +312,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 """PyQt API #1 is the default API for Python 2. PyQt API #2 is the default 
 API for Python 3 and is compatible with PySide.
 Note that switching to API #2 may require to enable the Matplotlib patch."""))
-        pyqt_hook_box = newcb(_("Replace PyQt input hook by Spyder's"),
-                              'pyqt/replace_inputhook',
-                              tip=_(
-"""PyQt installs an input hook that allows creating and interacting
-with Qt widgets in an interactive interpreter without blocking it. 
-On Windows platforms, it is strongly recommended to replace it by Spyder's
-(note that this feature requires the monitor to be enabled and 
-that it has no effect in IPython)."""))
         pyqt_ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
                                     'pyqt/ignore_sip_setapi_errors', tip=_(
 """Enabling this option will ignore errors when changing PyQt API.
@@ -292,10 +327,9 @@ to use this feature wisely, e.g. for debugging purpose.
         pyqt_layout = QVBoxLayout()
         pyqt_layout.addWidget(pyqt_setapi_box)
         pyqt_layout.addWidget(pyqt_ignore_api_box)
-        if os.name == 'nt':
-            pyqt_layout.addWidget(pyqt_hook_box)
         pyqt_group.setLayout(pyqt_layout)
-        pyqt_group.setEnabled(programs.is_module_installed('PyQt4'))
+        if has_pyqt4:
+            qt_layout.addWidget(pyqt_group)
         
         # IPython Group
         ipython_group = QGroupBox(
@@ -382,8 +416,8 @@ to use this feature wisely, e.g. for debugging purpose.
         tabs.addTab(self.create_tab(pyexec_group, startup_group,
                                     pystartup_group, umd_group),
                     _("Advanced settings"))
-        tabs.addTab(self.create_tab(pyqt_group, ipython_group, mpl_group,
-                                    ets_group),
+        tabs.addTab(self.create_tab(qt_group, ipython_group,
+                                    mpl_group, ets_group),
                     _("External modules"))
         
         vlayout = QVBoxLayout()
@@ -642,9 +676,9 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 mpl_backend = None
             ets_backend = self.get_option('ets_backend', 'qt4')
+            qt_api = self.get_option('qt/api')
+            install_qt_inputhook = self.get_option('qt/install_inputhook')
             pyqt_api = self.get_option('pyqt/api_version', 0)
-            replace_pyqt_inputhook = self.get_option('pyqt/replace_inputhook',
-                                                     os.name == 'nt')
             ignore_sip_setapi_errors = self.get_option(
                                             'pyqt/ignore_sip_setapi_errors')
             merge_output_channels = self.get_option('merge_output_channels')
@@ -671,8 +705,9 @@ class ExternalConsole(SpyderPluginWidget):
                            umd_verbose=umd_verbose, ets_backend=ets_backend,
                            monitor_enabled=monitor_enabled,
                            mpl_patch_enabled=mpl_patch_enabled,
-                           mpl_backend=mpl_backend, pyqt_api=pyqt_api,
-                           replace_pyqt_inputhook=replace_pyqt_inputhook,
+                           mpl_backend=mpl_backend,
+                           qt_api=qt_api, pyqt_api=pyqt_api,
+                           install_qt_inputhook=install_qt_inputhook,
                            ignore_sip_setapi_errors=ignore_sip_setapi_errors,
                            merge_output_channels=merge_output_channels,
                            colorize_sys_stderr=colorize_sys_stderr,

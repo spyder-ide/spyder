@@ -10,8 +10,8 @@
     * SCM support: commit/log actions were not working when right-clicking on a file instead of a folder
   * Console:
     * Monitor/Introspection: fixed socket communication issue due to a !MemoryError -- This error was mixing communication messages, causing various problems described in Issue 857 and Issue 858. This bug was reported by ruoyu0088, who also tried (and succeeded) to fix it and suggested a workaround which is implemented in this release
-    * Fix critcal console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
-    * Apply the right scheme color to the IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
+    * Fix critical console hang on OS X when using the "Run selection or current block feature" (see Issue 502)
+    * Apply the right scheme color to the !IPython console when there weren't any options provided by the user or when the only option was "-colors LightBG"
   * Windows platforms:
     * "Preferences" dialog was not shown if account username contained non-ASCII characters
   * Object Inspector:
@@ -19,6 +19,10 @@
 
 === Other changes (since v2.1.4) ===
 
+  * Console/PySide support:
+    * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
+    * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
+    * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
   * "Maximize current plugin" action: now automatically shows the "Outline" plugin when maximizing the "Editor" plugin
   * Console/New options for standard Python interpreters (no effect on !IPython):
     * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display

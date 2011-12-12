@@ -168,17 +168,32 @@ else:
         monitor.notify_open_file(source, lineno=lineno)
     __builtin__.open_in_spyder = open_in_spyder
     
-    # * Removing PyQt4 input hook which is not working well on Windows since 
-    #   opening a subprocess do not attach a real console to it
-    #   (with keyboard events...)
-    # * Replacing it with our own input hook
-    # XXX: test it with PySide?
-    if os.environ.get("REPLACE_PYQT_INPUTHOOK", "").lower() == "true"\
+    # * PyQt4:
+    #   * Removing PyQt4 input hook which is not working well on Windows since 
+    #     opening a subprocess do not attach a real console to it
+    #     (with keyboard events...)
+    #   * Replacing it with our own input hook
+    # * PySide:
+    #   * Installing an input hook: this feature is not yet supported 
+    #     natively by PySide
+    if os.environ.get("INSTALL_QT_INPUTHOOK", "").lower() == "true"\
        and not os.environ.get('IPYTHON', False):
         # For now, the Spyder's input hook does not work with IPython:
         # with IPython v0.10 or non-Windows platforms, this is not a
         # problem. However, with IPython v0.11 on Windows, this will be
         # fixed by patching IPython to force it to use our inputhook.
+
+        if os.environ["QT_API"] == 'pyqt':
+            from PyQt4 import QtCore
+            # Removing PyQt's PyOS_InputHook implementation:
+            QtCore.pyqtRemoveInputHook()
+        elif os.environ["QT_API"] == 'pyside':
+            from PySide import QtCore
+            # XXX: when PySide will implement an input hook, we will have to 
+            # remove it here
+        else:
+            assert False
+
         def qt_inputhook():
             """Qt input hook for Spyder's console
             
@@ -220,9 +235,7 @@ else:
 #                socket.read(3)
 #                socket.disconnectFromServer()
             return 0
-        # Removing PyQt's PyOS_InputHook implementation:
-        from PyQt4 import QtCore
-        QtCore.pyqtRemoveInputHook()
+
         # Installing Spyder's PyOS_InputHook implementation:
         import ctypes
         cb_pyfunctype = ctypes.PYFUNCTYPE(ctypes.c_int)(qt_inputhook)

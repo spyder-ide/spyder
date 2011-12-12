@@ -160,8 +160,8 @@ class ExternalPythonShell(ExternalShellBase):
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
-                 mpl_backend=None, ets_backend='qt4', pyqt_api=0,
-                 replace_pyqt_inputhook=True, ignore_sip_setapi_errors=False,
+                 mpl_backend=None, ets_backend='qt4', qt_api=None, pyqt_api=0,
+                 install_qt_inputhook=True, ignore_sip_setapi_errors=False,
                  merge_output_channels=False, colorize_sys_stderr=False,
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
@@ -182,8 +182,9 @@ class ExternalPythonShell(ExternalShellBase):
         self.mpl_patch_enabled = mpl_patch_enabled
         self.mpl_backend = mpl_backend
         self.ets_backend = ets_backend
+        self.qt_api = qt_api
         self.pyqt_api = pyqt_api
-        self.replace_pyqt_inputhook = replace_pyqt_inputhook
+        self.install_qt_inputhook = install_qt_inputhook
         self.ignore_sip_setapi_errors = ignore_sip_setapi_errors
         self.merge_output_channels = merge_output_channels
         self.colorize_sys_stderr = colorize_sys_stderr
@@ -440,10 +441,12 @@ The process may not exit as a result of clicking this button
         env.append('MATPLOTLIB_PATCH=%r' % self.mpl_patch_enabled)
         if self.mpl_backend:
             env.append('MATPLOTLIB_BACKEND=%s' % self.mpl_backend)
-        env.append('REPLACE_PYQT_INPUTHOOK=%s' % self.replace_pyqt_inputhook)
+        if self.qt_api:
+            env.append('QT_API=%s' % self.qt_api)
+        env.append('INSTALL_QT_INPUTHOOK=%s' % self.install_qt_inputhook)
         env.append('COLORIZE_SYS_STDERR=%s' % self.colorize_sys_stderr)
 #        # Socket-based alternative (see input hook in sitecustomize.py):
-#        if self.replace_pyqt_inputhook:
+#        if self.install_qt_inputhook:
 #            from PyQt4.QtNetwork import QLocalServer
 #            self.local_server = QLocalServer()
 #            self.local_server.listen(str(id(self)))
@@ -529,7 +532,7 @@ The process may not exit as a result of clicking this button
     def send_to_process(self, text):
         if not isinstance(text, basestring):
             text = unicode(text)
-        if self.replace_pyqt_inputhook and not self.is_ipython_shell:
+        if self.install_qt_inputhook and not self.is_ipython_shell:
             # For now, the Spyder's input hook does not work with IPython:
             # with IPython v0.10 or non-Windows platforms, this is not a
             # problem. However, with IPython v0.11 on Windows, this will be
