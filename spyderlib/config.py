@@ -189,7 +189,7 @@ DEFAULTS = [
               'monitor/enabled': True,
               'qt/install_inputhook': os.name == 'nt' \
                                       or os.environ.get('QT_API') == 'pyside',
-              'qt/api': None,
+              'qt/api': 'default',
               'pyqt/api_version': 0,
               'pyqt/ignore_sip_setapi_errors': False,
               'matplotlib/patch': True,
@@ -361,7 +361,7 @@ DEFAULTS = [
 
 DEV = not __file__.startswith(sys.prefix)
 DEV = False
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.3.0',
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.4.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 # Removing old .spyder.ini location:
 old_location = osp.join(get_home_dir(), '.spyder.ini')

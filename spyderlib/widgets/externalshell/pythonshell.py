@@ -166,6 +166,9 @@ class ExternalPythonShell(ExternalShellBase):
                  autorefresh_timeout=3000, autorefresh_state=True,
                  light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
+
+        assert qt_api in (None, 'pyqt', 'pyside')
+
         self.namespacebrowser = None # namespace browser widget!
         
         self.dialog_manager = DialogManager()
@@ -175,7 +178,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.fname = startup_fn if fname is None else fname
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
-        
         self.pythonstartup = pythonstartup
         self.pythonexecutable = pythonexecutable
         self.monitor_enabled = monitor_enabled

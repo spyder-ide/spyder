@@ -283,8 +283,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
         qt_setapi_box = self.create_combobox(
                          _("Qt-Python bindings library selection:"),
-                         [(_("Default library"), None)]+opts,
-                         'qt/api', default=None, tip=_(
+                         [(_("Default library"), 'default')]+opts,
+                         'qt/api', default='default', tip=_(
 """This option will act on libraries such as Matplotlib, guidata or ETS"""))
         qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
                               'qt/install_inputhook',
@@ -677,6 +677,8 @@ class ExternalConsole(SpyderPluginWidget):
                 mpl_backend = None
             ets_backend = self.get_option('ets_backend', 'qt4')
             qt_api = self.get_option('qt/api')
+            if qt_api not in ('pyqt', 'pyside'):
+                qt_api = None
             install_qt_inputhook = self.get_option('qt/install_inputhook')
             pyqt_api = self.get_option('pyqt/api_version', 0)
             ignore_sip_setapi_errors = self.get_option(
