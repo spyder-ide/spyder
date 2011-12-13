@@ -153,7 +153,7 @@ class ExtPythonShellWidget(PythonShellWidget):
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = ExtPythonShellWidget
-    def __init__(self, parent=None, fname=None, wdir=None, commands=[],
+    def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
                  ipython_shell=False, ipython_kernel=False,
                  arguments='', stand_alone=None,
@@ -172,10 +172,6 @@ class ExternalPythonShell(ExternalShellBase):
         self.namespacebrowser = None # namespace browser widget!
         
         self.dialog_manager = DialogManager()
-        
-        startup_fn = get_module_source_path('spyderlib.widgets.externalshell',
-                                            'startup.py')
-        self.fname = startup_fn if fname is None else fname
         
         self.stand_alone = stand_alone # stand alone settings (None: plugin)
         self.pythonstartup = pythonstartup
@@ -223,6 +219,12 @@ class ExternalPythonShell(ExternalShellBase):
         self.is_ipython_kernel = ipython_kernel
         if self.is_ipython_shell or self.is_ipython_kernel:
             interact = False
+            # Running our custom startup script for IPython sessions:
+            # (see spyderlib/widgets/externalshell/startup.py)
+            self.fname = get_module_source_path(
+                            'spyderlib.widgets.externalshell', 'startup.py')
+        else:
+            self.fname = fname
         
         self.shell.set_externalshell(self)
 
@@ -235,8 +237,6 @@ class ExternalPythonShell(ExternalShellBase):
         
         if self.is_interpreter:
             self.terminate_button.hide()
-        
-        self.commands = ["import sys", "sys.path.insert(0, '')"] + commands
         
         # Additional python path list
         self.path = path
@@ -432,11 +432,6 @@ The process may not exit as a result of clicking this button
                 self.configure_namespacebrowser()
             env.append('SPYDER_I_PORT=%d' % introspection_server.port)
             env.append('SPYDER_N_PORT=%d' % notification_server.port)
-        
-        # Python init commands (interpreter only)
-        if self.commands and self.is_interpreter:
-            env.append('PYTHONINITCOMMANDS=%s' % ';'.join(self.commands))
-            self.process.setEnvironment(env)
         
         # External modules options
         env.append('ETS_TOOLKIT=%s' % self.ets_backend)

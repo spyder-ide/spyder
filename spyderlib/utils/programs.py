@@ -93,13 +93,14 @@ def get_python_args(fname, python_args, interact, debug, end_args):
         p_args.append('-i')
     if debug:
         p_args.extend(['-m', 'pdb'])
-    if os.name == 'nt' and debug:
-        # When calling pdb on Windows, one has to replace backslashes by
-        # slashes to avoid confusion with escape characters (otherwise, 
-        # for example, '\t' will be interpreted as a tabulation):
-        p_args.append(osp.normpath(fname).replace(os.sep, '/'))
-    else:
-        p_args.append(fname)
+    if fname is not None:
+        if os.name == 'nt' and debug:
+            # When calling pdb on Windows, one has to replace backslashes by
+            # slashes to avoid confusion with escape characters (otherwise, 
+            # for example, '\t' will be interpreted as a tabulation):
+            p_args.append(osp.normpath(fname).replace(os.sep, '/'))
+        else:
+            p_args.append(fname)
     if end_args:
         p_args.extend(split_clo(end_args))
     return p_args

@@ -4,6 +4,9 @@
 import sys
 import os
 import os.path as osp
+import pdb
+import bdb
+import __builtin__
 
 
 # Colorization of sys.stderr (standard Python interpreter)
@@ -135,7 +138,7 @@ sys.setdefaultencoding(encoding)
 os.environ['SPYDER_ENCODING'] = encoding
     
 try:
-    import sitecustomize #@UnusedImport
+    import sitecustomize  #analysis:ignore
 except ImportError:
     pass
 
@@ -153,7 +156,6 @@ else:
                       os.environ["SPYDER_AR_STATE"].lower() == "true")
     monitor.start()
     
-    import __builtin__
     def open_in_spyder(source, lineno=1):
         """Open in Spyder's editor the source file
 (may be a filename or a Python module/package)"""
@@ -254,8 +256,6 @@ else:
 #===============================================================================
 # Monkey-patching pdb
 #===============================================================================
-import pdb, bdb
-
 class SpyderPdb(pdb.Pdb):
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
@@ -391,6 +391,162 @@ if monitor and not os.environ.get('IPYTHON', False):
     except ImportError:
         pass
     del sys.modules['IPython']
+
+
+
+# The following classes and functions are mainly intended to be used from 
+# an interactive Python/IPython session
+class UserModuleDeleter(object):
+    """
+    User Module Deleter (UMD) aims at deleting user modules 
+    to force Python to deeply reload them during import
+    
+    pathlist [list]: blacklist in terms of module path
+    namelist [list]: blacklist in terms of module name
+    """
+    def __init__(self, namelist=None, pathlist=None):
+        if namelist is None:
+            namelist = []
+        self.namelist = namelist+['sitecustomize', 'spyderlib', 'spyderplugins']
+        if pathlist is None:
+            pathlist = []
+        self.pathlist = pathlist
+        self.previous_modules = sys.modules.keys()
+
+    def is_module_blacklisted(self, modname, modpath):
+        for path in [sys.prefix]+self.pathlist:
+            if modpath.startswith(path):
+                return True
+        else:
+            return set(modname.split('.')) & set(self.namelist)
+        
+    def run(self, verbose=False):
+        """
+        Del user modules to force Python to deeply reload them
+        
+        Do not del modules which are considered as system modules, i.e. 
+        modules installed in subdirectories of Python interpreter's binary
+        Do not del C modules
+        """
+        log = []
+        for modname, module in sys.modules.items():
+            if modname not in self.previous_modules:
+                modpath = getattr(module, '__file__', None)
+                if modpath is None:
+                    # *module* is a C module that is statically linked into the 
+                    # interpreter. There is no way to know its path, so we 
+                    # choose to ignore it.
+                    continue
+                if not self.is_module_blacklisted(modname, modpath):
+                    log.append(modname)
+                    del sys.modules[modname]
+        if verbose and log:
+            print "\x1b[4;33m%s\x1b[24m%s\x1b[0m" % ("UMD has deleted",
+                                                     ": "+", ".join(log))
+
+__umd__ = None
+
+
+def runfile(filename, args=None, wdir=None):
+    """
+    Run filename
+    args: command line arguments (string)
+    wdir: working directory
+    """
+    global __umd__
+    if os.environ.get("UMD_ENABLED", "").lower() == "true":
+        if __umd__ is None:
+            namelist = os.environ.get("UMD_NAMELIST", None)
+            if namelist is not None:
+                namelist = namelist.split(',')
+            __umd__ = UserModuleDeleter(namelist=namelist)
+        else:
+            verbose = os.environ.get("UMD_VERBOSE", "").lower() == "true"
+            __umd__.run(verbose=verbose)
+    if args is not None and not isinstance(args, basestring):
+        raise TypeError("expected a character buffer object")
+    from __main__ import __dict__ as glbs
+    shell = glbs.get('__ipythonshell__')
+    if shell is not None:
+        if hasattr(shell, 'user_ns'):
+            # IPython >=v0.11
+            glbs = shell.user_ns
+        else:
+            # IPython v0.10
+            glbs = shell.IP.user_ns
+    glbs['__file__'] = filename
+    sys.argv = [filename]
+    if args is not None:
+        for arg in args.split():
+            sys.argv.append(arg)
+    if wdir is not None:
+        os.chdir(wdir)
+    execfile(filename, glbs)
+    sys.argv = ['']
+    glbs.pop('__file__')
+    
+__builtin__.runfile = runfile
+
+
+def debugfile(filename, args=None, wdir=None):
+    """
+    Debug filename
+    args: command line arguments (string)
+    wdir: working directory
+    """
+    debugger = pdb.Pdb()
+    filename = debugger.canonic(filename)
+    debugger._wait_for_mainpyfile = 1
+    debugger.mainpyfile = filename
+    debugger._user_requested_quit = 0
+    debugger.run("runfile(%r, args=%r, wdir=%r)" % (filename, args, wdir))
+
+__builtin__.debugfile = debugfile
+
+
+def evalsc(command):
+    """Evaluate special commands
+    (analog to IPython's magic commands but far less powerful/complete)"""
+    assert command.startswith(('%', '!'))
+    system_command = command.startswith('!')
+    command = command[1:].strip()
+    if system_command:
+        # System command
+        if command.startswith('cd '):
+            evalsc('%'+command)
+        else:
+            from subprocess import Popen, PIPE
+            Popen(command, shell=True, stdin=PIPE)
+            print '\n'
+    else:
+        # General command
+        import re
+        clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
+        cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
+        if cd_match:
+            os.chdir(eval('r"%s"' % cd_match.groups()[0].strip()))
+        elif clear_match:
+            varnames = clear_match.groups()[0].replace(' ', '').split(',')
+            for varname in varnames:
+                try:
+                    globals().pop(varname)
+                except KeyError:
+                    pass
+        elif command in ('cd', 'pwd'):
+            print os.getcwdu()
+        elif command == 'ls':
+            if os.name == 'nt':
+                evalsc('!dir')
+            else:
+                evalsc('!ls')
+        elif command == 'scientific':
+            from spyderlib import baseconfig
+            execfile(baseconfig.SCIENTIFIC_STARTUP, globals())
+        else:
+            raise NotImplementedError, "Unsupported command: '%s'" % command
+
+__builtin__.evalsc = evalsc
+
 
 
 ## Restoring original PYTHONPATH

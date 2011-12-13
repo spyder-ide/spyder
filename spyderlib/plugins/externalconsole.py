@@ -434,7 +434,6 @@ class ExternalConsole(SpyderPluginWidget):
     def __init__(self, parent, light_mode):
         SpyderPluginWidget.__init__(self, parent)
         self.light_mode = light_mode
-        self.commands = []
         self.tabwidget = None
         self.menu_actions = None
         
@@ -695,7 +694,7 @@ class ExternalConsole(SpyderPluginWidget):
                 sa_settings = VariableExplorer.get_settings()
             else:
                 sa_settings = None
-            shellwidget = ExternalPythonShell(self, fname, wdir, self.commands,
+            shellwidget = ExternalPythonShell(self, fname, wdir,
                            interact, debug, path=pythonpath,
                            python_args=python_args,
                            ipython_shell=ipython_shell,
