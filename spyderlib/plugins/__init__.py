@@ -21,9 +21,10 @@ These plugins inherit the following classes
 from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
                                 QKeySequence, QMainWindow, QApplication)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
-from spyderlib.qt import is_pyqt44
+from spyderlib.qt import is_old_pyqt
 
 import sys
+import os
 
 # For debugging purpose:
 STDOUT = sys.stdout
@@ -117,9 +118,10 @@ class SpyderPluginMixin(object):
 
         # Using Qt.Window window flags solves Issue #880 (detached dockwidgets
         # are not painted after restarting Spyder and restoring their hexstate)
-        # but it does not work with PyQt v4.4 (so in this case, we use the
-        # default window flags: Qt.Widget):
-        flags = Qt.Widget if is_pyqt44 else Qt.Window
+        # but it does not work with PyQt <=v4.7 (dockwidgets can't be docked)
+        # or non-Windows platforms (lot of warnings are printed out)
+        # (so in those cases, we use the default window flags: Qt.Widget):
+        flags = Qt.Widget if is_old_pyqt or os.name != 'nt' else Qt.Window
         dock = QDockWidget(self.get_plugin_title(), self.main, flags)
 
         dock.setObjectName(self.__class__.__name__+"_dw")

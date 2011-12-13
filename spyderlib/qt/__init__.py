@@ -25,7 +25,7 @@ if _modname == 'pyqt':
     try:
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
         __version_info__ = tuple(__version__.split('.')+['final', 1])
-        is_pyqt44 = __version__.startswith('4.4')
+        is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
         is_pyqt46 = __version__.startswith('4.6')
     except ImportError:
         # Switching to PySide
@@ -38,5 +38,5 @@ if _modname == 'pyside':
     except ImportError:
         raise ImportError("Spyder requires PySide or PyQt to be installed")
     else:
-        from PySide import *
-        is_pyqt44 = is_pyqt46 = False
+        from PySide import *  #analysis:ignore
+        is_old_pyqt = is_pyqt46 = False
