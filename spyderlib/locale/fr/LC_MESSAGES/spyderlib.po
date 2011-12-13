@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2011-12-12 17:01+Paris, Madrid\n"
+"POT-Creation-Date: 2011-12-13 12:22+Paris, Madrid\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -1738,32 +1738,32 @@ msgid "Exclude unsupported data types"
 msgstr "Exclure les types non supportés"
 
 #: spyderlib\plugins\variableexplorer.py:47
-#: spyderlib\widgets\dicteditor.py:581
+#: spyderlib\widgets\dicteditor.py:586
 msgid "Truncate values"
 msgstr "Tronquer les valeurs"
 
 #: spyderlib\plugins\variableexplorer.py:48
-#: spyderlib\widgets\dicteditor.py:594
+#: spyderlib\widgets\dicteditor.py:599
 msgid "Always edit in-place"
 msgstr "Édition en ligne pour tous les types"
 
 #: spyderlib\plugins\variableexplorer.py:49
-#: spyderlib\widgets\dicteditor.py:590
+#: spyderlib\widgets\dicteditor.py:595
 msgid "Show collection contents"
 msgstr "Afficher le contenu des séquences"
 
 #: spyderlib\plugins\variableexplorer.py:52
-#: spyderlib\widgets\dicteditor.py:585
+#: spyderlib\widgets\dicteditor.py:590
 msgid "Show arrays min/max"
 msgstr "Afficher les min/max des tableaux"
 
 #: spyderlib\plugins\variableexplorer.py:54
-#: spyderlib\widgets\dicteditor.py:1237
+#: spyderlib\widgets\dicteditor.py:1245
 msgid "Edit data in the remote process"
 msgstr "Éditeurs dans le processus distant"
 
 #: spyderlib\plugins\variableexplorer.py:55
-#: spyderlib\widgets\dicteditor.py:1238
+#: spyderlib\widgets\dicteditor.py:1246
 msgid ""
 "Editors are opened in the remote process for NumPy arrays, PIL images, "
 "lists, tuples and dictionaries.\n"
@@ -1962,7 +1962,7 @@ msgid "Redo"
 msgstr "Répéter"
 
 #: spyderlib\spyder.py:440 spyderlib\widgets\arrayeditor.py:318
-#: spyderlib\widgets\dicteditor.py:557 spyderlib\widgets\shell.py:121
+#: spyderlib\widgets\dicteditor.py:558 spyderlib\widgets\shell.py:121
 #: spyderlib\widgets\sourcecode\codeeditor.py:1954
 msgid "Copy"
 msgstr "Copier"
@@ -1972,7 +1972,7 @@ msgstr "Copier"
 msgid "Cut"
 msgstr "Couper"
 
-#: spyderlib\spyder.py:443 spyderlib\widgets\dicteditor.py:554
+#: spyderlib\spyder.py:443 spyderlib\widgets\dicteditor.py:555
 #: spyderlib\widgets\shell.py:125
 #: spyderlib\widgets\sourcecode\codeeditor.py:1957
 msgid "Paste"
@@ -2309,7 +2309,7 @@ msgstr "Fichiers compatibles"
 msgid "Spyder data files"
 msgstr "Fichiers Spyder"
 
-#: spyderlib\utils\iofuncs.py:330 spyderlib\widgets\dicteditor.py:910
+#: spyderlib\utils\iofuncs.py:330 spyderlib\widgets\dicteditor.py:918
 msgid "NumPy arrays"
 msgstr "Tableaux NumPy"
 
@@ -2513,97 +2513,101 @@ msgstr ""
 "<b>Impossible d'assigner la valeur de l'objet.</b><br><br>Message d'erreur :"
 "<br>%s"
 
-#: spyderlib\widgets\dicteditor.py:552
+#: spyderlib\widgets\dicteditor.py:553
 msgid "Resize rows to contents"
 msgstr "Ajuster la hauteur des lignes"
 
-#: spyderlib\widgets\dicteditor.py:560 spyderlib\widgets\explorer.py:239
+#: spyderlib\widgets\dicteditor.py:561 spyderlib\widgets\explorer.py:239
 msgid "Edit"
 msgstr "Modifier"
 
-#: spyderlib\widgets\dicteditor.py:563 spyderlib\widgets\dicteditor.py:881
-#: spyderlib\widgets\dicteditor.py:897
+#: spyderlib\widgets\dicteditor.py:564 spyderlib\widgets\dicteditor.py:889
+#: spyderlib\widgets\dicteditor.py:905
 msgid "Plot"
 msgstr "Tracer"
 
-#: spyderlib\widgets\dicteditor.py:567
+#: spyderlib\widgets\dicteditor.py:568
+msgid "Histogram"
+msgstr "Histogramme"
+
+#: spyderlib\widgets\dicteditor.py:572
 msgid "Show image"
 msgstr "Afficher l'image"
 
-#: spyderlib\widgets\dicteditor.py:571 spyderlib\widgets\dicteditor.py:904
+#: spyderlib\widgets\dicteditor.py:576 spyderlib\widgets\dicteditor.py:912
 msgid "Save array"
 msgstr "Enregistrer le tableau"
 
-#: spyderlib\widgets\dicteditor.py:575 spyderlib\widgets\dicteditor.py:845
-#: spyderlib\widgets\dicteditor.py:853
+#: spyderlib\widgets\dicteditor.py:580 spyderlib\widgets\dicteditor.py:853
+#: spyderlib\widgets\dicteditor.py:861
 msgid "Insert"
 msgstr "Insérer"
 
-#: spyderlib\widgets\dicteditor.py:578 spyderlib\widgets\dicteditor.py:798
+#: spyderlib\widgets\dicteditor.py:583 spyderlib\widgets\dicteditor.py:806
 msgid "Remove"
 msgstr "Supprimer"
 
-#: spyderlib\widgets\dicteditor.py:601 spyderlib\widgets\dicteditor.py:815
+#: spyderlib\widgets\dicteditor.py:606 spyderlib\widgets\dicteditor.py:823
 #: spyderlib\widgets\explorer.py:497 spyderlib\widgets\explorer.py:505
 #: spyderlib\widgets\explorer.py:517
 msgid "Rename"
 msgstr "Renommer"
 
-#: spyderlib\widgets\dicteditor.py:604
+#: spyderlib\widgets\dicteditor.py:609
 msgid "Duplicate"
 msgstr "Dupliquer"
 
-#: spyderlib\widgets\dicteditor.py:796
+#: spyderlib\widgets\dicteditor.py:804
 msgid "Do you want to remove selected item?"
 msgstr "Souhaitez-vous supprimer l'élément sélectionné ?"
 
-#: spyderlib\widgets\dicteditor.py:797
+#: spyderlib\widgets\dicteditor.py:805
 msgid "Do you want to remove all selected items?"
 msgstr "Souhaitez-vous supprimer les éléments sélectionnés ?"
 
-#: spyderlib\widgets\dicteditor.py:815 spyderlib\widgets\dicteditor.py:845
+#: spyderlib\widgets\dicteditor.py:823 spyderlib\widgets\dicteditor.py:853
 msgid "Key:"
 msgstr "Clé :"
 
-#: spyderlib\widgets\dicteditor.py:853
+#: spyderlib\widgets\dicteditor.py:861
 msgid "Value:"
 msgstr "Valeur :"
 
-#: spyderlib\widgets\dicteditor.py:869
+#: spyderlib\widgets\dicteditor.py:877
 msgid "Import error"
 msgstr "Erreur d'import"
 
-#: spyderlib\widgets\dicteditor.py:870
+#: spyderlib\widgets\dicteditor.py:878
 msgid "Please install <b>matplotlib</b> or <b>guiqwt</b>."
 msgstr "Merci d'installer <b>matplotlib</b> ou <b>guiqwt</b>."
 
-#: spyderlib\widgets\dicteditor.py:882
+#: spyderlib\widgets\dicteditor.py:890
 msgid "<b>Unable to plot data.</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible d'afficher les données</b><br><br>Message d'erreur :<br>%s"
 
-#: spyderlib\widgets\dicteditor.py:898
+#: spyderlib\widgets\dicteditor.py:906
 msgid "<b>Unable to show image.</b><br><br>Error message:<br>%s"
 msgstr "<b>Impossible d'afficher l'image</b><br><br>Message d'erreur :<br>%s"
 
-#: spyderlib\widgets\dicteditor.py:920
+#: spyderlib\widgets\dicteditor.py:928
 msgid "<b>Unable to save array</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible d'enregistrer le tableau</b><br><br>Message d'erreur :<br>%s"
 
-#: spyderlib\widgets\dicteditor.py:937
+#: spyderlib\widgets\dicteditor.py:945
 msgid "Clipboard contents"
 msgstr "Contenu du presse-papiers"
 
-#: spyderlib\widgets\dicteditor.py:951
+#: spyderlib\widgets\dicteditor.py:959
 msgid "Import from clipboard"
 msgstr "Importer depuis le presse-papiers"
 
-#: spyderlib\widgets\dicteditor.py:953
+#: spyderlib\widgets\dicteditor.py:961
 msgid "Empty clipboard"
 msgstr "Presse-papiers vide"
 
-#: spyderlib\widgets\dicteditor.py:954
+#: spyderlib\widgets\dicteditor.py:962
 msgid "Nothing to be imported from clipboard."
 msgstr "Aucune donnée ne peut être importée depuis le presse-papiers."
 
@@ -2993,13 +2997,13 @@ msgid "Refresh periodically"
 msgstr "Rafraîchir périodiquement"
 
 #: spyderlib\widgets\externalshell\namespacebrowser.py:178
-#: spyderlib\widgets\externalshell\namespacebrowser.py:415
+#: spyderlib\widgets\externalshell\namespacebrowser.py:416
 msgid "Import data"
 msgstr "Importer des données"
 
 #: spyderlib\widgets\externalshell\namespacebrowser.py:181
-#: spyderlib\widgets\externalshell\namespacebrowser.py:505
-#: spyderlib\widgets\externalshell\namespacebrowser.py:526
+#: spyderlib\widgets\externalshell\namespacebrowser.py:506
+#: spyderlib\widgets\externalshell\namespacebrowser.py:527
 msgid "Save data"
 msgstr "Enregistrer les données"
 
@@ -3033,7 +3037,7 @@ msgstr ""
 "L'objet <b>%s</b> n'est pas pris en charge par le protocole de sérialisation "
 "de <i>Pickle</i>"
 
-#: spyderlib\widgets\externalshell\namespacebrowser.py:437
+#: spyderlib\widgets\externalshell\namespacebrowser.py:438
 msgid ""
 "<b>Unsupported file extension '%s'</b><br><br>Would you like to import it "
 "anyway (by selecting a known file format)?"
@@ -3041,15 +3045,15 @@ msgstr ""
 "<b>Extension de fichier non pris en charge '%s'</b><br><br>Souhaitez-vous "
 "néanmoins ouvrir ce fichier (en choisissant un format de fichier connu) ?"
 
-#: spyderlib\widgets\externalshell\namespacebrowser.py:445
+#: spyderlib\widgets\externalshell\namespacebrowser.py:446
 msgid "Open file as:"
 msgstr "Ouvrir le fichier en tant que :"
 
-#: spyderlib\widgets\externalshell\namespacebrowser.py:493
+#: spyderlib\widgets\externalshell\namespacebrowser.py:494
 msgid "<b>Unable to load '%s'</b><br><br>Error message:<br>%s"
 msgstr "<b>Impossible d'ouvrir '%s'</b><br><br>Message d'erreur :<br>%s"
 
-#: spyderlib\widgets\externalshell\namespacebrowser.py:527
+#: spyderlib\widgets\externalshell\namespacebrowser.py:528
 msgid "<b>Unable to save current workspace</b><br><br>Error message:<br>%s"
 msgstr ""
 "<b>Impossible d'enregistrer l'espace de travail</b><br><br>Message d'erreur :"

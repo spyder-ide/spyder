@@ -376,11 +376,12 @@ class NamespaceBrowser(QWidget):
         """Return array's ndim"""
         return communicate(self._get_sock(), "%s.ndim" % name)
         
-    def plot(self, name):
-        command = "import spyderlib.pyplot; " \
-                  "__fig__ = spyderlib.pyplot.figure(); " \
-                  "__items__ = spyderlib.pyplot.plot(%s); " \
-                  "spyderlib.pyplot.show(); del __fig__, __items__;" % name
+    def plot(self, name, funcname):
+        command = "import spyderlib.pyplot; "\
+                  "__fig__ = spyderlib.pyplot.figure(); "\
+                  "__items__ = getattr(spyderlib.pyplot, '%s')(%s); "\
+                  "spyderlib.pyplot.show(); "\
+                  "del __fig__, __items__;" % (funcname, name)
         self.shellwidget.send_to_process(command)
         
     def imshow(self, name):

@@ -520,6 +520,7 @@ class BaseTableView(QTableView):
         self.copy_action = None
         self.edit_action = None
         self.plot_action = None
+        self.hist_action = None
         self.imshow_action = None
         self.save_array_action = None
         self.insert_action = None
@@ -561,9 +562,13 @@ class BaseTableView(QTableView):
                                          icon=get_icon('edit.png'),
                                          triggered=self.edit_item)
         self.plot_action = create_action(self, _("Plot"),
-                                         icon=get_icon('plot.png'),
-                                         triggered=self.plot_item)
+                                    icon=get_icon('plot.png'),
+                                    triggered=lambda: self.plot_item('plot'))
         self.plot_action.setVisible(False)
+        self.hist_action = create_action(self, _("Histogram"),
+                                    icon=get_icon('hist.png'),
+                                    triggered=lambda: self.plot_item('hist'))
+        self.hist_action.setVisible(False)
         self.imshow_action = create_action(self, _("Show image"),
                                            icon=get_icon('imshow.png'),
                                            triggered=self.imshow_item)
@@ -605,9 +610,10 @@ class BaseTableView(QTableView):
                                               icon=get_icon('edit_add.png'),
                                               triggered=self.duplicate_item)
         menu = QMenu(self)
-        menu_actions = [self.edit_action, self.plot_action, self.imshow_action,
-                        self.save_array_action, self.insert_action,
-                        self.remove_action, self.copy_action, self.paste_action,
+        menu_actions = [self.edit_action, self.plot_action, self.hist_action,
+                        self.imshow_action, self.save_array_action,
+                        self.insert_action, self.remove_action,
+                        self.copy_action, self.paste_action,
                         None, self.rename_action,self.duplicate_action,
                         None, resize_action, None, self.truncate_action,
                         self.inplace_action, self.collvalue_action]
@@ -665,7 +671,7 @@ class BaseTableView(QTableView):
         """Edit item"""
         raise NotImplementedError
     
-    def plot(self, key):
+    def plot(self, key, funcname):
         """Plot item"""
         raise NotImplementedError
     
@@ -692,11 +698,13 @@ class BaseTableView(QTableView):
             is_list = self.is_list(key)
             is_array = self.is_array(key) and self.get_len(key) != 0
             condition_plot = (is_array and len(self.get_array_shape(key)) <= 2)
+            condition_hist = (is_array and self.get_array_ndim(key) == 1)
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
         else:
             is_array = condition_plot = condition_imshow = is_list = False
         self.plot_action.setVisible(condition_plot or is_list)
+        self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
         self.save_array_action.setVisible(is_array)
         
@@ -857,7 +865,7 @@ class BaseTableView(QTableView):
             
     def __prepare_plot(self):
         try:
-            import guiqwt.pyplot #@UnusedImport
+            import guiqwt.pyplot #analysis:ignore
             return True
         except ImportError:
             try:
@@ -870,14 +878,14 @@ class BaseTableView(QTableView):
                                     _("Please install <b>matplotlib</b>"
                                       " or <b>guiqwt</b>."))
 
-    def plot_item(self):
+    def plot_item(self, funcname):
         """Plot item"""
         index = self.currentIndex()
         if self.__prepare_plot():
             key = self.model.get_key(index)
             try:
-                self.plot(key)
-            except ValueError, error:
+                self.plot(key, funcname)
+            except (ValueError, TypeError), error:
                 QMessageBox.critical(self, _( "Plot"),
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -893,7 +901,7 @@ class BaseTableView(QTableView):
                     self.show_image(key)
                 else:
                     self.imshow(key)
-            except ValueError, error:
+            except (ValueError, TypeError), error:
                 QMessageBox.critical(self, _( "Plot"),
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -1034,12 +1042,12 @@ class DictEditorTableView(BaseTableView):
         from spyderlib.widgets.objecteditor import oedit
         oedit(data[key])
     
-    def plot(self, key):
+    def plot(self, key, funcname):
         """Plot item"""
         data = self.model.get_data()
         import spyderlib.pyplot as plt
         plt.figure()
-        plt.plot(data[key])
+        getattr(plt, funcname)(data[key])
         plt.show()
     
     def imshow(self, key):
