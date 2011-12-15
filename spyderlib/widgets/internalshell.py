@@ -190,7 +190,6 @@ class InternalShell(PythonShellWidget):
         data = self.interpreter.stdout_write.empty_queue()
         if data:
             self.write(data)
-            self.repaint()
         
     def stderr_avail(self):
         """Data is available in stderr, let's empty the queue and write it!"""
@@ -198,7 +197,6 @@ class InternalShell(PythonShellWidget):
         if data:
             self.write(data, error=True)
             self.flush(error=True)
-            self.repaint()
 
 
     #----- Menus, actions, ...
@@ -259,7 +257,7 @@ class InternalShell(PythonShellWidget):
 
     #------ I/O
     def flush(self, error=False, prompt=False):
-        """Reimplement PythonShellWidget method"""
+        """Reimplement ShellBaseWidget method"""
         PythonShellWidget.flush(self, error=error, prompt=prompt)
         if self.interrupted:
             self.interrupted = False
