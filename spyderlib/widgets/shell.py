@@ -16,7 +16,7 @@ import sys, os, time, os.path as osp, re
 from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
                                 QKeySequence, QMessageBox, QMouseEvent,
                                 QTextCursor, QTextCharFormat, QShortcut)
-from spyderlib.qt.QtCore import Qt, QCoreApplication, SIGNAL, Property
+from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, SIGNAL, Property
 from spyderlib.qt.compat import getsavefilename
 
 # For debugging purpose:
@@ -75,9 +75,12 @@ class ShellBaseWidget(ConsoleBaseWidget):
         # Simple profiling test
         self.profile = profile
         
-        # write/flush
+        # Buffer to increase performance of write/flush operations
         self.__buffer = []
         self.__timestamp = 0.0
+        self.__flushtimer = QTimer(self)
+        self.__flushtimer.setSingleShot(True)
+        self.connect(self.__flushtimer, SIGNAL('timeout()'), self.flush)
 
         # Give focus to widget
         self.setFocus()
@@ -578,9 +581,13 @@ class ShellBaseWidget(ConsoleBaseWidget):
             text = unicode(text)
         self.__buffer.append(text)
         ts = time.time()
-        if flush or ts-self.__timestamp > 0.05 or prompt:
+        if flush or prompt:
             self.flush(error=error, prompt=prompt)
+        elif ts - self.__timestamp > 0.05:
+            self.flush(error=error)
             self.__timestamp = ts
+            # Timer to flush strings cached by last write() operation in series
+            self.__flushtimer.start(50)
 
     def flush(self, error=False, prompt=False):
         """Flush buffer, write text to console"""
