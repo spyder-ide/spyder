@@ -26,7 +26,7 @@ from spyderlib import __version__
 #==============================================================================
 STDOUT = sys.stdout
 STDERR = sys.stderr
-DEBUG = False
+DEBUG = bool(os.environ.get('SPYDER_DEBUG', ''))
 
 
 #==============================================================================
