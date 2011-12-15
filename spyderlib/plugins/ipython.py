@@ -6,15 +6,9 @@
 
 """IPython v0.11+ Plugin"""
 
-import sys
-
 from spyderlib.qt.QtGui import QHBoxLayout
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
-from spyderlib.baseconfig import _
 from spyderlib.widgets.ipython import create_widget
 from spyderlib.plugins import SpyderPluginWidget
 

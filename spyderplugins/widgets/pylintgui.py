@@ -26,9 +26,6 @@ import time
 import cPickle
 import re
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton

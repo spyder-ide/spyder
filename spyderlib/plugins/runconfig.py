@@ -15,11 +15,7 @@ from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
-import sys
 import os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.baseconfig import _

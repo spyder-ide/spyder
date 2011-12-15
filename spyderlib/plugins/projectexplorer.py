@@ -9,11 +9,6 @@
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import SIGNAL
 
-import sys
-
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, VALID_EXT

@@ -13,9 +13,6 @@ from spyderlib.qt.QtCore import SIGNAL, QUrl
 
 import sys
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)

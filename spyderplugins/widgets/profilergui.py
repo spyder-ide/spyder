@@ -30,9 +30,6 @@ import os
 import os.path as osp
 import time
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)

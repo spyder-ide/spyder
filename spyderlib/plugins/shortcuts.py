@@ -12,11 +12,6 @@ from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
                                  SIGNAL)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
-import sys
-
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import (get_icon, get_shortcut, set_shortcut,

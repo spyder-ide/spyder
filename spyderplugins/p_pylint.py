@@ -14,11 +14,6 @@
 from spyderlib.qt.QtGui import QInputDialog, QVBoxLayout, QGroupBox, QLabel
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
-import sys
-
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")

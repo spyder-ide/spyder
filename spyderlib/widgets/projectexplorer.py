@@ -15,7 +15,6 @@ from spyderlib.qt.QtCore import Qt, SIGNAL, QFileInfo, Slot, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
-import sys
 import re
 import shutil
 import cPickle
@@ -25,16 +24,11 @@ import xml.etree.ElementTree as ElementTree
 # Local imports
 from spyderlib.utils import misc
 from spyderlib.utils.qthelpers import get_std_icon, create_action
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, STDERR
 from spyderlib.config import get_icon, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
-
-
-# For debugging purpose:
-STDOUT = sys.stdout
-STDERR = sys.stderr
 
 
 def has_children_files(path, include, exclude, show_all):

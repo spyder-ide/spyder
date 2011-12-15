@@ -15,11 +15,6 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
                                 QWidget, QSizePolicy, QShortcut, QKeySequence)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
 
-import sys
-
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox

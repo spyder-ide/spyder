@@ -18,12 +18,12 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QThread, QMutexLocker, QMutex
 from spyderlib.qt.compat import getexistingdirectory
 
-import sys, os, re, fnmatch
+import sys
+import os
+import re
+import fnmatch
 import os.path as osp
 from subprocess import Popen, PIPE
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import programs

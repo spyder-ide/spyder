@@ -6,7 +6,6 @@
 
 """Editor tools: outline explorer, etc."""
 
-import sys
 import re
 import os.path as osp
 
@@ -15,11 +14,8 @@ from spyderlib.qt.QtGui import (QWidget, QTreeWidgetItem,  QHBoxLayout,
 from spyderlib.qt.QtCore import Qt, SIGNAL
 from spyderlib.qt.compat import from_qvariant
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local import
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, STDOUT
 from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        set_item_user_text)

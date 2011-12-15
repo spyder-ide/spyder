@@ -24,8 +24,6 @@ import threading
 from time import time
 from subprocess import Popen
 
-STDOUT = sys.stdout
-
 from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import SIGNAL, QObject
 

@@ -9,12 +9,10 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys, os, os.path as osp
+import sys
+import os
+import os.path as osp
 from time import time, strftime, gmtime
-
-# Debug
-STDOUT = sys.stdout
-STDERR = sys.stderr
 
 from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QHBoxLayout, QMenu, QLabel, QInputDialog,

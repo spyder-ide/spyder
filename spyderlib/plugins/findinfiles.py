@@ -11,10 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys, os
-
-# For debugging purpose:
-STDOUT = sys.stdout
+import os
 
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import SIGNAL, Signal

@@ -6,8 +6,14 @@
 
 """Shell Interpreter"""
 
-import sys, atexit, threading, ctypes
-import os, re, os.path as osp, pydoc
+import sys
+import atexit
+import threading
+import ctypes
+import os
+import re
+import os.path as osp
+import pydoc
 from subprocess import Popen, PIPE
 from code import InteractiveConsole
 
@@ -17,9 +23,6 @@ from spyderlib.utils import encoding
 
 # Force Python to search modules in the current directory first:
 sys.path.insert(0, '')
-
-# For debugging purpose
-STDOUT, STDERR = sys.stdout, sys.stderr
 
 
 def guess_filename(filename):

@@ -9,10 +9,8 @@
 from spyderlib.qt.QtGui import QApplication, QCursor
 from spyderlib.qt.QtCore import QThread, QUrl, Qt
 
-import sys, os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
+import sys
+import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _

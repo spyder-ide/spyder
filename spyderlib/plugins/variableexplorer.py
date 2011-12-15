@@ -6,13 +6,8 @@
 
 """Namespace Browser Plugin"""
 
-import sys
-
 from spyderlib.qt.QtGui import QStackedWidget, QGroupBox, QVBoxLayout
 from spyderlib.qt.QtCore import Signal
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.baseconfig import _

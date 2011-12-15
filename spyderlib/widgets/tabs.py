@@ -24,10 +24,6 @@ from spyderlib.config import get_icon
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)
 
-# For debugging purpose:
-import sys
-STDOUT = sys.stdout
-
 
 class TabBar(QTabBar):
     """Tabs base class with drag and drop support"""

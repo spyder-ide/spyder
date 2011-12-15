@@ -15,14 +15,10 @@ from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
-import sys
 import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 
 class BaseComboBox(QComboBox):

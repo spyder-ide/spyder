@@ -19,11 +19,10 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QPrintDialog, QSplitter, QToolBar,
 from spyderlib.qt.QtCore import SIGNAL, QByteArray, Qt, Slot
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getopenfilenames
 
-import os, sys, time, re
+import os
+import time
+import re
 import os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis

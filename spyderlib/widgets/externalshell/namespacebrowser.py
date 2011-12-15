@@ -6,11 +6,9 @@
 
 """Namespace browser widget"""
 
-import sys, os, os.path as osp, socket
-
-# Debug
-STDOUT = sys.stdout
-STDERR = sys.stderr
+import os
+import os.path as osp
+import socket
 
 from spyderlib.qt.QtGui import (QWidget, QVBoxLayout, QHBoxLayout, QMenu,
                                 QToolButton, QMessageBox, QApplication,

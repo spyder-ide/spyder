@@ -12,10 +12,9 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QLineEdit, QMessageBox)
 from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 
-import sys, re, os.path as osp, socket
-
-# For debugging purpose:
-STDOUT = sys.stdout
+import re
+import os.path as osp
+import socket
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _

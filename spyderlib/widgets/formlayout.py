@@ -42,10 +42,6 @@ OTHER DEALINGS IN THE SOFTWARE.
 __version__ = '1.0.11'
 __license__ = __doc__
 
-DEBUG = False
-
-import sys
-STDERR = sys.stderr
 
 try:
     from spyderlib.qt.QtGui import QFormLayout
@@ -63,7 +59,7 @@ from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT, QSize, Slot, Property
 import datetime
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, DEBUG, STDERR
 
 
 class ColorButton(QPushButton):

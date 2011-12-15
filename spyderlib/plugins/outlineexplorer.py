@@ -13,11 +13,6 @@ highlighter spyderlib.widgets.sourcecode.syntaxhighlighters.PythonSH
 
 from spyderlib.qt.QtCore import SIGNAL, Signal
 
-import sys
-
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon

@@ -42,10 +42,6 @@ import re
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 
-# For debugging purpose only
-STDOUT = sys.stdout
-STDERR = sys.stderr
-
 # Windows platforms only: support for hiding the attached console window
 set_attached_console_visible = None
 is_attached_console_visible = None
@@ -118,7 +114,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        keybinding, qapplication,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
-                                  get_module_source_path)
+                                  get_module_source_path, STDOUT, STDERR)
 from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
                               EDIT_EXT, IMPORT_EXT)
 from spyderlib.otherplugins import get_spyderplugins_mods
@@ -1531,7 +1527,8 @@ Please provide any additional information below.
                 if valid:
                     args = unicode(args)
                     if re.match('^--existing --shell=(\d+) --iopub=(\d+) '\
-                                '--stdin=(\d+) --hb=(\d+)$', args):
+                                '--stdin=(\d+) --hb=(\d+)$', args)\
+                       or re.match('^--existing kernel-(\d+).json', args):
                         kernel_name = args
                         break
                 else:

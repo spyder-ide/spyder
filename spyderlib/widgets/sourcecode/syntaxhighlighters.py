@@ -9,14 +9,13 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 (Python syntax highlighting rules are inspired from idlelib)
 """
 
-import sys, re, keyword, __builtin__
+import re
+import keyword
+import __builtin__
 
 from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
                                 QSyntaxHighlighter, QCursor, QTextCharFormat)
 from spyderlib.qt.QtCore import Qt
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 
 #==============================================================================

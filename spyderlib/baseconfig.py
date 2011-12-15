@@ -13,18 +13,27 @@ exclusively with non-GUI features configuration only
 sip API incompatibility issue in spyderlib's non-gui modules)
 """
 
-import os.path as osp, os, sys
+import os.path as osp
+import os
+import sys
 
 # Local imports
 from spyderlib import __version__
 
 
-SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+#==============================================================================
+# Debug helpers
+#==============================================================================
+STDOUT = sys.stdout
+STDERR = sys.stderr
+DEBUG = False
 
 
 #==============================================================================
 # Configuration paths
 #==============================================================================
+SUBFOLDER = '.spyder%s' % __version__.split('.')[0]
+
 def get_conf_path(filename=None):
     """Return absolute path for configuration file with specified filename"""
     from spyderlib import userconfig

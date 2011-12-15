@@ -6,11 +6,10 @@
 
 """External Python Shell widget: execute Python script in a separate process"""
 
-import sys, os, os.path as osp, socket
-
-# Debug
-STDOUT = sys.stdout
-STDERR = sys.stderr
+import sys
+import os
+import os.path as osp
+import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec

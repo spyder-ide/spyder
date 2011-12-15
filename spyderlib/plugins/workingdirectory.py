@@ -16,11 +16,8 @@ from spyderlib.qt.QtGui import (QToolBar, QLabel, QGroupBox, QVBoxLayout,
 from spyderlib.qt.QtCore import SIGNAL, Signal
 from spyderlib.qt.compat import getexistingdirectory
 
-import os, sys
+import os
 import os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils import encoding

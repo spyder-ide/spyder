@@ -27,9 +27,6 @@ import re
 import os.path as osp
 import shutil
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, scm

@@ -12,10 +12,6 @@ from spyderlib.qt.QtCore import SIGNAL
 
 import os.path as osp
 
-import sys
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.baseconfig import _

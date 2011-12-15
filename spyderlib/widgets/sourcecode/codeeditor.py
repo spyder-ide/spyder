@@ -39,7 +39,7 @@ from spyderlib.qt.compat import to_qvariant
 # Local import
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF, get_font, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
@@ -51,8 +51,6 @@ from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters
 
 # For debugging purpose:
-STDOUT = sys.stdout
-DEBUG = False
 LOG_FILENAME = get_conf_path('rope.log')
 
 

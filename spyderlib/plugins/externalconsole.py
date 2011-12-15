@@ -22,9 +22,6 @@ import os
 import os.path as osp
 import imp
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
 from spyderlib.config import get_icon, CONF

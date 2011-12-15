@@ -13,9 +13,13 @@ Note: 'load' functions has to return a dictionary from which a globals()
 
 from __future__ import with_statement
 
-import sys, os, cPickle, tarfile, os.path as osp, shutil, warnings
-
-STDERR = sys.stderr
+import sys
+import os
+import cPickle
+import tarfile
+import os.path as osp
+import shutil
+import warnings
 
 
 try:
@@ -194,7 +198,7 @@ def load_dictionary(filename):
     return data, error_message
 
 
-from spyderlib.baseconfig import get_conf_path
+from spyderlib.baseconfig import get_conf_path, STDERR
 
 SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
                       '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',

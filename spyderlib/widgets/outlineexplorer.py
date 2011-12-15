@@ -19,9 +19,6 @@ Outline explorer widget
 import os.path as osp
 import sys
 
-# For debugging purpose:
-STDOUT = sys.stdout
-
 from spyderlib.qt.QtGui import QTreeWidgetItem
 from spyderlib.qt.QtCore import SIGNAL
 

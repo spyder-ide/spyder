@@ -23,11 +23,7 @@ from spyderlib.qt.QtGui import (QDockWidget, QWidget, QShortcut, QCursor,
 from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 from spyderlib.qt import is_old_pyqt
 
-import sys
 import os
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions

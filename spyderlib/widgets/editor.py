@@ -21,13 +21,16 @@ from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
                                  QByteArray, QSize, QPoint, QTimer)
 from spyderlib.qt.compat import getsavefilename
 
-import os, sys, re, os.path as osp
+import os
+import sys
+import re
+import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, DEBUG, STDOUT
 from spyderlib.config import get_icon, get_font, EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -39,11 +42,6 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
 from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
-
-
-# For debugging purpose:
-STDOUT = sys.stdout
-DEBUG = False
 
 
 class FileListDialog(QDialog):

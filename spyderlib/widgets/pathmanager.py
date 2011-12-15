@@ -14,10 +14,9 @@ from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
 from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 from spyderlib.qt.compat import getexistingdirectory
 
-import os, sys, os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
+import os
+import sys
+import os.path as osp
 
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton

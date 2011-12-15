@@ -8,10 +8,7 @@
 
 from spyderlib.qt.QtCore import Signal
 
-import sys, os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
+import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _

@@ -6,11 +6,7 @@
 
 """External System Shell widget: execute terminal in a separate process"""
 
-import sys, os
-
-# Debug
-STDOUT = sys.stdout
-STDERR = sys.stderr
+import os
 
 from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import QProcess, SIGNAL, QTextCodec

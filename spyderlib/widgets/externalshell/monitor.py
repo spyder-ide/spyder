@@ -16,13 +16,11 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import get_conf_path, get_supported_types
+from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 
 SUPPORTED_TYPES = get_supported_types()
 
 LOG_FILENAME = get_conf_path('monitor.log')
-
-DEBUG = False
 
 if DEBUG:
     import logging

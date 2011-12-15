@@ -11,7 +11,10 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys, os, time, os.path as osp, re
+import os
+import time
+import os.path as osp
+import re
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
                                 QKeySequence, QMessageBox, QMouseEvent,
@@ -19,12 +22,8 @@ from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
 from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, SIGNAL, Property
 from spyderlib.qt.compat import getsavefilename
 
-# For debugging purpose:
-STDOUT = sys.stdout
-STDERR = sys.stderr
-
 # Local import
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.config import CONF, get_icon, get_font
 from spyderlib.utils import encoding
 from spyderlib.utils.misc import get_error_match

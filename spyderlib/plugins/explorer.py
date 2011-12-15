@@ -14,11 +14,7 @@
 from spyderlib.qt.QtGui import QFontDialog
 from spyderlib.qt.QtCore import SIGNAL
 
-import sys
 import os.path as osp
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 # Local imports
 from spyderlib.baseconfig import _

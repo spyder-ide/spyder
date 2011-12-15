@@ -11,7 +11,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import sys
 import re
 import sre_constants
 import string
@@ -27,9 +26,6 @@ from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QRegExp, QEventLoop
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.utils import sourcecode
-
-# For debugging purpose:
-STDOUT = sys.stdout
 
 
 class CompletionWidget(QListWidget):
