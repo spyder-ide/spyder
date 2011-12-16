@@ -4,6 +4,7 @@
 
 === Bug fixes (since v2.1.4) ===
 
+  * (Fixed on Windows platforms with !PyQt v4.8+ only) Detached dockwidgets (Console, ...) were not painted after restarting Spyder
   * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
   * File/Project explorer:
     * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
@@ -19,14 +20,21 @@
 
 === Other changes (since v2.1.4) ===
 
-  * Console/PySide support:
-    * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
-    * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
-    * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
+  * Debugging: when a non-empty SPYDER_DEBUG environment variable exists, Spyder switch to debug mode (log files are created in user's home directory and debug prints are available in the terminal)
+  * Variable explorer/Dictionary editor: added option to plot histogram from a 1-D array
+  * Console:
+    * standard Python interpreter is now a real Python interactive session: the older implementation was running a startup script and tried to emulate a standard Python interactive session (changing attributes like __name__, running the PYTHONSTARTUP script, etc.). But this implementation was not close enough to the standard Python interactive session, i.e. when you execute `python` outside Spyder, without any argument. A recent bug report confirmed this: the PYTHONSTARTUP script was executed but not exactly the same way as it is outside Spyder: for example, doing `from __future__ import division` in the startup script had no effect whereas it did outside Spyder.
+    * when running a standard Python interpreter, instead of running the startup script (spyderlib/widgets/externalshell/startup.py), the shell widget (ExternalPythonShell) simply runs the python executable with -u -i options, that's all. So now, the PYTHONSTARTUP script is executed as expected.
+    * Scientific startup script (default PYTHONSTARTUP in Spyder): added floating point division (from __future__ import division)
+    * PySide support:
+      * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
+      * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
+      * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
+    * New options for standard Python interpreters (no effect on !IPython):
+      * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
+      * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
+  * Internal console (Issue 868): output is now immediately available
   * "Maximize current plugin" action: now automatically shows the "Outline" plugin when maximizing the "Editor" plugin
-  * Console/New options for standard Python interpreters (no effect on !IPython):
-    * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
-    * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
   * Editor/Outline comment separators: allow space betwee hash and dash, e.g "# --- Outline Separator"
 
 ----
