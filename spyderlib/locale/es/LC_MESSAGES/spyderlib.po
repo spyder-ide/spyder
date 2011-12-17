@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2011-10-09 14:57+Paris, Madrid (heure d'été)\n"
-"PO-Revision-Date: 2011-10-09 10:42-0500\n"
+"PO-Revision-Date: 2011-10-11 17:35-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: \n"
@@ -122,7 +122,7 @@ msgstr "Cursiva"
 
 #: spyderlib\plugins\configdialog.py:545
 msgid "Font: "
-msgstr ""
+msgstr "Tipo de letra"
 
 #: spyderlib\plugins\configdialog.py:549
 msgid "Size: "
@@ -149,23 +149,23 @@ msgstr "Estilo de Qt"
 
 #: spyderlib\plugins\configdialog.py:615
 msgid "Vertical dockwidget title bars"
-msgstr ""
+msgstr "Barras de título verticales para los componentes"
 
 #: spyderlib\plugins\configdialog.py:617
 msgid "Vertical dockwidget tabs"
-msgstr ""
+msgstr "Componentes en pestañas verticales"
 
 #: spyderlib\plugins\configdialog.py:619
 msgid "Animated toolbars and dockwidgets"
-msgstr ""
+msgstr "Barras de herramientas y componentes animados"
 
 #: spyderlib\plugins\configdialog.py:621
 msgid "Custom dockwidget margin:"
-msgstr ""
+msgstr "Márgenes de componente personalizadas:"
 
 #: spyderlib\plugins\configdialog.py:652
 msgid "Syntax coloring"
-msgstr ""
+msgstr "Coloreado de sintaxis"
 
 #: spyderlib\plugins\configdialog.py:663
 msgid "Background:"
@@ -174,68 +174,68 @@ msgstr "Fondo:"
 #: spyderlib\plugins\configdialog.py:664
 #: spyderlib\widgets\sourcecode\codeeditor.py:247
 msgid "Current line:"
-msgstr ""
+msgstr "Línea seleccionada:"
 
 #: spyderlib\plugins\configdialog.py:665
 msgid "Occurence:"
-msgstr ""
+msgstr "Ocurrencia:"
 
 #: spyderlib\plugins\configdialog.py:666
 msgid "Link:"
-msgstr ""
+msgstr "Enlace:"
 
 #: spyderlib\plugins\configdialog.py:667
 msgid "Side areas:"
-msgstr ""
+msgstr "Áreas laterales:"
 
 #: spyderlib\plugins\configdialog.py:668
 msgid "Matched parentheses:"
-msgstr ""
+msgstr "Paréntesis emparejados:"
 
 #: spyderlib\plugins\configdialog.py:669
 msgid "Unmatched parentheses:"
-msgstr ""
+msgstr "Paréntesis desemparejados:"
 
 #: spyderlib\plugins\configdialog.py:670
 msgid "Normal text:"
-msgstr ""
+msgstr "Texto normal:"
 
 #: spyderlib\plugins\configdialog.py:671
 msgid "Keyword:"
-msgstr ""
+msgstr "Palabra clave:"
 
 #: spyderlib\plugins\configdialog.py:672
 msgid "Builtin:"
-msgstr ""
+msgstr "Objeto integrado:"
 
 #: spyderlib\plugins\configdialog.py:673
 msgid "Definition:"
-msgstr ""
+msgstr "Definición:"
 
 #: spyderlib\plugins\configdialog.py:674
 msgid "Comment:"
-msgstr ""
+msgstr "Comentario:"
 
 #: spyderlib\plugins\configdialog.py:675
 msgid "String:"
-msgstr ""
+msgstr "Cadena:"
 
 #: spyderlib\plugins\configdialog.py:676
 msgid "Number:"
-msgstr ""
+msgstr "Número:"
 
 #: spyderlib\plugins\configdialog.py:677
 msgid "Instance:"
-msgstr ""
+msgstr "Instancia:"
 
 #: spyderlib\plugins\configdialog.py:683
 msgid "Color scheme"
-msgstr ""
+msgstr "Esquema de coloreado"
 
 #: spyderlib\plugins\configdialog.py:705
 #: spyderlib\plugins\shortcuts.py:327
 msgid "Reset to default values"
-msgstr ""
+msgstr "Restaurar los valores por defecto"
 
 #: spyderlib\plugins\console.py:106
 msgid "Internal console"
@@ -316,25 +316,25 @@ msgstr ""
 #: spyderlib\plugins\inspector.py:90
 #: spyderlib\plugins\inspector.py:224
 msgid "Wrap lines"
-msgstr ""
+msgstr "Ajuste de línea automático"
 
 #: spyderlib\plugins\console.py:160
 #: spyderlib\plugins\editor.py:148
 #: spyderlib\plugins\externalconsole.py:101
 msgid "Balloon tips"
-msgstr ""
+msgstr "Globos de sugerencias"
 
 #: spyderlib\plugins\console.py:164
 #: spyderlib\plugins\editor.py:140
 #: spyderlib\plugins\externalconsole.py:93
 msgid "Automatic code completion"
-msgstr ""
+msgstr "Completar código automáticamente"
 
 #: spyderlib\plugins\console.py:168
 #: spyderlib\plugins\editor.py:146
 #: spyderlib\plugins\externalconsole.py:99
 msgid "Enter key selects completion"
-msgstr ""
+msgstr "La tecla Enter selecciona el resultado a completar"
 
 #: spyderlib\plugins\console.py:173
 msgid "Internal console settings"
@@ -388,19 +388,19 @@ msgstr "Editor"
 
 #: spyderlib\plugins\editor.py:80
 msgid "Edit template for new modules"
-msgstr ""
+msgstr "Editar la plantilla para nuevos módulos"
 
 #: spyderlib\plugins\editor.py:85
 msgid "Text and margin font style"
-msgstr ""
+msgstr "Tipo de letra para el texto y las márgenes"
 
 #: spyderlib\plugins\editor.py:88
 msgid "Sort files according to full path"
-msgstr ""
+msgstr "Ordenar archivos según su ruta completa"
 
 #: spyderlib\plugins\editor.py:90
 msgid "Show tab bar"
-msgstr ""
+msgstr "Mostrar la barra de pestañas"
 
 #: spyderlib\plugins\editor.py:97
 #: spyderlib\plugins\editor.py:169
@@ -409,19 +409,19 @@ msgstr ""
 #: spyderlib\plugins\history.py:39
 #: spyderlib\plugins\inspector.py:89
 msgid "Source code"
-msgstr ""
+msgstr "Código fuente"
 
 #: spyderlib\plugins\editor.py:98
 msgid "Show line numbers"
-msgstr ""
+msgstr "Mostrar números de líneas"
 
 #: spyderlib\plugins\editor.py:99
 msgid "Show vertical line after"
-msgstr ""
+msgstr "Mostrar una línea vertical después de"
 
 #: spyderlib\plugins\editor.py:100
 msgid "characters"
-msgstr ""
+msgstr "caracteres"
 
 #: spyderlib\plugins\editor.py:108
 msgid "Highlight current line"
@@ -429,13 +429,13 @@ msgstr "Resaltar la línea actual"
 
 #: spyderlib\plugins\editor.py:110
 msgid "Highlight occurences after"
-msgstr ""
+msgstr "Resaltar ocurrencias después de"
 
 #: spyderlib\plugins\editor.py:121
 #: spyderlib\plugins\history.py:48
 #: spyderlib\plugins\inspector.py:98
 msgid "Syntax color scheme: "
-msgstr ""
+msgstr "Esquema de coloreado:"
 
 #: spyderlib\plugins\editor.py:133
 #: spyderlib\plugins\runconfig.py:239
@@ -443,30 +443,30 @@ msgstr ""
 #: spyderlib\widgets\explorer.py:235
 #: spyderlib\widgets\externalshell\baseshell.py:138
 msgid "Run"
-msgstr "Correr"
+msgstr "Ejecutar"
 
 #: spyderlib\plugins\editor.py:134
 msgid "Save all files before running script"
-msgstr ""
+msgstr "Guardar todo antes de ejecutar un archivo"
 
 #: spyderlib\plugins\editor.py:137
 #: spyderlib\plugins\externalconsole.py:341
 msgid "Introspection"
-msgstr ""
+msgstr "Introspección"
 
 #: spyderlib\plugins\editor.py:142
 #: spyderlib\plugins\externalconsole.py:95
 msgid "Case sensitive code completion"
-msgstr ""
+msgstr "Diferenciar entre mayúsculas y minúsculas al completar código"
 
 #: spyderlib\plugins\editor.py:144
 #: spyderlib\plugins\externalconsole.py:97
 msgid "Show single completion"
-msgstr ""
+msgstr "Mostrar la lista de resultados a completar aunque haya una sola elección"
 
 #: spyderlib\plugins\editor.py:149
 msgid "Link to object definition"
-msgstr ""
+msgstr "Enlazar a la definición de un objeto"
 
 #: spyderlib\plugins\editor.py:151
 msgid ""
@@ -478,7 +478,7 @@ msgstr ""
 #: spyderlib\plugins\editor.py:155
 #: spyderlib\plugins\externalconsole.py:103
 msgid "Automatic notification to object inspector"
-msgstr ""
+msgstr "Notificación automática al Inspector de objetos"
 
 #: spyderlib\plugins\editor.py:157
 msgid ""
@@ -494,7 +494,7 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:170
 msgid "Automatic parentheses, braces and brackets insertion"
-msgstr ""
+msgstr "Inserción automática de paréntesis, llaves y corchetes cuadrados"
 
 #: spyderlib\plugins\editor.py:173
 msgid "Automatic indentation after 'else', 'elif', etc."
@@ -518,7 +518,7 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:179
 msgid "Tab stop width:"
-msgstr ""
+msgstr "Ancho de las tabulaciones:"
 
 #: spyderlib\plugins\editor.py:179
 msgid "pixels"
@@ -526,7 +526,7 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:181
 msgid "Tab always indent"
-msgstr ""
+msgstr "Siempre indentar con la tecla Tab"
 
 #: spyderlib\plugins\editor.py:183
 msgid ""
@@ -539,11 +539,11 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:188
 msgid "Intelligent backspace"
-msgstr ""
+msgstr "Tecla de retroceso (\"backspace\") inteligente"
 
 #: spyderlib\plugins\editor.py:190
 msgid "Automatically remove trailing spaces when saving files"
-msgstr ""
+msgstr "Eliminar automáticamente espacios en blanco al guardar un archivo"
 
 #: spyderlib\plugins\editor.py:194
 msgid "Analysis"
@@ -582,42 +582,42 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:223
 msgid "Tasks (TODO, FIXME, XXX, HINT, TIP)"
-msgstr ""
+msgstr "Tareas (TODO, FIXME, XXX, HINT, TIP)"
 
 #: spyderlib\plugins\editor.py:226
 msgid "Perform analysis when saving file and every"
-msgstr ""
+msgstr "Realizar los análisis cuando se guarde el archivo y cada"
 
 #: spyderlib\plugins\editor.py:230
 msgid "Perform analysis only when saving file"
-msgstr ""
+msgstr "Realizar análisis sólo cuando se guarde el archivo"
 
 #: spyderlib\plugins\editor.py:274
 msgid "End-of-line characters"
-msgstr ""
+msgstr "Caracteres de fin de línea"
 
 #: spyderlib\plugins\editor.py:275
 msgid "When opening a text file containing mixed end-of-line characters (this may raise syntax errors in Python interpreter on Windows platforms), Spyder may fix the file automatically."
-msgstr ""
+msgstr "Cuando se abra un archivo de texto que contenga varios tipos de caracteres de fin de línea (lo cual puede dar lugar a errores en el intérprete de Python en Windows), Spyder puede arreglar el archivo automáticamente."
 
 #: spyderlib\plugins\editor.py:281
 msgid "Fix automatically and show warning message box"
-msgstr ""
+msgstr "Arreglar automáticamente y mostrar un mensaje de advertencia"
 
 #: spyderlib\plugins\editor.py:292
 #: spyderlib\plugins\externalconsole.py:339
 #: spyderlib\plugins\variableexplorer.py:45
 msgid "Display"
-msgstr ""
+msgstr "Visualización"
 
 #: spyderlib\plugins\editor.py:294
 msgid "Code Introspection/Analysis"
-msgstr ""
+msgstr "Análisis e introspección de código"
 
 #: spyderlib\plugins\editor.py:297
 #: spyderlib\plugins\externalconsole.py:344
 msgid "Advanced settings"
-msgstr ""
+msgstr "Opciones avanzadas"
 
 #: spyderlib\plugins\editor.py:537
 #: spyderlib\widgets\editortools.py:487
@@ -1116,7 +1116,7 @@ msgstr ""
 #: spyderlib\plugins\externalconsole.py:177
 #: spyderlib\plugins\workingdirectory.py:45
 msgid "Startup"
-msgstr ""
+msgstr "Inicialización"
 
 #: spyderlib\plugins\externalconsole.py:178
 msgid "Open a Python interpreter at startup"
@@ -1512,42 +1512,42 @@ msgstr ""
 
 #: spyderlib\plugins\shortcuts.py:159
 msgid "Context"
-msgstr ""
+msgstr "Contexto"
 
 #: spyderlib\plugins\shortcuts.py:161
 #: spyderlib\widgets\dicteditor.py:125
 #: spyderlib\widgets\importwizard.py:469
 msgid "Name"
-msgstr ""
+msgstr "Nombre"
 
 #: spyderlib\plugins\shortcuts.py:163
 msgid "Mod1"
-msgstr ""
+msgstr "Mod1"
 
 #: spyderlib\plugins\shortcuts.py:165
 msgid "Mod2"
-msgstr ""
+msgstr "Mod2"
 
 #: spyderlib\plugins\shortcuts.py:167
 msgid "Mod3"
-msgstr ""
+msgstr "Mod3"
 
 #: spyderlib\plugins\shortcuts.py:169
 #: spyderlib\widgets\dicteditor.py:136
 msgid "Key"
-msgstr ""
+msgstr "Tecla"
 
 #: spyderlib\plugins\shortcuts.py:302
 msgid "Conflicts"
-msgstr ""
+msgstr "Conflicto con"
 
 #: spyderlib\plugins\shortcuts.py:303
 msgid "The following conflicts have been detected:"
-msgstr ""
+msgstr "Los siguientes conflictos han sido detectados:"
 
 #: spyderlib\plugins\shortcuts.py:315
 msgid "Keyboard shortcuts"
-msgstr ""
+msgstr "Atajos de teclado"
 
 #: spyderlib\plugins\variableexplorer.py:28
 msgid "Autorefresh"
@@ -1627,15 +1627,15 @@ msgstr "Explorador de variables"
 
 #: spyderlib\plugins\workingdirectory.py:38
 msgid "The <b>global working directory</b> is the working directory for newly opened <i>consoles</i> (Python/IPython interpreters and terminals), for the <i>file explorer</i>, for the <i>find in files</i> plugin and for new files created in the <i>editor</i>."
-msgstr ""
+msgstr "El <b>directorio de trabajo global</b> es el directorio de trabajo para las <i>terminales</i> recién abiertas (Intérpretes de IPython y Python, y terminales de comandos), para el <i>Explorador de archivos</i>, para el componente <i>Buscar en archivos</i> y para los nuevos archivos creados en el <i>Editor</i>."
 
 #: spyderlib\plugins\workingdirectory.py:47
 msgid "At startup, the global working directory is:"
-msgstr ""
+msgstr "Al inicio, el directorio de trabajo global es:"
 
 #: spyderlib\plugins\workingdirectory.py:51
 msgid "the same as in last session"
-msgstr ""
+msgstr "El mismo de la última sesión"
 
 #: spyderlib\plugins\workingdirectory.py:53
 msgid "At startup, Spyder will restore the global directory from last session"
@@ -1643,7 +1643,7 @@ msgstr ""
 
 #: spyderlib\plugins\workingdirectory.py:57
 msgid "the following directory:"
-msgstr ""
+msgstr "el siguiente directorio:"
 
 #: spyderlib\plugins\workingdirectory.py:59
 msgid "At startup, the global working directory will be the specified path"
@@ -1651,39 +1651,39 @@ msgstr ""
 
 #: spyderlib\plugins\workingdirectory.py:73
 msgid "Files are opened from:"
-msgstr ""
+msgstr "Los archivos deben abrirse desde:"
 
 #: spyderlib\plugins\workingdirectory.py:77
 #: spyderlib\plugins\workingdirectory.py:90
 msgid "the current file directory"
-msgstr ""
+msgstr "El directorio en  el que se encuentra el archivo actual"
 
 #: spyderlib\plugins\workingdirectory.py:81
 #: spyderlib\plugins\workingdirectory.py:94
 msgid "the global working directory"
-msgstr ""
+msgstr "El directorio de trabajo global"
 
 #: spyderlib\plugins\workingdirectory.py:85
 #: spyderlib\widgets\explorer.py:608
 #: spyderlib\widgets\explorer.py:615
 msgid "New file"
-msgstr ""
+msgstr "Nuevos archivos"
 
 #: spyderlib\plugins\workingdirectory.py:86
 msgid "Files are created in:"
-msgstr ""
+msgstr "Los archivos son creados en:"
 
 #: spyderlib\plugins\workingdirectory.py:100
 msgid "Change to file base directory"
-msgstr ""
+msgstr "Cambiarse al directorio base de un archivo"
 
 #: spyderlib\plugins\workingdirectory.py:102
 msgid "When opening a file"
-msgstr ""
+msgstr "Cuando se abra un archivo"
 
 #: spyderlib\plugins\workingdirectory.py:104
 msgid "When saving a file"
-msgstr ""
+msgstr "Cuando se guarde un archivo"
 
 #: spyderlib\plugins\workingdirectory.py:171
 msgid "Back"
