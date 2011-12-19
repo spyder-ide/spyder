@@ -122,7 +122,7 @@ from spyderlib.utils.programs import (run_python_script, is_module_installed,
                                       start_file, run_python_script_in_terminal)
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
-from spyderlib.utils.module_completion import MODULES_PATH
+from spyderlib.utils.module_completion import modules_db
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -1570,9 +1570,7 @@ Please provide any additional information below.
         
     def update_modules(self):
         """Update module names list"""
-        from spyderlib.utils.external.pickleshare import PickleShareDB
-        db = PickleShareDB(MODULES_PATH)
-        del db['rootmodules']
+        del modules_db['rootmodules']
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
