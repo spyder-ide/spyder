@@ -122,7 +122,7 @@ from spyderlib.utils.programs import (run_python_script, is_module_installed,
                                       start_file, run_python_script_in_terminal)
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
-from spyderlib.utils.module_completion import getRootModules, MODULES_PATH
+from spyderlib.utils.module_completion import MODULES_PATH
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -539,7 +539,10 @@ class MainWindow(QMainWindow):
                                               "the modules available in your "
                                               "PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
-            self.tools_menu_actions += [update_modules_action, None]
+            if osp.isfile(get_conf_path('db/rootmodules')):
+                self.tools_menu_actions += [update_modules_action, None]
+            else:
+                self.tools_menu_actions += [None]
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
@@ -1894,8 +1897,6 @@ def main():
         mainwindow = None
         try:
             mainwindow = run_spyder(app, options)
-            if not osp.isfile(get_conf_path('db/rootmodules')):
-                getRootModules()
         except BaseException:
             CONF.set('main', 'crash', True)
             import traceback
