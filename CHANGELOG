@@ -1,10 +1,16 @@
 = History of changes =
 
+== Version 2.1.6 ==
+
+=== Bug fixes (since v2.1.5) ===
+
+  * Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing Issue 880)
+
 == Version 2.1.5 ==
 
 === Bug fixes (since v2.1.4) ===
 
-  * (Fixed on Windows platforms with !PyQt v4.8+ only) Detached dockwidgets (Console, ...) were not painted after restarting Spyder
+  * [This bugfix was removed on v2.1.6 due to side-effects](Fixed on Windows platforms with !PyQt v4.8+ only) Detached dockwidgets (Console, ...) were not painted after restarting Spyder
   * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
   * File/Project explorer:
     * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
