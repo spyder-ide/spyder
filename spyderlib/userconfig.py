@@ -40,6 +40,8 @@ import os, re, os.path as osp, shutil
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
+from spyderlib.utils import encoding
+
 
 def get_home_dir():
     """
@@ -54,7 +56,7 @@ def get_home_dir():
             break
         path = os.environ.get(env_var, '')
     if path:
-        return path
+        return encoding.to_unicode(path)
     else:
         raise RuntimeError('Please define environment variable $HOME')
 
