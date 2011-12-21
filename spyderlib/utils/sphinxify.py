@@ -430,7 +430,7 @@ html_use_modindex = False
 html_use_index = False
 html_split_index = False
 html_copy_source = False
-    '''
+'''
 
     # From SAGE_DOC/en/introspect/templates/layout.html:
     layout = r"""
