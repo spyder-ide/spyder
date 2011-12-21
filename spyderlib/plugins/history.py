@@ -239,7 +239,7 @@ class HistoryLog(SpyderPluginWidget):
         Slot for SIGNAL('append_to_history(QString,QString)')
         emitted by shell instance
         """
-        filename, command = encoding.to_unicode(filename), unicode(command)
+        filename, command = unicode(filename.toUtf8(),'utf-8'), unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
         if self.get_option('go_to_eof'):
