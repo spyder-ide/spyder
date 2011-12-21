@@ -130,7 +130,7 @@ class RopeProject(object):
             if DEBUG:
                 t0 = time.time()
             proposals = rope.contrib.codeassist.code_assist(self.project,
-                                                source_code, offset, resource)
+                                    source_code, offset, resource, maxfixes=3)
             proposals = rope.contrib.codeassist.sorted_proposals(proposals)
             if DEBUG:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
