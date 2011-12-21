@@ -13,7 +13,7 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 
 from __future__ import with_statement
 
-import re, os, locale
+import re, os, locale, sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -28,9 +28,30 @@ def transcode(text, input=PREFERRED_ENCODING, output=PREFERRED_ENCODING):
         except UnicodeError:
             return text
 
+def getdefaultencoding():
+    """Return guess for the default encoding for bytes as text.
+    Taken from the IPython project (from utils/text.py in v0.12)
+
+    Asks for stdin.encoding first, to match the calling Terminal, but that
+    is often None for subprocesses.  Fall back on locale.getpreferredencoding()
+    which should be a sensible platform default (that respects LANG environment),
+    and finally to sys.getdefaultencoding() which is the most conservative option,
+    and usually ASCII.
+    """
+    enc = sys.stdin.encoding
+    if not enc or enc=='ascii':
+        try:
+            # There are reports of getpreferredencoding raising errors
+            # in some cases, which may well be fixed, but let's be conservative here.
+            enc = locale.getpreferredencoding()
+        except Exception:
+            pass
+    return enc or sys.getdefaultencoding()
+
+DEFAULT_ENCODING = getdefaultencoding()
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',
-          'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
+CODECS = [DEFAULT_ENCODING, 'utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r',
+          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
           'utf-16']
