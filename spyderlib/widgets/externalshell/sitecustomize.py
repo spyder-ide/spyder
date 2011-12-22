@@ -447,7 +447,7 @@ class UserModuleDeleter(object):
 __umd__ = None
 
 
-def runfile(filename, args=None, wdir=None):
+def runfile(filename, args=None, wdir=None, namespace=None):
     """
     Run filename
     args: command line arguments (string)
@@ -465,25 +465,27 @@ def runfile(filename, args=None, wdir=None):
             __umd__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
-    from __main__ import __dict__ as glbs
-    shell = glbs.get('__ipythonshell__')
-    if shell is not None:
-        if hasattr(shell, 'user_ns'):
-            # IPython >=v0.11
-            glbs = shell.user_ns
-        else:
-            # IPython v0.10
-            glbs = shell.IP.user_ns
-    glbs['__file__'] = filename
+    if namespace is None:
+        from __main__ import __dict__ as namespace
+    if hasattr(__builtin__, 'IPYTHON'):
+        # IPython 0.10
+        shell = __builtin__.__IPYTHON__
+    else:
+        # IPython 0.11+
+        shell = namespace.get('__ipythonshell__')
+    if shell is not None and hasattr(shell, 'user_ns'):
+        # IPython
+        namespace = shell.user_ns
+    namespace['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
         for arg in args.split():
             sys.argv.append(arg)
     if wdir is not None:
         os.chdir(wdir)
-    execfile(filename, glbs)
+    execfile(filename, namespace)
     sys.argv = ['']
-    glbs.pop('__file__')
+    namespace.pop('__file__')
     
 __builtin__.runfile = runfile
 
