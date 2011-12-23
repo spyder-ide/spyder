@@ -404,6 +404,12 @@ class ShellBaseWidget(ConsoleBaseWidget):
             # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
 
+        elif key == Qt.Key_Escape and ctrl and shift:
+            self._key_ctrl_shift_escape()    
+
+        elif key == Qt.Key_Escape and shift:
+            self._key_shift_escape()
+
         elif key == Qt.Key_Escape:
             self._key_escape()
                 
@@ -464,6 +470,10 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def _key_pagedown(self):
         raise NotImplementedError
     def _key_escape(self):
+        raise NotImplementedError
+    def _key_shift_escape(self):
+        raise NotImplementedError
+    def _key_ctrl_shift_escape(self):
         raise NotImplementedError
     def _key_question(self, text):
         raise NotImplementedError
@@ -724,6 +734,7 @@ class PythonShellWidget(ShellBaseWidget):
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
+                                     QKeySequence("Ctrl+Shift+Escape"),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
@@ -842,9 +853,13 @@ class PythonShellWidget(ShellBaseWidget):
         """Action for ESCAPE key"""
         if self.is_completion_widget_visible():
             self.hide_completion_widget()
-        else:
-            self.clear_line()
-                
+    
+    def _key_shift_escape(self):
+        self.clear_line()
+
+    def _key_ctrl_shift_escape(self):
+        self.clear_terminal()
+
     def _key_question(self, text):
         """Action for '?'"""
         if self.get_current_line_to_cursor():
