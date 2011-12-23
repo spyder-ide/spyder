@@ -155,15 +155,15 @@ class RopeProject(object):
                 t0 = time.time()
             cts = rope.contrib.codeassist.get_calltip(
                             self.project, source_code, offset, resource,
-                            ignore_unknown=False, remove_self=True)
+                            ignore_unknown=False, remove_self=True, maxfixes=3)
             if DEBUG:
                 log_dt(LOG_FILENAME, "get_calltip", t0)
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
                 try:
-                    doc_text = rope.contrib.codeassist.get_doc(
-                            self.project, source_code, offset, resource)
+                    doc_text = rope.contrib.codeassist.get_doc(self.project,
+                                    source_code, offset, resource, maxfixes=3)
                     if DEBUG:
                         log_dt(LOG_FILENAME, "get_doc", t0)
                 except Exception, _error:
@@ -192,7 +192,7 @@ class RopeProject(object):
             if DEBUG:
                 t0 = time.time()
             resource, lineno = rope.contrib.codeassist.get_definition_location(
-                            self.project, source_code, offset, resource)
+                    self.project, source_code, offset, resource, maxfixes=3)
             if DEBUG:
                 log_dt(LOG_FILENAME, "get_definition_location", t0)
             if resource is not None:
