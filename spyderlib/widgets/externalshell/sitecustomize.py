@@ -447,6 +447,22 @@ class UserModuleDeleter(object):
 __umd__ = None
 
 
+def _get_globals():
+    """Return current Python/IPython interpreter globals namespace"""
+    from __main__ import __dict__ as namespace
+    if hasattr(__builtin__, 'IPYTHON'):
+        # IPython 0.10
+        shell = __builtin__.__IPYTHON__
+    else:
+        # IPython 0.11+
+        shell = namespace.get('__ipythonshell__')
+    if shell is not None and hasattr(shell, 'user_ns'):
+        # IPython
+        return shell.user_ns
+    else:
+        return namespace
+
+
 def runfile(filename, args=None, wdir=None, namespace=None):
     """
     Run filename
@@ -466,16 +482,7 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
     if namespace is None:
-        from __main__ import __dict__ as namespace
-    if hasattr(__builtin__, 'IPYTHON'):
-        # IPython 0.10
-        shell = __builtin__.__IPYTHON__
-    else:
-        # IPython 0.11+
-        shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython
-        namespace = shell.user_ns
+        namespace = _get_globals()
     namespace['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
@@ -522,6 +529,7 @@ def evalsc(command):
             print '\n'
     else:
         # General command
+        namespace = _get_globals()
         import re
         clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
         cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
@@ -531,7 +539,7 @@ def evalsc(command):
             varnames = clear_match.groups()[0].replace(' ', '').split(',')
             for varname in varnames:
                 try:
-                    globals().pop(varname)
+                    namespace.pop(varname)
                 except KeyError:
                     pass
         elif command in ('cd', 'pwd'):
@@ -543,12 +551,11 @@ def evalsc(command):
                 evalsc('!ls')
         elif command == 'scientific':
             from spyderlib import baseconfig
-            execfile(baseconfig.SCIENTIFIC_STARTUP, globals())
+            execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
         else:
             raise NotImplementedError, "Unsupported command: '%s'" % command
 
 __builtin__.evalsc = evalsc
-
 
 
 ## Restoring original PYTHONPATH
