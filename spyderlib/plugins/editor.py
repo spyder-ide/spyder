@@ -579,9 +579,11 @@ class Editor(SpyderPluginWidget):
                 triggered=self.save_as)
         print_preview_action = create_action(self, _("Print preview..."),
                 tip=_("Print preview..."), triggered=self.print_preview)
-        print_action = create_action(self, _("&Print..."),
+        self.print_action = create_action(self, _("&Print..."),
                 icon='print.png', tip=_("Print current file..."),
                 triggered=self.print_file)
+        self.register_shortcut(self.print_action, context="Editor",
+        	name="Print", default="Ctrl+P")
         self.close_action = create_action(self, _("&Close"),
                 icon='fileclose.png', tip=_("Close current file"),
                 triggered=self.close_file)
@@ -792,13 +794,13 @@ class Editor(SpyderPluginWidget):
                              self.recent_file_menu, self.save_action,
                              self.save_all_action, save_as_action,
                              self.revert_action, 
-                             None, print_preview_action, print_action,
+                             None, print_preview_action, self.print_action,
                              None, self.close_action,
                              self.close_all_action, None]
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
                                 self.save_action, self.save_all_action,
-                                print_action]
+                                self.print_action]
         self.main.file_toolbar_actions += file_toolbar_actions
         
         self.edit_menu_actions = [self.toggle_comment_action,
@@ -843,12 +845,12 @@ class Editor(SpyderPluginWidget):
                 blockcomment_action, unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
-                 print_action, self.save_all_action, gotoline_action,
+                 self.print_action, self.save_all_action, gotoline_action,
                  workdir_action, self.close_action, self.close_all_action,
                  self.toggle_comment_action, self.revert_action,
                  self.indent_action, self.unindent_action]
         self.stack_menu_actions = [self.save_action, save_as_action,
-                                   print_action, None, run_action, debug_action,
+                                   self.print_action, None, run_action, debug_action,
                                    configure_action, None, gotoline_action,
                                    workdir_action, None, self.close_action]
         
