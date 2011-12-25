@@ -320,8 +320,11 @@ class FileInfo(QObject):
                                                              self.filename)
             if textlist:
                 completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-                self.editor.show_completion_list(textlist, completion_text,
-                                                 automatic)
+                if text.lstrip().startswith('#') and text.endswith('.'):
+                    return
+                else:
+                    self.editor.show_completion_list(textlist, completion_text,
+                                                     automatic)
                 return
         
     def trigger_calltip(self, position, auto=True):
