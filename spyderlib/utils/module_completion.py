@@ -134,6 +134,9 @@ def moduleCompletion(line):
             return []
             
     if words[0] == 'import':
+        if len(words) == 2 and words[1] == '':
+            return getRootModules()
+
         if ',' == words[-1][-1]:
             return [' ']
         
