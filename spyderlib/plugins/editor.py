@@ -167,8 +167,8 @@ class EditorConfigPage(PluginConfigPage):
             rope_label.setWordWrap(True)
         
         sourcecode_group = QGroupBox(_("Source code"))
-        closepar_box = newcb(_("Automatic parentheses, braces and "
-                                     "brackets insertion"),
+        closepar_box = newcb(_("Automatic insertion of parentheses, braces, "
+                                                      "brackets and quotes"),
                              'close_parentheses')
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
