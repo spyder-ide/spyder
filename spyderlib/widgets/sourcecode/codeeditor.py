@@ -2063,12 +2063,13 @@ class CodeEditor(TextEditBaseWidget):
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
-        elif text in ('[', '{') and not self.has_selected_text() \
+        elif text in ('[', '{', '\'', '"') and not self.has_selected_text() \
              and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}'):
-                self.insert_text({'{': '{}', '[': '[]'}[text])
+               s_trailing_text[0] in (',', ')', ']', '}', '\'', '"'):
+                self.insert_text({'{': '{}', '[': '[]', '\'': '\'\'',
+                                  '"': '""'}[text])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
