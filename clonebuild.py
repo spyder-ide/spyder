@@ -9,7 +9,11 @@ Cloning Spyder mercurial repository
 Building source and win32 executable distribution package
 """
 
-import os, shutil, os.path as osp
+# pylint: disable=C0103
+
+import os
+import shutil
+import os.path as osp
 
 import spyderlib as mod
 name = 'spyder'
