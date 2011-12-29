@@ -1994,7 +1994,16 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.is_completion_widget_visible() \
+                leading_text = self.get_text('sol', 'cursor').lstrip()
+                words = leading_text.split()
+                reserved_words = ['def', 'for', 'if', 'while', 'try', \
+                                  'with', 'class', 'else', 'elif', 'except', \
+                                  'finally']
+                if any([leading_text.startswith(w) for w in reserved_words]) \
+                   and not leading_text.endswith(':') and len(words) > 1:
+                    self.insert_text(':' + self.get_line_separator())
+                    self.fix_indent()
+                elif self.is_completion_widget_visible() \
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
