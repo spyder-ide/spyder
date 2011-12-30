@@ -583,6 +583,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.add_colons_enabled = True
         self.auto_unindent_enabled = True
 
         # Mouse tracking
@@ -743,6 +744,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+        
+    def set_add_colons_enabled(self, enable):
+        """Enable/disable automatic colons insertion feature"""
+        self.add_colons_enabled = enable
 
     def set_auto_unindent_enabled(self, enable):
         """Enable/disable automatic unindent after else/elif/finally/except"""
@@ -2000,7 +2005,8 @@ class CodeEditor(TextEditBaseWidget):
                                   'with', 'class', 'else', 'elif', 'except', \
                                   'finally']
                 if any([leading_text.startswith(w) for w in reserved_words]) \
-                   and not leading_text.endswith(':') and len(words) > 1:
+                   and not leading_text.endswith(':') and len(words) > 1 \
+                   and self.add_colons_enabled:
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                 elif self.is_completion_widget_visible() \

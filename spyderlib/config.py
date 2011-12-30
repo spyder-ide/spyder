@@ -246,6 +246,7 @@ DEFAULTS = [
               'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
+              'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',
               'tab_stop_width': 40,
