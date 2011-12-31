@@ -167,9 +167,12 @@ class EditorConfigPage(PluginConfigPage):
             rope_label.setWordWrap(True)
         
         sourcecode_group = QGroupBox(_("Source code"))
-        closepar_box = newcb(_("Automatic parentheses, braces and "
-                                     "brackets insertion"),
+        closepar_box = newcb(_("Automatic insertion of parentheses, braces, "
+                                                      "brackets and quotes"),
                              'close_parentheses')
+        add_colons_box = newcb(_("Automatic insertion of colons after 'for', "
+                                                          "'if', 'def', etc"),
+                               'add_colons')
         autounindent_box = newcb(_("Automatic indentation after 'else', "
                                    "'elif', etc."), 'auto_unindent')
         indent_chars_box = self.create_combobox(_("Indentation characters: "),
@@ -264,6 +267,7 @@ class EditorConfigPage(PluginConfigPage):
         sourcecode_layout = QVBoxLayout()
         sourcecode_layout.addWidget(closepar_box)
         sourcecode_layout.addWidget(autounindent_box)
+        sourcecode_layout.addWidget(add_colons_box)
         sourcecode_layout.addWidget(indent_chars_box)
         sourcecode_layout.addWidget(tabwidth_spin)
         sourcecode_layout.addWidget(tab_mode_box)
@@ -954,6 +958,7 @@ class Editor(SpyderPluginWidget):
             ('set_calltips_enabled',                'calltips'),
             ('set_go_to_definition_enabled',        'go_to_definition'),
             ('set_close_parentheses_enabled',       'close_parentheses'),
+            ('set_add_colons_enabled',              'add_colons'),
             ('set_auto_unindent_enabled',           'auto_unindent'),
             ('set_indent_chars',                    'indent_chars'),
             ('set_tab_stop_width',                  'tab_stop_width'),
@@ -1914,6 +1919,8 @@ class Editor(SpyderPluginWidget):
             gotodef_o = self.get_option(gotodef_n)
             closepar_n = 'close_parentheses'
             closepar_o = self.get_option(closepar_n)
+            add_colons_n = 'add_colons'
+            add_colons_o = self.get_option(add_colons_n)
             autounindent_n = 'auto_unindent'
             autounindent_o = self.get_option(autounindent_n)
             indent_chars_n = 'indent_chars'
@@ -1986,6 +1993,8 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_go_to_definition_enabled(gotodef_o)
                 if closepar_n in options:
                     editorstack.set_close_parentheses_enabled(closepar_o)
+                if add_colons_n in options:
+                    editorstack.set_add_colons_enabled(add_colons_o)
                 if autounindent_n in options:
                     editorstack.set_auto_unindent_enabled(autounindent_o)
                 if indent_chars_n in options:

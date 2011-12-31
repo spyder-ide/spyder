@@ -866,6 +866,13 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_close_parentheses_enabled(state)
                 
+    def set_add_colons_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'add_colons')
+        self.add_colons_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_add_colons_enabled(state)
+    
     def set_auto_unindent_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'auto_unindent')
         self.auto_unindent_enabled = state

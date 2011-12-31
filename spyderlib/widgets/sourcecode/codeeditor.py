@@ -583,6 +583,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.add_colons_enabled = True
         self.auto_unindent_enabled = True
 
         # Mouse tracking
@@ -743,6 +744,10 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
+        
+    def set_add_colons_enabled(self, enable):
+        """Enable/disable automatic colons insertion feature"""
+        self.add_colons_enabled = enable
 
     def set_auto_unindent_enabled(self, enable):
         """Enable/disable automatic unindent after else/elif/finally/except"""
@@ -1994,7 +1999,16 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.is_completion_widget_visible() \
+                leading_text = self.get_text('sol', 'cursor').lstrip()
+                reserved_words = ['def', 'for', 'if', 'while', 'try', \
+                                  'with', 'class', 'else', 'elif', 'except', \
+                                  'finally']
+                if any([leading_text.startswith(w) for w in reserved_words]) \
+                   and not leading_text.endswith(':') and \
+                   self.add_colons_enabled:
+                    self.insert_text(':' + self.get_line_separator())
+                    self.fix_indent()
+                elif self.is_completion_widget_visible() \
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
@@ -2063,12 +2077,13 @@ class CodeEditor(TextEditBaseWidget):
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
-        elif text in ('[', '{') and not self.has_selected_text() \
+        elif text in ('[', '{', '\'', '"') and not self.has_selected_text() \
              and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}'):
-                self.insert_text({'{': '{}', '[': '[]'}[text])
+               s_trailing_text[0] in (',', ')', ']', '}', '\'', '"'):
+                self.insert_text({'{': '{}', '[': '[]', '\'': '\'\'',
+                                  '"': '""'}[text])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
