@@ -1986,7 +1986,27 @@ class CodeEditor(TextEditBaseWidget):
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action))
-
+    
+    def __do_insert_colons(self):
+        """Decide if we need to insert a colon after analizying the previous
+        statement"""
+        reserved_words = ['def', 'for', 'if', 'while', 'try', 'with', \
+                          'class', 'else', 'elif', 'except', 'finally']
+        unmatched_brace = False
+        leading_text = self.get_text('sol', 'cursor').lstrip()
+        line_pos = self.toPlainText().index(leading_text)
+        
+        for pos,char in enumerate(leading_text):
+            if char in ['(', '[', '{']:
+                if self.find_brace_match(pos+line_pos, char, True) is None:
+                    unmatched_brace = True
+        
+        if any([leading_text.startswith(w) for w in reserved_words]) and \
+          not leading_text.endswith(':') and not unmatched_brace:
+            return True
+        else:
+            return False
+    
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -1999,13 +2019,7 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                leading_text = self.get_text('sol', 'cursor').lstrip()
-                reserved_words = ['def', 'for', 'if', 'while', 'try', \
-                                  'with', 'class', 'else', 'elif', 'except', \
-                                  'finally']
-                if any([leading_text.startswith(w) for w in reserved_words]) \
-                   and not leading_text.endswith(':') and \
-                   self.add_colons_enabled:
+                if self.add_colons_enabled and self.__do_insert_colons():
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                 elif self.is_completion_widget_visible() \
