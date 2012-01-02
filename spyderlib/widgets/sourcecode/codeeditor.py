@@ -2019,7 +2019,8 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                if self.add_colons_enabled and self.__do_insert_colons():
+                if self.add_colons_enabled and self.is_python() and \
+                  self.__do_insert_colons():
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                 elif self.is_completion_widget_visible() \
