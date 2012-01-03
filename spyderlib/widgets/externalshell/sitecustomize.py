@@ -450,7 +450,7 @@ __umd__ = None
 def _get_globals():
     """Return current Python/IPython interpreter globals namespace"""
     from __main__ import __dict__ as namespace
-    if hasattr(__builtin__, 'IPYTHON'):
+    if hasattr(__builtin__, '__IPYTHON__'):
         # IPython 0.10
         shell = __builtin__.__IPYTHON__
     else:
