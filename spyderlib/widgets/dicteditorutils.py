@@ -95,11 +95,7 @@ UNSUPPORTED_COLOR = "#ffffff"
 def get_color_name(value):
     """Return color name depending on value type"""
     if not is_known_type(value):
-        # Unfortunately, masked array fall into that category:
-        if MaskedArray is not FakeObject and isinstance(value, MaskedArray):
-            return ARRAY_COLOR
-        else:
-            return CUSTOM_TYPE_COLOR
+        return CUSTOM_TYPE_COLOR
     for typ, name in COLORS.iteritems():
         if isinstance(value, typ):
             return name
@@ -181,7 +177,8 @@ def get_type_string(item):
 
 def is_known_type(item):
     """Return True if object has a known type"""
-    return get_type_string(item) is not None
+    # Unfortunately, the masked array case is specific
+    return isinstance(item, MaskedArray) or get_type_string(item) is not None
 
 def get_human_readable_type(item):
     """Return human-readable type string of an item"""

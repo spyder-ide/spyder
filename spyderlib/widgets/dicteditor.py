@@ -32,10 +32,10 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
-                   get_human_readable_type, value_to_display, get_color_name,
-                   is_known_type, FakeObject, Image, ndarray, array,
-                   unsorted_unique, try_to_eval, datestr_to_datetime,
-                   get_numpy_dtype, is_editable_type)
+               get_human_readable_type, value_to_display, get_color_name,
+               is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
+               unsorted_unique, try_to_eval, datestr_to_datetime,
+               get_numpy_dtype, is_editable_type)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
@@ -370,8 +370,8 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = ArrayEditor
-        elif isinstance(value, ndarray) and ndarray is not FakeObject \
-                                        and not self.inplace:
+        elif isinstance(value, (ndarray, MaskedArray))\
+             and ndarray is not FakeObject and not self.inplace:
             if value.size == 0:
                 return None
             editor = ArrayEditor(parent)
@@ -1014,7 +1014,7 @@ class DictEditorTableView(BaseTableView):
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
-        return isinstance(data[key], ndarray)
+        return isinstance(data[key], (ndarray, MaskedArray))
         
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
