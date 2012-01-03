@@ -17,8 +17,9 @@ class FakeObject(object):
 try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
+    from numpy.ma import MaskedArray
 except ImportError:
-    ndarray = array = matrix = FakeObject  # analysis:ignore
+    ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -83,7 +84,8 @@ COLORS = {
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
           (str, unicode):     "#800000",
-          ndarray:            ARRAY_COLOR,
+          (ndarray,
+           MaskedArray):      ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -93,7 +95,11 @@ UNSUPPORTED_COLOR = "#ffffff"
 def get_color_name(value):
     """Return color name depending on value type"""
     if not is_known_type(value):
-        return CUSTOM_TYPE_COLOR
+        # Unfortunately, masked array fall into that category:
+        if MaskedArray is not FakeObject and isinstance(value, MaskedArray):
+            return ARRAY_COLOR
+        else:
+            return CUSTOM_TYPE_COLOR
     for typ, name in COLORS.iteritems():
         if isinstance(value, typ):
             return name
@@ -128,7 +134,7 @@ def unsorted_unique(lista):
 def value_to_display(value, truncate=False,
                      trunc_len=80, minmax=False, collvalue=True):
     """Convert value for display purpose"""
-    if minmax and isinstance(value, ndarray):
+    if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
             return repr(value)
         try:
@@ -160,7 +166,7 @@ def get_size(item):
     """Return size of an item of arbitrary type"""
     if isinstance(item, (list, tuple, dict)):
         return len(item)
-    elif isinstance(item, ndarray):
+    elif isinstance(item, (ndarray, MaskedArray)):
         return item.shape
     elif isinstance(item, Image):
         return item.size
@@ -179,7 +185,7 @@ def is_known_type(item):
 
 def get_human_readable_type(item):
     """Return human-readable type string of an item"""
-    if isinstance(item, ndarray):
+    if isinstance(item, (ndarray, MaskedArray)):
         return item.dtype.name
     elif isinstance(item, Image):
         return "Image"

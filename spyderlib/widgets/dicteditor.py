@@ -1305,6 +1305,8 @@ def get_test_data():
             'int': 223,
             'bool': True,
             'array': np.random.rand(10, 10),
+            'masked_array': np.ma.array([[1, 0], [1, 0]],
+                                        mask=[[True, False], [False, False]]),
             '1D-array': np.linspace(-10, 10),
             'empty_array': np.array([]),
             'image': image,
@@ -1323,11 +1325,12 @@ def get_test_data():
 
 def test():
     """Dictionary editor test"""
-    _app = qapplication() #analysis:ignore
+    app = qapplication() #analysis:ignore
     dialog = DictEditor()
     dialog.setup(get_test_data())
-    if dialog.exec_():
-        print "out:", dialog.get_value()
+    dialog.show()
+    app.exec_()
+    print "out:", dialog.get_value()
     
 def remote_editor_test():
     """Remote dictionary editor test"""
