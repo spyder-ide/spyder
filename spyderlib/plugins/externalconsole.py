@@ -313,8 +313,7 @@ Note that switching to API #2 may require to enable the Matplotlib patch."""))
                                     'pyqt/ignore_sip_setapi_errors', tip=_(
 """Enabling this option will ignore errors when changing PyQt API.
 As PyQt does not support dynamic API changes, it is strongly recommended
-to use this feature wisely, e.g. for debugging purpose.
-"""))
+to use this feature wisely, e.g. for debugging purpose."""))
         try:
             from sip import setapi #analysis:ignore
         except ImportError:
