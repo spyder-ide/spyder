@@ -922,7 +922,7 @@ class MainWindow(QMainWindow):
         # `MainWindow.closing`) and re-enable it after restoring the 
         # mainwindow's state *and* after setting the mainwindow visible 
         # (so here is the right place for doing this).
-        dwlist = CONF.get('main', 'floating_dockwidgets')
+        dwlist = CONF.get('main', 'floating_dockwidgets', [])
         if dwlist:
             CONF.set('main', 'floating_dockwidgets', [])
             for widget in self.children():
