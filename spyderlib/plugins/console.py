@@ -187,6 +187,15 @@ class Console(SpyderPluginWidget):
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
         self.main.add_dockwidget(self)
+        # Connecting the following signal once the dockwidget has been created:
+        self.connect(self.shell, SIGNAL('traceback_available()'),
+                     self.traceback_available)
+    
+    def traceback_available(self):
+        """Traceback is available in the internal console: showing the 
+        internal console automatically to warn the user"""
+        self.dockwidget.show()
+        self.dockwidget.raise_()
         
     #------ Public API ---------------------------------------------------------
     def quit(self):
