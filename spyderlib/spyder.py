@@ -355,6 +355,7 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         self.is_starting_up = True
         
+        self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
         self.state_before_maximizing = None
@@ -913,22 +914,12 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
-
         # [Workaround for Issue 880]
-        # Floating QDockwidget objects are not painted when their state is 
-        # restored using Qt's `QMainWindow.restoreState` function (see method 
-        # `MainWindow.set_window_settings`): we have to disable the floating
-        # property before saving the mainwindow's state (see method 
-        # `MainWindow.closing`) and re-enable it after restoring the 
-        # mainwindow's state *and* after setting the mainwindow visible 
-        # (so here is the right place for doing this).
-        dwlist = CONF.get('main', 'floating_dockwidgets', [])
-        if dwlist:
-            CONF.set('main', 'floating_dockwidgets', [])
-            for widget in self.children():
-                if isinstance(widget, QDockWidget):
-                    if unicode(widget.objectName()) in dwlist:
-                        widget.setFloating(True)
+        # QDockWidget objects are not painted if restored as floating 
+        # windows, so we must dock them before showing the mainwindow,
+        # then set them again as floating windows here.
+        for widget in self.floating_dockwidgets:
+            widget.setFloating(True)
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -974,6 +965,13 @@ class MainWindow(QMainWindow):
             # Window layout
             if hexstate:
                 self.restoreState( QByteArray().fromHex(str(hexstate)) )
+                # [Workaround for Issue 880]
+                # QDockWidget objects are not painted if restored as floating 
+                # windows, so we must dock them before showing the mainwindow.
+                for widget in self.children():
+                    if isinstance(widget, QDockWidget) and widget.isFloating():
+                        self.floating_dockwidgets.append(widget)
+                        widget.setFloating(False)
             # Is fullscreen?
             if is_fullscreen:
                 self.setWindowState(Qt.WindowFullScreen)
@@ -1023,6 +1021,7 @@ class MainWindow(QMainWindow):
                                          orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
+
                                   (self.inspector, self.variableexplorer),
                                   (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
@@ -1227,21 +1226,6 @@ class MainWindow(QMainWindow):
         if self.already_closed or self.is_starting_up:
             return True
         prefix = ('lightwindow' if self.light else 'window') + '/'
-        
-        # [Workaround for Issue 880]
-        # Floating QDockwidget objects are not painted when their state is 
-        # restored using Qt's `QMainWindow.restoreState` function (see method 
-        # `MainWindow.set_window_settings`): we have to disable the floating
-        # property before saving the mainwindow's state (for the second part
-        # of this workaround, see method `MainWindow.post_visible_setup`).
-        dwlist = []
-        for widget in self.children():
-            if isinstance(widget, QDockWidget) and widget.isFloating():
-                dwlist.append(unicode(widget.objectName()))
-                widget.setFloating(False)
-        if dwlist:
-            CONF.set('main', 'floating_dockwidgets', dwlist)
-
         self.save_current_window_settings(prefix)
         for widget in self.widgetlist:
             if not widget.closing_plugin(cancelable):
@@ -1580,6 +1564,7 @@ Please provide any additional information below.
             sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
+
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
         while sys_path[1] in self.get_spyder_pythonpath():
