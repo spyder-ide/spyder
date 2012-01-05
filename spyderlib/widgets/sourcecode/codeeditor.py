@@ -1994,7 +1994,7 @@ class CodeEditor(TextEditBaseWidget):
                           'class', 'else', 'elif', 'except', 'finally']
         end_chars = [':', '\\']
         unmatched_brace = False
-        leading_text = self.get_text('sol', 'cursor').lstrip()
+        leading_text = self.get_text('sol', 'cursor').strip()
         line_pos = self.toPlainText().index(leading_text)
         
         for pos,char in enumerate(leading_text):
@@ -2003,7 +2003,7 @@ class CodeEditor(TextEditBaseWidget):
                     unmatched_brace = True
         
         if any([leading_text.startswith(w) for w in reserved_words]) and \
-          not any([leading_text.rstrip().endswith(c) for c in end_chars]) \
+          not any([leading_text.endswith(c) for c in end_chars]) \
           and not unmatched_brace:
             return True
         else:
