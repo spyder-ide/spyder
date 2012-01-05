@@ -1986,7 +1986,29 @@ class CodeEditor(TextEditBaseWidget):
         self.readonly_menu = QMenu(self)
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action))
-
+    
+    def __do_insert_colons(self):
+        """Decide if we need to insert a colon after analizying the previous
+        statement"""
+        reserved_words = ['def', 'for', 'if', 'while', 'try', 'with', \
+                          'class', 'else', 'elif', 'except', 'finally']
+        end_chars = [':', '\\']
+        unmatched_brace = False
+        leading_text = self.get_text('sol', 'cursor').strip()
+        line_pos = self.toPlainText().index(leading_text)
+        
+        for pos,char in enumerate(leading_text):
+            if char in ['(', '[', '{']:
+                if self.find_brace_match(pos+line_pos, char, True) is None:
+                    unmatched_brace = True
+        
+        if any([leading_text.startswith(w) for w in reserved_words]) and \
+          not any([leading_text.endswith(c) for c in end_chars]) \
+          and not unmatched_brace:
+            return True
+        else:
+            return False
+    
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -1999,13 +2021,8 @@ class CodeEditor(TextEditBaseWidget):
             self.hide_tooltip_if_necessary(key)
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
-                leading_text = self.get_text('sol', 'cursor').lstrip()
-                reserved_words = ['def', 'for', 'if', 'while', 'try', \
-                                  'with', 'class', 'else', 'elif', 'except', \
-                                  'finally']
-                if any([leading_text.startswith(w) for w in reserved_words]) \
-                   and not leading_text.endswith(':') and \
-                   self.add_colons_enabled:
+                if self.add_colons_enabled and self.is_python() and \
+                  self.__do_insert_colons():
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                 elif self.is_completion_widget_visible() \
@@ -2077,28 +2094,49 @@ class CodeEditor(TextEditBaseWidget):
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
-        elif text in ('[', '{', '\'', '"') and not self.has_selected_text() \
+        elif text in ('[', '{') and not self.has_selected_text() \
              and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}', '\'', '"'):
-                self.insert_text({'{': '{}', '[': '[]', '\'': '\'\'',
-                                  '"': '""'}[text])
+               s_trailing_text[0] in (',', ')', ']', '}'):
+                self.insert_text({'{': '{}', '[': '[]'}[text])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-             and not self.has_selected_text() and self.close_parentheses_enabled \
-             and not self.textCursor().atBlockEnd():
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight,
+             Qt.Key_QuoteDbl, Qt.Key_Apostrophe) \
+             and not self.has_selected_text() and \
+             self.close_parentheses_enabled:
+            # Don't write closing braces or quotes if they were inserted
+            # automatically. Just move the cursor one position to the
+            # right
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = unicode(cursor.selectedText())
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']'}[key]:
+                        Qt.Key_BracketRight: ']', Qt.Key_QuoteDbl: '"',
+                        Qt.Key_Apostrophe: '\''}[key]:
                 cursor.clearSelection()
+                self.setTextCursor(cursor)
+            # Automatic insertion of triple double quotes (e.g. for
+            # docstrings)
+            elif key == Qt.Key_QuoteDbl and \
+              self.get_text('sol', 'cursor')[-2:] == '""':
+                self.insert_text('""""')
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter,
+                                    QTextCursor.KeepAnchor, 3)
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
+            # Automatic insertion of quotes and double quotes
+            elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
+                self.insert_text({Qt.Key_Apostrophe :'\'\'',
+                                  Qt.Key_QuoteDbl: '""'}[key])
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)

@@ -262,7 +262,7 @@ class TextEditBaseWidget(QPlainTextEdit):
 
 
     #------Brace matching
-    def __find_brace_match(self, position, brace, forward):
+    def find_brace_match(self, position, brace, forward):
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
             bracemap = {'(': ')', '[': ']', '{': '}'}
@@ -334,9 +334,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         text = unicode(cursor.selectedText())
         pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos2 = self.__find_brace_match(pos1, text, forward=False)
+            pos2 = self.find_brace_match(pos1, text, forward=False)
         elif text in ('(', '[', '{'):
-            pos2 = self.__find_brace_match(pos1, text, forward=True)
+            pos2 = self.find_brace_match(pos1, text, forward=True)
         else:
             return
         if pos2 is not None:
