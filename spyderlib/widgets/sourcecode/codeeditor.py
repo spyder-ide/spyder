@@ -2094,28 +2094,39 @@ class CodeEditor(TextEditBaseWidget):
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
-        elif text in ('[', '{', '\'', '"') and not self.has_selected_text() \
+        elif text in ('[', '{') and not self.has_selected_text() \
              and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
-               s_trailing_text[0] in (',', ')', ']', '}', '\'', '"'):
-                self.insert_text({'{': '{}', '[': '[]', '\'': '\'\'',
-                                  '"': '""'}[text])
+               s_trailing_text[0] in (',', ')', ']', '}'):
+                self.insert_text({'{': '{}', '[': '[]'}[text])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
-             and not self.has_selected_text() and self.close_parentheses_enabled \
-             and not self.textCursor().atBlockEnd():
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight,
+             Qt.Key_QuoteDbl, Qt.Key_Apostrophe) \
+             and not self.has_selected_text() and \
+             self.close_parentheses_enabled:
+            # Don't write closing braces or quotes if they were inserted
+            # automatically. Just move the cursor one position to the
+            # right
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = unicode(cursor.selectedText())
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']'}[key]:
+                        Qt.Key_BracketRight: ']', Qt.Key_QuoteDbl: '"',
+                        Qt.Key_Apostrophe: '\''}[key]:
                 cursor.clearSelection()
+                self.setTextCursor(cursor)
+            # Automatic insertion of quotes and double quotes
+            elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
+                self.insert_text({Qt.Key_Apostrophe :'\'\'',
+                                  Qt.Key_QuoteDbl: '""'}[key])
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
