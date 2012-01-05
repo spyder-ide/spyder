@@ -2121,6 +2121,16 @@ class CodeEditor(TextEditBaseWidget):
                         Qt.Key_Apostrophe: '\''}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
+            # Automatic insertion of triple double quotes (e.g. for
+            # docstrings)
+            elif key == Qt.Key_QuoteDbl and \
+              self.get_text('sol', 'cursor')[-2:] == '""':
+                self.insert_text('""""')
+                cursor = self.textCursor()
+                cursor.movePosition(QTextCursor.PreviousCharacter,
+                                    QTextCursor.KeepAnchor, 3)
+                cursor.clearSelection()
+                self.setTextCursor(cursor)
             # Automatic insertion of quotes and double quotes
             elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
                 self.insert_text({Qt.Key_Apostrophe :'\'\'',
