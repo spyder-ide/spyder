@@ -1995,7 +1995,7 @@ class CodeEditor(TextEditBaseWidget):
         end_chars = [':', '\\']
         unmatched_brace = False
         leading_text = self.get_text('sol', 'cursor').strip()
-        line_pos = self.toPlainText().index(leading_text)
+        line_pos = unicode(self.toPlainText()).index(leading_text)
         
         for pos,char in enumerate(leading_text):
             if char in ['(', '[', '{']:
