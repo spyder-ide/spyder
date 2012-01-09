@@ -2058,7 +2058,8 @@ class CodeEditor(TextEditBaseWidget):
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif leading_text and trailing_text and \
-                     leading_text[-1]+trailing_text[0] in ('()', '[]', '{}'):
+                     leading_text[-1]+trailing_text[0] in ('()', '[]', '{}',
+                                                           '\'\'', '""'):
                     cursor = self.textCursor()
                     cursor.movePosition(QTextCursor.PreviousCharacter)
                     cursor.movePosition(QTextCursor.NextCharacter,
