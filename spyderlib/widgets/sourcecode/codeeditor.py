@@ -1992,7 +1992,7 @@ class CodeEditor(TextEditBaseWidget):
         statement"""
         reserved_words = ['def', 'for', 'if', 'while', 'try', 'with', \
                           'class', 'else', 'elif', 'except', 'finally']
-        end_chars = [':', '\\']
+        end_chars = [':', '\\', ']', '}']
         unmatched_brace = False
         leading_text = self.get_text('sol', 'cursor').strip()
         line_pos = unicode(self.toPlainText()).index(leading_text)
