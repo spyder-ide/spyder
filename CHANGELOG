@@ -1,10 +1,38 @@
 = History of changes =
 
+== Version 2.1.7 ==
+
+=== Bug fixes (since v2.1.6) ===
+
+  * Main window:
+    * Detached dockwidgets were not painted after restarting Spyder (Issue 880)
+  * Console:
+    * Enhanced Python interpreter: %clear command was broken since v2.1.5
+  * Object inspector's rich text mode: fixed unexpected indent error
+  * !IPython plugin: fixed compatibility issue with latest v0.12dev (thanks to Boris Gorelik)
+
+=== Other changes (since v2.1.6) ===
+
+  * Variable explorer/Array editor: added support for masked arrays
+  * Showing Spyder's internal console automatically when there is a traceback
+  * Do not crash when a 3rd party plugin failed to import
+  * Editor:
+    * Automatic insertion of single, double and triple quotes
+    * Automatically colons insertion when pressing Enter after 'if', 'def', etc
+    * Don't trigger code completion on comments if text ends with a dot
+    * Added keyboard shortcut (Ctrl+Shift+Escape) to clear the console
+    * Added keyboard shortcut (Ctrl+P) to print current file (thanks to fheday at gmail dot com for the contribution)
+    * Code introspection features (code completion, calltips, go-to-definition) are now working even if script has syntax errors
+
+----
+
 == Version 2.1.6 ==
 
 === Bug fixes (since v2.1.5) ===
 
   * Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing Issue 880)
+
+----
 
 == Version 2.1.5 ==
 
