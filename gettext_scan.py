@@ -11,9 +11,9 @@ except ImportError:
 
 if __name__ == "__main__":
     do_rescan("spyderlib")
-#    do_rescan_files(["spyderplugins/p_pylint.py",
-#                     "spyderplugins/widgets/pylintgui.py"],
-#                     "p_pylint", "spyderplugins")
-#    do_rescan_files(["spyderplugins/p_profiler.py",
-#                     "spyderplugins/widgets/profilergui.py"],
-#                     "p_profiler", "spyderplugins")
+    do_rescan_files(["spyderplugins/p_pylint.py",
+                     "spyderplugins/widgets/pylintgui.py"],
+                     "p_pylint", "spyderplugins")
+    do_rescan_files(["spyderplugins/p_profiler.py",
+                     "spyderplugins/widgets/profilergui.py"],
+                     "p_profiler", "spyderplugins")
