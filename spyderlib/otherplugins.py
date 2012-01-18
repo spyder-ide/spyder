@@ -11,6 +11,7 @@ Spyder third-party plugins configuration management
 import os
 import os.path as osp
 import sys
+import traceback
 
 # Local imports
 from spyderlib.utils import programs
@@ -51,8 +52,8 @@ def get_spyderplugins_mods(prefix, extension):
         try:
             __import__(name)
             modlist.append(sys.modules[name])
-        except Exception, exc:
+        except Exception:
             sys.stderr.write(
                 "ERROR: 3rd party plugin import failed for `%s`\n" % modname)
-            sys.stderr.write("---->: %s\n" % exc)
+            traceback.print_exc(file=sys.stderr)
     return modlist
