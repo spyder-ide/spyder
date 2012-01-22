@@ -1180,10 +1180,11 @@ class Editor(SpyderPluginWidget):
         check_results = editorstack.get_analysis_results()
         self.warning_menu.clear()
         filename = self.get_current_filename()
-        for message, line0, error in check_results:
+        for message, line_number in check_results:
+            error = 'syntax' in message
             text = message[:1].upper()+message[1:]
             icon = get_icon('error.png' if error else 'warning.png')
-            slot = lambda _l=line0: self.load(filename, goto=_l)
+            slot = lambda _l=line_number: self.load(filename, goto=_l)
             action = create_action(self, text=text, icon=icon, triggered=slot)
             self.warning_menu.addAction(action)
             
