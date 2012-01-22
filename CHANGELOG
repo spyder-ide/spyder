@@ -1,5 +1,15 @@
 = History of changes =
 
+== Version 2.1.8 ==
+
+=== Bug fixes (since v2.1.7) ===
+
+  * Editor/Source code toolbar:
+    * "Show task list" and "Go to the next task" actions: the "Show TODO/FIXME/XXX/HINT/TIP comments list" button was not working
+    * "Show warning/error list" and "Go to the next warning/error" actions: the "Show code analysis warnings/errors" button was not working
+
+----
+
 == Version 2.1.7 ==
 
 === Bug fixes (since v2.1.6) ===
