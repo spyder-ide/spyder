@@ -1990,21 +1990,26 @@ class CodeEditor(TextEditBaseWidget):
     def __do_insert_colons(self):
         """Decide if we need to insert a colon after analizying the previous
         statement"""
-        reserved_words = ['def', 'for', 'if', 'while', 'try', 'with', \
-                          'class', 'else', 'elif', 'except', 'finally']
+        statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
+                              'class ', 'elif ', 'except ']
+        whole_keywords = ['else', 'try', 'except', 'finally']
         end_chars = [':', '\\', ']', '}']
         unmatched_brace = False
         leading_text = self.get_text('sol', 'cursor').strip()
         line_pos = unicode(self.toPlainText()).index(leading_text)
+        
+        detect_keyword = \
+          any([leading_text.startswith(sk) for sk in statement_keywords]) or \
+          any([leading_text == wk for wk in whole_keywords])
         
         for pos,char in enumerate(leading_text):
             if char in ['(', '[', '{']:
                 if self.find_brace_match(pos+line_pos, char, True) is None:
                     unmatched_brace = True
         
-        if any([leading_text.startswith(w) for w in reserved_words]) and \
-          not any([leading_text.endswith(c) for c in end_chars]) \
-          and not unmatched_brace:
+        if detect_keyword and not \
+          any([leading_text.endswith(c) for c in end_chars]) and not \
+          unmatched_brace:
             return True
         else:
             return False
