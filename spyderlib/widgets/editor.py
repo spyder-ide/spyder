@@ -1612,7 +1612,6 @@ class EditorStack(QWidget):
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
-        self.revert_action.setEnabled(state)
         self.emit(SIGNAL('refresh_save_all_action()'))
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
