@@ -12,6 +12,8 @@ from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
                                  SIGNAL)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
+import sys
+
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import (get_icon, get_shortcut, set_shortcut,
@@ -34,10 +36,24 @@ KEYSTRINGS = ["Escape", "Tab", "Backtab", "Backspace", "Return", "Enter",
 
 class Key(object):
     MODIFIERS = {Qt.NoModifier: "", Qt.ShiftModifier: "Shift",
-                 Qt.ControlModifier: "Ctrl", Qt.AltModifier: "Alt"}
+                 Qt.ControlModifier: "Ctrl", Qt.AltModifier: "Alt",
+                 Qt.MetaModifier: "Meta"}
+    if sys.platform == 'darwin':
+        MODIFIERNAMES = {Qt.NoModifier: "", Qt.ShiftModifier: "Shift",
+                         Qt.ControlModifier: "Cmd", Qt.AltModifier: "Alt",
+                         Qt.MetaModifier: "Ctrl"}
+    elif sys.platform == 'win32':
+        MODIFIERNAMES = {Qt.NoModifier: "", Qt.ShiftModifier: "Shift",
+                         Qt.ControlModifier: "Ctrl", Qt.AltModifier: "Alt",
+                         Qt.MetaModifier: "Win"}
+    else:
+        MODIFIERNAMES = {Qt.NoModifier: "", Qt.ShiftModifier: "Shift",
+                         Qt.ControlModifier: "Ctrl", Qt.AltModifier: "Alt",
+                         Qt.MetaModifier: "Meta"}
     KEYS = {}
     for attr in KEYSTRINGS:
         KEYS[getattr(Qt, "Key_"+attr)] = attr
+
     def __init__(self, key, mod1=Qt.NoModifier, mod2=Qt.NoModifier,
                  mod3=Qt.NoModifier):
         modifiers = [mod1, mod2, mod3]
@@ -68,7 +84,12 @@ class Key(object):
         for k, v in Key.KEYS.iteritems():
             if v.lower() == keystr.lower():
                 return k
-        
+
+    @staticmethod
+    def modifier_from_name(modname):
+        for k, v in Key.MODIFIERNAMES.iteritems():
+            if v.lower() == modname.lower():
+                return k        
 
 def keystr2key(keystr):
     keylist = keystr.split("+")
@@ -131,11 +152,11 @@ class ShortcutsModel(QAbstractTableModel):
             elif column == NAME:
                 return to_qvariant(shortcut.name)
             elif column == MOD1:
-                return to_qvariant(Key.MODIFIERS[key.modifiers[0]])
+                return to_qvariant(Key.MODIFIERNAMES[key.modifiers[0]])
             elif column == MOD2:
-                return to_qvariant(Key.MODIFIERS[key.modifiers[1]])
+                return to_qvariant(Key.MODIFIERNAMES[key.modifiers[1]])
             elif column == MOD3:
-                return to_qvariant(Key.MODIFIERS[key.modifiers[2]])
+                return to_qvariant(Key.MODIFIERNAMES[key.modifiers[2]])
             elif column == KEY:
                 return to_qvariant(Key.KEYS[key.key])
         elif role == Qt.TextAlignmentRole:
@@ -177,11 +198,11 @@ class ShortcutsModel(QAbstractTableModel):
             column = index.column()
             text = from_qvariant(value, str)
             if column == MOD1:
-                key.modifiers[0] = Key.modifier_from_str(text)
+                key.modifiers[0] = Key.modifier_from_name(text)
             elif column == MOD2:
-                key.modifiers[1] = Key.modifier_from_str(text)
+                key.modifiers[1] = Key.modifier_from_name(text)
             elif column == MOD3:
-                key.modifiers[2] = Key.modifier_from_str(text)
+                key.modifiers[2] = Key.modifier_from_name(text)
             elif column == KEY:
                 key.key = Key.key_from_str(text)
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"),
@@ -193,7 +214,7 @@ class ShortcutsModel(QAbstractTableModel):
 class ShortcutsDelegate(QItemDelegate):
     def __init__(self, parent=None):
         QItemDelegate.__init__(self, parent)
-        self.modifiers = sorted(Key.MODIFIERS.values())
+        self.modifiers = sorted(Key.MODIFIERNAMES.values())
         self.mod = None
         self.keys = sorted(Key.KEYS.values())
         self.key = None
