@@ -246,6 +246,7 @@ DEFAULTS = [
               'calltips': True,
               'go_to_definition': True,
               'close_parentheses': True,
+              'close_quotes': False,
               'add_colons': True,
               'auto_unindent': True,
               'indent_chars': '*    *',

@@ -583,6 +583,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
 
@@ -674,8 +675,9 @@ class CodeEditor(TextEditBaseWidget):
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
-                     close_parentheses=True, auto_unindent=True,
-                     indent_chars=" "*4, tab_stop_width=40, cloned_from=None):
+                     close_parentheses=True, close_quotes=False,
+                     auto_unindent=True, indent_chars=" "*4, tab_stop_width=40,
+                     cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -684,6 +686,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
+        self.set_close_quotes_enabled(close_quotes)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
         self.setTabStopWidth(tab_stop_width)
@@ -744,7 +747,11 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
-        
+    
+    def set_close_quotes_enabled(self, enable):
+        """Enable/disable automatic quote insertion feature"""
+        self.close_quotes_enabled = enable
+    
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
         self.add_colons_enabled = enable
@@ -2101,7 +2108,7 @@ class CodeEditor(TextEditBaseWidget):
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
         elif text in ('[', '{') and not self.has_selected_text() \
-             and self.close_parentheses_enabled:
+          and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
                s_trailing_text[0] in (',', ')', ']', '}'):
@@ -2111,20 +2118,15 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight,
-             Qt.Key_QuoteDbl, Qt.Key_Apostrophe) \
-             and not self.has_selected_text() and \
-             self.close_parentheses_enabled:
-            # Don't write closing braces or quotes if they were inserted
-            # automatically. Just move the cursor one position to the
-            # right
+        elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
+          self.close_quotes_enabled:
+            # Don't write closing quotes if they were inserted automatically.
+            # Just move the cursor one position to the right
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = unicode(cursor.selectedText())
-            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']', Qt.Key_QuoteDbl: '"',
-                        Qt.Key_Apostrophe: '\''}[key]:
+            if text == {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             # Automatic insertion of triple double quotes (e.g. for
@@ -2143,6 +2145,19 @@ class CodeEditor(TextEditBaseWidget):
                                   Qt.Key_QuoteDbl: '""'}[key])
                 cursor = self.textCursor()
                 cursor.movePosition(QTextCursor.PreviousCharacter)
+                self.setTextCursor(cursor)
+            else:
+                QPlainTextEdit.keyPressEvent(self, event)
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
+          and not self.has_selected_text() and self.close_parentheses_enabled \
+          and not self.textCursor().atBlockEnd():
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.NextCharacter,
+                                QTextCursor.KeepAnchor)
+            text = unicode(cursor.selectedText())
+            if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
+                        Qt.Key_BracketRight: ']'}[key]:
+                cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
