@@ -1694,6 +1694,7 @@ class EditorStack(QWidget):
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
                 close_quotes=self.close_quotes_enabled,
+                add_colons=self.add_colons_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
                 tab_stop_width=self.tab_stop_width,

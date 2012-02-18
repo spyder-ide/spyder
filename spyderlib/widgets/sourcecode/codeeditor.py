@@ -676,8 +676,8 @@ class CodeEditor(TextEditBaseWidget):
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
                      close_parentheses=True, close_quotes=False,
-                     auto_unindent=True, indent_chars=" "*4, tab_stop_width=40,
-                     cloned_from=None):
+                     add_colons=True, auto_unindent=True, indent_chars=" "*4,
+                     tab_stop_width=40, cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -687,6 +687,7 @@ class CodeEditor(TextEditBaseWidget):
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
         self.set_close_quotes_enabled(close_quotes)
+        self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
         self.setTabStopWidth(tab_stop_width)
