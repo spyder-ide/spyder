@@ -2017,7 +2017,7 @@ class CodeEditor(TextEditBaseWidget):
         
         if detect_keyword and not \
           any([leading_text.endswith(c) for c in end_chars]) and not \
-          unmatched_brace:
+          unmatched_brace and self.textCursor().atBlockEnd():
             return True
         else:
             return False
