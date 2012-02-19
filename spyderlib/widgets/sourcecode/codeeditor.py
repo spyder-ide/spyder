@@ -2022,6 +2022,29 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
     
+    def _has_open_quotes(self, s):
+        """Return whether a string has open quotes.
+    
+        This simply counts whether the number of quote characters of either
+        type in the string is odd.
+        
+        Take from the IPython project (in IPython/core/completer.py in v0.12)
+        
+        - Copyright (C) 2008-2011 IPython Development Team
+        - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
+        - Copyright (C) 2001 Python Software Foundation, www.python.org
+
+        Distributed under the terms of the BSD License.
+        """
+        # We check " first, then ', so complex cases with nested quotes will
+        # get the " to take precedence.
+        if s.count('"') % 2:
+            return '"'
+        elif s.count("'") % 2:
+            return "'"
+        else:
+            return False
+    
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -2121,17 +2144,30 @@ class CodeEditor(TextEditBaseWidget):
                 QPlainTextEdit.keyPressEvent(self, event)
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
+            
+            # Grab line and previous text
+            prev_text = self.get_text('sol', 'cursor').strip()
+            text_to_eol = self.get_text('sol', 'eol').strip()
+            
+            # Take a peek at the next character
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.NextCharacter, 
+                                QTextCursor.KeepAnchor)
+            next_text = unicode(cursor.selectedText())
+            
+            # Don't auto-insert quotes if there are open one in the previous
+            # text
+            if self._has_open_quotes(prev_text) and \
+              self._has_open_quotes(text_to_eol):
+                QPlainTextEdit.keyPressEvent(self, event)
+            
             # Don't write closing quotes if they were inserted automatically.
             # Just move the cursor one position to the right
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor)
-            text = unicode(cursor.selectedText())
-            if text == {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]:
+            elif next_text == {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''} \
+              [key]:
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
-            # Automatic insertion of triple double quotes (e.g. for
-            # docstrings)
+            # Automatic insertion of triple double quotes (for docstrings)
             elif key == Qt.Key_QuoteDbl and \
               self.get_text('sol', 'cursor')[-2:] == '""':
                 self.insert_text('""""')
