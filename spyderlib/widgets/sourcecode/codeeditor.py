@@ -2045,6 +2045,48 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
     
+    def _auto_insert_quotes(self, event, key):
+        """Control how to automatically insert quotes in various situations"""
+        # Grab line and previous text
+        prev_text = self.get_text('sol', 'cursor').strip()
+        text_to_eol = self.get_text('sol', 'eol').strip()
+        
+        # Take a peek at the next character
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.NextCharacter, 
+                            QTextCursor.KeepAnchor)
+        next_text = unicode(cursor.selectedText())
+        
+        # Don't auto-insert quotes if there are open ones in the previous text
+        if self._has_open_quotes(prev_text) and \
+          self._has_open_quotes(text_to_eol):
+            QPlainTextEdit.keyPressEvent(self, event)
+        
+        # Don't write closing quotes if they were inserted automatically.
+        # Just move the cursor one position to the right
+        elif next_text == {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''} \
+          [key]:
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+        # Automatic insertion of triple double quotes (for docstrings)
+        elif key == Qt.Key_QuoteDbl and \
+          self.get_text('sol', 'cursor')[-2:] == '""':
+            self.insert_text('""""')
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor, 3)
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+        # Automatic insertion of quotes and double quotes
+        elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
+            self.insert_text({Qt.Key_Apostrophe :'\'\'',
+                              Qt.Key_QuoteDbl: '""'}[key])
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
+        else:
+            QPlainTextEdit.keyPressEvent(self, event)
+    
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
         key = event.key()
@@ -2144,47 +2186,7 @@ class CodeEditor(TextEditBaseWidget):
                 QPlainTextEdit.keyPressEvent(self, event)
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
-            
-            # Grab line and previous text
-            prev_text = self.get_text('sol', 'cursor').strip()
-            text_to_eol = self.get_text('sol', 'eol').strip()
-            
-            # Take a peek at the next character
-            cursor = self.textCursor()
-            cursor.movePosition(QTextCursor.NextCharacter, 
-                                QTextCursor.KeepAnchor)
-            next_text = unicode(cursor.selectedText())
-            
-            # Don't auto-insert quotes if there are open one in the previous
-            # text
-            if self._has_open_quotes(prev_text) and \
-              self._has_open_quotes(text_to_eol):
-                QPlainTextEdit.keyPressEvent(self, event)
-            
-            # Don't write closing quotes if they were inserted automatically.
-            # Just move the cursor one position to the right
-            elif next_text == {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''} \
-              [key]:
-                cursor.clearSelection()
-                self.setTextCursor(cursor)
-            # Automatic insertion of triple double quotes (for docstrings)
-            elif key == Qt.Key_QuoteDbl and \
-              self.get_text('sol', 'cursor')[-2:] == '""':
-                self.insert_text('""""')
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter,
-                                    QTextCursor.KeepAnchor, 3)
-                cursor.clearSelection()
-                self.setTextCursor(cursor)
-            # Automatic insertion of quotes and double quotes
-            elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
-                self.insert_text({Qt.Key_Apostrophe :'\'\'',
-                                  Qt.Key_QuoteDbl: '""'}[key])
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
-                self.setTextCursor(cursor)
-            else:
-                QPlainTextEdit.keyPressEvent(self, event)
+            self._auto_insert_quotes(event, key)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
