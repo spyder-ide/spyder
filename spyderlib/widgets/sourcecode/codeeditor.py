@@ -2024,11 +2024,11 @@ class CodeEditor(TextEditBaseWidget):
     
     def _has_open_quotes(self, s):
         """Return whether a string has open quotes.
-    
         This simply counts whether the number of quote characters of either
         type in the string is odd.
         
         Take from the IPython project (in IPython/core/completer.py in v0.12)
+        Spyder team: Add some changes to deal with escaped quotes
         
         - Copyright (C) 2008-2011 IPython Development Team
         - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
@@ -2038,6 +2038,8 @@ class CodeEditor(TextEditBaseWidget):
         """
         # We check " first, then ', so complex cases with nested quotes will
         # get the " to take precedence.
+        s = s.replace("\\'", "")
+        s = s.replace('\\"', '')
         if s.count('"') % 2:
             return '"'
         elif s.count("'") % 2:
