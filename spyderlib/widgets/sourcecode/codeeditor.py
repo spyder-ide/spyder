@@ -2067,7 +2067,7 @@ class CodeEditor(TextEditBaseWidget):
         # Don't auto-insert quotes if there are open ones in the previous text
         if self._has_open_quotes(prev_text) and \
           self._has_open_quotes(text_to_eol):
-            QPlainTextEdit.keyPressEvent(self, event)
+            self.insert_text(char)
         
         # Don't write a closing quote if the cursor is between two quotes and
         # there is nothing else between them.
@@ -2078,23 +2078,19 @@ class CodeEditor(TextEditBaseWidget):
             cursor.clearSelection()
             self.setTextCursor(cursor)
         # Automatic insertion of triple double quotes (for docstrings)
-        elif key == Qt.Key_QuoteDbl and \
-          self.get_text('sol', 'cursor')[-2:] == '""':
-            self.insert_text('""""')
+        elif self.get_text('sol', 'cursor')[-2:] == 2*char:
+            self.insert_text(4*char)
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor, 3)
             cursor.clearSelection()
             self.setTextCursor(cursor)
         # Automatic insertion of quotes and double quotes
-        elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
-            self.insert_text({Qt.Key_Apostrophe :'\'\'',
-                              Qt.Key_QuoteDbl: '""'}[key])
+        else:
+            self.insert_text(2*char)
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter)
             self.setTextCursor(cursor)
-        else:
-            QPlainTextEdit.keyPressEvent(self, event)
     
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
