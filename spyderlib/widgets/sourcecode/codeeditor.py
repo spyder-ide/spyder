@@ -1448,9 +1448,7 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
         block = self.document().findBlockByNumber(line-1)
-        cursor = self.textCursor()
-        cursor.setPosition(block.position())
-        self.setTextCursor(cursor)
+        self.setTextCursor(QTextCursor(block))
         if self.isVisible():
             self.centerCursor()
         else:
@@ -2393,7 +2391,7 @@ class TestWidget(QSplitter):
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
                                               osp.basename(filename),
                                               osp.dirname(filename)))
-        self.classtree.set_current_editor(self.editor, filename, False)
+        self.classtree.set_current_editor(self.editor, filename, False, False)
 
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication
@@ -2402,7 +2400,7 @@ def test(fname):
     win = TestWidget(None)
     win.show()
     win.load(fname)
-    win.resize(800, 800)
+    win.resize(1000, 800)
 
     from spyderlib.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)
