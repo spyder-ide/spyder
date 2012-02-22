@@ -583,6 +583,7 @@ class CodeEditor(TextEditBaseWidget):
 
         self.go_to_definition_enabled = False
         self.close_parentheses_enabled = True
+        self.close_quotes_enabled = False
         self.add_colons_enabled = True
         self.auto_unindent_enabled = True
 
@@ -674,8 +675,9 @@ class CodeEditor(TextEditBaseWidget):
                      codecompletion_auto=False, codecompletion_case=True,
                      codecompletion_single=False, codecompletion_enter=False,
                      calltips=None, go_to_definition=False,
-                     close_parentheses=True, auto_unindent=True,
-                     indent_chars=" "*4, tab_stop_width=40, cloned_from=None):
+                     close_parentheses=True, close_quotes=False,
+                     add_colons=True, auto_unindent=True, indent_chars=" "*4,
+                     tab_stop_width=40, cloned_from=None):
         # Code completion and calltips
         self.set_codecompletion_auto(codecompletion_auto)
         self.set_codecompletion_case(codecompletion_case)
@@ -684,6 +686,8 @@ class CodeEditor(TextEditBaseWidget):
         self.set_calltips(calltips)
         self.set_go_to_definition_enabled(go_to_definition)
         self.set_close_parentheses_enabled(close_parentheses)
+        self.set_close_quotes_enabled(close_quotes)
+        self.set_add_colons_enabled(add_colons)
         self.set_auto_unindent_enabled(auto_unindent)
         self.set_indent_chars(indent_chars)
         self.setTabStopWidth(tab_stop_width)
@@ -744,7 +748,11 @@ class CodeEditor(TextEditBaseWidget):
     def set_close_parentheses_enabled(self, enable):
         """Enable/disable automatic parentheses insertion feature"""
         self.close_parentheses_enabled = enable
-        
+    
+    def set_close_quotes_enabled(self, enable):
+        """Enable/disable automatic quote insertion feature"""
+        self.close_quotes_enabled = enable
+    
     def set_add_colons_enabled(self, enable):
         """Enable/disable automatic colons insertion feature"""
         self.add_colons_enabled = enable
@@ -1993,7 +2001,7 @@ class CodeEditor(TextEditBaseWidget):
         statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
                               'class ', 'elif ', 'except ']
         whole_keywords = ['else', 'try', 'except', 'finally']
-        end_chars = [':', '\\', ']', '}']
+        end_chars = [':', '\\', ']', '}', ')']
         unmatched_brace = False
         leading_text = self.get_text('sol', 'cursor').strip()
         line_pos = unicode(self.toPlainText()).index(leading_text)
@@ -2009,10 +2017,82 @@ class CodeEditor(TextEditBaseWidget):
         
         if detect_keyword and not \
           any([leading_text.endswith(c) for c in end_chars]) and not \
-          unmatched_brace:
+          unmatched_brace and self.textCursor().atBlockEnd():
             return True
         else:
             return False
+    
+    def _has_open_quotes(self, s):
+        """Return whether a string has open quotes.
+        This simply counts whether the number of quote characters of either
+        type in the string is odd.
+        
+        Take from the IPython project (in IPython/core/completer.py in v0.12)
+        Spyder team: Add some changes to deal with escaped quotes
+        
+        - Copyright (C) 2008-2011 IPython Development Team
+        - Copyright (C) 2001-2007 Fernando Perez. <fperez@colorado.edu>
+        - Copyright (C) 2001 Python Software Foundation, www.python.org
+
+        Distributed under the terms of the BSD License.
+        """
+        # We check " first, then ', so complex cases with nested quotes will
+        # get the " to take precedence.
+        s = s.replace("\\'", "")
+        s = s.replace('\\"', '')
+        if s.count('"') % 2:
+            return '"'
+        elif s.count("'") % 2:
+            return "'"
+        else:
+            return False
+    
+    def _auto_insert_quotes(self, event, key):
+        """Control how to automatically insert quotes in various situations"""
+        # Character to insert
+        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
+        
+        # Grab line and previous text
+        prev_text = self.get_text('sol', 'cursor').strip()
+        text_to_eol = self.get_text('sol', 'eol').strip()
+        
+        # Take a peek at the next and previous characters of the current cursor
+        # position
+        cursor = self.textCursor()
+        cursor.movePosition(QTextCursor.NextCharacter, 
+                            QTextCursor.KeepAnchor)
+        next_char = unicode(cursor.selectedText())
+        cursor.movePosition(QTextCursor.PreviousCharacter,
+                            QTextCursor.KeepAnchor, 2)
+        prev_char = unicode(cursor.selectedText())
+        
+        # Don't auto-insert quotes if there are open ones in the previous text
+        if self._has_open_quotes(prev_text) and \
+          self._has_open_quotes(text_to_eol):
+            self.insert_text(char)
+        
+        # Don't write a closing quote if the cursor is between two quotes and
+        # there is nothing else between them.
+        # Just move the cursor one position to the right
+        elif next_char == char and prev_char == char:
+            cursor.movePosition(QTextCursor.NextCharacter,
+                                QTextCursor.KeepAnchor, 2)
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+        # Automatic insertion of triple double quotes (for docstrings)
+        elif self.get_text('sol', 'cursor')[-2:] == 2*char:
+            self.insert_text(4*char)
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter,
+                                QTextCursor.KeepAnchor, 3)
+            cursor.clearSelection()
+            self.setTextCursor(cursor)
+        # Automatic insertion of quotes and double quotes
+        else:
+            self.insert_text(2*char)
+            cursor = self.textCursor()
+            cursor.movePosition(QTextCursor.PreviousCharacter)
+            self.setTextCursor(cursor)
     
     def keyPressEvent(self, event):
         """Reimplement Qt method"""
@@ -2101,7 +2181,7 @@ class CodeEditor(TextEditBaseWidget):
                self.get_text('sol', 'cursor') and self.calltips:
                 self.emit(SIGNAL('trigger_calltip(int)'), position)
         elif text in ('[', '{') and not self.has_selected_text() \
-             and self.close_parentheses_enabled:
+          and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()
             if len(s_trailing_text) == 0 or \
                s_trailing_text[0] in (',', ')', ']', '}'):
@@ -2111,38 +2191,19 @@ class CodeEditor(TextEditBaseWidget):
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)
-        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight,
-             Qt.Key_QuoteDbl, Qt.Key_Apostrophe) \
-             and not self.has_selected_text() and \
-             self.close_parentheses_enabled:
-            # Don't write closing braces or quotes if they were inserted
-            # automatically. Just move the cursor one position to the
-            # right
+        elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
+          self.close_quotes_enabled:
+            self._auto_insert_quotes(event, key)
+        elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
+          and not self.has_selected_text() and self.close_parentheses_enabled \
+          and not self.textCursor().atBlockEnd():
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
             text = unicode(cursor.selectedText())
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
-                        Qt.Key_BracketRight: ']', Qt.Key_QuoteDbl: '"',
-                        Qt.Key_Apostrophe: '\''}[key]:
+                        Qt.Key_BracketRight: ']'}[key]:
                 cursor.clearSelection()
-                self.setTextCursor(cursor)
-            # Automatic insertion of triple double quotes (e.g. for
-            # docstrings)
-            elif key == Qt.Key_QuoteDbl and \
-              self.get_text('sol', 'cursor')[-2:] == '""':
-                self.insert_text('""""')
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter,
-                                    QTextCursor.KeepAnchor, 3)
-                cursor.clearSelection()
-                self.setTextCursor(cursor)
-            # Automatic insertion of quotes and double quotes
-            elif key in (Qt.Key_Apostrophe, Qt.Key_QuoteDbl):
-                self.insert_text({Qt.Key_Apostrophe :'\'\'',
-                                  Qt.Key_QuoteDbl: '""'}[key])
-                cursor = self.textCursor()
-                cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
                 QPlainTextEdit.keyPressEvent(self, event)

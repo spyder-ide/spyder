@@ -866,6 +866,13 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_close_parentheses_enabled(state)
                 
+    def set_close_quotes_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'close_quotes')
+        self.close_quotes_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_close_quotes_enabled(state)
+    
     def set_add_colons_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'add_colons')
         self.add_colons_enabled = state
@@ -1685,6 +1692,8 @@ class EditorStack(QWidget):
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
+                close_quotes=self.close_quotes_enabled,
+                add_colons=self.add_colons_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
                 tab_stop_width=self.tab_stop_width,
