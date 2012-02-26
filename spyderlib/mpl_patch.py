@@ -76,7 +76,7 @@ def apply():
             self.canvas.setFocus()
     
             QObject.connect(self.window, SIGNAL('destroyed()'),
-                            self._widgetclosed)
+                            lambda: self._widgetclosed())
             self.window._destroying = False
     
             self.toolbar = self._get_toolbar(self.canvas, self.window)

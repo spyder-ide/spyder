@@ -1878,7 +1878,7 @@ class EditorSplitter(QSplitter):
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.connect(self.editorstack, SIGNAL("destroyed()"),
-                     self.editorstack_closed)
+                     lambda: self.editorstack_closed())
         self.connect(self.editorstack, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
         self.connect(self.editorstack, SIGNAL("split_horizontally()"),
@@ -1899,7 +1899,7 @@ class EditorSplitter(QSplitter):
         if DEBUG:
             print >>STDOUT, "method 'editorstack_closed':"
             print >>STDOUT, "    self  :", self
-            print >>STDOUT, "    sender:", self.sender()
+#            print >>STDOUT, "    sender:", self.sender()
         self.unregister_editorstack_cb(self.editorstack)
         self.editorstack = None
         try:
@@ -1918,7 +1918,7 @@ class EditorSplitter(QSplitter):
         if DEBUG:
             print >>STDOUT, "method 'editorsplitter_closed':"
             print >>STDOUT, "    self  :", self
-            print >>STDOUT, "    sender:", self.sender()
+#            print >>STDOUT, "    sender:", self.sender()
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
         except RuntimeError:
@@ -1944,7 +1944,7 @@ class EditorSplitter(QSplitter):
                     unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
         self.connect(editorsplitter, SIGNAL("destroyed()"),
-                     self.editorsplitter_closed)
+                     lambda: self.editorsplitter_closed())
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
             current_editor.setFocus()
