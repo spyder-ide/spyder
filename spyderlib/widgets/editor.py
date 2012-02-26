@@ -39,8 +39,8 @@ from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
-from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 
 
@@ -532,6 +532,8 @@ class EditorStack(QWidget):
         self.calltips_enabled = True
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
+        self.close_quotes_enabled = True
+        self.add_colons_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width = 40
