@@ -31,7 +31,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
-    from spyderlib.utils.sphinxify import CSS_PATH, sphinxify
+    from spyderlib.utils.inspector.sphinxify import CSS_PATH, sphinxify
     HTML_HEAD = '<html> \
     <head> \
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
