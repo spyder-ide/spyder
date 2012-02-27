@@ -20,18 +20,21 @@ See here for the original version:
 www.sagemath.org/doc/reference/sagenb/misc/sphinxify.html
 """
 
+# Stdlib imports
+import codecs
 import os
+import os.path as osp
 import re
 import shutil
-import os.path as osp
 from tempfile import mkdtemp
-import codecs
 
+# 3rd party imports
 from sphinx.application import Sphinx #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
 
 # Local imports
 from spyderlib.baseconfig import get_module_source_path
+
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CSS_PATH = osp.join(get_module_source_path('spyderlib.utils'), 'css')
@@ -108,7 +111,8 @@ def sphinxify(docstring, format='html'):
     # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
     # buildername, confoverrides, status, warning, freshenv).
     
-    # This may be inefficient.  TODO: Find a faster way to do this.
+    # This may be inefficient.
+    # TODO: Find a faster way to do it.
     temp_confdir = True
     confdir = mkdtemp()
     generate_configuration(confdir)
@@ -188,13 +192,13 @@ import sys, os
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
 
-# jsmath load path
-jsmath_path = 'easy/load.js'
+# mathjax load path
+mathjax_path = 'MathJax/MathJax.js'
 
 # The suffix of source filenames.
 source_suffix = '.rst'

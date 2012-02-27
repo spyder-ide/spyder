@@ -37,6 +37,19 @@ try:
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
     <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
     <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
+    <script type="text/x-mathjax-config"> \
+    MathJax.Hub.Config({ \
+      jax: ["input/TeX","output/SVG"], \
+      extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js"], \
+      showMathMenu: false, \
+      "SVG": { \
+        blacker: 1 \
+      }\
+    }); \
+    </script> \
+    <script type="text/javascript" \
+    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"> \
+    </script> \
     </head> \
     <body>' % (CSS_PATH, CSS_PATH)
     
