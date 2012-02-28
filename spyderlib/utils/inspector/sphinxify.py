@@ -75,7 +75,7 @@ def sphinxify(docstring, format='html'):
 
     EXAMPLES::
 
-        >>> from spyderlib.plugins.sphinxify import sphinxify
+        >>> from spyderlib.utils.inspector.sphinxify import sphinxify
         >>> sphinxify('A test')
         '\n<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
         >>> sphinxify('**Testing**\n`monospace`')
@@ -92,7 +92,7 @@ def sphinxify(docstring, format='html'):
         from sphinx.application import Sphinx
 
     srcdir = mkdtemp()
-    base_name = os.path.join(srcdir, 'docstring')
+    base_name = osp.join(srcdir, 'docstring')
     rst_name = base_name + '.rst'
 
     if format == 'html':
@@ -117,7 +117,7 @@ def sphinxify(docstring, format='html'):
     confdir = mkdtemp()
     generate_configuration(confdir)
 
-    doctreedir = os.path.join(srcdir, 'doctrees')
+    doctreedir = osp.join(srcdir, 'doctrees')
     confoverrides = {'master_doc': 'docstring'}
 
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
@@ -131,7 +131,7 @@ def sphinxify(docstring, format='html'):
         </div>'
         return output
 
-    if os.path.exists(output_name):
+    if osp.exists(output_name):
         output = codecs.open(output_name, 'r', encoding='utf-8').read()
         output = output.replace('<pre>', '<pre class="literal-block">')
 
@@ -168,7 +168,7 @@ def generate_configuration(directory):
 
     EXAMPLES::
 
-        >>> from spyderlib.plugins.sphinxify import generate_configuration
+        >>> from spyderlib.utils.inspector.sphinxify import generate_configuration
         >>> import tempfile, os
         >>> tmpdir = tempfile.mkdtemp()
         >>> generate_configuration(tmpdir)
@@ -183,12 +183,12 @@ def generate_configuration(directory):
     layout = osp.join(get_module_source_path('spyderlib.utils.inspector'),
                            'templates', 'layout.html')
     
-    os.makedirs(os.path.join(directory, 'templates'))
-    os.makedirs(os.path.join(directory, 'static'))
-    shutil.copy(conf, os.path.join(directory, 'conf.py'))
-    shutil.copy(layout, os.path.join(directory, 'templates'))
-    open(os.path.join(directory, '__init__.py'), 'w').write('')
-    open(os.path.join(directory, 'static', 'empty'), 'w').write('')
+    os.makedirs(osp.join(directory, 'templates'))
+    os.makedirs(osp.join(directory, 'static'))
+    shutil.copy(conf, directory)
+    shutil.copy(layout, osp.join(directory, 'templates'))
+    open(osp.join(directory, '__init__.py'), 'w').write('')
+    open(osp.join(directory, 'static', 'empty'), 'w').write('')
 
 if __name__ == '__main__':
     import sys
