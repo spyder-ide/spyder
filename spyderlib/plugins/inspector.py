@@ -32,29 +32,6 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
     from spyderlib.utils.inspector.sphinxify import CSS_PATH, sphinxify
-    HTML_HEAD = '<html> \
-    <head> \
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
-    <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
-    <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
-    <script type="text/x-mathjax-config"> \
-    MathJax.Hub.Config({ \
-      jax: ["input/TeX","output/SVG"], \
-      extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js"], \
-      showMathMenu: false, \
-      "SVG": { \
-        blacker: 1 \
-      }\
-    }); \
-    </script> \
-    <script type="text/javascript" \
-    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"> \
-    </script> \
-    </head> \
-    <body>' % (CSS_PATH, CSS_PATH)
-    
-    HTML_TAIL = '</body> \
-    </html>'
 except ImportError:
     sphinxify = None
 
@@ -698,7 +675,6 @@ class ObjectInspector(SpyderPluginWidget):
                 return
         else:
             html_text = '<div id=\"warning\">'+self.no_doc_string+'</div>'
-        html_text = HTML_HEAD + html_text + HTML_TAIL
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
     def show_help(self, obj_text, ignore_unknown=False):

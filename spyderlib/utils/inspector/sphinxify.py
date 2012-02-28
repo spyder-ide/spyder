@@ -118,7 +118,7 @@ def sphinxify(docstring, format='html'):
     generate_configuration(confdir)
 
     doctreedir = os.path.join(srcdir, 'doctrees')
-    confoverrides = {'html_context': {}, 'master_doc': 'docstring'}
+    confoverrides = {'master_doc': 'docstring'}
 
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
                         confoverrides, None, None, True)
@@ -180,17 +180,14 @@ def generate_configuration(directory):
                     'conf.py')
 
     # Docstring layout page (in Jinja):
-    layout = r"""
-<div class="docstring">
-    {% block body %}{% endblock %}
-</div>
-"""
+    layout = osp.join(get_module_source_path('spyderlib.utils.inspector'),
+                           'templates', 'layout.html')
+    
     os.makedirs(os.path.join(directory, 'templates'))
     os.makedirs(os.path.join(directory, 'static'))
     shutil.copy(conf, os.path.join(directory, 'conf.py'))
+    shutil.copy(layout, os.path.join(directory, 'templates'))
     open(os.path.join(directory, '__init__.py'), 'w').write('')
-    open(os.path.join(directory, 'templates', 'layout.html'),
-         'w').write(layout)
     open(os.path.join(directory, 'static', 'empty'), 'w').write('')
 
 if __name__ == '__main__':

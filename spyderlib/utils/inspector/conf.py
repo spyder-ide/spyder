@@ -6,11 +6,13 @@
 
 """Sphinx conf file for the object inspector rich text mode"""
 
+import sys, os
+from spyderlib.utils.inspector.sphinxify import CSS_PATH
+
 #==============================================================================
 # Main config
 #==============================================================================
 
-import sys, os
 # If your extensions are in another directory, add it here. If the directory
 # is relative to the documentation root, use os.path.abspath to make it
 # absolute, like shown here.
@@ -106,6 +108,10 @@ html_short_title = None
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['static']
+
+# A dictionary of values to pass into the template engine’s context for all
+# pages
+html_context = {'css_path': CSS_PATH}
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
