@@ -6,7 +6,10 @@
 
 """Sphinx conf file for the object inspector rich text mode"""
 
-import sys, os
+# 3rd party imports
+import sphinx
+
+# Local imports
 from spyderlib.utils.inspector.sphinxify import CSS_PATH
 
 #==============================================================================
@@ -23,12 +26,20 @@ from spyderlib.utils.inspector.sphinxify import CSS_PATH
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
+
+# Check for the sphinx version before loading MathJax
+sphinx_version = map(lambda x: int(x), sphinx.__version__.split('.')[:-1])
+sphinx_version = tuple(sphinx_version)
+
+if sphinx_version <= (1,0):
+    extensions = ['sphinx.ext.autodoc']
+else:
+    extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
 
-# mathjax load path
+# MathJax load path (doesn't take effect for sphinx 1.0-)
 mathjax_path = 'MathJax/MathJax.js'
 
 # The suffix of source filenames.
