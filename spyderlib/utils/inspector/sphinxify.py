@@ -29,6 +29,7 @@ import shutil
 from tempfile import mkdtemp
 
 # 3rd party imports
+from jinja2 import Environment, FileSystemLoader
 from sphinx.application import Sphinx #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
 
@@ -38,6 +39,8 @@ from spyderlib.baseconfig import get_module_source_path
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CSS_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'), 'css')
+TEMPLATES_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
+                          'templates')
 
 
 def is_sphinx_markup(docstring):
@@ -189,6 +192,11 @@ def generate_configuration(directory):
     shutil.copy(layout, osp.join(directory, 'templates'))
     open(osp.join(directory, '__init__.py'), 'w').write('')
     open(osp.join(directory, 'static', 'empty'), 'w').write('')
+
+def warning(message):
+    env = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
+    warning = env.get_template("warning.html")
+    return warning.render(css_path=CSS_PATH, text=message)
 
 if __name__ == '__main__':
     import sys

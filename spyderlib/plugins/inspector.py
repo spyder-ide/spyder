@@ -31,7 +31,8 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
-    from spyderlib.utils.inspector.sphinxify import CSS_PATH, sphinxify
+    from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
+                                                     warning)
 except ImportError:
     sphinxify = None
 
@@ -674,7 +675,7 @@ class ObjectInspector(SpyderPluginWidget):
                 self.plain_text_action.setChecked(True)
                 return
         else:
-            html_text = '<div id=\"warning\">'+self.no_doc_string+'</div>'
+            html_text = warning(self.no_doc_string)
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
     def show_help(self, obj_text, ignore_unknown=False):
