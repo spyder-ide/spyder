@@ -122,7 +122,9 @@ html_static_path = ['static']
 
 # A dictionary of values to pass into the template engine’s context for all
 # pages
-html_context = {'css_path': CSS_PATH}
+html_context = \
+{'css_path': CSS_PATH,
+ 'right_sphinx_version': '' if sphinx_version <= (1,0) else 'true'}
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.

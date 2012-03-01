@@ -18,6 +18,8 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="{{css_path}}/default.css" type="text/css" />
     <link rel="stylesheet" href="{{css_path}}/pygments.css" type="text/css" />
+    
+    {% if right_sphinx_version %}
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
         jax: ["input/TeX","output/SVG"],
@@ -31,6 +33,8 @@
     <script type="text/javascript" 
     src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
     </script>
+    {% endif %}
+
 </head>
 
 <body>
