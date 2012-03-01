@@ -32,15 +32,18 @@ sphinx_version = map(lambda x: int(x), sphinx.__version__.split('.')[:-1])
 sphinx_version = tuple(sphinx_version)
 
 if sphinx_version <= (1,0):
-    extensions = ['sphinx.ext.autodoc']
+    extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
 
-# MathJax load path (doesn't take effect for sphinx 1.0-)
+# MathJax load path (doesn't have effect for sphinx 1.0-)
 mathjax_path = 'MathJax/MathJax.js'
+
+# JsMath load path (doesn't have effect for sphinx 1.1+)
+jsmath_path = 'easy/load.js'
 
 # The suffix of source filenames.
 source_suffix = '.rst'
