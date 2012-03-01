@@ -34,7 +34,7 @@ from sphinx.application import Sphinx #@UnusedImport
 from docutils.utils import SystemMessage as SystemMessage
 
 # Local imports
-from spyderlib.baseconfig import get_module_source_path
+from spyderlib.baseconfig import get_module_source_path, _
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
@@ -58,6 +58,10 @@ def is_sphinx_markup(docstring):
     # this could be made much more clever
     return ("`" in docstring or "::" in docstring)
 
+def warning(message):
+    env = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
+    warning = env.get_template("warning.html")
+    return warning.render(css_path=CSS_PATH, text=message)
 
 def sphinxify(docstring, format='html'):
     r"""
@@ -128,11 +132,10 @@ def sphinxify(docstring, format='html'):
     try:
         sphinx_app.build(None, [rst_name])
     except SystemMessage:
-        output = '<div id=\"warning\"> \
-        It\'s not possible to generate rich text help for this object. \
-        Please see it in plain text. \
-        </div>'
-        return output
+        output = _("It was not possible to generate rich text help for this "
+                    "object.</br>"
+                    "Please see it in plain text.")
+        return warning(output)
 
     if osp.exists(output_name):
         output = codecs.open(output_name, 'r', encoding='utf-8').read()
@@ -192,11 +195,6 @@ def generate_configuration(directory):
     shutil.copy(layout, osp.join(directory, 'templates'))
     open(osp.join(directory, '__init__.py'), 'w').write('')
     open(osp.join(directory, 'static', 'empty'), 'w').write('')
-
-def warning(message):
-    env = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
-    warning = env.get_template("warning.html")
-    return warning.render(css_path=CSS_PATH, text=message)
 
 if __name__ == '__main__':
     import sys
