@@ -643,7 +643,7 @@ class ObjectInspector(SpyderPluginWidget):
         
     def shell_terminated(self, shell):
         """
-        External shall has terminated:
+        External shell has terminated:
         binding object inspector to another shell
         """
         if self.shell is shell:
@@ -660,7 +660,7 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
-        if text is not None:
+        if text is not None and text != '':
             try:
                 html_text = sphinxify(text)
             except Exception, error:
