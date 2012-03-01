@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*
-#!/usr/bin/env python
-r"""
+
+"""
 Process docstrings with Sphinx
-
-Processes docstrings with Sphinx. Can also be used as a commandline script:
-
-``python sphinxify.py <text>``
 
 AUTHORS:
 - Tim Joseph Dumol (2009-09-29): initial version
@@ -24,13 +20,12 @@ www.sagemath.org/doc/reference/sagenb/misc/sphinxify.html
 import codecs
 import os
 import os.path as osp
-import re
 import shutil
 from tempfile import mkdtemp
 
 # 3rd party imports
 from jinja2 import Environment, FileSystemLoader
-from sphinx.application import Sphinx #@UnusedImport
+from sphinx.application import Sphinx
 from docutils.utils import SystemMessage as SystemMessage
 
 # Local imports
@@ -73,9 +68,6 @@ def sphinxify(docstring, format='html'):
     An Sphinx-processed string, in either HTML or plain text format, depending
     on the value of `format`
     """
-    global Sphinx
-    if not Sphinx:
-        from sphinx.application import Sphinx
 
     srcdir = mkdtemp()
     base_name = osp.join(srcdir, 'docstring')
@@ -90,15 +82,11 @@ def sphinxify(docstring, format='html'):
     # This is needed for jsMath to work.
     docstring = docstring.replace('\\\\', '\\')
 
-    filed = codecs.open(rst_name, 'w', encoding='utf-8')
-    filed.write(docstring)
-    filed.close()
-
-    # Sphinx constructor: Sphinx(srcdir, confdir, outdir, doctreedir,
-    # buildername, confoverrides, status, warning, freshenv).
+    doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
+    doc_file.write(docstring)
+    doc_file.close()
     
-    # This may be inefficient.
-    # TODO: Find a faster way to do it.
+    # TODO: This may be inefficient. Find a faster way to do it.
     temp_confdir = True
     confdir = mkdtemp()
     generate_configuration(confdir)
@@ -116,25 +104,15 @@ def sphinxify(docstring, format='html'):
                     "Please see it in plain text.")
         return warning(output)
 
+    # TODO: Investigate if this is necessary/important for us
     if osp.exists(output_name):
         output = codecs.open(output_name, 'r', encoding='utf-8').read()
         output = output.replace('<pre>', '<pre class="literal-block">')
-
-        # Translate URLs for media from something like
-        #    "../../media/...path.../blah.png"
-        # or
-        #    "/media/...path.../blah.png"
-        # to
-        #    "/doc/static/reference/media/...path.../blah.png"
-        output = re.sub("""src=['"](/?\.\.)*/?media/([^"']*)['"]""",
-                          'src="/doc/static/reference/media/\\2"',
-                          output)
     else:
-        print "BUG -- Sphinx error"
-        if format == 'html':
-            output = '<pre class="introspection">%s</pre>' % docstring
-        else:
-            output = docstring
+        output = _("It was not possible to generate rich text help for this "
+                    "object.</br>"
+                    "Please see it in plain text.")
+        return warning(output)
 
     if temp_confdir:
         shutil.rmtree(confdir, ignore_errors=True)
@@ -167,15 +145,3 @@ def generate_configuration(directory):
     shutil.copy(layout, osp.join(directory, 'templates'))
     open(osp.join(directory, '__init__.py'), 'w').write('')
     open(osp.join(directory, 'static', 'empty'), 'w').write('')
-
-
-if __name__ == '__main__':
-    import sys
-    if len(sys.argv) == 2:
-        print sphinxify(sys.argv[1])
-    else:
-        print """Usage:
-%s 'docstring'
-
-docstring -- docstring to be processed
-"""
