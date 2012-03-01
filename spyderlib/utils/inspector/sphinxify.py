@@ -44,17 +44,8 @@ TEMPLATES_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
 
 
 def is_sphinx_markup(docstring):
-    """
-    Returns whether a string that contains Sphinx-style ReST markup.
-
-    INPUT:
-
-    - ``docstring`` - string to test for markup
-
-    OUTPUT:
-
-    - boolean
-    """
+    """Returns whether a string contains Sphinx-style ReST markup."""
+    
     # this could be made much more clever
     return ("`" in docstring or "::" in docstring)
 
@@ -64,35 +55,23 @@ def warning(message):
     return warning.render(css_path=CSS_PATH, text=message)
 
 def sphinxify(docstring, format='html'):
-    r"""
-    Runs Sphinx on a ``docstring``, and outputs the processed
-    documentation.
+    """
+    Runs Sphinx on a docstring and outputs the processed documentation.
 
-    INPUT:
+    Parameters
+    ==========
 
-    - ``docstring`` -- string -- a ReST-formatted docstring
+    docstring : str
+        a ReST-formatted docstring
 
-    - ``format`` -- string (optional, default 'html') -- either 'html' or
-      'text'
+    format:  str
+        It can be either `html` or `text`.
 
-    OUTPUT:
+    Returns
+    =======
 
-    - string -- Sphinx-processed documentation, in either HTML or
-      plain text format, depending on the value of ``format``
-
-    EXAMPLES::
-
-        >>> from spyderlib.utils.inspector.sphinxify import sphinxify
-        >>> sphinxify('A test')
-        '\n<div class="docstring">\n    \n  <p>A test</p>\n\n\n</div>'
-        >>> sphinxify('**Testing**\n`monospace`')
-        '\n<div class="docstring">\n    \n  <p><strong>Testing</strong>\n<span class="math">monospace</span></p>\n\n\n</div>'
-        >>> sphinxify('`x=y`')
-        '\n<div class="docstring">\n    \n  <p><span class="math">x=y</span></p>\n\n\n</div>'
-        >>> sphinxify('`x=y`', format='text')
-        'x=y\n'
-        >>> sphinxify(':math:`x=y`', format='text')
-        'x=y\n'
+    An Sphinx-processed string, in either HTML or plain text format, depending
+    on the value of `format`
     """
     global Sphinx
     if not Sphinx:
@@ -165,29 +144,22 @@ def sphinxify(docstring, format='html'):
 
 
 def generate_configuration(directory):
-    r"""
-    Generates a Sphinx configuration in ``directory``.
+    """
+    Generates a Sphinx configuration in `directory`.
 
-    INPUT:
+    Parameters
+    ==========
 
-    - ``directory`` - string, base directory to use
-
-    EXAMPLES::
-
-        >>> from spyderlib.utils.inspector.sphinxify import generate_configuration
-        >>> import tempfile, os
-        >>> tmpdir = tempfile.mkdtemp()
-        >>> generate_configuration(tmpdir)
-        >>> open(os.path.join(tmpdir, 'conf.py')).read()
-        '\n...extensions =...templates_path...source = False\n...'
+    directory : str
+        Base directory to use
     """
     
+    # conf.py file for Sphinx
     conf = osp.join(get_module_source_path('spyderlib.utils.inspector'),
                     'conf.py')
 
     # Docstring layout page (in Jinja):
-    layout = osp.join(get_module_source_path('spyderlib.utils.inspector'),
-                           'templates', 'layout.html')
+    layout = osp.join(TEMPLATES_PATH, 'layout.html')
     
     os.makedirs(osp.join(directory, 'templates'))
     os.makedirs(osp.join(directory, 'static'))
@@ -195,6 +167,7 @@ def generate_configuration(directory):
     shutil.copy(layout, osp.join(directory, 'templates'))
     open(osp.join(directory, '__init__.py'), 'w').write('')
     open(osp.join(directory, 'static', 'empty'), 'w').write('')
+
 
 if __name__ == '__main__':
     import sys
