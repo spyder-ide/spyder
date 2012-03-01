@@ -94,10 +94,10 @@ def sphinxify(docstring, format='html'):
     generate_configuration(confdir)
 
     doctreedir = osp.join(srcdir, 'doctrees')
-    confoverrides = {'master_doc': 'docstring'}
 
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
-                        confoverrides, None, None, True)
+                        confoverrides=None, status=None, warning=None,
+                        freshenv=True, warningiserror=False, tags=None)
     try:
         sphinx_app.build(None, [rst_name])
     except SystemMessage:

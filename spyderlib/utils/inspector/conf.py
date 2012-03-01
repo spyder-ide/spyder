@@ -49,7 +49,7 @@ jsmath_path = 'easy/load.js'
 source_suffix = '.rst'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'docstring'
 
 # General information about the project.
 project = u"Object Inspector"
