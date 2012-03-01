@@ -45,6 +45,8 @@ def is_sphinx_markup(docstring):
     return ("`" in docstring or "::" in docstring)
 
 def warning(message):
+    """Print a warning message on the rich text view"""
+    
     env = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
