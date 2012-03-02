@@ -33,7 +33,8 @@ from spyderlib.baseconfig import get_module_source_path, _
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CSS_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'), 'css')
+CSS_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
+                    'static', 'css')
 TEMPLATES_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
                           'templates')
 
@@ -88,10 +89,13 @@ def sphinxify(docstring, format='html'):
     doc_file.write(docstring)
     doc_file.close()
     
-    # TODO: This may be inefficient. Find a faster way to do it.
-    temp_confdir = True
-    confdir = mkdtemp()
-    generate_configuration(confdir)
+    temp_confdir = False
+    if temp_confdir:
+        # TODO: This may be inefficient. Find a faster way to do it.
+        confdir = mkdtemp()
+        generate_configuration(confdir)
+    else:
+        confdir = osp.join(get_module_source_path('spyderlib.utils.inspector'))
 
     doctreedir = osp.join(srcdir, 'doctrees')
 
