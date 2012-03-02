@@ -33,10 +33,8 @@ from spyderlib.baseconfig import get_module_source_path, _
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
-CSS_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
-                    'static', 'css')
-TEMPLATES_PATH = osp.join(get_module_source_path('spyderlib.utils.inspector'),
-                          'templates')
+CONFDIR_PATH = get_module_source_path('spyderlib.utils.inspector')
+CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
 
 
 def is_sphinx_markup(docstring):
@@ -48,7 +46,8 @@ def is_sphinx_markup(docstring):
 def warning(message):
     """Print a warning message on the rich text view"""
     
-    env = Environment(loader=FileSystemLoader(TEMPLATES_PATH))
+    env = Environment()
+    env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
 
@@ -143,7 +142,7 @@ def generate_configuration(directory):
                     'conf.py')
 
     # Docstring layout page (in Jinja):
-    layout = osp.join(TEMPLATES_PATH, 'layout.html')
+    layout = osp.join(osp.join(CONFDIR_PATH, 'templates'), 'layout.html')
     
     os.makedirs(osp.join(directory, 'templates'))
     os.makedirs(osp.join(directory, 'static'))
