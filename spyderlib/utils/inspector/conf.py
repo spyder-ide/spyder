@@ -21,13 +21,11 @@ from spyderlib.utils.inspector.sphinxify import CSS_PATH
 # absolute, like shown here.
 #sys.path.append(os.path.abspath('.'))
 
-# Check for the sphinx version before loading MathJax
-sphinx_version = map(lambda x: int(x), sphinx.__version__.split('.')[:-1])
-sphinx_version = tuple(sphinx_version)
-
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-if sphinx_version <= (1,0):
+
+# We need jsmath for 1.0- so that we can get plain text latex in docstrings
+if sphinx.__version__ <= "1.0":
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
@@ -68,9 +66,9 @@ add_function_parentheses = True
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-
+#==============================================================================
 # Options for HTML output
-# -----------------------
+#==============================================================================
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
@@ -93,7 +91,7 @@ html_static_path = ['static']
 # pages
 html_context = \
 {'css_path': CSS_PATH,
- 'right_sphinx_version': '' if sphinx_version <= (1,0) else 'true'}
+ 'right_sphinx_version': '' if sphinx.__version__ <= "1.0" else 'true'}
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
