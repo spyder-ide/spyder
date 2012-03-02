@@ -77,7 +77,11 @@ copyright = u'2009--2012, The Spyder Development Team'
 exclude_trees = ['.build']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
-default_role = 'math'
+#
+# TODO: This role has to be set on a per project basis, i.e. numpy, sympy,
+# mpmath, etc, use different default_role's which give different rendered
+# docstrings. Setting this to None until it's solved.
+default_role = 'None'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 #add_function_parentheses = True
