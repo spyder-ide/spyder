@@ -20,19 +20,34 @@
     <link rel="stylesheet" href="{{css_path}}/pygments.css" type="text/css" />
     
     {% if right_sphinx_version %}
+
+    {# MathJax config #}
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
-        jax: ["input/TeX","output/SVG"],
-        extensions: ["tex2jax.js","TeX/AMSmath.js","TeX/AMSsymbols.js"],
+        {# We are using SVG instead of HTML-CSS because the last one gives
+           troubles on QtWebkit. See this thread:
+           https://groups.google.com/forum/?fromgroups#!topic/mathjax-users/HKA2lNqv-OQ #}
+        jax: ["input/TeX", "output/SVG"],
+
+        {# Menu options are not working. It would be useful to have 'Show TeX
+           commands', but it opens an external browser pointing to css_path.
+           I don't know why that's happening #}
         showMathMenu: false,
+        messageStyle: "none",
         "SVG": {
             blacker: 1
         }
     });
     </script>
+    
+    {# MathJax loading
+       DONT try to load MathJax from net. It's slow and sometimes gives errors.
+       See this thread for more info:
+       http://tex.stackexchange.com/questions/2692/comparing-mathjax-and-mathml #}
     <script type="text/javascript" 
-    src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default">
+    src="{{js_path}}/mathjax/MathJax.js?config=TeX-AMS-MML_SVG-full">
     </script>
+
     {% endif %}
 
 </head>
