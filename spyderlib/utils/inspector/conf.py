@@ -7,7 +7,7 @@
 """Sphinx conf file for the object inspector rich text mode"""
 
 # 3rd party imports
-import sphinx
+from sphinx import __version__ as sphinx_version
 
 #==============================================================================
 # General configuration
@@ -22,7 +22,7 @@ import sphinx
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 
 # We need jsmath for 1.0- so that we can get plain text latex in docstrings
-if sphinx.__version__ <= "1.0":
+if sphinx_version < "1.1":
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
