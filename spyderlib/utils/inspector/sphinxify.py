@@ -24,9 +24,10 @@ import shutil
 from tempfile import mkdtemp
 
 # 3rd party imports
-from jinja2 import Environment, FileSystemLoader
-from sphinx.application import Sphinx
 from docutils.utils import SystemMessage as SystemMessage
+from jinja2 import Environment, FileSystemLoader
+import sphinx
+from sphinx.application import Sphinx
 
 # Local imports
 from spyderlib.baseconfig import get_module_source_path, _
@@ -50,6 +51,28 @@ def warning(message):
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
+
+def generate_context(math):
+    """
+    Generate the html_context dictionary for our Sphinx conf file.
+
+    Parameters
+    ==========
+    
+    math : bool
+        Turn on/off Latex rendering on the OI. If False, Latex will be shown in
+        plain text.
+    """
+    
+    context = \
+    {
+      'css_path': CSS_PATH,
+      'js_path': osp.join(CONFDIR_PATH, 'js'),
+      'right_sphinx_version': '' if sphinx.__version__ <= "1.0" else 'true',
+      'math_on': 'true' if math else ''
+    }
+    
+    return context
 
 def sphinxify(docstring, format='html'):
     """
