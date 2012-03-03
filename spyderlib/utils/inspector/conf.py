@@ -6,14 +6,8 @@
 
 """Sphinx conf file for the object inspector rich text mode"""
 
-# Stdlib imports
-import os.path as osp
-
 # 3rd party imports
 import sphinx
-
-# Local imports
-from spyderlib.utils.inspector.sphinxify import CONFDIR_PATH, CSS_PATH
 
 #==============================================================================
 # General configuration
@@ -92,12 +86,7 @@ html_static_path = ['static']
 
 # A dictionary of values to pass into the template engine’s context for all
 # pages
-html_context = \
-{
- 'css_path': CSS_PATH,
- 'js_path': osp.join(CONFDIR_PATH, 'js'),
- 'right_sphinx_version': '' if sphinx.__version__ <= "1.0" else 'true'
-}
+html_context = {}
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
