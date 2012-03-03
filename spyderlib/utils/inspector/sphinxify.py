@@ -74,7 +74,7 @@ def generate_context(math):
     
     return context
 
-def sphinxify(docstring, format='html'):
+def sphinxify(docstring, buildername='html'):
     """
     Runs Sphinx on a docstring and outputs the processed documentation.
 
@@ -84,21 +84,21 @@ def sphinxify(docstring, format='html'):
     docstring : str
         a ReST-formatted docstring
 
-    format:  str
+    buildername:  str
         It can be either `html` or `text`.
 
     Returns
     =======
 
     An Sphinx-processed string, in either HTML or plain text format, depending
-    on the value of `format`
+    on the value of `buildername`
     """
 
     srcdir = mkdtemp()
     base_name = osp.join(srcdir, 'docstring')
     rst_name = base_name + '.rst'
 
-    if format == 'html':
+    if buildername == 'html':
         suffix = '.html'
     else:
         suffix = '.txt'
@@ -121,7 +121,7 @@ def sphinxify(docstring, format='html'):
 
     doctreedir = osp.join(srcdir, 'doctrees')
 
-    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, format,
+    sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, buildername,
                         confoverrides=None, status=None, warning=None,
                         freshenv=True, warningiserror=False, tags=None)
     try:
