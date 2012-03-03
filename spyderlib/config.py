@@ -293,6 +293,7 @@ DEFAULTS = [
               'rich_text/font/italic': False,
               'rich_text/font/bold': False,
               'wrap': True,
+              'math': True,
               'automatic_import': True,
               }),
             ('onlinehelp',

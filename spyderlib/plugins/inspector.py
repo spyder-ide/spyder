@@ -78,11 +78,6 @@ class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-        plain_text_font_group = self.create_fontgroup(option=None,
-                                    text=_("Plain text font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-        rich_text_font_group = self.create_fontgroup(option='rich_text',
-                                text=_("Rich text font style"))
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
@@ -93,9 +88,24 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
         
+        plain_text_font_group = self.create_fontgroup(option=None,
+                                    text=_("Plain text font style"),
+                                    fontfilters=QFontComboBox.MonospacedFonts)
+        rich_text_font_group = self.create_fontgroup(option='rich_text',
+                                text=_("Rich text font style"))
+                                
+        features_group = QGroupBox(_("Additional features for rich text"))
+        math_enable_box = self.create_checkbox(_("Display mathematical "
+                                                          "equations"), 'math')
+        
+        features_layout = QVBoxLayout()
+        features_layout.addWidget(math_enable_box)
+        features_group.setLayout(features_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(rich_text_font_group)
         vlayout.addWidget(plain_text_font_group)
+        vlayout.addWidget(features_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -369,6 +379,8 @@ class ObjectInspector(SpyderPluginWidget):
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
+        math_n = 'math'
+        math_o = self.get_option(math_n)
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
             self.set_plain_text_font(font_o, color_scheme=scs)
@@ -378,6 +390,8 @@ class ObjectInspector(SpyderPluginWidget):
             self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)
+        if math_n in options:
+            self.toggle_math_mode(math_o)
         
     #------ Public API (related to inspector's source) -------------------------
     def source_is_console(self):
@@ -462,7 +476,11 @@ class ObjectInspector(SpyderPluginWidget):
         """Toggle wrap mode"""
         self.plain_text.editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-        
+    
+    def toggle_math_mode(self, checked):
+        """Toggle math mode"""
+        self.set_option('math', checked)
+    
     def is_plain_text_mode(self):
         """Return True if plain text mode is active"""
         return self.plain_text.isVisible()
