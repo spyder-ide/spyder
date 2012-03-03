@@ -74,7 +74,7 @@ def generate_context(math):
     
     return context
 
-def sphinxify(docstring, buildername='html'):
+def sphinxify(docstring, context, buildername='html'):
     """
     Runs Sphinx on a docstring and outputs the processed documentation.
 
@@ -83,6 +83,10 @@ def sphinxify(docstring, buildername='html'):
 
     docstring : str
         a ReST-formatted docstring
+
+    context : dict
+        Variables to be passed to the layout template to control how its
+        rendered (through the Sphinx variable *html_context*).
 
     buildername:  str
         It can be either `html` or `text`.
@@ -119,10 +123,12 @@ def sphinxify(docstring, buildername='html'):
     else:
         confdir = osp.join(get_module_source_path('spyderlib.utils.inspector'))
 
+    confoverrides = {'html_context': context}
+
     doctreedir = osp.join(srcdir, 'doctrees')
 
     sphinx_app = Sphinx(srcdir, confdir, srcdir, doctreedir, buildername,
-                        confoverrides=None, status=None, warning=None,
+                        confoverrides, status=None, warning=None,
                         freshenv=True, warningiserror=False, tags=None)
     try:
         sphinx_app.build(None, [rst_name])

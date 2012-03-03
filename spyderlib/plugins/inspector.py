@@ -32,7 +32,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
-                                                     warning)
+                                                     warning, generate_context)
 except ImportError:
     sphinxify = None
 
@@ -678,9 +678,11 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
+        math_o = self.get_option('math')
         if text is not None and text != '':
             try:
-                html_text = sphinxify(text)
+                context = generate_context(math=math_o)
+                html_text = sphinxify(text, context)
             except Exception, error:
                 import sphinx
                 QMessageBox.critical(self,
