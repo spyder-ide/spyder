@@ -33,6 +33,7 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context)
+    from sphinx import __version__ as sphinx_version
 except ImportError:
     sphinxify = None
 
@@ -94,12 +95,17 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         rich_text_font_group = self.create_fontgroup(option='rich_text',
                                 text=_("Rich text font style"))
                                 
-        features_group = QGroupBox(_("Additional features for rich text"))
-        math_enable_box = self.create_checkbox(_("Display mathematical "
-                                                          "equations"), 'math')
+        features_group = QGroupBox(_("Additional features"))
+        math_box = self.create_checkbox(_("Display mathematical equations"),
+                                        'math')
+        math_box.setEnabled(sphinx_version >= "1.1")
+        if not sphinx_version >= "1.1":
+            math_box.setToolTip(_("This feature requires Sphinx 1.1 or superior"
+                                  "\nYou currently have version %s") %
+                                    sphinx_version)
         
         features_layout = QVBoxLayout()
-        features_layout.addWidget(math_enable_box)
+        features_layout.addWidget(math_box)
         features_group.setLayout(features_layout)
         
         vlayout = QVBoxLayout()
