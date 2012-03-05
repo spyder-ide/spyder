@@ -33,10 +33,8 @@ if _modname == 'pyqt':
 
 if _modname == 'pyside':
     try:
-        import PySide
-        __version__ = PySide.__version__
+        from PySide import __version__
     except ImportError:
         raise ImportError("Spyder requires PySide or PyQt to be installed")
     else:
-        from PySide import *  #analysis:ignore
         is_old_pyqt = is_pyqt46 = False
