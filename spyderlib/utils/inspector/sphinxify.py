@@ -21,6 +21,7 @@ import codecs
 import os
 import os.path as osp
 import shutil
+import sys
 from tempfile import mkdtemp
 
 # 3rd party imports
@@ -66,10 +67,14 @@ def generate_context(math):
     
     context = \
     {
+      # Arg dependent
+      'math_on': 'true' if math else '',
+      
+      # The other variables
       'css_path': CSS_PATH,
       'js_path': osp.join(CONFDIR_PATH, 'js'),
       'right_sphinx_version': '' if sphinx_version < "1.1" else 'true',
-      'math_on': 'true' if math else ''
+      'platform': sys.platform
     }
     
     return context

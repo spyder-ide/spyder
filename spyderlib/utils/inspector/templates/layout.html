@@ -18,6 +18,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="stylesheet" href="{{css_path}}/default.css" type="text/css" />
     <link rel="stylesheet" href="{{css_path}}/pygments.css" type="text/css" />
+    <script type="text/javascript" src="{{js_path}}/jquery-1.7.1.min.js"></script>
     
     {% if right_sphinx_version and math_on %}
 
@@ -36,7 +37,15 @@
         messageStyle: "none",
         "SVG": {
             blacker: 1
+        },
+	  {% if platform == 'win32' %}
+        styles: {
+            ".MathJax_Preview": {
+                color: "#888",
+        	    "font-size": "55%"
+            }
         }
+        {% endif %}
     });
     </script>
     
@@ -51,6 +60,19 @@
     {% endif %}
 
 </head>
+
+{# Increase font size of math elements on Windows because they appear too small
+   in comparison to the surrounding text.
+   MathJax 'scale' option seems to not be working for SVG.
+#}
+{% if right_sphinx_version and math_on and platform == 'win32' %}
+<script>
+$(document).ready( function () {
+    $('.math').css("color", "transparent");
+    $('.math').css("fontSize", "212%");
+});
+</script>
+{% endif %}
 
 <body>
   <div class="docstring">
