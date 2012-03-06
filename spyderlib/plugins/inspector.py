@@ -96,7 +96,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
                                 text=_("Rich text font style"))
                                 
         features_group = QGroupBox(_("Additional features"))
-        math_box = self.create_checkbox(_("Display mathematical equations"),
+        math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
         math_box.setEnabled(sphinx_version >= "1.1")
         if not sphinx_version >= "1.1":
