@@ -1,5 +1,15 @@
 = History of changes =
 
+== Version 2.2 ==
+
+=== New features since v2.1 ===
+
+*New major features*:
+  * *Object Inspector*:
+    * Add the capability to render mathematical equations using the MathJax Sphinx extension (it requires Sphinx 1.1+)
+
+----
+
 == Version 2.1.8 ==
 
 === Bug fixes (since v2.1.7) ===
