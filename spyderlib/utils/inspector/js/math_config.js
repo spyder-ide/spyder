@@ -48,11 +48,9 @@ $(document).ready(function () {
     // Use this hack because MathJax 'scale' option seems to not be working
     // for SVG.
     {% if platform == 'win32' %}
-    $(document).ready( function () {
-        $('.math').css("color", "transparent");
-        $('.math').css("fontSize", "212%");
-    });
+    $('.math').css("color", "transparent");
+    $('.math').css("fontSize", "212%");
     {% endif %}
-}
+});
 
 {% endif %}
