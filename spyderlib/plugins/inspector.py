@@ -31,17 +31,9 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
-    from spyderlib.utils.sphinxify import CSS_PATH, sphinxify
-    HTML_HEAD = '<html> \
-    <head> \
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> \
-    <link rel="stylesheet" href="%s/default.css" type="text/css" /> \
-    <link rel="stylesheet" href="%s/pygments.css" type="text/css" /> \
-    </head> \
-    <body>' % (CSS_PATH, CSS_PATH)
-    
-    HTML_TAIL = '</body> \
-    </html>'
+    from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
+                                                     warning, generate_context)
+    from sphinx import __version__ as sphinx_version
 except ImportError:
     sphinxify = None
 
@@ -87,11 +79,6 @@ class ObjectInspectorConfigPage(PluginConfigPage):
     def setup_page(self):
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
-        plain_text_font_group = self.create_fontgroup(option=None,
-                                    text=_("Plain text font style"),
-                                    fontfilters=QFontComboBox.MonospacedFonts)
-        rich_text_font_group = self.create_fontgroup(option='rich_text',
-                                text=_("Rich text font style"))
         names = CONF.get('color_schemes', 'names')
         choices = zip(names, names)
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
@@ -102,9 +89,29 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_layout.addWidget(cs_combo)
         sourcecode_group.setLayout(sourcecode_layout)
         
+        plain_text_font_group = self.create_fontgroup(option=None,
+                                    text=_("Plain text font style"),
+                                    fontfilters=QFontComboBox.MonospacedFonts)
+        rich_text_font_group = self.create_fontgroup(option='rich_text',
+                                text=_("Rich text font style"))
+                                
+        features_group = QGroupBox(_("Additional features"))
+        math_box = self.create_checkbox(_("Render mathematical equations"),
+                                        'math')
+        math_box.setEnabled(sphinx_version >= "1.1")
+        if not sphinx_version >= "1.1":
+            math_box.setToolTip(_("This feature requires Sphinx 1.1 or superior"
+                                  "\nYou currently have version %s") %
+                                    sphinx_version)
+        
+        features_layout = QVBoxLayout()
+        features_layout.addWidget(math_box)
+        features_group.setLayout(features_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(rich_text_font_group)
         vlayout.addWidget(plain_text_font_group)
+        vlayout.addWidget(features_group)
         vlayout.addWidget(sourcecode_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
@@ -378,6 +385,8 @@ class ObjectInspector(SpyderPluginWidget):
         wrap_n = 'wrap'
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
+        math_n = 'math'
+        math_o = self.get_option(math_n)
         if font_n in options:
             scs = color_scheme_o if color_scheme_n in options else None
             self.set_plain_text_font(font_o, color_scheme=scs)
@@ -387,6 +396,8 @@ class ObjectInspector(SpyderPluginWidget):
             self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)
+        if math_n in options:
+            self.toggle_math_mode(math_o)
         
     #------ Public API (related to inspector's source) -------------------------
     def source_is_console(self):
@@ -471,7 +482,11 @@ class ObjectInspector(SpyderPluginWidget):
         """Toggle wrap mode"""
         self.plain_text.editor.toggle_wrap_mode(checked)
         self.set_option('wrap', checked)
-        
+    
+    def toggle_math_mode(self, checked):
+        """Toggle math mode"""
+        self.set_option('math', checked)
+    
     def is_plain_text_mode(self):
         """Return True if plain text mode is active"""
         return self.plain_text.isVisible()
@@ -652,7 +667,7 @@ class ObjectInspector(SpyderPluginWidget):
         
     def shell_terminated(self, shell):
         """
-        External shall has terminated:
+        External shell has terminated:
         binding object inspector to another shell
         """
         if self.shell is shell:
@@ -669,9 +684,11 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
-        if text is not None:
+        math_o = self.get_option('math')
+        if text is not None and text != '':
             try:
-                html_text = sphinxify(text)
+                context = generate_context(math=math_o)
+                html_text = sphinxify(text, context)
             except Exception, error:
                 import sphinx
                 QMessageBox.critical(self,
@@ -684,8 +701,7 @@ class ObjectInspector(SpyderPluginWidget):
                 self.plain_text_action.setChecked(True)
                 return
         else:
-            html_text = '<div id=\"warning\">'+self.no_doc_string+'</div>'
-        html_text = HTML_HEAD + html_text + HTML_TAIL
+            html_text = warning(self.no_doc_string)
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
     def show_help(self, obj_text, ignore_unknown=False):
