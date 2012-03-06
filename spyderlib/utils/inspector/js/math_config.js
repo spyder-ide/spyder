@@ -49,7 +49,7 @@ $(document).ready(function () {
     // for SVG.
     {% if platform == 'win32' %}
     $('.math').css("color", "transparent");
-    $('.math').css("fontSize", "212%");
+    $('.math').css("fontSize", "213%");
     {% endif %}
 });
 
