@@ -29,9 +29,9 @@ $(document).ready(function () {
             blacker: 1
         },
         
+        {% if platform == 'win32' %}
         // Change math preview size so that it doesn't look too big while
         // redendered
-        {% if platform == 'win32' %}
         styles: {
             ".MathJax_Preview": {
                 color: "#888",
@@ -41,13 +41,13 @@ $(document).ready(function () {
         {% endif %}
     });
     
+    {% if platform == 'win32' %}
     // Windows fix
     // -----------
     // Increase font size of math elements because they appear too small
     // compared to the surrounding text.
     // Use this hack because MathJax 'scale' option seems to not be working
     // for SVG.
-    {% if platform == 'win32' %}
     $('.math').css("color", "transparent");
     $('.math').css("fontSize", "213%");
     {% endif %}
