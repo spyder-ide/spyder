@@ -31,9 +31,9 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
+    from sphinx import __version__ as sphinx_version
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context)
-    from sphinx import __version__ as sphinx_version
 except ImportError:
     sphinxify = None
 
