@@ -1433,11 +1433,15 @@ class Editor(SpyderPluginWidget):
         if valid:
             self.set_option('max_recent_files', mrf)
         
-    def load(self, filenames=None, goto=None, word='', editorwindow=None):
+    def load(self, filenames=None, goto=None, word='', editorwindow=None,
+             processevents=True):
         """
         Load a text file
         editorwindow: load in this editorwindow (useful when clicking on 
         outline explorer with multiple editor windows)
+        processevents: determines if processEvents() should be called at the
+        end of this method (set to False to prevent keyboard events from
+        creeping through to the editor during debugging)
         """
         editor0 = self.get_current_editor()
         if editor0 is not None:
@@ -1522,7 +1526,8 @@ class Editor(SpyderPluginWidget):
             current_editor.clearFocus()
             current_editor.setFocus()
             current_editor.window().raise_()
-            QApplication.processEvents()
+            if processevents:
+                QApplication.processEvents()
 
     def print_file(self):
         """Print current file"""

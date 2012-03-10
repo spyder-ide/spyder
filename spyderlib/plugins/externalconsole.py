@@ -606,9 +606,12 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shell):
-        """Python debugger has just stopped at frame (fname, lineno)"""
-        self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                  fname, lineno, '')
+        """Python debugger has just stopped at frame (fname, lineno)"""      
+        # This is a unique form of the edit_goto signal that is intended to 
+        # prevent keyboard input from accidentally entering the editor
+        # during repeated, rapid entry of debugging commands.    
+        self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
+                  fname, lineno, '',False)
         shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
@@ -938,6 +941,10 @@ class ExternalConsole(SpyderPluginWidget):
             self.historylog = self.main.historylog
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString,bool)"),
+                         lambda fname, lineno, word, processevents:
+                         self.main.editor.load(fname,lineno,word,
+                                               processevents=processevents))
             self.connect(self.main.editor,
                          SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)
