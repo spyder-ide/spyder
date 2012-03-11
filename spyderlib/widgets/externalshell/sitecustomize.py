@@ -558,10 +558,10 @@ def evalsc(command):
 __builtin__.evalsc = evalsc
 
 
-## Restoring original PYTHONPATH
-#try:
-#    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
-#    del os.environ['OLD_PYTHONPATH']
-#except KeyError:
-#    if os.environ.get('PYTHONPATH') is not None:
-#        del os.environ['PYTHONPATH']
+# Restoring original PYTHONPATH
+try:
+    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
+    del os.environ['OLD_PYTHONPATH']
+except KeyError:
+    if os.environ.get('PYTHONPATH') is not None:
+        del os.environ['PYTHONPATH']
