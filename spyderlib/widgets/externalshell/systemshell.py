@@ -14,7 +14,7 @@ locale_codec = QTextCodec.codecForLocale()
 
 # Local imports
 from spyderlib.utils import encoding
-from spyderlib.utils.programs import split_clo
+from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
@@ -63,7 +63,7 @@ class ExternalSystemShell(ExternalShellBase):
             p_args = ['-i']
             
         if self.arguments:
-            p_args.extend( split_clo(self.arguments) )
+            p_args.extend( shell_split(self.arguments) )
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
                      self.write_output)
