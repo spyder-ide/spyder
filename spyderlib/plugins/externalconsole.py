@@ -324,8 +324,8 @@ to use this feature wisely, e.g. for debugging purpose."""))
         pyqt_layout.addWidget(pyqt_setapi_box)
         pyqt_layout.addWidget(pyqt_ignore_api_box)
         pyqt_group.setLayout(pyqt_layout)
-        if has_pyqt4:
-            qt_layout.addWidget(pyqt_group)
+        pyqt_group.setVisible(has_pyqt4)
+        qt_layout.addWidget(pyqt_group)
         
         # IPython Group
         ipython_group = QGroupBox(
