@@ -689,7 +689,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                              default=osp.basename(folder))
             if name is None:
                 return
-            dst = self.get_project_from_name(name)
+            dst = self.get_project_path_from_name(name)
             try:
                 shutil.copytree(folder, dst)
             except EnvironmentError, error:
