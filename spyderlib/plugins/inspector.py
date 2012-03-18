@@ -700,7 +700,7 @@ class ObjectInspector(SpyderPluginWidget):
                               "<b>Sphinx %s</b>. <br>Please check if this "
                               "version of Sphinx is supported by Spyder."
                               "<br><br>Error message:<br>%s"
-                              ) % (sphinx.__version__, str(error)))
+                              ) % (sphinx.__version__, unicode(error)))
                 self.plain_text_action.setChecked(True)
                 return
         else:
