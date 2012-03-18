@@ -916,19 +916,13 @@ class CodeEditor(TextEditBaseWidget):
 
         if not self.supported_language:
             return
-        if self.has_selected_text():
-            block1, block2 = self.get_selection_bounds()
-            if block1 != block2:
-                # Selection extends to more than one line
-                return
-            text = self.get_selected_text()
-            if not re.match(r'([a-zA-Z_]+[0-9a-zA-Z_]*)$', text):
-                # Selection is not a word
-                return
-        else:
-            text = self.get_current_word()
-            if text is None:
-                return
+            
+        text = self.get_current_word()
+        if text is None:
+            return
+        if self.has_selected_text() and self.get_selected_text() != text:
+            return
+            
         if (self.is_python() or self.is_cython()) and \
            (sourcecode.is_keyword(unicode(text)) or unicode(text) == 'self'):
             return
@@ -942,7 +936,11 @@ class CodeEditor(TextEditBaseWidget):
                                        background_color=self.occurence_color)
             cursor = self.__find_next(text, cursor)
         self.update_extra_selections()
-        self.occurences.pop(-1)
+        if len(self.occurences) > 1 and self.occurences[-1] == 0:
+            # XXX: this is never happening with PySide but it's necessary
+            # for PyQt4... this must be related to a different behavior for 
+            # the QTextDocument.find function between those two libraries
+            self.occurences.pop(-1)
         self.scrollflagarea.update()
 
     #-----highlight found results (find/replace widget)
@@ -2393,7 +2391,7 @@ class TestWidget(QSplitter):
         self.setWindowTitle("%s - %s (%s)" % (_("Editor"),
                                               osp.basename(filename),
                                               osp.dirname(filename)))
-        self.classtree.set_current_editor(self.editor, filename, False)
+        self.classtree.set_current_editor(self.editor, filename, False, False)
 
 def test(fname):
     from spyderlib.utils.qthelpers import qapplication

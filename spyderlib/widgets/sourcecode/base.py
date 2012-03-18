@@ -754,9 +754,10 @@ class TextEditBaseWidget(QPlainTextEdit):
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""
         cursor = self.textCursor()
+        cursor.clearSelection()
         cursor.select(QTextCursor.WordUnderCursor)
         text = unicode(cursor.selectedText())
-        match = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_]*)', text)
+        match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
         if match:
             return match[0]
     
