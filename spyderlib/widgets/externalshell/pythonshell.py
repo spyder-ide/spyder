@@ -199,7 +199,7 @@ class ExternalPythonShell(ExternalShellBase):
 
         self.notification_thread = None
         
-        ExternalShellBase.__init__(self, parent, wdir,
+        ExternalShellBase.__init__(self, parent=parent, fname=fname, wdir=wdir,
                                    history_filename='.history.py',
                                    light_background=light_background,
                                    menu_actions=menu_actions,
@@ -222,8 +222,6 @@ class ExternalPythonShell(ExternalShellBase):
             # (see spyderlib/widgets/externalshell/startup.py)
             self.fname = get_module_source_path(
                             'spyderlib.widgets.externalshell', 'startup.py')
-        else:
-            self.fname = fname
         
         self.shell.set_externalshell(self)
 

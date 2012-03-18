@@ -28,7 +28,7 @@ class ExternalSystemShell(ExternalShellBase):
     def __init__(self, parent=None, wdir=None, path=[], light_background=True,
                  menu_actions=None, show_buttons_inside=True,
                  show_elapsed_time=True):
-        ExternalShellBase.__init__(self, parent, wdir,
+        ExternalShellBase.__init__(self, parent=parent, fname=None, wdir=wdir,
                                    history_filename='.history',
                                    light_background=light_background,
                                    menu_actions=menu_actions,

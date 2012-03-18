@@ -49,8 +49,9 @@ def add_pathlist_to_PYTHONPATH(env, pathlist):
 class ExternalShellBase(QWidget):
     """External Shell widget: execute Python script in a separate process"""
     SHELL_CLASS = None
-    def __init__(self, parent=None, wdir=None, history_filename=None,
-                 show_icontext=True, light_background=True, menu_actions=None,
+    def __init__(self, parent=None, fname=None, wdir=None,
+                 history_filename=None, show_icontext=True,
+                 light_background=True, menu_actions=None,
                  show_buttons_inside=True, show_elapsed_time=True):
         QWidget.__init__(self, parent)
         
@@ -63,8 +64,9 @@ class ExternalShellBase(QWidget):
 
         self.show_elapsed_time = show_elapsed_time
         
+        self.fname = fname
         if wdir is None:
-            wdir = osp.dirname(osp.abspath(self.fname))
+            wdir = osp.dirname(osp.abspath(fname))
         self.wdir = wdir if osp.isdir(wdir) else None
         self.arguments = ""
         
