@@ -54,7 +54,7 @@ EDIT_FILETYPES = (
     (_("C files"), ('.c', '.h')),
     (_("C++ files"), ('.cc', '.cpp', '.cxx', '.h', '.hh', '.hpp', '.hxx')),
     (_("OpenCL files"), ('.cl', )),
-    (_("Fortran files"), ('.f', '.for', '.f90', '.f95', '.f2k')),
+    (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k')),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
