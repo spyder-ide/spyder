@@ -461,6 +461,7 @@ class CodeEditor(TextEditBaseWidget):
                                        'c', None),
                  ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
                                          '!', None),
+                 ('pro',): (syntaxhighlighters.IdlSH, ';', None),
                  ('diff', 'patch', 'rej'): (syntaxhighlighters.DiffSH, '',
                                             None),
                  ('css',): (syntaxhighlighters.CssSH, '', None),
