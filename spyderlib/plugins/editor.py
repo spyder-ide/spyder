@@ -36,6 +36,7 @@ from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
                                       CursorPositionStatus, EOLStatus,
                                       EditorSplitter, EditorStack, Printer,
                                       EditorMainWindow)
+from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration)
@@ -1474,8 +1475,10 @@ class Editor(SpyderPluginWidget):
             else:
                 return
             
-        if self.dockwidget and not self.ismaximized\
-           and not self.dockwidget.isAncestorOf(QApplication.focusWidget()):
+        focus_widget = QApplication.focusWidget()
+        if self.dockwidget and not self.ismaximized and\
+           (not self.dockwidget.isAncestorOf(focus_widget)\
+            and not isinstance(focus_widget, CodeEditor)):
             self.dockwidget.setVisible(True)
             self.dockwidget.setFocus()
             self.dockwidget.raise_()

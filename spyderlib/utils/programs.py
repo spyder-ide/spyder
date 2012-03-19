@@ -11,6 +11,7 @@ import os.path as osp
 import sys
 import subprocess
 import imp
+import re
 
 
 def is_program_installed(basename):
@@ -84,6 +85,22 @@ def run_python_script(package=None, module=None, args=[], p_args=[]):
     subprocess.Popen([sys.executable]+p_args+[path]+args)
 
 
+def shell_split(text):
+    """Split the string `text` using shell-like syntax
+    
+    This avoids breaking single/double-quoted strings (e.g. containing 
+    strings with spaces). This function is almost equivalent to the shlex.split
+    function (see standard library `shlex`) except that it is supporting 
+    unicode strings (shlex does not support unicode until Python 2.7.3)."""
+    assert isinstance(text, basestring)  # in case a QString is passed...
+    pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
+    out = []
+    for token in re.split(pattern, text):
+        if token.strip():
+            out.append(token.strip('"').strip("'"))
+    return out
+
+
 def get_python_args(fname, python_args, interact, debug, end_args):
     """Construct Python interpreter arguments"""
     p_args = []
@@ -102,7 +119,7 @@ def get_python_args(fname, python_args, interact, debug, end_args):
         else:
             p_args.append(fname)
     if end_args:
-        p_args.extend(split_clo(end_args))
+        p_args.extend(shell_split(end_args))
     return p_args
 
 
@@ -142,21 +159,7 @@ def is_module_installed(module_name, version=None):
         return False
 
 
-def split_clo(args):
-    """Split command line options without breaking double-quoted strings"""
-    assert isinstance(args, basestring)
-    out = []
-    quoted = False
-    for txt in args.split('"'):
-        if quoted:
-            out.append('"'+txt.strip()+'"')
-        else:
-            out += txt.strip().split(' ')
-        quoted = not quoted
-    return out
-
-
 if __name__ == '__main__':
     print find_program('hg')
-    print split_clo('-q -o -a')
-    print split_clo('-q "d:\\Python de xxxx\\t.txt" -o -a')
+    print shell_split('-q -o -a')
+    print shell_split(u'-q "d:\\Python de xxxx\\t.txt" -o -a')

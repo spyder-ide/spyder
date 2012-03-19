@@ -1644,14 +1644,17 @@ class EditorStack(QWidget):
     def revert(self):
         """Revert file from disk"""
         index = self.get_stack_index()
-        filename = self.data[index].filename
-        answer = QMessageBox.warning(self, self.title,
+        finfo = self.data[index]
+        filename = finfo.filename
+        if finfo.editor.document().isModified():
+            answer = QMessageBox.warning(self, self.title,
                                 _("All changes to <b>%s</b> will be lost."
                                   "<br>Do you want to revert file from disk?"
                                   ) % osp.basename(filename),
                                   QMessageBox.Yes|QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.reload(index)
+            if answer != QMessageBox.Yes:
+                return
+        self.reload(index)
         
     def create_new_editor(self, fname, enc, txt,
                           set_current, new=False, cloned_from=None):

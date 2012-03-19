@@ -33,7 +33,7 @@ import time
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
                                        set_item_user_text)
-from spyderlib.utils.programs import split_clo
+from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.config import get_icon
 from spyderlib.widgets.texteditor import TextEditor
@@ -228,7 +228,7 @@ class ProfilerWidget(QWidget):
         else:
             p_args.append(filename)
         if args:
-            p_args.extend(split_clo(args))
+            p_args.extend(shell_split(args))
         executable = sys.executable
         if executable.endswith("spyder.exe"):
             # py2exe distribution

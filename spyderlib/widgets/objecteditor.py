@@ -10,6 +10,7 @@ Object Editor Dialog based on Qt
 
 from spyderlib.qt.QtCore import QObject, SIGNAL
 
+
 class DialogKeeper(QObject):
     def __init__(self):
         QObject.__init__(self)
@@ -39,18 +40,15 @@ class DialogKeeper(QObject):
 
 keeper = DialogKeeper()
 
-def oedit(obj, modal=True, namespace=None):
-    """
-    Edit the object 'obj' in a GUI-based editor and return the edited copy
-    (if Cancel is pressed, return None)
 
-    The object 'obj' is a container
+def create_dialog(obj, obj_name):
+    """Creates the editor dialog and returns a tuple (dialog, func) where func
+    is the function to be called with the dialog instance as argument, after 
+    quitting the dialog box
     
-    Supported container types:
-    dict, list, tuple, str/unicode or numpy.array
-    
-    (instantiate a new QApplication if necessary,
-    so it can be called directly from the interpreter)
+    The role of this intermediate function is to allow easy monkey-patching.
+    (uschmitt suggested this indirection here so that he can monkey patch 
+    oedit to show eMZed related data)
     """
     # Local import
     from spyderlib.widgets.texteditor import TextEditor
@@ -58,21 +56,6 @@ def oedit(obj, modal=True, namespace=None):
                                                    Image, is_known_type)
     from spyderlib.widgets.dicteditor import DictEditor
     from spyderlib.widgets.arrayeditor import ArrayEditor
-    
-    from spyderlib.utils.qthelpers import qapplication
-    app = qapplication()
-    
-    if modal:
-        obj_name = ''
-    else:
-        assert isinstance(obj, basestring)
-        obj_name = obj
-        if namespace is None:
-            namespace = globals()
-        keeper.set_namespace(namespace)
-        obj = namespace[obj_name]
-        # keep QApplication reference alive in the Python interpreter:
-        namespace['__qapp__'] = app
 
     conv_func = lambda data: data
     readonly = not is_known_type(obj)
@@ -96,9 +79,45 @@ def oedit(obj, modal=True, namespace=None):
     else:
         dialog = DictEditor()
         dialog.setup(obj, title=obj_name, readonly=readonly)
-    
+
     def end_func(dialog):
         return conv_func(dialog.get_value())
+
+    return dialog, end_func
+
+
+def oedit(obj, modal=True, namespace=None):
+    """Edit the object 'obj' in a GUI-based editor and return the edited copy
+    (if Cancel is pressed, return None)
+
+    The object 'obj' is a container
+    
+    Supported container types:
+    dict, list, tuple, str/unicode or numpy.array
+    
+    (instantiate a new QApplication if necessary,
+    so it can be called directly from the interpreter)
+    """
+    # Local import
+    from spyderlib.utils.qthelpers import qapplication
+    app = qapplication()
+    
+    if modal:
+        obj_name = ''
+    else:
+        assert isinstance(obj, basestring)
+        obj_name = obj
+        if namespace is None:
+            namespace = globals()
+        keeper.set_namespace(namespace)
+        obj = namespace[obj_name]
+        # keep QApplication reference alive in the Python interpreter:
+        namespace['__qapp__'] = app
+    
+    result = create_dialog(obj, obj_name)
+    if result is None:
+        return
+    dialog, end_func = result
     
     if modal:
         if dialog.exec_():

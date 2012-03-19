@@ -35,7 +35,7 @@ try:
                                                      warning, generate_context)
     from sphinx import __version__ as sphinx_version
 except ImportError:
-    sphinxify = None
+    sphinxify = sphinx_version = None
 
 
 class ObjectComboBox(EditableComboBox):
@@ -98,11 +98,14 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         features_group = QGroupBox(_("Additional features"))
         math_box = self.create_checkbox(_("Render mathematical equations"),
                                         'math')
-        math_box.setEnabled(sphinx_version >= "1.1")
-        if not sphinx_version >= "1.1":
-            math_box.setToolTip(_("This feature requires Sphinx 1.1 or superior"
-                                  "\nYou currently have version %s") %
-                                    sphinx_version)
+        req_sphinx = sphinx_version is not None and sphinx_version >= "1.1"
+        math_box.setEnabled(req_sphinx)
+        if not req_sphinx:
+            sphinx_tip = _("This feature requires Sphinx 1.1 or superior.")
+            if sphinx_version is not None:
+                sphinx_tip += "\n" + _("Sphinx %s is currently installed."
+                                       ) % sphinx_version
+            math_box.setToolTip(sphinx_tip)
         
         features_layout = QVBoxLayout()
         features_layout.addWidget(math_box)
@@ -697,7 +700,7 @@ class ObjectInspector(SpyderPluginWidget):
                               "<b>Sphinx %s</b>. <br>Please check if this "
                               "version of Sphinx is supported by Spyder."
                               "<br><br>Error message:<br>%s"
-                              ) % (sphinx.__version__, str(error)))
+                              ) % (sphinx.__version__, unicode(error)))
                 self.plain_text_action.setChecked(True)
                 return
         else:
