@@ -6,7 +6,6 @@
 
 """Debug utilities"""
 
-import StringIO
 import traceback
 import time
 
@@ -20,8 +19,6 @@ def log_time(fd):
 
 def log_last_error(fname, context=None):
     """Log last error in filename *fname* -- *context*: string (optional)"""
-    out = StringIO.StringIO()
-    traceback.print_exc(file=out)
     fd = open(fname, 'a')
     log_time(fd)
     if context:
