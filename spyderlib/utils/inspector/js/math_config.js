@@ -41,6 +41,15 @@ $(document).ready(function () {
         {% endif %}
     });
     
+    // MathJax Hooks
+    // -------------
+    // Put here any code that needs to be evaluated after MathJax has been
+    // fully loaded
+    MathJax.Hub.Register.StartupHook("End", function () {
+        // Eliminate unnecessary margin-bottom for inline math
+        $('span.math svg').css('margin-bottom', '0px');
+    });
+    
     {% if platform == 'win32' %}
     // Windows fix
     // -----------
