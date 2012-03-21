@@ -113,8 +113,10 @@ def sphinxify(docstring, context, buildername='html'):
         suffix = '.txt'
     output_name = base_name + suffix
 
-    # This is needed for jsMath to work.
-    docstring = docstring.replace('\\\\', '\\')
+    # This is needed so users can type \\ on latex eqnarray envs inside of raw
+    # docstrings
+    if context['right_sphinx_version'] and context['math_on']:
+        docstring = docstring.replace('\\\\', '\\\\\\\\')
 
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)
