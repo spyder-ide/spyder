@@ -62,4 +62,11 @@ $(document).ready(function () {
     {% endif %}
 });
 
+{% elif not right_sphinx_version or not math_on %}
+
+$(document).ready(function () {
+    // Show math in monospace
+    $('.math').css('font-family', 'monospace');
+});
+
 {% endif %}
