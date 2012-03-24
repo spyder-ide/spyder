@@ -41,6 +41,15 @@ $(document).ready(function () {
         {% endif %}
     });
     
+    // MathJax Hooks
+    // -------------
+    // Put here any code that needs to be evaluated after MathJax has been
+    // fully loaded
+    MathJax.Hub.Register.StartupHook("End", function () {
+        // Eliminate unnecessary margin-bottom for inline math
+        $('span.math svg').css('margin-bottom', '0px');
+    });
+    
     {% if platform == 'win32' %}
     // Windows fix
     // -----------
@@ -51,6 +60,13 @@ $(document).ready(function () {
     $('.math').css("color", "transparent");
     $('.math').css("fontSize", "213%");
     {% endif %}
+});
+
+{% elif not right_sphinx_version or not math_on %}
+
+$(document).ready(function () {
+    // Show math in monospace
+    $('.math').css('font-family', 'monospace');
 });
 
 {% endif %}
