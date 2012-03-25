@@ -63,18 +63,19 @@ print("01. Patched sys.path with %s" % DEVPATH)
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
-        import PySide
+        import PySide  # analysis:ignore
         print("02. PySide is detected, selecting (experimental)")
         os.environ['QT_API'] = 'pyside'
     except:
         print("02. No PySide detected, using PyQt4 if available")
 else:
     print ("02. Skipping GUI toolkit detection")
-    os.environ["QT_API"] = options.gui
+    os.environ['QT_API'] = options.gui
 
-# Importing Spyder
+# Importing Spyder (among other things, this has the effect of setting the 
+# QT_API environment variable if this has not yet been done just above)
 from spyderlib import spyder
-QT_API = spyder.qt._modname
+QT_API = os.environ['QT_API']
 QT_LIB = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[QT_API]
 if QT_API == 'pyqt':
     import sip

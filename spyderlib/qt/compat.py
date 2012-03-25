@@ -17,7 +17,8 @@ This module should be fully compatible with:
     * PySide
 """
 
-import os, sys
+import os
+import sys
 
 from spyderlib.qt.QtGui import QFileDialog
 
@@ -195,4 +196,4 @@ if __name__ == '__main__':
     print repr(getopenfilename(filters='*.py;;*.txt'))
     print repr(getopenfilenames(filters='*.py;;*.txt'))
     print repr(getsavefilename(filters='*.py;;*.txt'))
-    import sys; sys.exit()
+    sys.exit()

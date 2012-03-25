@@ -8,10 +8,10 @@
 
 import os
 
-_modname = os.environ.setdefault('QT_API', 'pyqt')
-assert _modname in ('pyqt', 'pyside')
+os.environ.setdefault('QT_API', 'pyqt')
+assert os.environ['QT_API'] in ('pyqt', 'pyside')
 
-if _modname == 'pyqt':
+if os.environ['QT_API'] == 'pyqt':
     # We do not force QString, QVariant, ... API to #1 or #2 anymore 
     # as spyderlib is now compatible with both APIs
 #    import sip
@@ -24,16 +24,17 @@ if _modname == 'pyqt':
 #        pass
     try:
         from PyQt4.QtCore import PYQT_VERSION_STR as __version__
+    except ImportError:
+        # Switching to PySide
+        os.environ['QT_API'] = 'pyside'
+    else:
         __version_info__ = tuple(__version__.split('.')+['final', 1])
         is_old_pyqt = __version__.startswith(('4.4', '4.5', '4.6', '4.7'))
         is_pyqt46 = __version__.startswith('4.6')
-    except ImportError:
-        # Switching to PySide
-        os.environ['QT_API'] = _modname = 'pyside'
 
-if _modname == 'pyside':
+if os.environ['QT_API'] == 'pyside':
     try:
-        from PySide import __version__
+        from PySide import __version__  # analysis:ignore
     except ImportError:
         raise ImportError("Spyder requires PySide or PyQt to be installed")
     else:

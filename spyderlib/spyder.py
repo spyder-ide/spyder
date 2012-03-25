@@ -79,6 +79,11 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
 from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
+# Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
+# when PySide is selected by the QT_API environment variable and when PyQt4 
+# is also installed (or any other Qt-based application prepending a directory
+# containing incompatible Qt DLLs versions in PATH):
+from spyderlib.qt import QtSvg  # analysis:ignore
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
