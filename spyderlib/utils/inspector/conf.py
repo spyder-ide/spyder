@@ -9,6 +9,9 @@
 # 3rd party imports
 from sphinx import __version__ as sphinx_version
 
+# Local imports
+from spyderlib.config import CONF
+
 #==============================================================================
 # General configuration
 #==============================================================================
@@ -21,8 +24,10 @@ from sphinx import __version__ as sphinx_version
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 
-# We need jsmath for 1.0- so that we can get plain text latex in docstrings
-if sphinx_version < "1.1":
+# We need jsmath to get pretty plain-text latex in docstrings
+math = CONF.get('inspector', 'math', '')
+
+if sphinx_version < "1.1" or not math:
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
