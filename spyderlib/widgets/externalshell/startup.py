@@ -28,7 +28,7 @@ if os.environ.get('IPYTHON_KERNEL', False):
 
     # IPython >=v0.11 Kernel
     from IPython.zmq.ipkernel import IPKernelApp
-    __ipythonkernel__ = IPKernelApp().instance()
+    __ipythonkernel__ = IPKernelApp.instance()
     __ipythonkernel__.initialize(sys.argv[1:])
     __ipythonshell__ = __ipythonkernel__.shell
     __ipythonkernel__.start()

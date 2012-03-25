@@ -8,37 +8,52 @@
 IPython v0.11+ frontend widget
 """
 
-#import os
-#os.environ['QT_API'] = 'pyqt'
-#from IPython.external import qt
-
 # IPython imports
-from IPython.utils.localinterfaces import LOCAL_IPS
+from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
+from IPython.lib.kernel import find_connection_file
+from IPython.core.application import BaseIPythonApplication
+from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 
 
 class IPythonApp(IPythonQtConsoleApp):
-    def init_qt_elements(self):
-        # Create the widget.
-        local_kernel = (not self.existing) or self.ip in LOCAL_IPS
-        self.widget = self.widget_factory(config=self.config,
-                                          local_kernel=local_kernel)
-        self.widget.kernel_manager = self.kernel_manager
+    def initialize_all_except_qt(self, argv=None):
+        BaseIPythonApplication.initialize(self, argv=argv)
+        IPythonConsoleApp.initialize(self, argv=argv)
 
+    def new_frontend_from_existing(self):
+        """Create and return new frontend from connection file basename"""
+        cf = find_connection_file(self.existing, profile='default')
+        kernel_manager = QtKernelManager(connection_file=cf,
+                                         config=self.config)
+        kernel_manager.load_connection_file()
+        kernel_manager.start_channels()
+        widget = self.widget_factory(config=self.config, local_kernel=False)
+        widget._existing = True
+        widget._may_close = False
+        widget._confirm_exit = False
+        widget.kernel_manager = kernel_manager
 
-def create_widget(argv=None):
-    app = IPythonApp()
-    app.initialize(argv)
-    return app.widget
-    
-    
-def test():
-    from spyderlib.qt.QtGui import QApplication
-    app = QApplication([])
-    widget = create_widget()
-    widget.show()
-    # Start the application main loop.
-    app.exec_()
+#        widget.exit_requested.connect(self.close_tab)
+
+        return widget
+
 
 if __name__ == '__main__':
-    test()
+    from spyderlib.qt.QtGui import QApplication
+    
+    iapp = IPythonApp()
+    iapp.initialize()
+    
+    widget1 = iapp.new_frontend_from_existing()
+    widget1.show()
+
+    # Ugly pause but that's just for testing    
+    import time
+    time.sleep(2)
+    
+    widget2 = iapp.new_frontend_from_existing()
+    widget2.show()
+    
+    # Start the application main loop.
+    QApplication.instance().exec_()

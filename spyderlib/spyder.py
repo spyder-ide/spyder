@@ -264,6 +264,7 @@ class MainWindow(QMainWindow):
         self.historylog = None
         self.extconsole = None
         self.ipython_frontends = []
+        self.ipython_app = None  # Single IPython QtConsole App instance
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
@@ -1530,28 +1531,34 @@ Please provide any additional information below.
             fname = file_uri(fname)
             start_file(fname)
             
-    def new_ipython_frontend(self, args=None,
+    def new_ipython_frontend(self, connection_file=None,
                              kernel_widget=None, kernel_name=None):
         """Create a new IPython frontend"""
-        if args is None:
-            example = '(example: --existing --shell=56742 --iopub=52543 '\
-                      '--stdin=60596 --hb=1644)'
+        cf = connection_file
+        if cf is None:
+            example = '(example: `kernel-3764.json`, or simply `3764`)'
             while True:
-                args, valid = QInputDialog.getText(self, _('IPython'),
-                                  _('IPython kernel parameters:')+'\n'+example,
-                                  QLineEdit.Normal)
+                cf, valid = QInputDialog.getText(self, _('IPython'),
+                          _('IPython kernel connection file:')+'\n'+example,
+                          QLineEdit.Normal)
                 if valid:
-                    args = unicode(args)
-                    if re.match('^--existing --shell=(\d+) --iopub=(\d+) '\
-                                '--stdin=(\d+) --hb=(\d+)$', args)\
-                       or re.match('^--existing kernel-(\d+).json', args):
-                        kernel_name = args
+                    cf = str(cf)
+                    if cf.isdigit():
+                        cf = 'kernel-%s.json' % cf
+                    if re.match('^kernel-(\d+).json', cf):
+                        kernel_name = cf
                         break
                 else:
                     return
         from spyderlib.plugins.ipython import IPythonPlugin
-        ipython_plugin = IPythonPlugin(self, args, kernel_widget, kernel_name)
-        ipython_plugin.register_plugin()
+        ipython_plugin = IPythonPlugin(self, cf, kernel_widget, kernel_name)
+        try:
+            ipython_plugin.register_plugin()
+        except (IOError, UnboundLocalError):
+            QMessageBox.critical(self, _('IPython'),
+                                 _("Unable to connect to IPython kernel "
+                                   "<b>`%s`") % cf)
+            return
         self.ipython_frontends.append(ipython_plugin)
         
     #---- PYTHONPATH management, etc.

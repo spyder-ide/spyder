@@ -207,12 +207,9 @@ class Monitor(threading.Thread):
                 glbs = self._mglobals
             if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
                 self.ipython_kernel = glbs['__ipythonkernel__']
-                argv = ['--existing'] +\
-                       ['--%s=%d' % (name, port) for name, port
-                        in self.ipython_kernel.ports.items()]
-                opts = ' '.join(argv)
                 communicate(self.n_request,
-                            dict(command="ipython_kernel", data=opts))
+                            dict(command="ipython_kernel",
+                                 data=self.ipython_kernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
                 # IPython >=v0.11
                 self.ipython_shell = glbs['__ipythonshell__']
