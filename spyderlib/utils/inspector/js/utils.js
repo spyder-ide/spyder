@@ -12,7 +12,7 @@
 //============================================================================
 
 $(document).ready(function () {
-    // Remove header anchor links.
+    // Remove anchor header links.
     // They're used by Sphinx to create crossrefs, so we don't need them
     $('a.headerlink').remove();
 });

@@ -1,4 +1,6 @@
 //----------------------------------------------------------------------------
+//  Math configuration options and hacks
+//
 //  Copyright (C) 2012 - The Spyder Team
 //
 //  Distributed under the terms of the MIT License.
@@ -62,7 +64,7 @@ $(document).ready(function () {
     {% endif %}
 });
 
-{% elif not right_sphinx_version or not math_on %}
+{% else %}
 
 $(document).ready(function () {
     // Show math in monospace
