@@ -18,17 +18,14 @@ div.section {
     margin: 20px 0px 0px 0px;
 }
 
-div.section h1, h2 {
+div.section h2 {
+    font-size: 140%;    
+    font-family: 'Trebuchet MS', sans-serif;
+    font-weight: normal;
     background-color: #F2F2F2;
     border: 1px solid #CCC;
     color: #20435C;
-    font-weight: bold;
     padding: 4px 0px 4px 8px;
-    font-size: 200%;
-}
-
-div.section h2 {
-    font-size: 135%;
 }
 
 dl.docutils {
@@ -39,21 +36,19 @@ div.section p {
     padding: 0px 10px 0px;
 }
 
-#parameters h1, #returns h1, #raises h1 {
+#parameters h2, #returns h2, #raises h2 {
     background-color: #EDE;
     border: 1px solid #AAA !important;
     color: #06C;
-    font-size: 135%;
 }
 
-#see-also h1 {
+#see-also h2 {
     background-color: #ffc;
     border: transparent;
     color: black;
     /*margin-top: 4px;*/
     margin: 4px 0px 0px 0px;
     padding: 0px 0px 0px 8px;
-    font-size: 135%;
 }
 
 #see-also {
@@ -63,11 +58,10 @@ div.section p {
     border: 1px solid #FF6 !important;
 }
 
-#notes h1, #examples h1, #methods h1, #usage h1, #references h1 {
+#notes h2, #examples h2, #methods h2, #usage h2, #references h2 {
     background-color: #E6E6E6;
     border: 1px solid #CCC;
     color: #355F7C;
-    font-size: 135%;
 }
 
 #warning {
