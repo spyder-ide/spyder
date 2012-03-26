@@ -4,18 +4,6 @@ body {
     margin: 0px 20px 15px 20px;
 }
 
-a.headerlink {
-    color: transparent;
-    font-size: 0.8em;
-    padding: 0 4px 0 4px;
-    text-decoration: none;
-}
-
-a.headerlink:hover {
-    background-color: transparent;
-    color: transparent;
-}
-
 div.title h1 {
     font-size: 200%;
     font-family: 'Trebuchet MS', sans-serif;
