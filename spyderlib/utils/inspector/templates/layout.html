@@ -36,9 +36,15 @@
 </script>
 
 <body>
-  <div class="docstring">
-      {% block body %}{% endblock %}
-  </div>
+    {# Docstring header #}
+    {% if Title %}
+    <div class="title"> {{Title}} </div>
+    {% endif %}
+    
+    {# Docstring text #}
+    <div class="docstring">
+        {% block body %}{% endblock %}
+    </div>
 </body>
 
 </html>

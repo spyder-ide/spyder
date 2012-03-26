@@ -688,10 +688,10 @@ class ObjectInspector(SpyderPluginWidget):
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
         math_o = self.get_option('math')
-        if text is not None and text != '':
+        if text is not None and text['doc'] != '':
             try:
-                context = generate_context(math=math_o)
-                html_text = sphinxify(text, context)
+                context = generate_context(title=text['title'], math=math_o)
+                html_text = sphinxify(text['doc'], context)
             except Exception, error:
                 import sphinx
                 QMessageBox.critical(self,
