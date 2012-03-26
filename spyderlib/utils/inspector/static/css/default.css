@@ -1,7 +1,7 @@
 body {
     background-color: transparent;
     color: black;
-    margin: 15px 10px 15px 10px;
+    margin: 0px 20px 15px 20px;
 }
 
 a.headerlink {
@@ -16,18 +16,14 @@ a.headerlink:hover {
     color: transparent;
 }
 
-div.title {
+div.title h1 {
     font-size: 200%;
     font-family: 'Trebuchet MS', sans-serif;
     background-color: rgb(212, 233, 247);
     font-weight: normal;
-    border-top: 1px solid #CCC;
     border-bottom: 1px solid #CCC;
-    padding: 6px 0px 6px 10px;
-}
-
-div.docstring {
-    margin: 15px 15px 0px 15px;
+    padding: 6px 0px 6px 20px;
+    margin: 0px -20px;
 }
 
 div.section {
