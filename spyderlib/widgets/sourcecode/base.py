@@ -754,7 +754,26 @@ class TextEditBaseWidget(QPlainTextEdit):
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""
         cursor = self.textCursor()
-        cursor.clearSelection()
+
+        if cursor.hasSelection():
+            # Removes the selection and moves the cursor to the left side 
+            # of the selection: this is required to be able to properly 
+            # select the whole word under cursor (otherwise, the same word is 
+            # not selected when the cursor is at the right side of it):
+            cursor.setPosition(min([cursor.selectionStart(),
+                                    cursor.selectionEnd()]))
+        else:
+            # Checks if the first character to the right is a white space
+            # and if not, moves the cursor one word to the left (otherwise,
+            # if the character to the left do not match the "word regexp" 
+            # (see below), the word to the left of the cursor won't be 
+            # selected)
+            cursor2 = self.textCursor()
+            cursor2.movePosition(QTextCursor.NextCharacter,
+                                 QTextCursor.KeepAnchor)
+            if not unicode(cursor2.selectedText()).strip():
+                cursor.movePosition(QTextCursor.WordLeft)
+
         cursor.select(QTextCursor.WordUnderCursor)
         text = unicode(cursor.selectedText())
         match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
