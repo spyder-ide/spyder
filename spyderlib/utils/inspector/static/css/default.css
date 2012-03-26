@@ -1,10 +1,7 @@
 body {
     background-color: transparent;
     color: black;
-    margin-left: 15px;
-    margin-right: 15px;
-    margin-top: 12px;
-    margin-bottom: 12px;
+    margin: 15px 10px 15px 10px;
 }
 
 a.headerlink {
@@ -17,6 +14,20 @@ a.headerlink {
 a.headerlink:hover {
     background-color: transparent;
     color: transparent;
+}
+
+div.title {
+    font-size: 200%;
+    font-family: 'Trebuchet MS', sans-serif;
+    background-color: rgb(212, 233, 247);
+    font-weight: normal;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    padding: 6px 0px 6px 10px;
+}
+
+div.docstring {
+    margin: 15px 15px 0px 15px;
 }
 
 div.section {
