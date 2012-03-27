@@ -516,14 +516,17 @@ class ObjectInspector(SpyderPluginWidget):
     def set_plain_text(self, text, is_code):
         """Set plain text"""
         
-        title = text['title']
-        if title:
-            rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
+        if type(text) is dict:        
+            title = text['title']
+            if title:
+                rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
                                  '='*len(title), '\n\n'])
-        else:
-            rst_title = ''
+            else:
+                rst_title = ''
         
-        full_text = ''.join([rst_title, text['doc']])
+            full_text = ''.join([rst_title, text['doc']])
+        else:
+            full_text = text
         
         self.plain_text.set_text(full_text, is_code)
         self.save_text([self.plain_text.set_text, full_text, is_code])
