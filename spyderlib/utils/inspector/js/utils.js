@@ -16,6 +16,15 @@ $(document).ready(function () {
     // They're used by Sphinx to create crossrefs, so we don't need them
     $('a.headerlink').remove();
     
+    // If the first child in the docstring div is a section, change its class
+    // to title. This means that the docstring has a real title and we need
+    // to use it.
+    // This is really useful to show module docstrings.
+    var first_doc_child = $('div.docstring').children(':first-child');
+    if( first_doc_child.is('div.section') ) {
+        first_doc_child.removeClass('section').addClass('title');
+    };
+    
     // Change docstring headers from h1 to h2
     // It can only be an h1 and that's the page title
     // Taken from http://forum.jquery.com/topic/how-to-replace-h1-h2
