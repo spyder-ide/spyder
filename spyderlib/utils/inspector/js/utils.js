@@ -28,7 +28,7 @@ $(document).ready(function () {
     // Change docstring headers from h1 to h2
     // It can only be an h1 and that's the page title
     // Taken from http://forum.jquery.com/topic/how-to-replace-h1-h2
-    $(document).find('div.section h1').replaceWith(function () {
+    $('div.docstring').find('div.section h1').replaceWith(function () {
         return '<h2>' + $(this).text() + '</h2>';
     });
 });
