@@ -56,15 +56,22 @@ def warning(message):
 def generate_context(title, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
+    
+    This is a set of variables to be passed to the Jinja template engine and
+    that are used to control how the webpage is rendered in connection with
+    Sphinx
 
     Parameters
-    ==========
-    
+    ----------
     title: str
         Docstring title.
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
+    
+    Returns
+    -------
+    A dict of strings to be used by Jinja to generate the webpage
     """
     
     context = \
@@ -87,8 +94,7 @@ def sphinxify(docstring, context, buildername='html'):
     Runs Sphinx on a docstring and outputs the processed documentation.
 
     Parameters
-    ==========
-
+    ----------
     docstring : str
         a ReST-formatted docstring
 
@@ -100,8 +106,7 @@ def sphinxify(docstring, context, buildername='html'):
         It can be either `html` or `text`.
 
     Returns
-    =======
-
+    -------
     An Sphinx-processed string, in either HTML or plain text format, depending
     on the value of `buildername`
     """
@@ -170,8 +175,7 @@ def generate_configuration(directory):
     Generates a Sphinx configuration in `directory`.
 
     Parameters
-    ==========
-
+    ----------
     directory : str
         Base directory to use
     """
