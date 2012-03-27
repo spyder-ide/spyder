@@ -515,8 +515,18 @@ class ObjectInspector(SpyderPluginWidget):
             
     def set_plain_text(self, text, is_code):
         """Set plain text"""
-        self.plain_text.set_text(text, is_code)
-        self.save_text([self.plain_text.set_text, text, is_code])
+        
+        title = text['title']
+        if title:
+            rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
+                                 '='*len(title), '\n\n'])
+        else:
+            rst_title = ''
+        
+        full_text = ''.join([rst_title, text['doc']])
+        
+        self.plain_text.set_text(full_text, is_code)
+        self.save_text([self.plain_text.set_text, full_text, is_code])
         
     def set_rich_text_html(self, html_text, base_url):
         """Set rich text"""
