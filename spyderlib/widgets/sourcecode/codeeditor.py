@@ -1448,9 +1448,7 @@ class CodeEditor(TextEditBaseWidget):
     def go_to_line(self, line, word=''):
         """Go to line number *line* and eventually highlight it"""
         block = self.document().findBlockByNumber(line-1)
-        cursor = self.textCursor()
-        cursor.setPosition(block.position())
-        self.setTextCursor(cursor)
+        self.setTextCursor(QTextCursor(block))
         if self.isVisible():
             self.centerCursor()
         else:
@@ -2402,7 +2400,7 @@ def test(fname):
     win = TestWidget(None)
     win.show()
     win.load(fname)
-    win.resize(800, 800)
+    win.resize(1000, 800)
 
     from spyderlib.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)

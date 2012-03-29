@@ -424,10 +424,11 @@ class TextEditBaseWidget(QPlainTextEdit):
         return cursor.blockNumber(), cursor.columnNumber()
         
     def get_cursor_line_number(self):
-        cursor = self.textCursor()
-        return cursor.blockNumber()+1
+        """Return cursor line number"""
+        return self.textCursor().blockNumber()+1
 
     def set_cursor_position(self, position):
+        """Set cursor position"""
         position = self.get_position(position)
         cursor = self.textCursor()
         cursor.setPosition(position)
@@ -504,7 +505,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
-                
+
     def select_current_block(self):
         """
         Select block under cursor
@@ -1037,9 +1038,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
             cx = 5
-            cursor = self.textCursor()
-            block = self.document().findBlockByNumber(at_line-1)
-            cursor.setPosition(block.position())
+            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
