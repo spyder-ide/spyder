@@ -88,12 +88,24 @@ def build_pythonxy_plugin(plugin_dir, plugin_version):
     for fname in nsis_files:
         os.system('"%s" %s' % (nsis_exe, fname))
 
+def get_pythonxy_plugindir(name):
+    """Searching Python(x,y) plugin directory in current working directory"""
+    for fname in os.listdir(os.getcwdu()):
+        path = osp.abspath(osp.join(fname, 'src', 'python', name))
+        if osp.isdir(path):
+            # Also create the binary directory if it does not exist yet:
+            def create_dir(path):
+                if not osp.isdir(path):
+                    os.mkdir(path)
+            create_dir(osp.join(fname, 'bin'))
+            create_dir(osp.join(fname, 'bin', 'python'))
+            return path
+
 ## Building Python(x,y) plugin on Windows platforms, if 'unzip.exe' is available
 ## and if the `pythonxy` repository exists:
 from spyderlib.utils import programs
 unzip_exe = 'unzip.exe'
-xy_repo_name = 'pythonxy'
-plugin_dir = osp.abspath(osp.join(xy_repo_name, 'src', 'python', name))
-if programs.is_program_installed(unzip_exe) and osp.isdir(plugin_dir):
+plugin_dir = get_pythonxy_plugindir(name)
+if programs.is_program_installed(unzip_exe) and plugin_dir:
     extract_exe_dist(plugin_dir, exe_dist)
     build_pythonxy_plugin(plugin_dir, version)
