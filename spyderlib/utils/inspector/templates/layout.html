@@ -38,6 +38,13 @@
     {# Docstring header #}
     {% if Title %}
     <div class="title"> <h1> {{Title}} </h1> </div>
+
+    {% if note %}
+    <div class="metadata">
+        <p> <b>Type:</b> {{note}} </p>
+    </div>
+    {% endif %}
+
     {% endif %}
     
     {# Docstring text #}

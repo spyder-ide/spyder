@@ -14,6 +14,25 @@ div.title h1 {
     margin: 0px -20px;
 }
 
+div.metadata {
+    margin-top: 10px;
+    margin-bottom: 0px;
+    border-style: solid;
+    border-width: thin;
+    border-color: rgb(255, 153, 0);
+    background-color: rgb(255, 253, 223);
+    padding: 1px;
+    border-radius: 5px;
+}
+
+div.metadata p {
+    margin: 7px 0px 7px 20px;
+}
+
+div.docstring {
+    margin-top: -2px;
+}
+
 div.section {
     margin: 20px 0px 0px 0px;
 }

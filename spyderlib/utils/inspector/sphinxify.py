@@ -53,7 +53,7 @@ def warning(message):
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
 
-def generate_context(title, math):
+def generate_context(title, note, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -63,8 +63,11 @@ def generate_context(title, math):
 
     Parameters
     ----------
-    title: str
+    title : str
         Docstring title.
+    note : str
+        A note describing what type has the function or method being
+        introspected
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
@@ -76,11 +79,12 @@ def generate_context(title, math):
     
     context = \
     {
-      # Arg dependent
+      # Arg dependent variables
       'math_on': 'true' if math else '',
       'Title': title, # title in lowercase seems to be used by Sphinx
+      'note': note,
       
-      # The other variables
+      # Static variables
       'css_path': CSS_PATH,
       'js_path': osp.join(CONFDIR_PATH, 'js'),
       'right_sphinx_version': '' if sphinx_version < "1.1" else 'true',

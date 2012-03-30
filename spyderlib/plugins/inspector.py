@@ -518,13 +518,16 @@ class ObjectInspector(SpyderPluginWidget):
         
         if type(text) is dict:        
             title = text['title']
+            note = text['note']
             if title:
                 rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
                                  '='*len(title), '\n\n'])
             else:
                 rst_title = ''
-        
-            full_text = ''.join([rst_title, text['doc']])
+            if note:
+                note = ''.join(['Type: ', note, '\n\n\n'])
+
+            full_text = ''.join([rst_title, note, text['doc']])
         else:
             full_text = text
         
@@ -703,7 +706,9 @@ class ObjectInspector(SpyderPluginWidget):
         math_o = self.get_option('math')
         if text is not None and text['doc'] != '':
             try:
-                context = generate_context(title=text['title'], math=math_o)
+                context = generate_context(title=text['title'],
+                                           note=text['note'],
+                                           math=math_o)
                 html_text = sphinxify(text['doc'], context)
             except Exception, error:
                 import sphinx

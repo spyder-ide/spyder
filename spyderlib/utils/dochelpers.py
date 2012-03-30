@@ -64,29 +64,26 @@ def getdoc(obj):
         if inspect.ismethod(obj):
             imclass = obj.im_class
             if obj.im_self is not None:
-                note = '\n    Method of %s instance' \
-                       % obj.im_self.__class__.__name__
+                text['note'] = 'Method of %s instance' \
+                               % obj.im_self.__class__.__name__
             else:
-                note = '\n    Unbound %s method' % imclass.__name__
+                text['note'] = 'Unbound %s method' % imclass.__name__
             obj = obj.im_func
         elif hasattr(obj, '__module__'):
-            note = '\n    Function of %s module' % obj.__module__
+            text['note'] = 'Function of %s module' % obj.__module__
         else:
-            note = '\n    Function'
-        title = obj.__name__
+            text['note'] = 'Function'
+        text['title'] = obj.__name__
         if inspect.isfunction(obj):
             args, varargs, varkw, defaults = inspect.getargspec(obj)
             argspec = inspect.formatargspec(args, varargs, varkw, defaults,
                                             formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
-                title = name + ' lambda '
+                text['title'] = name + ' lambda '
                 argspec = argspec[1:-1] # remove parentheses
         else:
             argspec = '(...)'
-        text['title'] = title
         text['argspec'] = argspec
-        text['note'] = note
-        text['doc'] = doc
     return text
 
 def getsource(obj):
