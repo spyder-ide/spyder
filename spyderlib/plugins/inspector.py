@@ -518,16 +518,24 @@ class ObjectInspector(SpyderPluginWidget):
         
         if type(text) is dict:        
             title = text['title']
-            note = text['note']
             if title:
                 rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
                                  '='*len(title), '\n\n'])
             else:
                 rst_title = ''
-            if note:
-                note = ''.join(['Type: ', note, '\n\n\n'])
+            
+            if text['argspec']:
+                definition = ''.join(['Definition: ', title, text['argspec'],
+                                      '\n'])
+            else:
+                definition = ''
+            
+            if text['note']:
+                note = ''.join(['Type: ', text['note'], '\n\n\n'])
+            else:
+                note = ''
 
-            full_text = ''.join([rst_title, note, text['doc']])
+            full_text = ''.join([rst_title, definition, note, text['doc']])
         else:
             full_text = text
         
