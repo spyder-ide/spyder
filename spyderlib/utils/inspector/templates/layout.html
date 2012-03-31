@@ -39,9 +39,15 @@
     {% if Title %}
     <div class="title"> <h1> {{Title}} </h1> </div>
 
-    {% if note %}
+    {% if argspec or note %}
     <div class="metadata">
+        {% if argspec %}
+        <p> <b>Definition:</b> <span class="def"> {{Title}}{{argspec}} </span> </p>
+        {% endif %}
+
+        {% if note %}
         <p> <b>Type:</b> {{note}} </p>
+        {% endif %}
     </div>
     {% endif %}
 

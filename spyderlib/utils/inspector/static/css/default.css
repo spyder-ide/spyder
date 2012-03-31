@@ -26,7 +26,17 @@ div.metadata {
 }
 
 div.metadata p {
-    margin: 7px 0px 7px 20px;
+    margin: 7px 0px 7px 15px;
+}
+
+span.def {
+    font-family: monospace;
+}
+
+span.hlight {
+    color: red;
+    font-size: 110%;
+    font-weight: 900;
 }
 
 div.docstring {

@@ -53,7 +53,7 @@ def warning(message):
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
 
-def generate_context(title, note, math):
+def generate_context(title, argspec, note, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -68,6 +68,8 @@ def generate_context(title, note, math):
     note : str
         A note describing what type has the function or method being
         introspected
+    argspec : str
+        Argspec of the the function or method being introspected
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
@@ -82,6 +84,7 @@ def generate_context(title, note, math):
       # Arg dependent variables
       'math_on': 'true' if math else '',
       'Title': title, # title in lowercase seems to be used by Sphinx
+      'argspec': argspec,
       'note': note,
       
       # Static variables
@@ -129,6 +132,14 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
+    
+    # Add a class to several characters on the argspec. This way we can
+    # colorize them using css, in a similar way to what IPython does.
+    argspec = context['argspec']
+    for char in ['=', ',', '(', ')', '**']:
+        argspec = argspec.replace(char,
+                                  '<span class="hlight">' + char + '</span>')
+    context['argspec'] = argspec
 
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)

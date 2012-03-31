@@ -707,6 +707,7 @@ class ObjectInspector(SpyderPluginWidget):
         if text is not None and text['doc'] != '':
             try:
                 context = generate_context(title=text['title'],
+                                           argspec=text['argspec'],
                                            note=text['note'],
                                            math=math_o)
                 html_text = sphinxify(text['doc'], context)
