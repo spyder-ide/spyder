@@ -27,10 +27,20 @@ __name__ = '__main__'
 if os.environ.get('IPYTHON_KERNEL', False):
 
     # IPython >=v0.11 Kernel
+    
+    # Fire up the kernel instance.
     from IPython.zmq.ipkernel import IPKernelApp
-    __ipythonkernel__ = IPKernelApp.instance()
-    __ipythonkernel__.initialize(sys.argv[1:])
-    __ipythonshell__ = __ipythonkernel__.shell
+    ipk_temp = IPKernelApp.instance()
+    ipk_temp.initialize(sys.argv[1:])
+    __ipythonshell__ = ipk_temp.shell
+    
+    # Issue 977: Since kernel.initialize() has completed execution, 
+    # we can now allow the monitor to communicate the availablility of 
+    # the kernel to accept front end connections.
+    __ipythonkernel__ = ipk_temp
+    del ipk_temp
+    
+    # Start the (infinite) kernel event loop.
     __ipythonkernel__.start()
 
 elif os.environ.get('IPYTHON', False):
