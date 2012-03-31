@@ -21,7 +21,7 @@ $(document).ready(function () {
     // to use it.
     // This is really useful to show module docstrings.
     var first_doc_child = $('div.docstring').children(':first-child');
-    if( first_doc_child.is('div.section') ) {
+    if( first_doc_child.is('div.section') && $('div.title').length == 0 ) {
         first_doc_child.removeClass('section').addClass('title');
     };
     
