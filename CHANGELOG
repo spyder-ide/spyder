@@ -8,6 +8,30 @@
   * *Object Inspector*:
     * Add the capability to render mathematical equations using the MathJax Sphinx extension (it requires Sphinx 1.1+)
 
+=== Bug fixes (since v2.1.8) ===
+
+  * Run configuration/bugfix: command line options were not properly parsed
+  * Preferences dialog was not showing up with !PySide installed *and* without !PyQt4
+  * Editor:
+    * Closing additional editor window produced traceback and primary editor breakdown
+    * File/Open: embedded editor popped up even if there is one in a separate window
+    * Selecting a part of a word raises an !IndexError exception
+    * Revert option was prompting for user input even on an unmodified buffer
+    * Added missing .f77 file extensions for Fortran files filter
+    * Occurence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
+  * Console:
+    * Console was unusable (endless tracebacks) when monitor was disabled
+    * File drag'n drop was not working (should execute dropped file)
+  * (Experimental) IPython plugin:
+    * Fixed compatibility issues with !PyQt4 and IPython 0.12
+    * Fixed multiple instances issue (it was not possible to open more than one IPython frontend) and other issues
+    * IPython kernel connections were unpredictable (Issue 977)
+  * Dictionary editor (Variable explorer): fixed !UnboundLocalError when context menu is called on an empty table
+  * Object inspector failed to show an error message due to unicode error
+  * Project Explorer:
+    * "Show all files" option was broken after restarting Spyder
+    * It was impossible to create a project from an existing directory located outside the workspace
+
 ----
 
 == Version 2.1.8 ==
