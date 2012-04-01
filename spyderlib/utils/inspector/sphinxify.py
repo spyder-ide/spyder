@@ -136,9 +136,9 @@ def sphinxify(docstring, context, buildername='html'):
     # Add a class to several characters on the argspec. This way we can
     # colorize them using css, in a similar way to what IPython does.
     argspec = context['argspec']
-    for char in ['=', ',', '(', ')', '**']:
+    for char in ['=', ',', '(', ')', '*', '**']:
         argspec = argspec.replace(char,
-                                  '<span class="hlight">' + char + '</span>')
+                         '<span class="argspec-highlight">' + char + '</span>')
     context['argspec'] = argspec
 
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')

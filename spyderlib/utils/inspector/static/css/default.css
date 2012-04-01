@@ -29,7 +29,7 @@ span.def {
     font-family: monospace;
 }
 
-span.hlight {
+span.argspec-highlight {
     color: red;
     font-size: 110%;
     font-weight: 900;
