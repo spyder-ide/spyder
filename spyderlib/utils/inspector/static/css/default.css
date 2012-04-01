@@ -7,11 +7,12 @@ body {
 div.title h1 {
     font-size: 180%;
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #F2F2F2;
+    background-color: #E6E6E6;
     font-weight: normal;
     border-bottom: 1px solid #CCC;
     padding: 6px 0px 6px 20px;
     margin: 0px -20px;
+    color: #20435C;
 }
 
 div.metadata {
@@ -47,9 +48,9 @@ div.section h2 {
     font-size: 140%;    
     font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
-    background-color: #E6E6E6;
+    background-color: #F2F2F2;
     border: 1px solid #CCC;
-    color: #355F7C;
+    color: #20435C;
     padding: 4px 0px 4px 8px;
 }
 
