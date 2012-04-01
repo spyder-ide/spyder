@@ -47,9 +47,9 @@ div.section h2 {
     font-size: 140%;    
     font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
-    background-color: #F2F2F2;
+    background-color: #E6E6E6;
     border: 1px solid #CCC;
-    color: #20435C;
+    color: #355F7C;
     padding: 4px 0px 4px 8px;
 }
 
@@ -81,12 +81,6 @@ div.section p {
     color: black;
     padding: 1px;
     border: 1px solid #FF6 !important;
-}
-
-#notes h2, #examples h2, #methods h2, #usage h2, #references h2 {
-    background-color: #E6E6E6;
-    border: 1px solid #CCC;
-    color: #355F7C;
 }
 
 #warning {
