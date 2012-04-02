@@ -76,14 +76,26 @@ def getdoc(obj):
         text['title'] = obj.__name__
         if inspect.isfunction(obj):
             args, varargs, varkw, defaults = inspect.getargspec(obj)
-            argspec = inspect.formatargspec(args, varargs, varkw, defaults,
-                                            formatvalue=lambda o:'='+repr(o))
+            text['argspec'] = inspect.formatargspec(args, varargs, varkw,
+                                                    defaults,
+                                              formatvalue=lambda o:'='+repr(o))
             if name == '<lambda>':
                 text['title'] = name + ' lambda '
-                argspec = argspec[1:-1] # remove parentheses
+                text['argspec'] = text['argspec'][1:-1] # remove parentheses
         else:
-            argspec = '(...)'
-        text['argspec'] = argspec
+            # Try to extract the argspec from the first docstring line
+            doclines = text['doc'].split("\n")
+            first_line = doclines[0].strip()
+            argspec = getsignaturesfromtext(first_line, '')
+            if argspec:
+                text['argspec'] = argspec[0]
+                
+                # Eliminate the first docstring line if we found the argspec
+                doc_st = text['doc'].find('\n') + 2
+                text['doc'] = text['doc'][doc_st:]
+            else:
+                text['argspec'] = '(...)'
+        
     return text
 
 def getsource(obj):
