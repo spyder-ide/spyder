@@ -15,6 +15,7 @@ import os
 import os.path as osp
 import shutil
 import re
+import sys
 
 import spyderlib as mod
 
@@ -56,6 +57,27 @@ def extract_exe_dist(plugin_dir, exe_dist):
             shutil.rmtree(dirpath)
     ## Unzipping the distutils self-extractable archive
     os.system('%s %s -d %s' % (unzip_exe, exe_dist, plugin_dir))
+
+def include_chm_doc(plugin_dir):
+    """Build and replace Spyder's html doc by .chm doc"""
+    curdir = os.getcwdu()
+    os.chdir(osp.dirname(__file__))
+    os.system('sphinx-build -b htmlhelp doc doctmp')
+    for hhc_exe in (r'C:\Program Files\HTML Help Workshop\hhc.exe',
+                    r'C:\Program Files (x86)\HTML Help Workshop\hhc.exe'):
+        if osp.isfile(hhc_exe):
+            break
+    else:
+        print >>sys.stderr, "Warning: HTML Help Workshop is not installed "\
+                            "on this computer."
+        return
+    fname = osp.join('doctmp', 'Spyderdoc.chm')
+    os.system('"%s" %s' % (hhc_exe, fname))
+    docdir = osp.join(plugin_dir, 'PURELIB', 'spyderlib', 'doc')
+    shutil.rmtree(docdir)
+    os.mkdir(docdir)
+    shutil.copy(fname, osp.join(docdir, 'Spyderdoc.chm'))
+    os.chdir(curdir)
 
 def build_pythonxy_plugin(plugin_dir, plugin_version):
     """Build Python(x,y) plugin -- requires Python(x,y) 2.7+
@@ -108,4 +130,5 @@ unzip_exe = 'unzip.exe'
 plugin_dir = get_pythonxy_plugindir(name)
 if programs.is_program_installed(unzip_exe) and plugin_dir:
     extract_exe_dist(plugin_dir, exe_dist)
+    include_chm_doc(plugin_dir)
     build_pythonxy_plugin(plugin_dir, version)
