@@ -1005,9 +1005,9 @@ class Editor(SpyderPluginWidget):
         self.connect(self, SIGNAL('editor_focus_changed()'),
                      self.main.plugin_focus_changed)
         
-        self.connect(editorstack, SIGNAL('close_file(int,int)'),
+        self.connect(editorstack, SIGNAL('close_file(long,long)'),
                      self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(int,int)'),
+        self.connect(editorstack, SIGNAL('file_saved(long,long)'),
                      self.file_saved_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),

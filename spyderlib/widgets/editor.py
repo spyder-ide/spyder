@@ -1209,7 +1209,7 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
             
             self.remove_from_data(index)
-            self.emit(SIGNAL('close_file(int,int)'), id(self), index)
+            self.emit(SIGNAL('close_file(long,long)'), id(self), index)
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
@@ -1300,7 +1300,7 @@ class EditorStack(QWidget):
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-            self.emit(SIGNAL('file_saved(int,int)'), id(self), index)
+            self.emit(SIGNAL('file_saved(long,long)'), id(self), index)
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
@@ -2346,7 +2346,7 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, SIGNAL('close_file(int,int)'),
+        self.connect(editorstack, SIGNAL('close_file(long,long)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
