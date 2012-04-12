@@ -1121,6 +1121,7 @@ class CodeEditor(TextEditBaseWidget):
         data = block.userData()
         if data:
             data.breakpoint = not data.breakpoint
+            data.breakpoint_condition = None
         else:
             data = BlockUserData(self)
             data.breakpoint = True
