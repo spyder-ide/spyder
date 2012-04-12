@@ -584,7 +584,7 @@ class ObjectInspector(SpyderPluginWidget):
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
         
-    def set_rope_doc(self, objtxt, doctxt, force_refresh=False):
+    def set_rope_doc(self, objtxt, argspec, note, doctxt, force_refresh=False):
         """Use the object inspector to show text computed with rope
         from the editor plugin"""
         if (self.locked and not force_refresh):
@@ -594,10 +594,13 @@ class ObjectInspector(SpyderPluginWidget):
         self._last_rope_data = objtxt, doctxt
         
         self.object_edit.setText(objtxt)
+        
+        text = {'title': objtxt.split('.')[-1], 'argspec': argspec,
+                'note': note, 'doc': doctxt}
         if self.rich_help:
-            self.set_sphinx_text(doctxt)
+            self.set_sphinx_text(text)
         else:
-            self.set_plain_text(doctxt, is_code=False)
+            self.set_plain_text(text, is_code=False)
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
