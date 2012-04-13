@@ -1816,7 +1816,7 @@ class Editor(SpyderPluginWidget):
         if self.configdialog_size is not None:
             dialog.resize(self.configdialog_size)
         if dialog.exec_():
-            self.configdialog_size = dialog.win_size
+            self.configdialog_size = dialog.get_window_size()
             fname = dialog.file_to_run
             if fname is not None:
                 self.load(fname)
@@ -1837,7 +1837,7 @@ class Editor(SpyderPluginWidget):
                     dialog.resize(self.configdialog_size)
                 if not dialog.exec_():
                     return
-                self.configdialog_size = dialog.win_size
+                self.configdialog_size = dialog.get_window_size()
                 runconf = dialog.get_configuration()
                 
             wdir = runconf.get_working_directory()
