@@ -531,7 +531,7 @@ class ObjectInspector(SpyderPluginWidget):
                 definition = ''
             
             if text['note']:
-                note = ''.join(['Type: ', text['note'], '\n\n\n'])
+                note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
             else:
                 note = ''
 
