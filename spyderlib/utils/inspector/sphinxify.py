@@ -53,24 +53,41 @@ def warning(message):
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
 
-def generate_context(math):
+def generate_context(title, argspec, note, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
+    
+    This is a set of variables to be passed to the Jinja template engine and
+    that are used to control how the webpage is rendered in connection with
+    Sphinx
 
     Parameters
-    ==========
-    
+    ----------
+    title : str
+        Docstring title.
+    note : str
+        A note describing what type has the function or method being
+        introspected
+    argspec : str
+        Argspec of the the function or method being introspected
     math : bool
         Turn on/off Latex rendering on the OI. If False, Latex will be shown in
         plain text.
+    
+    Returns
+    -------
+    A dict of strings to be used by Jinja to generate the webpage
     """
     
     context = \
     {
-      # Arg dependent
+      # Arg dependent variables
       'math_on': 'true' if math else '',
+      'Title': title, # title in lowercase seems to be used by Sphinx
+      'argspec': argspec,
+      'note': note,
       
-      # The other variables
+      # Static variables
       'css_path': CSS_PATH,
       'js_path': osp.join(CONFDIR_PATH, 'js'),
       'right_sphinx_version': '' if sphinx_version < "1.1" else 'true',
@@ -84,8 +101,7 @@ def sphinxify(docstring, context, buildername='html'):
     Runs Sphinx on a docstring and outputs the processed documentation.
 
     Parameters
-    ==========
-
+    ----------
     docstring : str
         a ReST-formatted docstring
 
@@ -97,8 +113,7 @@ def sphinxify(docstring, context, buildername='html'):
         It can be either `html` or `text`.
 
     Returns
-    =======
-
+    -------
     An Sphinx-processed string, in either HTML or plain text format, depending
     on the value of `buildername`
     """
@@ -117,6 +132,14 @@ def sphinxify(docstring, context, buildername='html'):
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
+    
+    # Add a class to several characters on the argspec. This way we can
+    # colorize them using css, in a similar way to what IPython does.
+    argspec = context['argspec']
+    for char in ['=', ',', '(', ')', '*', '**']:
+        argspec = argspec.replace(char,
+                         '<span class="argspec-highlight">' + char + '</span>')
+    context['argspec'] = argspec
 
     doc_file = codecs.open(rst_name, 'w', encoding='utf-8')
     doc_file.write(docstring)
@@ -167,8 +190,7 @@ def generate_configuration(directory):
     Generates a Sphinx configuration in `directory`.
 
     Parameters
-    ==========
-
+    ----------
     directory : str
         Base directory to use
     """

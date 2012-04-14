@@ -359,14 +359,17 @@ class FileInfo(QObject):
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
             if signatures:
-                signature = signatures[0]
-                module = obj_fullname.split('.')[0]
-                note = '\n    Function of %s module\n\n' % module
-                text = signature + note + doc_text
+                argspec_st = signatures[0].find('(')
+                argspec = signatures[0][argspec_st:]
+                module_end = obj_fullname.rfind('.')
+                module = obj_fullname[:module_end]
+                note = 'Present in %s module' % module
             else:
-                text = doc_text
-            self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
-                      obj_fullname, text, not auto)
+                argspec = ''
+                note = ''
+            self.emit(SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    obj_fullname, argspec, note, doc_text, not auto)
         if signatures:
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
@@ -1665,8 +1668,9 @@ class EditorStack(QWidget):
         editor = codeeditor.CodeEditor(self)
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
         self.add_to_data(finfo, set_current)
-        self.connect(finfo, SIGNAL("send_to_inspector(QString,QString,bool)"),
-                     self.send_to_inspector)
+        self.connect(finfo, SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
@@ -1740,19 +1744,26 @@ class EditorStack(QWidget):
         """Focus of one of the editor in the stack has changed"""
         self.emit(SIGNAL("editor_focus_changed()"))
     
-    def send_to_inspector(self, qstr1, qstr2=None, force=False):
-        """qstr1: obj_text, qstr2: doc_text"""
+    def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
+                          qstr4=None, force=False):
+        """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.inspector_enabled:
             return
         if self.inspector is not None \
            and (force or self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
-            if qstr2 is None:
+            if qstr4 is None:
                 self.inspector.set_object_text(qstr1, ignore_unknown=True,
                                                force_refresh=force)
             else:
-                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2),
-                                            force_refresh=force)
+                objtxt = unicode(qstr1)
+                title = objtxt.split('.')[-1]
+                argspec = unicode(qstr2)
+                note = unicode(qstr3)
+                doc = unicode(qstr4)
+                text = {'obj_text': objtxt, 'title': title, 'argspec': argspec,
+                        'note': note, 'doc': doc}
+                self.inspector.set_rope_doc(text, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     

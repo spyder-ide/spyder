@@ -515,8 +515,32 @@ class ObjectInspector(SpyderPluginWidget):
             
     def set_plain_text(self, text, is_code):
         """Set plain text"""
-        self.plain_text.set_text(text, is_code)
-        self.save_text([self.plain_text.set_text, text, is_code])
+        
+        if type(text) is dict:        
+            title = text['title']
+            if title:
+                rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
+                                 '='*len(title), '\n\n'])
+            else:
+                rst_title = ''
+            
+            if text['argspec']:
+                definition = ''.join(['Definition: ', title, text['argspec'],
+                                      '\n'])
+            else:
+                definition = ''
+            
+            if text['note']:
+                note = ''.join(['Type: ', text['note'], '\n\n----\n\n'])
+            else:
+                note = ''
+
+            full_text = ''.join([rst_title, definition, note, text['doc']])
+        else:
+            full_text = text
+        
+        self.plain_text.set_text(full_text, is_code)
+        self.save_text([self.plain_text.set_text, full_text, is_code])
         
     def set_rich_text_html(self, html_text, base_url):
         """Set rich text"""
@@ -531,8 +555,8 @@ class ObjectInspector(SpyderPluginWidget):
         if self.source_is_console():
             self.set_object_text(None, force_refresh=True)
         elif self._last_rope_data is not None:
-            objtxt, doctxt = self._last_rope_data
-            self.set_rope_doc(objtxt, doctxt, force_refresh=True)
+            text = self._last_rope_data
+            self.set_rope_doc(text, force_refresh=True)
     
     def set_object_text(self, text, force_refresh=False, ignore_unknown=False):
         """Set object analyzed by Object Inspector"""
@@ -560,24 +584,25 @@ class ObjectInspector(SpyderPluginWidget):
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
         
-    def set_rope_doc(self, objtxt, doctxt, force_refresh=False):
+    def set_rope_doc(self, text, force_refresh=False):
         """Use the object inspector to show text computed with rope
         from the editor plugin"""
         if (self.locked and not force_refresh):
             return
         self.switch_to_editor_source()
         
-        self._last_rope_data = objtxt, doctxt
+        self._last_rope_data = text
         
-        self.object_edit.setText(objtxt)
+        self.object_edit.setText(text['obj_text'])
+        
         if self.rich_help:
-            self.set_sphinx_text(doctxt)
+            self.set_sphinx_text(text)
         else:
-            self.set_plain_text(doctxt, is_code=False)
+            self.set_plain_text(text, is_code=False)
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(doctxt, force=force_refresh)
+        self.__eventually_raise_inspector(text['doc'], force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
             
@@ -688,10 +713,13 @@ class ObjectInspector(SpyderPluginWidget):
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
         math_o = self.get_option('math')
-        if text is not None and text != '':
+        if text is not None and text['doc'] != '':
             try:
-                context = generate_context(math=math_o)
-                html_text = sphinxify(text, context)
+                context = generate_context(title=text['title'],
+                                           argspec=text['argspec'],
+                                           note=text['note'],
+                                           math=math_o)
+                html_text = sphinxify(text['doc'], context)
             except Exception, error:
                 import sphinx
                 QMessageBox.critical(self,

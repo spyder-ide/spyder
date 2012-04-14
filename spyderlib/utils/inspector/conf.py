@@ -28,9 +28,9 @@ from spyderlib.config import CONF
 math = CONF.get('inspector', 'math', '')
 
 if sphinx_version < "1.1" or not math:
-    extensions = ['sphinx.ext.autodoc', 'sphinx.ext.jsmath']
+    extensions = ['sphinx.ext.jsmath']
 else:
-    extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
+    extensions = ['sphinx.ext.mathjax']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
@@ -108,68 +108,4 @@ html_split_index = False
 
 # If true, the reST sources are included in the HTML build as _sources/<name>.
 html_copy_source = False
-
-#==============================================================================
-# Process docstring
-#==============================================================================
-
-def process_docstring_aliases(app, what, name, obj, options, docstringlines):
-    """
-    Change the docstrings for aliases to point to the original object.
-    """
-    basename = name.rpartition('.')[2]
-    if hasattr(obj, '__name__') and obj.__name__ != basename:
-        docstringlines[:] = ['See :obj:`%s`.' % name]
-
-def process_directives(app, what, name, obj, options, docstringlines):
-    """
-    Remove 'nodetex' and other directives from the first line of any
-    docstring where they appear.
-    """
-    if len(docstringlines) == 0:
-        return
-    first_line = docstringlines[0]
-    directives = [ d.lower() for d in first_line.split(',') ]
-    if 'nodetex' in directives:
-        docstringlines.pop(0)
-
-def process_docstring_cython(app, what, name, obj, options, docstringlines):
-    """
-    Remove Cython's filename and location embedding.
-    """
-    if len(docstringlines) <= 1:
-        return
-
-    first_line = docstringlines[0]
-    if first_line.startswith('File:') and '(starting at' in first_line:
-        #Remove the first two lines
-        docstringlines.pop(0)
-        docstringlines.pop(0)
-
-def process_docstring_module_title(app, what, name, obj, options, docstringlines):
-    """
-    Removes the first line from the beginning of the module's docstring.  This
-    corresponds to the title of the module's documentation page.
-    """
-    if what != "module":
-        return
-
-    #Remove any additional blank lines at the beginning
-    title_removed = False
-    while len(docstringlines) > 1 and not title_removed:
-        if docstringlines[0].strip() != "":
-            title_removed = True
-        docstringlines.pop(0)
-
-    #Remove any additional blank lines at the beginning
-    while len(docstringlines) > 1:
-        if docstringlines[0].strip() == "":
-            docstringlines.pop(0)
-        else:
-            break
-
-def setup(app):
-    app.connect('autodoc-process-docstring', process_docstring_cython)
-    app.connect('autodoc-process-docstring', process_directives)
-    app.connect('autodoc-process-docstring', process_docstring_module_title)
 

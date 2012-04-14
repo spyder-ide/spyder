@@ -345,7 +345,7 @@ class Monitor(threading.Thread):
         """Get object documentation"""
         obj, valid = self._eval(objtxt)
         if valid:
-            return unicode(getdoc(obj))
+            return getdoc(obj)
     
     def get_source(self, objtxt):
         """Get object source"""
