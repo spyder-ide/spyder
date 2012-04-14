@@ -1756,9 +1756,14 @@ class EditorStack(QWidget):
                 self.inspector.set_object_text(qstr1, ignore_unknown=True,
                                                force_refresh=force)
             else:
-                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2),
-                                            unicode(qstr3), unicode(qstr4),
-                                            force_refresh=force)
+                objtxt = unicode(qstr1)
+                title = objtxt.split('.')[-1]
+                argspec = unicode(qstr2)
+                note = unicode(qstr3)
+                doc = unicode(qstr4)
+                text = {'obj_text': objtxt, 'title': title, 'argspec': argspec,
+                        'note': note, 'doc': doc}
+                self.inspector.set_rope_doc(text, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     
