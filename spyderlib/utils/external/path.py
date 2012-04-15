@@ -62,7 +62,6 @@ _base = str
 _getcwd = os.getcwd
 try:
     if os.path.supports_unicode_filenames:
-    import locale
         _base = unicode
         _getcwd = os.getcwdu
 except AttributeError:
