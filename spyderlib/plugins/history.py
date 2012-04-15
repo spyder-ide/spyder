@@ -240,11 +240,9 @@ class HistoryLog(SpyderPluginWidget):
         Slot for SIGNAL('append_to_history(QString,QString)')
         emitted by shell instance
         """
-        if os.environ.get('QT_API') != 'pyside':
-            filename, command = unicode(filename.toUtf8(),'utf-8'), \
-                                unicode(command)
-        else:
-            command = unicode(command)
+        if not isinstance(filename, basestring): # filename is a QString
+            filename = unicode(filename.toUtf8(), 'utf-8')
+        command = unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
         if self.get_option('go_to_eof'):
