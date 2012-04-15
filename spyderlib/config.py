@@ -117,6 +117,10 @@ DEFAULTS = [
               'lightwindow/position': (30, 30),
               'lightwindow/is_maximized': False,
               'lightwindow/is_fullscreen': False,
+              'memory_usage/enable': True,
+              'memory_usage/timeout': 2000,
+              'cpu_usage/enable': False,
+              'cpu_usage/timeout': 2000,
               }),
             ('quick_layouts',
              {

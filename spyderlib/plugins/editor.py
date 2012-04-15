@@ -32,9 +32,9 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        get_std_icon, get_filetype_icon)
 from spyderlib.widgets.findreplace import FindReplace
-from spyderlib.widgets.editor import (ReadWriteStatus, EncodingStatus,
-                                      CursorPositionStatus, EOLStatus,
-                                      EditorSplitter, EditorStack, Printer,
+from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
+                                      EncodingStatus, CursorPositionStatus)
+from spyderlib.widgets.editor import (EditorSplitter, EditorStack, Printer,
                                       EditorMainWindow)
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
@@ -113,6 +113,7 @@ class EditorConfigPage(PluginConfigPage):
                                              min_=100, max_=1000000, step=100)
         self.connect(occurence_box, SIGNAL("toggled(bool)"),
                      occurence_spin.setEnabled)
+        occurence_spin.setEnabled(self.get_option('occurence_highlighting'))
         occurence_layout = QHBoxLayout()
         occurence_layout.addWidget(occurence_box)
         occurence_layout.addWidget(occurence_spin)

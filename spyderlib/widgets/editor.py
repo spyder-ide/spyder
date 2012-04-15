@@ -31,13 +31,15 @@ from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _, DEBUG, STDOUT
-from spyderlib.config import get_icon, get_font, EDIT_FILTERS, EDIT_EXT
+from spyderlib.config import get_icon, EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
+from spyderlib.widgets.status import (ReadWriteStatus, EOLStatus,
+                                      EncodingStatus, CursorPositionStatus)
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
@@ -2006,88 +2008,6 @@ class EditorSplitter(QSplitter):
         if editor is not None:
             editor.clearFocus()
             editor.setFocus()
-
-
-#==============================================================================
-# Status bar widgets
-#==============================================================================
-class StatusBarWidget(QWidget):
-    def __init__(self, parent, statusbar):
-        QWidget.__init__(self, parent)
-
-        self.label_font = font = get_font('editor')
-        font.setPointSize(self.font().pointSize())
-        font.setBold(True)
-        
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
-
-        self.hide()
-        statusbar.addPermanentWidget(self)
-
-class ReadWriteStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(_("Permissions:")))
-        self.readwrite = QLabel()
-        self.readwrite.setFont(self.label_font)
-        layout.addWidget(self.readwrite)
-        layout.addSpacing(20)
-        
-    def readonly_changed(self, readonly):
-        readwrite = "R" if readonly else "RW"
-        self.readwrite.setText(readwrite.ljust(3))
-        self.show()
-
-class EOLStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(_("End-of-lines:")))
-        self.eol = QLabel()
-        self.eol.setFont(self.label_font)
-        layout.addWidget(self.eol)
-        layout.addSpacing(20)
-        
-    def eol_changed(self, os_name):
-        os_name = unicode(os_name)
-        self.eol.setText({"nt": "CRLF", "posix": "LF"}.get(os_name, "CR"))
-        self.show()
-
-class EncodingStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(_("Encoding:")))
-        self.encoding = QLabel()
-        self.encoding.setFont(self.label_font)
-        layout.addWidget(self.encoding)
-        layout.addSpacing(20)
-        
-    def encoding_changed(self, encoding):
-        self.encoding.setText(str(encoding).upper().ljust(15))
-        self.show()
-
-class CursorPositionStatus(StatusBarWidget):
-    def __init__(self, parent, statusbar):
-        StatusBarWidget.__init__(self, parent, statusbar)
-        layout = self.layout()
-        layout.addWidget(QLabel(_("Line:")))
-        self.line = QLabel()
-        self.line.setFont(self.label_font)
-        layout.addWidget(self.line)
-        layout.addWidget(QLabel(_("Column:")))
-        self.column = QLabel()
-        self.column.setFont(self.label_font)
-        layout.addWidget(self.column)
-        self.setLayout(layout)
-        
-    def cursor_position_changed(self, line, index):
-        self.line.setText("%-6d" % (line+1))
-        self.column.setText("%-4d" % (index+1))
-        self.show()
 
 
 class EditorWidget(QSplitter):

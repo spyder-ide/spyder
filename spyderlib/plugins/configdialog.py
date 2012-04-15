@@ -648,9 +648,38 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(animated_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
+
+        sbar_group = QGroupBox(_("Status bar"))
+        memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
+                           tip=self.main.mem_status.toolTip())
+        memory_spin = self.create_spinbox("", " ms", 'memory_usage/timeout',
+                                          min_=100, max_=1000000, step=100)
+        self.connect(memory_box, SIGNAL("toggled(bool)"),
+                     memory_spin.setEnabled)
+        memory_spin.setEnabled(self.get_option('memory_usage/enable'))
+        memory_layout = QHBoxLayout()
+        memory_layout.addWidget(memory_box)
+        memory_layout.addWidget(memory_spin)
+        memory_layout.setEnabled(self.main.mem_status.is_supported())
+        cpu_box = newcb(_("Show CPU usage every"), 'cpu_usage/enable',
+                        tip=self.main.cpu_status.toolTip())
+        cpu_spin = self.create_spinbox("", " ms", 'cpu_usage/timeout',
+                                       min_=100, max_=1000000, step=100)
+        self.connect(cpu_box, SIGNAL("toggled(bool)"), cpu_spin.setEnabled)
+        cpu_spin.setEnabled(self.get_option('cpu_usage/enable'))
+        cpu_layout = QHBoxLayout()
+        cpu_layout.addWidget(cpu_box)
+        cpu_layout.addWidget(cpu_spin)
+        cpu_layout.setEnabled(self.main.cpu_status.is_supported())
+        
+        sbar_layout = QVBoxLayout()
+        sbar_layout.addLayout(memory_layout)
+        sbar_layout.addLayout(cpu_layout)
+        sbar_group.setLayout(sbar_layout)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
+        vlayout.addWidget(sbar_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
         

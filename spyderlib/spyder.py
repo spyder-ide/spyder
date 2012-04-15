@@ -93,6 +93,7 @@ try:
 except ImportError:
     WinUserEnvDialog = None
 from spyderlib.widgets.pathmanager import PathManager
+from spyderlib.widgets.status import MemoryStatus, CPUStatus
 from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from spyderlib.plugins.shortcuts import ShortcutsConfigPage
@@ -317,6 +318,10 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
+        
+        # Status bar widgets
+        self.mem_status = None
+        self.cpu_status = None
         
         # Toolbars
         self.main_toolbar = None
@@ -802,6 +807,11 @@ class MainWindow(QMainWindow):
             add_actions(web_resources,
                         create_module_bookmark_actions(self, self.BOOKMARKS))
             self.help_menu_actions.append(web_resources)
+            
+            # Status bar widgets
+            self.mem_status = MemoryStatus(self, status)
+            self.cpu_status = CPUStatus(self, status)
+            self.apply_statusbar_settings()
             
             # IPython frontend action
             if is_module_installed('IPython', '0.12'):
@@ -1629,6 +1639,16 @@ Please provide any additional information below.
                 features = features|QDockWidget.DockWidgetVerticalTitleBar
             child.dockwidget.setFeatures(features)
             child.update_margins()
+        
+        self.apply_statusbar_settings()
+        
+    def apply_statusbar_settings(self):
+        """Update status bar widgets settings"""
+        for widget, name in ((self.mem_status, 'memory_usage'),
+                             (self.cpu_status, 'cpu_usage')):
+            if widget is not None:
+                widget.setVisible(CONF.get('main', '%s/enable' % name))
+                widget.set_interval(CONF.get('main', '%s/timeout' % name))
         
     def edit_preferences(self):
         """Edit Spyder preferences"""
