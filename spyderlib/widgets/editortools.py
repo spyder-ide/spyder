@@ -43,11 +43,6 @@ class PythonCFM(object):
     
     def get_class_name(self, text):
         return self.__get_name('class', text)
-    
-    def get_decorator(self, text):
-        match = re.match(r'[\ ]*\@([a-zA-Z0-9_]*)', text)
-        if match is not None:
-            return match.group(1)
 
 
 class FileRootItem(QTreeWidgetItem):
@@ -100,29 +95,19 @@ class ClassItem(TreeItem):
         self.setToolTip(0, _("Class defined at line %s") % str(self.line))
 
 class FunctionItem(TreeItem):
-    def __init__(self, name, line, parent, preceding):
-        TreeItem.__init__(self, name, line, parent, preceding)
-        self.decorator = None
-        
-    def set_decorator(self, decorator):
-        self.decorator = decorator
-        
     def is_method(self):
         return isinstance(self.parent(), ClassItem)
     
     def setup(self):
         if self.is_method():
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
-            if self.decorator is not None:
-                self.set_icon('decorator.png')
+            name = unicode(self.text(0))
+            if name.startswith('__'):
+                self.set_icon('private2.png')
+            elif name.startswith('_'):
+                self.set_icon('private1.png')
             else:
-                name = unicode(self.text(0))
-                if name.startswith('__'):
-                    self.set_icon('private2.png')
-                elif name.startswith('_'):
-                    self.set_icon('private1.png')
-                else:
-                    self.set_icon('method.png')
+                self.set_icon('method.png')
         else:
             self.set_icon('function.png')
             self.setToolTip(0, _("Function defined at line %s"
@@ -398,10 +383,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                     else:
                         remove_from_tree_cache(tree_cache, line=line_nb)
                 item = FunctionItem(func_name, line_nb, parent, preceding)
-                if item.is_method() and line_nb > 1:
-                    text = editor.get_text_line(block_nb-1)
-                    decorator = editor.classfunc_match.get_decorator(text)
-                    item.set_decorator(decorator)
                 
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),

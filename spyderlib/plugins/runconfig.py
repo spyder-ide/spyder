@@ -226,53 +226,75 @@ class RunConfigOptions(QWidget):
             return False
 
 
-class SizeMixin(object):
-    """Mixin to keep widget size accessible
-    even when C++ object has been deleted"""
-    def __init__(self):
-        self.win_size = None
-
-    def resizeEvent(self, event):
-        """Reimplement Qt method"""
-        QDialog.resizeEvent(self, event)
-        self.win_size = self.size()
-
-
-class RunConfigOneDialog(QDialog, SizeMixin):
-    """Run configuration dialog box: single file version"""
+class BaseRunConfigDialog(QDialog):
+    """Run configuration dialog box, base widget"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        SizeMixin.__init__(self)
+        self.win_size = None
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
         # (e.g. the editor's analysis thread in Spyder), thus leading to
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
-        
-        self.filename = None
-        
-        self.runconfigoptions = RunConfigOptions(self)
-        
-        bbox = QDialogButtonBox(QDialogButtonBox.Cancel)
-        bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+
+        self.setWindowIcon(get_icon("run.png"))
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+    def resizeEvent(self, event):
+        """Reimplement Qt method"""
+        QDialog.resizeEvent(self, event)
+        self.win_size = self.size()
+    
+    def get_window_size(self):
+        """Return dialog size, even after C++ object has been destroyed"""
+        return self.win_size
+    
+    def add_widgets(self, *widgets_or_spacings):
+        """Add widgets/spacing to dialog vertical layout"""
+        layout = self.layout()
+        for widget_or_spacing in widgets_or_spacings:
+            if isinstance(widget_or_spacing, int):
+                layout.addSpacing(widget_or_spacing)
+            else:
+                layout.addWidget(widget_or_spacing)
+    
+    def add_button_box(self, stdbtns):
+        """Create dialog button box and add it to the dialog layout"""
+        bbox = QDialogButtonBox(stdbtns)
+        run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
+        self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
         self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-
         btnlayout = QHBoxLayout()
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
+        self.layout().addLayout(btnlayout)
         
-        layout = QVBoxLayout()
-        layout.addWidget(self.runconfigoptions)
-        layout.addLayout(btnlayout)
-        self.setLayout(layout)
-
-        self.setWindowIcon(get_icon("run.png"))
+    def run_btn_clicked(self):
+        """Run button was just clicked"""
+        pass
         
     def setup(self, fname):
+        """Setup Run Configuration dialog with filename *fname*"""
+        raise NotImplementedError
+
+
+class RunConfigOneDialog(BaseRunConfigDialog):
+    """Run configuration dialog box: single file version"""
+    def __init__(self, parent=None):
+        BaseRunConfigDialog.__init__(self, parent)
+        self.filename = None
+        self.runconfigoptions = None
+        
+    def setup(self, fname):
+        """Setup Run Configuration dialog with filename *fname*"""
         self.filename = fname
+        self.runconfigoptions = RunConfigOptions(self)
         self.runconfigoptions.set(RunConfiguration(fname).get())
+        self.add_widgets(self.runconfigoptions)
+        self.add_button_box(QDialogButtonBox.Cancel)
         self.setWindowTitle(_("Run %s") % osp.basename(fname))
             
     def accept(self):
@@ -290,20 +312,20 @@ class RunConfigOneDialog(QDialog, SizeMixin):
         return self.runconfigoptions.runconf
 
 
-class RunConfigDialog(QDialog, SizeMixin):
+class RunConfigDialog(BaseRunConfigDialog):
     """Run configuration dialog box: multiple file version"""
     def __init__(self, parent=None):
-        QDialog.__init__(self, parent)
-        SizeMixin.__init__(self)
-        
-        # Destroying the C++ object right after closing the dialog box,
-        # otherwise it may be garbage-collected in another QThread
-        # (e.g. the editor's analysis thread in Spyder), thus leading to
-        # a segmentation fault on UNIX or an application crash on Windows
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        
+        BaseRunConfigDialog.__init__(self, parent)
         self.file_to_run = None
+        self.combo = None
+        self.stack = None
         
+    def run_btn_clicked(self):
+        """Run button was just clicked"""
+        self.file_to_run = unicode(self.combo.currentText())
+        
+    def setup(self, fname):
+        """Setup Run Configuration dialog with filename *fname*"""
         combo_label = QLabel(_("Select a run configuration:"))
         self.combo = QComboBox()
         self.combo.setMaxVisibleItems(20)
@@ -312,28 +334,6 @@ class RunConfigDialog(QDialog, SizeMixin):
         
         self.stack = QStackedWidget()
 
-        bbox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        run_btn = bbox.addButton(_("Run"), QDialogButtonBox.AcceptRole)
-        self.connect(run_btn, SIGNAL('clicked()'), self.run_btn_clicked)
-        self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
-        self.connect(bbox, SIGNAL("rejected()"), SLOT("reject()"))
-
-        btnlayout = QHBoxLayout()
-        btnlayout.addStretch(1)
-        btnlayout.addWidget(bbox)
-        
-        layout = QVBoxLayout()
-        layout.addWidget(combo_label)
-        layout.addWidget(self.combo)
-        layout.addSpacing(10)
-        layout.addWidget(self.stack)
-        layout.addLayout(btnlayout)
-        self.setLayout(layout)
-
-        self.setWindowTitle(_("Run configurations"))
-        self.setWindowIcon(get_icon("run.png"))
-        
-    def setup(self, fname):
         configurations = _get_run_configurations()
         for index, (filename, options) in enumerate(configurations):
             if fname == filename:
@@ -352,6 +352,11 @@ class RunConfigDialog(QDialog, SizeMixin):
         self.connect(self.combo, SIGNAL("currentIndexChanged(int)"),
                      self.stack.setCurrentIndex)
         self.combo.setCurrentIndex(index)
+
+        self.add_widgets(combo_label, self.combo, 10, self.stack)
+        self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+
+        self.setWindowTitle(_("Run configurations"))
         
     def accept(self):
         """Reimplement Qt method"""
@@ -365,6 +370,3 @@ class RunConfigDialog(QDialog, SizeMixin):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
-        
-    def run_btn_clicked(self):
-        self.file_to_run = unicode(self.combo.currentText())

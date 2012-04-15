@@ -9,9 +9,10 @@
 try:
     from guidata.disthelpers import Distribution
 except ImportError:
-    raise ImportError, "This script requires guidata 1.4+"
+    raise ImportError, "This script requires guidata 1.5+"
 
 import os.path as osp
+import imp
 import spyderlib
 
 
@@ -20,10 +21,15 @@ def create_executable():
     dist = Distribution()
     name = "spyder"
     ver = spyderlib.__version__
+    try:
+        imp.find_module('PyQt4')
+        python_qt = 'pyqt'
+    except ImportError:
+        python_qt = 'pyside'
     dist.setup(name="Spyder", version=ver, script="spyderlib/spyder.py",
                description=u"Scientific PYthon Development EnviRonment",
                target_name="%s.exe" % name, icon="%s.ico" % name,
-               target_dir="%s-win32-sa-%s" % (name, ver))
+               target_dir="%s-win32-%s-sa-%s" % (name, python_qt, ver))
     spyderlib.add_to_distribution(dist)
     dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata')
     try:

@@ -301,31 +301,30 @@ enabled and that it has no effect in IPython."""))
         qt_group.setEnabled(has_pyqt4 or has_pyside)
         
         # PyQt Group
-        pyqt_group = QGroupBox(_("PyQt"))
-        pyqt_setapi_box = self.create_combobox(
+        if has_pyqt4:
+            pyqt_group = QGroupBox(_("PyQt"))
+            setapi_box = self.create_combobox(
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
                 'pyqt/api_version', default=0, tip=_(
 """PyQt API #1 is the default API for Python 2. PyQt API #2 is the default 
 API for Python 3 and is compatible with PySide.
 Note that switching to API #2 may require to enable the Matplotlib patch."""))
-        pyqt_ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                    'pyqt/ignore_sip_setapi_errors', tip=_(
+            ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
+                                     'pyqt/ignore_sip_setapi_errors', tip=_(
 """Enabling this option will ignore errors when changing PyQt API.
 As PyQt does not support dynamic API changes, it is strongly recommended
-to use this feature wisely, e.g. for debugging purpose.
-"""))
-        try:
-            from sip import setapi #analysis:ignore
-        except ImportError:
-            pyqt_setapi_box.setDisabled(True)
-            pyqt_ignore_api_box.setDisabled(True)
-        
-        pyqt_layout = QVBoxLayout()
-        pyqt_layout.addWidget(pyqt_setapi_box)
-        pyqt_layout.addWidget(pyqt_ignore_api_box)
-        pyqt_group.setLayout(pyqt_layout)
-        if has_pyqt4:
+to use this feature wisely, e.g. for debugging purpose."""))
+            try:
+                from sip import setapi #analysis:ignore
+            except ImportError:
+                setapi_box.setDisabled(True)
+                ignore_api_box.setDisabled(True)
+            
+            pyqt_layout = QVBoxLayout()
+            pyqt_layout.addWidget(setapi_box)
+            pyqt_layout.addWidget(ignore_api_box)
+            pyqt_group.setLayout(pyqt_layout)
             qt_layout.addWidget(pyqt_group)
         
         # IPython Group
@@ -607,9 +606,12 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shell):
-        """Python debugger has just stopped at frame (fname, lineno)"""
-        self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-                  fname, lineno, '')
+        """Python debugger has just stopped at frame (fname, lineno)"""      
+        # This is a unique form of the edit_goto signal that is intended to 
+        # prevent keyboard input from accidentally entering the editor
+        # during repeated, rapid entry of debugging commands.    
+        self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
+                  fname, lineno, '',False)
         shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
@@ -939,6 +941,10 @@ class ExternalConsole(SpyderPluginWidget):
             self.historylog = self.main.historylog
             self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
                          self.main.editor.load)
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString,bool)"),
+                         lambda fname, lineno, word, processevents:
+                         self.main.editor.load(fname,lineno,word,
+                                               processevents=processevents))
             self.connect(self.main.editor,
                          SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)

@@ -8,6 +8,7 @@
 \.orig$
 ^build/
 ^dist/
+^bin/
 app_example/build/
 app_example/dist/
 ^doctmp/

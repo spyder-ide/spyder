@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2012 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -172,11 +172,17 @@ class ArrayModel(QAbstractTableModel):
             return to_qvariant()
         value = self.get_value(index)
         if role == Qt.DisplayRole:
-            return to_qvariant(self._format % value)
+            if value is np.ma.masked:
+                return ''
+            else:
+                return to_qvariant(self._format % value)
         elif role == Qt.TextAlignmentRole:
             return to_qvariant(int(Qt.AlignCenter|Qt.AlignVCenter))
-        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled:
-            hue = self.hue0+self.dhue*(self.vmax-self.color_func(value))/(self.vmax-self.vmin)
+        elif role == Qt.BackgroundColorRole and self.bgcolor_enabled\
+             and value is not np.ma.masked:
+            hue = self.hue0+\
+                  self.dhue*(self.vmax-self.color_func(value))\
+                  /(self.vmax-self.vmin)
             hue = float(np.abs(hue))
             color = QColor.fromHsvF(hue, self.sat, self.val, self.alp)
             return to_qvariant(color)
@@ -256,11 +262,12 @@ class ArrayDelegate(QItemDelegate):
     def createEditor(self, parent, option, index):
         """Create editor widget"""
         model = index.model()
+        value = model.get_value(index)
         if model._data.dtype.name == "bool":
-            value = not model.get_value(index)
+            value = not value
             model.setData(index, to_qvariant(value))
             return
-        else:
+        elif value is not np.ma.masked:
             editor = QLineEdit(parent)
             editor.setFont(get_font('arrayeditor'))
             editor.setAlignment(Qt.AlignCenter)
@@ -434,6 +441,9 @@ class ArrayEditor(QDialog):
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.data = None
+        self.arraywidget = None
+        self.stack = None
+        self.layout = None
     
     def setup_and_check(self, data, title='', readonly=False,
                         xlabels=None, ylabels=None):
@@ -442,8 +452,8 @@ class ArrayEditor(QDialog):
         return False if data is not supported, True otherwise
         """
         self.data = data
-        self.arraywidget = None
-        self.is_record_array = data.dtype.names is not None
+        is_record_array = data.dtype.names is not None
+        is_masked_array = isinstance(data, np.ma.MaskedArray)
         if data.size == 0:
             self.error(_("Array is empty"))
             return False
@@ -459,7 +469,7 @@ class ArrayEditor(QDialog):
             self.error(_("The 'ylabels' argument length "
 							   "do no match array row number"))
             return False
-        if not self.is_record_array:
+        if not is_record_array:
             dtn = data.dtype.name
             if dtn not in SUPPORTED_FORMATS and not dtn.startswith('string') \
                and not dtn.startswith('unicode'):
@@ -481,10 +491,17 @@ class ArrayEditor(QDialog):
         
         # Stack widget
         self.stack = QStackedWidget(self)
-        if self.is_record_array:
+        if is_record_array:
             for name in data.dtype.names:
                 self.stack.addWidget(ArrayEditorWidget(self, data[name],
                                                    readonly, xlabels, ylabels))
+        elif is_masked_array:
+            self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
+                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data.data, readonly,
+                                                   xlabels, ylabels))
+            self.stack.addWidget(ArrayEditorWidget(self, data.mask, readonly,
+                                                   xlabels, ylabels))
         else:
             self.stack.addWidget(ArrayEditorWidget(self, data, readonly,
                                                    xlabels, ylabels))
@@ -495,23 +512,32 @@ class ArrayEditor(QDialog):
 
         # Buttons configuration
         btn_layout = QHBoxLayout()
-        if self.is_record_array:
-            btn_layout.addWidget(QLabel(_("Record array fields:")))
+        if is_record_array or is_masked_array:
+            if is_record_array:
+                btn_layout.addWidget(QLabel(_("Record array fields:")))
+                names = []
+                for name in data.dtype.names:
+                    field = data.dtype.fields[name]
+                    text = name
+                    if len(field) >= 3:
+                        title = field[2]
+                        if not isinstance(title, basestring):
+                            title = repr(title)
+                        text += ' - '+title
+                    names.append(text)
+            else:
+                names = [_('Masked data'), _('Data'), _('Mask')]
             ra_combo = QComboBox(self)
             self.connect(ra_combo, SIGNAL('currentIndexChanged(int)'),
                          self.stack.setCurrentIndex)
-            names = []
-            for name in data.dtype.names:
-                field = data.dtype.fields[name]
-                text = name
-                if len(field) >= 3:
-                    title = field[2]
-                    if not isinstance(title, basestring):
-                        title = repr(title)
-                    text += ' - '+title
-                names.append(text)
             ra_combo.addItems(names)
             btn_layout.addWidget(ra_combo)
+            if is_masked_array:
+                label = QLabel(_("<u>Warning</u>: changes are applied separately"))
+                label.setToolTip(_("For performance reasons, changes applied "\
+                                   "to masked array won't be reflected in "\
+                                   "array's data (and vice-versa)."))
+                btn_layout.addWidget(label)
             btn_layout.addStretch()
         bbox = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         self.connect(bbox, SIGNAL("accepted()"), SLOT("accept()"))
@@ -575,6 +601,8 @@ def test():
     print "out:", test_edit(arr, "string array")
     arr = np.array([u"kjrekrjkejr"])
     print "out:", test_edit(arr, "unicode array")
+    arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
+    print "out:", test_edit(arr, "masked array")
     arr = np.zeros((2,2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
     print "out:", test_edit(arr, "record array")

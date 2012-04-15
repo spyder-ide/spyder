@@ -32,10 +32,10 @@ from spyderlib.config import get_icon, get_font
 from spyderlib.utils.misc import fix_reference_name
 from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
-                   get_human_readable_type, value_to_display, get_color_name,
-                   is_known_type, FakeObject, Image, ndarray, array,
-                   unsorted_unique, try_to_eval, datestr_to_datetime,
-                   get_numpy_dtype, is_editable_type)
+               get_human_readable_type, value_to_display, get_color_name,
+               is_known_type, FakeObject, Image, ndarray, array, MaskedArray,
+               unsorted_unique, try_to_eval, datestr_to_datetime,
+               get_numpy_dtype, is_editable_type)
 if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
@@ -370,8 +370,8 @@ class DictDelegate(QItemDelegate):
                                             key=key, readonly=readonly))
             return None
         #---editor = ArrayEditor
-        elif isinstance(value, ndarray) and ndarray is not FakeObject \
-                                        and not self.inplace:
+        elif isinstance(value, (ndarray, MaskedArray))\
+             and ndarray is not FakeObject and not self.inplace:
             if value.size == 0:
                 return None
             editor = ArrayEditor(parent)
@@ -702,7 +702,8 @@ class BaseTableView(QTableView):
             condition_imshow = condition_plot and self.get_array_ndim(key) == 2
             condition_imshow = condition_imshow or self.is_image(key)
         else:
-            is_array = condition_plot = condition_imshow = is_list = False
+            is_array = condition_plot = condition_imshow = is_list \
+                     = condition_hist = False
         self.plot_action.setVisible(condition_plot or is_list)
         self.hist_action.setVisible(condition_hist or is_list)
         self.imshow_action.setVisible(condition_imshow)
@@ -1014,7 +1015,7 @@ class DictEditorTableView(BaseTableView):
     def is_array(self, key):
         """Return True if variable is a numpy array"""
         data = self.model.get_data()
-        return isinstance(data[key], ndarray)
+        return isinstance(data[key], (ndarray, MaskedArray))
         
     def is_image(self, key):
         """Return True if variable is a PIL.Image image"""
@@ -1257,6 +1258,13 @@ class RemoteDictEditorTableView(BaseTableView):
         """Toggle remote editing state"""
         self.sig_option_changed.emit('remote_editing', state)
         self.remote_editing_enabled = state
+
+    def oedit_possible(self, key):
+        if (self.is_list(key) or self.is_dict(key) 
+            or self.is_array(key) or self.is_image(key)):
+            # If this is a remote dict editor, the following avoid 
+            # transfering large amount of data through the socket
+            return True
             
     def edit_item(self):
         """
@@ -1271,9 +1279,8 @@ class RemoteDictEditorTableView(BaseTableView):
             if not index.isValid():
                 return
             key = self.model.get_key(index)
-            if (self.is_list(key) or self.is_dict(key) 
-                or self.is_array(key) or self.is_image(key)):
-                # If this is a remote dict editor, the following avoid 
+            if self.oedit_possible(key):
+                # If this is a remote dict editor, the following avoid
                 # transfering large amount of data through the socket
                 self.oedit(key)
             else:
@@ -1305,6 +1312,8 @@ def get_test_data():
             'int': 223,
             'bool': True,
             'array': np.random.rand(10, 10),
+            'masked_array': np.ma.array([[1, 0], [1, 0]],
+                                        mask=[[True, False], [False, False]]),
             '1D-array': np.linspace(-10, 10),
             'empty_array': np.array([]),
             'image': image,
@@ -1323,11 +1332,12 @@ def get_test_data():
 
 def test():
     """Dictionary editor test"""
-    _app = qapplication() #analysis:ignore
+    app = qapplication() #analysis:ignore
     dialog = DictEditor()
     dialog.setup(get_test_data())
-    if dialog.exec_():
-        print "out:", dialog.get_value()
+    dialog.show()
+    app.exec_()
+    print "out:", dialog.get_value()
     
 def remote_editor_test():
     """Remote dictionary editor test"""

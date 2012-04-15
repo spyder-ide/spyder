@@ -199,7 +199,7 @@ class ExternalPythonShell(ExternalShellBase):
 
         self.notification_thread = None
         
-        ExternalShellBase.__init__(self, parent, wdir,
+        ExternalShellBase.__init__(self, parent=parent, fname=fname, wdir=wdir,
                                    history_filename='.history.py',
                                    light_background=light_background,
                                    menu_actions=menu_actions,
@@ -222,8 +222,6 @@ class ExternalPythonShell(ExternalShellBase):
             # (see spyderlib/widgets/externalshell/startup.py)
             self.fname = get_module_source_path(
                             'spyderlib.widgets.externalshell', 'startup.py')
-        else:
-            self.fname = fname
         
         self.shell.set_externalshell(self)
 
@@ -533,8 +531,9 @@ The process may not exit as a result of clicking this button
             # with IPython v0.10 or non-Windows platforms, this is not a
             # problem. However, with IPython v0.11 on Windows, this will be
             # fixed by patching IPython to force it to use our inputhook.
-            communicate(self.introspection_socket,
-                        "toggle_inputhook_flag(True)")
+            if self.introspection_socket is not None:
+                communicate(self.introspection_socket,
+                            "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')

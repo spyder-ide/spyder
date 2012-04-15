@@ -23,7 +23,7 @@ The Python debugger is partly integrated in Spyder:
       the :doc:`variableexplorer`
 
 For a simple, yet quite complete introduction to `pdb`, you may read this:
-http://pythonconquerstheuniverse.wordpress.com/category/the-python-debugger/
+http://pythonconquerstheuniverse.wordpress.com/category/python-debugger/
 
 
 Related plugins:

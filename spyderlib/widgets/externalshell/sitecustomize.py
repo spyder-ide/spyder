@@ -380,20 +380,6 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
         pass
 
 
-# Workaround #1 to make the HDF5 I/O variable explorer plugin work:
-# we import h5py without IPython support (otherwise, Spyder will crash 
-# when initializing IPython in startup.py).
-# (see startup.py for the Workaround #2)
-if monitor and not os.environ.get('IPYTHON', False):
-    sys.modules['IPython'] = None
-    try:
-        import h5py #@UnusedImport
-    except ImportError:
-        pass
-    del sys.modules['IPython']
-
-
-
 # The following classes and functions are mainly intended to be used from 
 # an interactive Python/IPython session
 class UserModuleDeleter(object):
@@ -447,7 +433,23 @@ class UserModuleDeleter(object):
 __umd__ = None
 
 
-def runfile(filename, args=None, wdir=None):
+def _get_globals():
+    """Return current Python/IPython interpreter globals namespace"""
+    from __main__ import __dict__ as namespace
+    if hasattr(__builtin__, '__IPYTHON__'):
+        # IPython 0.10
+        shell = __builtin__.__IPYTHON__
+    else:
+        # IPython 0.11+
+        shell = namespace.get('__ipythonshell__')
+    if shell is not None and hasattr(shell, 'user_ns'):
+        # IPython
+        return shell.user_ns
+    else:
+        return namespace
+
+
+def runfile(filename, args=None, wdir=None, namespace=None):
     """
     Run filename
     args: command line arguments (string)
@@ -465,25 +467,18 @@ def runfile(filename, args=None, wdir=None):
             __umd__.run(verbose=verbose)
     if args is not None and not isinstance(args, basestring):
         raise TypeError("expected a character buffer object")
-    from __main__ import __dict__ as glbs
-    shell = glbs.get('__ipythonshell__')
-    if shell is not None:
-        if hasattr(shell, 'user_ns'):
-            # IPython >=v0.11
-            glbs = shell.user_ns
-        else:
-            # IPython v0.10
-            glbs = shell.IP.user_ns
-    glbs['__file__'] = filename
+    if namespace is None:
+        namespace = _get_globals()
+    namespace['__file__'] = filename
     sys.argv = [filename]
     if args is not None:
         for arg in args.split():
             sys.argv.append(arg)
     if wdir is not None:
         os.chdir(wdir)
-    execfile(filename, glbs)
+    execfile(filename, namespace)
     sys.argv = ['']
-    glbs.pop('__file__')
+    namespace.pop('__file__')
     
 __builtin__.runfile = runfile
 
@@ -520,6 +515,7 @@ def evalsc(command):
             print '\n'
     else:
         # General command
+        namespace = _get_globals()
         import re
         clear_match = re.match(r"^clear ([a-zA-Z0-9_, ]+)", command)
         cd_match = re.match(r"^cd \"?\'?([a-zA-Z0-9_\ \:\\\/\.]+)", command)
@@ -529,7 +525,7 @@ def evalsc(command):
             varnames = clear_match.groups()[0].replace(' ', '').split(',')
             for varname in varnames:
                 try:
-                    globals().pop(varname)
+                    namespace.pop(varname)
                 except KeyError:
                     pass
         elif command in ('cd', 'pwd'):
@@ -541,18 +537,17 @@ def evalsc(command):
                 evalsc('!ls')
         elif command == 'scientific':
             from spyderlib import baseconfig
-            execfile(baseconfig.SCIENTIFIC_STARTUP, globals())
+            execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
         else:
             raise NotImplementedError, "Unsupported command: '%s'" % command
 
 __builtin__.evalsc = evalsc
 
 
-
-## Restoring original PYTHONPATH
-#try:
-#    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
-#    del os.environ['OLD_PYTHONPATH']
-#except KeyError:
-#    if os.environ.get('PYTHONPATH') is not None:
-#        del os.environ['PYTHONPATH']
+# Restoring original PYTHONPATH
+try:
+    os.environ['PYTHONPATH'] = os.environ['OLD_PYTHONPATH']
+    del os.environ['OLD_PYTHONPATH']
+except KeyError:
+    if os.environ.get('PYTHONPATH') is not None:
+        del os.environ['PYTHONPATH']

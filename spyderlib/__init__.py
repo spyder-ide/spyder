@@ -27,7 +27,7 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-__version__ = '2.1.5'
+__version__ = '2.2.0dev'
 __license__ = __doc__
 __project_url__ = 'http://code.google.com/p/spyderlib'
 __forum_url__   = 'http://groups.google.com/group/spyderlib'
@@ -39,7 +39,10 @@ DATAPATH = LOCALEPATH = DOCPATH = ''
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object
     Extension to guidata.disthelpers"""
-    dist.add_modules('PyQt4')
+    try:
+        dist.add_qt_bindings()
+    except AttributeError:
+        raise ImportError, "This script requires guidata 1.5+"
     for _modname in ('spyderlib', 'spyderplugins'):
         dist.add_module_data_files(_modname, ("", ),
                                    ('.png', '.svg', '.html', '.png', '.txt',

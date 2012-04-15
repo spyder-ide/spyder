@@ -1,0 +1,63 @@
+{#
+    layout.html
+    ~~~~~~~~~~~
+
+    Layout template for the object inspector
+
+    :copyright: Copyright 2012 by the Spyder team.
+    :copyright: Copyright 2009 by Tim Dumol <tim@timdumol.com>
+    :license: BSD license
+#}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="{{css_path}}/default.css" type="text/css" />
+    <link rel="stylesheet" href="{{css_path}}/pygments.css" type="text/css" />
+    <script type="text/javascript" src="{{js_path}}/jquery-1.7.1.min.js"></script>
+    
+    {% if right_sphinx_version and math_on %}
+    {# DON'T try to load MathJax from the net. It's slow and sometimes gives
+       errors. See this thread for more info:
+       http://tex.stackexchange.com/questions/2692/comparing-mathjax-and-mathml
+    #}
+    <script type="text/javascript" 
+    src="{{js_path}}/mathjax/MathJax.js?config=TeX-AMS-MML_SVG-full">
+    </script>
+    {% endif %}
+</head>
+
+<script type="text/javascript" charset="utf-8"> {% include js_path + "/math_config.js" %} </script>
+<script src="{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
+<script src="{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+
+<body>
+    {# Docstring header #}
+    {% if Title %}
+    <div class="title"> <h1> {{Title}} </h1> </div>
+
+    {% if argspec or note %}
+    <div class="metadata">
+        {% if argspec %}
+        <p> <b>Definition :</b> <span class="def"> {{Title}}{{argspec}} </span> </p>
+        {% endif %}
+
+        {% if note %}
+        <p> <b>Type :</b> {{note}} </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% endif %}
+    
+    {# Docstring text #}
+    <div class="docstring">
+        {% block body %}{% endblock %}
+    </div>
+</body>
+
+</html>

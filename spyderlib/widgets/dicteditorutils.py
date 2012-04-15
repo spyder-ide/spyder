@@ -17,8 +17,9 @@ class FakeObject(object):
 try:
     from numpy import ndarray
     from numpy import array, matrix #@UnusedImport (object eval)
+    from numpy.ma import MaskedArray
 except ImportError:
-    ndarray = array = matrix = FakeObject  # analysis:ignore
+    ndarray = array = matrix = MaskedArray = FakeObject  # analysis:ignore
 
 
 def get_numpy_dtype(obj):
@@ -83,7 +84,8 @@ COLORS = {
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
           (str, unicode):     "#800000",
-          ndarray:            ARRAY_COLOR,
+          (ndarray,
+           MaskedArray):      ARRAY_COLOR,
           Image:              "#008000",
           datetime.date:      "#808000",
           }
@@ -128,7 +130,7 @@ def unsorted_unique(lista):
 def value_to_display(value, truncate=False,
                      trunc_len=80, minmax=False, collvalue=True):
     """Convert value for display purpose"""
-    if minmax and isinstance(value, ndarray):
+    if minmax and isinstance(value, (ndarray, MaskedArray)):
         if value.size == 0:
             return repr(value)
         try:
@@ -160,7 +162,7 @@ def get_size(item):
     """Return size of an item of arbitrary type"""
     if isinstance(item, (list, tuple, dict)):
         return len(item)
-    elif isinstance(item, ndarray):
+    elif isinstance(item, (ndarray, MaskedArray)):
         return item.shape
     elif isinstance(item, Image):
         return item.size
@@ -175,11 +177,12 @@ def get_type_string(item):
 
 def is_known_type(item):
     """Return True if object has a known type"""
-    return get_type_string(item) is not None
+    # Unfortunately, the masked array case is specific
+    return isinstance(item, MaskedArray) or get_type_string(item) is not None
 
 def get_human_readable_type(item):
     """Return human-readable type string of an item"""
-    if isinstance(item, ndarray):
+    if isinstance(item, (ndarray, MaskedArray)):
         return item.dtype.name
     elif isinstance(item, Image):
         return "Image"

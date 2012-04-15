@@ -7,6 +7,6 @@
 import os
 
 if os.environ['QT_API'] == 'pyqt':
-    from PyQt4.QtWebKit import *
+    from PyQt4.QtWebKit import *  # analysis:ignore
 else:
-    from PySide.QtWebKit import *
+    from PySide.QtWebKit import *  # analysis:ignore

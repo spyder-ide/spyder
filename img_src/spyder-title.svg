@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
+
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
@@ -14,9 +15,8 @@
    height="185.49001"
    id="svg2"
    sodipodi:version="0.32"
-   inkscape:version="0.46"
+   inkscape:version="0.48.2 r9819"
    sodipodi:docname="spyder-title.svg"
-   sodipodi:docbase="/home/sdeibel"
    inkscape:output_extension="org.inkscape.output.svg.inkscape"
    inkscape:export-filename="D:\Python\spyder\img_src\ico32.png"
    inkscape:export-xdpi="15.53"
@@ -29,7 +29,23 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by/3.0/" />
       </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by/3.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
@@ -42,12 +58,13 @@
      pagecolor="#ffffff"
      id="base"
      inkscape:zoom="2.0279948"
-     inkscape:cx="-14.193134"
+     inkscape:cx="-150.53471"
      inkscape:cy="56.434504"
      inkscape:window-x="0"
      inkscape:window-y="22"
      inkscape:current-layer="svg2"
-     showgrid="false" />
+     showgrid="false"
+     inkscape:window-maximized="0" />
   <defs
      id="defs4">
     <linearGradient
@@ -283,7 +300,7 @@
      transform="translate(6.3659426,0)">
     <path
        transform="matrix(0.9428415,-6.5929899e-2,6.6488167e-2,0.9508251,63.447216,37.588958)"
-       d="M 52.906127,-8.4604435 L 83.49561,36.406083 L 67.489778,88.295725 L 16.941349,108.13452 L -30.085679,80.98346 L -38.178995,27.287838 L -1.2441662,-12.518444 L 52.906127,-8.4604435 z"
+       d="M 52.906127,-8.4604435 83.49561,36.406083 67.489778,88.295725 16.941349,108.13452 -30.085679,80.98346 -38.178995,27.287838 -1.2441662,-12.518444 z"
        inkscape:randomized="0"
        inkscape:rounded="0"
        inkscape:flatsided="true"
@@ -299,7 +316,7 @@
        sodipodi:type="star" />
     <path
        transform="matrix(0.4002816,-2.7990413e-2,2.8227425e-2,0.403671,75.330728,60.408587)"
-       d="M 52.906127,-8.4604435 L 82.827089,58.743128 L 28.15878,107.9667 L -35.549055,71.184968 L -20.254353,-0.77096359 L 52.906127,-8.4604435 z"
+       d="M 52.906127,-8.4604435 82.827089,58.743128 28.15878,107.9667 -35.549055,71.184968 -20.254353,-0.77096359 z"
        inkscape:randomized="0"
        inkscape:rounded="0"
        inkscape:flatsided="true"
@@ -358,7 +375,7 @@
          style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#ee0000;stroke-width:12;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <path
          transform="matrix(0.6055665,0.6055665,-0.6286135,0.6286135,75.900286,-31.30135)"
-         d="M 102.50982,45.035332 A 5.9274387,10.808859 0 1 1 90.654943,45.035332 A 5.9274387,10.808859 0 1 1 102.50982,45.035332 z"
+         d="m 102.50982,45.035332 c 0,5.969568 -2.653804,10.808859 -5.927438,10.808859 -3.273634,0 -5.927439,-4.839291 -5.927439,-10.808859 0,-5.969568 2.653805,-10.808859 5.927439,-10.808859 3.273634,0 5.927438,4.839291 5.927438,10.808859 z"
          sodipodi:ry="10.808859"
          sodipodi:rx="5.9274387"
          sodipodi:cy="45.035332"

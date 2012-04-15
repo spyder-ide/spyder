@@ -18,8 +18,9 @@ Licensed under the terms of the MIT License
 import os
 try:
     # Test if IPython v0.11+ is installed
-    from IPython import deathrow #analysis:ignore
-    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
+    import IPython
+    if IPython.__version__.startswith(('0.11', '0.12'))\
+       and os.environ.get('QT_API', 'pyqt') == 'pyqt':
         # If PyQt is the selected GUI toolkit (at this stage, only the
         # bootstrap script has eventually set this option),
         # switch to PyQt API #2 by simply importing the IPython qt module
@@ -78,6 +79,11 @@ from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
 from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
+# Avoid a "Cannot mix incompatible Qt library" error on Windows platforms 
+# when PySide is selected by the QT_API environment variable and when PyQt4 
+# is also installed (or any other Qt-based application prepending a directory
+# containing incompatible Qt DLLs versions in PATH):
+from spyderlib.qt import QtSvg  # analysis:ignore
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
@@ -263,6 +269,7 @@ class MainWindow(QMainWindow):
         self.historylog = None
         self.extconsole = None
         self.ipython_frontends = []
+        self.ipython_app = None  # Single IPython QtConsole App instance
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
@@ -355,6 +362,7 @@ class MainWindow(QMainWindow):
         self.already_closed = False
         self.is_starting_up = True
         
+        self.floating_dockwidgets = []
         self.window_size = None
         self.window_position = None
         self.state_before_maximizing = None
@@ -916,6 +924,12 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
+        # [Workaround for Issue 880]
+        # QDockWidget objects are not painted if restored as floating 
+        # windows, so we must dock them before showing the mainwindow,
+        # then set them again as floating windows here.
+        for widget in self.floating_dockwidgets:
+            widget.setFloating(True)
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -961,6 +975,13 @@ class MainWindow(QMainWindow):
             # Window layout
             if hexstate:
                 self.restoreState( QByteArray().fromHex(str(hexstate)) )
+                # [Workaround for Issue 880]
+                # QDockWidget objects are not painted if restored as floating 
+                # windows, so we must dock them before showing the mainwindow.
+                for widget in self.children():
+                    if isinstance(widget, QDockWidget) and widget.isFloating():
+                        self.floating_dockwidgets.append(widget)
+                        widget.setFloating(False)
             # Is fullscreen?
             if is_fullscreen:
                 self.setWindowState(Qt.WindowFullScreen)
@@ -1010,6 +1031,7 @@ class MainWindow(QMainWindow):
                                          orientation)
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.historylog),
+
                                   (self.inspector, self.variableexplorer),
                                   (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
@@ -1517,28 +1539,34 @@ Please provide any additional information below.
             fname = file_uri(fname)
             start_file(fname)
             
-    def new_ipython_frontend(self, args=None,
+    def new_ipython_frontend(self, connection_file=None,
                              kernel_widget=None, kernel_name=None):
         """Create a new IPython frontend"""
-        if args is None:
-            example = '(example: --existing --shell=56742 --iopub=52543 '\
-                      '--stdin=60596 --hb=1644)'
+        cf = connection_file
+        if cf is None:
+            example = '(example: `kernel-3764.json`, or simply `3764`)'
             while True:
-                args, valid = QInputDialog.getText(self, _('IPython'),
-                                  _('IPython kernel parameters:')+'\n'+example,
-                                  QLineEdit.Normal)
+                cf, valid = QInputDialog.getText(self, _('IPython'),
+                          _('IPython kernel connection file:')+'\n'+example,
+                          QLineEdit.Normal)
                 if valid:
-                    args = unicode(args)
-                    if re.match('^--existing --shell=(\d+) --iopub=(\d+) '\
-                                '--stdin=(\d+) --hb=(\d+)$', args)\
-                       or re.match('^--existing kernel-(\d+).json', args):
-                        kernel_name = args
+                    cf = str(cf)
+                    if cf.isdigit():
+                        cf = 'kernel-%s.json' % cf
+                    if re.match('^kernel-(\d+).json', cf):
+                        kernel_name = cf
                         break
                 else:
                     return
         from spyderlib.plugins.ipython import IPythonPlugin
-        ipython_plugin = IPythonPlugin(self, args, kernel_widget, kernel_name)
-        ipython_plugin.register_plugin()
+        ipython_plugin = IPythonPlugin(self, cf, kernel_widget, kernel_name)
+        try:
+            ipython_plugin.register_plugin()
+        except (IOError, UnboundLocalError):
+            QMessageBox.critical(self, _('IPython'),
+                                 _("Unable to connect to IPython kernel "
+                                   "<b>`%s`") % cf)
+            return
         self.ipython_frontends.append(ipython_plugin)
         
     #---- PYTHONPATH management, etc.
@@ -1552,6 +1580,7 @@ Please provide any additional information below.
             sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
+
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
         while sys_path[1] in self.get_spyder_pythonpath():

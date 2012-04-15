@@ -21,16 +21,15 @@ from spyderlib.utils import programs
 #==============================================================================
 # Pyflakes/pep8 code analysis
 #==============================================================================
-TASKS_PATTERN = r"(^| |#)TODO( |:)[^#]*|(^| |#)FIXME( |:)[^#]*|"\
-                r"(^| |#)XXX( |:)[^#]*|(^| |#)HINT( |:)[^#]*|"\
-                r"(^| |#)TIP( |:)[^#]*"
+TASKS_PATTERN = r"(^|#)[ ]*(TODO|FIXME|XXX|HINT|TIP)( |:)([^#]*)"
 
+#TODO: this is a test for the following function
 def find_tasks(source_code):
     """Find tasks in source code (TODO, FIXME, XXX, ...)"""
     results = []
     for line, text in enumerate(source_code.splitlines()):
         for todo in re.findall(TASKS_PATTERN, text):
-            results.append((todo, line+1))
+            results.append((todo[-1].strip().capitalize(), line+1))
     return results
 
 
@@ -132,6 +131,6 @@ if __name__ == '__main__':
     fname = __file__
     code = file(fname, 'U').read()
     check_results = check_with_pyflakes(code, fname)+\
-                    check_with_pep8(code, fname)
+                    check_with_pep8(code, fname)+find_tasks(code)
     for message, line in check_results:
         print "Message: %s -- Line: %s" % (message, line)

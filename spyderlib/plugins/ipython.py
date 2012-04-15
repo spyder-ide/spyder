@@ -9,24 +9,21 @@
 from spyderlib.qt.QtGui import QHBoxLayout
 
 # Local imports
-from spyderlib.widgets.ipython import create_widget
+from spyderlib.widgets.ipython import IPythonApp
 from spyderlib.plugins import SpyderPluginWidget
 
 
 class IPythonPlugin(SpyderPluginWidget):
     """Find in files DockWidget"""
     CONF_SECTION = 'ipython'
-    def __init__(self, parent, args, kernel_widget, kernel_name):
+    def __init__(self, parent, connection_file, kernel_widget, kernel_name):
         super(IPythonPlugin, self).__init__(parent)
 
+        self.connection_file = connection_file
         self.kernel_widget = kernel_widget
         self.kernel_name = kernel_name
         
-        self.ipython_widget = create_widget(argv=args.split())
-
-        layout = QHBoxLayout()
-        layout.addWidget(self.ipython_widget)
-        self.setLayout(layout)
+        self.ipython_widget = None
         
         # Initialize plugin
         self.initialize_plugin()
@@ -54,6 +51,20 @@ class IPythonPlugin(SpyderPluginWidget):
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
+        argv = ['--existing']+[self.connection_file]
+
+        iapp = self.main.ipython_app
+        if iapp is None:
+            self.main.ipython_app = iapp = IPythonApp()
+            iapp.initialize_all_except_qt(argv=argv)
+
+        iapp.parse_command_line(argv=argv)
+        self.ipython_widget = iapp.new_frontend_from_existing()
+
+        layout = QHBoxLayout()
+        layout.addWidget(self.ipython_widget)
+        self.setLayout(layout)
+
         self.main.add_dockwidget(self)
     
     def refresh_plugin(self):

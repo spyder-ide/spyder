@@ -1,9 +1,88 @@
 = History of changes =
 
+== Version 2.2 ==
+
+=== New features since v2.1 ===
+
+*New major features*:
+  * *Object Inspector*:
+    * Add the capability to render mathematical equations using the MathJax Sphinx extension (it requires Sphinx 1.1+)
+
+=== Bug fixes (since v2.1.8) ===
+
+  * Run configuration/bugfix: command line options were not properly parsed
+  * Preferences dialog was not showing up with !PySide installed *and* without !PyQt4
+  * Editor:
+    * Closing additional editor window produced traceback and primary editor breakdown
+    * File/Open: embedded editor popped up even if there is one in a separate window
+    * Selecting a part of a word raises an !IndexError exception
+    * Revert option was prompting for user input even on an unmodified buffer
+    * Added missing .f77 file extensions for Fortran files filter
+    * Occurence highlighting was not working when cursor was at the left side of a word and if the next character was ':', ',' or '(' (or any other character not matching the "word regexp")
+  * Console:
+    * Console was unusable (endless tracebacks) when monitor was disabled
+    * File drag'n drop was not working (should execute dropped file)
+  * (Experimental) IPython plugin:
+    * Fixed compatibility issues with !PyQt4 and IPython 0.12
+    * Fixed multiple instances issue (it was not possible to open more than one IPython frontend) and other issues
+    * IPython kernel connections were unpredictable (Issue 977)
+  * Dictionary editor (Variable explorer): fixed !UnboundLocalError when context menu is called on an empty table
+  * Object inspector failed to show an error message due to unicode error
+  * Project Explorer:
+    * "Show all files" option was broken after restarting Spyder
+    * It was impossible to create a project from an existing directory located outside the workspace
+
+----
+
+== Version 2.1.8 ==
+
+=== Bug fixes (since v2.1.7) ===
+
+  * Editor/Source code toolbar:
+    * "Show task list" and "Go to the next task" actions: the "Show TODO/FIXME/XXX/HINT/TIP comments list" button was not working
+    * "Show warning/error list" and "Go to the next warning/error" actions: the "Show code analysis warnings/errors" button was not working
+
+----
+
+== Version 2.1.7 ==
+
+=== Bug fixes (since v2.1.6) ===
+
+  * Main window:
+    * Detached dockwidgets were not painted after restarting Spyder (Issue 880)
+  * Console:
+    * Enhanced Python interpreter: %clear command was broken since v2.1.5
+  * Object inspector's rich text mode: fixed unexpected indent error
+  * !IPython plugin: fixed compatibility issue with latest v0.12dev (thanks to Boris Gorelik)
+
+=== Other changes (since v2.1.6) ===
+
+  * Variable explorer/Array editor: added support for masked arrays
+  * Showing Spyder's internal console automatically when there is a traceback
+  * Do not crash when a 3rd party plugin failed to import
+  * Editor:
+    * Automatic insertion of single, double and triple quotes
+    * Automatically colons insertion when pressing Enter after 'if', 'def', etc
+    * Don't trigger code completion on comments if text ends with a dot
+    * Added keyboard shortcut (Ctrl+Shift+Escape) to clear the console
+    * Added keyboard shortcut (Ctrl+P) to print current file (thanks to fheday at gmail dot com for the contribution)
+    * Code introspection features (code completion, calltips, go-to-definition) are now working even if script has syntax errors
+
+----
+
+== Version 2.1.6 ==
+
+=== Bug fixes (since v2.1.5) ===
+
+  * Critical bug on certain Windows platforms (not sure yet if it's related to a particular version of PyQt or something else): all plugins (dockwidgets) were shown detached (or hidden) from the mainwindow at startup (this is related to the attempt fixing Issue 880)
+
+----
+
 == Version 2.1.5 ==
 
 === Bug fixes (since v2.1.4) ===
 
+  * [This bugfix was removed on v2.1.6 due to side-effects](Fixed on Windows platforms with !PyQt v4.8+ only) Detached dockwidgets (Console, ...) were not painted after restarting Spyder
   * Editor/Outline-bugfix: duplicate entries were shown when the editor was synchronizing file contents with disk
   * File/Project explorer:
     * Fixed regression regarding Issue 740 (fixed in v2.1.0, re-introduced in v2.1.2): couldn't open files with non-ascii characters in their names
@@ -19,14 +98,21 @@
 
 === Other changes (since v2.1.4) ===
 
-  * Console/PySide support:
-    * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
-    * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
-    * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
+  * Debugging: when a non-empty SPYDER_DEBUG environment variable exists, Spyder switch to debug mode (log files are created in user's home directory and debug prints are available in the terminal)
+  * Variable explorer/Dictionary editor: added option to plot histogram from a 1-D array
+  * Console:
+    * standard Python interpreter is now a real Python interactive session: the older implementation was running a startup script and tried to emulate a standard Python interactive session (changing attributes like __name__, running the PYTHONSTARTUP script, etc.). But this implementation was not close enough to the standard Python interactive session, i.e. when you execute `python` outside Spyder, without any argument. A recent bug report confirmed this: the PYTHONSTARTUP script was executed but not exactly the same way as it is outside Spyder: for example, doing `from __future__ import division` in the startup script had no effect whereas it did outside Spyder.
+    * when running a standard Python interpreter, instead of running the startup script (spyderlib/widgets/externalshell/startup.py), the shell widget (ExternalPythonShell) simply runs the python executable with -u -i options, that's all. So now, the PYTHONSTARTUP script is executed as expected.
+    * Scientific startup script (default PYTHONSTARTUP in Spyder): added floating point division (from __future__ import division)
+    * PySide support:
+      * Added new "Qt (PyQt/PySide)" settings group in "External modules" tab
+      * It is now possible to select the Qt-Python bindings library: default (i.e. depends on the QT_API environment variable), PyQt or PySide
+      * The PyQt input hook has been adapted for PySide, so it is now possible to do interactive (non-blocking) plotting with PySide
+    * New options for standard Python interpreters (no effect on !IPython):
+      * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
+      * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
+  * Internal console (Issue 868): output is now immediately available
   * "Maximize current plugin" action: now automatically shows the "Outline" plugin when maximizing the "Editor" plugin
-  * Console/New options for standard Python interpreters (no effect on !IPython):
-    * "Merge process standard output/error channels": merging the output channels of the process means that the standard error won't be written in red anymore, but this has the effect of speeding up display
-    * "Colorize standard error channel using ANSI escape codes": this method is the only way to have colorized standard error channel when the output channels have been merged
   * Editor/Outline comment separators: allow space betwee hash and dash, e.g "# --- Outline Separator"
 
 ----

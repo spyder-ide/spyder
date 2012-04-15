@@ -8,25 +8,15 @@
 Module checking Spyder requirements
 """
 
-def check_version(package, module_name, version_attr, required_str):
-    wng = "\n%s v%s or higher is required" % (package, required_str)
-    try:
-        module = __import__(module_name)
-    except ImportError:
-        return wng+" (not found!)"
-    else:
-        if '.' in module_name:
-            module = getattr(module, module_name.split('.')[1])
-        actual_str = getattr(module, version_attr)
-        actual = actual_str.split('.')
-        required = required_str.split('.')
-        if actual[0] < required[0] or \
-           (actual[0] == required[0] and actual[1] < required[1]):
-            return wng+" (found v%s)" % actual_str
-        else:
-            return ''
+def check_version(actual_str, required_str):
+    """Return True if actual_str version fit required_str requirement"""
+    actual = actual_str.split('.')
+    required = required_str.split('.')
+    return actual[0] < required[0] or \
+           (actual[0] == required[0] and actual[1] < required[1])
     
 def show_warning(message):
+    """Show warning using Tkinter if available"""
     try:
         # If Tkinter is installed (highly probable), showing an error pop-up
         import Tkinter, tkMessageBox
@@ -38,6 +28,7 @@ def show_warning(message):
     raise RuntimeError, message
     
 def check_path():
+    """Check sys.path: is Spyder properly installed?"""
     import sys, os.path as osp
     dirname = osp.abspath(osp.join(osp.dirname(__file__), osp.pardir))
     if dirname not in sys.path:
@@ -47,8 +38,14 @@ def check_path():
                      "environment variable" % dirname)
 
 def check_qt():
-    wng1 = check_version("PyQt", "PyQt4.QtCore", "PYQT_VERSION_STR", "4.4")
-    wng2 = check_version("PySide", "PySide", "__version__", "1.0")
-    if wng1 and wng2:
-        show_warning("Please check Spyder installation requirements:\n"
-                     +wng1+"\nor"+wng2)
+    """Check Qt binding requirements"""
+    import os
+    from spyderlib import qt
+    qt_api = os.environ['QT_API']
+    required_str = dict(pyqt="4.4", pyside="1.0")[qt_api]
+    actual_str = qt.__version__
+    if check_version(actual_str, required_str):
+        package = dict(pyqt="PyQt4", pyside="PySide")[qt_api]
+        show_warning("Please check Spyder installation requirements:\n\n"
+                     "%s v%s or higher is required (found v%s)"
+                     % (package, required_str, actual_str))

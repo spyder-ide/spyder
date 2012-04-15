@@ -634,6 +634,14 @@ class ExplorerTreeWidget(FilteredDirView):
         for index in range(1, self.model().columnCount()):
             self.hideColumn(index)
         self.set_folder_names(self.workspace.get_folder_names())
+
+        # The following fixes Issue 952: if we don't reset the "show all" 
+        # option here, we will lose the feature because we have just rebuilt 
+        # the fsmodel object from scratch. This would happen in particular 
+        # when setting the workspace option in the project explorer widget
+        # (see spyderlib/widgets/projectexplorer.py).
+        self.set_show_all(self.show_all)
+
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
 #        print "folders:", self.workspace.get_folder_names()
 #        print "is_valid:", self.workspace.is_valid()
@@ -681,7 +689,7 @@ class ExplorerTreeWidget(FilteredDirView):
                                              default=osp.basename(folder))
             if name is None:
                 return
-            dst = self.get_project_from_name(name)
+            dst = self.get_project_path_from_name(name)
             try:
                 shutil.copytree(folder, dst)
             except EnvironmentError, error:
@@ -1248,9 +1256,8 @@ class Test(QWidget):
         vlayout = QVBoxLayout()
         self.setLayout(vlayout)
         
-        self.explorer = ProjectExplorerWidget(None)
-        self.explorer.set_workspace(r'D:/Tests/ets330')
-#        self.explorer.set_workspace(r'D:/Python')
+        self.explorer = ProjectExplorerWidget(None, show_all=True)
+        self.explorer.set_workspace(r'D:/Python')
 #        p1 = self.explorer.add_project(r"D:/Python/spyder")
 #        p1.set_pythonpath([r"D:\Python\spyder\spyderlib"])
 #        p1.save()

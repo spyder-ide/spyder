@@ -262,7 +262,7 @@ class TextEditBaseWidget(QPlainTextEdit):
 
 
     #------Brace matching
-    def __find_brace_match(self, position, brace, forward):
+    def find_brace_match(self, position, brace, forward):
         start_pos, end_pos = self.BRACE_MATCHING_SCOPE
         if forward:
             bracemap = {'(': ')', '[': ']', '{': '}'}
@@ -334,9 +334,9 @@ class TextEditBaseWidget(QPlainTextEdit):
         text = unicode(cursor.selectedText())
         pos1 = cursor.position()
         if text in (')', ']', '}'):
-            pos2 = self.__find_brace_match(pos1, text, forward=False)
+            pos2 = self.find_brace_match(pos1, text, forward=False)
         elif text in ('(', '[', '{'):
-            pos2 = self.__find_brace_match(pos1, text, forward=True)
+            pos2 = self.find_brace_match(pos1, text, forward=True)
         else:
             return
         if pos2 is not None:
@@ -424,10 +424,11 @@ class TextEditBaseWidget(QPlainTextEdit):
         return cursor.blockNumber(), cursor.columnNumber()
         
     def get_cursor_line_number(self):
-        cursor = self.textCursor()
-        return cursor.blockNumber()+1
+        """Return cursor line number"""
+        return self.textCursor().blockNumber()+1
 
     def set_cursor_position(self, position):
+        """Set cursor position"""
         position = self.get_position(position)
         cursor = self.textCursor()
         cursor.setPosition(position)
@@ -504,7 +505,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         toward *direction* ('left' or 'right')
         """
         self.__move_cursor_anchor(what, direction, QTextCursor.KeepAnchor)
-                
+
     def select_current_block(self):
         """
         Select block under cursor
@@ -754,9 +755,29 @@ class TextEditBaseWidget(QPlainTextEdit):
     def get_current_word(self):
         """Return current word, i.e. word at cursor position"""
         cursor = self.textCursor()
+
+        if cursor.hasSelection():
+            # Removes the selection and moves the cursor to the left side 
+            # of the selection: this is required to be able to properly 
+            # select the whole word under cursor (otherwise, the same word is 
+            # not selected when the cursor is at the right side of it):
+            cursor.setPosition(min([cursor.selectionStart(),
+                                    cursor.selectionEnd()]))
+        else:
+            # Checks if the first character to the right is a white space
+            # and if not, moves the cursor one word to the left (otherwise,
+            # if the character to the left do not match the "word regexp" 
+            # (see below), the word to the left of the cursor won't be 
+            # selected)
+            cursor2 = self.textCursor()
+            cursor2.movePosition(QTextCursor.NextCharacter,
+                                 QTextCursor.KeepAnchor)
+            if not unicode(cursor2.selectedText()).strip():
+                cursor.movePosition(QTextCursor.WordLeft)
+
         cursor.select(QTextCursor.WordUnderCursor)
         text = unicode(cursor.selectedText())
-        match = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_]*)', text)
+        match = re.findall(r'([a-zA-Z\_]+[0-9a-zA-Z\_]*)', text)
         if match:
             return match[0]
     
@@ -1017,9 +1038,7 @@ class TextEditBaseWidget(QPlainTextEdit):
         cx, cy = self.get_coordinates('cursor')
         if at_line is not None:
             cx = 5
-            cursor = self.textCursor()
-            block = self.document().findBlockByNumber(at_line-1)
-            cursor.setPosition(block.position())
+            cursor = QTextCursor(self.document().findBlockByNumber(at_line-1))
             cy = self.cursorRect(cursor).top()
         point = self.mapToGlobal(QPoint(cx, cy))
         point.setX(point.x()+self.get_linenumberarea_width())
@@ -1346,16 +1365,20 @@ class ConsoleBaseWidget(TextEditBaseWidget):
             text = text[index+1:]
             self.clear()
         if error:
+            is_traceback = False
             for text in text.splitlines(True):
                 if text.startswith('  File') \
                 and not text.startswith('  File "<'):
+                    is_traceback = True
                     # Show error links in blue underlined text
                     cursor.insertText('  ', self.default_style.format)
                     cursor.insertText(text[2:],
                                       self.traceback_link_style.format)
                 else:
-                    # Show error messages in red
+                    # Show error/warning messages in red
                     cursor.insertText(text, self.error_style.format)
+            if is_traceback:
+                self.emit(SIGNAL('traceback_available()'))
         elif prompt:
             # Show prompt in green
             cursor.insertText(text, self.prompt_style.format)

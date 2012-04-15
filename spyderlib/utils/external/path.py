@@ -1,40 +1,48 @@
+#
+# Copyright (c) 2010 Mikhail Gusarov
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 """ path.py - An object representing a path to a file or directory.
+
+Original author:
+ Jason Orendorff <jason.orendorff\x40gmail\x2ecom>
+
+Contributors:
+ Mikhail Gusarov <dottedmag@dottedmag.net>
 
 Example:
 
-from IPython.external.path import path
+from path import path
 d = path('/home/guido/bin')
 for f in d.files('*.py'):
     f.chmod(0755)
 
-This module requires Python 2.2 or later.
-
-
-URL:     http://www.jorendorff.com/articles/python/path
-Author:  Jason Orendorff <jason.orendorff\x40gmail\x2ecom> (and others - see the url!)
-Date:    9 Mar 2007
+This module requires Python 2.3 or later.
 """
-
-
-# TODO
-#   - Tree-walking functions don't avoid symlink loops.  Matt Harrison
-#     sent me a patch for this.
-#   - Bug in write_text().  It doesn't support Universal newline mode.
-#   - Better error message in listdir() when self isn't a
-#     directory. (On Windows, the error message really sucks.)
-#   - Make sure everything has a good docstring.
-#   - Add methods for regex find and replace.
-#   - guess_content_type() method?
-#   - Perhaps support arguments to touch().
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs
-# deprecated in python 2.6
-warnings.filterwarnings('ignore', r'.*md5.*')
-import md5
+import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
 
-__version__ = '2.2'
+__version__ = '2.2.2.990'
 __all__ = ['path']
 
 # Platform-specific support for path.owner
@@ -54,16 +62,11 @@ _base = str
 _getcwd = os.getcwd
 try:
     if os.path.supports_unicode_filenames:
+    import locale
         _base = unicode
         _getcwd = os.getcwdu
 except AttributeError:
     pass
-
-# Pre-2.3 workaround for booleans
-try:
-    True, False
-except NameError:
-    True, False = 1, 0
 
 # Pre-2.3 workaround for basestring.
 try:
@@ -72,10 +75,9 @@ except NameError:
     basestring = (str, unicode)
 
 # Universal newline support
-_textmode = 'r'
-if hasattr(file, 'newlines'):
-    _textmode = 'U'
-
+_textmode = 'U'
+if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
+    _textmode = 'r'
 
 class TreeWalkWarning(Warning):
     pass
@@ -120,6 +122,13 @@ class path(_base):
     # Make the / operator work even when true division is enabled.
     __truediv__ = __div__
 
+    def __enter__(self):
+        self._old_dir = self.getcwd()
+        os.chdir(self)
+
+    def __exit__(self, *_):
+        os.chdir(self._old_dir)
+
     def getcwd(cls):
         """ Return the current working directory as a path object. """
         return cls(_getcwd())
@@ -128,7 +137,6 @@ class path(_base):
 
     # --- Operations on path strings.
 
-    isabs = os.path.isabs
     def abspath(self):       return self.__class__(os.path.abspath(self))
     def normcase(self):      return self.__class__(os.path.normcase(self))
     def normpath(self):      return self.__class__(os.path.normpath(self))
@@ -136,7 +144,7 @@ class path(_base):
     def expanduser(self):    return self.__class__(os.path.expanduser(self))
     def expandvars(self):    return self.__class__(os.path.expandvars(self))
     def dirname(self):       return self.__class__(os.path.dirname(self))
-    basename = os.path.basename
+    def basename(self):      return self.__class__(os.path.basename(self))
 
     def expand(self):
         """ Clean up a filename by calling expandvars(),
@@ -356,7 +364,7 @@ class path(_base):
         whose names match the given pattern.  For example,
         d.files('*.pyc').
         """
-        
+
         return [p for p in self.listdir(pattern) if p.isfile()]
 
     def walk(self, pattern=None, errors='strict'):
@@ -520,7 +528,7 @@ class path(_base):
 
     def open(self, mode='r'):
         """ Open this file.  Return a file object. """
-        return file(self, mode)
+        return open(self, mode)
 
     def bytes(self):
         """ Open this file, read all bytes, return them as a string. """
@@ -768,46 +776,69 @@ class path(_base):
 
         This reads through the entire file.
         """
+        return self.read_hash('md5')
+
+    def _hash(self, hash_name):
         f = self.open('rb')
         try:
-            m = md5.new()
+            m = hashlib.new(hash_name)
             while True:
                 d = f.read(8192)
                 if not d:
                     break
                 m.update(d)
+            return m
         finally:
             f.close()
-        return m.digest()
+
+    def read_hash(self, hash_name):
+        """ Calculate given hash for this file.
+
+        List of supported hashes can be obtained from hashlib package. This
+        reads the entire file.
+        """
+        return self._hash(hash_name).digest()
+
+    def read_hexhash(self, hash_name):
+        """ Calculate given hash for this file, returning hexdigest.
+
+        List of supported hashes can be obtained from hashlib package. This
+        reads the entire file.
+        """
+        return self._hash(hash_name).hexdigest()
 
     # --- Methods for querying the filesystem.
+    # N.B. On some platforms, the os.path functions may be implemented in C
+    # (e.g. isdir on Windows, Python 3.2.2), and compiled functions don't get
+    # bound. Playing it safe and wrapping them all in method calls.
 
-    exists = os.path.exists
-    isdir = os.path.isdir
-    isfile = os.path.isfile
-    islink = os.path.islink
-    ismount = os.path.ismount
+    def isabs(self): return os.path.isabs(self)
+    def exists(self): return os.path.exists(self)
+    def isdir(self): return os.path.isdir(self)
+    def isfile(self): return os.path.isfile(self)
+    def islink(self): return os.path.islink(self)
+    def ismount(self): return os.path.ismount(self)
 
     if hasattr(os.path, 'samefile'):
-        samefile = os.path.samefile
+        def samefile(self): return os.path.samefile(self)
 
-    getatime = os.path.getatime
+    def getatime(self): return os.path.getatime(self)
     atime = property(
         getatime, None, None,
         """ Last access time of the file. """)
 
-    getmtime = os.path.getmtime
+    def getmtime(self): return os.path.getmtime(self)
     mtime = property(
         getmtime, None, None,
         """ Last-modified time of the file. """)
 
     if hasattr(os.path, 'getctime'):
-        getctime = os.path.getctime
+        def getctime(self): return os.path.getctime(self)
         ctime = property(
             getctime, None, None,
             """ Creation time of the file. """)
 
-    getsize = os.path.getsize
+    def getsize(self): return os.path.getsize(self)
     size = property(
         getsize, None, None,
         """ Size of the file, in bytes. """)
@@ -889,15 +920,42 @@ class path(_base):
     def mkdir(self, mode=0777):
         os.mkdir(self, mode)
 
+    def mkdir_p(self, mode=0777):
+        try:
+            self.mkdir(mode)
+        except OSError, e:
+            if e.errno != errno.EEXIST:
+                raise
+
     def makedirs(self, mode=0777):
         os.makedirs(self, mode)
+
+    def makedirs_p(self, mode=0777):
+        try:
+            self.makedirs(mode)
+        except OSError, e:
+            if e.errno != errno.EEXIST:
+                raise
 
     def rmdir(self):
         os.rmdir(self)
 
+    def rmdir_p(self):
+        try:
+            self.rmdir()
+        except OSError, e:
+            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+                raise
+
     def removedirs(self):
         os.removedirs(self)
 
+    def removedirs_p(self):
+        try:
+            self.removedirs()
+        except OSError, e:
+            if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
+                raise
 
     # --- Modifying operations on files
 
@@ -912,9 +970,18 @@ class path(_base):
     def remove(self):
         os.remove(self)
 
+    def remove_p(self):
+        try:
+            self.unlink()
+        except OSError, e:
+            if e.errno != errno.ENOENT:
+                raise
+
     def unlink(self):
         os.unlink(self)
 
+    def unlink_p(self):
+        self.remove_p()
 
     # --- Links
 

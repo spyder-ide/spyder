@@ -780,6 +780,8 @@ class FindInFilesWidget(QWidget):
         """Current search thread has finished"""
         self.find_options.ok_button.setEnabled(True)
         self.find_options.stop_button.setEnabled(False)
+        if self.search_thread is None:
+            return
         found = self.search_thread.get_results()
         self.stop_and_reset_thread()
         if found is not None:

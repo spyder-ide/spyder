@@ -39,8 +39,8 @@ from spyderlib.widgets.tabs import BaseTabs
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget #@UnusedImport
-from spyderlib.widgets.sourcecode.codeeditor import Printer #@UnusedImport
+from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
+from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
 
 
@@ -320,8 +320,11 @@ class FileInfo(QObject):
                                                              self.filename)
             if textlist:
                 completion_text = re.split(r"[^a-zA-Z0-9_]", text)[-1]
-                self.editor.show_completion_list(textlist, completion_text,
-                                                 automatic)
+                if text.lstrip().startswith('#') and text.endswith('.'):
+                    return
+                else:
+                    self.editor.show_completion_list(textlist, completion_text,
+                                                     automatic)
                 return
         
     def trigger_calltip(self, position, auto=True):
@@ -356,14 +359,17 @@ class FileInfo(QObject):
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
             if signatures:
-                signature = signatures[0]
-                module = obj_fullname.split('.')[0]
-                note = '\n    Function of %s module\n\n' % module
-                text = signature + note + doc_text
+                argspec_st = signatures[0].find('(')
+                argspec = signatures[0][argspec_st:]
+                module_end = obj_fullname.rfind('.')
+                module = obj_fullname[:module_end]
+                note = 'Present in %s module' % module
             else:
-                text = doc_text
-            self.emit(SIGNAL("send_to_inspector(QString,QString,bool)"),
-                      obj_fullname, text, not auto)
+                argspec = ''
+                note = ''
+            self.emit(SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    obj_fullname, argspec, note, doc_text, not auto)
         if signatures:
             signatures = ['<b>'+s.replace('(', '(</b>'
                                           ).replace(')', '<b>)</b>')
@@ -529,6 +535,8 @@ class EditorStack(QWidget):
         self.calltips_enabled = True
         self.go_to_definition_enabled = True
         self.close_parentheses_enabled = True
+        self.close_quotes_enabled = True
+        self.add_colons_enabled = True
         self.auto_unindent_enabled = True
         self.indent_chars = " "*4
         self.tab_stop_width = 40
@@ -863,6 +871,20 @@ class EditorStack(QWidget):
             for finfo in self.data:
                 finfo.editor.set_close_parentheses_enabled(state)
                 
+    def set_close_quotes_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'close_quotes')
+        self.close_quotes_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_close_quotes_enabled(state)
+    
+    def set_add_colons_enabled(self, state):
+        # CONF.get(self.CONF_SECTION, 'add_colons')
+        self.add_colons_enabled = state
+        if self.data:
+            for finfo in self.data:
+                finfo.editor.set_add_colons_enabled(state)
+    
     def set_auto_unindent_enabled(self, state):
         # CONF.get(self.CONF_SECTION, 'auto_unindent')
         self.auto_unindent_enabled = state
@@ -1190,7 +1212,7 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
             
             self.remove_from_data(index)
-            self.emit(SIGNAL('close_file(int,int)'), id(self), index)
+            self.emit(SIGNAL('close_file(long,long)'), id(self), index)
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
@@ -1281,7 +1303,7 @@ class EditorStack(QWidget):
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-            self.emit(SIGNAL('file_saved(int,int)'), id(self), index)
+            self.emit(SIGNAL('file_saved(long,long)'), id(self), index)
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
@@ -1602,7 +1624,6 @@ class EditorStack(QWidget):
         self.set_stack_title(index, state)
         # Toggle save/save all actions state
         self.save_action.setEnabled(state)
-        self.revert_action.setEnabled(state)
         self.emit(SIGNAL('refresh_save_all_action()'))
         # Refreshing eol mode
         eol_chars = finfo.editor.get_line_separator()
@@ -1626,14 +1647,17 @@ class EditorStack(QWidget):
     def revert(self):
         """Revert file from disk"""
         index = self.get_stack_index()
-        filename = self.data[index].filename
-        answer = QMessageBox.warning(self, self.title,
+        finfo = self.data[index]
+        filename = finfo.filename
+        if finfo.editor.document().isModified():
+            answer = QMessageBox.warning(self, self.title,
                                 _("All changes to <b>%s</b> will be lost."
                                   "<br>Do you want to revert file from disk?"
                                   ) % osp.basename(filename),
                                   QMessageBox.Yes|QMessageBox.No)
-        if answer == QMessageBox.Yes:
-            self.reload(index)
+            if answer != QMessageBox.Yes:
+                return
+        self.reload(index)
         
     def create_new_editor(self, fname, enc, txt,
                           set_current, new=False, cloned_from=None):
@@ -1644,8 +1668,9 @@ class EditorStack(QWidget):
         editor = codeeditor.CodeEditor(self)
         finfo = FileInfo(fname, enc, editor, new, self.threadmanager)
         self.add_to_data(finfo, set_current)
-        self.connect(finfo, SIGNAL("send_to_inspector(QString,QString,bool)"),
-                     self.send_to_inspector)
+        self.connect(finfo, SIGNAL(
+                    "send_to_inspector(QString,QString,QString,QString,bool)"),
+                    self.send_to_inspector)
         self.connect(finfo, SIGNAL('analysis_results_changed()'),
                      lambda: self.emit(SIGNAL('analysis_results_changed()')))
         self.connect(finfo, SIGNAL('todo_results_changed()'),
@@ -1676,6 +1701,8 @@ class EditorStack(QWidget):
                 calltips=self.calltips_enabled,
                 go_to_definition=self.go_to_definition_enabled,
                 close_parentheses=self.close_parentheses_enabled,
+                close_quotes=self.close_quotes_enabled,
+                add_colons=self.add_colons_enabled,
                 auto_unindent=self.auto_unindent_enabled,
                 indent_chars=self.indent_chars,
                 tab_stop_width=self.tab_stop_width,
@@ -1717,19 +1744,26 @@ class EditorStack(QWidget):
         """Focus of one of the editor in the stack has changed"""
         self.emit(SIGNAL("editor_focus_changed()"))
     
-    def send_to_inspector(self, qstr1, qstr2=None, force=False):
-        """qstr1: obj_text, qstr2: doc_text"""
+    def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
+                          qstr4=None, force=False):
+        """qstr1: obj_text, qstr2: argpspec, qstr3: note, qstr4: doc_text"""
         if not force and not self.inspector_enabled:
             return
         if self.inspector is not None \
            and (force or self.inspector.dockwidget.isVisible()):
             # ObjectInspector widget exists and is visible
-            if qstr2 is None:
+            if qstr4 is None:
                 self.inspector.set_object_text(qstr1, ignore_unknown=True,
                                                force_refresh=force)
             else:
-                self.inspector.set_rope_doc(unicode(qstr1), unicode(qstr2),
-                                            force_refresh=force)
+                objtxt = unicode(qstr1)
+                title = objtxt.split('.')[-1]
+                argspec = unicode(qstr2)
+                note = unicode(qstr3)
+                doc = unicode(qstr4)
+                text = {'obj_text': objtxt, 'title': title, 'argspec': argspec,
+                        'note': note, 'doc': doc}
+                self.inspector.set_rope_doc(text, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     
@@ -1858,7 +1892,7 @@ class EditorSplitter(QSplitter):
         if not first:
             self.plugin.clone_editorstack(editorstack=self.editorstack)
         self.connect(self.editorstack, SIGNAL("destroyed()"),
-                     self.editorstack_closed)
+                     lambda: self.editorstack_closed())
         self.connect(self.editorstack, SIGNAL("split_vertically()"),
                      lambda: self.split(orientation=Qt.Vertical))
         self.connect(self.editorstack, SIGNAL("split_horizontally()"),
@@ -1879,7 +1913,7 @@ class EditorSplitter(QSplitter):
         if DEBUG:
             print >>STDOUT, "method 'editorstack_closed':"
             print >>STDOUT, "    self  :", self
-            print >>STDOUT, "    sender:", self.sender()
+#            print >>STDOUT, "    sender:", self.sender()
         self.unregister_editorstack_cb(self.editorstack)
         self.editorstack = None
         try:
@@ -1898,7 +1932,7 @@ class EditorSplitter(QSplitter):
         if DEBUG:
             print >>STDOUT, "method 'editorsplitter_closed':"
             print >>STDOUT, "    self  :", self
-            print >>STDOUT, "    sender:", self.sender()
+#            print >>STDOUT, "    sender:", self.sender()
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
         except RuntimeError:
@@ -1924,7 +1958,7 @@ class EditorSplitter(QSplitter):
                     unregister_editorstack_cb=self.unregister_editorstack_cb)
         self.addWidget(editorsplitter)
         self.connect(editorsplitter, SIGNAL("destroyed()"),
-                     self.editorsplitter_closed)
+                     lambda: self.editorsplitter_closed())
         current_editor = editorsplitter.editorstack.get_current_editor()
         if current_editor is not None:
             current_editor.setFocus()
@@ -2323,7 +2357,7 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, SIGNAL('close_file(int,int)'),
+        self.connect(editorstack, SIGNAL('close_file(long,long)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)

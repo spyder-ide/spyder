@@ -12,20 +12,24 @@ This script is a contribution from techtonik:
 http://code.google.com/p/spyderlib/issues/detail?id=741
 """
 
+# pylint: disable=C0103
+
 import os
 import subprocess
 import sys
 import optparse
 
 # Parsing command line options
-parser = optparse.OptionParser(usage="python bootstrap.py [options] [-- spyder_options]",
-             epilog="Arguments for Spyder's main script are specified after the -- symbol\n"\
-                    "(example: `python bootstrap.py -- --debug --light`). Type "\
-                    "`python bootstrap.py -- --help` to read more about Spyder options.\n")
+parser = optparse.OptionParser(
+    usage="python bootstrap.py [options] [-- spyder_options]",
+    epilog="Arguments for Spyder's main script are specified after the "\
+           "-- symbol\n(example: `python bootstrap.py -- --debug --light`). "\
+           "Type `python bootstrap.py -- --help` to read more about Spyder "\
+           "options.\n")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 options, args = parser.parse_args()
-assert options.gui in (None, 'pyqt', 'pyside'),\
+assert options.gui in (None, 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
 # Prepare arguments for Spyder's main script
 sys.argv = [sys.argv[0]] + args
@@ -37,11 +41,11 @@ DEVPATH = os.path.dirname(os.path.abspath(__file__))
 # Warn if Spyder is located on non-ASCII path
 # http://code.google.com/p/spyderlib/issues/detail?id=812
 try:
-  os.path.join(DEVPATH, u'test')
+    os.path.join(DEVPATH, u'test')
 except UnicodeDecodeError:
-  print("STOP: Spyder is located in the path with non-ASCII characters,")
-  print("      which is known to cause problems (see issue #812).")
-  raw_input("Press Enter to continue or Ctrl-C to abort...")
+    print("STOP: Spyder is located in the path with non-ASCII characters,")
+    print("      which is known to cause problems (see issue #812).")
+    raw_input("Press Enter to continue or Ctrl-C to abort...")
 
 # Retrieving Mercurial revision number
 try:
@@ -59,18 +63,19 @@ print("01. Patched sys.path with %s" % DEVPATH)
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
 if options.gui is None:
     try:
-        import PySide
+        import PySide  # analysis:ignore
         print("02. PySide is detected, selecting (experimental)")
         os.environ['QT_API'] = 'pyside'
     except:
         print("02. No PySide detected, using PyQt4 if available")
 else:
     print ("02. Skipping GUI toolkit detection")
-    os.environ["QT_API"] = options.gui
+    os.environ['QT_API'] = options.gui
 
-# Importing Spyder
+# Importing Spyder (among other things, this has the effect of setting the 
+# QT_API environment variable if this has not yet been done just above)
 from spyderlib import spyder
-QT_API = spyder.qt._modname
+QT_API = os.environ['QT_API']
 QT_LIB = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[QT_API]
 if QT_API == 'pyqt':
     import sip
