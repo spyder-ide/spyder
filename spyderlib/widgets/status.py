@@ -49,11 +49,13 @@ class BaseTimerStatus(StatusBarWidget):
             self.connect(self.timer, SIGNAL('timeout()'), self.update_label)
             self.timer.start(2000)
         else:
+            self.timer = None
             self.hide()
     
     def set_interval(self, interval):
         """Set timer interval (ms)"""
-        self.timer.setInterval(interval)
+        if self.timer is not None:
+            self.timer.setInterval(interval)
     
     def import_test(self):
         """Raise ImportError if feature is not supported"""
