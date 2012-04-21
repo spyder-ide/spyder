@@ -15,6 +15,7 @@ Recommended modules:
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
     * matplotlib (2D/3D plotting)
+    * psutil (memory/CPU usage in status bar)
 
 Optional modules:
     * IPython (enhanced Python interpreter)
@@ -67,6 +68,16 @@ But the easiest way to install the last stable release of Spyder is:
     * on Mac OSX, through MacPorts
     * on GNU/Linux, through your package manager
 For more details on supported platforms, please go to http://spyderlib.googlecode.com.
+
+.. note::
+
+    On MacOS X 10.6-10.7, it is known that the Python standard library `locale`
+    is raising this error: `ValueError: unknown locale: UTF-8`.
+    To fix this, you will have to set these environment variables in .profile 
+    (or .bashrc) manually::
+        
+        export LANG=en_US.UTF-8
+        export LC_ALL=en_US.UTF-8
 
 
 Help and support
