@@ -45,7 +45,6 @@ from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils import encoding, sourcecode
-from spyderlib.utils.encoding import DEFAULT_ENCODING
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
@@ -93,9 +92,8 @@ class RopeProject(object):
     def create_rope_project(self, root_path):
         try:
             import rope.base.project
-            self.project = rope.base.project.Project(root_path.encode(
-                                                             DEFAULT_ENCODING),
-                                                          **ROPE_PREFS)
+            self.project = rope.base.project.Project(
+                encoding.to_fs_from_unicode(root_path), **ROPE_PREFS)
         except ImportError:
             self.project = None
             if DEBUG:
