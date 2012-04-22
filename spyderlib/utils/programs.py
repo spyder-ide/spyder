@@ -13,6 +13,7 @@ import subprocess
 import imp
 import re
 
+from spyderlib.utils import encoding
 
 def is_program_installed(basename):
     """Return program absolute path if installed in PATH
@@ -129,8 +130,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args = ['python']
     p_args += get_python_args(fname, python_args, interact, debug, args)
     if os.name == 'nt':
-        subprocess.Popen('start cmd.exe /c ' + ' '.join(p_args),
-                         shell=True, cwd=wdir)
+        # Command line and cwd have to be converted to the filesystem
+        # encoding.
+        # See http://bugs.python.org/issue1759845#msg74142
+        cmd = encoding.to_fs_from_unicode(
+                'start cmd.exe /c ' + ' '.join(p_args))
+        subprocess.Popen(cmd, shell=True,
+                         cwd=encoding.to_fs_from_unicode(wdir))
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
