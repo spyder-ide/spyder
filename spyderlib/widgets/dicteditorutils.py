@@ -38,7 +38,9 @@ def get_numpy_dtype(obj):
             # the same interface.
             try:
                 return obj.dtype.type
-            except AttributeError:
+            except (AttributeError, RuntimeError):
+                #  AttributeError: some NumPy objects have no dtype attribute
+                #  RuntimeError: happens with NetCDF objects (Issue 998)
                 return
 
 
