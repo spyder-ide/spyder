@@ -1348,11 +1348,13 @@ class Editor(SpyderPluginWidget):
         if encoding_match:
             enc = encoding_match.group(1)
         # Initialize template variables
-        # Windows, Linux
-        username = encoding.to_unicode(os.environ.get('USERNAME', None))
-        # Mac OS X
+        # Windows
+        username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
+                                                              ''))
+        # Linux, Mac OS X
         if not username:
-            username = encoding.to_unicode(os.environ.get('USER', '-'))
+            username = encoding.to_unicode_from_fs(os.environ.get('USER',
+                                                                  '-'))
         VARS = {
             'date':time.ctime(),
             'username':username,
@@ -1486,7 +1488,7 @@ class Editor(SpyderPluginWidget):
             self.dockwidget.raise_()
         
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode(fname))
+            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname

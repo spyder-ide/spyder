@@ -1037,7 +1037,7 @@ class EditorStack(QWidget):
             text = u"%s — %s"
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
-        if filename == encoding.to_unicode(self.tempfile_path):
+        if filename == encoding.to_unicode_from_fs(self.tempfile_path):
             temp_file_str = unicode(_("Temporary file"))
             if self.fullpath_sorting_enabled:
                 return "%s (%s)" % (text, temp_file_str)

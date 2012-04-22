@@ -202,7 +202,7 @@ class HistoryLog(SpyderPluginWidget):
         Add new history tab
         Slot for SIGNAL('add_history(QString)') emitted by shell instance
         """
-        filename = encoding.to_unicode(filename)
+        filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
             return
         editor = codeeditor.CodeEditor(self)
