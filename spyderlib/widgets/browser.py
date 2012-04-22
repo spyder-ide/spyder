@@ -120,7 +120,8 @@ class WebBrowser(QWidget):
                      self.load_finished)
         self.connect(self.webview, SIGNAL("titleChanged(QString)"),
                      self.setWindowTitle)
-        self.connect(self.webview, SIGNAL("urlChanged(QUrl)"), self.url_changed)
+        self.connect(self.webview, SIGNAL("urlChanged(QUrl)"),
+                     self.url_changed)
                 
         home_button = create_toolbutton(self, icon=get_icon('home.png'),
                                         tip=_("Home"),
@@ -212,7 +213,8 @@ class WebBrowser(QWidget):
         
     def url_combo_activated(self, valid):
         """Load URL from combo box first item"""
-        self.go_to(self.text_to_url(self.url_combo.currentText()))
+        text = unicode(self.url_combo.currentText())
+        self.go_to(self.text_to_url(text))
         
     def load_finished(self, ok):
         if not ok:

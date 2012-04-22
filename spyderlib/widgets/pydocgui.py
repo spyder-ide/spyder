@@ -92,7 +92,7 @@ class PydocBrowser(WebBrowser):
         
     def text_to_url(self, text):
         """Convert text address into QUrl object"""
-        if text.startsWith('/'):
+        if text.startswith('/'):
             text = text[1:]
         return QUrl(self.home_url.toString()+text+'.html')
     
