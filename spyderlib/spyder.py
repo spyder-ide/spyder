@@ -10,12 +10,20 @@ Spyder, the Scientific PYthon Development EnviRonment
 
 Developped and maintained by Pierre Raybaut
 
-Copyright © 2009-2011 Pierre Raybaut
+Copyright © 2009-2012 Pierre Raybaut
 Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
 import os
+import sys
+import os.path as osp
+import platform
+import re
+
+# Keeping a reference to the original sys.exit before patching it
+ORIGINAL_SYS_EXIT = sys.exit
+
 try:
     # Test if IPython v0.11+ is installed
     import IPython
@@ -28,20 +36,11 @@ try:
         from IPython.external import qt #analysis:ignore
 except ImportError:
     pass
-from spyderlib import qt #analysis:ignore
 
 # Check requirements
 from spyderlib import requirements
 requirements.check_path()
 requirements.check_qt()
-
-import sys
-import os.path as osp
-import platform
-import re
-
-# Keeping a reference to the original sys.exit before patching it
-ORIGINAL_SYS_EXIT = sys.exit
 
 # Windows platforms only: support for hiding the attached console window
 set_attached_console_visible = None
