@@ -52,13 +52,16 @@ def to_unicode_from_fs(string):
     """
     Return a unicode version of string decoded using the file system encoding.
     """
-    if not isinstance(string, unicode):
-        try:
-            unic = string.decode(FS_ENCODING)
-        except (UnicodeError, TypeError):
-            pass
-        else:
-            return unic
+    if not isinstance(string, basestring): # string is a QString
+        string = unicode(string.toUtf8(), 'utf-8')
+    else:
+        if not isinstance(string, unicode):
+            try:
+                unic = string.decode(FS_ENCODING)
+            except (UnicodeError, TypeError):
+                pass
+            else:
+                return unic
     return string
     
 def to_fs_from_unicode(unic):
