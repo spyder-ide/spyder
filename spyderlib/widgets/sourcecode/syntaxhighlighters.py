@@ -797,52 +797,58 @@ from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number, 
                             Comment, Generic,Token)
 
-from syntaxhighlighters import BaseSH
+class PygmentsSH(BaseSH):
+    """ Generic Pygments syntax highlighter """
 
-tokmap = {Text: "normal", 
-          Generic: "normal", 
-          Other: "normal",
-          Keyword: "keyword",
-          Token.Operator: "normal",
-          Name.Builtin: "definition",
-          Name: "normal",
-          Comment: "comment",
-          String: "string",
-          Number: "number"}
+    # Store the language name and a ref to the lexer
+    _lang_name = None
+    _lexer = None
 
+    # Map Pygments tokens to Spyder tokens
+    _tokmap = {Text: "normal", 
+               Generic: "normal", 
+               Other: "normal",
+               Keyword: "keyword",
+               Token.Operator: "normal",
+               Name.Builtin: "definition",
+               Name: "normal",
+               Comment: "comment",
+               String: "string",
+               Number: "number"}
 
-class TcshSH(BaseSH):
-    """Tcsh highlighter, but pretty generic """
-    # Syntax highlighting rules:
-       
-    # Change this line for a generic parser
-    lexer = get_lexer_by_name('tcsh')
-    
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
+
     def __init__(self, parent, font=None, color_scheme=None):
+
+        # Load Pygments' Lexer
+        if self._lang_name is not None:
+            self._lexer = get_lexer_by_name(self._lang_name)
+
         BaseSH.__init__(self, parent, font, color_scheme)
 
+
     def get_fmt(self,typ):
+        """ Get the format code for this type """
         
         # Exact matches first
-        for key in tokmap:
-            
+        for key in self._tokmap:
             if typ is key:
-                return tokmap[key]
+                return self._tokmap[key]
             
         # Partial (parent-> child) matches
-        for key in tokmap:
+        for key in self._tokmap:
             if typ in key.subtypes:
-                return tokmap[key]
+                return self._tokmap[key]
 
         return 'normal'
-                
 
     def highlightBlock(self, text):
+        """ Actually highlight the block """
+        
         text = unicode(text)        
         
-        lextree = self.lexer.get_tokens(text)
+        lextree = self._lexer.get_tokens(text)
         
         ct = 0
         for item in lextree:
@@ -855,6 +861,22 @@ class TcshSH(BaseSH):
             ct += len(val)
         
             self.setFormat(start, ct-start, self.formats[key])
+
+
+class TcshSH(PygmentsSH):
+    """Tcsh highlighter """
+
+    _lang_name = 'tcsh'
+
+class RubySH(PygmentsSH):
+    """ Ruby highlighter"""
+
+    _lang_name = 'ruby'
+
+class BashSH(PygmentsSH):
+    """ Bash highlighter"""
+
+    _lang_name = 'bash'
 
 
 
