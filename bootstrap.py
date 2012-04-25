@@ -85,9 +85,10 @@ if QT_API == 'pyqt':
         QT_LIB += (" (API v%d)" % sip.getapi('QString'))
     except AttributeError:
         pass
+from spyderlib import qt
 print("03. Imported Spyder %s (Qt %s via %s %s)" % \
-    (spyder.__version__, spyder.qt.QtCore.__version__,
-     QT_LIB, spyder.qt.__version__))
+    (spyder.__version__, qt.QtCore.__version__,
+     QT_LIB, qt.__version__))
 
 # Executing Spyder
 if not options.hide_console:
