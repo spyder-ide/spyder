@@ -127,8 +127,15 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args):
     """Run Python script in an external system terminal"""
+    
+    # If fname has spaces on it it can't be ran on Windows, so we have to
+    # enclose it in quotes
+    if os.name == 'nt':
+        fname = '"' + fname + '"'
+    
     p_args = ['python']
     p_args += get_python_args(fname, python_args, interact, debug, args)
+    
     if os.name == 'nt':
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess
