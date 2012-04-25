@@ -789,6 +789,74 @@ class CssSH(BaseWebSH):
     """CSS Syntax Highlighter"""
     PROG = re.compile(make_css_patterns(), re.S)
 
+#==============================================================================
+# Pygments based omni-parser
+#==============================================================================
+
+from pygments.lexers import get_lexer_by_name
+from pygments.token import (Text, Other, Keyword, Name, String, Number, 
+                            Comment, Generic,Token)
+
+from syntaxhighlighters import BaseSH
+
+tokmap = {Text: "normal", 
+          Generic: "normal", 
+          Other: "normal",
+          Keyword: "keyword",
+          Token.Operator: "normal",
+          Name.Builtin: "definition",
+          Name: "normal",
+          Comment: "comment",
+          String: "string",
+          Number: "number"}
+
+
+class TcshSH(BaseSH):
+    """Tcsh highlighter, but pretty generic """
+    # Syntax highlighting rules:
+       
+    # Change this line for a generic parser
+    lexer = get_lexer_by_name('tcsh')
+    
+    # Syntax highlighting states (from one text block to another):
+    NORMAL = 0
+    def __init__(self, parent, font=None, color_scheme=None):
+        BaseSH.__init__(self, parent, font, color_scheme)
+
+    def get_fmt(self,typ):
+        
+        # Exact matches first
+        for key in tokmap:
+            
+            if typ is key:
+                return tokmap[key]
+            
+        # Partial (parent-> child) matches
+        for key in tokmap:
+            if typ in key.subtypes:
+                return tokmap[key]
+
+        return 'normal'
+                
+
+    def highlightBlock(self, text):
+        text = unicode(text)        
+        
+        lextree = self.lexer.get_tokens(text)
+        
+        ct = 0
+        for item in lextree:
+            
+            typ, val = item
+            
+            key = self.get_fmt(typ)
+
+            start = ct
+            ct += len(val)
+        
+            self.setFormat(start, ct-start, self.formats[key])
+
+
 
 if __name__ == '__main__':
     # Test Python Outline Explorer comment regexps
