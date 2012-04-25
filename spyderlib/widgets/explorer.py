@@ -689,6 +689,9 @@ class DirView(QTreeView):
     def restore_directory_state(self, fname):
         """Restore directory expanded state"""
         root = osp.normpath(unicode(fname))
+        if not osp.exists(root):
+            # Directory has been (re)moved outside Spyder
+            return
         for basename in os.listdir(root):
             path = osp.normpath(osp.join(root, basename))
             if osp.isdir(path) and path in self.__expanded_state:
