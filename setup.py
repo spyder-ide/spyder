@@ -85,7 +85,8 @@ object inspector, online help, and a lot more.""",
       platforms=['any'],
       packages=get_subpackages(LIBNAME)+get_subpackages('spyderplugins'),
       package_data={LIBNAME:
-                    get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css')),
+                    get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css',
+                                               '.html', '.js')),
                     'spyderplugins':
                     get_package_data('spyderplugins', ('.mo', '.svg', '.png'))},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
