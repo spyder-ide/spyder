@@ -8,6 +8,7 @@
 
 import os
 import os.path as osp
+import subprocess
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -74,6 +75,25 @@ def run_vcs_tool(path, tool):
                            % (infos['name'],
                               ', '.join([name for name,cmd in infos['commit']])
                               ))
+
+
+def get_hg_revision(repopath):
+    """Return Mercurial revision for the repository located at repopath
+       Result is a tuple (global, local, branch), with None values on error
+       For example:
+           >>> get_hg_revision(".")
+           ('eba7273c69df+', '2015+', 'default')
+    """
+    ret = (None, None, None)
+    try:
+        output = subprocess.Popen('hg id -nib "%s"' % repopath, shell=True,
+                                  stdout=subprocess.PIPE).communicate()
+        # output is now: ('eba7273c69df+ 2015+ default\n', None)
+        ret = tuple(output[0].strip().split())
+    except:
+        # print("Error: Failed to get revision number from Mercurial - %s" % exc)
+        pass
+    return ret
 
 
 if __name__ == '__main__':

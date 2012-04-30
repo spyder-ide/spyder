@@ -19,7 +19,7 @@ import subprocess
 import sys
 import optparse
 
-# Parsing command line options
+# --- Parse command line
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="Arguments for Spyder's main script are specified after the "\
@@ -40,6 +40,7 @@ sys.argv = [sys.argv[0]] + args
 print("Executing Spyder from source checkout")
 DEVPATH = os.path.dirname(os.path.abspath(__file__))
 
+# --- Test environment for sanity
 # Warn if Spyder is located on non-ASCII path
 # http://code.google.com/p/spyderlib/issues/detail?id=812
 try:
@@ -49,14 +50,8 @@ except UnicodeDecodeError:
     print("      which is known to cause problems (see issue #812).")
     raw_input("Press Enter to continue or Ctrl-C to abort...")
 
-# Retrieving Mercurial revision number
-try:
-    output = subprocess.Popen('hg id -nib "%s"' % DEVPATH, shell=True,
-                              stdout=subprocess.PIPE).communicate()
-    hgid, hgnum, hgbranch = output[0].strip().split()
-    print("Revision %s:%s, Branch: %s" % (hgnum, hgid, hgbranch))
-except Exception as exc:
-    print("Error: Failed to get revision number from Mercurial - %s" % exc)
+from spyderlib.utils.vcs import get_hg_revision
+print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
