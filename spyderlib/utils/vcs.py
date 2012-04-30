@@ -10,7 +10,7 @@ import os
 import os.path as osp
 
 # Local imports
-#from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 
 
