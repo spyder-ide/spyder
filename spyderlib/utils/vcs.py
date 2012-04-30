@@ -4,17 +4,17 @@
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""SCM utilities"""
+"""Utilities for version control systems"""
 
 import os
 import os.path as osp
 
 # Local imports
-from spyderlib.baseconfig import _
+#from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 
 
-SCM_INFOS = {
+VCS_INFOS = {
              '.hg':  dict(name="Mercurial",
                           commit=( ('thg', ['commit']),
                                    ('hgtk', ['commit']) ),
@@ -28,11 +28,11 @@ SCM_INFOS = {
              }
 
 
-def get_scm_infos(path):
-    """Return SCM infos if path is a supported SCM repository"""
-    for dirname, infos in SCM_INFOS.iteritems():
-        scm_path = osp.join(path, dirname)
-        if osp.isdir(scm_path):
+def get_vcs_infos(path):
+    """Return VCS infos if path is a supported VCS repository"""
+    for dirname, infos in VCS_INFOS.iteritems():
+        vcs_path = osp.join(path, dirname)
+        if osp.isdir(vcs_path):
             return infos
 
 
@@ -41,11 +41,11 @@ def abspardir(path):
     return osp.abspath(osp.join(path, os.pardir))
 
 
-def get_scm_root(path):
-    """Return SCM root directory path
-    Return None if path is not within a supported SCM repository"""
+def get_vcs_root(path):
+    """Return VCS root directory path
+    Return None if path is not within a supported VCS repository"""
     previous_path = path
-    while get_scm_infos(path) is None:
+    while get_vcs_infos(path) is None:
         path = abspardir(path)
         if path == previous_path:
             return
@@ -54,16 +54,16 @@ def get_scm_root(path):
     return osp.abspath(path)
 
 
-def is_scm_repository(path):
-    """Return True if path is a supported SCM repository"""
-    return get_scm_root(path) is not None
+def is_vcs_repository(path):
+    """Return True if path is a supported VCS repository"""
+    return get_vcs_root(path) is not None
 
 
-def run_scm_tool(path, tool):
-    """If path is a valid SCM repository, run the corresponding SCM tool
-    Supported SCM tools: 'commit', 'browse'
-    Return False if the SCM tool is not installed"""
-    infos = get_scm_infos(get_scm_root(path))
+def run_vcs_tool(path, tool):
+    """If path is a valid VCS repository, run the corresponding VCS tool
+    Supported VCS tools: 'commit', 'browse'
+    Return False if the VCS tool is not installed"""
+    infos = get_vcs_infos(get_vcs_root(path))
     for name, args in infos[tool]:
         if programs.find_program(name):
             programs.run_program(name, args, cwd=path)
@@ -74,6 +74,6 @@ def run_scm_tool(path, tool):
 
 
 if __name__ == '__main__':
-    print get_scm_root(osp.dirname(__file__))
-    print get_scm_root(r'D:\Python\ipython\IPython\frontend')
-    run_scm_tool(r'D:\Python\userconfig\userconfig', 'commit')
+    print get_vcs_root(osp.dirname(__file__))
+    print get_vcs_root(r'D:\Python\ipython\IPython\frontend')
+    run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')

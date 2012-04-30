@@ -29,7 +29,7 @@ import shutil
 
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
-from spyderlib.utils import misc, encoding, programs, scm
+from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
@@ -262,7 +262,7 @@ class DirView(QTreeView):
         # SCM support is quite limited for now, so we are enabling the SCM
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
-        if len(fnames) == 1 and scm.is_scm_repository(dirname):
+        if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
             scm_ci = create_action(self, _("Commit"),
                                    icon="scm_commit.png",
                                    triggered=lambda fnames=[dirname]:
@@ -640,7 +640,7 @@ class DirView(QTreeView):
         """SCM command (Mercurial, git...)"""
         try:
             for path in sorted(fnames):
-                scm.run_scm_tool(path, tool=tool)
+                vcs.run_vcs_tool(path, tool=tool)
         except RuntimeError, error:
             QMessageBox.critical(self, _("Error"),
                                  _("<b>Unable to find external program.</b>"
