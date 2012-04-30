@@ -259,19 +259,19 @@ class DirView(QTreeView):
             actions.append(move_action)
         actions += [None]
         
-        # SCM support is quite limited for now, so we are enabling the SCM
+        # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
         if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
-            scm_ci = create_action(self, _("Commit"),
-                                   icon="scm_commit.png",
+            vcs_ci = create_action(self, _("Commit"),
+                                   icon="vcs_commit.png",
                                    triggered=lambda fnames=[dirname]:
-                                   self.scm_command(fnames, tool='commit'))
-            scm_log = create_action(self, _("Browse repository"),
-                                    icon="scm_browse.png",
+                                   self.vcs_command(fnames, tool='commit'))
+            vcs_log = create_action(self, _("Browse repository"),
+                                    icon="vcs_browse.png",
                                     triggered=lambda fnames=[dirname]:
-                                    self.scm_command(fnames, tool='browse'))
-            actions += [None, scm_ci, scm_log]
+                                    self.vcs_command(fnames, tool='browse'))
+            actions += [None, vcs_ci, vcs_log]
         
         return actions
 
@@ -635,9 +635,9 @@ class DirView(QTreeView):
                                      SIGNAL("create_module(QString)"), fname)
         self.create_new_file(basedir, title, filters, create_func)
         
-    #----- SCM actions
-    def scm_command(self, fnames, tool):
-        """SCM command (Mercurial, git...)"""
+    #----- VCS actions
+    def vcs_command(self, fnames, tool):
+        """VCS command (Mercurial, git...)"""
         try:
             for path in sorted(fnames):
                 vcs.run_vcs_tool(path, tool=tool)
