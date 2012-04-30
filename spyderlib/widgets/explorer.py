@@ -35,9 +35,9 @@ from spyderlib.config import get_icon
 
 
 def fixpath(path):
-    """Fix/normalize path"""
+    """Normalize path fixing case, making absolute and removing symlinks"""
     norm = osp.normcase if os.name == 'nt' else osp.normpath
-    return norm(osp.abspath(path))
+    return norm(osp.abspath(osp.realpath(path)))
 
 
 def create_script(fname):
