@@ -69,8 +69,11 @@ def run_vcs_tool(path, tool):
             programs.run_program(name, args, cwd=path)
             return
     else:
-        raise RuntimeError(_("Please install the %s tool named '%s'")
-                           % (infos['name'], name))
+        raise RuntimeError(_("For %s support, please install one of the<br/> "
+                             "following tools:<br/><br/>  %s")
+                           % (infos['name'],
+                              ', '.join([name for name,cmd in infos['commit']])
+                              ))
 
 
 if __name__ == '__main__':
