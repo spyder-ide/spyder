@@ -1356,14 +1356,6 @@ class MainWindow(QMainWindow):
         except ImportError:
             rope_version = not_installed
         import spyderlib.qt.QtCore
-        qt_api = os.environ['QT_API']
-        qt_lib = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[qt_api]
-        if qt_api == 'pyqt':
-            import sip
-            try:
-                qt_lib += (" (API v%d)" % sip.getapi('QString'))
-            except AttributeError:
-                pass
         QMessageBox.about(self,
             _("About %s") % "Spyder",
             """<b>%s %s</b>
@@ -1402,18 +1394,11 @@ class MainWindow(QMainWindow):
                  __project_url__, __forum_url__,
                  platform.python_version(),
                  spyderlib.qt.QtCore.__version__,
-                 qt_lib, spyderlib.qt.__version__,
+                 spyderlib.qt.API_NAME,
+                 spyderlib.qt.__version__,
                  platform.system()) )
 
     def report_issue(self):
-        qt_api = os.environ['QT_API']
-        qt_lib = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[qt_api]
-        if qt_api == 'pyqt':
-            import sip
-            try:
-                qt_lib += (" (API v%d)" % sip.getapi('QString'))
-            except AttributeError:
-                pass
         import spyderlib.qt.QtCore
         issue_template = """\
 Spyder Version:  %s
@@ -1431,7 +1416,9 @@ What is the expected output? What do you see instead?
 Please provide any additional information below.
 """ % (__version__,
        platform.python_version(),
-       spyderlib.qt.QtCore.__version__, qt_lib, spyderlib.qt.__version__,
+       spyderlib.qt.QtCore.__version__,
+       spyderlib.qt.API_NAME,
+       spyderlib.qt.__version__,
        platform.system())
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")

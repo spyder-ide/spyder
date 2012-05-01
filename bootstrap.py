@@ -72,18 +72,10 @@ else:
 # Importing Spyder (among other things, this has the effect of setting the 
 # QT_API environment variable if this has not yet been done just above)
 from spyderlib import spyder
-QT_API = os.environ['QT_API']
-QT_LIB = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[QT_API]
-if QT_API == 'pyqt':
-    import sip
-    try:
-        QT_LIB += (" (API v%d)" % sip.getapi('QString'))
-    except AttributeError:
-        pass
 from spyderlib import qt
 print("03. Imported Spyder %s (Qt %s via %s %s)" % \
     (spyder.__version__, qt.QtCore.__version__,
-     QT_LIB, qt.__version__))
+     qt.API_NAME, qt.__version__))
 
 # Executing Spyder
 if not options.hide_console:
