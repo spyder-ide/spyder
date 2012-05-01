@@ -86,7 +86,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
-from spyderlib.utils import encoding
+from spyderlib.utils import encoding, vcs
 try:
     from spyderlib.utils.environ import WinUserEnvDialog
 except ImportError:
@@ -1343,7 +1343,7 @@ class MainWindow(QMainWindow):
         actions = widget.toolbar_actions
         if actions is not None:
             add_actions(toolbar, actions)
-        
+
     def about(self):
         """About Spyder"""
         not_installed = _('(not installed)')
@@ -1355,10 +1355,20 @@ class MainWindow(QMainWindow):
             from rope import VERSION as rope_version
         except ImportError:
             rope_version = not_installed
+        # Show Mercurial revision for development version
+        revlink = ''
+        import spyderlib
+        spyderpath = spyderlib.__path__[0]
+        if osp.isdir(osp.abspath(spyderpath)):
+            full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+            if full:
+                revlink = " (<a href='%s%s'>%s:%s</a>)" % (
+                    'http://code.google.com/p/spyderlib/source/detail?r=',
+                    full.strip('+'), short, full)
         import spyderlib.qt.QtCore
         QMessageBox.about(self,
             _("About %s") % "Spyder",
-            """<b>%s %s</b>
+            """<b>%s %s</b> %s
             <br>Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2011 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
@@ -1382,7 +1392,7 @@ class MainWindow(QMainWindow):
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %s, Qt %s, %s %s on %s"""
-            % ("Spyder", __version__, __project_url__,
+            % ("Spyder", __version__, revlink, __project_url__,
                  "<span style=\'color: #444444\'><b>",
                  pyflakes_version,
                  "</b></span>",
