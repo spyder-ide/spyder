@@ -152,6 +152,7 @@ def sphinxify(docstring, context, buildername='html'):
     if temp_confdir:
         # TODO: This may be inefficient. Find a faster way to do it.
         confdir = mkdtemp()
+        confdir = encoding.to_unicode_from_fs(confdir)
         generate_configuration(confdir)
     else:
         confdir = osp.join(get_module_source_path('spyderlib.utils.inspector'))
