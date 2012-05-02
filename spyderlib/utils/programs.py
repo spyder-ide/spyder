@@ -13,6 +13,7 @@ import subprocess
 import imp
 import re
 
+from spyderlib.utils import encoding
 
 def is_program_installed(basename):
     """Return program absolute path if installed in PATH
@@ -126,20 +127,36 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args):
     """Run Python script in an external system terminal"""
+    
+    # If fname has spaces on it it can't be ran on Windows, so we have to
+    # enclose it in quotes
+    if os.name == 'nt':
+        fname = '"' + fname + '"'
+    
     p_args = ['python']
     p_args += get_python_args(fname, python_args, interact, debug, args)
+    
     if os.name == 'nt':
-        subprocess.Popen('start cmd.exe /c ' + ' '.join(p_args),
-                         shell=True, cwd=wdir)
+        # Command line and cwd have to be converted to the filesystem
+        # encoding before passing them to subprocess
+        # See http://bugs.python.org/issue1759845#msg74142
+        cmd = encoding.to_fs_from_unicode(
+                'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"')
+        subprocess.Popen(cmd, shell=True,
+                         cwd=encoding.to_fs_from_unicode(wdir))
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
-            run_program(cmd, ['-x'] + p_args, cwd=wdir)
+            run_program(cmd, ['--working-directory', wdir, '-x'] + p_args,
+                        cwd=wdir)
             return
         cmd = 'konsole'
         if is_program_installed(cmd):
-            run_program(cmd, ['-e'] + p_args, cwd=wdir)
+            run_program(cmd, ['--workdir', wdir, '-e'] + p_args,
+                        cwd=wdir)
             return
+        # TODO: Add a fallback to xterm for Linux and the necessary code for
+        #       OSX
     else:
         raise NotImplementedError
 

@@ -92,8 +92,8 @@ class RopeProject(object):
     def create_rope_project(self, root_path):
         try:
             import rope.base.project
-            self.project = rope.base.project.Project(root_path,
-                                                          **ROPE_PREFS)
+            self.project = rope.base.project.Project(
+                encoding.to_fs_from_unicode(root_path), **ROPE_PREFS)
         except ImportError:
             self.project = None
             if DEBUG:

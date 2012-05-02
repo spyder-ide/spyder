@@ -13,7 +13,7 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 
 from __future__ import with_statement
 
-import re, os, locale
+import re, os, locale, sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -28,9 +28,65 @@ def transcode(text, input=PREFERRED_ENCODING, output=PREFERRED_ENCODING):
         except UnicodeError:
             return text
 
+#------------------------------------------------------------------------------
+#  Functions for encoding and decoding bytes that come from
+#  the *file system*.
+#------------------------------------------------------------------------------
+
+# The default encoding for file paths and environment variables should be set
+# to match the default encoding that the OS is using.
+def getfilesystemencoding():
+    """
+    Query the filesystem for the encoding used to encode filenames
+    and environment variables.
+    """
+    encoding = sys.getfilesystemencoding()
+    if encoding is None:
+        # Must be Linux or Unix and nl_langinfo(CODESET) failed.
+        encoding = PREFERRED_ENCODING
+    return encoding
+
+FS_ENCODING = getfilesystemencoding()
+
+def to_unicode_from_fs(string):
+    """
+    Return a unicode version of string decoded using the file system encoding.
+    """
+    if not isinstance(string, basestring): # string is a QString
+        string = unicode(string.toUtf8(), 'utf-8')
+    else:
+        if not isinstance(string, unicode):
+            try:
+                unic = string.decode(FS_ENCODING)
+            except (UnicodeError, TypeError):
+                pass
+            else:
+                return unic
+    return string
+    
+def to_fs_from_unicode(unic):
+    """
+    Return a byte string version of unic encoded using the file 
+    system encoding.
+    """
+    if isinstance(unic, unicode):
+        try:
+            string = unic.encode(FS_ENCODING)
+        except (UnicodeError, TypeError):
+            pass
+        else:
+            return string
+    return unic
+
+#------------------------------------------------------------------------------
+#  Functions for encoding and decoding *text data* itself, usually originating
+#  from or destined for the *contents* of a file.
+#------------------------------------------------------------------------------
+
+# Codecs for working with files and text.
 CODING_RE = re.compile(r"coding[:=]\s*([-\w_.]+)")
-CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r', 'koi8-u',
-          'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
+CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r',
+          'koi8-u', 'iso8859-2', 'iso8859-3', 'iso8859-4', 'iso8859-5', 
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
           'utf-16']

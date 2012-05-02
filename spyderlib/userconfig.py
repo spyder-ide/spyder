@@ -40,19 +40,26 @@ import os, re, os.path as osp, shutil
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
+from spyderlib.utils import encoding
+
 
 def get_home_dir():
     """
     Return user home directory
     """
     try:
-        path = osp.expanduser('~')
+        # expanduser() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent file paths.
+        path = encoding.to_unicode_from_fs(osp.expanduser('~'))
     except:
         path = ''
     for env_var in ('HOME', 'USERPROFILE', 'TMP'):
         if osp.isdir(path):
             break
-        path = os.environ.get(env_var, '')
+        # os.environ.get() returns a raw byte string which needs to be
+        # decoded with the codec that the OS is using to represent environment
+        # variables.
+        path = encoding.to_unicode_from_fs(os.environ.get(env_var, ''))
     if path:
         return path
     else:
