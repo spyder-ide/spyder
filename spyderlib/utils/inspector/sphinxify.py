@@ -32,6 +32,7 @@ from sphinx.application import Sphinx
 
 # Local imports
 from spyderlib.baseconfig import get_module_source_path, _
+from spyderlib.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
@@ -119,6 +120,8 @@ def sphinxify(docstring, context, buildername='html'):
     """
 
     srcdir = mkdtemp()
+    srcdir = encoding.to_unicode_from_fs(srcdir)
+
     base_name = osp.join(srcdir, 'docstring')
     rst_name = base_name + '.rst'
 
