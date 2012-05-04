@@ -15,7 +15,6 @@ http://code.google.com/p/spyderlib/issues/detail?id=741
 # pylint: disable=C0103
 
 import os
-import subprocess
 import sys
 import optparse
 
@@ -74,8 +73,7 @@ else:
 from spyderlib import spyder
 from spyderlib import qt
 print("03. Imported Spyder %s (Qt %s via %s %s)" % \
-    (spyder.__version__, qt.QtCore.__version__,
-     qt.API_NAME, qt.__version__))
+    (spyder.__version__, qt.QtCore.__version__, qt.API_NAME, qt.__version__))
 
 # Executing Spyder
 if not options.hide_console:
