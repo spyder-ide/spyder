@@ -66,8 +66,7 @@ class BaseComboBox(QComboBox):
             valid = self.is_valid(self.currentText())
             if valid or valid is None:
                 self.add_current_text()
-        else:
-            QComboBox.keyPressEvent(self, event)
+        QComboBox.keyPressEvent(self, event)
         
 
 class PatternComboBox(BaseComboBox):

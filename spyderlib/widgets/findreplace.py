@@ -22,6 +22,15 @@ from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
 
+class FindPatternComboBox(PatternComboBox):
+    """Emit signal when Enter has been pressed to fire search action"""
+    # --- QWidget event
+    def keyPressEvent(self, event):
+        PatternComboBox.keyPressEvent(self, event)
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            self.emit(SIGNAL("enterPressed()"))
+
+
 class FindReplace(QWidget):
     """
     Find widget
@@ -46,8 +55,10 @@ class FindReplace(QWidget):
         glayout.addWidget(self.close_button, 0, 0)
         
         # Find layout
-        self.search_text = PatternComboBox(self, tip=_("Search string"),
+        self.search_text = FindPatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
+        self.connect(self.search_text,
+                     SIGNAL("enterPressed()"), self.find_on_enter)
         self.connect(self.search_text.lineEdit(),
                      SIGNAL("textEdited(QString)"), self.text_has_been_edited)
         
@@ -265,6 +276,9 @@ class FindReplace(QWidget):
         self.editor.setFocus()
         return state
         
+    def find_on_enter(self):
+        self.find(changed=False, forward=True, rehighlight=False)
+
     def text_has_been_edited(self, text):
         """Find text has been edited (this slot won't be triggered when 
         setting the search pattern combo box text programmatically"""
@@ -351,4 +365,3 @@ class FindReplace(QWidget):
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)
-            
