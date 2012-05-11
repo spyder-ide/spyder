@@ -493,6 +493,9 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget = Tabs(self, self.menu_actions)
         if hasattr(self.tabwidget, 'setDocumentMode')\
            and not sys.platform == 'darwin':
+            # Don't set document mode to true on OSX because it generates
+            # a crash when the console is detached from the main window
+            # Fixes Issue 561
             self.tabwidget.setDocumentMode(True)
         self.connect(self.tabwidget, SIGNAL('currentChanged(int)'),
                      self.refresh_plugin)

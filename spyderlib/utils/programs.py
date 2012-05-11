@@ -55,6 +55,11 @@ def start_file(filename):
     Returns True if successfull, otherwise returns False."""
     from spyderlib.qt.QtGui import QDesktopServices
     from spyderlib.qt.QtCore import QUrl
+
+    # We need to use setUrl instead of setPath because this is the only
+    # cross-platform way to open external files. setPath fails completely on
+    # Mac and doesn't open non-ascii files on Linux.
+    # Fixes Issue 740
     url = QUrl()
     url.setUrl(filename)
     return QDesktopServices.openUrl(url)

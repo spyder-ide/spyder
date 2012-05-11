@@ -645,6 +645,9 @@ class EditorStack(QWidget):
         self.tabs.set_close_function(self.close_file)
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
+            # Don't set document mode to true on OSX because it generates
+            # a crash when the editor is detached from the main window
+            # Fixes Issue 561
             self.tabs.setDocumentMode(True)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.current_changed)
