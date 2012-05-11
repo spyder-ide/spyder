@@ -71,7 +71,7 @@ def _get_filters(filetypes):
     for title, ftypes in filetypes:
         filters.append("%s (*%s)" % (title, " *".join(ftypes)))
     filters.append("%s (*)" % _("All files"))
-    return "\n".join(filters)
+    return ";;".join(filters)
 
 def _get_extensions(filetypes):
     ftype_list = []
