@@ -1634,6 +1634,10 @@ class CodeEditor(TextEditBaseWidget):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
+                # When commenting lines add prefix before the first character
+                # to help users to maintain indentation
+                if prefix == self.comment_string:
+                    cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
@@ -1657,6 +1661,8 @@ class CodeEditor(TextEditBaseWidget):
             # Add prefix to current line
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
+            if prefix == self.comment_string:
+                cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
 
