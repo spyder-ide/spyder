@@ -557,6 +557,15 @@ class CodeEditor(TextEditBaseWidget):
         # Block user data
         self.blockuserdata_list = []
 
+        # Use a timer to update breakpoints periodically because
+        # line numbers for breakpoints change with editor text changes.
+        self.update_timer = QTimer(self)
+        self.update_timer.setSingleShot(False)
+        self.update_timer.setInterval(10000)
+        self.connect(self.update_timer, SIGNAL("timeout()"), 
+                     lambda: self.emit(SIGNAL('breakpoints_changed()')))
+        self.update_timer.start()
+        
         # Mark occurences timer
         self.occurence_highlighting = None
         self.occurence_timer = QTimer(self)

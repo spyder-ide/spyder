@@ -1294,8 +1294,8 @@ class Editor(SpyderPluginWidget):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
+        self.emit(SIGNAL("breakpoints_saved()"))
         
-                
     #------ File I/O
     def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -1807,6 +1807,7 @@ class Editor(SpyderPluginWidget):
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
+        self.emit(SIGNAL("breakpoints_saved()"))
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
