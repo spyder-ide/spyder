@@ -1336,7 +1336,7 @@ class CodeEditor(TextEditBaseWidget):
         self.remove_selected_text()
 
     def _apply_highlighter_color_scheme(self):
-        """Apply syntax highlighter color scheme"""
+        """Apply color scheme from syntax highlighter to the editor"""
         hl = self.highlighter
         if hl is not None:
             self.set_palette(background=hl.get_background_color(),
@@ -1351,8 +1351,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
-        if self.highlighter_class is not None:
-            if not isinstance(self.highlighter, self.highlighter_class):
+        if not isinstance(self.highlighter, self.highlighter_class):
                 # Highlighter object has not been constructed yet
                 # or language has changed so it must be re-constructed
                 if self.highlighter is not None:
@@ -1362,7 +1361,7 @@ class CodeEditor(TextEditBaseWidget):
                 self.highlighter = self.highlighter_class(self.document(),
                                                 self.font(), self.color_scheme)
                 self._apply_highlighter_color_scheme()
-            else:
+        else:
                 # Highlighter object has already been created:
                 # updating highlighter settings (font and color scheme)
                 self.highlighter.setup_formats(self.font())
