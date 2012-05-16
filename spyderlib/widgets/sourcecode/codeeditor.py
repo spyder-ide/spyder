@@ -540,7 +540,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
         self.document_id = id(self)
 
@@ -723,7 +723,7 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.update_linenumberarea_width(0)
+            self.update_linenumberarea_width()
         elif font is not None:
             self.set_font(font, color_scheme)
         elif color_scheme is not None:
@@ -995,7 +995,7 @@ class CodeEditor(TextEditBaseWidget):
     def set_linenumberarea_enabled(self, state):
         self.linenumberarea_enabled = state
         self.linenumberarea.setVisible(state)
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
     def get_linenumberarea_width(self):
         """Return current line number area width"""
@@ -1016,8 +1016,12 @@ class CodeEditor(TextEditBaseWidget):
             linenumbers_margin = 0
         return linenumbers_margin+self.get_markers_margin()
 
-    def update_linenumberarea_width(self, new_block_count):
-        """Update line number area width"""
+    def update_linenumberarea_width(self, new_block_count=None):
+        """
+        Update line number area width.
+        
+        new_block_count is needed to handle blockCountChanged(int) signal
+        """
         self.setViewportMargins(self.compute_linenumberarea_width(), 0,
                                 self.get_scrollflagarea_width(), 0)
 
@@ -1030,7 +1034,7 @@ class CodeEditor(TextEditBaseWidget):
                                        self.linenumberarea.width(),
                                        qrect.height())
         if qrect.contains(self.viewport().rect()):
-            self.update_linenumberarea_width(0)
+            self.update_linenumberarea_width()
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
@@ -1207,7 +1211,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1378,7 +1382,7 @@ class CodeEditor(TextEditBaseWidget):
         if color_scheme is not None:
             self.color_scheme = color_scheme
         self.setFont(font)
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
