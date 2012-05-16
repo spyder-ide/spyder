@@ -12,14 +12,19 @@ def windows_memory_usage():
     """Return physical memory usage (float)
     Works on Windows platforms only"""
     from ctypes import windll
-    from ctypes.wintypes import byref, Structure, DWORD
+    from ctypes.wintypes import byref, Structure, DWORD, c_uint64, sizeof
     class MemoryStatus(Structure):
         _fields_ = [('dwLength', DWORD), ('dwMemoryLoad', DWORD),
-                    ('dwTotalPhys', DWORD), ('dwAvailPhys', DWORD),
-                    ('dwTotalPageFile', DWORD), ('dwAvailPageFile', DWORD),
-                    ('dwTotalVirtual', DWORD), ('dwAvailVirtual', DWORD),]
+                    ('ullTotalPhys', c_uint64), ('ullAvailPhys', c_uint64),
+                    ('ullTotalPageFile', c_uint64), ('ullAvailPageFile', c_uint64),
+                    ('ullTotalVirtual', c_uint64), ('ullAvailVirtual', c_uint64),
+                    ('ullAvailExtendedVirtual', c_uint64),]
     memorystatus = MemoryStatus()
-    windll.kernel32.GlobalMemoryStatus(byref(memorystatus))
+    # MSDN documetation states that dwLength must be set to MemoryStatus
+    # size before calling GlobalMemoryStatusEx
+    # http://msdn.microsoft.com/en-us/library/aa366770(v=vs.85)
+    memorystatus.dwLength = sizeof(memorystatus)
+    windll.kernel32.GlobalMemoryStatusEx(byref(memorystatus))
     return float(memorystatus.dwMemoryLoad)
 
 def psutil_phymem_usage():
