@@ -13,7 +13,6 @@ import subprocess
 import imp
 import re
 
-from spyderlib.utils import encoding
 
 def is_program_installed(basename):
     """Return program absolute path if installed in PATH
@@ -142,13 +141,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args += get_python_args(fname, python_args, interact, debug, args)
     
     if os.name == 'nt':
+        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess
         # See http://bugs.python.org/issue1759845#msg74142
-        cmd = encoding.to_fs_from_unicode(
-                'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"')
-        subprocess.Popen(cmd, shell=True,
-                         cwd=encoding.to_fs_from_unicode(wdir))
+        from spyderlib.encoding import to_fs_from_unicode
+        subprocess.Popen(to_fs_from_unicode(cmd), shell=True,
+                         cwd=to_fs_from_unicode(wdir))
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
@@ -170,13 +169,50 @@ def is_module_installed(module_name, version=None):
     """Return True if module *module_name* is installed
     
     If version is not None, checking module version 
-    (module must have an attribute named '__version__')"""
+    (module must have an attribute named '__version__')
+    
+    version may starts with =, >= or > to specify the exact requirement"""
     try:
         mod = __import__(module_name)
         if version is None:
             return True
         else:
-            return getattr(mod, '__version__').startswith(version)
+            match = re.search('[0-9]', version)
+            assert match is not None, "Invalid version number"
+            symb = version[:match.start()]
+            if not symb:
+                symb = '='
+            assert symb in ('>=', '>', '='),\
+                   "Invalid version condition '%s'" % symb
+            version = version[match.start():]
+            try:
+                actver = getattr(mod, '__version__')
+            except AttributeError:
+                return False
+            def getvlist(version):
+                """Return an integer list from a version string"""
+                vl = version.split('.')
+                while vl and not vl[-1].isdigit():
+                    vl = vl[:-1]
+                return [int(nb) for nb in vl]
+            vlist = getvlist(version)
+            actvlist = getvlist(actver)
+            actvlist = actvlist[:len(vlist)]
+            vlist = vlist[:len(actvlist)]
+            if not vlist or not actvlist:
+                return False
+            for index, (nb, actnb) in enumerate(zip(vlist, actvlist)):
+                if nb == actnb:
+                    if index == len(vlist)-1 and '=' not in symb:
+                        return False
+                    else:
+                        continue
+                elif actnb < nb:
+                    return False
+                elif actnb > nb and symb == '=':
+                    return False
+            else:
+                return True
     except ImportError:
         return False
 
