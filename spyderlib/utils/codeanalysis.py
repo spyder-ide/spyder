@@ -67,7 +67,7 @@ PYFLAKES_REQVER = '0.5.0'
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
-    return programs.is_module_installed('pyflakes', PYFLAKES_REQVER)
+    return programs.is_module_installed('pyflakes', '>='+PYFLAKES_REQVER)
 
 
 def get_checker_executable(name):

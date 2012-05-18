@@ -291,7 +291,7 @@ class DirView(QTreeView):
                                triggered=lambda fnames=fnames:
                                self.open_interpreter(fnames))
         actions.append(action)
-        if programs.is_module_installed('IPython', '0.1'):
+        if programs.is_module_installed('IPython', '>=0.10'):
             _title = _("Open IPython here")
             action = create_action(self, _title, icon="ipython.png",
                                    triggered=lambda fnames=fnames:

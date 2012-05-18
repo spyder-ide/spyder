@@ -922,7 +922,7 @@ class ExternalConsole(SpyderPluginWidget):
                             'ipython.png',
                             _("Open an IPython interpreter"),
                             triggered=self.open_ipython)
-        if programs.is_module_installed('IPython', '0.1'):
+        if programs.is_module_installed('IPython', '>=0.10'):
             self.menu_actions.insert(1, ipython_action)
             interact_menu_actions.append(ipython_action)
         

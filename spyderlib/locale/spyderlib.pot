@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-04-15 14:56+Paris, Madrid (heure d’été)\n"
+"POT-Creation-Date: 2012-04-15 14:56+Paris, Madrid (heure dÂ’Ã©tÃ©)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3482,7 +3482,7 @@ msgid "Memory:"
 msgstr ""
 
 #: spyderlib\widgets\status.py:81
-msgid "Memory usage status: requires the `psutil` library on non-Windows platforms"
+msgid "Memory usage status: requires the `psutil` (>=v0.3) library on non-Windows platforms"
 msgstr ""
 
 #: spyderlib\widgets\status.py:93
@@ -3490,7 +3490,7 @@ msgid "CPU:"
 msgstr ""
 
 #: spyderlib\widgets\status.py:94
-msgid "CPU usage status: requires the `psutil` library"
+msgid "CPU usage status: requires the `psutil` (>=v0.3) library"
 msgstr ""
 
 #: spyderlib\widgets\status.py:112

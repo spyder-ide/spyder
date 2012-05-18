@@ -81,7 +81,7 @@ class BaseTimerStatus(StatusBarWidget):
 class MemoryStatus(BaseTimerStatus):
     TITLE = _("Memory:")
     TIP = _("Memory usage status: "
-            "requires the `psutil` library on non-Windows platforms")
+            "requires the `psutil` (>=v0.3) library on non-Windows platforms")
     def import_test(self):
         """Raise ImportError if feature is not supported"""
         from spyderlib.utils.system import memory_usage  # analysis:ignore
@@ -93,10 +93,14 @@ class MemoryStatus(BaseTimerStatus):
 
 class CPUStatus(BaseTimerStatus):
     TITLE = _("CPU:")
-    TIP = _("CPU usage status: requires the `psutil` library")
+    TIP = _("CPU usage status: requires the `psutil` (>=v0.3) library")
     def import_test(self):
         """Raise ImportError if feature is not supported"""
-        import psutil  # analysis:ignore
+        from spyderlib.utils import programs
+        if not programs.is_module_installed('psutil', '0.2.0'):
+            # The `interval` argument in `psutil.cpu_percent` function
+            # was introduced in v0.2.0
+            raise ImportError
 
     def get_value(self):
         """Return CPU usage"""

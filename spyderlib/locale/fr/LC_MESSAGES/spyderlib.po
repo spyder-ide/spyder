@@ -3856,16 +3856,16 @@ msgstr "Mémoire :"
 
 #: spyderlib\widgets\status.py:81
 msgid ""
-"Memory usage status: requires the `psutil` library on non-Windows platforms"
-msgstr "Occupation mémoire : requiert la bibliothèque `psutil` sur les plateformes autres que Windows"
+"Memory usage status: requires the `psutil` (>=v0.3) library on non-Windows platforms"
+msgstr "Occupation mémoire : requiert la bibliothèque `psutil` (>=v0.3) sur les plateformes autres que Windows"
 
 #: spyderlib\widgets\status.py:93
 msgid "CPU:"
 msgstr "CPU :"
 
 #: spyderlib\widgets\status.py:94
-msgid "CPU usage status: requires the `psutil` library"
-msgstr "Occupation CPU : requiert la bibliothèque `psutil`"
+msgid "CPU usage status: requires the `psutil` (>=v0.3) library"
+msgstr "Occupation CPU : requiert la bibliothèque `psutil` (>=v0.3)"
 
 #: spyderlib\widgets\status.py:112
 msgid "Permissions:"

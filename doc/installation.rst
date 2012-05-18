@@ -15,7 +15,7 @@ Recommended modules:
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
     * matplotlib (2D/3D plotting)
-    * psutil (memory/CPU usage in status bar)
+    * psutil 0.3+ (memory/CPU usage in status bar)
 
 Optional modules:
     * IPython (enhanced Python interpreter)

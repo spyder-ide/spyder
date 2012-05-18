@@ -6,42 +6,51 @@
 
 """Operating system utilities"""
 
+
 import os
+
+# Local imports
+from spyderlib.utils import programs
+
 
 def windows_memory_usage():
     """Return physical memory usage (float)
     Works on Windows platforms only"""
-    from ctypes import windll
-    from ctypes.wintypes import byref, Structure, DWORD, c_uint64, sizeof
-    class MemoryStatus(Structure):
-        _fields_ = [('dwLength', DWORD), ('dwMemoryLoad', DWORD),
-                    ('ullTotalPhys', c_uint64), ('ullAvailPhys', c_uint64),
-                    ('ullTotalPageFile', c_uint64), ('ullAvailPageFile', c_uint64),
-                    ('ullTotalVirtual', c_uint64), ('ullAvailVirtual', c_uint64),
-                    ('ullAvailExtendedVirtual', c_uint64),]
+    from ctypes import windll, wintypes
+    class MemoryStatus(wintypes.Structure):
+        _fields_ = [('dwLength', wintypes.DWORD),
+                    ('dwMemoryLoad', wintypes.DWORD),
+                    ('ullTotalPhys', wintypes.c_uint64),
+                    ('ullAvailPhys', wintypes.c_uint64),
+                    ('ullTotalPageFile', wintypes.c_uint64),
+                    ('ullAvailPageFile', wintypes.c_uint64),
+                    ('ullTotalVirtual', wintypes.c_uint64),
+                    ('ullAvailVirtual', wintypes.c_uint64),
+                    ('ullAvailExtendedVirtual', wintypes.c_uint64),]
     memorystatus = MemoryStatus()
     # MSDN documetation states that dwLength must be set to MemoryStatus
     # size before calling GlobalMemoryStatusEx
     # http://msdn.microsoft.com/en-us/library/aa366770(v=vs.85)
-    memorystatus.dwLength = sizeof(memorystatus)
-    windll.kernel32.GlobalMemoryStatusEx(byref(memorystatus))
+    memorystatus.dwLength = wintypes.sizeof(memorystatus)
+    windll.kernel32.GlobalMemoryStatusEx(wintypes.byref(memorystatus))
     return float(memorystatus.dwMemoryLoad)
 
 def psutil_phymem_usage():
     """Return physical memory usage (float)
-    Requires the cross-platform psutil library
+    Requires the cross-platform psutil (>=v0.3) library
     (http://code.google.com/p/psutil/)"""
+    import psutil
     return psutil.phymem_usage().percent
 
-try:
-    import psutil
+if programs.is_module_installed('psutil', '>=0.3.0'):
+    #  Function `psutil.phymem_usage` was introduced in psutil v0.3.0
     memory_usage = psutil_phymem_usage
-except ImportError:
-    if os.name == 'nt':
-        # Backup plan for Windows platforms
-        memory_usage = windows_memory_usage
-    else:
-        raise
+elif os.name == 'nt':
+    # Backup plan for Windows platforms
+    memory_usage = windows_memory_usage
+else:
+    raise ImportError, "Feature requires psutil 0.3+ on non Windows platforms"
+
 
 if __name__ == '__main__':
     print "*"*80
