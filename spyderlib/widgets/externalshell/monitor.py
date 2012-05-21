@@ -400,6 +400,10 @@ class Monitor(threading.Thread):
     
     def setcwd(self, dirname):
         """Set current working directory"""
+        try:
+            dirname = dirname.decode('utf-8')
+        except (UnicodeError, TypeError):
+            pass
         if self.ipython_shell:
             self.ipython_shell.magic_cd("-q "+dirname)
         else:
