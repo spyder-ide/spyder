@@ -455,6 +455,10 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     args: command line arguments (string)
     wdir: working directory
     """
+    try:
+        filename = filename.decode('utf-8')
+    except (UnicodeError, TypeError):
+        pass
     global __umd__
     if os.environ.get("UMD_ENABLED", "").lower() == "true":
         if __umd__ is None:
@@ -475,6 +479,10 @@ def runfile(filename, args=None, wdir=None, namespace=None):
         for arg in args.split():
             sys.argv.append(arg)
     if wdir is not None:
+        try:
+            wdir = wdir.decode('utf-8')
+        except (UnicodeError, TypeError):
+            pass
         os.chdir(wdir)
     execfile(filename, namespace)
     sys.argv = ['']
