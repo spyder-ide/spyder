@@ -405,7 +405,16 @@ class Monitor(threading.Thread):
         except (UnicodeError, TypeError):
             pass
         if self.ipython_shell:
-            self.ipython_shell.magic_cd("-q "+dirname)
+            if os.name == 'nt':
+                # Hack to make IPython just cd to dirname without all the
+                # other sugar magic_cd does, which doesn't not work on
+                # Windows with non-ascii paths
+                old_cd = self.ipython_shell.magic_cd
+                self.ipython_shell.magic_cd = os.chdir
+                self.ipython_shell.magic_cd(dirname)
+                self.ipython_shell.magic_cd = old_cd
+            else:
+                self.ipython_shell.magic_cd("-q " + dirname)
         else:
             return os.chdir(dirname)
             
