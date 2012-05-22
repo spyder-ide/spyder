@@ -1682,7 +1682,18 @@ class Editor(SpyderPluginWidget):
         """Run winpdb to debug current file"""
         if self.save():
             fname = self.get_current_filename()
-            programs.run_program(WINPDB_PATH, [fname])
+            runconf = get_run_configuration(fname)
+            if runconf is None:
+                args = []
+                wdir = None
+            else:
+                args = runconf.get_arguments().split()
+                wdir = runconf.get_working_directory()
+                # Handle the case where wdir comes back as an empty string
+                # when the working directory dialog checkbox is unchecked.
+                if not wdir:
+                    wdir = None
+            programs.run_program(WINPDB_PATH, [fname]+args, wdir)
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
