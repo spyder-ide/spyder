@@ -45,7 +45,13 @@ def get_common_path(pathlist):
     if len(common) > 1:
         if not osp.isdir(common):
             common = osp.dirname(common)
-        return osp.abspath(common)
+        cpnts = len(osp.split(common))
+        for path in pathlist:
+            if len(path) > len(common) and len(osp.split(path)) == cpnts:
+                # `common` is not the real common prefix
+                return abspardir(common)
+        else:
+            return osp.abspath(common)
 
 def is_hg_installed():
     """Return True if Mercurial is installed"""
