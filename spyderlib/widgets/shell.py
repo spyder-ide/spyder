@@ -734,7 +734,7 @@ class PythonShellWidget(ShellBaseWidget):
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence("Ctrl+Shift+Escape"),
+                                     QKeySequence("Ctrl+L"),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
