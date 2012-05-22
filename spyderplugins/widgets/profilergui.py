@@ -315,6 +315,8 @@ class ProfilerDataTree(QTreeWidget):
     [4] = A dictionary indicating for each function name, the number of times
           it was called by us.
     """
+    SEP = r"<[=]>"  # separator between filename and linenumber
+    # (must be improbable as a filename to avoid splitting the filename itself)
     def __init__(self, parent=None):
         QTreeWidget.__init__(self, parent)
         self.header_list = [_('Function/Module'), _('Total Time'),
@@ -337,6 +339,15 @@ class ProfilerDataTree(QTreeWidget):
         self.connect(self, SIGNAL('itemExpanded(QTreeWidgetItem*)'),
                      self.item_expanded)
 
+    def set_item_data(self, item, filename, line_number):
+        """Set tree item user data: filename (string) and line_number (int)"""
+        set_item_user_text(item, '%s%s%d' % (filename, self.SEP, line_number))
+    
+    def get_item_data(self, item):
+        """Get tree item user data: (filename, line_number)"""
+        filename, line_number_str = get_item_user_text(item).split(self.SEP)
+        return filename, int(line_number_str)
+
     def initialize_view(self):
         """Clean the tree and view parameters"""
         self.clear()
@@ -354,9 +365,9 @@ class ProfilerDataTree(QTreeWidget):
 
     def find_root(self):
         """Find a function without a caller"""
-        for key,value in self.stats.iteritems():
-            if not value[4]:
-                return key
+        for func, (cc, nc, tt, ct, callers) in self.stats.iteritems():
+            if not callers and self.find_callees(func):
+                return func
     
     def find_root_skip_profilerfuns(self):
         """Define root ignoring profiler-specific functions."""
@@ -376,13 +387,14 @@ class ProfilerDataTree(QTreeWidget):
         self.initialize_view() # Clear before re-populating
         self.setItemsExpandable(True)
         self.setSortingEnabled(False)
-        rootKey = self.find_root()  # This root contains profiler overhead
-#        rootKey = self.find_root_skip_profilerfuns()
-        self.populate_tree(self, self.find_callees(rootKey))
-        self.resizeColumnToContents(0)
-        self.setSortingEnabled(True)
-        self.sortItems(1, Qt.DescendingOrder) # FIXME: hardcoded index
-        self.change_view(1)
+        rootkey = self.find_root()  # This root contains profiler overhead
+#        rootkey = self.find_root_skip_profilerfuns()
+        if rootkey:
+            self.populate_tree(self, self.find_callees(rootkey))
+            self.resizeColumnToContents(0)
+            self.setSortingEnabled(True)
+            self.sortItems(1, Qt.DescendingOrder) # FIXME: hardcoded index
+            self.change_view(1)
 
     def function_info(self, functionKey):
         """Returns processed information about the function's name and file."""
@@ -402,7 +414,7 @@ class ProfilerDataTree(QTreeWidget):
                 node_type = 'constructor'                
             file_and_line = '%s : %d' % (filename, line_number)
         return filename, line_number, function_name, file_and_line, node_type
-
+    
     def populate_tree(self, parentItem, children_list):
         """Recursive method to create each item (and associated data) in the tree."""
         for child_key in children_list:
@@ -413,7 +425,7 @@ class ProfilerDataTree(QTreeWidget):
              ) = self.stats[child_key]
             child_item = QTreeWidgetItem(parentItem)
             self.item_list.append(child_item)
-            set_item_user_text(child_item, '%s&%d' % (filename, line_number))
+            self.set_item_data(child_item, filename, line_number)
 
             # FIXME: indexes to data should be defined by a dictionary on init
             child_item.setToolTip(0, 'Function or module name')
@@ -454,9 +466,9 @@ class ProfilerDataTree(QTreeWidget):
             self.item_depth -= 1
         
     def item_activated(self, item):
-        filename, line_number_str = get_item_user_text(item).split('&')
+        filename, line_number = self.get_item_data(item)
         self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                           filename, int(line_number_str), '')
+                           filename, line_number, '')
             
     def item_expanded(self, item):
         if item.childCount() == 0 and item in self.items_to_be_shown:
@@ -512,6 +524,7 @@ def test():
     from spyderlib.utils.qthelpers import qapplication
     app = qapplication()
     widget = ProfilerWidget(None)
+    widget.resize(800, 600)
     widget.show()
     #widget.analyze(__file__)
     widget.analyze(osp.join(osp.dirname(__file__), os.pardir, os.pardir,
