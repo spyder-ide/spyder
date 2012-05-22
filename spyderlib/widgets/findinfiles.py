@@ -27,6 +27,7 @@ from subprocess import Popen, PIPE
 
 # Local imports
 from spyderlib.utils import programs
+from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        get_filetype_icon)
 from spyderlib.baseconfig import _
@@ -34,24 +35,6 @@ from spyderlib.config import get_icon
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
 
-
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
-
-def get_common_path(pathlist):
-    """Return common path for all paths in pathlist"""
-    common = osp.commonprefix(pathlist)
-    if len(common) > 1:
-        if not osp.isdir(common):
-            common = osp.dirname(common)
-        cpnts = len(osp.split(common))
-        for path in pathlist:
-            if len(path) > len(common) and len(osp.split(path)) == cpnts:
-                # `common` is not the real common prefix
-                return abspardir(common)
-        else:
-            return osp.abspath(common)
 
 def is_hg_installed():
     """Return True if Mercurial is installed"""

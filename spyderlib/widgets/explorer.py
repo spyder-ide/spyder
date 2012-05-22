@@ -64,11 +64,6 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
            sorted(namelist, key=unicode.lower)
 
 
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
-
-
 def has_subdirectories(path, include, exclude, show_all):
     """Return True if path has subdirectories"""
     try:

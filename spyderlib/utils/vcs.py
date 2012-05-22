@@ -6,13 +6,13 @@
 
 """Utilities for version control systems"""
 
-import os
 import os.path as osp
 import subprocess
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.utils import programs
+from spyderlib.utils.misc import abspardir
 
 
 VCS_INFOS = {
@@ -35,11 +35,6 @@ def get_vcs_infos(path):
         vcs_path = osp.join(path, dirname)
         if osp.isdir(vcs_path):
             return infos
-
-
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
 
 
 def get_vcs_root(path):

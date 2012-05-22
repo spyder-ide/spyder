@@ -146,3 +146,31 @@ def get_python_executable():
         # py2exe distribution
         executable = "python.exe"
     return executable
+
+
+def abspardir(path):
+    """Return absolute parent dir"""
+    return osp.abspath(osp.join(path, os.pardir))
+
+
+def get_common_path(pathlist):
+    """Return common path for all paths in pathlist"""
+    common = osp.normpath(osp.commonprefix(pathlist))
+    if len(common) > 1:
+        if not osp.isdir(common):
+            return abspardir(common)
+        else:
+            for path in pathlist:
+                if not osp.isdir(osp.join(common, path[len(common)+1:])):
+                    # `common` is not the real common prefix
+                    return abspardir(common)
+            else:
+                return osp.abspath(common)
+
+if __name__ == '__main__':
+    assert get_common_path([
+                            'D:\\Python\\spyder-v21\\spyderlib\\widgets',
+                            u'D:\\Python\\spyder\\spyderlib\\utils',
+                            u'D:\\Python\\spyder\\spyderlib\\widgets',
+                            'D:\\Python\\spyder-v21\\spyderlib\\utils',
+                            ]) == 'D:\\Python'
