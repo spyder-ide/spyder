@@ -21,6 +21,7 @@ import os.path as osp
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
+from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)
 
@@ -138,26 +139,14 @@ class BaseTabs(QTabWidget):
         
         # If tab names are all filenames, removing common path:
         if len(names) == len(dirnames):
-            length = None
-            # Finding the shorter path, should be closer to the common path:
-            for dirname in dirnames:
-                if length is None or len(dirname) < length:
-                    length = len(dirname)
-                    path = dirname
-            offset = None
-            tail = None
-            # Finding the common path:
-            while tail is None or tail:
-                for dirname in dirnames:
-                    if not dirname.startswith(path):
-                        break
-                else:
-                    offset = len(path)+1
-                    break
-                path, tail = osp.split(path)
-            if offset is not None and offset <= 3:
-                # Common path is not a path but a drive letter...
+            common = get_common_path(dirnames)
+            if common is None:
                 offset = None
+            else:
+                offset = len(common)+1
+                if offset <= 3:
+                    # Common path is not a path but a drive letter...
+                    offset = None
                 
         for index, text in enumerate(names):
             tab_action = create_action(self, text[offset:],
