@@ -58,7 +58,6 @@ class BaseComboBox(QComboBox):
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
         self.add_text(self.currentText())
-        self.selected()
 
     def keyPressEvent(self, event):
         """Handle key press events"""
@@ -66,6 +65,7 @@ class BaseComboBox(QComboBox):
             valid = self.is_valid(self.currentText())
             if valid or valid is None:
                 self.add_current_text()
+                self.selected()
         else:
             QComboBox.keyPressEvent(self, event)
         
