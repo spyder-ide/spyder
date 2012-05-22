@@ -23,8 +23,8 @@ VCS_INFOS = {
                                    ('hgtk', ['log']) )
                           ),
              '.git': dict(name="git",
-                          commit=( ('gitk', []), ),
-                          browse=( ('git', ['gui']) )
+                          commit=( ('git', ['gui']), ),
+                          browse=( ('gitk', []), )
                           ),
              }
 
