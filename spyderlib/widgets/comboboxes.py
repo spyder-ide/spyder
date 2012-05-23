@@ -39,6 +39,14 @@ class BaseComboBox(QComboBox):
         else:
             QComboBox.keyPressEvent(self, event)
 
+    def focusOutEvent(self, event):
+        """Handle focus out event"""
+        # this also moves mouse-selected items in drop down to the top
+        valid = self.is_valid(self.currentText())
+        if valid or valid is None:
+            self.add_current_text()
+        QComboBox.focusOutEvent(self, event)
+
     # --- own methods
     def is_valid(self, qstr):
         """
