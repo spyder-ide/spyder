@@ -72,6 +72,11 @@ def run_vcs_tool(path, tool):
                               ))
 
 
+def is_hg_installed():
+    """Return True if Mercurial is installed"""
+    return programs.find_program('hg') is not None
+
+
 def get_hg_revision(repopath):
     """Return Mercurial revision for the repository located at repopath
        Result is a tuple (global, local, branch), with None values on error
@@ -79,16 +84,15 @@ def get_hg_revision(repopath):
            >>> get_hg_revision(".")
            ('eba7273c69df+', '2015+', 'default')
     """
-    ret = (None, None, None)
     try:
+        assert is_hg_installed()
         output = subprocess.Popen('hg id -nib "%s"' % repopath, shell=True,
                                   stdout=subprocess.PIPE).communicate()
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
-        ret = tuple(output[0].strip().split())
-    except:
+        return tuple(output[0].strip().split())
+    except (AssertionError, ValueError):
         # print("Error: Failed to get revision number from Mercurial - %s" % exc)
-        pass
-    return ret
+        return (None, None, None)
 
 
 if __name__ == '__main__':
