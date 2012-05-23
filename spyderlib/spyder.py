@@ -67,7 +67,7 @@ if os.name == 'nt':
 # Workaround: importing rope.base.project here, otherwise this module can't
 # be imported if Spyder was executed from another folder than spyderlib
 try:
-    import rope.base.project #@UnusedImport
+    import rope.base.project  # analysis:ignore
 except ImportError:
     pass
 
@@ -90,7 +90,7 @@ from spyderlib.utils import encoding, vcs
 try:
     from spyderlib.utils.environ import WinUserEnvDialog
 except ImportError:
-    WinUserEnvDialog = None
+    WinUserEnvDialog = None  # analysis:ignore
 from spyderlib.widgets.pathmanager import PathManager
 from spyderlib.widgets.status import MemoryStatus, CPUStatus
 from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
@@ -106,7 +106,7 @@ try:
     from spyderlib.plugins.onlinehelp import OnlineHelp
 except ImportError:
     # Qt < v4.4
-    OnlineHelp = None
+    OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
@@ -153,6 +153,36 @@ def get_python_doc_path():
     python_doc = osp.join(doc_path, "index.html")
     if osp.isfile(python_doc):
         return file_uri(python_doc)
+
+
+#==============================================================================
+# Spyder's main window widgets utilities
+#==============================================================================
+def get_focus_python_shell():
+    """Extract and return Python shell from widget
+    Return None if *widget* is not a Python shell (e.g. IPython kernel)"""
+    widget = QApplication.focusWidget()
+    from spyderlib.widgets.shell import PythonShellWidget
+    from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
+    if isinstance(widget, PythonShellWidget):
+        return widget
+    elif isinstance(widget, ExternalPythonShell):
+        return widget.shell
+
+def get_focus_widget_properties():
+    """Get properties of focus widget
+    Returns tuple (widget, properties) where properties is a tuple of
+    booleans: (is_console, not_readonly, readwrite_editor)"""
+    widget = QApplication.focusWidget()
+    from spyderlib.widgets.shell import ShellBaseWidget
+    from spyderlib.widgets.editor import TextEditBaseWidget
+    textedit_properties = None
+    if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
+        console = isinstance(widget, ShellBaseWidget)
+        not_readonly = not widget.isReadOnly()
+        readwrite_editor = not_readonly and not console
+        textedit_properties = (console, not_readonly, readwrite_editor)
+    return widget, textedit_properties
 
 
 #TODO: Improve the stylesheet below for separator handles to be visible
@@ -1097,16 +1127,6 @@ class MainWindow(QMainWindow):
         self.save_current_window_settings('layout_%d/' % index,
                                           section='quick_layouts')
 
-    def __focus_shell(self):
-        """Return Python shell widget which has focus, if any"""
-        widget = QApplication.focusWidget()
-        from spyderlib.widgets.shell import PythonShellWidget
-        from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
-        if isinstance(widget, PythonShellWidget):
-            return widget
-        elif isinstance(widget, ExternalPythonShell):
-            return widget.shell
-        
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
         if self.light:
@@ -1114,8 +1134,9 @@ class MainWindow(QMainWindow):
             return
         self.update_edit_menu()
         self.update_search_menu()
-        shell = self.__focus_shell()
+        shell = get_focus_python_shell()
         if shell is not None:
+            # A Python shell widget has focus
             if self.inspector is not None:
                 #  The object inspector may be disabled in .spyder.ini
                 self.inspector.set_shell(shell)
@@ -1124,6 +1145,7 @@ class MainWindow(QMainWindow):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget(shell)
         else:
+            # Checking if any IPython frontend has focus
             widget = QApplication.focusWidget()
             for ipf in self.ipython_frontends:
                 if widget is ipf or widget is ipf.get_focus_widget():
@@ -1135,21 +1157,6 @@ class MainWindow(QMainWindow):
         """Update file menu"""
         self.load_temp_session_action.setEnabled(osp.isfile(TEMP_SESSION_PATH))
         
-    def __focus_widget_properties(self):
-        """Get properties of focus widget
-        Returns tuple (widget, properties) where properties is a tuple of
-        booleans: (is_console, not_readonly, readwrite_editor)"""
-        widget = QApplication.focusWidget()
-        from spyderlib.widgets.shell import ShellBaseWidget
-        from spyderlib.widgets.editor import TextEditBaseWidget
-        textedit_properties = None
-        if isinstance(widget, (ShellBaseWidget, TextEditBaseWidget)):
-            console = isinstance(widget, ShellBaseWidget)
-            not_readonly = not widget.isReadOnly()
-            readwrite_editor = not_readonly and not console
-            textedit_properties = (console, not_readonly, readwrite_editor)
-        return widget, textedit_properties
-        
     def update_edit_menu(self):
         """Update edit menu"""
         if self.menuBar().hasFocus():
@@ -1158,7 +1165,7 @@ class MainWindow(QMainWindow):
         for child in self.edit_menu.actions():
             child.setEnabled(False)        
         
-        widget, textedit_properties = self.__focus_widget_properties()
+        widget, textedit_properties = get_focus_widget_properties()
         if textedit_properties is None: # widget is not an editor/console
             return
         #!!! Below this line, widget is expected to be a QPlainTextEdit instance
@@ -1198,7 +1205,7 @@ class MainWindow(QMainWindow):
                       self.find_previous_action, self.replace_action]:
             child.setEnabled(False)
         
-        widget, textedit_properties = self.__focus_widget_properties()
+        widget, textedit_properties = get_focus_widget_properties()
         for action in self.editor.search_menu_actions:
             action.setEnabled(self.editor.isAncestorOf(widget))
         if textedit_properties is None: # widget is not an editor/console
@@ -1358,11 +1365,11 @@ class MainWindow(QMainWindow):
         try:
             from pyflakes import __version__ as pyflakes_version
         except ImportError:
-            pyflakes_version = not_installed
+            pyflakes_version = not_installed  # analysis:ignore
         try:
             from rope import VERSION as rope_version
         except ImportError:
-            rope_version = not_installed
+            rope_version = not_installed  # analysis:ignore
         # Show Mercurial revision for development version
         revlink = ''
         import spyderlib
@@ -1579,6 +1586,13 @@ Please provide any additional information below.
                                    "<b>`%s`") % cf)
             return
         self.ipython_frontends.append(ipython_plugin)
+    
+    def get_ipython_widget(self, kernel_widget):
+        """Return IPython widget (ipython_plugin.ipython_widget) 
+        associated to kernel_widget"""
+        for ipf in self.ipython_frontends:
+            if ipf.kernel_widget is kernel_widget:
+                return ipf.ipython_widget
         
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
@@ -1781,7 +1795,7 @@ def initialize():
     class FakeQApplication(QApplication):
         """Spyder's fake QApplication"""
         def __init__(self, args):
-            self = app
+            self = app  # analysis:ignore
         @staticmethod
         def exec_():
             """Do nothing because the Qt mainloop is already running"""

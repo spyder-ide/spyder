@@ -592,8 +592,14 @@ class ExternalConsole(SpyderPluginWidget):
             if wdir:
                 line += ", wdir=r'%s'" % norm(wdir)
             line += ")"
-            shellwidget.shell.execute_lines(line)
-            shellwidget.shell.setFocus()
+            if shellwidget.is_ipython_kernel:
+                #  IPython plugin
+                ipython_widget = self.main.get_ipython_widget(shellwidget)
+                ipython_widget.execute(line)
+                ipython_widget.setFocus()
+            else:
+                shellwidget.shell.execute_lines(line)
+                shellwidget.shell.setFocus()
             
     def set_current_shell_working_directory(self, directory):
         """Set current shell working directory"""
