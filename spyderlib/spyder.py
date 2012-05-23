@@ -1109,11 +1109,16 @@ class MainWindow(QMainWindow):
         
     def plugin_focus_changed(self):
         """Focus has changed from one plugin to another"""
+        if self.light:
+            #  There is currently no point doing the following in light mode
+            return
         self.update_edit_menu()
         self.update_search_menu()
         shell = self.__focus_shell()
-        if shell is not None and self.inspector is not None:
-            self.inspector.set_shell(shell)
+        if shell is not None:
+            if self.inspector is not None:
+                #  The object inspector may be disabled in .spyder.ini
+                self.inspector.set_shell(shell)
             from spyderlib.widgets.externalshell import pythonshell
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
