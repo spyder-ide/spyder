@@ -257,84 +257,31 @@ class _FileListCacher(object):
 
     def __init__(self, project):
         self.project = project
-        self.needs_gc = True
-        self.files = set()
-        self.folders = set()
+        self.files = None
+        rawobserver = ResourceObserver(
+            self._changed, self._invalid, self._invalid,
+            self._invalid, self._invalid)
+        self.project.add_observer(rawobserver)
 
     def get_files(self):
-        if self.needs_gc:
-            # forcing the creation of the observer
-            self.observer
-            for file in list(self.files):
-                if not file.exists():
-                    self.files.remove(file)
-            for folder in list(self.folders):
-                if not folder.exists():
-                    self.folders.remove(folder)
-                    self.observer.remove_resource(folder)
-            self.needs_gc = False
+        if self.files is None:
+            self.files = set()
+            self._add_files(self.project.root)
         return self.files
 
-    def _updated_resources(self, folder):
-        if not folder.exists():
-            return set(), set()
-        files = set()
-        folders = set([folder])
-        files.update(folder.get_files())
-        for child in folder.get_folders():
-            if child not in self.folders:
-                newfiles, newfolders = self._updated_resources(child)
-                files.update(newfiles)
-                folders.update(newfolders)
-        return files, folders
-
-    def _update_folder(self, folder):
-        files, folders = self._updated_resources(folder)
-        self.files.update(files)
-        for child in folders - self.folders:
-            self.folders.add(child)
-            self.observer.add_resource(child)
-        self.needs_gc = True
-
-    @property
-    @utils.saveit
-    def observer(self):
-        rawobserver = ResourceObserver(
-            self._changed, self._moved, self._created,
-            self._removed, self._validate)
-        observer = FilteredResourceObserver(rawobserver)
-        self.project.add_observer(observer)
-        self._update_folder(self.project.root)
-        return observer
+    def _add_files(self, folder):
+        for child in folder.get_children():
+            if child.is_folder():
+                self._add_files(child)
+            elif not self.project.is_ignored(child):
+                self.files.add(child)
 
     def _changed(self, resource):
         if resource.is_folder():
-            self._update_folder(resource)
+            self.files = None
 
-    def _moved(self, resource, new_resource):
-        if resource.is_folder():
-            self._update_folder(resource)
-            self._update_folder(new_resource)
-        else:
-            self._removed(resource)
-            self._created(new_resource)
-
-    def _created(self, resource):
-        if resource.is_folder():
-            self._update_folder(resource)
-        else:
-            if not self.project.is_ignored(resource):
-                self.files.add(resource)
-
-    def _removed(self, resource):
-        if resource.is_folder():
-            self._update_folder(resource)
-        else:
-            if resource in self.files:
-                self.files.remove(resource)
-
-    def _validate(self, resource):
-        pass
+    def _invalid(self, resource, new_resource=None):
+        self.files = None
 
 
 class _DataFiles(object):

@@ -27,6 +27,10 @@ def walk(node, walker):
     method_name = '_' + node.__class__.__name__
     method = getattr(walker, method_name, None)
     if method is not None:
+        if isinstance(node, _ast.ImportFrom) and node.module is None:
+            # In python < 2.7 ``node.module == ''`` for relative imports
+            # but for python 2.7 it is None. Generalizing it to ''.
+            node.module = ''
         return method(node)
     for child in get_child_nodes(node):
         walk(child, walker)

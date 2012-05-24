@@ -2,7 +2,7 @@
 import inspect
 
 import rope.base.evaluate
-from rope.base import pynames, pyobjects, arguments, utils
+from rope.base import pynames, pyobjects, arguments, utils, ast
 
 
 class BuiltinModule(pyobjects.AbstractModule):
@@ -110,6 +110,9 @@ class BuiltinUnknown(_BuiltinElement, pyobjects.PyObject):
         self.builtin = builtin
         self.type = pyobjects.get_unknown()
 
+    def get_name(self):
+        return getattr(type(self.builtin), '__name__', None)
+
     @utils.saveit
     def get_attributes(self):
         return _object_attributes(self.builtin, self)
@@ -120,7 +123,12 @@ def _object_attributes(obj, parent):
     for name in dir(obj):
         if name == 'None':
             continue
-        child = getattr(obj, name)
+        try:
+            child = getattr(obj, name)
+        except AttributeError:
+            # descriptors are allowed to raise AttributeError
+            # even if they are in dir()
+            continue
         pyobject = None
         if inspect.isclass(child):
             pyobject = BuiltinClass(child, {}, parent=parent)
@@ -597,6 +605,7 @@ class Lambda(pyobjects.AbstractFunction):
     def __init__(self, node, scope):
         super(Lambda, self).__init__()
         self.node = node
+        self.arguments = node.args
         self.scope = scope
 
     def get_returned_object(self, args):
@@ -606,8 +615,36 @@ class Lambda(pyobjects.AbstractFunction):
         else:
             return pyobjects.get_unknown()
 
-    def get_pattributes(self):
+    def get_module(self):
+        return self.parent.get_module()
+
+    def get_scope(self):
+        return self.scope
+
+    def get_kind(self):
+        return 'lambda'
+
+    def get_ast(self):
+        return self.node
+
+    def get_attributes(self):
         return {}
+
+    def get_name(self):
+        return  'lambda'
+
+    def get_param_names(self, special_args=True):
+        result = [node.id for node in self.arguments.args
+                  if isinstance(node, ast.Name)]
+        if self.arguments.vararg:
+            result.append('*' + self.arguments.vararg)
+        if self.arguments.kwarg:
+            result.append('**' + self.arguments.kwarg)
+        return result
+
+    @property
+    def parent(self):
+        return self.scope.pyobject
 
 
 class BuiltinObject(BuiltinClass):
@@ -628,8 +665,10 @@ def _infer_sequence_for_pyname(pyname):
     seq = pyname.get_object()
     args = arguments.ObjectArguments([pyname])
     if '__iter__' in seq:
-        iter = seq['__iter__'].get_object().\
-               get_returned_object(args)
+        obj = seq['__iter__'].get_object()
+        if not isinstance(obj, pyobjects.AbstractFunction):
+            return None
+        iter = obj.get_returned_object(args)
         if iter is not None and 'next' in iter:
             holding = iter['next'].get_object().\
                       get_returned_object(args)

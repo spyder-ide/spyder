@@ -204,7 +204,8 @@ class _PatchingASTWalker(object):
         for children in reversed(self.children_stack):
             for child in children:
                 if isinstance(child, ast.stmt):
-                    return self.lines.get_line_start(child.lineno)
+                    return child.col_offset \
+                           + self.lines.get_line_start(child.lineno)
         return len(self.source.source)
 
     _operators = {'And': 'and', 'Or': 'or', 'Add': '+', 'Sub': '-', 'Mult': '*',
@@ -350,7 +351,8 @@ class _PatchingASTWalker(object):
         children = ['from']
         if node.level:
             children.append('.' * node.level)
-        children.extend([node.module, 'import'])
+        children.extend([node.module or '', # see comment at rope.base.ast.walk
+                         'import'])
         children.extend(self._child_nodes(node.names, ','))
         self._handle(node, children)
 

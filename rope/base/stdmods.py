@@ -5,8 +5,8 @@ from rope.base import utils
 
 
 def _stdlib_path():
-    import inspect
-    return os.path.dirname(inspect.getsourcefile(inspect))
+    import distutils.sysconfig
+    return distutils.sysconfig.get_python_lib(standard_lib=True)
 
 @utils.cached(1)
 def standard_modules():

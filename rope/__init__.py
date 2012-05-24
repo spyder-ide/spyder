@@ -1,10 +1,10 @@
 """rope, a python refactoring library"""
 
 INFO = __doc__
-VERSION = '0.9.3'
+VERSION = '0.9.4'
 COPYRIGHT = """\
-Copyright (C) 2006-2010 Ali Gholami Rudi
-Copyright (C) 2009-2010 Anton Gritsay
+Copyright (C) 2006-2012 Ali Gholami Rudi
+Copyright (C) 2009-2012 Anton Gritsay
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of GNU General Public License as published by the
