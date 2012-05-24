@@ -97,7 +97,7 @@ class CPUStatus(BaseTimerStatus):
     def import_test(self):
         """Raise ImportError if feature is not supported"""
         from spyderlib.utils import programs
-        if not programs.is_module_installed('psutil', '0.2.0'):
+        if not programs.is_module_installed('psutil', '>=0.2.0'):
             # The `interval` argument in `psutil.cpu_percent` function
             # was introduced in v0.2.0
             raise ImportError
