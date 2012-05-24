@@ -186,7 +186,8 @@ def is_module_installed(module_name, version=None):
                    "Invalid version condition '%s'" % symb
             version = version[match.start():]
             try:
-                actver = getattr(mod, '__version__', getattr(mod, 'VERSION'))
+                actver = getattr(mod, '__version__',
+                                 getattr(mod, 'VERSION', None))
             except AttributeError:
                 return False
             def getvlist(version):
