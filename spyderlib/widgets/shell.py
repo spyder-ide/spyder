@@ -696,10 +696,6 @@ class PythonShellWidget(ShellBaseWidget):
         self.inspector = None
         self.inspector_enabled = True
         
-        # Allow raw_input support:
-        self.input_loop = None
-        self.input_mode = False
-        
         # Mouse cursor
         self.__cursor_changed = False
 

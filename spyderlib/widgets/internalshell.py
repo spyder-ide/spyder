@@ -25,7 +25,7 @@ from time import time
 from subprocess import Popen
 
 from spyderlib.qt.QtGui import QMessageBox
-from spyderlib.qt.QtCore import SIGNAL, QObject
+from spyderlib.qt.QtCore import SIGNAL, QObject, QEventLoop
 
 # Local import
 from spyderlib.utils.qthelpers import create_action, get_std_icon
@@ -68,10 +68,15 @@ class SysOutput(QObject):
         self.lock.release()
         return s
 
+class WidgetProxyData(object):
+    pass
+
 class WidgetProxy(QObject):
     """Handle Shell widget refresh signal"""
-    def __init__(self):
+    def __init__(self, input_condition):
         QObject.__init__(self)
+        self.input_data = None
+        self.input_condition = input_condition
         
     def new_prompt(self, prompt):
         self.emit(SIGNAL("new_prompt(QString)"), prompt)
@@ -81,6 +86,20 @@ class WidgetProxy(QObject):
         
     def edit(self, filename, external_editor=False):
         self.emit(SIGNAL("edit(QString,bool)"), filename, external_editor)
+    
+    def data_available(self):
+        """Return True if input data is available"""
+        return self.input_data is not WidgetProxyData
+    
+    def wait_input(self, prompt=''):
+        self.input_data = WidgetProxyData
+        self.emit(SIGNAL("wait_input(QString)"), prompt)
+    
+    def end_input(self, cmd):
+        self.input_condition.acquire()
+        self.input_data = cmd
+        self.input_condition.notify()
+        self.input_condition.release()
 
 
 class InternalShell(PythonShellWidget):
@@ -100,6 +119,10 @@ class InternalShell(PythonShellWidget):
         
         if font is not None:
             self.set_font(font)
+        
+        # Allow raw_input support:
+        self.input_loop = None
+        self.input_mode = False
         
         # KeyboardInterrupt support
         self.interrupted = False # used only for not-multithreaded mode
@@ -152,6 +175,8 @@ class InternalShell(PythonShellWidget):
                      SIGNAL("new_prompt(QString)"), self.new_prompt)
         self.connect(self.interpreter.widget_proxy,
                      SIGNAL("edit(QString,bool)"), self.edit_script)
+        self.connect(self.interpreter.widget_proxy,
+                     SIGNAL("wait_input(QString)"), self.wait_input)
         if self.multithreaded:
             self.interpreter.start()
         
@@ -195,6 +220,23 @@ class InternalShell(PythonShellWidget):
         if data:
             self.write(data, error=True)
             self.flush(error=True)
+    
+    
+    #------Raw input support
+    def wait_input(self, prompt=''):
+        """Wait for input (raw_input support)"""
+        self.new_prompt(prompt)
+        self.setFocus()
+        self.input_mode = True
+        self.input_loop = QEventLoop()
+        self.input_loop.exec_()
+        self.input_loop = None
+    
+    def end_input(self, cmd):
+        """End of wait_input mode"""
+        self.input_mode = False
+        self.input_loop.exit()
+        self.interpreter.widget_proxy.end_input(cmd)
 
 
     #----- Menus, actions, ...
@@ -331,6 +373,9 @@ class InternalShell(PythonShellWidget):
         Execute a command
         cmd: one-line command only, with '\n' at the end
         """
+        if self.input_mode:
+            self.end_input(cmd)
+            return
         if cmd.endswith('\n'):
             cmd = cmd[:-1]
         # cls command
