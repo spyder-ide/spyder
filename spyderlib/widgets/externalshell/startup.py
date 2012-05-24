@@ -24,6 +24,11 @@ __doc__ = ''
 __name__ = '__main__'
 
 
+# Add current directory to sys.path (like for any standard Python interpreter
+# executed in interactive mode):
+sys.path.insert(0, '')
+
+
 if os.environ.get('IPYTHON_KERNEL', False):
 
     # IPython >=v0.11 Kernel
@@ -45,7 +50,6 @@ if os.environ.get('IPYTHON_KERNEL', False):
 
 elif os.environ.get('IPYTHON', False):
 
-    sys.path.insert(0, '')
     if os.name == 'nt':
         # Windows platforms: monkey-patching *pyreadline* module
         # to make IPython work in a remote process
