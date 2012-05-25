@@ -1057,6 +1057,8 @@ class Editor(SpyderPluginWidget):
         
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
+        for finfo in editorstack.data:
+            self.register_widget_shortcuts("Editor", finfo.editor)
         
     @Slot(int, int)
     def close_file_in_all_editorstacks(self, editorstack_id, index):
