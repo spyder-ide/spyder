@@ -1143,15 +1143,15 @@ class MainWindow(QMainWindow):
             from spyderlib.widgets.externalshell import pythonshell
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
-            self.variableexplorer.set_shellwidget(shell)
+            self.variableexplorer.set_shellwidget_from_id(id(shell))
         else:
             # Checking if any IPython frontend has focus
             widget = QApplication.focusWidget()
             for ipf in self.ipython_frontends:
                 if widget is ipf or widget is ipf.get_focus_widget():
-                    if ipf.kernel_widget is not None:
-                        self.variableexplorer.set_shellwidget(
-                        ipf.kernel_widget)
+                    if ipf.kernel_widget_id is not None:
+                        self.variableexplorer.set_shellwidget_from_id(
+                                                        ipf.kernel_widget_id)
         
     def update_file_menu(self):
         """Update file menu"""
@@ -1556,9 +1556,10 @@ Please provide any additional information below.
         else:
             fname = file_uri(fname)
             start_file(fname)
-            
+
+    #---- IPython frontends management
     def new_ipython_frontend(self, connection_file=None,
-                             kernel_widget=None, kernel_name=None):
+                             kernel_widget_id=None):
         """Create a new IPython frontend"""
         cf = connection_file
         if cf is None:
@@ -1572,12 +1573,25 @@ Please provide any additional information below.
                     if cf.isdigit():
                         cf = 'kernel-%s.json' % cf
                     if re.match('^kernel-(\d+).json', cf):
-                        kernel_name = cf
                         break
                 else:
                     return
+
+        # Generating the kernel name
+        match = re.match('^kernel-(\d+).json', cf)
+        count = 0
+        while True:
+            kernel_name = match.groups()[0]+'/'+chr(65+count)
+            for ipf in self.ipython_frontends:
+                if ipf.kernel_name == kernel_name:
+                    break
+            else:
+                break
+            count += 1
+
+        # Creating the IPython plugin and associated dockwidget
         from spyderlib.plugins.ipython import IPythonPlugin
-        ipython_plugin = IPythonPlugin(self, cf, kernel_widget, kernel_name)
+        ipython_plugin = IPythonPlugin(self, cf, kernel_widget_id, kernel_name)
         try:
             ipython_plugin.register_plugin()
         except (IOError, UnboundLocalError):
@@ -1585,6 +1599,10 @@ Please provide any additional information below.
                                  _("Unable to connect to IPython kernel "
                                    "<b>`%s`") % cf)
             return
+    
+    def add_ipython_frontend(self, ipython_plugin):
+        """Add new IPython frontend to main window"""
+        self.add_dockwidget(ipython_plugin)
 
         # Tabify the first frontend to the external console plugin, tabify 
         # the next ones to the last created frontend:
@@ -1596,12 +1614,26 @@ Please provide any additional information below.
         ipython_plugin.switch_to_plugin()
 
         self.ipython_frontends.append(ipython_plugin)
+
+    def remove_ipython_frontend(self, ipython_plugin):
+        """Remove IPython frontend from main window"""
+        self.ipython_frontends.remove(ipython_plugin)
+        self.removeDockWidget(ipython_plugin.dockwidget)
+        ipython_plugin.close()
     
-    def get_ipython_widget(self, kernel_widget):
+    def close_related_ipython_frontends(self, ipython_plugin):
+        """Close all IPython frontends related to *connection_file*,
+        except the plugin *except_this_one*"""
+        for ipf in self.ipython_frontends[:]:
+            if ipf is not ipython_plugin and\
+               ipf.connection_file == ipython_plugin.connection_file:
+                self.remove_ipython_frontend(ipf)
+    
+    def get_ipython_widget(self, kernel_widget_id):
         """Return IPython widget (ipython_plugin.ipython_widget) 
-        associated to kernel_widget"""
+        associated to kernel_widget_id"""
         for ipf in self.ipython_frontends:
-            if ipf.kernel_widget is kernel_widget:
+            if id(ipf.kernel_widget_id) == kernel_widget_id:
                 return ipf.ipython_widget
         
     #---- PYTHONPATH management, etc.

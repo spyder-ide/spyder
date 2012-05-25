@@ -15,13 +15,25 @@ from IPython.lib.kernel import find_connection_file
 from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 
+# Local imports
+from spyderlib.baseconfig import _
+from spyderlib.utils.qthelpers import add_actions, create_action
+
+
+def _context_menu_hack(widget, exit_callback, pos):
+    """Add a "Quit" entry to IPython Qt console widget"""
+    menu = widget._original_context_menu_make(pos)
+    quit_action = create_action(widget, _("&Quit"), icon='exit.png',
+                                triggered=exit_callback)
+    add_actions(menu, (None, quit_action))
+    return menu
 
 class IPythonApp(IPythonQtConsoleApp):
     def initialize_all_except_qt(self, argv=None):
         BaseIPythonApplication.initialize(self, argv=argv)
         IPythonConsoleApp.initialize(self, argv=argv)
 
-    def new_frontend_from_existing(self):
+    def new_frontend_from_existing(self, exit_callback):
         """Create and return new frontend from connection file basename"""
         cf = find_connection_file(self.existing, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf,
@@ -29,13 +41,15 @@ class IPythonApp(IPythonQtConsoleApp):
         kernel_manager.load_connection_file()
         kernel_manager.start_channels()
         widget = self.widget_factory(config=self.config, local_kernel=False)
-        widget._existing = True
-        widget._may_close = False
-        widget._confirm_exit = False
         widget.kernel_manager = kernel_manager
+        
+        # Monkey-patching the original context menu
+        #XXX: this is very ugly, let's find another way anytime soon...
+        widget._original_context_menu_make = widget._context_menu_make
+        widget._context_menu_make = lambda pos:\
+                            _context_menu_hack(widget, exit_callback, pos)
 
-#        widget.exit_requested.connect(self.close_tab)
-
+        widget.exit_requested.connect(exit_callback)
         return widget
 
 

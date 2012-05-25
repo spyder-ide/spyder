@@ -120,7 +120,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             nsb.sig_option_changed.connect(self.sig_option_changed.emit)
             self.addWidget(nsb)
             self.shellwidgets[shellwidget_id] = nsb
-            self.set_shellwidget(shellwidget)
+            self.set_shellwidget_from_id(shellwidget_id)
             return nsb
         
     def remove_shellwidget(self, shellwidget_id):
@@ -131,8 +131,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
             self.removeWidget(nsb)
             nsb.close()
     
-    def set_shellwidget(self, shellwidget):
-        shellwidget_id = id(shellwidget)
+    def set_shellwidget_from_id(self, shellwidget_id):
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets[shellwidget_id]
             self.setCurrentWidget(nsb)

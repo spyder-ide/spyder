@@ -21,6 +21,7 @@ import sys
 import os
 import os.path as osp
 import imp
+import re
 
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
@@ -446,7 +447,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.variableexplorer = None # Variable explorer plugin
         
         self.ipython_shell_count = 0
-        self.ipython_kernel_count = 0
         self.python_count = 0
         self.terminal_count = 0
 
@@ -539,7 +539,14 @@ class ExternalConsole(SpyderPluginWidget):
         self.icons.insert(index_to, icons)
         self.emit(SIGNAL('update_plugin_title()'))
 
+    def get_shell_index_from_id(self, shell_id):
+        """Return shellwidget index from id"""
+        for index, shell in enumerate(self.shellwidgets):
+            if id(shell) == shell_id:
+                return index
+        
     def close_console(self, index=None):
+        """Close console tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
         if index is None:
@@ -617,7 +624,7 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget is not None:
             if shellwidget.is_ipython_kernel:
                 #  IPython plugin
-                ipython_widget = self.main.get_ipython_widget(shellwidget)
+                ipython_widget = self.main.get_ipython_widget(id(shellwidget))
                 ipython_widget.execute(unicode(lines))
                 ipython_widget.setFocus()
             else:
@@ -799,17 +806,13 @@ class ExternalConsole(SpyderPluginWidget):
                     tab_icon1 = get_icon('ipython.png')
                     tab_icon2 = get_icon('ipython_t.png')
                 elif ipython_kernel:
-                    self.ipython_kernel_count += 1
-                    tab_name = "IPyKernel %d" % self.ipython_kernel_count
+                    tab_name = "IPyKernel"
                     tab_icon1 = get_icon('ipython.png')
                     tab_icon2 = get_icon('ipython_t.png')
-                    kernel_name = "IPK%d" % self.ipython_kernel_count
                     self.connect(shellwidget,
                                  SIGNAL('create_ipython_frontend(QString)'),
-                                 lambda args:
-                                 self.main.new_ipython_frontend(
-                                 args, kernel_widget=shellwidget,
-                                 kernel_name=kernel_name))
+                                 lambda cf: self.create_ipython_frontend(
+                                         cf, kernel_widget_id=id(shellwidget)))
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
@@ -854,34 +857,44 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.start_shell()
         shellwidget.shell.setFocus()
         
+    def create_ipython_frontend(self, connection_file, kernel_widget_id):
+        """Create a new IPython frontend connected to a kernel just started"""
+        index = self.get_shell_index_from_id(kernel_widget_id)
+        match = re.match('^kernel-(\d+).json', connection_file)
+        if match is not None:  # should not fail, but we never know...
+            text = unicode(self.tabwidget.tabText(index))
+            name = "%s (%s)" % (text, match.groups()[0])
+            self.tabwidget.setTabText(index, name)
+        self.main.new_ipython_frontend(connection_file, kernel_widget_id)
+        
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
         self.main.editor.activateWindow()
         self.main.editor.raise_()
         self.main.editor.load(fname, lineno)
         
-    #------ Private API --------------------------------------------------------
+    #------ Private API -------------------------------------------------------
     def process_started(self, shell_id):
-        for index, shell in enumerate(self.shellwidgets):
-            if id(shell) == shell_id:
-                icon, _icon = self.icons[index]
-                self.tabwidget.setTabIcon(index, icon)
-                if self.inspector is not None:
-                    self.inspector.set_shell(shell.shell)
-                if self.variableexplorer is not None:
-                    self.variableexplorer.add_shellwidget(shell)
+        index = self.get_shell_index_from_id(shell_id)
+        shell = self.shellwidgets[index]
+        icon, _icon = self.icons[index]
+        self.tabwidget.setTabIcon(index, icon)
+        if self.inspector is not None:
+            self.inspector.set_shell(shell.shell)
+        if self.variableexplorer is not None:
+            self.variableexplorer.add_shellwidget(shell)
         
     def process_finished(self, shell_id):
-        for index, shell in enumerate(self.shellwidgets):
-            if id(shell) == shell_id:
-                _icon, icon = self.icons[index]
-                self.tabwidget.setTabIcon(index, icon)
-                if self.inspector is not None:
-                    self.inspector.shell_terminated(shell.shell)
+        index = self.get_shell_index_from_id(shell_id)
+        shell = self.shellwidgets[index]
+        _icon, icon = self.icons[index]
+        self.tabwidget.setTabIcon(index, icon)
+        if self.inspector is not None:
+            self.inspector.shell_terminated(shell.shell)
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(shell_id)
         
-    #------ SpyderPluginWidget API ---------------------------------------------    
+    #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
         title = _('Console')
