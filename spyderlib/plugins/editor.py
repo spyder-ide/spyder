@@ -1001,9 +1001,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
                      lambda: self.emit(SIGNAL("update_plugin_title()")))
 
-        self.connect(self, SIGNAL("editor_focus_changed()"),
+        self.connect(editorstack, SIGNAL("editor_focus_changed()"),
                      self.save_focus_editorstack)
-        self.connect(self, SIGNAL('editor_focus_changed()'),
+        self.connect(editorstack, SIGNAL('editor_focus_changed()'),
                      self.main.plugin_focus_changed)
         
         self.connect(editorstack, SIGNAL('close_file(long,long)'),

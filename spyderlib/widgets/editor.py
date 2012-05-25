@@ -1489,6 +1489,7 @@ class EditorStack(QWidget):
         for finfo in self.data:
             if fwidget is finfo.editor:
                 self.refresh()
+        self.emit(SIGNAL("editor_focus_changed()"))
         
     def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
         """Refresh outline explorer panel"""
@@ -1744,10 +1745,6 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
                   line, index)
-        
-    def editor_focus_changed(self):
-        """Focus of one of the editor in the stack has changed"""
-        self.emit(SIGNAL("editor_focus_changed()"))
     
     def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
                           qstr4=None, force=False):
