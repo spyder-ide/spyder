@@ -563,7 +563,11 @@ class ExternalConsole(SpyderPluginWidget):
         for index in [current_index]+range(self.tabwidget.count()):
             shellwidget = self.tabwidget.widget(index)
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
-                if not interpreter_only or shellwidget.is_interpreter:
+                if interpreter_only and not shellwidget.is_interpreter:
+                    continue
+                elif not shellwidget.is_running():
+                    continue
+                else:
                     self.tabwidget.setCurrentIndex(index)
                     return shellwidget
                 
@@ -590,37 +594,35 @@ class ExternalConsole(SpyderPluginWidget):
         
     def run_script_in_current_shell(self, filename, wdir, args, debug):
         """Run script in current shell, if any"""
-        shellwidget = self.__find_python_shell(interpreter_only=True)
-        if shellwidget is not None and shellwidget.is_running():
-            line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                                 unicode(filename))
-            norm = lambda text: remove_trailing_single_backslash(unicode(text))
-            if args:
-                line += ", args=r'%s'" % norm(args)
-            if wdir:
-                line += ", wdir=r'%s'" % norm(wdir)
-            line += ")"
-            if shellwidget.is_ipython_kernel:
-                #  IPython plugin
-                ipython_widget = self.main.get_ipython_widget(shellwidget)
-                ipython_widget.execute(line)
-                ipython_widget.setFocus()
-            else:
-                shellwidget.shell.execute_lines(line)
-                shellwidget.shell.setFocus()
+        line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
+                             unicode(filename))
+        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+        if args:
+            line += ", args=r'%s'" % norm(args)
+        if wdir:
+            line += ", wdir=r'%s'" % norm(wdir)
+        line += ")"
+        self.execute_python_code(line, interpreter_only=True)
             
     def set_current_shell_working_directory(self, directory):
         """Set current shell working directory"""
         shellwidget = self.__find_python_shell()
-        if shellwidget is not None and shellwidget.is_running():
+        if shellwidget is not None:
             shellwidget.shell.set_cwd(unicode(directory))
         
-    def execute_python_code(self, lines):
+    def execute_python_code(self, lines, interpreter_only=False):
         """Execute Python code in an already opened Python interpreter"""
-        shellwidget = self.__find_python_shell()
+        shellwidget = self.__find_python_shell(
+                                        interpreter_only=interpreter_only)
         if shellwidget is not None:
-            shellwidget.shell.execute_lines(unicode(lines))
-            shellwidget.shell.setFocus()
+            if shellwidget.is_ipython_kernel:
+                #  IPython plugin
+                ipython_widget = self.main.get_ipython_widget(shellwidget)
+                ipython_widget.execute(unicode(lines))
+                ipython_widget.setFocus()
+            else:
+                shellwidget.shell.execute_lines(unicode(lines))
+                shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shell):
         """Python debugger has just stopped at frame (fname, lineno)"""      
