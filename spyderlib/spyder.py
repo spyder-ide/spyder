@@ -1633,8 +1633,10 @@ Please provide any additional information below.
         """Return IPython widget (ipython_plugin.ipython_widget) 
         associated to kernel_widget_id"""
         for ipf in self.ipython_frontends:
-            if id(ipf.kernel_widget_id) == kernel_widget_id:
+            if ipf.kernel_widget_id == kernel_widget_id:
                 return ipf.ipython_widget
+        else:
+            raise ValueError, "Unknown kernel widget ID %r" % kernel_widget_id
         
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
