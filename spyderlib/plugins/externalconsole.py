@@ -205,10 +205,18 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                         _("This option is not available for IPython\n"
                           "versions which are not fully supported\n"
                           "through Spyder's console (i.e. IPython v0.11+)."))
+        ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
+                                'start_ipython_kernel_at_startup')
+        is_ipython_012p = programs.is_module_installed('IPython', '>=0.12')
+        ipykstartup_box.setEnabled(is_ipython_012p)
+        if not is_ipython_012p:
+            ipykstartup_box.setToolTip(_("This option is not available for "
+                                        "IPython versions prior to v0.12."))
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
         startup_layout.addWidget(ipystartup_box)
+        startup_layout.addWidget(ipykstartup_box)
         startup_group.setLayout(startup_layout)
         
         # PYTHONSTARTUP replacement
@@ -1077,6 +1085,8 @@ class ExternalConsole(SpyderPluginWidget):
                 self.set_option('open_python_at_startup', True)
         if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
+        if self.get_option('start_ipython_kernel_at_startup', False):
+            self.start_ipython_kernel()
             
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
