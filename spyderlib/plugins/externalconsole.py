@@ -100,8 +100,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                             'light_background')
         ipybg_box = newcb(_("Set the appropriate IPython color option"),
                           'ipython_set_color')
-        ipython_is_installed = programs.is_module_installed('IPython', '0.1')
-        ipybg_box.setEnabled(ipython_is_installed)
+        is_ipython_010 = programs.is_module_installed('IPython', '0.10')
+        ipybg_box.setEnabled(is_ipython_010)
         bg_layout = QVBoxLayout()
         bg_layout.addWidget(bg_label)
         bg_layout.addWidget(lightbg_box)
@@ -198,7 +198,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                               'open_python_at_startup')
         ipystartup_box = newcb(_("Open an IPython interpreter at startup"),
                                'open_ipython_at_startup')
-        is_ipython_010 = programs.is_module_installed('IPython', '0.10')
         ipystartup_box.setEnabled(is_ipython_010)
         if not is_ipython_010:
             ipystartup_box.setToolTip(
@@ -339,6 +338,7 @@ to use this feature wisely, e.g. for debugging purpose."""))
         ipython_group = QGroupBox(
                             _("IPython interpreter command line options"))
         ipython_layout = QVBoxLayout()
+        ipython_is_installed = programs.is_module_installed('IPython', '0.1')
         if ipython_is_installed:
             if programs.is_module_installed('IPython', '0.12'):
                 ipython_edit_012 = self.create_lineedit("IPython >=v0.12",
