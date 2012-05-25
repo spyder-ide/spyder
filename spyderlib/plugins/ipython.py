@@ -7,6 +7,7 @@
 """IPython v0.12+ Plugin"""
 
 from spyderlib.qt.QtGui import QHBoxLayout, QMessageBox
+from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -70,6 +71,9 @@ class IPythonPlugin(SpyderPluginWidget):
         self.setLayout(layout)
 
         self.main.add_ipython_frontend(self)
+
+        self.connect(self.dockwidget, SIGNAL('visibilityChanged(bool)'),
+                     lambda state: self.main.plugin_focus_changed())
     
     def refresh_plugin(self):
         """Refresh widget"""

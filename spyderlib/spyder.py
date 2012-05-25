@@ -1166,6 +1166,7 @@ class MainWindow(QMainWindow):
                         # console... that's not brilliant, but it works for 
                         # now: we shall take action on this later
                         self.extconsole.tabwidget.setCurrentWidget(kw)
+                        ipf.get_focus_widget().setFocus()
         
     def update_file_menu(self):
         """Update file menu"""
