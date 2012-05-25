@@ -1149,15 +1149,23 @@ class MainWindow(QMainWindow):
             widget = QApplication.focusWidget()
             for ipf in self.ipython_frontends:
                 if widget is ipf or widget is ipf.get_focus_widget():
-                    if self.inspector is not None:
-                        #  The object inspector may be disabled in .spyder.ini
-                        index = self.extconsole.get_shell_index_from_id(
-                                                        ipf.kernel_widget_id)
-                        shell = self.extconsole.shellwidgets[index]
-                        self.inspector.set_shell(shell)
-                    if ipf.kernel_widget_id is not None:
-                        self.variableexplorer.set_shellwidget_from_id(
-                                                        ipf.kernel_widget_id)
+                    kwid = ipf.kernel_widget_id
+                    if kwid is not None:
+                        idx = self.extconsole.get_shell_index_from_id(kwid)
+                        kw = self.extconsole.shellwidgets[idx]
+                        if self.inspector is not None:
+                            self.inspector.set_shell(kw)
+                        self.variableexplorer.set_shellwidget_from_id(kwid)
+                        
+                        # Setting the kernel widget as current widget for the 
+                        # external console's tabwidget: this is necessary for
+                        # the editor/console link to be working (otherwise,
+                        # features like "Execute in current interpreter" will 
+                        # not work with IPython clients unless the associated
+                        # IPython kernel has been selected in the external 
+                        # console... that's not brilliant, but it works for 
+                        # now: we shall take action on this later
+                        self.extconsole.tabwidget.setCurrentWidget(kw)
         
     def update_file_menu(self):
         """Update file menu"""
