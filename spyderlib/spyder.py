@@ -1585,6 +1585,16 @@ Please provide any additional information below.
                                  _("Unable to connect to IPython kernel "
                                    "<b>`%s`") % cf)
             return
+
+        # Tabify the first frontend to the external console plugin, tabify 
+        # the next ones to the last created frontend:
+        if self.ipython_frontends:
+            other = self.ipython_frontends[-1]
+        else:
+            other= self.extconsole
+        self.tabifyDockWidget(other.dockwidget, ipython_plugin.dockwidget)
+        ipython_plugin.switch_to_plugin()
+
         self.ipython_frontends.append(ipython_plugin)
     
     def get_ipython_widget(self, kernel_widget):
