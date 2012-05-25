@@ -1149,6 +1149,12 @@ class MainWindow(QMainWindow):
             widget = QApplication.focusWidget()
             for ipf in self.ipython_frontends:
                 if widget is ipf or widget is ipf.get_focus_widget():
+                    if self.inspector is not None:
+                        #  The object inspector may be disabled in .spyder.ini
+                        index = self.extconsole.get_shell_index_from_id(
+                                                        ipf.kernel_widget_id)
+                        shell = self.extconsole.shellwidgets[index]
+                        self.inspector.set_shell(shell)
                     if ipf.kernel_widget_id is not None:
                         self.variableexplorer.set_shellwidget_from_id(
                                                         ipf.kernel_widget_id)
