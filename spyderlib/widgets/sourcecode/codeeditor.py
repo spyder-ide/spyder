@@ -737,11 +737,8 @@ class CodeEditor(TextEditBaseWidget):
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
             self.update_linenumberarea_width()
-        elif font is not None:
-            self.set_font(font, color_scheme)
-        elif color_scheme is not None:
-            self.set_color_scheme(color_scheme)
 
+        self.set_text_format(font, color_scheme)
         self.toggle_wrap_mode(wrap)
 
     def set_tab_mode(self, enable):
@@ -1376,35 +1373,45 @@ class CodeEditor(TextEditBaseWidget):
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
-    def apply_highlighter_settings(self, color_scheme=None):
-        """Apply syntax highlighter settings"""
+    def set_text_format(self, font=None, color_scheme=None):
+        """Set font and color_scheme at once to avoid rehighlighting twice"""
+        # update CodeEditor attributes
+        if font is not None:
+           self.setFont(font)
+           self.update_linenumberarea_width()
+        if color_scheme is not None:
+           self.color_scheme = color_scheme
+        
+        # update highligher
         if self.highlighter is not None:
-            # Updating highlighter settings (font and color scheme)
-            self.highlighter.setup_formats(self.font())
+            self.highlighter.setup_text_format(font, color_scheme)
+            # update CodeEditor again from highlighter
             if color_scheme is not None:
-                self.set_color_scheme(color_scheme)
-            else:
-                self.highlighter.rehighlight()
+                self._apply_highlighter_color_scheme()
+    
+        self.rehighlight()
 
     def set_font(self, font, color_scheme=None):
         """Set shell font"""
+        self.set_text_format(font, color_scheme)
+
         # Note: why using this method to set color scheme instead of
         #       'set_color_scheme'? To avoid rehighlighting the document twice
         #       at startup.
-        if color_scheme is not None:
-            self.color_scheme = color_scheme
-        self.setFont(font)
-        self.update_linenumberarea_width()
-        self.apply_highlighter_settings(color_scheme)
+
+        # TODO: check how many times rehighlight() is called during the load
+        
+        # TODO:
+        if color_scheme:
+            msg = "TODO: replace set_font(font, color_scheme) call with "\
+                  "set_text_format() in"
+            from spyderlib.utils.debug import caller_name
+            import sys; print >> sys.stderr, msg
+            import sys; print >> sys.stderr, "     ", caller_name()
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme for syntax highlighting"""
-        self.color_scheme = color_scheme
-        if self.highlighter is not None:
-            # this calls self.highlighter.rehighlight()
-            self.highlighter.set_color_scheme(color_scheme)
-            self._apply_highlighter_color_scheme()
-        self.highlight_current_line()
+        self.set_text_format(color_scheme=color_scheme)
 
     def set_text(self, text):
         """Set the text of the editor"""
