@@ -519,7 +519,19 @@ class CodeEditor(TextEditBaseWidget):
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
 
-        # Syntax highlighting
+
+        # --- Syntax highlight entrypoint ---
+        #
+        # - if set, self.highlighter is responsible for
+        #   - coloring raw text data inside editor on load
+        #   - coloring text data when editor is cloned
+        #   - updating document highlight on line edits
+        #   - providing color palette (scheme) for the editor
+        #   - providing data for Outliner
+        # - self.highlighter is not responsible for
+        #   - background highlight for current line
+        #   - background highlight for search / current line occurences
+
         self.highlighter_class = syntaxhighlighters.TextSH
         self.highlighter = None
         ccs = 'Spyder'
@@ -530,6 +542,7 @@ class CodeEditor(TextEditBaseWidget):
         #  Background colors: current line, occurences
         self.currentline_color = QColor(Qt.red).lighter(190)
         self.highlight_current_line_enabled = False
+        
 
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -794,9 +807,19 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+        self._set_highlighter(sh_class)
+
+    def _set_highlighter(self, sh_class):
         if self.highlighter_class is not sh_class:
             self.highlighter_class = sh_class
-            self.apply_highlighter_settings()
+            if self.highlighter is not None:
+                # Removing old highlighter
+                # TODO: test if leaving parent/document as is eats memory
+                self.highlighter.setParent(None)
+                self.highlighter.setDocument(None)
+            self.highlighter = self.highlighter_class(self.document(),
+                                                self.font(), self.color_scheme)
+            self._apply_highlighter_color_scheme()
 
     def is_python(self):
         return self.highlighter_class is syntaxhighlighters.PythonSH
@@ -1355,24 +1378,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
-        if not isinstance(self.highlighter, self.highlighter_class):
-                # Highlighter object has not been constructed yet
-                # or language has changed so it must be re-constructed
-                if self.highlighter is not None:
-                    # Removing old highlighter
-                    self.highlighter.setParent(None)
-                    self.highlighter.setDocument(None)
-                self.highlighter = self.highlighter_class(self.document(),
-                                                self.font(), self.color_scheme)
-                self._apply_highlighter_color_scheme()
-        else:
-                # Highlighter object has already been created:
-                # updating highlighter settings (font and color scheme)
-                self.highlighter.setup_formats(self.font())
-                if color_scheme is not None:
-                    self.set_color_scheme(color_scheme)
-                else:
-                    self.highlighter.rehighlight()
+        if self.highlighter is not None:
+            # Updating highlighter settings (font and color scheme)
+            self.highlighter.setup_formats(self.font())
+            if color_scheme is not None:
+                self.set_color_scheme(color_scheme)
+            else:
+                self.highlighter.rehighlight()
 
     def set_font(self, font, color_scheme=None):
         """Set shell font"""
@@ -1386,12 +1398,12 @@ class CodeEditor(TextEditBaseWidget):
         self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
-        """Set syntax highlighter color scheme"""
+        """Set color scheme for syntax highlighting"""
         self.color_scheme = color_scheme
         if self.highlighter is not None:
             # this calls self.highlighter.rehighlight()
             self.highlighter.set_color_scheme(color_scheme)
-        self._apply_highlighter_color_scheme()
+            self._apply_highlighter_color_scheme()
         self.highlight_current_line()
 
     def set_text(self, text):
