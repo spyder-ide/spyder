@@ -1908,10 +1908,32 @@ class Editor(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
+            # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
             color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
             font_n = 'plugin_font'
             font_o = self.get_plugin_font()
+            currentline_n = 'highlight_current_line'
+            currentline_o = self.get_option(currentline_n)
+            occurence_n = 'occurence_highlighting'
+            occurence_o = self.get_option(occurence_n)
+            occurence_timeout_n = 'occurence_highlighting/timeout'
+            occurence_timeout_o = self.get_option(occurence_timeout_n)
+            for editorstack in self.editorstacks:
+                if font_n in options:
+                    scs = color_scheme_o if color_scheme_n in options else None
+                    editorstack.set_default_font(font_o, scs)
+                elif color_scheme_n in options:
+                    editorstack.set_color_scheme(color_scheme_o)
+                if currentline_n in options:
+                    editorstack.set_highlight_current_line_enabled(
+                                                                currentline_o)
+                if occurence_n in options:
+                    editorstack.set_occurence_highlighting_enabled(occurence_o)
+                if occurence_timeout_n in options:
+                    editorstack.set_occurence_highlighting_timeout(
+                                                        occurence_timeout_o)
+            # --- everything else
             fpsorting_n = 'fullpath_sorting'
             fpsorting_o = self.get_option(fpsorting_n)
             tabbar_n = 'show_tab_bar'
@@ -1922,12 +1944,6 @@ class Editor(SpyderPluginWidget):
             edgeline_o = self.get_option(edgeline_n)
             edgelinecol_n = 'edge_line_column'
             edgelinecol_o = self.get_option(edgelinecol_n)
-            currentline_n = 'highlight_current_line'
-            currentline_o = self.get_option(currentline_n)
-            occurence_n = 'occurence_highlighting'
-            occurence_o = self.get_option(occurence_n)
-            occurence_timeout_n = 'occurence_highlighting/timeout'
-            occurence_timeout_o = self.get_option(occurence_timeout_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
             tabindent_n = 'tab_always_indent'
@@ -1980,11 +1996,6 @@ class Editor(SpyderPluginWidget):
                     window.editorwidget.outlineexplorer.set_fullpath_sorting(
                                                                     fpsorting_o)
             for editorstack in self.editorstacks:
-                if font_n in options:
-                    scs = color_scheme_o if color_scheme_n in options else None
-                    editorstack.set_default_font(font_o, scs)
-                elif color_scheme_n in options:
-                    editorstack.set_color_scheme(color_scheme_o)
                 if fpsorting_n in options:
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
@@ -1996,14 +2007,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecol_n in options:
                     editorstack.set_edgeline_column(edgelinecol_o)
-                if currentline_n in options:
-                    editorstack.set_highlight_current_line_enabled(
-                                                                currentline_o)
-                if occurence_n in options:
-                    editorstack.set_occurence_highlighting_enabled(occurence_o)
-                if occurence_timeout_n in options:
-                    editorstack.set_occurence_highlighting_timeout(
-                                                        occurence_timeout_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:
