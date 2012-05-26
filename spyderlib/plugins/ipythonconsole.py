@@ -68,7 +68,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 class IPythonClient(QWidget):
     """Find in files DockWidget"""
     CONF_SECTION = 'ipython'
-    def __init__(self, parent, connection_file, kernel_widget_id, kernel_name,
+    def __init__(self, parent, connection_file, kernel_widget_id, client_name,
                  ipython_widget):
         super(IPythonClient, self).__init__(parent)
         
@@ -76,7 +76,7 @@ class IPythonClient(QWidget):
 
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
-        self.kernel_name = kernel_name
+        self.client_name = client_name
         
         self.ipython_widget = ipython_widget
         layout = QHBoxLayout()
@@ -87,7 +87,7 @@ class IPythonClient(QWidget):
     #------ Public API --------------------------------------------------------
     def get_name(self):
         """Return client name"""
-        return _("IPython client (%s)") % self.kernel_name
+        return _("Client") + " " + self.client_name
     
     def get_control(self):
         """Return the QPlainTextEdit widget (or similar) to give focus to"""
@@ -168,7 +168,7 @@ class IPythonConsole(SpyderPluginWidget):
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
-        return _('IPython Console')
+        return _('IPython console')
     
     def get_plugin_icon(self):
         """Return widget icon"""
@@ -263,13 +263,13 @@ class IPythonConsole(SpyderPluginWidget):
                 else:
                     return
 
-        # Generating the kernel name
+        # Generating the client name
         match = re.match('^kernel-(\d+).json', cf)
         count = 0
         while True:
-            kernel_name = match.groups()[0]+'/'+chr(65+count)
+            client_name = match.groups()[0]+'/'+chr(65+count)
             for clw in self.get_clients():
-                if clw.kernel_name == kernel_name:
+                if clw.client_name == client_name:
                     break
             else:
                 break
@@ -277,14 +277,14 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Creating the IPython client widget
         try:
-            self.register_client(cf, kernel_widget_id, kernel_name)
+            self.register_client(cf, kernel_widget_id, client_name)
         except (IOError, UnboundLocalError):
             QMessageBox.critical(self, _('IPython'),
                                  _("Unable to connect to IPython kernel "
                                    "<b>`%s`") % cf)
             return
 
-    def register_client(self, connection_file, kernel_widget_id, kernel_name):
+    def register_client(self, connection_file, kernel_widget_id, client_name):
         """Register new IPython client"""
         iapp = self.ipython_app
         argv = ['--existing']+[connection_file]
@@ -295,7 +295,7 @@ class IPythonConsole(SpyderPluginWidget):
         ipython_widget = iapp.new_frontend_from_existing()
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
-                                    kernel_name, ipython_widget)
+                                    client_name, ipython_widget)
         exit_callback = lambda widget=shellwidget:\
                             self.close_console(widget=shellwidget)
         shellwidget.set_exit_callback(exit_callback)
