@@ -1412,7 +1412,7 @@ class MainWindow(QMainWindow):
             _("About %s") % "Spyder",
             """<b>%s %s</b> %s
             <br>Scientific PYthon Development EnviRonment
-            <p>Copyright &copy; 2009-2011 Pierre Raybaut
+            <p>Copyright &copy; 2009-2012 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
             <p>Created by Pierre Raybaut
             <br>Developed and maintained by the 
