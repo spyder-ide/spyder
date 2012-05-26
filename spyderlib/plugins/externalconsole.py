@@ -939,15 +939,7 @@ class ExternalConsole(SpyderPluginWidget):
         interact_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
-        
-        ipython_kernel_action = create_action(self,
-                            _("Start a new IPython kernel"), None,
-                            'ipython_console.png',
-                            triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython', '0.12'):
-            self.menu_actions.insert(1, ipython_kernel_action)
-            interact_menu_actions.append(ipython_kernel_action)
-        
+               
         ipython_action = create_action(self,
                             _("Open IPython interpreter"), None,
                             'ipython.png',
@@ -956,6 +948,14 @@ class ExternalConsole(SpyderPluginWidget):
         if programs.is_module_installed('IPython', '>=0.10'):
             self.menu_actions.insert(1, ipython_action)
             interact_menu_actions.append(ipython_action)
+        
+        ipython_kernel_action = create_action(self,
+                            _("Start a new IPython kernel"), None,
+                            'ipython_console.png',
+                            triggered=self.start_ipython_kernel)
+        if programs.is_module_installed('IPython', '0.12'):
+            self.menu_actions.insert(1, ipython_kernel_action)
+            interact_menu_actions.append(ipython_kernel_action)
         
         self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
