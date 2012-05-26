@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 #
 # Copyright © 2009-2010 Pierre Raybaut
 # Licensed under the terms of the MIT License
@@ -641,7 +641,7 @@ class Editor(SpyderPluginWidget):
                                name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
                 _("&Configure..."), icon='configure.png',
-                tip=_("Edit run configurations"),
+                tip=_("Edit run configurations"), menurole=QAction.NoRole,
                 triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")

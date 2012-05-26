@@ -569,10 +569,11 @@ class MainWindow(QMainWindow):
             self.register_shortcut(prefs_action, "_", "Preferences",
                                    "Ctrl+Alt+Shift+P")
             spyder_path_action = create_action(self,
-                                        _("PYTHONPATH manager"),
-                                        None, 'pythonpath_mgr.png',
-                                        triggered=self.path_manager_callback,
-                                        tip=_("Open Spyder path manager"))
+                                    _("PYTHONPATH manager"),
+                                    None, 'pythonpath_mgr.png',
+                                    triggered=self.path_manager_callback,
+                                    tip=_("Open Spyder path manager"),
+                                    menurole=QAction.ApplicationSpecificRole)
             update_modules_action = create_action(self,
                                         _("Update module names list"),
                                         None, 'reload.png',
