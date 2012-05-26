@@ -811,6 +811,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+        self.highlight_current_line()
 
 
     def setup_margins(self, linenumbers=True, markers=True):
@@ -1320,7 +1321,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----highlight current line
     def highlight_current_line(self):
-        """Highlight current line"""
+        """Highlight current line. Works without self.highlighter"""
         if self.highlight_current_line_enabled:
             selection = QTextEdit.ExtraSelection()
             selection.format.setProperty(QTextFormat.FullWidthSelection,
@@ -1351,7 +1352,6 @@ class CodeEditor(TextEditBaseWidget):
             self.area_background_color = hl.get_sideareas_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
-        self.highlight_current_line()
 
     def apply_highlighter_settings(self, color_scheme=None):
         """Apply syntax highlighter settings"""
@@ -1389,8 +1389,10 @@ class CodeEditor(TextEditBaseWidget):
         """Set syntax highlighter color scheme"""
         self.color_scheme = color_scheme
         if self.highlighter is not None:
+            # this calls self.highlighter.rehighlight()
             self.highlighter.set_color_scheme(color_scheme)
         self._apply_highlighter_color_scheme()
+        self.highlight_current_line()
 
     def set_text(self, text):
         """Set the text of the editor"""
