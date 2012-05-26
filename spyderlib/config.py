@@ -208,6 +208,13 @@ DEFAULTS = [
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
               }),
+            ('ipython_console',
+             {
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              }),
             ('variable_explorer',
              {
               'shortcut': "Ctrl+Shift+V",

@@ -28,7 +28,8 @@ from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
 from spyderlib.config import get_icon, CONF
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
-                                  remove_trailing_single_backslash)
+                                  remove_trailing_single_backslash,
+                                  is_python_script)
 from spyderlib.utils.qthelpers import create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
@@ -624,9 +625,9 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget is not None:
             if shellwidget.is_ipython_kernel:
                 #  IPython plugin
-                ipython_widget = self.main.get_ipython_widget(id(shellwidget))
-                ipython_widget.execute(unicode(lines))
-                ipython_widget.setFocus()
+                ipw = self.main.ipyconsole.get_ipython_widget(id(shellwidget))
+                ipw.execute(unicode(lines))
+                ipw.setFocus()
             else:
                 shellwidget.shell.execute_lines(unicode(lines))
                 shellwidget.shell.setFocus()
@@ -865,7 +866,7 @@ class ExternalConsole(SpyderPluginWidget):
             text = unicode(self.tabwidget.tabText(index))
             name = "%s (%s)" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
-        self.main.new_ipython_frontend(connection_file, kernel_widget_id)
+        self.main.ipyconsole.new_client(connection_file, kernel_widget_id)
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -1203,13 +1204,6 @@ class ExternalConsole(SpyderPluginWidget):
                       osp.abspath(fname), int(lnb), '')
             
     #----Drag and drop
-    def __is_python_script(self, qstr):
-        """Is it a valid Python script?"""
-        fname = unicode(qstr)
-        return osp.isfile(fname) and \
-               ( fname.endswith('.py') or fname.endswith('.pyw') \
-                 or fname.endswith('.ipy') )
-        
     def dragEnterEvent(self, event):
         """Reimplement Qt method
         Inform Qt about the types of data that the widget accepts"""
@@ -1218,7 +1212,7 @@ class ExternalConsole(SpyderPluginWidget):
             if mimedata2url(source):
                 pathlist = mimedata2url(source)
                 shellwidget = self.tabwidget.currentWidget()
-                if all([self.__is_python_script(qstr) for qstr in pathlist]):
+                if all([is_python_script(unicode(qstr)) for qstr in pathlist]):
                     event.acceptProposedAction()
                 elif shellwidget is None or not shellwidget.is_running():
                     event.ignore()
@@ -1236,13 +1230,13 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget = self.tabwidget.currentWidget()
         if source.hasText():
             qstr = source.text()
-            if self.__is_python_script(qstr):
+            if is_python_script(unicode(qstr)):
                 self.start(qstr)
             elif shellwidget:
                 shellwidget.shell.insert_text(qstr)
         elif source.hasUrls():
             pathlist = mimedata2url(source)
-            if all([self.__is_python_script(qstr) for qstr in pathlist]):
+            if all([is_python_script(unicode(qstr)) for qstr in pathlist]):
                 for fname in pathlist:
                     self.start(fname)
             elif shellwidget:

@@ -148,6 +148,11 @@ def get_python_executable():
     return executable
 
 
+def is_python_script(fname):
+    """Is it a valid Python script?"""
+    return osp.isfile(fname) and fname.endswith(('.py', '.pyw', '.ipy'))
+
+
 def abspardir(path):
     """Return absolute parent dir"""
     return osp.abspath(osp.join(path, os.pardir))

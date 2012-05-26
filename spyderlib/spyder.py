@@ -73,8 +73,8 @@ except ImportError:
 
 from spyderlib.qt.QtGui import (QApplication, QMainWindow, QSplashScreen,
                                 QPixmap, QMessageBox, QMenu, QColor, QShortcut,
-                                QKeySequence, QDockWidget, QAction, QLineEdit,
-                                QInputDialog, QDesktopServices)
+                                QKeySequence, QDockWidget, QAction,
+                                QDesktopServices)
 from spyderlib.qt.QtCore import SIGNAL, QPoint, Qt, QSize, QByteArray, QUrl
 from spyderlib.qt.compat import (from_qvariant, getopenfilename,
                                  getsavefilename)
@@ -109,6 +109,7 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
+from spyderlib.plugins.ipythonconsole import IPythonConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
@@ -298,8 +299,7 @@ class MainWindow(QMainWindow):
         self.outlineexplorer = None
         self.historylog = None
         self.extconsole = None
-        self.ipython_frontends = []
-        self.ipython_app = None  # Single IPython QtConsole App instance
+        self.ipyconsole = None
         self.variableexplorer = None
         self.findinfiles = None
         self.thirdparty_plugins = []
@@ -731,6 +731,15 @@ class MainWindow(QMainWindow):
         self.extconsole = ExternalConsole(self, light_mode=self.light)
         self.extconsole.register_plugin()
         
+        # IPython console
+        #XXX: we need to think of what to do with the light mode...
+        #     ---> but for now, simply hiding the dockwidget like in standard 
+        #          mode should be sufficient
+        if is_module_installed('IPython', '0.12'):
+            self.ipyconsole = IPythonConsole(self)
+            self.ipyconsole.register_plugin()
+            self.ipyconsole.dockwidget.hide()
+        
         # Namespace browser
         if not self.light:
             # In light mode, namespace browser is opened inside external console
@@ -844,13 +853,6 @@ class MainWindow(QMainWindow):
             self.mem_status = MemoryStatus(self, status)
             self.cpu_status = CPUStatus(self, status)
             self.apply_statusbar_settings()
-            
-            # IPython frontend action
-            if is_module_installed('IPython', '0.12'):
-                ipf_action = create_action(self, _("New IPython frontend..."),
-                                           icon="ipython.png",
-                                           triggered=self.new_ipython_frontend)
-                self.interact_menu_actions += [None, ipf_action]
 
             # Third-party plugins
             for mod in get_spyderplugins_mods(prefix='p_', extension='.py'):
@@ -1069,7 +1071,8 @@ class MainWindow(QMainWindow):
                     self.splitDockWidget(first.dockwidget, second.dockwidget,
                                          orientation)
             for first, second in ((self.console, self.extconsole),
-                                  (self.extconsole, self.historylog),
+                                  (self.extconsole, self.ipyconsole),
+                                  (self.ipyconsole, self.historylog),
 
                                   (self.inspector, self.variableexplorer),
                                   (self.variableexplorer, self.onlinehelp),
@@ -1090,9 +1093,17 @@ class MainWindow(QMainWindow):
                 toolbar.close()
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
-                
+        
         self.set_window_settings(hexstate, width, height, posx, posy,
                                  is_maximized, is_fullscreen)
+
+        # Transition from v2.1 to v2.2:
+        # (improving layout for plugins which were introduced with v2.2)
+        if self.ipyconsole is not None:
+            if self.ipyconsole.get_option('first_time', True):
+                self.tabifyDockWidget(self.extconsole.dockwidget,
+                                      self.ipyconsole.dockwidget)
+                self.ipyconsole.set_option('first_time', False)
 
     def reset_window_layout(self):
         """Reset window layout to default"""
@@ -1144,14 +1155,14 @@ class MainWindow(QMainWindow):
             if isinstance(shell, pythonshell.ExtPythonShellWidget):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget_from_id(id(shell))
-        else:
+        elif self.ipyconsole is not None:
             # Checking if any IPython frontend has focus
-            widget = QApplication.focusWidget()
-            for ipf in self.ipython_frontends:
-                if widget is ipf or widget is ipf.get_focus_widget():
-                    kwid = ipf.kernel_widget_id
-                    if kwid is not None:
-                        idx = self.extconsole.get_shell_index_from_id(kwid)
+            focus_client = self.ipyconsole.get_focus_client()
+            if focus_client is not None:
+                kwid = focus_client.kernel_widget_id
+                if kwid is not None:
+                    idx = self.extconsole.get_shell_index_from_id(kwid)
+                    if idx is not None:
                         kw = self.extconsole.shellwidgets[idx]
                         if self.inspector is not None:
                             self.inspector.set_shell(kw)
@@ -1166,7 +1177,7 @@ class MainWindow(QMainWindow):
                         # console... that's not brilliant, but it works for 
                         # now: we shall take action on this later
                         self.extconsole.tabwidget.setCurrentWidget(kw)
-                        ipf.get_focus_widget().setFocus()
+                        focus_client.get_control().setFocus()
         
     def update_file_menu(self):
         """Update file menu"""
@@ -1572,87 +1583,6 @@ Please provide any additional information below.
             fname = file_uri(fname)
             start_file(fname)
 
-    #---- IPython frontends management
-    def new_ipython_frontend(self, connection_file=None,
-                             kernel_widget_id=None):
-        """Create a new IPython frontend"""
-        cf = connection_file
-        if cf is None:
-            example = '(example: `kernel-3764.json`, or simply `3764`)'
-            while True:
-                cf, valid = QInputDialog.getText(self, _('IPython'),
-                          _('IPython kernel connection file:')+'\n'+example,
-                          QLineEdit.Normal)
-                if valid:
-                    cf = str(cf)
-                    if cf.isdigit():
-                        cf = 'kernel-%s.json' % cf
-                    if re.match('^kernel-(\d+).json', cf):
-                        break
-                else:
-                    return
-
-        # Generating the kernel name
-        match = re.match('^kernel-(\d+).json', cf)
-        count = 0
-        while True:
-            kernel_name = match.groups()[0]+'/'+chr(65+count)
-            for ipf in self.ipython_frontends:
-                if ipf.kernel_name == kernel_name:
-                    break
-            else:
-                break
-            count += 1
-
-        # Creating the IPython plugin and associated dockwidget
-        from spyderlib.plugins.ipython import IPythonPlugin
-        ipython_plugin = IPythonPlugin(self, cf, kernel_widget_id, kernel_name)
-        try:
-            ipython_plugin.register_plugin()
-        except (IOError, UnboundLocalError):
-            QMessageBox.critical(self, _('IPython'),
-                                 _("Unable to connect to IPython kernel "
-                                   "<b>`%s`") % cf)
-            return
-    
-    def add_ipython_frontend(self, ipython_plugin):
-        """Add new IPython frontend to main window"""
-        self.add_dockwidget(ipython_plugin)
-
-        # Tabify the first frontend to the external console plugin, tabify 
-        # the next ones to the last created frontend:
-        if self.ipython_frontends:
-            other = self.ipython_frontends[-1]
-        else:
-            other= self.extconsole
-        self.tabifyDockWidget(other.dockwidget, ipython_plugin.dockwidget)
-        ipython_plugin.switch_to_plugin()
-
-        self.ipython_frontends.append(ipython_plugin)
-
-    def remove_ipython_frontend(self, ipython_plugin):
-        """Remove IPython frontend from main window"""
-        self.ipython_frontends.remove(ipython_plugin)
-        self.removeDockWidget(ipython_plugin.dockwidget)
-        ipython_plugin.close()
-    
-    def close_related_ipython_frontends(self, ipython_plugin):
-        """Close all IPython frontends related to *connection_file*,
-        except the plugin *except_this_one*"""
-        for ipf in self.ipython_frontends[:]:
-            if ipf is not ipython_plugin and\
-               ipf.connection_file == ipython_plugin.connection_file:
-                self.remove_ipython_frontend(ipf)
-    
-    def get_ipython_widget(self, kernel_widget_id):
-        """Return IPython widget (ipython_plugin.ipython_widget) 
-        associated to kernel_widget_id"""
-        for ipf in self.ipython_frontends:
-            if ipf.kernel_widget_id == kernel_widget_id:
-                return ipf.ipython_widget
-        else:
-            raise ValueError, "Unknown kernel widget ID %r" % kernel_widget_id
-        
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
@@ -1732,10 +1662,11 @@ Please provide any additional information below.
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
             dlg.add_page(widget)
-        for plugin in [self.workingdirectory, self.editor, self.projectexplorer,
-                       self.extconsole, self.historylog, self.inspector,
-                       self.variableexplorer, self.onlinehelp, self.explorer,
-                       self.findinfiles]+self.thirdparty_plugins:
+        for plugin in [self.workingdirectory, self.editor,
+                       self.projectexplorer, self.extconsole, self.ipyconsole,
+                       self.historylog, self.inspector, self.variableexplorer,
+                       self.onlinehelp, self.explorer, self.findinfiles
+                       ]+self.thirdparty_plugins:
             if plugin is not None:
                 widget = plugin.create_configwidget(dlg)
                 if widget is not None:
