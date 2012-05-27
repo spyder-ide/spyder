@@ -25,9 +25,9 @@ from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
+        self.control_factory = TextEditBaseWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
         self.ipython_client = None
-        self.control_factory = TextEditBaseWidget
     
     #---- Public API ----------------------------------------------------------
     def set_ipython_client(self, ipython_client):
