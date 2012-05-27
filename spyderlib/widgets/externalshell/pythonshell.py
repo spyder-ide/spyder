@@ -410,7 +410,7 @@ The process may not exit as a result of clicking this button
             self.connect(self.notification_thread,
                          SIGNAL('new_ipython_kernel(QString)'),
                          lambda args:
-                         self.emit(SIGNAL('create_ipython_frontend(QString)'),
+                         self.emit(SIGNAL('create_ipython_client(QString)'),
                          args))
             self.connect(self.notification_thread,
                          SIGNAL('open_file(QString,int)'),

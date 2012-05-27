@@ -778,8 +778,8 @@ class ExternalConsole(SpyderPluginWidget):
                     tab_icon1 = get_icon('ipython.png')
                     tab_icon2 = get_icon('ipython_t.png')
                     self.connect(shellwidget,
-                                 SIGNAL('create_ipython_frontend(QString)'),
-                                 lambda cf: self.create_ipython_frontend(
+                                 SIGNAL('create_ipython_client(QString)'),
+                                 lambda cf: self.create_ipython_client(
                                          cf, kernel_widget_id=id(shellwidget)))
                 else:
                     self.python_count += 1
@@ -825,8 +825,8 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.start_shell()
         shellwidget.shell.setFocus()
         
-    def create_ipython_frontend(self, connection_file, kernel_widget_id):
-        """Create a new IPython frontend connected to a kernel just started"""
+    def create_ipython_client(self, connection_file, kernel_widget_id):
+        """Create a new IPython client connected to a kernel just started"""
         index = self.get_shell_index_from_id(kernel_widget_id)
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...

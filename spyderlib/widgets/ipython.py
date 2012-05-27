@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.12+ frontend widget
+IPython v0.12+ client widget
 """
 
 from spyderlib.qt.QtCore import SIGNAL
@@ -57,8 +57,9 @@ class IPythonApp(IPythonQtConsoleApp):
         BaseIPythonApplication.initialize(self, argv=argv)
         IPythonConsoleApp.initialize(self, argv=argv)
 
-    def new_frontend_from_existing(self):
-        """Create and return new frontend from connection file basename"""
+    def new_client_from_existing(self):
+        """Create and return new client (frontend)
+        from connection file basename"""
         cf = find_connection_file(self.existing, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf,
                                          config=self.config)
@@ -83,14 +84,14 @@ if __name__ == '__main__':
     iapp = IPythonApp()
     iapp.initialize()
     
-    widget1 = iapp.new_frontend_from_existing()
+    widget1 = iapp.new_client_from_existing()
     widget1.show()
 
     # Ugly pause but that's just for testing    
     import time
     time.sleep(2)
     
-    widget2 = iapp.new_frontend_from_existing()
+    widget2 = iapp.new_client_from_existing()
     widget2.show()
     
     # Start the application main loop.

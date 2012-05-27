@@ -1154,7 +1154,7 @@ class MainWindow(QMainWindow):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget_from_id(id(shell))
         elif self.ipyconsole is not None:
-            # Checking if any IPython frontend has focus
+            # Checking if any IPython client has focus
             focus_client = self.ipyconsole.get_focus_client()
             if focus_client is not None:
                 kwid = focus_client.kernel_widget_id

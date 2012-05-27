@@ -246,10 +246,10 @@ class IPythonConsole(SpyderPluginWidget):
                 return client
 
     def new_client(self, connection_file=None, kernel_widget_id=None):
-        """Create a new IPython frontend"""
+        """Create a new IPython client"""
         cf = connection_file
         if cf is None:
-            example = '(example: `kernel-3764.json`, or simply `3764`)'
+            example = _('(example: `kernel-3764.json`, or simply `3764`)')
             while True:
                 cf, valid = QInputDialog.getText(self, _('IPython'),
                           _('IPython kernel connection file:')+'\n'+example,
@@ -292,7 +292,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.ipython_app = iapp = IPythonApp()
             iapp.initialize_all_except_qt(argv=argv)
         iapp.parse_command_line(argv=argv)
-        ipython_widget = iapp.new_frontend_from_existing()
+        ipython_widget = iapp.new_client_from_existing()
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget)
@@ -308,7 +308,7 @@ class IPythonConsole(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL('focus_changed()')))
     
     def close_related_ipython_clients(self, client):
-        """Close all IPython frontends related to *connection_file*,
+        """Close all IPython clients related to *connection_file*,
         except the plugin *except_this_one*"""
         for clw in self.shellwidgets[:]:
             if clw is not client and\
