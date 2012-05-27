@@ -17,7 +17,7 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QWidget, QGroupBox,
                                 QLineEdit, QInputDialog, QTabWidget, QMenu,
                                 QFontComboBox, QHBoxLayout, QApplication,
-                                QToolButton)
+                                QToolButton, QLabel)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
@@ -26,6 +26,7 @@ import re
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions, mimedata2url)
 from spyderlib.widgets.tabs import Tabs
@@ -39,6 +40,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.get_name = lambda: _("IPython console")
 
     def setup_page(self):
+        newcb = self.create_checkbox
+        
+        # --- Display ---
         font_group = self.create_fontgroup(option=None, text=None,
                                     fontfilters=QFontComboBox.MonospacedFonts)
 
@@ -47,9 +51,60 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout = QVBoxLayout()
         interface_group.setLayout(interface_layout)
         
+        # --- External modules ---
+        # Pylab Group
+        pylab_group = QGroupBox(_("Support for graphics (Pylab)"))
+        pylab_box = newcb(_("Activate support"), 'pylab')
+        pylab_layout = QVBoxLayout()
+        pylab_layout.addWidget(pylab_box)
+        pylab_group.setLayout(pylab_layout)
+        if not programs.is_module_installed("matplotlib"):
+            self.set_option('pylab', False)
+            pylab_group.setEnabled(False)
+            pylab_tip = _("This feature requires the Matplotlib module.\n"
+                          "It seems you don't have it installed")
+            pylab_box.setToolTip(pylab_tip)
+        
+        # Pylab backend Group
+        backend_group = QGroupBox(_("Graphics backend"))
+        bend_label = QLabel(_("Decide how graphics are going to be displayed "
+                               "in the console. If unsure, please select "
+                               "<b>Inline</b> to put graphics inside the "
+                               "console or <b>Automatic</b> to interact with "
+                               "them (through zooming and panning) in a "
+                               "separate window."))
+        bend_label.setWordWrap(True)
+
+        backends = [(_("Inline"), 0), (_("Automatic"), 1), (_("Qt"), 2)]
+        # TODO: Add gtk3 when 0.13 is released
+        if sys.platform == 'darwin':
+            backends.append( (_("OS X"), 3) )
+        if programs.is_module_installed('pygtk'):
+            backends.append( (_("Gtk"), 4) )
+        if programs.is_module_installed('wxPython'):
+            backends.append( (_("Wx"), 5) )
+        if programs.is_module_installed('_tkinter'):
+            backends.append( (_("Tkinter"), 6) )
+        backends = tuple(backends)
+        
+        backend_box = self.create_combobox(
+               _("Backend:   "), backends, 'pylab/backend', default=0, tip=_(
+"""This option will be applied the next time a console is opened"""))
+        
+        backend_layout = QVBoxLayout()
+        backend_layout.addWidget(bend_label)
+        backend_layout.addWidget(backend_box)
+        backend_group.setLayout(backend_layout)
+        backend_group.setEnabled(self.get_option('pylab') and \
+                                 programs.is_module_installed("matplotlib"))
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     backend_group.setEnabled)
+
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group),
                     _("Display"))
+        tabs.addTab(self.create_tab(pylab_group, backend_group),
+                    _("External modules"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)

@@ -10,6 +10,20 @@
 import sys
 import os.path as osp
 
+def configure_kernel(kernel):
+    from spyderlib.config import CONF
+    from spyderlib.utils import programs
+    
+    # Pylab activation option
+    pylab_o = CONF.get('ipython_console', 'pylab', 0)
+    
+    # Pylab backend configuration
+    if pylab_o and programs.is_module_installed("matplotlib"):
+        backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
+        backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
+                    5: 'wx', 6: 'tk'}
+        kernel.config.IPKernelApp.pylab = backends[backend_o]
+
 # Remove this module's path from sys.path:
 try:
     sys.path.remove(osp.dirname(__file__))
@@ -29,7 +43,8 @@ sys.path.insert(0, '')
 # Fire up the kernel instance.
 from IPython.zmq.ipkernel import IPKernelApp
 ipk_temp = IPKernelApp.instance()
-ipk_temp.initialize(sys.argv[1:])
+configure_kernel(ipk_temp)
+ipk_temp.initialize()
 __ipythonshell__ = ipk_temp.shell
 
 # Issue 977: Since kernel.initialize() has completed execution, 

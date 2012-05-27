@@ -213,6 +213,8 @@ DEFAULTS = [
               'font/size': MEDIUM,
               'font/italic': False,
               'font/bold': False,
+              'pylab': True,
+              'pylab/backend': 0
               }),
             ('variable_explorer',
              {
