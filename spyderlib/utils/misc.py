@@ -7,9 +7,9 @@
 """Miscellaneous utilities"""
 
 from __future__ import with_statement
+
 import os
 import os.path as osp
-import shutil
 import sys
 
 
@@ -41,6 +41,7 @@ def move_file(source, dest):
     Move file from *source* to *dest*
     If file is a Python script, also rename .pyc and .pyo files if any
     """
+    import shutil
     shutil.copy(source, dest)
     remove_file(source)
 
@@ -55,7 +56,7 @@ def select_port(default_port=20128):
                                  socket.IPPROTO_TCP)
 #            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind( ("127.0.0.1", default_port) )
-        except socket.error, _msg:
+        except socket.error, _msg:  # analysis:ignore
             default_port += 1
         else:
             break
@@ -146,6 +147,37 @@ def get_python_executable():
         # py2exe distribution
         executable = "python.exe"
     return executable
+
+
+def monkeypatch_method(cls, patch_name):
+    # This function's code was inspired from the following thread:
+    # "[Python-Dev] Monkeypatching idioms -- elegant or ugly?"
+    # by Robert Brewer <fumanchu at aminus.org>
+    # (Tue Jan 15 19:13:25 CET 2008)
+    """
+    Add the decorated method to the given class; replace as needed.
+    
+    If the named method already exists on the given class, it will
+    be replaced, and a reference to the old method is created as 
+    cls._old<patch_name><name>. If the "_old_<patch_name>_<name>" attribute 
+    already exists, KeyError is raised.
+    """
+    def decorator(func):
+        fname = func.__name__
+        old_func = getattr(cls, fname, None)
+        if old_func is not None:
+            # Add the old func to a list of old funcs.
+            old_ref = "_old_%s_%s" % (patch_name, fname)
+            #print old_ref, old_func
+            old_attr = getattr(cls, old_ref, None)
+            if old_attr is None:
+                setattr(cls, old_ref, old_func)
+            else:
+                raise KeyError("%s.%s already exists."
+                               % (cls.__name__, old_ref))
+        setattr(cls, fname, func)
+        return func
+    return decorator
 
 
 def is_python_script(fname):

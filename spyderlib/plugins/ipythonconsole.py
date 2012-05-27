@@ -83,8 +83,11 @@ class IPythonClient(QWidget):
         layout.addWidget(self.ipython_widget)
         self.setLayout(layout)
         
-        exit_callback = lambda widget=self: plugin.close_console(widget=self)
-        set_ipython_exit_callback(self.ipython_widget, exit_callback)
+        self.exit_callback = lambda: plugin.close_console(widget=self)
+        ipython_widget.exit_requested.connect(self.exit_callback)
+        # Connect the IPython widget to this IPython client:
+        # (see spyderlib/widgets/ipython.py for more details about this)
+        ipython_widget.ipython_client = self
         
     #------ Public API --------------------------------------------------------
     def get_name(self):
@@ -118,6 +121,14 @@ class IPythonClient(QWidget):
         if self.options_button is not None:
             buttons.append(self.options_button)
         return buttons
+    
+    def add_actions_to_context_menu(self, menu):
+        """Add actions to IPython widget context menu"""
+        # See spyderlib/widgets/ipython.py for more details on this method
+        quit_action = create_action(self, _("&Quit"), icon='exit.png',
+                                    triggered=self.exit_callback)
+        add_actions(menu, (None, quit_action))
+        return menu
     
     def set_font(self, font):
         """Set IPython widget's font"""

@@ -269,6 +269,9 @@ class SpyderPdb(pdb.Pdb):
 
 pdb.Pdb = SpyderPdb
 
+#XXX: I know, this function is now also implemented as is in utils/misc.py but
+#     I'm kind of reluctant to import spyderlib in sitecustomize, even if this
+#     import is very clean.
 def monkeypatch_method(cls, patch_name):
     # This function's code was inspired from the following thread:
     # "[Python-Dev] Monkeypatching idioms -- elegant or ugly?"

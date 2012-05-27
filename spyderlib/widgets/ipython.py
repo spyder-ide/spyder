@@ -19,37 +19,34 @@ from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.utils.misc import monkeypatch_method
 from spyderlib.utils.qthelpers import add_actions, create_action
 
+# Monkey patching
+from IPython.frontend.qt.console import ipython_widget
 
-def _context_menu_hack(widget, exit_callback, pos):
-    """Add a "Quit" entry to IPython Qt console widget"""
-    menu = widget._original_context_menu_make(pos)
-    quit_action = create_action(widget, _("&Quit"), icon='exit.png',
-                                triggered=exit_callback)
-    add_actions(menu, (None, quit_action))
-    return menu
+# Methods to be implemented in IPython client object (ipython_client):
+#   ipython_client.add_actions_to_context_menu(menu)
+
+@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
+def _context_menu_make(self, pos):
+    menu = self._old_IPW__context_menu_make(pos)
+    return self.ipython_client.add_actions_to_context_menu(menu)
+
+@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
+def focusInEvent(self, event):
+    self.emit(SIGNAL('focus_changed()'))
+    return self._old_IPW_focusInEvent(event)
+
+@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
+def focusOutEvent(self, event):
+    self.emit(SIGNAL('focus_changed()'))
+    return self._old_IPW_focusOutEvent(event)
+
 
 def set_ipython_exit_callback(widget, exit_callback):
     """Set IPython widget exit callback"""
-    # Monkey-patching the original context menu
-    #XXX: this is very ugly, let's find another way anytime soon...
-    widget._original_context_menu_make = widget._context_menu_make
-    widget._context_menu_make = lambda pos:\
-                        _context_menu_hack(widget, exit_callback, pos)
-
     widget.exit_requested.connect(exit_callback)
-
-
-def _focusinevent_hack(widget, event):
-    """Reimplement Qt method to send focus infos to parent class"""
-    widget.emit(SIGNAL('focus_changed()'))
-    return widget._original_focusInEvent(event)
-
-def _focusoutevent_hack(widget, event):
-    """Reimplement Qt method to send focus infos to parent class"""
-    widget.emit(SIGNAL('focus_changed()'))
-    return widget._original_focusOutEvent(event)
 
 
 class IPythonApp(IPythonQtConsoleApp):
@@ -67,14 +64,6 @@ class IPythonApp(IPythonQtConsoleApp):
         kernel_manager.start_channels()
         widget = self.widget_factory(config=self.config, local_kernel=False)
         widget.kernel_manager = kernel_manager
-        
-        # Monkey-patching the original focus in/out event methods
-        #XXX: this is very ugly, let's find another way anytime soon...
-        widget._original_focusInEvent = widget.focusInEvent
-        widget._original_focusOutEvent = widget.focusOutEvent
-        widget.focusInEvent = lambda event: _focusinevent_hack(widget, event)
-        widget.focusOutEvent = lambda event: _focusoutevent_hack(widget, event)
-
         return widget
 
 
