@@ -340,9 +340,9 @@ to use this feature wisely, e.g. for debugging purpose."""))
         ipython_group = QGroupBox(
                             _("IPython interpreter command line options"))
         ipython_layout = QVBoxLayout()
-        ipython_is_installed = programs.is_module_installed('IPython', '0.1')
+        ipython_is_installed = programs.is_module_installed('IPython', '>=0.10')
         if ipython_is_installed:
-            if programs.is_module_installed('IPython', '0.12'):
+            if programs.is_module_installed('IPython', '>=0.12'):
                 ipython_edit_012 = self.create_lineedit("IPython >=v0.12",
                              'ipython_kernel_options', alignment=Qt.Horizontal)
                 ipython_layout.addWidget(ipython_edit_012)
@@ -943,7 +943,7 @@ class ExternalConsole(SpyderPluginWidget):
         ipython_kernel_action = create_action(self,
                             _("Start a new IPython kernel"), None,
                             'ipython.png', triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython', '0.12'):
+        if programs.is_module_installed('IPython', '>=0.12'):
             self.menu_actions.insert(1, ipython_kernel_action)
             interact_menu_actions.append(ipython_kernel_action)
         
@@ -1128,7 +1128,7 @@ class ExternalConsole(SpyderPluginWidget):
         
     def get_default_ipython_kernel_options(self):
         """Return default ipython kernel command line arguments"""
-        default_options = ["python"]
+        default_options = []
         if programs.is_module_installed('matplotlib'):
             default_options.append("--pylab=inline")
         return " ".join(default_options)
@@ -1146,7 +1146,7 @@ class ExternalConsole(SpyderPluginWidget):
         if wdir is None:
             wdir = os.getcwdu()
         args = self.get_option('ipython_kernel_options',
-                               "python --pylab=inline")
+                               "--pylab=inline")
         self.start(fname=None, wdir=unicode(wdir), args=args,
                    interact=True, debug=False, python=True,
                    ipython_kernel=True)

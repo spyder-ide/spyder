@@ -736,7 +736,7 @@ class MainWindow(QMainWindow):
         #XXX: we need to think of what to do with the light mode...
         #     ---> but for now, simply hiding the dockwidget like in standard 
         #          mode should be sufficient
-        if is_module_installed('IPython', '0.12'):
+        if is_module_installed('IPython', '>=0.12'):
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
             self.ipyconsole.dockwidget.hide()
