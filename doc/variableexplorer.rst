@@ -3,7 +3,7 @@ Variable Explorer
 
 The variable explorer shows the `globals()` namespace contents (i.e. all global 
 object references) of the current console: it supports both the :doc:`console` 
-(Python or IPython interpreter running in a remote process) 
+(Python interpreter running in a remote process) 
 and the :doc:`internalconsole`.
 
 .. image:: images/variableexplorer1.png

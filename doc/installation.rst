@@ -18,7 +18,7 @@ Recommended modules:
     * psutil 0.3+ (memory/CPU usage in status bar)
 
 Optional modules:
-    * IPython (enhanced Python interpreter)
+    * IPython 0.12+ (enhanced Python interpreter)
     * pylint (code analysis)
     * pep8 (style analysis)
 

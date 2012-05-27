@@ -125,7 +125,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         
     def remove_shellwidget(self, shellwidget_id):
         # If shellwidget_id is not in self.shellwidgets, it simply means
-        # that shell was not a Python/IPython-based console (it was a terminal)
+        # that shell was not a Python-based console (it was a terminal)
         if shellwidget_id in self.shellwidgets:
             nsb = self.shellwidgets.pop(shellwidget_id)
             self.removeWidget(nsb)

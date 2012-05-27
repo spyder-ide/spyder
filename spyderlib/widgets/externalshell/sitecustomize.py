@@ -10,8 +10,7 @@ import __builtin__
 
 
 # Colorization of sys.stderr (standard Python interpreter)
-if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true"\
-   and not os.environ.get('IPYTHON', False):
+if os.environ.get("COLORIZE_SYS_STDERR", "").lower() == "true":
     class StderrProxy(object):
         """Proxy to sys.stderr file object overriding only the `write` method 
         to provide red colorization for the whole stream, and blue-underlined 
@@ -104,19 +103,6 @@ if os.name == 'nt': # Windows platforms
             pass
     except ImportError:
         pass
-        
-    # Workaround for IPython thread issues with win32 comdlg32
-    if os.environ.get('IPYTHON', False):
-        try:
-            import win32gui, win32api
-            try:
-                win32gui.GetOpenFileNameW(File=win32api.GetSystemDirectory()[:2])
-            except win32gui.error:
-                # This error is triggered intentionally
-                pass
-        except ImportError:
-            # Unfortunately, pywin32 is not installed...
-            pass
 
 
 # Set standard outputs encoding:
@@ -178,13 +164,7 @@ else:
     # * PySide:
     #   * Installing an input hook: this feature is not yet supported 
     #     natively by PySide
-    if os.environ.get("INSTALL_QT_INPUTHOOK", "").lower() == "true"\
-       and not os.environ.get('IPYTHON', False):
-        # For now, the Spyder's input hook does not work with IPython:
-        # with IPython v0.10 or non-Windows platforms, this is not a
-        # problem. However, with IPython v0.11 on Windows, this will be
-        # fixed by patching IPython to force it to use our inputhook.
-
+    if os.environ.get("INSTALL_QT_INPUTHOOK", "").lower() == "true":
         if os.environ["QT_API"] == 'pyqt':
             from PyQt4 import QtCore
             # Removing PyQt's PyOS_InputHook implementation:
@@ -381,7 +361,7 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
 
 
 # The following classes and functions are mainly intended to be used from 
-# an interactive Python/IPython session
+# an interactive Python session
 class UserModuleDeleter(object):
     """
     User Module Deleter (UMD) aims at deleting user modules 
@@ -434,19 +414,9 @@ __umd__ = None
 
 
 def _get_globals():
-    """Return current Python/IPython interpreter globals namespace"""
+    """Return current Python interpreter globals namespace"""
     from __main__ import __dict__ as namespace
-    if hasattr(__builtin__, '__IPYTHON__'):
-        # IPython 0.10
-        shell = __builtin__.__IPYTHON__
-    else:
-        # IPython 0.11+
-        shell = namespace.get('__ipythonshell__')
-    if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython
-        return shell.user_ns
-    else:
-        return namespace
+    return namespace
 
 
 def runfile(filename, args=None, wdir=None, namespace=None):

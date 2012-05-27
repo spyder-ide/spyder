@@ -29,7 +29,7 @@ Key features:
     
       * working directory
       * command line options
-      * run in a new Python interpreter or in an existing Python/IPython interpreter
+      * run in a new Python interpreter or in an existing Python interpreter or IPython client
       * Python interpreter command line options
       
     * *code outline explorer*: functions, classes, if/else/try/... statements
@@ -54,7 +54,7 @@ Key features:
   
     * *all consoles are executed in a separate process*
     * *code completion*/calltips and automatic link to object inspector (see below)
-    * open Python interpreters, *IPython* interpreters or basic terminal command windows
+    * open Python interpreters or basic terminal command windows
     * run Python scripts (see source editor features)
     * *variable explorer*:
     

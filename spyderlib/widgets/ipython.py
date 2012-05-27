@@ -1,11 +1,11 @@
 # -*- coding:utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2011-2012 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.11+ frontend widget
+IPython v0.12+ frontend widget
 """
 
 from spyderlib.qt.QtCore import SIGNAL

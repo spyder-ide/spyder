@@ -204,7 +204,6 @@ DEFAULTS = [
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
-              'ipython_set_color': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
               }),

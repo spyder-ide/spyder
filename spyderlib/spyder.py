@@ -25,9 +25,9 @@ import re
 ORIGINAL_SYS_EXIT = sys.exit
 
 try:
-    # Test if IPython v0.11+ is installed
+    # Test if IPython v0.12+ is installed
     import IPython
-    if IPython.__version__.startswith(('0.11', '0.12'))\
+    if IPython.__version__.startswith('0.12')\
        and os.environ.get('QT_API', 'pyqt') == 'pyqt':
         # If PyQt is the selected GUI toolkit (at this stage, only the
         # bootstrap script has eventually set this option),

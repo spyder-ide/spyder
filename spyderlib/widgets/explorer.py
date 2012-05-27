@@ -286,12 +286,6 @@ class DirView(QTreeView):
                                triggered=lambda fnames=fnames:
                                self.open_interpreter(fnames))
         actions.append(action)
-        if programs.is_module_installed('IPython', '0.10'):
-            _title = _("Open IPython here")
-            action = create_action(self, _title, icon="ipython.png",
-                                   triggered=lambda fnames=fnames:
-                                   self.open_ipython(fnames))
-            actions.append(action)
         return actions
         
     def create_context_menu_actions(self):
@@ -418,11 +412,6 @@ class DirView(QTreeView):
         """Open interpreter"""
         for path in sorted(fnames):
             self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
-            
-    def open_ipython(self, fnames):
-        """Open IPython"""
-        for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_ipython(QString)"), path)
         
     def run(self, fnames=None):
         """Run Python scripts"""

@@ -119,10 +119,6 @@ class ExtPythonShellWidget(PythonShellWidget):
         """Return True if object is defined"""
         return self.ask_monitor("isdefined('%s', force_import=%s)"
                                 % (objtxt, force_import))
-
-    def get_completion(self, objtxt):
-        """Return completion list associated to object name"""
-        return self.ask_monitor("getcomplist('%s')" % objtxt)
         
     def get_module_completion(self, objtxt):
         """Return module completion list associated to object name"""
@@ -154,8 +150,7 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
-                 ipython_shell=False, ipython_kernel=False,
-                 arguments='', stand_alone=None,
+                 ipython_kernel=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
@@ -214,14 +209,13 @@ class ExternalPythonShell(ExternalShellBase):
         assert isinstance(arguments, basestring)
         self.arguments = arguments
         
-        self.is_ipython_shell = ipython_shell
         self.is_ipython_kernel = ipython_kernel
-        if self.is_ipython_shell or self.is_ipython_kernel:
+        if self.is_ipython_kernel:
             interact = False
-            # Running our custom startup script for IPython sessions:
-            # (see spyderlib/widgets/externalshell/startup.py)
+            # Running our custom startup script for IPython kernels:
+            # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)
             self.fname = get_module_source_path(
-                            'spyderlib.widgets.externalshell', 'startup.py')
+                'spyderlib.widgets.externalshell', 'start_ipython_kernel.py')
         
         self.shell.set_externalshell(self)
 
@@ -307,7 +301,7 @@ The process may not exit as a result of clicking this button
         return actions
 
     def is_interpreter(self):
-        """Return True if shellwidget is a Python/IPython interpreter"""
+        """Return True if shellwidget is a Python interpreter"""
         return self.is_interpreter
         
     def get_shell_widget(self):
@@ -340,9 +334,7 @@ The process may not exit as a result of clicking this button
         ExternalShellBase.set_buttons_runnning_state(self, state)
         self.interact_action.setEnabled(not state and not self.is_interpreter)
         self.debug_action.setEnabled(not state and not self.is_interpreter)
-        self.args_action.setEnabled(not state and
-                                    (not self.is_interpreter or\
-                                     self.is_ipython_shell))
+        self.args_action.setEnabled(not state and not self.is_interpreter)
         if state:
             if self.arguments:
                 argstr = _("Arguments: %s") % self.arguments
@@ -380,7 +372,7 @@ The process may not exit as a result of clicking this button
         self.shell.clear()
             
         self.process = QProcess(self)
-        if self.merge_output_channels or self.is_ipython_shell:
+        if self.merge_output_channels:
             self.process.setProcessChannelMode(QProcess.MergedChannels)
         else:
             self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -454,14 +446,6 @@ The process may not exit as a result of clicking this button
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
-        
-        # IPython related configuration
-        if self.is_ipython_shell:
-            env.append('IPYTHON=True')
-            # Do not call msvcrt.getch in IPython.genutils.page_more:
-            env.append('TERM=emacs')
-        elif self.is_ipython_kernel:
-            env.append('IPYTHON_KERNEL=True')
             
         pathlist = []
 
@@ -526,18 +510,13 @@ The process may not exit as a result of clicking this button
     def send_to_process(self, text):
         if not isinstance(text, basestring):
             text = unicode(text)
-        if self.install_qt_inputhook and not self.is_ipython_shell:
-            # For now, the Spyder's input hook does not work with IPython:
-            # with IPython v0.10 or non-Windows platforms, this is not a
-            # problem. However, with IPython v0.11 on Windows, this will be
-            # fixed by patching IPython to force it to use our inputhook.
-            if self.introspection_socket is not None:
-                communicate(self.introspection_socket,
-                            "toggle_inputhook_flag(True)")
+        if self.install_qt_inputhook and self.introspection_socket is not None:
+            communicate(self.introspection_socket,
+                        "toggle_inputhook_flag(True)")
 #            # Socket-based alternative (see input hook in sitecustomize.py):
 #            while self.local_server.hasPendingConnections():
 #                self.local_server.nextPendingConnection().write('go!')
-        if not self.is_ipython_shell and text.startswith(('%', '!')):
+        if text.startswith(('%', '!')):
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
