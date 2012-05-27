@@ -30,7 +30,7 @@ from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions, mimedata2url)
 from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonApp, set_ipython_exit_callback
+from spyderlib.widgets.ipython import IPythonApp
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 
@@ -139,10 +139,10 @@ class IPythonClient(QWidget):
         self.setLayout(layout)
         
         self.exit_callback = lambda: plugin.close_console(widget=self)
-        ipython_widget.exit_requested.connect(self.exit_callback)
+
         # Connect the IPython widget to this IPython client:
         # (see spyderlib/widgets/ipython.py for more details about this)
-        ipython_widget.ipython_client = self
+        ipython_widget.set_ipython_client(self)
         
     #------ Public API --------------------------------------------------------
     def get_name(self):

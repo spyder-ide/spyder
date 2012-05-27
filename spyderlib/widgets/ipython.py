@@ -16,37 +16,38 @@ from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
 from IPython.lib.kernel import find_connection_file
 from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
-
-# Local imports
-from spyderlib.baseconfig import _
-from spyderlib.utils.misc import monkeypatch_method
-from spyderlib.utils.qthelpers import add_actions, create_action
-
-# Monkey patching
-from IPython.frontend.qt.console import ipython_widget
-
-# Methods to be implemented in IPython client object (ipython_client):
-#   ipython_client.add_actions_to_context_menu(menu)
-
-@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
-def _context_menu_make(self, pos):
-    menu = self._old_IPW__context_menu_make(pos)
-    return self.ipython_client.add_actions_to_context_menu(menu)
-
-@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
-def focusInEvent(self, event):
-    self.emit(SIGNAL('focus_changed()'))
-    return self._old_IPW_focusInEvent(event)
-
-@monkeypatch_method(ipython_widget.IPythonWidget, 'IPW')
-def focusOutEvent(self, event):
-    self.emit(SIGNAL('focus_changed()'))
-    return self._old_IPW_focusOutEvent(event)
+from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 
-def set_ipython_exit_callback(widget, exit_callback):
-    """Set IPython widget exit callback"""
-    widget.exit_requested.connect(exit_callback)
+class SpyderIPythonWidget(RichIPythonWidget):
+    """Spyder's IPython widget"""
+    def __init__(self, *args, **kw):
+        super(RichIPythonWidget, self).__init__(*args, **kw)
+        self.ipython_client = None
+    
+    #---- Public API ----------------------------------------------------------
+    def set_ipython_client(self, ipython_client):
+        """Bind this IPython widget to an IPython client widget
+        (see spyderlib/plugins/ipythonconsole.py)"""
+        self.ipython_client = ipython_client
+        self.exit_requested.connect(ipython_client.exit_callback)
+
+    #---- IPython private methods ---------------------------------------------
+    def _context_menu_make(self, pos):
+        """Reimplement the IPython context menu"""
+        menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
+        return self.ipython_client.add_actions_to_context_menu(menu)
+    
+    #---- Qt methods ----------------------------------------------------------
+    def focusInEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(SpyderIPythonWidget, self).focusInEvent(event)
+    
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(SpyderIPythonWidget, self).focusOutEvent(event)
 
 
 class IPythonApp(IPythonQtConsoleApp):
@@ -62,6 +63,7 @@ class IPythonApp(IPythonQtConsoleApp):
                                          config=self.config)
         kernel_manager.load_connection_file()
         kernel_manager.start_channels()
+        self.widget_factory = SpyderIPythonWidget
         widget = self.widget_factory(config=self.config, local_kernel=False)
         widget.kernel_manager = kernel_manager
         return widget
