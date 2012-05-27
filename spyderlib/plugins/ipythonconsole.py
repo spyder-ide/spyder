@@ -31,6 +31,7 @@ from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions, mimedata2url)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonApp
+from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 
@@ -224,6 +225,13 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.set_close_function(self.close_console)
 
         layout.addWidget(self.tabwidget)
+
+        # Find/replace widget
+        self.find_widget = FindReplace(self)
+        self.find_widget.hide()
+        self.register_widget_shortcuts("Editor", self.find_widget)
+        
+        layout.addWidget(self.find_widget)
         
         self.setLayout(layout)
             
@@ -279,10 +287,13 @@ class IPythonConsole(SpyderPluginWidget):
         clientwidget = None
         if self.tabwidget.count():
             clientwidget = self.tabwidget.currentWidget()
-            clientwidget.get_control().setFocus()
+            editor = clientwidget.get_control()
+            editor.setFocus()
             widgets = clientwidget.get_toolbar_buttons()+[5]
         else:
+            editor = None
             widgets = []
+        self.find_widget.set_editor(editor)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.emit(SIGNAL('update_plugin_title()'))
     
@@ -362,6 +373,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.add_tab(shellwidget, name=shellwidget.get_name())
         self.connect(shellwidget, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
+        self.find_widget.set_editor(shellwidget.get_control())
     
     def close_related_ipython_clients(self, client):
         """Close all IPython clients related to *connection_file*,
