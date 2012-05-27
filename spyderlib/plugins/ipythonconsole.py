@@ -197,7 +197,8 @@ class IPythonConsole(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         
-        self.ipython_app = None
+        self.ipython_app = IPythonApp()
+        self.ipython_app.initialize_all_except_qt()
 
         self.tabwidget = None
         self.menu_actions = None
@@ -351,14 +352,7 @@ class IPythonConsole(SpyderPluginWidget):
 
     def register_client(self, connection_file, kernel_widget_id, client_name):
         """Register new IPython client"""
-        iapp = self.ipython_app
-        argv = ['--existing']+[connection_file]
-        if iapp is None:
-            self.ipython_app = iapp = IPythonApp()
-            iapp.initialize_all_except_qt(argv=argv)
-        iapp.parse_command_line(argv=argv)
-        ipython_widget = iapp.new_client_from_existing()
-
+        ipython_widget = self.ipython_app.create_new_client(connection_file)
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget)
         
