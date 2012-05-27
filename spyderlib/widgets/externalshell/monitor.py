@@ -112,8 +112,10 @@ class Monitor(threading.Thread):
     def __init__(self, host, introspection_port, notification_port,
                  shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
-        self.ipython_kernel = None
         self.setDaemon(True)
+
+        self.ipython_kernel = None
+        self.ipython_shell = None
         
         self.pdb_obj = None
         
@@ -208,6 +210,11 @@ class Monitor(threading.Thread):
                 communicate(self.n_request,
                             dict(command="ipython_kernel",
                                  data=self.ipython_kernel.connection_file))
+            if self.ipython_shell is None and '__ipythonshell__' in glbs:
+                # IPython 0.12+ kernel
+                self.ipython_shell = glbs['__ipythonshell__']
+                self.ipython_shell.modcompletion = moduleCompletion
+                glbs = self.ipython_shell.user_ns
             self._mglobals = glbs
             return glbs
     
@@ -414,7 +421,8 @@ class Monitor(threading.Thread):
         settings = self.remote_view_settings
         if settings:
             ns = self.get_current_namespace()
-            remote_view = make_remote_view(ns, settings)
+            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
+            remote_view = make_remote_view(ns, settings, more_excluded_names)
             communicate(self.n_request,
                         dict(command="remote_view", data=remote_view))
         
@@ -424,7 +432,9 @@ class Monitor(threading.Thread):
         from spyderlib.utils.iofuncs import iofunctions
         settings = read_packet(self.i_request)
         filename = read_packet(self.i_request)
-        data = get_remote_data(ns, settings, mode='picklable').copy()
+        more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
+        data = get_remote_data(ns, settings, mode='picklable',
+                               more_excluded_names=more_excluded_names).copy()
         return iofunctions.save(data, filename)
         
     def loadglobals(self):
@@ -479,6 +489,7 @@ class Monitor(threading.Thread):
         self.refresh_after_eval = True
         
     def run(self):
+        self.ipython_shell = None
         while True:
             output = pickle.dumps(None, pickle.HIGHEST_PROTOCOL)
             glbs = self.mglobals()

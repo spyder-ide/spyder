@@ -416,6 +416,13 @@ __umd__ = None
 def _get_globals():
     """Return current Python interpreter globals namespace"""
     from __main__ import __dict__ as namespace
+    shell = namespace.get('__ipythonshell__')
+    if shell is not None and hasattr(shell, 'user_ns'):
+        # IPython 0.12+ kernel
+        return shell.user_ns
+    else:
+        # Python interpreter
+        return namespace
     return namespace
 
 
