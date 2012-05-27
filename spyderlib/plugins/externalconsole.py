@@ -318,22 +318,6 @@ to use this feature wisely, e.g. for debugging purpose."""))
             pyqt_group.setLayout(pyqt_layout)
             qt_layout.addWidget(pyqt_group)
         
-        # IPython Group
-        ipython_group = QGroupBox(_("IPython kernels"))
-        ipython_layout = QVBoxLayout()
-        if is_ipython_012p:
-            ipython_edit_012 = self.create_lineedit(_("Options"),
-                         'ipython_kernel_options', alignment=Qt.Horizontal)
-            ipython_layout.addWidget(ipython_edit_012)
-        else:
-            ipython_label = QLabel(_("<b>Note:</b><br>"
-                                     "IPython >=<u>v0.12</u> is not "
-                                     "installed on this computer."))
-            ipython_label.setWordWrap(True)
-            ipython_layout.addWidget(ipython_label)
-        ipython_group.setLayout(ipython_layout)
-        ipython_group.setEnabled(is_ipython_012p)
-        
         # Matplotlib Group
         mpl_group = QGroupBox(_("Matplotlib"))
         mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
@@ -397,8 +381,7 @@ to use this feature wisely, e.g. for debugging purpose."""))
         tabs.addTab(self.create_tab(pyexec_group, startup_group,
                                     pystartup_group, umd_group),
                     _("Advanced settings"))
-        tabs.addTab(self.create_tab(qt_group, ipython_group,
-                                    mpl_group, ets_group),
+        tabs.addTab(self.create_tab(qt_group, mpl_group, ets_group),
                     _("External modules"))
         
         vlayout = QVBoxLayout()
@@ -907,7 +890,6 @@ class ExternalConsole(SpyderPluginWidget):
         interact_menu_actions = [interpreter_action]
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
-               
         
         ipython_kernel_action = create_action(self,
                             _("Start a new IPython kernel"), None,
@@ -1044,20 +1026,11 @@ class ExternalConsole(SpyderPluginWidget):
                 break
         return " ".join(default_options)
         
-    def get_default_ipython_kernel_options(self):
-        """Return default ipython kernel command line arguments"""
-        default_options = []
-        if programs.is_module_installed('matplotlib'):
-            default_options.append("--pylab=inline")
-        return " ".join(default_options)
-
     def start_ipython_kernel(self, wdir=None):
         """Start new IPython kernel"""
         if wdir is None:
             wdir = os.getcwdu()
-        args = self.get_option('ipython_kernel_options',
-                               "--pylab=inline")
-        self.start(fname=None, wdir=unicode(wdir), args=args,
+        self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True,
                    ipython_kernel=True)
 
