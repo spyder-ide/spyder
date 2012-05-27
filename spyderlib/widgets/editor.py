@@ -1791,7 +1791,7 @@ class EditorStack(QWidget):
                   _("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
-        index = self.get_stack_index()
+        index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
         self.emit(SIGNAL('ending_long_process(QString)'), "")
         if self.isVisible() and self.checkeolchars_enabled \
