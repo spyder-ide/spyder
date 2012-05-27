@@ -68,10 +68,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 class IPythonClient(QWidget):
     """Find in files DockWidget"""
     CONF_SECTION = 'ipython'
-    def __init__(self, parent, connection_file, kernel_widget_id, client_name,
+    def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
                  ipython_widget):
-        super(IPythonClient, self).__init__(parent)
-        
+        super(IPythonClient, self).__init__(plugin)
         self.options_button = None
 
         self.connection_file = connection_file
@@ -84,6 +83,9 @@ class IPythonClient(QWidget):
         layout.addWidget(self.ipython_widget)
         self.setLayout(layout)
         
+        exit_callback = lambda widget=self: plugin.close_console(widget=self)
+        set_ipython_exit_callback(self.ipython_widget, exit_callback)
+        
     #------ Public API --------------------------------------------------------
     def get_name(self):
         """Return client name"""
@@ -92,10 +94,6 @@ class IPythonClient(QWidget):
     def get_control(self):
         """Return the QPlainTextEdit widget (or similar) to give focus to"""
         return self.ipython_widget._control
-    
-    def set_exit_callback(self, exit_callback):
-        """Set IPython widget exit callback"""
-        set_ipython_exit_callback(self.ipython_widget, exit_callback)
 
     def get_options_menu(self):
         """Return options menu"""
@@ -297,9 +295,6 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget)
-        exit_callback = lambda widget=shellwidget:\
-                            self.close_console(widget=shellwidget)
-        shellwidget.set_exit_callback(exit_callback)
         
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )
