@@ -172,7 +172,7 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_icon(self):
         """Return widget icon"""
-        return get_icon('ipython.png')
+        return get_icon('ipython_console.png')
     
     def get_focus_widget(self):
         """
@@ -186,7 +186,8 @@ class IPythonConsole(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         client_action = create_action(self, _("New IPython client..."), None,
-                    'ipython.png', _("Open a new IPython client (frontend)"),
+                    'ipython_console.png',
+                    _("Open a new IPython client (frontend)"),
                     triggered=self.new_client)
 
         interact_menu_actions = [None, client_action]
@@ -327,7 +328,8 @@ class IPythonConsole(SpyderPluginWidget):
     def add_tab(self, widget, name):
         """Add tab"""
         self.shellwidgets.append(widget)
-        index = self.tabwidget.addTab(widget, get_icon('ipython.png'), name)
+        index = self.tabwidget.addTab(widget, get_icon('ipython_console.png'),
+                                      name)
         self.tabwidget.setCurrentIndex(index)
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
