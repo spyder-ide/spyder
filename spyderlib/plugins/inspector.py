@@ -35,7 +35,7 @@ try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context)
 except ImportError:
-    sphinxify = sphinx_version = None
+    sphinxify = sphinx_version = None  # analysis:ignore
 
 
 class ObjectComboBox(EditableComboBox):
@@ -54,23 +54,21 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        shell = self.object_inspector.shell
         objtxt = unicode(qstr)
+        if self.object_inspector.get_option('automatic_import'):
+            shell = self.object_inspector.internal_shell
+            return shell.is_defined(objtxt, force_import=True)
+        shell = self.object_inspector.get_shell()
         if shell is not None:
-            self.object_inspector._check_if_shell_is_running()
-            if self.object_inspector.get_option('automatic_import'):
-                shell = self.object_inspector.internal_shell
-                return shell.is_defined(objtxt, force_import=True)
-            else:
+            try:
+                return shell.is_defined(objtxt)
+            except socket.error:
+                shell = self.object_inspector.get_shell()
                 try:
                     return shell.is_defined(objtxt)
                 except socket.error:
-                    self.object_inspector._check_if_shell_is_running()
-                    try:
-                        return shell.is_defined(objtxt)
-                    except socket.error:
-                        # Well... too bad!
-                        pass
+                    # Well... too bad!
+                    pass
         
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -684,31 +682,18 @@ class ObjectInspector(SpyderPluginWidget):
     def set_shell(self, shell):
         """Bind to shell"""
         self.shell = shell
-
-    def get_running_python_shell(self):
-        shell = None
-        if self.external_console is not None:
-            shell = self.external_console.get_running_python_shell()
-        if shell is None:
-            shell = self.internal_shell
-        return shell
-        
-    def shell_terminated(self, shell):
-        """
-        External shell has terminated:
-        binding object inspector to another shell
-        """
-        if self.shell is shell:
-            self.shell = self.get_running_python_shell()
-        
-    def _check_if_shell_is_running(self):
-        """
-        Checks if bound external shell is still running.
-        Otherwise, switch to internal console
-        """
+    
+    def get_shell(self):
+        """Return shell which is currently bound to object inspector,
+        or another running shell if it has been terminated"""
         if not isinstance(self.shell, ExtPythonShellWidget) \
            or not self.shell.externalshell.is_running():
-            self.shell = self.get_running_python_shell()
+            self.shell = None
+            if self.external_console is not None:
+                self.shell = self.external_console.get_running_python_shell()
+            if self.shell is None:
+                self.shell = self.internal_shell
+        return self.shell
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
@@ -737,22 +722,19 @@ class ObjectInspector(SpyderPluginWidget):
         
     def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
-        if self.shell is None:
-            return
-        self._check_if_shell_is_running()
-        if self.shell is None:
+        shell = self.get_shell()
+        if shell is None:
             return
         obj_text = unicode(obj_text)
         
-        if self.shell.is_defined(obj_text):
-            shell = self.shell
-        elif self.get_option('automatic_import') and \
-             self.internal_shell.is_defined(obj_text, force_import=True):
-            shell = self.internal_shell
-        else:
-            shell = None
-            doc_text = None
-            source_text = None
+        if not shell.is_defined(obj_text):
+            if self.get_option('automatic_import') and\
+               self.internal_shell.is_defined(obj_text, force_import=True):
+                shell = self.internal_shell
+            else:
+                shell = None
+                doc_text = None
+                source_text = None
             
         if shell is not None:
             doc_text = shell.get_doc(obj_text)

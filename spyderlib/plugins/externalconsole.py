@@ -854,11 +854,12 @@ class ExternalConsole(SpyderPluginWidget):
         
     def process_finished(self, shell_id):
         index = self.get_shell_index_from_id(shell_id)
-        shell = self.shellwidgets[index]
-        _icon, icon = self.icons[index]
-        self.tabwidget.setTabIcon(index, icon)
-        if self.inspector is not None:
-            self.inspector.shell_terminated(shell.shell)
+        if index is not None:
+            # Not sure why it happens, but sometimes the shellwidget has 
+            # already been removed, so that's not bad if we can't change
+            # the tab icon...
+            _icon, icon = self.icons[index]
+            self.tabwidget.setTabIcon(index, icon)
         if self.variableexplorer is not None:
             self.variableexplorer.remove_shellwidget(shell_id)
         
