@@ -10,9 +10,17 @@
 import sys
 import os.path as osp
 
-def configure_kernel(kernel):
+def get_kernel_options():
+    """Return IPython kernel options"""
+    # For an unknown reason the following line does not work on Windows
+    # platforms, so we are using the command line approach (args) to 
+    # initialize properly the kernel:
+    # kernel.config.IPKernelApp.pylab = backends[backend_o]
+
     from spyderlib.config import CONF
     from spyderlib.utils import programs
+    
+    args = ["python"]
     
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab', 0)
@@ -22,7 +30,9 @@ def configure_kernel(kernel):
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        kernel.config.IPKernelApp.pylab = backends[backend_o]
+        args += ["--pylab=%s" % backends[backend_o]]
+
+    return args
 
 # Remove this module's path from sys.path:
 try:
@@ -43,11 +53,10 @@ sys.path.insert(0, '')
 # Fire up the kernel instance.
 from IPython.zmq.ipkernel import IPKernelApp
 ipk_temp = IPKernelApp.instance()
-configure_kernel(ipk_temp)
-ipk_temp.initialize()
+ipk_temp.initialize(get_kernel_options())
 __ipythonshell__ = ipk_temp.shell
 
-# Issue 977: Since kernel.initialize() has completed execution, 
+#  Issue 977 : Since kernel.initialize() has completed execution, 
 # we can now allow the monitor to communicate the availablility of 
 # the kernel to accept front end connections.
 __ipythonkernel__ = ipk_temp
