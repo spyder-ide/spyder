@@ -57,7 +57,8 @@ class ObjectComboBox(EditableComboBox):
         objtxt = unicode(qstr)
         if self.object_inspector.get_option('automatic_import'):
             shell = self.object_inspector.internal_shell
-            return shell.is_defined(objtxt, force_import=True)
+            if shell is not None:
+                return shell.is_defined(objtxt, force_import=True)
         shell = self.object_inspector.get_shell()
         if shell is not None:
             try:
@@ -206,6 +207,8 @@ class ObjectInspector(SpyderPluginWidget):
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
+        
+        self.internal_shell = None
 
         # Initialize plugin
         self.initialize_plugin()
