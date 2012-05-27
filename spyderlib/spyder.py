@@ -24,18 +24,17 @@ import re
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 
-try:
-    # Test if IPython v0.12+ is installed
-    import IPython
-    if IPython.__version__.startswith('0.12')\
-       and os.environ.get('QT_API', 'pyqt') == 'pyqt':
+# Test if IPython v0.12+ is installed to eventually switch to PyQt API #2
+from spyderlib.utils.programs import is_module_installed
+if is_module_installed('IPython', '>=0.12'):
+    # Importing IPython will eventually set the QT_API environment variable
+    import IPython  # analysis:ignore
+    if os.environ.get('QT_API', 'pyqt') == 'pyqt':
         # If PyQt is the selected GUI toolkit (at this stage, only the
-        # bootstrap script has eventually set this option),
-        # switch to PyQt API #2 by simply importing the IPython qt module
+        # bootstrap script has eventually set this option), switch to 
+        # PyQt API #2 by simply importing the IPython qt module
         os.environ['QT_API'] = 'pyqt'
-        from IPython.external import qt #analysis:ignore
-except ImportError:
-    pass
+        from IPython.external import qt  #analysis:ignore
 
 # Check requirements
 from spyderlib import requirements
@@ -86,7 +85,7 @@ from spyderlib.qt import QtSvg  # analysis:ignore
 
 # Local imports
 from spyderlib import __version__, __project_url__, __forum_url__
-from spyderlib.utils import encoding, vcs
+from spyderlib.utils import encoding, vcs, programs
 try:
     from spyderlib.utils.environ import WinUserEnvDialog
 except ImportError:
@@ -125,8 +124,6 @@ from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
 from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
                               EDIT_EXT, IMPORT_EXT)
 from spyderlib.otherplugins import get_spyderplugins_mods
-from spyderlib.utils.programs import (run_python_script, is_module_installed,
-                                      start_file, run_python_script_in_terminal)
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils.module_completion import modules_db
@@ -602,10 +599,10 @@ class MainWindow(QMainWindow):
             self.external_tools_menu_actions = []
             # Python(x,y) launcher
             self.xy_action = create_action(self,
-                                       _("Python(x,y) launcher"),
-                                       icon=get_icon('pythonxy.png'),
-                                       triggered=lambda:
-                                       run_python_script('xy', 'xyhome'))
+                                   _("Python(x,y) launcher"),
+                                   icon=get_icon('pythonxy.png'),
+                                   triggered=lambda:
+                                   programs.run_python_script('xy', 'xyhome'))
             self.external_tools_menu_actions.append(self.xy_action)
             if not is_module_installed('xy'):
                 self.xy_action.setDisabled(True)
@@ -790,9 +787,9 @@ class MainWindow(QMainWindow):
             # Python documentation
             if get_python_doc_path() is not None:
                 pydoc_act = create_action(self, _("Python documentation"),
-                                          icon=get_icon('python.png'),
-                                          triggered=lambda:
-                                          start_file(get_python_doc_path()))
+                                  icon=get_icon('python.png'),
+                                  triggered=lambda:
+                                  programs.start_file(get_python_doc_path()))
                 self.help_menu_actions += [None, pydoc_act]
             # Qt assistant link
             qta_act = create_program_action(self, _("Qt Assistant"),
@@ -814,7 +811,7 @@ class MainWindow(QMainWindow):
                             path = file_uri(path)
                             action = create_action(self, text, icon=icon,
                                                    triggered=lambda path=path:
-                                                             start_file(path))
+                                                   programs.start_file(path))
                             self.help_menu_actions.append(action)
                             break
                 self.help_menu_actions.append(None)
@@ -1546,8 +1543,8 @@ Please provide any additional information below.
         if systerm:
             # Running script in an external system terminal
             try:
-                run_python_script_in_terminal(fname, wdir, args, interact,
-                                              debug, python_args)
+                programs.run_python_script_in_terminal(fname, wdir, args,
+                                                interact, debug, python_args)
             except NotImplementedError:
                 QMessageBox.critical(self, _("Run"),
                                      _("Running an external system terminal "
@@ -1582,7 +1579,7 @@ Please provide any additional information below.
             self.variableexplorer.import_data(fname)
         else:
             fname = file_uri(fname)
-            start_file(fname)
+            programs.start_file(fname)
 
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
@@ -1908,8 +1905,8 @@ def main():
     elif options.optimize:
         # Optimize the whole Spyder's source code directory
         import spyderlib
-        run_python_script(module="compileall", args=[spyderlib.__path__[0]],
-                          p_args=['-O'])
+        programs.run_python_script(module="compileall",
+                                   args=[spyderlib.__path__[0]], p_args=['-O'])
         return
 
     if CONF.get('main', 'crash', False):
