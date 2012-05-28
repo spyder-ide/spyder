@@ -216,7 +216,7 @@ class HistoryLog(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        editor.set_font( self.get_plugin_font(), color_scheme )
+        editor.set_text_format( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
