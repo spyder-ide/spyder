@@ -96,13 +96,16 @@ class SpyderIPythonWidget(RichIPythonWidget):
         return super(SpyderIPythonWidget, self).focusOutEvent(event)
 
 
+#TODO: We have to ask an IPython developer to read this, I'm sure that we are
+#      not using the IPython API as it should be... at least I hope so!
+#----> See "IPython developers review" [1] & [2] in plugins/ipythonconsole.py
+#----> See "IPython developers review" [3] here below
+#==============================================================================
+# For IPython developers review [3]
 class IPythonApp(IPythonQtConsoleApp):
     def initialize_all_except_qt(self, argv=None):
         BaseIPythonApplication.initialize(self, argv=argv)
         IPythonConsoleApp.initialize(self, argv=argv)
-
-    #TODO: We have to ask an IPython developer to read this, I'm sure that 
-    # we don't use the IPython API as it should be... at least I hope so!
 
     def create_kernel_manager(self):
         """Create a kernel manager"""
@@ -122,6 +125,7 @@ class IPythonApp(IPythonQtConsoleApp):
         widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
         widget.kernel_manager = kernel_manager
         return widget
+#==============================================================================
 
 
 if __name__ == '__main__':

@@ -198,8 +198,8 @@ class IPythonConsole(SpyderPluginWidget):
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         
-        self.ipython_app = IPythonApp()
-        self.ipython_app.initialize_all_except_qt()
+        self.ipython_app = None
+        self.initialize_application()
 
         self.tabwidget = None
         self.menu_actions = None
@@ -361,9 +361,22 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>`%s`") % cf)
             return
 
+    def initialize_application(self):
+        """Initialize IPython application"""
+        #======================================================================
+        # For IPython developers review [1]
+        self.ipython_app = IPythonApp()
+        # Is the following line really necessary?
+        #self.ipython_app.initialize_all_except_qt()
+        #======================================================================
+
     def register_client(self, connection_file, kernel_widget_id, client_name):
         """Register new IPython client"""
+        #======================================================================
+        # For IPython developers review [2]
         ipython_widget = self.ipython_app.create_new_client(connection_file)
+        #======================================================================
+
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget)
         
