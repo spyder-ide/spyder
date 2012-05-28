@@ -57,8 +57,9 @@ class SpyderIPythonWidget(RichIPythonWidget):
             backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
             # TODO: Check to what the 'auto' backend points to in OS X and
             # the name displayed by IPython when using the osx backend
-            backends = {0: 'Inline', 1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'OS X',
-                        4: 'GTKAgg', 5: 'WXAgg', 6: 'TKAgg'}
+            backends = {0: 'module://IPython.zmq.pylab.backend_inline',
+                        1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'OS X', 4: 'GTKAgg',
+                        5: 'WXAgg', 6: 'TKAgg'}
             pylab_message = """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.\n""" % backends[backend_o]
