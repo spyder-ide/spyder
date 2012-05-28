@@ -51,7 +51,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
+        banner_box = newcb(_("Display initial banner"), 'banner',
+                           tip=_("This option lets you hide the message\n"
+                                 "shown at the top of the console when\n"
+                                 "is opened."))
         interface_layout = QVBoxLayout()
+        interface_layout.addWidget(banner_box)
         interface_group.setLayout(interface_layout)
         
         # --- External modules ---

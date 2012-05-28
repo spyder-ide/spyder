@@ -20,6 +20,7 @@ from spyderlib.qt.QtGui import QTextEdit
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Local imports
+from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
 
@@ -46,6 +47,24 @@ class SpyderIPythonWidget(RichIPythonWidget):
         (see spyderlib/plugins/ipythonconsole.py)"""
         self.ipython_client = ipython_client
         self.exit_requested.connect(ipython_client.exit_callback)
+    
+    def show_banner(self):
+        """Banner for IPython clients with pylab message"""
+        from IPython.core.usage import default_gui_banner
+        
+        pylab_o = CONF.get('ipython_console', 'pylab', True)
+        if pylab_o:
+            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
+            # TODO: Check to what the 'auto' backend points to in OS X and
+            # the name displayed by IPython when using the osx backend
+            backends = {0: 'Inline', 1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'OS X',
+                        4: 'GTKAgg', 5: 'WXAgg', 6: 'TKAgg'}
+            pylab_message = """
+Welcome to pylab, a matplotlib-based Python environment [backend: %s].
+For more information, type 'help(pylab)'.\n""" % backends[backend_o]
+            return default_gui_banner + pylab_message
+        else:
+            return default_gui_banner
 
     #---- IPython private methods ---------------------------------------------
     def _create_control(self):
@@ -96,24 +115,13 @@ class SpyderIPythonWidget(RichIPythonWidget):
         return self.ipython_client.add_actions_to_context_menu(menu)
     
     def _banner_default(self):
-        """Add the pylab message to the banner, which doesn't show up because
-        we are connecting to already created kernels with pylab support"""
-        from IPython.core.usage import default_gui_banner
-        from spyderlib.config import CONF
-        
-        pylab_o = CONF.get('ipython_console', 'pylab', True)
-        if pylab_o:
-            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
-            # TODO: Check to what the 'auto' backend points to in OS X and
-            # the name displayed by IPython when using the osx backend
-            backends = {0: 'Inline', 1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'OS X',
-                        4: 'GTKAgg', 5: 'WXAgg', 6: 'TKAgg'}
-            pylab_message = """
-Welcome to pylab, a matplotlib-based Python environment [backend: %s].
-For more information, type 'help(pylab)'.\n""" % backends[backend_o]
-            return default_gui_banner + pylab_message
+        """Reimplement banner creation to let the user decide if he wants a
+        banner or not"""
+        banner_o = CONF.get('ipython_console', 'banner', True)
+        if banner_o:
+            return self.show_banner()
         else:
-            return default_gui_banner
+            return ''
     
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
