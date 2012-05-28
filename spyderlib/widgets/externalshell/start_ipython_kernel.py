@@ -22,6 +22,10 @@ def get_kernel_options():
     
     args = ["python"]
     
+    # Until we implement Issue 1052:
+    # http://code.google.com/p/spyderlib/issues/detail?id=1052
+    args += ["--InteractiveShell.xmode=Plain"]
+    
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab', 0)
     

@@ -23,11 +23,14 @@ from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.widgets.sourcecode import mixins
 
 
-class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin):
+class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
+                         mixins.TracebackLinksMixin):
     """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""
+    QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         mixins.BaseEditMixin.__init__(self)
+        mixins.TracebackLinksMixin.__init__(self)
 
 
 class SpyderIPythonWidget(RichIPythonWidget):

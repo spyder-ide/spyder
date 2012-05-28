@@ -15,11 +15,13 @@ import os
 import re
 import sre_constants
 
-from spyderlib.qt.QtGui import QTextCursor, QTextDocument
-from spyderlib.qt.QtCore import Qt, QRegExp
+from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
+                                QCursor)
+from spyderlib.qt.QtCore import Qt, QRegExp, SIGNAL
 
 # Local imports
 from spyderlib.utils import sourcecode
+from spyderlib.utils.misc import get_error_match
 
 
 
@@ -444,7 +446,39 @@ class BaseEditMixin(object):
         cursor.endEditBlock()
 
 
-class ShellEditMixin(BaseEditMixin):
+class TracebackLinksMixin(object):
+    QT_CLASS = None
+    
     def __init__(self):
-        BaseEditMixin.__init__(self)
+        self.__cursor_changed = False
+        self.setMouseTracking(True)
+        
+    #------Mouse events
+    def mouseReleaseEvent(self, event):
+        """Go to error"""
+        self.QT_CLASS.mouseReleaseEvent(self, event)            
+        text = self.get_line_at(event.pos())
+        if get_error_match(text) and not self.has_selected_text():
+            self.emit(SIGNAL("go_to_error(QString)"), text)
+
+    def mouseMoveEvent(self, event):
+        """Show Pointing Hand Cursor on error messages"""
+        text = self.get_line_at(event.pos())
+        if get_error_match(text):
+            if not self.__cursor_changed:
+                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
+                self.__cursor_changed = True
+            event.accept()
+            return
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
+        self.QT_CLASS.mouseMoveEvent(self, event)
+        
+    def leaveEvent(self, event):
+        """If cursor has not been restored yet, do it now"""
+        if self.__cursor_changed:
+            QApplication.restoreOverrideCursor()
+            self.__cursor_changed = False
+        self.QT_CLASS.leaveEvent(self, event)
 

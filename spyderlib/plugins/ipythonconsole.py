@@ -22,11 +22,13 @@ from spyderlib.qt.QtCore import SIGNAL, Qt
 
 import sys
 import re
+import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 from spyderlib.utils import programs
+from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions, mimedata2url)
 from spyderlib.widgets.tabs import Tabs
@@ -276,6 +278,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
+        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                     self.main.editor.load)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
@@ -380,6 +384,8 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget)
+        self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
+                     self.go_to_error)
         
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )
@@ -453,16 +459,14 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget.removeTab(index)
         self.shellwidgets.pop(index)
         self.emit(SIGNAL('update_plugin_title()'))
-
-    #TODO: try and reimplement this block
-    # (this is still the original code block copied from externalconsole.py)
-#    def go_to_error(self, text):
-#        """Go to error if relevant"""
-#        match = get_error_match(unicode(text))
-#        if match:
-#            fname, lnb = match.groups()
-#            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
-#                      osp.abspath(fname), int(lnb), '')
+        
+    def go_to_error(self, text):
+        """Go to error if relevant"""
+        match = get_error_match(unicode(text))
+        if match:
+            fname, lnb = match.groups()
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                      osp.abspath(fname), int(lnb), '')
             
     #----Drag and drop
     #TODO: try and reimplement this block

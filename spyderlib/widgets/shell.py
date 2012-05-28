@@ -16,9 +16,9 @@ import time
 import os.path as osp
 import re
 
-from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
-                                QKeySequence, QMessageBox, QMouseEvent,
-                                QTextCursor, QTextCharFormat, QShortcut)
+from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
+                                QMessageBox, QMouseEvent, QTextCursor,
+                                QTextCharFormat, QShortcut)
 from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, SIGNAL, Property
 from spyderlib.qt.compat import getsavefilename
 
@@ -26,11 +26,11 @@ from spyderlib.qt.compat import getsavefilename
 from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.config import CONF, get_icon, get_font
 from spyderlib.utils import encoding
-from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
+from spyderlib.widgets.sourcecode.mixins import TracebackLinksMixin
 
 
 HISTORY_FILENAMES = []
@@ -682,22 +682,21 @@ class ShellBaseWidget(ConsoleBaseWidget):
         raise NotImplementedError
 
 
-class PythonShellWidget(ShellBaseWidget):
-    """
-    Python shell widget
-    """
+class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
+    """Python shell widget"""
+    QT_CLASS = ShellBaseWidget
+
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
-        ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
+        ShellBaseWidget.__init__(self, parent,
+                                 history_filename, debug, profile)
+        TracebackLinksMixin.__init__(self)
         
         self.inspector = None
         self.inspector_enabled = True
-        
-        # Mouse cursor
-        self.__cursor_changed = False
 
         # Local shortcuts
         self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
@@ -755,36 +754,6 @@ class PythonShellWidget(ShellBaseWidget):
         QApplication.clipboard().setText(text)
     
     
-    #------Mouse events
-    def mouseReleaseEvent(self, event):
-        """Go to error"""
-        ConsoleBaseWidget.mouseReleaseEvent(self, event)            
-        text = self.get_line_at(event.pos())
-        if get_error_match(text) and not self.has_selected_text():
-            self.emit(SIGNAL("go_to_error(QString)"), text)
-
-    def mouseMoveEvent(self, event):
-        """Show Pointing Hand Cursor on error messages"""
-        text = self.get_line_at(event.pos())
-        if get_error_match(text):
-            if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
-                self.__cursor_changed = True
-            event.accept()
-            return
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-        ConsoleBaseWidget.mouseMoveEvent(self, event)
-        
-    def leaveEvent(self, event):
-        """If cursor has not been restored yet, do it now"""
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-        ConsoleBaseWidget.leaveEvent(self, event)
-
-                
     #------ Key handlers
     def postprocess_keyevent(self, event):
         """Process keypress event"""
