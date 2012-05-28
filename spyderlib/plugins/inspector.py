@@ -175,14 +175,10 @@ class PlainText(QWidget):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-        
-    def set_font(self, font, color_scheme=None):
-        """Set font"""
-        self.editor.set_font(font, color_scheme=color_scheme)
-        
-    def set_color_scheme(self, color_scheme):
-        """Set color scheme"""
-        self.editor.set_color_scheme(color_scheme)
+
+    def set_text_format(self, font=None, color_scheme=None):
+        """Set font and color scheme"""
+        self.editor.set_text_format(font, color_scheme)
         
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
@@ -224,7 +220,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.rich_text = RichText(self)
         
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_style(self.get_plugin_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
@@ -391,13 +387,11 @@ class ObjectInspector(SpyderPluginWidget):
         self.wrap_action.setChecked(wrap_o)
         math_n = 'math'
         math_o = self.get_option(math_n)
-        if font_n in options:
-            scs = color_scheme_o if color_scheme_n in options else None
-            self.set_plain_text_font(font_o, color_scheme=scs)
+        font = font_o if font_n in options else None
+        scs = color_scheme_o if color_scheme_n in options else None
+        self.set_plain_text_style(font, color_scheme=scs)
         if rich_font_n in options:
             self.set_rich_text_font(rich_font_o)
-        elif color_scheme_n in options:
-            self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)
         if math_n in options:
@@ -466,20 +460,16 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text mode font"""
         self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
         
-    def set_plain_text_font(self, font, color_scheme=None):
-        """Set plain text mode font"""
-        self.plain_text.set_font(font, color_scheme=color_scheme)
+    def set_plain_text_style(self, font=None, color_scheme=None):
+        """Set plain text mode font and color_scheme"""
+        self.plain_text.set_text_format(font, color_scheme)
 
-    def set_plain_text_color_scheme(self, color_scheme):
-        """Set plain text mode color scheme"""
-        self.plain_text.set_color_scheme(color_scheme)
-        
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
                                       _("Select a new font"))
         if valid:
-            self.set_plain_text_font(font)
+            self.set_plain_text_style(font)
             set_font(font, self.CONF_SECTION)
             
     def toggle_wrap_mode(self, checked):
