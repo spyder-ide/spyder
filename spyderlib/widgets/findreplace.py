@@ -22,6 +22,15 @@ from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
 
+def is_position_sup(pos1, pos2):
+    """Return True is pos1 > pos2"""
+    return pos1 > pos2
+    
+def is_position_inf(pos1, pos2):
+    """Return True is pos1 < pos2"""
+    return pos1 < pos2
+
+
 class FindReplace(QWidget):
     """
     Find widget
@@ -338,14 +347,14 @@ class FindReplace(QWidget):
                     position1 = self.editor.get_position('cursor')
                     if wrapped:
                         if position1 == position or \
-                           self.editor.is_position_sup(position1, position):
+                           is_position_sup(position1, position):
                             # Avoid infinite loop: replace string includes
                             # part of the search string
                             break
                     if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if self.editor.is_position_inf(position1, position0):
+                    if is_position_inf(position1, position0):
                         wrapped = True
                     position0 = position1
                 self.editor.replace(replace_text, pattern=pattern)

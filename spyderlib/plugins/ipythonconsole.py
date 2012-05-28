@@ -152,7 +152,7 @@ class IPythonClient(QWidget):
         return _("Client") + " " + self.client_name
     
     def get_control(self):
-        """Return the QPlainTextEdit widget (or similar) to give focus to"""
+        """Return the text widget (or similar) to give focus to"""
         return self.ipython_widget._control
 
     def get_options_menu(self):

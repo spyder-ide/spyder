@@ -16,16 +16,24 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
+from spyderlib.qt.QtGui import QTextEdit
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Local imports
-from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
+from spyderlib.widgets.sourcecode import mixins
+
+
+class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin):
+    """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""
+    def __init__(self, parent=None):
+        QTextEdit.__init__(self, parent)
+        mixins.BaseEditMixin.__init__(self)
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
-        self.control_factory = TextEditBaseWidget
+        self.control_factory = IPythonShellWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
         self.ipython_client = None
     
@@ -122,7 +130,8 @@ class IPythonApp(IPythonQtConsoleApp):
         if connection_file is not None:
             self.parse_command_line(argv=['--existing']+[connection_file])
         kernel_manager = self.create_kernel_manager()
-        widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
+        self.widget_factory = SpyderIPythonWidget
+        widget = self.widget_factory(config=self.config, local_kernel=False)
         widget.kernel_manager = kernel_manager
         return widget
 #==============================================================================
@@ -132,7 +141,7 @@ if __name__ == '__main__':
     from spyderlib.qt.QtGui import QApplication
     
     iapp = IPythonApp()
-    iapp.initialize()
+    iapp.initialize(["--pylab=inline"])
     
     widget1 = iapp.create_new_client()
     widget1.show()
