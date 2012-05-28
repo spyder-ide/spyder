@@ -108,7 +108,10 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
-from spyderlib.plugins.ipythonconsole import IPythonConsole
+if is_module_installed('IPython', '>=0.12'):
+    # TODO: add ability for plugins to disable themself if their
+    #       requirements are not met before failing during import
+    from spyderlib.plugins.ipythonconsole import IPythonConsole
 from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer

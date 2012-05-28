@@ -1391,23 +1391,9 @@ class CodeEditor(TextEditBaseWidget):
     
         self.rehighlight()
 
-    def set_font(self, font, color_scheme=None):
+    def set_font(self, font):
         """Set shell font"""
-        self.set_text_format(font, color_scheme)
-
-        # Note: why using this method to set color scheme instead of
-        #       'set_color_scheme'? To avoid rehighlighting the document twice
-        #       at startup.
-
-        # TODO: check how many times rehighlight() is called during the load
-        
-        # TODO:
-        if color_scheme:
-            msg = "TODO: replace set_font(font, color_scheme) call with "\
-                  "set_text_format() in"
-            from spyderlib.utils.debug import caller_name
-            import sys; print >> sys.stderr, msg
-            import sys; print >> sys.stderr, "     ", caller_name()
+        self.set_text_format(font)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme for syntax highlighting"""
