@@ -63,34 +63,37 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             self.set_option('pylab', False)
             pylab_group.setEnabled(False)
             pylab_tip = _("This feature requires the Matplotlib module.\n"
-                          "It seems you don't have it installed")
+                          "It seems you don't have it installed.")
             pylab_box.setToolTip(pylab_tip)
         
         # Pylab backend Group
+        inline = _("Inline")
+        automatic = _("Automatic")
         backend_group = QGroupBox(_("Graphics backend"))
         bend_label = QLabel(_("Decide how graphics are going to be displayed "
-                               "in the console. If unsure, please select "
-                               "<b>Inline</b> to put graphics inside the "
-                               "console or <b>Automatic</b> to interact with "
-                               "them (through zooming and panning) in a "
-                               "separate window."))
+                              "in the console. If unsure, please select "
+                              "<b>%s</b> to put graphics inside the "
+                              "console or <b>%s</b> to interact with "
+                              "them (through zooming and panning) in a "
+                              "separate window.") % (inline, automatic))
         bend_label.setWordWrap(True)
 
-        backends = [(_("Inline"), 0), (_("Automatic"), 1), (_("Qt"), 2)]
+        backends = [(inline, 0), (automatic, 1), ("Qt", 2)]
         # TODO: Add gtk3 when 0.13 is released
         if sys.platform == 'darwin':
-            backends.append( (_("OS X"), 3) )
+            backends.append( ("OS X", 3) )
         if programs.is_module_installed('pygtk'):
-            backends.append( (_("Gtk"), 4) )
+            backends.append( ("Gtk", 4) )
         if programs.is_module_installed('wxPython'):
-            backends.append( (_("Wx"), 5) )
+            backends.append( ("Wx", 5) )
         if programs.is_module_installed('_tkinter'):
-            backends.append( (_("Tkinter"), 6) )
+            backends.append( ("Tkinter", 6) )
         backends = tuple(backends)
         
-        backend_box = self.create_combobox(
-               _("Backend:   "), backends, 'pylab/backend', default=0, tip=_(
-"""This option will be applied the next time a console is opened"""))
+        backend_box = self.create_combobox( _("Backend:   "), backends,
+                                       'pylab/backend', default=0,
+                                       tip=_("This option will be applied the "
+                                             "next time a console is opened."))
         
         backend_layout = QVBoxLayout()
         backend_layout.addWidget(bend_label)
@@ -102,10 +105,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                      backend_group.setEnabled)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group),
-                    _("Display"))
-        tabs.addTab(self.create_tab(pylab_group, backend_group),
-                    _("External modules"))
+        tabs.addTab(self.create_tab(font_group, interface_group), _("Display"))
+        tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
