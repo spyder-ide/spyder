@@ -1042,7 +1042,8 @@ class EditorStack(QWidget):
             text = u"%s — %s"
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
-        if filename == encoding.to_unicode_from_fs(self.tempfile_path):
+        if self.tempfile_path is not None\
+           and filename == encoding.to_unicode_from_fs(self.tempfile_path):
             temp_file_str = unicode(_("Temporary file"))
             if self.fullpath_sorting_enabled:
                 return "%s (%s)" % (text, temp_file_str)
@@ -2337,10 +2338,14 @@ def test():
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+    import time
+    t0 = time.time()
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
     test.load("sourcecode/codeeditor.py")
+    test.load("../spyder.py")
+    print "Elapsed time: %.3f s" % (time.time()-t0)
     sys.exit(app.exec_())
     
 if __name__ == "__main__":
