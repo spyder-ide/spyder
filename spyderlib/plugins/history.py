@@ -175,11 +175,9 @@ class HistoryLog(SpyderPluginWidget):
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         for editor in self.editors:
-            if font_n in options:
-                scs = color_scheme_o if color_scheme_n in options else None
-                editor.set_font(font_o, scs)
-            elif color_scheme_n in options:
-                editor.set_color_scheme(color_scheme_o)
+            font = font_o if font_n in options else None
+            scs = color_scheme_o if color_scheme_n in options else None
+            editor.set_text_format(font, scs)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
         
