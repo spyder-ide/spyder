@@ -23,6 +23,13 @@ from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
+def config_widget(c):
+    """Set options for SpyderIPythonWidget obtained through our config
+    system"""
+    
+    # Gui completion widget
+    gui_comp_o = CONF.get('ipython_console', 'gui_completion', True)
+    c.IPythonWidget.gui_completion = gui_comp_o
 
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
                          mixins.TracebackLinksMixin):
@@ -163,6 +170,7 @@ class IPythonApp(IPythonQtConsoleApp):
             self.parse_command_line(argv=['--existing']+[connection_file])
         kernel_manager = self.create_kernel_manager()
         self.widget_factory = SpyderIPythonWidget
+        config_widget(self.config)
         widget = self.widget_factory(config=self.config, local_kernel=False)
         widget.kernel_manager = kernel_manager
         return widget

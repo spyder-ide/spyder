@@ -49,17 +49,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         font_group = self.create_fontgroup(option=None, text=None,
                                     fontfilters=QFontComboBox.MonospacedFonts)
 
-        # Interface Group
+        # --- Interface Group ---
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'banner',
-                           tip=_("This option lets you hide the message\n"
-                                 "shown at the top of the console when\n"
-                                 "is opened."))
+                      tip=_("This option lets you hide the message shown at\n"
+                            "the top of the console when it's opened."))
+        gui_comp_box = newcb(_("Use a completion widget"), 'gui_completion',
+                             tip=_("Use a widget instead of plain text "
+                                   "output for tab completion"))
+
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
+        interface_layout.addWidget(gui_comp_box)
         interface_group.setLayout(interface_layout)
         
-        # --- External modules ---
+        # --- Graphics ---
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Pylab)"))
         pylab_box = newcb(_("Activate support"), 'pylab')

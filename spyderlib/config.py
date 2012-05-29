@@ -214,6 +214,7 @@ DEFAULTS = [
               'font/italic': False,
               'font/bold': False,
               'banner': True,
+              'gui_completion': True,
               'pylab': True,
               'pylab/backend': 0
               }),
