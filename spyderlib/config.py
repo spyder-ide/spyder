@@ -216,6 +216,7 @@ DEFAULTS = [
               'banner': True,
               'gui_completion': True,
               'pager': True,
+              'ask_before_closing': True,
               'pylab': True,
               'pylab/backend': 0
               }),

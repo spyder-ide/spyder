@@ -63,11 +63,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                   "console with long help texts.\n"
                                   "Note: Use the Q key to get out of the "
                                   "pager."))
-        
+        ask_box = newcb(_("Ask for confirmation before closing"),
+                        'ask_before_closing')
+
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
         interface_layout.addWidget(gui_comp_box)
         interface_layout.addWidget(pager_box)
+        interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
         
         # --- Graphics ---
@@ -461,16 +464,23 @@ class IPythonConsole(SpyderPluginWidget):
             console = self.main.extconsole
             idx = console.get_shell_index_from_id(widget.kernel_widget_id)
             if idx is not None:
-                answer = QMessageBox.question(self, self.get_plugin_title(),
-                            _("%s will be closed.\n"
-                              "Do you want to kill the associated kernel and "
-                              "the all of its clients?") % widget.get_name(),
+                if self.get_option('ask_before_closing'):
+                    answer = QMessageBox.question(self,
+                               self.get_plugin_title(),
+                               _("%s will be closed.\n"
+                                 "Do you want to kill the associated kernel "
+                                 "and all of its "
+                                 "clients?") % widget.get_name(),
                             QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                if answer == QMessageBox.Yes:
+                    if answer == QMessageBox.Yes:
+                        console.close_console(index=idx)
+                        self.close_related_ipython_clients(widget)
+                    elif answer == QMessageBox.No or \
+                      answer == QMessageBox.Cancel:
+                        return
+                else:
                     console.close_console(index=idx)
                     self.close_related_ipython_clients(widget)
-                elif answer == QMessageBox.Cancel:
-                    return
         widget.close()
         self.tabwidget.removeTab(index)
         self.shellwidgets.pop(index)
