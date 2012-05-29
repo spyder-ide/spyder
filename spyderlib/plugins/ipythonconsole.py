@@ -49,7 +49,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         font_group = self.create_fontgroup(option=None, text=None,
                                     fontfilters=QFontComboBox.MonospacedFonts)
 
-        # --- Interface Group ---
+        # Interface Group
         interface_group = QGroupBox(_("Interface"))
         banner_box = newcb(_("Display initial banner"), 'banner',
                       tip=_("This option lets you hide the message shown at\n"
@@ -72,6 +72,18 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(pager_box)
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
+
+        # Source Code Group
+        source_code_group = QGroupBox(_("Source code"))
+        buffer_spin = self.create_spinbox(
+                _("Buffer:  "), _(" lines"),
+                'buffer_size', min_=-1, max_=1000000, step=100,
+                tip=_("Set the maximum number of lines of text shown in the\n"
+                      "console before truncation. Specifying -1 disables it\n"
+                      "(not recommended!)"))
+        source_code_layout = QVBoxLayout()
+        source_code_layout.addWidget(buffer_spin)
+        source_code_group.setLayout(source_code_layout)
         
         # --- Graphics ---
         # Pylab Group
@@ -126,7 +138,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                      backend_group.setEnabled)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group), _("Display"))
+        tabs.addTab(self.create_tab(font_group, interface_group,
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
 
         vlayout = QVBoxLayout()

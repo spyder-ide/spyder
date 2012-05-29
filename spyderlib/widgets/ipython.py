@@ -26,7 +26,7 @@ from spyderlib.widgets.sourcecode import mixins
 def config_widget(c):
     """Set options for SpyderIPythonWidget obtained through our config
     system"""
-    
+
     # Gui completion widget
     gui_comp_o = CONF.get('ipython_console', 'gui_completion', True)
     c.IPythonWidget.gui_completion = gui_comp_o
@@ -37,6 +37,10 @@ def config_widget(c):
         c.IPythonWidget.paging = 'inside'
     else:
         c.IPythonWidget.paging = 'none'
+
+    # Buffer size
+    buffer_size_o = CONF.get('ipython_console', 'buffer_size', 10000)
+    c.IPythonWidget.buffer_size = buffer_size_o
 
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
                          mixins.TracebackLinksMixin):

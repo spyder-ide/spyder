@@ -217,6 +217,7 @@ DEFAULTS = [
               'gui_completion': True,
               'pager': True,
               'ask_before_closing': True,
+              'buffer_size': 10000,
               'pylab': True,
               'pylab/backend': 0
               }),
