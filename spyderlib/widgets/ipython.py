@@ -31,6 +31,13 @@ def config_widget(c):
     gui_comp_o = CONF.get('ipython_console', 'gui_completion', True)
     c.IPythonWidget.gui_completion = gui_comp_o
 
+    # Pager
+    pager_o = CONF.get('ipython_console', 'pager', True)
+    if pager_o:
+        c.IPythonWidget.paging = 'inside'
+    else:
+        c.IPythonWidget.paging = 'none'
+
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
                          mixins.TracebackLinksMixin):
     """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""

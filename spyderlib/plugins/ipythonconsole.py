@@ -57,10 +57,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         gui_comp_box = newcb(_("Use a completion widget"), 'gui_completion',
                              tip=_("Use a widget instead of plain text "
                                    "output for tab completion"))
-
+        pager_box = newcb(_("Use a pager to display help inside the "
+                            "console"), 'pager',
+                            tip=_("Useful if you don't want to fill the "
+                                  "console with long help texts.\n"
+                                  "Note: Use the Q key to get out of the "
+                                  "pager."))
+        
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
         interface_layout.addWidget(gui_comp_box)
+        interface_layout.addWidget(pager_box)
         interface_group.setLayout(interface_layout)
         
         # --- Graphics ---

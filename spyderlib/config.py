@@ -215,6 +215,7 @@ DEFAULTS = [
               'font/bold': False,
               'banner': True,
               'gui_completion': True,
+              'pager': True,
               'pylab': True,
               'pylab/backend': 0
               }),
