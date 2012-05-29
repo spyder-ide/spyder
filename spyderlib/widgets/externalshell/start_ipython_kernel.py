@@ -18,7 +18,6 @@ def get_kernel_options():
     # kernel.config.IPKernelApp.pylab = backends[backend_o]
 
     from spyderlib.config import CONF
-    from spyderlib.utils import programs
     
     args = ["python"]
     
@@ -27,10 +26,10 @@ def get_kernel_options():
     args += ["--InteractiveShell.xmode=Plain"]
     
     # Pylab activation option
-    pylab_o = CONF.get('ipython_console', 'pylab', 0)
+    pylab_o = CONF.get('ipython_console', 'pylab')
     
     # Pylab backend configuration
-    if pylab_o and programs.is_module_installed("matplotlib"):
+    if pylab_o:
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
