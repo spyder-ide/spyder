@@ -190,6 +190,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
                               'open_python_at_startup')
+
+        # TODO(ipython): clean up all IPython stuff
         ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
                                 'start_ipython_kernel_at_startup')
         is_ipython_012p = programs.is_module_installed('IPython', '>=0.12')
@@ -428,9 +430,6 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('ipython_options', None) is None:
             self.set_option('ipython_options',
                             self.get_default_ipython_options())
-        if self.get_option('ipython_kernel_options', None) is None:
-            self.set_option('ipython_kernel_options',
-                            self.get_default_ipython_kernel_options())
         
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
