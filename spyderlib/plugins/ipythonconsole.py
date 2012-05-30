@@ -24,6 +24,8 @@ import sys
 import re
 import os.path as osp
 
+from IPython.config.loader import Config
+
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
@@ -398,6 +400,32 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>`%s`") % cf)
             return
 
+    def client_config(self):
+        """Generate a Config instance for IPython clients using our config
+        system
+        
+        This let us create each client with its own config (as oppossed to
+        IPythonQtConsoleApp, where all clients have the same config)
+        """
+        cfg = Config()
+        
+        # Gui completion widget
+        gui_comp_o = self.get_option('gui_completion')
+        cfg.IPythonWidget.gui_completion = gui_comp_o
+
+        # Pager
+        pager_o = self.get_option('pager')
+        if pager_o:
+            cfg.IPythonWidget.paging = 'inside'
+        else:
+            cfg.IPythonWidget.paging = 'none'
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        cfg.IPythonWidget.buffer_size = buffer_size_o
+        
+        return cfg
+    
     def initialize_application(self):
         """Initialize IPython application"""
         #======================================================================
@@ -412,6 +440,7 @@ class IPythonConsole(SpyderPluginWidget):
         #======================================================================
         # For IPython developers review [2]
         ipython_widget = self.ipython_app.create_new_client(connection_file)
+        ipython_widget.config = self.client_config()
         #======================================================================
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
