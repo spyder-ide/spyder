@@ -155,6 +155,22 @@ class IPythonApp(IPythonQtConsoleApp):
         kernel_manager.start_channels()
         return kernel_manager
 
+    def config_color_scheme(self):
+        """Set the color scheme for clients.
+        
+        In 0.12 this property needs to be set on the App and not on the
+        on widget, so that the widget can be initialized with the right
+        scheme.
+        TODO: This is a temporary measure until we create proper stylesheets
+        for the widget using our own color schemes, which by the way can be
+        passed directly to it.
+        """
+        dark_color_o = CONF.get('ipython_console', 'dark_color', False)
+        if dark_color_o:
+            self.config.ZMQInteractiveShell.colors = 'Linux'
+        else:
+            self.config.ZMQInteractiveShell.colors = 'LightBG'
+    
     def create_new_client(self, connection_file=None):
         """Create and return new client (frontend)
         from connection file basename"""
@@ -162,7 +178,9 @@ class IPythonApp(IPythonQtConsoleApp):
             self.parse_command_line(argv=['--existing']+[connection_file])
         kernel_manager = self.create_kernel_manager()
         self.widget_factory = SpyderIPythonWidget
+        self.config_color_scheme()
         widget = self.widget_factory(config=self.config, local_kernel=False)
+        self.init_colors(widget)
         widget.kernel_manager = kernel_manager
         return widget
 #==============================================================================

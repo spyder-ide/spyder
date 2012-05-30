@@ -217,6 +217,8 @@ DEFAULTS = [
               'use_gui_completion': True,
               'use_pager': True,
               'ask_before_closing': True,
+              'light_color': True,
+              'dark_color': False,
               'buffer_size': 10000,
               'pylab': True,
               'pylab/backend': 0
