@@ -588,14 +588,19 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.execute_lines(unicode(lines))
                 shellwidget.shell.setFocus()
             
-    def pdb_has_stopped(self, fname, lineno, shell):
+    def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""      
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
         self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
                   fname, lineno, '',False)
-        shell.setFocus()
+        if shellwidget.is_ipython_kernel:
+            # Focus client widget, not kernel
+            ipw = self.main.ipyconsole.get_focus_widget()
+            ipw.setFocus()
+        else:
+            shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipython_kernel=False, python_args=''):
@@ -699,8 +704,8 @@ class ExternalConsole(SpyderPluginWidget):
                            show_buttons_inside=False,
                            show_elapsed_time=show_elapsed_time)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
-                         lambda fname, lineno, shell=shellwidget.shell:
-                         self.pdb_has_stopped(fname, lineno, shell))
+                         lambda fname, lineno, shellwidget=shellwidget:
+                         self.pdb_has_stopped(fname, lineno, shellwidget))
             self.register_widget_shortcuts("Console", shellwidget.shell)
         else:
             if os.name == 'posix':
