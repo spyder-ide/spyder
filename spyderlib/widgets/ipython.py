@@ -117,7 +117,7 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
     def _banner_default(self):
         """Reimplement banner creation to let the user decide if he wants a
         banner or not"""
-        banner_o = CONF.get('ipython_console', 'banner', True)
+        banner_o = CONF.get('ipython_console', 'show_banner', True)
         if banner_o:
             return self.show_banner()
         else:

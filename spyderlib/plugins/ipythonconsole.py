@@ -53,14 +53,15 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
-        banner_box = newcb(_("Display initial banner"), 'banner',
+        banner_box = newcb(_("Display initial banner"), 'show_banner',
                       tip=_("This option lets you hide the message shown at\n"
                             "the top of the console when it's opened."))
-        gui_comp_box = newcb(_("Use a completion widget"), 'gui_completion',
+        gui_comp_box = newcb(_("Use a completion widget"),
+                             'use_gui_completion',
                              tip=_("Use a widget instead of plain text "
                                    "output for tab completion"))
         pager_box = newcb(_("Use a pager to display help inside the "
-                            "console"), 'pager',
+                            "console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
                                   "console with long help texts.\n"
                                   "Note: Use the Q key to get out of the "
@@ -410,11 +411,11 @@ class IPythonConsole(SpyderPluginWidget):
         cfg = Config()
         
         # Gui completion widget
-        gui_comp_o = self.get_option('gui_completion')
+        gui_comp_o = self.get_option('use_gui_completion')
         cfg.IPythonWidget.gui_completion = gui_comp_o
 
         # Pager
-        pager_o = self.get_option('pager')
+        pager_o = self.get_option('use_pager')
         if pager_o:
             cfg.IPythonWidget.paging = 'inside'
         else:
