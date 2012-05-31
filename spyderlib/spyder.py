@@ -34,7 +34,13 @@ if is_module_installed('IPython', '>=0.12'):
         # bootstrap script has eventually set this option), switch to 
         # PyQt API #2 by simply importing the IPython qt module
         os.environ['QT_API'] = 'pyqt'
-        from IPython.external import qt  #analysis:ignore
+        try:
+            from IPython.external import qt  #analysis:ignore
+        except ImportError:
+            # Avoid raising any error here: the spyderlib.requirements module
+            # will take care of it, in a user-friendly way (Tkinter message box
+            # if no GUI toolkit is installed)
+            pass
 
 # Check requirements
 from spyderlib import requirements
