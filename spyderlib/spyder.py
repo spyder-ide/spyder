@@ -365,7 +365,8 @@ class MainWindow(QMainWindow):
         self.source_toolbar_actions = []
         self.run_toolbar = None
         self.run_toolbar_actions = []
-        
+        self.debug_toolbar = None
+        self.debug_toolbar_actions = []
         # Set Window title and icon
         title = "Spyder"
         if self.debug:
@@ -483,7 +484,31 @@ class MainWindow(QMainWindow):
                                                     'editdelete.png')
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
-                                                       'selectall.png')
+                                                       'selectall.png')                                        
+            self.debug_next_action = create_action(self, "Debug Next", 
+                                           icon='down.png', tip="Debug Next", 
+                                           triggered= self.debug_next,
+                                           context=Qt.WidgetShortcut)          
+            self.debug_continue_action = create_action(self, "Debug Continue",
+                                           icon='compfile.png',
+                                           tip="Debug Continue", 
+                                           triggered= self.debug_continue,
+                                             context=Qt.WidgetShortcut)                                                 
+            self.debug_step_action = create_action(self, "Debug Step Into", 
+                                           icon='next.png',
+                                           tip="Debug Step Into", 
+                                           triggered= self.debug_step,
+                                           context=Qt.WidgetShortcut)                
+            self.debug_return_action = create_action(self, "Debug Step Out", 
+                                           icon='previous.png',
+                                           tip="Debug Step Out", 
+                                           triggered= self.debug_return,
+                                           context=Qt.WidgetShortcut)               
+            self.debug_exit_action = create_action(self, "Debug Exit", 
+                                           icon='stop.png',
+                                           tip="Debug Exit", 
+                                           triggered= self.debug_exit,
+                                           context=Qt.WidgetShortcut)                                        
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
@@ -494,6 +519,11 @@ class MainWindow(QMainWindow):
             self.search_toolbar_actions = [self.find_action,
                                            self.find_next_action,
                                            self.replace_action]
+            self.debug_toolbar_actions= [self.debug_next_action,
+                                         self.debug_step_action,
+                                         self.debug_return_action,
+                                         self.debug_continue_action,
+                                         self.debug_exit_action]
 
         namespace = None
         if not self.light:
@@ -544,6 +574,10 @@ class MainWindow(QMainWindow):
             self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                    "run_toolbar")
             
+            # Debug toolbar                                       
+            self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
+                                                   "debug_toolbar")
+                                                  
             # Interact menu/toolbar
             self.interact_menu = self.menuBar().addMenu(_("&Interpreters"))
             
@@ -936,8 +970,9 @@ class MainWindow(QMainWindow):
             add_actions(self.edit_toolbar, self.edit_toolbar_actions)
             add_actions(self.search_toolbar, self.search_toolbar_actions)
             add_actions(self.source_toolbar, self.source_toolbar_actions)
+            add_actions(self.debug_toolbar, self.debug_toolbar_actions)
             add_actions(self.run_toolbar, self.run_toolbar_actions)
-        
+            
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
         
@@ -1185,6 +1220,8 @@ class MainWindow(QMainWindow):
             return
         self.update_edit_menu()
         self.update_search_menu()
+        
+        # Now deal with Python shell and IPython plugins 
         shell = get_focus_python_shell()
         if shell is not None:
             # A Python shell widget has focus
@@ -1207,7 +1244,6 @@ class MainWindow(QMainWindow):
                         if self.inspector is not None:
                             self.inspector.set_shell(kw)
                         self.variableexplorer.set_shellwidget_from_id(kwid)
-                        
                         # Setting the kernel widget as current widget for the 
                         # external console's tabwidget: this is necessary for
                         # the editor/console link to be working (otherwise,
@@ -1289,7 +1325,7 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu.clear()
         popmenu = self.createPopupMenu()
         add_actions(self.windows_toolbars_menu, popmenu.actions())
-        
+    
     def set_splash(self, message):
         """Set splash message"""
         if message:
@@ -1542,6 +1578,7 @@ Please provide any additional information below.
             while not isinstance(plugin, EditorWidget):
                 plugin = plugin.parent()
             return plugin
+            
     
     def find(self):
         """Global find callback"""
@@ -1568,6 +1605,31 @@ Please provide any additional information below.
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
+            
+    def debug_next(self):
+        """Debug next line"""
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code("next")
+            
+    def debug_continue(self):
+        """Debug Continue"""
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code("continue")
+        
+    def debug_exit(self):
+        """Debug exit debug console"""
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code("exit")
+        
+    def debug_step(self):
+        """Debug Step into"""
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code("step")
+        
+    def debug_return(self):
+        """Debug Return"""
+        self.extconsole.raise_()
+        self.extconsole.execute_python_code("return")    
             
     def global_callback(self):
         """Global callback"""
