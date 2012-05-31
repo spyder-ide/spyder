@@ -352,6 +352,7 @@ class IPythonConsole(SpyderPluginWidget):
             client_name = match.groups()[0]+'/'+chr(65+count)
             for clw in self.get_clients():
                 if clw.client_name == client_name:
+                    kernel_widget_id = clw.kernel_widget_id
                     break
             else:
                 break
