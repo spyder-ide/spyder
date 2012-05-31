@@ -24,6 +24,8 @@ import sys
 import re
 import os.path as osp
 
+from IPython.config.loader import Config
+
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
@@ -51,10 +53,53 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # Interface Group
         interface_group = QGroupBox(_("Interface"))
+        banner_box = newcb(_("Display initial banner"), 'show_banner',
+                      tip=_("This option lets you hide the message shown at\n"
+                            "the top of the console when it's opened."))
+        gui_comp_box = newcb(_("Use a completion widget"),
+                             'use_gui_completion',
+                             tip=_("Use a widget instead of plain text "
+                                   "output for tab completion"))
+        pager_box = newcb(_("Use a pager to display help inside the "
+                            "console"), 'use_pager',
+                            tip=_("Useful if you don't want to fill the "
+                                  "console with long help texts.\n"
+                                  "Note: Use the Q key to get out of the "
+                                  "pager."))
+        ask_box = newcb(_("Ask for confirmation before closing"),
+                        'ask_before_closing')
+
         interface_layout = QVBoxLayout()
+        interface_layout.addWidget(banner_box)
+        interface_layout.addWidget(gui_comp_box)
+        interface_layout.addWidget(pager_box)
+        interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
         
-        # --- External modules ---
+        # Background Color Group
+        bg_group = QGroupBox(_("Background color"))
+        light_radio = self.create_radiobutton(_("Light background"),
+                                              'light_color')
+        dark_radio = self.create_radiobutton(_("Dark background"),
+                                             'dark_color')
+        bg_layout = QVBoxLayout()
+        bg_layout.addWidget(light_radio)
+        bg_layout.addWidget(dark_radio)
+        bg_group.setLayout(bg_layout)
+
+        # Source Code Group
+        source_code_group = QGroupBox(_("Source code"))
+        buffer_spin = self.create_spinbox(
+                _("Buffer:  "), _(" lines"),
+                'buffer_size', min_=-1, max_=1000000, step=100,
+                tip=_("Set the maximum number of lines of text shown in the\n"
+                      "console before truncation. Specifying -1 disables it\n"
+                      "(not recommended!)"))
+        source_code_layout = QVBoxLayout()
+        source_code_layout.addWidget(buffer_spin)
+        source_code_group.setLayout(source_code_layout)
+        
+        # --- Graphics ---
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Pylab)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
@@ -107,7 +152,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                      backend_group.setEnabled)
 
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group), _("Display"))
+        tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
+                                    source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
 
         vlayout = QVBoxLayout()
@@ -366,6 +412,32 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>`%s`") % cf)
             return
 
+    def client_config(self):
+        """Generate a Config instance for IPython clients using our config
+        system
+        
+        This let us create each client with its own config (as oppossed to
+        IPythonQtConsoleApp, where all clients have the same config)
+        """
+        cfg = Config()
+        
+        # Gui completion widget
+        gui_comp_o = self.get_option('use_gui_completion')
+        cfg.IPythonWidget.gui_completion = gui_comp_o
+
+        # Pager
+        pager_o = self.get_option('use_pager')
+        if pager_o:
+            cfg.IPythonWidget.paging = 'inside'
+        else:
+            cfg.IPythonWidget.paging = 'none'
+
+        # Buffer size
+        buffer_size_o = self.get_option('buffer_size')
+        cfg.IPythonWidget.buffer_size = buffer_size_o
+        
+        return cfg
+    
     def initialize_application(self):
         """Initialize IPython application"""
         #======================================================================
@@ -380,6 +452,7 @@ class IPythonConsole(SpyderPluginWidget):
         #======================================================================
         # For IPython developers review [2]
         ipython_widget = self.ipython_app.create_new_client(connection_file)
+        ipython_widget.config = self.client_config()
         #======================================================================
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
@@ -445,16 +518,23 @@ class IPythonConsole(SpyderPluginWidget):
             console = self.main.extconsole
             idx = console.get_shell_index_from_id(widget.kernel_widget_id)
             if idx is not None:
-                answer = QMessageBox.question(self, self.get_plugin_title(),
-                            _("%s will be closed.\n"
-                              "Do you want to kill the associated kernel and "
-                              "the all of its clients?") % widget.get_name(),
+                if self.get_option('ask_before_closing'):
+                    answer = QMessageBox.question(self,
+                               self.get_plugin_title(),
+                               _("%s will be closed.\n"
+                                 "Do you want to kill the associated kernel "
+                                 "and all of its "
+                                 "clients?") % widget.get_name(),
                             QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                if answer == QMessageBox.Yes:
+                    if answer == QMessageBox.Yes:
+                        console.close_console(index=idx)
+                        self.close_related_ipython_clients(widget)
+                    elif answer == QMessageBox.No or \
+                      answer == QMessageBox.Cancel:
+                        return
+                else:
                     console.close_console(index=idx)
                     self.close_related_ipython_clients(widget)
-                elif answer == QMessageBox.Cancel:
-                    return
         widget.close()
         self.tabwidget.removeTab(index)
         self.shellwidgets.pop(index)
