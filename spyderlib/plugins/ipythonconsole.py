@@ -451,8 +451,8 @@ class IPythonConsole(SpyderPluginWidget):
         """Register new IPython client"""
         #======================================================================
         # For IPython developers review [2]
-        ipython_widget = self.ipython_app.create_new_client(connection_file)
-        ipython_widget.config = self.client_config()
+        ipython_widget = self.ipython_app.create_new_client(connection_file,
+                                                   config=self.client_config())
         #======================================================================
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,

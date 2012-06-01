@@ -159,7 +159,7 @@ class IPythonApp(IPythonQtConsoleApp):
         """Set the color scheme for clients.
         
         In 0.12 this property needs to be set on the App and not on the
-        on widget, so that the widget can be initialized with the right
+        widget, so that the widget can be initialized with the right
         scheme.
         TODO: This is a temporary measure until we create proper stylesheets
         for the widget using our own color schemes, which by the way can be
@@ -171,7 +171,7 @@ class IPythonApp(IPythonQtConsoleApp):
         else:
             self.config.ZMQInteractiveShell.colors = 'LightBG'
     
-    def create_new_client(self, connection_file=None):
+    def create_new_client(self, connection_file=None, config=None):
         """Create and return new client (frontend)
         from connection file basename"""
         if connection_file is not None:
@@ -179,7 +179,10 @@ class IPythonApp(IPythonQtConsoleApp):
         kernel_manager = self.create_kernel_manager()
         self.widget_factory = SpyderIPythonWidget
         self.config_color_scheme()
-        widget = self.widget_factory(config=self.config, local_kernel=False)
+        if config is not None:
+            widget = self.widget_factory(config=config, local_kernel=False)
+        else:
+            widget = self.widget_factory(config=self.config, local_kernel=False)
         self.init_colors(widget)
         widget.kernel_manager = kernel_manager
         return widget
