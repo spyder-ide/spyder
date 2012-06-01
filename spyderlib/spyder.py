@@ -347,6 +347,8 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
+        self.debug_menu = None
+        self.debug_menu_actions = []
         
         # Status bar widgets
         self.mem_status = None
@@ -485,30 +487,35 @@ class MainWindow(QMainWindow):
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
                                                        'selectall.png')                                        
-            self.debug_next_action = create_action(self, "Debug Next", 
-                                           icon='down.png', tip="Debug Next", 
-                                           triggered= self.debug_next,
-                                           context=Qt.WidgetShortcut)          
+            self.debug_next_action = create_action(self, "Debug Step Over", 
+                                           icon='down.png', tip="Debug Step Over", 
+                                           triggered= self.debug_next) 
+            self.register_shortcut(self.debug_next_action, "_",
+                       "Debug Step Over", "Ctrl+F10")
             self.debug_continue_action = create_action(self, "Debug Continue",
                                            icon='compfile.png',
                                            tip="Debug Continue", 
-                                           triggered= self.debug_continue,
-                                             context=Qt.WidgetShortcut)                                                 
+                                           triggered= self.debug_continue)                                                 
+            self.register_shortcut(self.debug_continue_action, "_",
+                       "Debug Continue", "Ctrl+F12")
             self.debug_step_action = create_action(self, "Debug Step Into", 
                                            icon='next.png',
                                            tip="Debug Step Into", 
-                                           triggered= self.debug_step,
-                                           context=Qt.WidgetShortcut)                
-            self.debug_return_action = create_action(self, "Debug Step Out", 
+                                           triggered= self.debug_step)                
+            self.register_shortcut(self.debug_step_action, "_",
+                       "Debug Step Into", "Ctrl+F11")                             
+            self.debug_return_action = create_action(self, "Debug Step Return", 
                                            icon='previous.png',
-                                           tip="Debug Step Out", 
-                                           triggered= self.debug_return,
-                                           context=Qt.WidgetShortcut)               
+                                           tip="Debug Step Return", 
+                                           triggered= self.debug_return)               
+            self.register_shortcut(self.debug_return_action, "_",
+                       "Debug Step Return", "Ctrl+Shift+F11")
             self.debug_exit_action = create_action(self, "Debug Exit", 
                                            icon='stop.png',
                                            tip="Debug Exit", 
-                                           triggered= self.debug_exit,
-                                           context=Qt.WidgetShortcut)                                        
+                                           triggered= self.debug_exit)                                        
+            self.register_shortcut(self.debug_exit_action, "_",
+                       "Debug Exit", "Ctrl+Shift+F12")
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
@@ -519,7 +526,12 @@ class MainWindow(QMainWindow):
             self.search_toolbar_actions = [self.find_action,
                                            self.find_next_action,
                                            self.replace_action]
-            self.debug_toolbar_actions= [self.debug_next_action,
+            self.debug_menu_actions = [self.debug_next_action,
+                                       self.debug_step_action,
+                                       self.debug_return_action,
+                                       self.debug_continue_action,
+                                       self.debug_exit_action]            
+            self.debug_toolbar_actions = [self.debug_next_action,
                                          self.debug_step_action,
                                          self.debug_return_action,
                                          self.debug_continue_action,
@@ -713,6 +725,16 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Loading editor..."))
             self.editor = Editor(self)
             self.editor.register_plugin()
+            
+            # The editor plugin is largely responsible for setting up
+            # the Run menu. We'll insert the debug_menu into the Run
+            # menu now that the editor has already been registered.
+            self.debug_menu = QMenu(_("Debugging control"))
+            add_actions(self.debug_menu, self.debug_menu_actions)
+            debug_control_action = create_action(self, _("Debugging control"))
+            debug_control_action.setMenu(self.debug_menu)
+            # XXX: This hard-coded insertion location is not ideal.
+            self.run_menu_actions.insert(4, debug_control_action)
             
             # Populating file menu entries
             quit_action = create_action(self, _("&Quit"),
