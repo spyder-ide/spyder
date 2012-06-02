@@ -85,12 +85,12 @@ def get_hg_revision(repopath):
            ('eba7273c69df+', '2015+', 'default')
     """
     try:
-        assert is_hg_installed()
-        output = subprocess.Popen('hg id -nib "%s"' % repopath, shell=True,
-                                  stdout=subprocess.PIPE).communicate()
+        hg = programs.find_program('hg')
+        assert hg
+        output = subprocess.check_output([hg, 'id', '-nib', repopath])
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
-        return tuple(output[0].strip().split())
-    except (AssertionError, ValueError):
+        return tuple(output.strip().split())
+    except (subprocess.CalledProcessError, AssertionError):
         # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)
 
@@ -98,4 +98,6 @@ def get_hg_revision(repopath):
 if __name__ == '__main__':
     print get_vcs_root(osp.dirname(__file__))
     print get_vcs_root(r'D:\Python\ipython\IPython\frontend')
-    run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
+    #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
+    print get_hg_revision(osp.dirname(__file__)+"/../..")
+    print get_hg_revision('/')

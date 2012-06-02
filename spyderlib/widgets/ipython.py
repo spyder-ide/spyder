@@ -20,8 +20,8 @@ from spyderlib.qt.QtGui import QTextEdit
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Local imports
+from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
-
 
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
                          mixins.TracebackLinksMixin):
@@ -46,6 +46,25 @@ class SpyderIPythonWidget(RichIPythonWidget):
         (see spyderlib/plugins/ipythonconsole.py)"""
         self.ipython_client = ipython_client
         self.exit_requested.connect(ipython_client.exit_callback)
+    
+    def show_banner(self):
+        """Banner for IPython clients with pylab message"""
+        from IPython.core.usage import default_gui_banner
+        
+        pylab_o = CONF.get('ipython_console', 'pylab', True)
+        if pylab_o:
+            backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
+            # TODO: Check to what the 'auto' backend points to in OS X and
+            # the name displayed by IPython when using the osx backend
+            backends = {0: 'module://IPython.zmq.pylab.backend_inline',
+                        1: 'Qt4Agg', 2: 'Qt4Agg', 3: 'OS X', 4: 'GTKAgg',
+                        5: 'WXAgg', 6: 'TKAgg'}
+            pylab_message = """
+Welcome to pylab, a matplotlib-based Python environment [backend: %s].
+For more information, type 'help(pylab)'.\n""" % backends[backend_o]
+            return default_gui_banner + pylab_message
+        else:
+            return default_gui_banner
 
     #---- IPython private methods ---------------------------------------------
     def _create_control(self):
@@ -95,6 +114,15 @@ class SpyderIPythonWidget(RichIPythonWidget):
         menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
         return self.ipython_client.add_actions_to_context_menu(menu)
     
+    def _banner_default(self):
+        """Reimplement banner creation to let the user decide if he wants a
+        banner or not"""
+        banner_o = CONF.get('ipython_console', 'show_banner', True)
+        if banner_o:
+            return self.show_banner()
+        else:
+            return ''
+    
     #---- Qt methods ----------------------------------------------------------
     def focusInEvent(self, event):
         """Reimplement Qt method to send focus change notification"""
@@ -127,11 +155,29 @@ class IPythonApp(IPythonQtConsoleApp):
         kernel_manager.start_channels()
         return kernel_manager
 
+    def config_color_scheme(self):
+        """Set the color scheme for clients.
+        
+        In 0.12 this property needs to be set on the App and not on the
+        on widget, so that the widget can be initialized with the right
+        scheme.
+        TODO: This is a temporary measure until we create proper stylesheets
+        for the widget using our own color schemes, which by the way can be
+        passed directly to it.
+        """
+        dark_color_o = CONF.get('ipython_console', 'dark_color', False)
+        if dark_color_o:
+            self.config.ZMQInteractiveShell.colors = 'Linux'
+        else:
+            self.config.ZMQInteractiveShell.colors = 'LightBG'
+    
     def create_new_client(self, connection_file=None):
         """Create and return new client (frontend)
         from connection file basename"""
         kernel_manager = self.create_kernel_manager(connection_file)
         widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
+        self.config_color_scheme()
+        self.init_colors(widget)
         widget.kernel_manager = kernel_manager
         return widget
 #==============================================================================

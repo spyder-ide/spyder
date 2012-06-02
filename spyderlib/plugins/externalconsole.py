@@ -190,6 +190,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
                               'open_python_at_startup')
+
+        # TODO(ipython): clean up all IPython stuff
         ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
                                 'start_ipython_kernel_at_startup')
         is_ipython_012p = programs.is_module_installed('IPython', '>=0.12')
@@ -428,9 +430,6 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('ipython_options', None) is None:
             self.set_option('ipython_options',
                             self.get_default_ipython_options())
-        if self.get_option('ipython_kernel_options', None) is None:
-            self.set_option('ipython_kernel_options',
-                            self.get_default_ipython_kernel_options())
         
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
@@ -589,14 +588,19 @@ class ExternalConsole(SpyderPluginWidget):
                 shellwidget.shell.execute_lines(unicode(lines))
                 shellwidget.shell.setFocus()
             
-    def pdb_has_stopped(self, fname, lineno, shell):
+    def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""      
         # This is a unique form of the edit_goto signal that is intended to 
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
         self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
                   fname, lineno, '',False)
-        shell.setFocus()
+        if shellwidget.is_ipython_kernel:
+            # Focus client widget, not kernel
+            ipw = self.main.ipyconsole.get_focus_widget()
+            ipw.setFocus()
+        else:
+            shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipython_kernel=False, python_args=''):
@@ -700,8 +704,8 @@ class ExternalConsole(SpyderPluginWidget):
                            show_buttons_inside=False,
                            show_elapsed_time=show_elapsed_time)
             self.connect(shellwidget, SIGNAL('pdb(QString,int)'),
-                         lambda fname, lineno, shell=shellwidget.shell:
-                         self.pdb_has_stopped(fname, lineno, shell))
+                         lambda fname, lineno, shellwidget=shellwidget:
+                         self.pdb_has_stopped(fname, lineno, shellwidget))
             self.register_widget_shortcuts("Console", shellwidget.shell)
         else:
             if os.name == 'posix':
@@ -895,7 +899,7 @@ class ExternalConsole(SpyderPluginWidget):
                             _("Start a new IPython kernel"), None,
                             'ipython_console.png',
                             triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython', '0.12'):
+        if programs.is_module_installed('IPython', '>=0.12'):
             self.menu_actions.insert(1, ipython_kernel_action)
             interact_menu_actions.append(ipython_kernel_action)
         self.main.interact_menu_actions += interact_menu_actions

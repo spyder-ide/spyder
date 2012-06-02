@@ -1458,9 +1458,17 @@ class MainWindow(QMainWindow):
                  platform.system()) )
 
     def report_issue(self):
-        import spyderlib.qt.QtCore
+        import urllib
+        import spyderlib
+        # Get Mercurial revision for development version
+        revlink = ''
+        spyderpath = spyderlib.__path__[0]
+        if osp.isdir(osp.abspath(spyderpath)):
+            full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+            if full:
+                revlink = " (%s:r%s)" % (short, full)
         issue_template = """\
-Spyder Version:  %s
+Spyder Version:  %s%s
 Python Version:  %s
 Qt Version:      %s, %s %s on %s
 
@@ -1474,6 +1482,7 @@ What is the expected output? What do you see instead?
 
 Please provide any additional information below.
 """ % (__version__,
+       revlink,
        platform.python_version(),
        spyderlib.qt.QtCore.__version__,
        spyderlib.qt.API_NAME,
@@ -1481,8 +1490,8 @@ Please provide any additional information below.
        platform.system())
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
-        url.addQueryItem("comment", issue_template)
-        QDesktopServices.openUrl(url)
+        url.addEncodedQueryItem("comment", urllib.quote(issue_template))
+        QDesktopServices.openUrl(url)    
 
     #---- Global callbacks (called from plugins)
     def get_current_editor_plugin(self):
