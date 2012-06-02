@@ -10,20 +10,16 @@
 import sys
 import os.path as osp
 
-def get_kernel_options():
+def kernel_config():
     """Return IPython kernel options"""
-    # For an unknown reason the following line does not work on Windows
-    # platforms, so we are using the command line approach (args) to 
-    # initialize properly the kernel:
-    # kernel.config.IPKernelApp.pylab = backends[backend_o]
-
+    from IPython.config.loader import Config
     from spyderlib.config import CONF
     
-    args = ["python"]
+    cfg = Config()
     
     # Until we implement Issue 1052:
     # http://code.google.com/p/spyderlib/issues/detail?id=1052
-    args += ["--InteractiveShell.xmode=Plain"]
+    cfg.InteractiveShell.xmode = 'Plain'
     
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab')
@@ -33,9 +29,9 @@ def get_kernel_options():
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        args += ["--pylab=%s" % backends[backend_o]]
+        cfg.IPKernelApp.pylab = backends[backend_o]
 
-    return args
+    return cfg
 
 # Remove this module's path from sys.path:
 try:
@@ -56,7 +52,8 @@ sys.path.insert(0, '')
 # Fire up the kernel instance.
 from IPython.zmq.ipkernel import IPKernelApp
 ipk_temp = IPKernelApp.instance()
-ipk_temp.initialize(get_kernel_options())
+ipk_temp.config = kernel_config()
+ipk_temp.initialize()
 __ipythonshell__ = ipk_temp.shell
 
 #  Issue 977 : Since kernel.initialize() has completed execution, 
