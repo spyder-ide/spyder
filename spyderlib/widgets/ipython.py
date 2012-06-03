@@ -172,15 +172,14 @@ class IPythonApp(IPythonQtConsoleApp):
             self.config.ZMQInteractiveShell.colors = 'LightBG'
     
     def create_new_client(self, connection_file=None, config=None):
-        """Create and return new client (frontend)
+        """Create and return a new client (frontend)
         from connection file basename"""
         kernel_manager = self.create_kernel_manager(connection_file)
-        widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
         self.config_color_scheme()
         if config is not None:
-            widget = self.widget_factory(config=config, local_kernel=False)
+            widget = SpyderIPythonWidget(config=config, local_kernel=False)
         else:
-            widget = self.widget_factory(config=self.config, local_kernel=False)
+            widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
         self.init_colors(widget)
         widget.kernel_manager = kernel_manager
         return widget
