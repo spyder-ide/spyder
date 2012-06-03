@@ -222,7 +222,9 @@ DEFAULTS = [
               'buffer_size': 10000,
               'pylab': True,
               'pylab/backend': 0,
-              'kernel/run_lines': ''
+              'kernel/run_lines': '',
+              'kernel/select_run_file': False,
+              'kernel/run_file': ''
               }),
             ('variable_explorer',
              {

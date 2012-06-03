@@ -167,12 +167,31 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_layout.addWidget(run_lines_label)
         run_lines_layout.addWidget(run_lines_edit)
         run_lines_group.setLayout(run_lines_layout)
+        
+        # Run file Group
+        run_file_group = QGroupBox(_("Run a file at startup"))
+        run_file_label = QLabel(_("This is similar to use a PYTHONSTARTUP "
+                                  "file"))
+        run_file_label.setWordWrap(True)
+        file_radio = newcb(_("Use the following file:"),
+                           'kernel/select_run_file', False)
+        run_file_browser = self.create_browsefile('', 'kernel/run_file', '')
+        run_file_browser.setEnabled(False)
+        self.connect(file_radio, SIGNAL("toggled(bool)"),
+                     run_file_browser.setEnabled)
+        
+        run_file_layout = QVBoxLayout()
+        run_file_layout.addWidget(run_file_label)
+        run_file_layout.addWidget(file_radio)
+        run_file_layout.addWidget(run_file_browser)
+        run_file_group.setLayout(run_file_layout)
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group), _("Kernel"))
+        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
+                                    _("Kernel"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
