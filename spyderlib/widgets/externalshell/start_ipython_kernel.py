@@ -30,7 +30,13 @@ def kernel_config():
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
         cfg.IPKernelApp.pylab = backends[backend_o]
-
+    
+    # Run lines of code
+    run_lines_o = CONF.get('ipython_console', 'kernel/run_lines')
+    if run_lines_o:
+        cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
+                                         run_lines_o.split(','))
+    
     return cfg
 
 # Remove this module's path from sys.path:

@@ -150,11 +150,29 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                  programs.is_module_installed("matplotlib"))
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      backend_group.setEnabled)
+       
+        # --- Kernel ---
+        # Run lines Group
+        run_lines_group = QGroupBox(_("Run code at startup"))
+        run_lines_label = QLabel(_("You can run several lines of code when "
+                                   "the kernel is started. Please introduce "
+                                   "each line separated by commas, for "
+                                   "example:<br>"
+                                   "<i>import os, import sys</i>"))
+        run_lines_label.setWordWrap(True)
+        run_lines_edit = self.create_lineedit(_("Lines:"), 'kernel/run_lines',
+                                              '', alignment=Qt.Horizontal)
+        
+        run_lines_layout = QVBoxLayout()
+        run_lines_layout.addWidget(run_lines_label)
+        run_lines_layout.addWidget(run_lines_edit)
+        run_lines_group.setLayout(run_lines_layout)
 
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
+        tabs.addTab(self.create_tab(run_lines_group), _("Kernel"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)

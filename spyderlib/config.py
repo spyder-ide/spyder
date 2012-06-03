@@ -221,7 +221,8 @@ DEFAULTS = [
               'dark_color': False,
               'buffer_size': 10000,
               'pylab': True,
-              'pylab/backend': 0
+              'pylab/backend': 0,
+              'kernel/run_lines': ''
               }),
             ('variable_explorer',
              {
