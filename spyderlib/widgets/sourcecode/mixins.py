@@ -291,11 +291,15 @@ class BaseEditMixin(object):
             # and if not, moves the cursor one word to the left (otherwise,
             # if the character to the left do not match the "word regexp" 
             # (see below), the word to the left of the cursor won't be 
-            # selected)
-            cursor2 = self.textCursor()
-            cursor2.movePosition(QTextCursor.NextCharacter,
-                                 QTextCursor.KeepAnchor)
-            if not unicode(cursor2.selectedText()).strip():
+            # selected), but only if the first character to the left is not a
+            # white space too.
+            def is_space(move):
+                curs = self.textCursor()
+                curs.movePosition(move, QTextCursor.KeepAnchor)
+                return not unicode(curs.selectedText()).strip()
+            if is_space(QTextCursor.NextCharacter):
+                if is_space(QTextCursor.PreviousCharacter):
+                    return
                 cursor.movePosition(QTextCursor.WordLeft)
 
         cursor.select(QTextCursor.WordUnderCursor)
