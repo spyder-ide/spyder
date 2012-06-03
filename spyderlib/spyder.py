@@ -34,7 +34,13 @@ if is_module_installed('IPython', '>=0.12'):
         # bootstrap script has eventually set this option), switch to 
         # PyQt API #2 by simply importing the IPython qt module
         os.environ['QT_API'] = 'pyqt'
-        from IPython.external import qt  #analysis:ignore
+        try:
+            from IPython.external import qt  #analysis:ignore
+        except ImportError:
+            # Avoid raising any error here: the spyderlib.requirements module
+            # will take care of it, in a user-friendly way (Tkinter message box
+            # if no GUI toolkit is installed)
+            pass
 
 # Check requirements
 from spyderlib import requirements
@@ -551,7 +557,8 @@ class MainWindow(QMainWindow):
             # Tools menu
             self.tools_menu = self.menuBar().addMenu(_("&Tools"))
             
-            # View menu will be inserted afterwards
+            # View menu
+            self.view_menu = self.menuBar().addMenu(_("&View"))
             
             # Help menu
             self.help_menu = self.menuBar().addMenu("?")
@@ -866,7 +873,6 @@ class MainWindow(QMainWindow):
                     print >>STDERR, "%s: %s" % (mod, str(error))
                                 
             # View menu
-            self.view_menu = self.menuBar().addMenu(_("&View"))
             self.windows_toolbars_menu = QMenu(_("Windows and toolbars"), self)
             self.connect(self.windows_toolbars_menu, SIGNAL("aboutToShow()"),
                          self.update_windows_toolbars_menu)
@@ -903,8 +909,6 @@ class MainWindow(QMainWindow):
                                          self.fullscreen_action, None,
                                          reset_layout_action, quick_layout_menu,
                                          None, self.close_dockwidget_action))
-            self.menuBar().insertMenu(self.help_menu.menuAction(),
-                                      self.view_menu)
             
             # Adding external tools action to "Tools" menu
             external_tools_act = create_action(self, _("External Tools"),

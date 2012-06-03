@@ -435,6 +435,7 @@ class IPythonConsole(SpyderPluginWidget):
             client_name = match.groups()[0]+'/'+chr(65+count)
             for clw in self.get_clients():
                 if clw.client_name == client_name:
+                    kernel_widget_id = clw.kernel_widget_id
                     break
             else:
                 break
@@ -506,8 +507,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.set_editor(shellwidget.get_control())
     
     def close_related_ipython_clients(self, client):
-        """Close all IPython clients related to *connection_file*,
-        except the plugin *except_this_one*"""
+        """Close all IPython clients related to *client*, except itself"""
         for clw in self.shellwidgets[:]:
             if clw is not client and\
                clw.connection_file == client.connection_file:
@@ -541,7 +541,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.shellwidgets.insert(index_to, shell)
         self.emit(SIGNAL('update_plugin_title()'))
         
-    def close_console(self, index=None, widget=None):
+    def close_console(self, index=None, widget=None, force=False):
         """Close console tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
@@ -551,30 +551,32 @@ class IPythonConsole(SpyderPluginWidget):
             index = self.tabwidget.currentIndex()
         if index is not None:
             widget = self.tabwidget.widget(index)
-        if isinstance(widget, IPythonClient):
+
+        # Check if related clients or kernels are opened
+        # and eventually ask before closing them
+        if not force and isinstance(widget, IPythonClient):
             console = self.main.extconsole
             idx = console.get_shell_index_from_id(widget.kernel_widget_id)
             if idx is not None:
+                close_all = True
                 if self.get_option('ask_before_closing'):
-                    answer = QMessageBox.question(self,
-                               self.get_plugin_title(),
-                               _("%s will be closed.\n"
-                                 "Do you want to kill the associated kernel "
-                                 "and all of its "
-                                 "clients?") % widget.get_name(),
-                            QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-                    if answer == QMessageBox.Yes:
-                        console.close_console(index=idx)
-                        self.close_related_ipython_clients(widget)
-                    elif answer == QMessageBox.No or \
-                      answer == QMessageBox.Cancel:
+                    ans = QMessageBox.question(self, self.get_plugin_title(),
+                           _("%s will be closed.\n"
+                             "Do you want to kill the associated kernel "
+                             "and all of its clients?") % widget.get_name(),
+                           QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+                    if ans == QMessageBox.Cancel:
                         return
-                else:
+                    close_all = ans == QMessageBox.Yes
+                if close_all:
                     console.close_console(index=idx)
                     self.close_related_ipython_clients(widget)
         widget.close()
-        self.tabwidget.removeTab(index)
-        self.shellwidgets.pop(index)
+        
+        # Note: widget index may have changed after closing related widgets
+        self.tabwidget.removeTab(self.tabwidget.indexOf(widget))
+        self.shellwidgets.remove(widget)
+
         self.emit(SIGNAL('update_plugin_title()'))
         
     def go_to_error(self, text):

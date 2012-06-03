@@ -191,7 +191,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
                               'open_python_at_startup')
 
-        # TODO(ipython): clean up all IPython stuff
         ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
                                 'start_ipython_kernel_at_startup')
         is_ipython_012p = programs.is_module_installed('IPython', '>=0.12')
@@ -426,10 +425,6 @@ class ExternalConsole(SpyderPluginWidget):
         # default/custom settings are mutually exclusive:
         self.set_option('pythonstartup/custom',
                         not self.get_option('pythonstartup/default'))
-        
-        if self.get_option('ipython_options', None) is None:
-            self.set_option('ipython_options',
-                            self.get_default_ipython_options())
         
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
@@ -1002,7 +997,7 @@ class ExternalConsole(SpyderPluginWidget):
     
     #------ Public API ---------------------------------------------------------
     def open_interpreter_at_startup(self):
-        """Open an interpreter at startup, IPython if module is available"""
+        """Open an interpreter or an IPython kernel at startup"""
         if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
         if self.get_option('start_ipython_kernel_at_startup', False):
@@ -1014,21 +1009,6 @@ class ExternalConsole(SpyderPluginWidget):
             wdir = os.getcwdu()
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True)
-        
-    def get_default_ipython_options(self):
-        """Return default ipython command line arguments"""
-        default_options = []
-        if programs.is_module_installed('matplotlib'):
-            default_options.append("-pylab")
-        default_options.append("-q4thread")
-        default_options.append("-colors LightBG")
-        default_options.append("-xmode Plain")
-        for editor_name in ("scite", "gedit"):
-            path = programs.find_program(editor_name)
-            if path is not None:
-                default_options.append("-editor "+osp.basename(path))
-                break
-        return " ".join(default_options)
         
     def start_ipython_kernel(self, wdir=None):
         """Start new IPython kernel"""
