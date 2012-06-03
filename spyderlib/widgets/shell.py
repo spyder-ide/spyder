@@ -404,15 +404,15 @@ class ShellBaseWidget(ConsoleBaseWidget):
             # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
 
-        elif key == Qt.Key_Escape and ctrl and shift:
-            self._key_ctrl_shift_escape()    
-
         elif key == Qt.Key_Escape and shift:
-            self._key_shift_escape()
+            self.clear_line()
 
         elif key == Qt.Key_Escape:
             self._key_escape()
                 
+        elif key == Qt.Key_L and ctrl:
+            self.clear_terminal()
+            
         elif key == Qt.Key_V and ctrl:
             self.paste()
             
@@ -470,10 +470,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
     def _key_pagedown(self):
         raise NotImplementedError
     def _key_escape(self):
-        raise NotImplementedError
-    def _key_shift_escape(self):
-        raise NotImplementedError
-    def _key_ctrl_shift_escape(self):
         raise NotImplementedError
     def _key_question(self, text):
         raise NotImplementedError
@@ -818,12 +814,6 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
         """Action for ESCAPE key"""
         if self.is_completion_widget_visible():
             self.hide_completion_widget()
-    
-    def _key_shift_escape(self):
-        self.clear_line()
-
-    def _key_ctrl_shift_escape(self):
-        self.clear_terminal()
 
     def _key_question(self, text):
         """Action for '?'"""
