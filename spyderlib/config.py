@@ -221,6 +221,7 @@ DEFAULTS = [
               'dark_color': False,
               'buffer_size': 10000,
               'pylab': True,
+              'pylab/autoload': True,
               'pylab/backend': 0,
               'kernel/run_lines': '',
               'kernel/select_run_file': False,

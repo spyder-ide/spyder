@@ -11,7 +11,7 @@ import sys
 import os.path as osp
 
 def kernel_config():
-    """Return IPython kernel options"""
+    """Create a config object with IPython kernel options"""
     from IPython.config.loader import Config
     from spyderlib.config import CONF
     
@@ -23,6 +23,10 @@ def kernel_config():
     
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab')
+    
+    # Automatically load Pylab and Numpy
+    autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
+    cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
     
     # Pylab backend configuration
     if pylab_o:

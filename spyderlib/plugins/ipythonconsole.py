@@ -103,13 +103,29 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # Pylab Group
         pylab_group = QGroupBox(_("Support for graphics (Pylab)"))
         pylab_box = newcb(_("Activate support"), 'pylab')
+        autoload_pylab_box = newcb(_("Automatically load Pylab and NumPy"),
+                               'pylab/autoload',
+                               tip=_("This lets you load graphics support "
+                                     "without importing \nthe commands to do "
+                                     "plots. Useful to work with other\n"
+                                     "plotting libraries different to "
+                                     "Matplotlib or to develop \nGUIs with "
+                                     "Spyder."))
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     autoload_pylab_box.setEnabled)
+        if not self.get_option('pylab'):
+            autoload_pylab_box.setEnabled(False)
+        
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
+        pylab_layout.addWidget(autoload_pylab_box)
         pylab_group.setLayout(pylab_layout)
+        
         if not programs.is_module_installed("matplotlib"):
             self.set_option('pylab', False)
+            self.set_option('pylab/autoload', False)
             pylab_group.setEnabled(False)
-            pylab_tip = _("This feature requires the Matplotlib module.\n"
+            pylab_tip = _("This feature requires the Matplotlib library.\n"
                           "It seems you don't have it installed.")
             pylab_box.setToolTip(pylab_tip)
         
