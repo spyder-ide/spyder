@@ -46,6 +46,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
     def setup_page(self):
         newcb = self.create_checkbox
+        mpl_present = programs.is_module_installed("matplotlib")
         
         # --- Display ---
         font_group = self.create_fontgroup(option=None, text=None,
@@ -111,17 +112,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                      "plotting libraries different to "
                                      "Matplotlib or to develop \nGUIs with "
                                      "Spyder."))
+        autoload_pylab_box.setEnabled(self.get_option('pylab') and mpl_present)
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      autoload_pylab_box.setEnabled)
-        if not self.get_option('pylab'):
-            autoload_pylab_box.setEnabled(False)
         
         pylab_layout = QVBoxLayout()
         pylab_layout.addWidget(pylab_box)
         pylab_layout.addWidget(autoload_pylab_box)
         pylab_group.setLayout(pylab_layout)
         
-        if not programs.is_module_installed("matplotlib"):
+        if not mpl_present:
             self.set_option('pylab', False)
             self.set_option('pylab/autoload', False)
             pylab_group.setEnabled(False)
@@ -162,8 +162,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backend_layout.addWidget(bend_label)
         backend_layout.addWidget(backend_box)
         backend_group.setLayout(backend_layout)
-        backend_group.setEnabled(self.get_option('pylab') and \
-                                 programs.is_module_installed("matplotlib"))
+        backend_group.setEnabled(self.get_option('pylab') and mpl_present)
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      backend_group.setEnabled)
         
@@ -176,8 +175,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         inline_layout = QVBoxLayout()
         inline_layout.addWidget(format_box)
         inline_group.setLayout(inline_layout)
-        inline_group.setEnabled(self.get_option('pylab') and \
-                                programs.is_module_installed("matplotlib"))
+        inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      inline_group.setEnabled)
 
