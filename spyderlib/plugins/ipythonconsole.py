@@ -61,12 +61,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                              'use_gui_completion',
                              tip=_("Use a widget instead of plain text "
                                    "output for tab completion"))
-        pager_box = newcb(_("Use a pager to display help inside the "
-                            "console"), 'use_pager',
+        pager_box = newcb(_("Use a pager to display additional text inside "
+                            "the console"), 'use_pager',
                             tip=_("Useful if you don't want to fill the "
-                                  "console with long help texts.\n"
+                                  "console with long help or completion texts.\n"
                                   "Note: Use the Q key to get out of the "
                                   "pager."))
+        calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
 
@@ -74,6 +75,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(banner_box)
         interface_layout.addWidget(gui_comp_box)
         interface_layout.addWidget(pager_box)
+        interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
         
@@ -504,6 +506,10 @@ class IPythonConsole(SpyderPluginWidget):
             cfg.IPythonWidget.paging = 'inside'
         else:
             cfg.IPythonWidget.paging = 'none'
+        
+        # Calltips
+        calltips_o = self.get_option('show_calltips')
+        cfg.IPythonWidget.enable_calltips = calltips_o
 
         # Buffer size
         buffer_size_o = self.get_option('buffer_size')

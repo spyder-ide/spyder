@@ -216,6 +216,7 @@ DEFAULTS = [
               'show_banner': True,
               'use_gui_completion': True,
               'use_pager': True,
+              'show_calltips': False,
               'ask_before_closing': True,
               'light_color': True,
               'dark_color': False,
