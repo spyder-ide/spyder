@@ -168,12 +168,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
-        formats = (("PNG", 0), ("SVG",1))
+        formats = (("PNG", 0), ("SVG", 1))
         format_box = self.create_combobox( _("Figure format:   "), formats,
-                                      'pylab/inline/figure_format', default=0)
+                                       'pylab/inline/figure_format', default=0)
+        resolution_spin = self.create_spinbox(
+                          _("Figure resolution:  "), _(" dpi"),
+                          'pylab/inline/resolution', min_=56, max_=112, step=1,
+                          tip=_("Only used when the format is PNG"))
         
         inline_layout = QVBoxLayout()
         inline_layout.addWidget(format_box)
+        inline_layout.addWidget(resolution_spin)
         inline_group.setLayout(inline_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         self.connect(pylab_box, SIGNAL("toggled(bool)"),

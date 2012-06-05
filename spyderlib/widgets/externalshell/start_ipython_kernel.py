@@ -37,10 +37,21 @@ def kernel_config():
         
         # Inline backend configuration
         if backends[backend_o] == 'inline':
+           # Figure format
            format_o = CONF.get('ipython_console',
                                'pylab/inline/figure_format', 0)
            formats = {0: 'png', 1: 'svg'}
            cfg.InlineBackend.figure_format = formats[format_o]
+           
+           # Resolution
+           cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
+                                   'savefig.dpi': 72,
+                                   'font.size': 10,
+                                   'figure.subplot.bottom': .125
+                                   }
+           resolution_o = CONF.get('ipython_console', 
+                                   'pylab/inline/resolution')
+           cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
     
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'kernel/run_lines')
