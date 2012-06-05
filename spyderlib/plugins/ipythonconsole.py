@@ -166,7 +166,21 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                  programs.is_module_installed("matplotlib"))
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      backend_group.setEnabled)
-       
+        
+        # Inline backend Group
+        inline_group = QGroupBox(_("Inline backend"))
+        formats = (("PNG", 0), ("SVG",1))
+        format_box = self.create_combobox( _("Figure format:   "), formats,
+                                      'pylab/inline/figure_format', default=0)
+        
+        inline_layout = QVBoxLayout()
+        inline_layout.addWidget(format_box)
+        inline_group.setLayout(inline_layout)
+        inline_group.setEnabled(self.get_option('pylab') and \
+                                programs.is_module_installed("matplotlib"))
+        self.connect(pylab_box, SIGNAL("toggled(bool)"),
+                     inline_group.setEnabled)
+
         # --- Kernel ---
         # Run lines Group
         run_lines_group = QGroupBox(_("Run code at startup"))
@@ -202,10 +216,12 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
 
+        # --- Tabs organization ---
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
                                     source_code_group), _("Display"))
-        tabs.addTab(self.create_tab(pylab_group, backend_group), _("Graphics"))
+        tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
+                                    _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Kernel"))
 

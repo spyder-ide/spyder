@@ -34,6 +34,13 @@ def kernel_config():
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
         cfg.IPKernelApp.pylab = backends[backend_o]
+        
+        # Inline backend configuration
+        if backends[backend_o] == 'inline':
+           format_o = CONF.get('ipython_console',
+                               'pylab/inline/figure_format', 0)
+           formats = {0: 'png', 1: 'svg'}
+           cfg.InlineBackend.figure_format = formats[format_o]
     
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'kernel/run_lines')
