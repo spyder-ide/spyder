@@ -146,7 +146,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         backends = [(inline, 0), (automatic, 1), ("Qt", 2)]
         # TODO: Add gtk3 when 0.13 is released
         if sys.platform == 'darwin':
-            backends.append( ("OS X", 3) )
+            backends.append( ("Mac OSX", 3) )
         if programs.is_module_installed('pygtk'):
             backends.append( ("Gtk", 4) )
         if programs.is_module_installed('wxPython'):
