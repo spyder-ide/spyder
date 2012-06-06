@@ -52,6 +52,11 @@ def kernel_config():
            resolution_o = CONF.get('ipython_console', 
                                    'pylab/inline/resolution')
            cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
+           
+           # Figure size
+           width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
+           height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
+           cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
     
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')

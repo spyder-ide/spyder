@@ -170,17 +170,32 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         # Inline backend Group
         inline_group = QGroupBox(_("Inline backend"))
+        inline_label = QLabel(_("Decide how to render the figures created by "
+                                "this backend"))
+        inline_label.setWordWrap(True)
         formats = (("PNG", 0), ("SVG", 1))
-        format_box = self.create_combobox( _("Figure format:   "), formats,
+        format_box = self.create_combobox( _("Format:   "), formats,
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
-                          _("Figure resolution:  "), _(" dpi"),
+                          _("Resolution:  "), _(" dpi"),
                           'pylab/inline/resolution', min_=56, max_=112, step=1,
-                          tip=_("Only used when the format is PNG"))
+                          tip=_("Only used when the format is PNG. Default is "
+                                "72"))
+        width_spin = self.create_spinbox(
+                          _("Width:  "), _(" inches"),
+                          'pylab/inline/width', min_=4, max_=20, step=1,
+                          tip=_("Default is 6"))
+        height_spin = self.create_spinbox(
+                          _("Height:  "), _(" inches"),
+                          'pylab/inline/height', min_=4, max_=20, step=1,
+                          tip=_("Default is 4"))
         
         inline_layout = QVBoxLayout()
+        inline_layout.addWidget(inline_label)
         inline_layout.addWidget(format_box)
         inline_layout.addWidget(resolution_spin)
+        inline_layout.addWidget(width_spin)
+        inline_layout.addWidget(height_spin)
         inline_group.setLayout(inline_layout)
         inline_group.setEnabled(self.get_option('pylab') and mpl_present)
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
