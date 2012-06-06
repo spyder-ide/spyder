@@ -65,9 +65,9 @@ def kernel_config():
                                          run_lines_o.split(','))
     
     # Run a file at startup
-    select_file_o = CONF.get('ipython_console', 'startup/use_run_file')
+    use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
-    if select_file_o and run_file_o:
+    if use_file_o and run_file_o:
         cfg.IPKernelApp.file_to_run = run_file_o
     
     return cfg
