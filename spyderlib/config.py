@@ -226,9 +226,9 @@ DEFAULTS = [
               'pylab/backend': 0,
               'pylab/inline/figure_format': 0,
               'pylab/inline/resolution': 72,
-              'kernel/run_lines': '',
-              'kernel/select_run_file': False,
-              'kernel/run_file': ''
+              'startup/run_lines': '',
+              'startup/use_run_file': False,
+              'startup/run_file': ''
               }),
             ('variable_explorer',
              {

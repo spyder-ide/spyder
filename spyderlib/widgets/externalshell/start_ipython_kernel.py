@@ -54,14 +54,14 @@ def kernel_config():
            cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
     
     # Run lines of code at startup
-    run_lines_o = CONF.get('ipython_console', 'kernel/run_lines')
+    run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
         cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
                                          run_lines_o.split(','))
     
     # Run a file at startup
-    select_file_o = CONF.get('ipython_console', 'kernel/select_run_file')
-    run_file_o = CONF.get('ipython_console', 'kernel/run_file')
+    select_file_o = CONF.get('ipython_console', 'startup/use_run_file')
+    run_file_o = CONF.get('ipython_console', 'startup/run_file')
     if select_file_o and run_file_o:
         cfg.IPKernelApp.file_to_run = run_file_o
     

@@ -186,16 +186,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.connect(pylab_box, SIGNAL("toggled(bool)"),
                      inline_group.setEnabled)
 
-        # --- Kernel ---
+        # --- Startup ---
         # Run lines Group
-        run_lines_group = QGroupBox(_("Run code at startup"))
+        run_lines_group = QGroupBox(_("Run code"))
         run_lines_label = QLabel(_("You can run several lines of code when "
-                                   "the kernel is started. Please introduce "
-                                   "each line separated by commas, for "
+                                   "a console is started. Please introduce "
+                                   "each one separated by commas, for "
                                    "example:<br>"
                                    "<i>import os, import sys</i>"))
         run_lines_label.setWordWrap(True)
-        run_lines_edit = self.create_lineedit(_("Lines:"), 'kernel/run_lines',
+        run_lines_edit = self.create_lineedit(_("Lines:"), 'startup/run_lines',
                                               '', alignment=Qt.Horizontal)
         
         run_lines_layout = QVBoxLayout()
@@ -204,13 +204,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_lines_group.setLayout(run_lines_layout)
         
         # Run file Group
-        run_file_group = QGroupBox(_("Run a file at startup"))
-        run_file_label = QLabel(_("This is similar to use a PYTHONSTARTUP "
-                                  "file"))
+        run_file_group = QGroupBox(_("Run a file"))
+        run_file_label = QLabel(_("You can also run a whole file at startup "
+                                  "instead of just some lines (This is "
+                                  "similar to have a PYTHONSTARTUP file)."))
         run_file_label.setWordWrap(True)
         file_radio = newcb(_("Use the following file:"),
-                           'kernel/select_run_file', False)
-        run_file_browser = self.create_browsefile('', 'kernel/run_file', '')
+                           'startup/use_run_file', False)
+        run_file_browser = self.create_browsefile('', 'startup/run_file', '')
         run_file_browser.setEnabled(False)
         self.connect(file_radio, SIGNAL("toggled(bool)"),
                      run_file_browser.setEnabled)
@@ -228,7 +229,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                                    _("Kernel"))
+                                    _("Startup"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
