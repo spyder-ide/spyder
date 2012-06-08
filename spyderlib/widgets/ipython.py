@@ -18,6 +18,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.utils.qthelpers import restore_keyevent
 
 # Local imports
 from spyderlib.config import CONF
@@ -34,6 +35,26 @@ class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
         mixins.TracebackLinksMixin.__init__(self)
         mixins.InspectObjectMixin.__init__(self)
         self.calltips = False # To not use Spyder calltips
+    
+    def _key_question(self, text):
+        """Action for '?'"""
+        parent = self.parentWidget()
+        self.current_prompt_pos = parent._prompt_pos
+        if self.get_current_line_to_cursor():
+            last_obj = self.get_last_obj()
+            if last_obj and not last_obj.isdigit():
+                self.show_docstring(last_obj)
+        self.insert_text(text)
+    
+    def keyPressEvent(self, event):
+        """Reimplement Qt Method - Basic keypress event handler"""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+        
+        if key == Qt.Key_Question and not self.has_selected_text():
+            self._key_question(text)
+        else:
+            # Let the parent widget handle the key press event
+            QTextEdit.keyPressEvent(self, event)    
 
 
 class SpyderIPythonWidget(RichIPythonWidget):

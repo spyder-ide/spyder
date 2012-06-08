@@ -23,6 +23,7 @@ from spyderlib.qt.QtCore import Qt, QRegExp, SIGNAL
 from spyderlib.baseconfig import _
 from spyderlib.utils import sourcecode
 from spyderlib.utils.misc import get_error_match
+from spyderlib.utils.dochelpers import getobj
 
 
 
@@ -543,4 +544,13 @@ class InspectObjectMixin(object):
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(_("Documentation"), doc)
+    
+    def get_current_line_to_cursor(self):
+        return self.get_text(self.current_prompt_pos, 'cursor')
+    
+    def get_last_obj(self, last=False):
+        """
+        Return the last valid object on the current line
+        """
+        return getobj(self.get_current_line_to_cursor(), last=last)
 

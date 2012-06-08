@@ -26,7 +26,6 @@ from spyderlib.qt.compat import getsavefilename
 from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.config import CONF, get_icon, get_font
 from spyderlib.utils import encoding
-from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
@@ -157,9 +156,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         
         
     #------ Input buffer
-    def get_current_line_to_cursor(self):
-        return self.get_text(self.current_prompt_pos, 'cursor')
-    
     def get_current_line_from_cursor(self):
         return self.get_text('cursor', 'eof')
     
@@ -971,12 +967,6 @@ class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
         
         
     #------ Miscellanous
-    def get_last_obj(self, last=False):
-        """
-        Return the last valid object on the current line
-        """
-        return getobj(self.get_current_line_to_cursor(), last=last)
-
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
             
