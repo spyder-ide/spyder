@@ -143,8 +143,12 @@ else:
     monitor.start()
     
     def open_in_spyder(source, lineno=1):
-        """Open in Spyder's editor the source file
-(may be a filename or a Python module/package)"""
+        """
+        Open a source file in Spyder's editor (it could be a filename or a 
+        Python module/package).
+        
+        If you want to use IPython's %edit use %ed instead
+        """
         if not isinstance(source, basestring):
             try:
                 source = source.__file__

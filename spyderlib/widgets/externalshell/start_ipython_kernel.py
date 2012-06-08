@@ -95,6 +95,10 @@ ipk_temp.config = kernel_config()
 ipk_temp.initialize()
 __ipythonshell__ = ipk_temp.shell
 
+# For issue 1051: Use %edit to open files in Spyder
+__ipythonshell__.magic_ed = __ipythonshell__.magic_edit
+__ipythonshell__.magic_edit = open_in_spyder
+
 #  Issue 977 : Since kernel.initialize() has completed execution, 
 # we can now allow the monitor to communicate the availablility of 
 # the kernel to accept front end connections.
