@@ -20,6 +20,7 @@ from spyderlib.qt.QtGui import (QTextCursor, QTextDocument, QApplication,
 from spyderlib.qt.QtCore import Qt, QRegExp, SIGNAL
 
 # Local imports
+from spyderlib.baseconfig import _
 from spyderlib.utils import sourcecode
 from spyderlib.utils.misc import get_error_match
 
@@ -485,4 +486,61 @@ class TracebackLinksMixin(object):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
         self.QT_CLASS.leaveEvent(self, event)
+
+
+class InspectObjectMixin(object):
+    def __init__(self):
+        self.inspector = None
+        self.inspector_enabled = True
+    
+    def set_inspector(self, inspector):
+        """Set ObjectInspector DockWidget reference"""
+        self.inspector = inspector
+        self.inspector.set_shell(self)
+    
+    def inspect_current_object(self):
+        text = ''
+        text1 = self.get_text('sol', 'cursor')
+        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
+        if tl1 and text1.endswith(tl1[-1]):
+            text += tl1[-1]
+        text2 = self.get_text('cursor', 'eol')
+        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
+        if tl2 and text2.startswith(tl2[0]):
+            text += tl2[0]
+        if text:
+            self.show_docstring(text, force=True)
+    
+    def show_docstring(self, text, call=False, force=False):
+        """Show docstring or arguments"""
+        text = unicode(text) # Useful only for ExternalShellBase
+        
+        insp_enabled = self.inspector_enabled or force
+        if force and self.inspector is not None:
+            self.inspector.dockwidget.setVisible(True)
+            self.inspector.dockwidget.raise_()
+        if insp_enabled and (self.inspector is not None) and \
+           (self.inspector.dockwidget.isVisible()):
+            # ObjectInspector widget exists and is visible
+            self.inspector.set_shell(self)
+            self.inspector.set_object_text(text, ignore_unknown=True)
+            self.setFocus() # if inspector was not at top level, raising it to
+                            # top will automatically give it focus because of
+                            # the visibility_changed signal, so we must give
+                            # focus back to shell
+            if call and self.calltips:
+                # Display argument list if this is function call
+                iscallable = self.iscallable(text)
+                if iscallable is not None:
+                    if iscallable:
+                        arglist = self.get_arglist(text)
+                        if isinstance(arglist, bool):
+                            arglist = []
+                        if arglist:
+                            self.show_calltip(_("Arguments"),
+                                              arglist, '#129625')
+        elif self.calltips: # inspector is not visible or link is disabled
+            doc = self.get__doc__(text)
+            if doc is not None:
+                self.show_calltip(_("Documentation"), doc)
 

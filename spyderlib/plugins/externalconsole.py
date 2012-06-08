@@ -529,6 +529,13 @@ class ExternalConsole(SpyderPluginWidget):
                 else:
                     self.tabwidget.setCurrentIndex(index)
                     return shellwidget
+    
+    def get_current_shell(self):
+        """
+        Called by object inspector to retrieve the current shell instance
+        """
+        shellwidget = self.__find_python_shell()
+        return shellwidget.shell
                 
     def get_running_python_shell(self):
         """

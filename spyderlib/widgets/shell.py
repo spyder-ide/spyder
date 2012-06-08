@@ -30,7 +30,8 @@ from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
-from spyderlib.widgets.sourcecode.mixins import TracebackLinksMixin
+from spyderlib.widgets.sourcecode.mixins import (InspectObjectMixin,
+                                                 TracebackLinksMixin)
 
 
 HISTORY_FILENAMES = []
@@ -678,7 +679,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
         raise NotImplementedError
 
 
-class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
+class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
+                        TracebackLinksMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
 
@@ -690,9 +692,7 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
         ShellBaseWidget.__init__(self, parent,
                                  history_filename, debug, profile)
         TracebackLinksMixin.__init__(self)
-        
-        self.inspector = None
-        self.inspector_enabled = True
+        InspectObjectMixin.__init__(self)
 
         # Local shortcuts
         self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
@@ -968,39 +968,6 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
                                       completion_text=text[q_pos+1:],
                                       automatic=automatic)
             return
-    
-    def show_docstring(self, text, call=False, force=False):
-        """Show docstring or arguments"""
-        text = unicode(text) # Useful only for ExternalShellBase
-        
-        insp_enabled = self.inspector_enabled or force
-        if force and self.inspector is not None:
-            self.inspector.dockwidget.setVisible(True)
-            self.inspector.dockwidget.raise_()
-        if insp_enabled and (self.inspector is not None) and \
-           (self.inspector.dockwidget.isVisible()):
-            # ObjectInspector widget exists and is visible
-            self.inspector.set_shell(self)
-            self.inspector.set_object_text(text, ignore_unknown=True)
-            self.setFocus() # if inspector was not at top level, raising it to
-                            # top will automatically give it focus because of
-                            # the visibility_changed signal, so we must give
-                            # focus back to shell
-            if call and self.calltips:
-                # Display argument list if this is function call
-                iscallable = self.iscallable(text)
-                if iscallable is not None:
-                    if iscallable:
-                        arglist = self.get_arglist(text)
-                        if isinstance(arglist, bool):
-                            arglist = []
-                        if arglist:
-                            self.show_calltip(_("Arguments"),
-                                              arglist, '#129625')
-        elif self.calltips: # inspector is not visible or link is disabled
-            doc = self.get__doc__(text)
-            if doc is not None:
-                self.show_calltip(_("Documentation"), doc)
         
         
     #------ Miscellanous
@@ -1009,27 +976,9 @@ class PythonShellWidget(ShellBaseWidget, TracebackLinksMixin):
         Return the last valid object on the current line
         """
         return getobj(self.get_current_line_to_cursor(), last=last)
-        
-    def set_inspector(self, inspector):
-        """Set ObjectInspector DockWidget reference"""
-        self.inspector = inspector
-        self.inspector.set_shell(self)
 
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
-        
-    def inspect_current_object(self):
-        text = ''
-        text1 = self.get_text('sol', 'cursor')
-        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
-        if tl1 and text1.endswith(tl1[-1]):
-            text += tl1[-1]
-        text2 = self.get_text('cursor', 'eol')
-        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
-        if tl2 and text2.startswith(tl2[0]):
-            text += tl2[0]
-        if text:
-            self.show_docstring(text, force=True)
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

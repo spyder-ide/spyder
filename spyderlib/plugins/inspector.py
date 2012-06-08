@@ -28,6 +28,7 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+from spyderlib.widgets.ipython import IPythonShellWidget
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
@@ -674,7 +675,10 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_shell(self, shell):
         """Bind to shell"""
-        self.shell = shell
+        if isinstance(shell, IPythonShellWidget):
+            self.shell = self.external_console.get_current_shell()
+        else:
+            self.shell = shell
     
     def get_shell(self):
         """Return shell which is currently bound to object inspector,

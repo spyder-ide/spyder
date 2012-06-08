@@ -343,6 +343,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.tabwidget = None
         self.menu_actions = None
         
+        self.inspector = None # Object inspector plugin
+        
         self.shellwidgets = []
         
         # Initialize plugin
@@ -376,7 +378,7 @@ class IPythonConsole(SpyderPluginWidget):
             
         # Accepting drops
         self.setAcceptDrops(True)
-
+    
     #------ SpyderPluginWidget API --------------------------------------------
     def get_plugin_title(self):
         """Return widget title"""
@@ -412,6 +414,7 @@ class IPythonConsole(SpyderPluginWidget):
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
+        self.inspector = self.main.inspector
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -554,6 +557,9 @@ class IPythonConsole(SpyderPluginWidget):
                                     client_name, ipython_widget)
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
+        
+        if self.inspector is not None:
+            shellwidget.get_control().set_inspector(self.inspector)
         
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )

@@ -16,7 +16,7 @@ from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
-from spyderlib.qt.QtGui import QTextEdit
+from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
 
 # Local imports
@@ -24,22 +24,32 @@ from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
-                         mixins.TracebackLinksMixin):
+                         mixins.TracebackLinksMixin,
+                         mixins.InspectObjectMixin):
     """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         mixins.BaseEditMixin.__init__(self)
         mixins.TracebackLinksMixin.__init__(self)
+        mixins.InspectObjectMixin.__init__(self)
+        self.calltips = False # To not use Spyder calltips
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
+        # To override the Qt widget used by RichIPythonWidget
         self.control_factory = IPythonShellWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
-        self.ipython_client = None
         
+        # --- Spyder variables ---
+        self.ipython_client = None
+        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
+                                   self._control.inspect_current_object)
+        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+        # --- IPython variables ---
         # Configure the ConsoleWidget HTML exporter for our formats.
         self._html_exporter.image_tag = self._get_image_tag
 
