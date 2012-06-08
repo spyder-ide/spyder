@@ -808,7 +808,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.find_widget.set_editor(shellwidget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized:
+        if self.dockwidget and not self.ismaximized and not ipython_kernel:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         
@@ -816,7 +816,8 @@ class ExternalConsole(SpyderPluginWidget):
         
         # Start process and give focus to console
         shellwidget.start_shell()
-        shellwidget.shell.setFocus()
+        if not ipython_kernel:
+            shellwidget.shell.setFocus()
         
     def rename_ipython_kernel_tab(self, connection_file, kernel_widget_id):
         """Add the pid of the kernel process to an IPython kernel tab"""
@@ -885,9 +886,8 @@ class ExternalConsole(SpyderPluginWidget):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         interpreter_action = create_action(self,
-                            _("Open &interpreter"), None,
-                            'python.png', _("Open a Python interpreter"),
-                            triggered=self.open_interpreter)
+                            _("Open a Python &interpreter"), None,
+                            'python.png', triggered=self.open_interpreter)
         if os.name == 'nt':
             text = _("Open &command prompt")
             tip = _("Open a Windows command prompt")
@@ -906,7 +906,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
         ipython_kernel_action = create_action(self,
-                            _("Start a new IPython kernel"), None,
+                            _("Open an IPython console"), None,
                             'ipython_console.png',
                             triggered=self.start_ipython_kernel)
         if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
@@ -1029,6 +1029,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Start new IPython kernel"""
         if wdir is None:
             wdir = os.getcwdu()
+        self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True,
                    ipython_kernel=True, ipython_client=create_client)
