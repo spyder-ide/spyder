@@ -24,6 +24,8 @@ import re
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 
+import spy
+
 # Test if IPython v0.12+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
 if is_module_installed('IPython', '>=0.12'):
@@ -1885,6 +1887,10 @@ def run_spyder(app, options):
         raise
     main.show()
     main.post_visible_setup()
+
+    spy.app = app
+    spy.window = main
+
     app.exec_()
     return main
 
