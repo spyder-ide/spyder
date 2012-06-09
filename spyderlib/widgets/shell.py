@@ -205,6 +205,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """
         Print a new prompt and save its (line, index) position
         """
+        if self.get_cursor_line_column()[1] != 0:
+            self.write('\n')
         self.write(prompt, prompt=True)
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.get_position('cursor')
