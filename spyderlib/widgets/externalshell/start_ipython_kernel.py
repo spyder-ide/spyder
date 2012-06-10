@@ -72,6 +72,21 @@ def kernel_config():
     
     return cfg
 
+def set_edit_magic(shell):
+    """Use %edit to open files in Spyder"""
+    from spyderlib.utils import programs
+    
+    if programs.is_module_installed('IPython', '0.12'):
+        shell.magic_ed = shell.magic_edit
+        shell.magic_edit = open_in_spyder
+    elif programs.is_module_installed('IPython', '>0.12'):
+        shell.magics_manager.magics['line']['ed'] = \
+          shell.magics_manager.magics['line']['edit']
+        shell.magics_manager.magics['line']['edit'] = open_in_spyder
+    else:
+        # Don't want to know how things were in previous versions
+        pass
+    
 # Remove this module's path from sys.path:
 try:
     sys.path.remove(osp.dirname(__file__))
@@ -93,11 +108,9 @@ from IPython.zmq.ipkernel import IPKernelApp
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
 ipk_temp.initialize()
-__ipythonshell__ = ipk_temp.shell
 
-# For issue 1051: Use %edit to open files in Spyder
-__ipythonshell__.magic_ed = __ipythonshell__.magic_edit
-__ipythonshell__.magic_edit = open_in_spyder
+__ipythonshell__ = ipk_temp.shell
+set_edit_magic(__ipythonshell__)
 
 #  Issue 977 : Since kernel.initialize() has completed execution, 
 # we can now allow the monitor to communicate the availablility of 
