@@ -149,15 +149,22 @@ else:
         
         If you want to use IPython's %edit use %ed instead
         """
+        try:
+            source = sys.modules[source]
+        except KeyError:
+            source = source
         if not isinstance(source, basestring):
             try:
                 source = source.__file__
             except AttributeError:
-                raise ValueError("source argument must be either "
-                                 "a string or a module object")
+                print "The argument must be either a string or a module object"
         if source.endswith('.pyc'):
             source = source[:-1]
-        monitor.notify_open_file(source, lineno=lineno)
+        source = osp.abspath(source)
+        if osp.exists(source):
+            monitor.notify_open_file(source, lineno=lineno)
+        else:
+            print "Can't open file %s" % source
     __builtin__.open_in_spyder = open_in_spyder
     
     # * PyQt4:
