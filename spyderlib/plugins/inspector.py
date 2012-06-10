@@ -28,7 +28,14 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
-from spyderlib.widgets.ipython import IPythonShellWidget
+
+#XXX: hardcoded dependency on optional IPython plugin component
+#     that requires the hack to make this work without IPython
+try:
+    from spyderlib.widgets.ipython import IPythonShellWidget
+except ImportError:
+    IPythonShellWidget = None
+
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
@@ -675,8 +682,12 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_shell(self, shell):
         """Bind to shell"""
-        if isinstance(shell, IPythonShellWidget):
-            self.shell = self.external_console.get_current_shell()
+        if IPythonShellWidget is not None:
+            # XXX(anatoli): hack to make Spyder run on systems without IPython
+            #               there should be a better way
+            if isinstance(shell, IPythonShellWidget):
+                # XXX: this ignores passed argument completely
+                self.shell = self.external_console.get_current_shell()
         else:
             self.shell = shell
     

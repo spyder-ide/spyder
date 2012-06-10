@@ -61,21 +61,23 @@ class BaseEditMixin(object):
 
 
     #------Positions, coordinates (cursor, EOF, ...)
-    def get_position(self, position):
+    def get_position(self, subject):
+        """Get offset in character for the given subject from the start of
+           text edit area"""
         cursor = self.textCursor()
-        if position == 'cursor':
+        if subject == 'cursor':
             pass
-        elif position == 'sol':
+        elif subject == 'sol':
             cursor.movePosition(QTextCursor.StartOfBlock)
-        elif position == 'eol':
+        elif subject == 'eol':
             cursor.movePosition(QTextCursor.EndOfBlock)
-        elif position == 'eof':
+        elif subject == 'eof':
             cursor.movePosition(QTextCursor.End)
-        elif position == 'sof':
+        elif subject == 'sof':
             cursor.movePosition(QTextCursor.Start)
         else:
             # Assuming that input argument was already a position
-            return position
+            return subject
         return cursor.position()
         
     def get_coordinates(self, position):

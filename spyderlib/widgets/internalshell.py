@@ -180,9 +180,14 @@ class InternalShell(PythonShellWidget):
         if self.multithreaded:
             self.interpreter.start()
         
-        # interpreter banner
-        banner = create_banner(_('Type "copyright", "credits" or "license" for more information.'), self.message)
+        # Interpreter banner
+        banner = create_banner(_('Builtin Modules: spy.app, spy.window'), self.message)
         self.write(banner, prompt=True)
+        
+        # Import spy module and cleanup console namespace from useless names
+        self.run_command('import spyderlib.spy as spy', history=False, new_prompt=False)
+        for name in ['__doc__', '__name__', '__package__']:
+            self.run_command('del %s' % name, history=False, new_prompt=False)
 
         # Initial commands
         for cmd in self.commands:
