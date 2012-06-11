@@ -517,7 +517,11 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Gui completion widget
         gui_comp_o = self.get_option('use_gui_completion')
-        cfg.IPythonWidget.gui_completion = gui_comp_o
+        if programs.is_module_installed('IPython', '>0.12'):
+            completions = {True: 'droplist', False: 'ncurses'}
+            cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
+        else:
+            cfg.IPythonWidget.gui_completion = gui_comp_o
 
         # Pager
         pager_o = self.get_option('use_pager')

@@ -19,6 +19,7 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.utils.qthelpers import restore_keyevent
+from spyderlib.utils import programs
 
 # Local imports
 from spyderlib.config import CONF
@@ -120,7 +121,8 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
         control.viewport().installEventFilter(self)
 
         # Connect signals.
-        control.cursorPositionChanged.connect(self._cursor_position_changed)
+        if programs.is_module_installed('IPython', '0.12'):
+            control.cursorPositionChanged.connect(self._cursor_position_changed)
         control.customContextMenuRequested.connect(
             self._custom_context_menu_requested)
         control.copyAvailable.connect(self.copy_available)
