@@ -31,9 +31,9 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 #XXX: hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-try:
+if programs.is_module_installed('IPython', '>=0.12'):
     from spyderlib.widgets.ipython import IPythonShellWidget
-except ImportError:
+else:
     IPythonShellWidget = None
 
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
