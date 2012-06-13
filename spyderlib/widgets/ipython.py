@@ -121,7 +121,7 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
         control.viewport().installEventFilter(self)
 
         # Connect signals.
-        if programs.is_module_installed('IPython', '0.12'):
+        if programs.is_module_installed('IPython.frontend.qt', '0.12'):
             control.cursorPositionChanged.connect(self._cursor_position_changed)
         control.customContextMenuRequested.connect(
             self._custom_context_menu_requested)

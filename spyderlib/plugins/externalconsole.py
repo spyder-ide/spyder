@@ -193,7 +193,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
         ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
                                 'start_ipython_kernel_at_startup')
-        is_ipython_012p = programs.is_module_installed('IPython', '>=0.12')
+        is_ipython_012p = programs.is_module_installed('IPython.frontend.qt',
+                                                       '>=0.12')
         ipykstartup_box.setEnabled(is_ipython_012p)
         if not is_ipython_012p:
             ipykstartup_box.setToolTip(_("This option is not available for "
@@ -901,7 +902,7 @@ class ExternalConsole(SpyderPluginWidget):
                             _("Start a new IPython kernel"), None,
                             'ipython_console.png',
                             triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython', '>=0.12'):
+        if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
             self.menu_actions.insert(1, ipython_kernel_action)
             interact_menu_actions.append(ipython_kernel_action)
         self.main.interact_menu_actions += interact_menu_actions

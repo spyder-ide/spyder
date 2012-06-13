@@ -76,10 +76,10 @@ def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
     from spyderlib.utils import programs
     
-    if programs.is_module_installed('IPython', '0.12'):
+    if programs.is_module_installed('IPython.frontend.qt', '0.12'):
         shell.magic_ed = shell.magic_edit
         shell.magic_edit = open_in_spyder
-    elif programs.is_module_installed('IPython', '>0.12'):
+    elif programs.is_module_installed('IPython.frontend.qt', '>0.12'):
         shell.magics_manager.magics['line']['ed'] = \
           shell.magics_manager.magics['line']['edit']
         shell.magics_manager.magics['line']['edit'] = open_in_spyder

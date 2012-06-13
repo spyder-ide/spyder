@@ -28,7 +28,7 @@ import spy
 
 # Test if IPython v0.12+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
-if is_module_installed('IPython', '>=0.12'):
+if is_module_installed('IPython.frontend.qt', '>=0.12'):
     # Importing IPython will eventually set the QT_API environment variable
     import IPython  # analysis:ignore
     if os.environ.get('QT_API', 'pyqt') == 'pyqt':
@@ -116,7 +116,7 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
-if is_module_installed('IPython', '>=0.12'):
+if is_module_installed('IPython.frontend.qt', '>=0.12'):
     # TODO: add ability for plugins to disable themself if their
     #       requirements are not met before failing during import
     from spyderlib.plugins.ipythonconsole import IPythonConsole
@@ -745,7 +745,7 @@ class MainWindow(QMainWindow):
         #XXX: we need to think of what to do with the light mode...
         #     ---> but for now, simply hiding the dockwidget like in standard 
         #          mode should be sufficient
-        if is_module_installed('IPython', '>=0.12'):
+        if is_module_installed('IPython.frontend.qt', '>=0.12'):
             self.set_splash(_("Loading IPython console..."))
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()

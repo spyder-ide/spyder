@@ -174,11 +174,6 @@ def is_module_installed(module_name, version=None):
     version may starts with =, >= or > to specify the exact requirement"""
     try:
         mod = __import__(module_name)
-        if module_name == 'IPython':
-            try:
-                __import__('IPython.frontend.qt')
-            except ImportError:
-                return False
         if version is None:
             return True
         else:
