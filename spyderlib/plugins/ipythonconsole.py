@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QWidget, QGroupBox,
                                 QLineEdit, QInputDialog, QTabWidget, QMenu,
                                 QFontComboBox, QHBoxLayout, QApplication,
                                 QToolButton, QLabel)
-from spyderlib.qt.QtCore import SIGNAL, Qt
+from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 import sys
 import re
@@ -301,12 +301,24 @@ class IPythonClient(QWidget):
 
     def get_options_menu(self):
         """Return options menu"""
+        # Kernel
         self.interrupt_action = create_action(self, _("Interrupt"),
                                 triggered=self.ipython_widget.interrupt_kernel)
         kernel_menu = QMenu(_("Kernel"), self)
         add_actions(kernel_menu, (None, self.interrupt_action))
         
-        actions = [kernel_menu]
+        # Help
+        self.intro_action = create_action(self, _("Intro to IPython"),
+                                          triggered=self._show_intro)
+        self.quickref_action = create_action(self, _("Quick Reference"),
+                                             triggered=self._show_quickref)
+        self.guiref_action = create_action(self, _("Qt Console"),
+                                           triggered=self._show_guiref)                    
+        help_menu = QMenu(_("Help"), self)
+        add_actions(help_menu, (self.intro_action, self.quickref_action,
+                                self.guiref_action))
+        
+        actions = [kernel_menu, help_menu]
         return actions
     
     def get_toolbar_buttons(self):
@@ -338,6 +350,28 @@ class IPythonClient(QWidget):
     def set_font(self, font):
         """Set IPython widget's font"""
         self.ipython_widget.font = font
+    
+    #------ Private API -------------------------------------------------------
+    def _show_help(self, text):
+        from spyderlib.utils.inspector import sphinxify as spx
+        
+        context = spx.generate_context(title='', argspec='', note='',
+                                       math=False)
+        html_text = spx.sphinxify(text, context)
+        self.get_control().inspector.set_rich_text_html(html_text,
+                                              QUrl.fromLocalFile(spx.CSS_PATH))
+    
+    def _show_intro(self):
+        from IPython.core.usage import interactive_usage
+        self._show_help(interactive_usage)
+    
+    def _show_guiref(self):
+        from IPython.core.usage import gui_reference
+        self._show_help(gui_reference)
+    
+    def _show_quickref(self):
+        from IPython.core.usage import quick_reference
+        self._show_help(quick_reference)
             
 
 class IPythonConsole(SpyderPluginWidget):
