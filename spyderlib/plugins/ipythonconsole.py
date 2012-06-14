@@ -273,10 +273,16 @@ class IPythonClient(QWidget):
         self.client_name = client_name
         
         self.ipython_widget = ipython_widget
-        layout = QHBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.ipython_widget)
-        self.setLayout(layout)
+        
+        vlayout = QVBoxLayout()
+        toolbar_buttons = self.get_toolbar_buttons()
+        hlayout = QHBoxLayout()
+        for button in toolbar_buttons:
+            hlayout.addWidget(button)
+        vlayout.addLayout(hlayout)
+        vlayout.setContentsMargins(0, 0, 0, 0)
+        vlayout.addWidget(self.ipython_widget)
+        self.setLayout(vlayout)
         
         self.exit_callback = lambda: plugin.close_console(widget=self)
 
@@ -295,9 +301,13 @@ class IPythonClient(QWidget):
 
     def get_options_menu(self):
         """Return options menu"""
-        #TODO: Eventually add some options (Empty for now)
-        # (see for example: spyderlib/widgets/externalshell/baseshell.py)
-        return []
+        self.interrupt_action = create_action(self, _("Interrupt"),
+                                triggered=self.ipython_widget.interrupt_kernel)
+        kernel_menu = QMenu(_("Kernel"), self)
+        add_actions(kernel_menu, (None, self.interrupt_action))
+        
+        actions = [kernel_menu]
+        return actions
     
     def get_toolbar_buttons(self):
         """Return toolbar buttons list"""
