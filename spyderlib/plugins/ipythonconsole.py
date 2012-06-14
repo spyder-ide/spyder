@@ -515,6 +515,9 @@ class IPythonConsole(SpyderPluginWidget):
         """
         cfg = Config()
         
+        # Make the pager widget a rich one (i.e a QTextEdit)
+        cfg.IPythonWidget.kind = 'rich'
+        
         # Gui completion widget
         gui_comp_o = self.get_option('use_gui_completion')
         if programs.is_module_installed('IPython.frontend.qt', '>0.12'):
