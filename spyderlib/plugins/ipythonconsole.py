@@ -561,6 +561,11 @@ class IPythonConsole(SpyderPluginWidget):
                                     client_name, ipython_widget)
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
+
+        # Kernel interrupt
+        kernel = self.main.extconsole.shellwidgets[-1]
+        shellwidget.ipython_widget.custom_interrupt_requested.connect(
+                                                     kernel.keyboard_interrupt)
         
         if self.inspector is not None:
             shellwidget.get_control().set_inspector(self.inspector)

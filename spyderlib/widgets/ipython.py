@@ -72,6 +72,9 @@ class SpyderIPythonWidget(RichIPythonWidget):
         self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
         
         # --- IPython variables ---
+        # To send an interrupt signal to the Spyder kernel
+        self.custom_interrupt = True
+        
         # Configure the ConsoleWidget HTML exporter for our formats.
         self._html_exporter.image_tag = self._get_image_tag
 
