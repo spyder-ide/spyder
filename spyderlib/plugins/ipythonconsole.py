@@ -302,23 +302,21 @@ class IPythonClient(QWidget):
     def get_options_menu(self):
         """Return options menu"""
         # Kernel
-        self.interrupt_action = create_action(self, _("Interrupt"),
+        self.interrupt_action = create_action(self, _("Interrupt Kernel"),
                                 triggered=self.ipython_widget.interrupt_kernel)
-        kernel_menu = QMenu(_("Kernel"), self)
-        add_actions(kernel_menu, (None, self.interrupt_action))
         
         # Help
         self.intro_action = create_action(self, _("Intro to IPython"),
                                           triggered=self._show_intro)
         self.quickref_action = create_action(self, _("Quick Reference"),
                                              triggered=self._show_quickref)
-        self.guiref_action = create_action(self, _("Qt Console"),
+        self.guiref_action = create_action(self, _("Console help"),
                                            triggered=self._show_guiref)                    
         help_menu = QMenu(_("Help"), self)
-        add_actions(help_menu, (self.intro_action, self.quickref_action,
-                                self.guiref_action))
+        add_actions(help_menu, (self.intro_action, self.guiref_action,
+                                self.quickref_action))
         
-        actions = [kernel_menu, help_menu]
+        actions = [self.interrupt_action, None, help_menu]
         return actions
     
     def get_toolbar_buttons(self):
