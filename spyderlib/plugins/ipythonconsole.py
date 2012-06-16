@@ -264,15 +264,15 @@ class IPythonClient(QWidget):
     """Spyder IPython client (or frontend)"""
     CONF_SECTION = 'ipython'
     def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
-                 ipython_widget):
+                 ipython_widget, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
         self.options_button = None
 
         self.connection_file = connection_file
         self.kernel_widget_id = kernel_widget_id
-        self.client_name = client_name
-        
+        self.client_name = client_name        
         self.ipython_widget = ipython_widget
+        self.menu_actions = menu_actions
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -315,13 +315,16 @@ class IPythonClient(QWidget):
         self.guiref_action = create_action(self, _("Console help"),
                                            triggered=self._show_guiref)                    
         help_menu = QMenu(_("Help"), self)
-        help_action = create_action(self, _("Help"),
+        help_action = create_action(self, _("IPython Help"),
                                     icon=get_std_icon('DialogHelpButton'))
         help_action.setMenu(help_menu)
         add_actions(help_menu, (self.intro_action, self.guiref_action,
                                 self.quickref_action))
-        
-        actions = [self.interrupt_action, self.restart_action, None, help_menu]
+        if self.menu_actions is not None:
+            actions = [self.interrupt_action, self.restart_action, None] +\
+                      self.menu_actions + [None, help_menu]
+        else:
+            actions = [self.interrupt_action, self.restart_action, None, help_menu]
         return actions
     
     def get_toolbar_buttons(self):
@@ -476,10 +479,11 @@ class IPythonConsole(SpyderPluginWidget):
         interact_menu_actions = [None, client_action]
         self.main.interact_menu_actions += interact_menu_actions
         
+        # Plugin actions
         console = self.main.extconsole
         self.menu_actions = [console.ipython_kernel_action, client_action]
         
-        return self.menu_actions+interact_menu_actions
+        return self.menu_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
@@ -632,7 +636,8 @@ class IPythonConsole(SpyderPluginWidget):
         #======================================================================
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
-                                    client_name, ipython_widget)
+                                    client_name, ipython_widget,
+                                    menu_actions=self.menu_actions)
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
 
