@@ -748,11 +748,19 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setTabText(index, name)
     
     def create_new_kernel(self):
-        console = self.main.extconsole
-        console.start_ipython_kernel(create_client=False)
-        kernel = console.shellwidgets[-1]
-        self.connect(kernel, SIGNAL('create_ipython_client(QString)'),
-                     lambda cf: self.connect_to_new_kernel(cf, kernel))
+        # Took this bit of code (until if == result) from the IPython project
+        # (frontend/qt/frontend_widget.py - restart_kernel).
+        # Licensed under the BSD license
+        message = 'Are you sure you want to restart the kernel?'
+        buttons = QMessageBox.Yes | QMessageBox.No
+        result = QMessageBox.question(self, 'Restart kernel?',
+                                      message, buttons)
+        if result == QMessageBox.Yes:
+            console = self.main.extconsole
+            console.start_ipython_kernel(create_client=False)
+            kernel = console.shellwidgets[-1]
+            self.connect(kernel, SIGNAL('create_ipython_client(QString)'),
+                         lambda cf: self.connect_to_new_kernel(cf, kernel))
     
     def connect_to_new_kernel(self, connection_file, kernel):
         console = self.main.extconsole
