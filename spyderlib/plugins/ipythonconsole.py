@@ -32,7 +32,7 @@ from spyderlib.config import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       add_actions, mimedata2url)
+                                       add_actions, get_std_icon)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonApp
 from spyderlib.widgets.findreplace import FindReplace
@@ -313,6 +313,9 @@ class IPythonClient(QWidget):
         self.guiref_action = create_action(self, _("Console help"),
                                            triggered=self._show_guiref)                    
         help_menu = QMenu(_("Help"), self)
+        help_action = create_action(self, _("Help"),
+                                    icon=get_std_icon('DialogHelpButton'))
+        help_action.setMenu(help_menu)
         add_actions(help_menu, (self.intro_action, self.guiref_action,
                                 self.quickref_action))
         
