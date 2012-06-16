@@ -724,17 +724,47 @@ class IPythonConsole(SpyderPluginWidget):
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       osp.abspath(fname), int(lnb), '')
     
+    def get_shell_index_from_id(self, shell_id):
+        """Return shellwidget index from id"""
+        for index, shell in enumerate(self.shellwidgets):
+            if id(shell) == shell_id:
+                return index
+    
+    def rename_ipython_client_tab(self, connection_file, client_widget_id):
+        """Add the pid of the kernel process to an IPython client tab"""
+        index = self.get_shell_index_from_id(client_widget_id)
+        match = re.match('^kernel-(\d+).json', connection_file)
+        if match is not None:  # should not fail, but we never know...
+            name = "Client " + match.groups()[0] + '/' + chr(65)
+            self.tabwidget.setTabText(index, name)
+    
     def create_new_kernel(self):
         console = self.main.extconsole
         console.start_ipython_kernel(create_client=False)
         kernel = console.shellwidgets[-1]
         self.connect(kernel, SIGNAL('create_ipython_client(QString)'),
-                     lambda cf: self.connect_to_new_kernel(cf))
+                     lambda cf: self.connect_to_new_kernel(cf, kernel))
     
-    def connect_to_new_kernel(self, connection_file):
-        kernel_manager = self.ipython_app.create_kernel_manager(connection_file)
+    def connect_to_new_kernel(self, connection_file, kernel):
+        console = self.main.extconsole
         shellwidget = self.tabwidget.currentWidget()
+        
+        # Close previous kernel tab
+        idx = console.get_shell_index_from_id(shellwidget.kernel_widget_id)
+        console.close_console(index=idx)
+        
+        # Rename kernel tab
+        kernel_widget_id = id(kernel)
+        console.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
+        
+        # Connect client to the new kernel
+        kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
         shellwidget.ipython_widget.kernel_manager = kernel_manager
+        shellwidget.kernel_widget_id = kernel_widget_id
+        
+        # Rename client tab
+        client_widget_id = id(shellwidget)
+        self.rename_ipython_client_tab(connection_file, client_widget_id)
             
     #----Drag and drop
     #TODO: try and reimplement this block

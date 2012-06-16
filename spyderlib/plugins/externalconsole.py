@@ -818,14 +818,18 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget.start_shell()
         shellwidget.shell.setFocus()
         
-    def create_ipython_client(self, connection_file, kernel_widget_id):
-        """Create a new IPython client connected to a kernel just started"""
+    def rename_ipython_kernel_tab(self, connection_file, kernel_widget_id):
+        """Add the pid of the kernel process to an IPython kernel tab"""
         index = self.get_shell_index_from_id(kernel_widget_id)
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
             text = unicode(self.tabwidget.tabText(index))
             name = "%s (%s)" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
+    
+    def create_ipython_client(self, connection_file, kernel_widget_id):
+        """Create a new IPython client connected to a kernel just started"""
+        self.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
         self.main.ipyconsole.new_client(connection_file, kernel_widget_id)
         
     def open_file_in_spyder(self, fname, lineno):
