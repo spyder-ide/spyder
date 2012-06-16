@@ -471,11 +471,13 @@ class IPythonConsole(SpyderPluginWidget):
                 'ipython_console.png',
                 _("Open a new IPython client connected to an external kernel"),
                 triggered=self.new_client)
-
-        interact_menu_actions = [None, client_action]
-        self.menu_actions = [client_action]
         
+        # Add the action to the 'Interpreters' menu on the main window
+        interact_menu_actions = [None, client_action]
         self.main.interact_menu_actions += interact_menu_actions
+        
+        console = self.main.extconsole
+        self.menu_actions = [console.ipython_kernel_action, client_action]
         
         return self.menu_actions+interact_menu_actions
     
