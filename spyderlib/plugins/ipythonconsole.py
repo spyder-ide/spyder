@@ -466,10 +466,11 @@ class IPythonConsole(SpyderPluginWidget):
         
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        client_action = create_action(self, _("New IPython client..."), None,
-                    'ipython_console.png',
-                    _("Open a new IPython client (frontend)"),
-                    triggered=self.new_client)
+        client_action = create_action(self, _("Connect to an existing kernel"),
+                None,
+                'ipython_console.png',
+                _("Open a new IPython client connected to an external kernel"),
+                triggered=self.new_client)
 
         interact_menu_actions = [None, client_action]
         self.menu_actions = [client_action]
@@ -537,11 +538,12 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a new IPython client"""
         cf = connection_file
         if cf is None:
-            example = _('(example: `kernel-3764.json`, or simply `3764`)')
+            example = _('(for example: `kernel-3764.json`, or simply `3764`)')
             while True:
                 cf, valid = QInputDialog.getText(self, _('IPython'),
-                          _('IPython kernel connection file:')+'\n'+example,
-                          QLineEdit.Normal)
+                              _('Provide an IPython kernel connection file:')+\
+                              '\n'+example,
+                              QLineEdit.Normal)
                 if valid:
                     cf = str(cf)
                     if cf.isdigit():
