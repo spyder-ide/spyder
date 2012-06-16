@@ -293,7 +293,7 @@ class IPythonClient(QWidget):
     #------ Public API --------------------------------------------------------
     def get_name(self):
         """Return client name"""
-        return _("Client") + " " + self.client_name
+        return _("Console") + " " + self.client_name
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
@@ -748,7 +748,7 @@ class IPythonConsole(SpyderPluginWidget):
         index = self.get_shell_index_from_id(client_widget_id)
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
-            name = "Client " + match.groups()[0] + '/' + chr(65)
+            name = _("Console") + " " + match.groups()[0] + '/' + chr(65)
             self.tabwidget.setTabText(index, name)
     
     def create_new_kernel(self):
