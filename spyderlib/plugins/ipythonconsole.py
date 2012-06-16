@@ -645,6 +645,11 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget.ipython_widget.custom_restart_requested.connect(
                                                         self.create_new_kernel)
         
+        # Print a message if kernel dies unexpectedly
+        shellwidget.ipython_widget.custom_restart_kernel_died.connect(
+                                              lambda t: self.if_kernel_dies(t))
+        
+        # Connect text widget to our inspector
         if self.inspector is not None:
             shellwidget.get_control().set_inspector(self.inspector)
         
@@ -750,6 +755,12 @@ class IPythonConsole(SpyderPluginWidget):
         if match is not None:  # should not fail, but we never know...
             name = _("Console") + " " + match.groups()[0] + '/' + chr(65)
             self.tabwidget.setTabText(index, name)
+    
+    def if_kernel_dies(self, t):
+        message = "It seems the kernel died unexpectedly. Use "\
+                  "'Restart Kernel' to continue using this console."
+        shellwidget = self.tabwidget.currentWidget()
+        shellwidget.ipython_widget._append_plain_text(message + '\n')
     
     def create_new_kernel(self):
         # Took this bit of code (until if == result) from the IPython project
