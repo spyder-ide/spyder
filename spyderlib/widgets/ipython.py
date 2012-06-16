@@ -75,6 +75,9 @@ class SpyderIPythonWidget(RichIPythonWidget):
         # To send an interrupt signal to the Spyder kernel
         self.custom_interrupt = True
         
+        # To restart the Spyder kernel in case it dies
+        self.custom_restart = True
+        
         # Configure the ConsoleWidget HTML exporter for our formats.
         self._html_exporter.image_tag = self._get_image_tag
 

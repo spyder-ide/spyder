@@ -607,10 +607,14 @@ class IPythonConsole(SpyderPluginWidget):
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
 
-        # Kernel interrupt
+        # Handle kernel interrupt
         kernel = self.main.extconsole.shellwidgets[-1]
         shellwidget.ipython_widget.custom_interrupt_requested.connect(
                                                      kernel.keyboard_interrupt)
+        
+        # Handle kernel restarts asked by the user
+        shellwidget.ipython_widget.custom_restart_requested.connect(
+                                                        self.create_new_kernel)
         
         if self.inspector is not None:
             shellwidget.get_control().set_inspector(self.inspector)
@@ -703,6 +707,18 @@ class IPythonConsole(SpyderPluginWidget):
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
                       osp.abspath(fname), int(lnb), '')
+    
+    def create_new_kernel(self):
+        console = self.main.extconsole
+        console.start_ipython_kernel(create_client=False)
+        kernel = console.shellwidgets[-1]
+        self.connect(kernel, SIGNAL('create_ipython_client(QString)'),
+                     lambda cf: self.connect_to_new_kernel(cf))
+    
+    def connect_to_new_kernel(self, connection_file):
+        kernel_manager = self.ipython_app.create_kernel_manager(connection_file)
+        shellwidget = self.tabwidget.currentWidget()
+        shellwidget.ipython_widget.kernel_manager = kernel_manager
             
     #----Drag and drop
     #TODO: try and reimplement this block

@@ -606,7 +606,8 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipython_kernel=False, python_args=''):
+              python=True, ipython_kernel=False, ipython_client=False,
+              python_args=''):
         """
         Start new console
         
@@ -619,6 +620,7 @@ class ExternalConsole(SpyderPluginWidget):
         debug: run pdb
         python: True: Python interpreter, False: terminal
         ipython_kernel: True: IPython kernel
+        ipython_client: True: Automatically create an IPython client
         python_args: additionnal Python interpreter command line options
                    (option "-u" is mandatory, see widgets.externalshell package)
         """
@@ -767,7 +769,8 @@ class ExternalConsole(SpyderPluginWidget):
                     tab_name = "IPyKernel"
                     tab_icon1 = get_icon('ipython.png')
                     tab_icon2 = get_icon('ipython_t.png')
-                    self.connect(shellwidget,
+                    if ipython_client:
+                        self.connect(shellwidget,
                                  SIGNAL('create_ipython_client(QString)'),
                                  lambda cf: self.create_ipython_client(
                                          cf, kernel_widget_id=id(shellwidget)))
@@ -1018,13 +1021,13 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True)
         
-    def start_ipython_kernel(self, wdir=None):
+    def start_ipython_kernel(self, wdir=None, create_client=True):
         """Start new IPython kernel"""
         if wdir is None:
             wdir = os.getcwdu()
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True,
-                   ipython_kernel=True)
+                   ipython_kernel=True, ipython_client=create_client)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""
