@@ -303,7 +303,9 @@ class IPythonClient(QWidget):
         """Return options menu"""
         # Kernel
         self.interrupt_action = create_action(self, _("Interrupt Kernel"),
-                                               triggered=self.interrupt_kernel)
+                                              triggered=self.interrupt_kernel)
+        self.restart_action = create_action(self, _("Restart Kernel"),
+                                            triggered=self.restart_kernel)
         
         # Help
         self.intro_action = create_action(self, _("Intro to IPython"),
@@ -319,7 +321,7 @@ class IPythonClient(QWidget):
         add_actions(help_menu, (self.intro_action, self.guiref_action,
                                 self.quickref_action))
         
-        actions = [self.interrupt_action, None, help_menu]
+        actions = [self.interrupt_action, self.restart_action, None, help_menu]
         return actions
     
     def get_toolbar_buttons(self):
@@ -355,6 +357,10 @@ class IPythonClient(QWidget):
     def interrupt_kernel(self):
         """Interrupt the associanted Spyder kernel if it's running"""
         self.ipython_widget.request_interrupt_kernel()
+    
+    def restart_kernel(self):
+        """Restart the associanted Spyder kernel"""
+        self.ipython_widget.request_restart_kernel()
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
