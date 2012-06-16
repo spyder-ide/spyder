@@ -261,7 +261,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 #     just a start: we should replace it by the correct inheritance logic in 
 #     time.
 class IPythonClient(QWidget):
-    """Find in files DockWidget"""
+    """Spyder IPython client (or frontend)"""
     CONF_SECTION = 'ipython'
     def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
                  ipython_widget):
@@ -354,26 +354,38 @@ class IPythonClient(QWidget):
         self.ipython_widget.request_interrupt_kernel()
     
     #------ Private API -------------------------------------------------------
-    def _show_help(self, text):
+    def _show_rich_help(self, text):
+        """Use our Object Inspector to show IPython help texts in rich mode"""
         from spyderlib.utils.inspector import sphinxify as spx
         
         context = spx.generate_context(title='', argspec='', note='',
                                        math=False)
         html_text = spx.sphinxify(text, context)
-        self.get_control().inspector.set_rich_text_html(html_text,
-                                              QUrl.fromLocalFile(spx.CSS_PATH))
+        inspector = self.get_control().inspector
+        inspector.switch_to_rich_text()
+        inspector.set_rich_text_html(html_text,
+                                     QUrl.fromLocalFile(spx.CSS_PATH))
+    
+    def _show_plain_help(self, text):
+        """Use our Object Inspector to show IPython help texts in plain mode"""
+        inspector = self.get_control().inspector
+        inspector.switch_to_plain_text()
+        inspector.set_plain_text(text, is_code=False)
     
     def _show_intro(self):
+        """Show intro to IPython help"""
         from IPython.core.usage import interactive_usage
-        self._show_help(interactive_usage)
+        self._show_rich_help(interactive_usage)
     
     def _show_guiref(self):
+        """Show qtconsole help"""
         from IPython.core.usage import gui_reference
-        self._show_help(gui_reference)
+        self._show_rich_help(gui_reference)
     
     def _show_quickref(self):
+        """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
-        self._show_help(quick_reference)
+        self._show_plain_help(quick_reference)
             
 
 class IPythonConsole(SpyderPluginWidget):
