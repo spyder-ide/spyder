@@ -303,7 +303,7 @@ class IPythonClient(QWidget):
         """Return options menu"""
         # Kernel
         self.interrupt_action = create_action(self, _("Interrupt Kernel"),
-                                triggered=self.ipython_widget.interrupt_kernel)
+                                               triggered=self.interrupt_kernel)
         
         # Help
         self.intro_action = create_action(self, _("Intro to IPython"),
@@ -348,6 +348,10 @@ class IPythonClient(QWidget):
     def set_font(self, font):
         """Set IPython widget's font"""
         self.ipython_widget.font = font
+    
+    def interrupt_kernel(self):
+        """Interrupt the associanted Spyder kernel if it's running"""
+        self.ipython_widget.request_interrupt_kernel()
     
     #------ Private API -------------------------------------------------------
     def _show_help(self, text):
