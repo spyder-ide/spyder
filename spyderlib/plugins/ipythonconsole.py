@@ -749,15 +749,15 @@ class IPythonConsole(SpyderPluginWidget):
         console = self.main.extconsole
         shellwidget = self.tabwidget.currentWidget()
         
-        # Close previous kernel tab
+        # Close old kernel tab
         idx = console.get_shell_index_from_id(shellwidget.kernel_widget_id)
         console.close_console(index=idx)
         
-        # Rename kernel tab
+        # Rename new kernel tab
         kernel_widget_id = id(kernel)
         console.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
         
-        # Connect client to the new kernel
+        # Connect client to new kernel
         kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
         shellwidget.ipython_widget.kernel_manager = kernel_manager
         shellwidget.kernel_widget_id = kernel_widget_id
