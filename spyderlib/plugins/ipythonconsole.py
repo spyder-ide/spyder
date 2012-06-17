@@ -832,6 +832,7 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
         shellwidget.ipython_widget.kernel_manager = kernel_manager
         shellwidget.kernel_widget_id = kernel_widget_id
+        shellwidget.get_control().setFocus()
         
         # Rename client tab
         client_widget_id = id(shellwidget)
