@@ -348,6 +348,10 @@ class IPythonClient(QWidget):
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
+        inspect_action = create_action(self, _("Inspect current objetc"),
+                                    QKeySequence("Ctrl+I"),
+                                    icon=get_std_icon('MessageBoxInformation'),
+                                    triggered=self.inspect_object)
         clear_line_action = create_action(self, _("Clear line or block"),
                                           QKeySequence("Shift+Escape"),
                                           icon=get_icon('eraser.png'),
@@ -358,8 +362,8 @@ class IPythonClient(QWidget):
                                              triggered=self.clear_console)
         quit_action = create_action(self, _("&Quit"), icon='exit.png',
                                     triggered=self.exit_callback)
-        add_actions(menu, (clear_line_action, clear_console_action, None,
-                           quit_action))
+        add_actions(menu, (None, inspect_action, clear_line_action,
+                           clear_console_action, None, quit_action))
         return menu
     
     def set_font(self, font):
@@ -374,11 +378,14 @@ class IPythonClient(QWidget):
         """Restart the associanted Spyder kernel"""
         self.ipython_widget.request_restart_kernel()
     
-    def clear_console(self):
-        self.ipython_widget.execute("%clear")
+    def inspect_object(self):
+        self.ipython_widget._control.inspect_current_object()
     
     def clear_line(self):
         self.ipython_widget._keyboard_quit()
+    
+    def clear_console(self):
+        self.ipython_widget.execute("%clear")
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
