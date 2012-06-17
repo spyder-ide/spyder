@@ -17,7 +17,7 @@ Handles IPython clients (and in the future, will handle IPython kernels too
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QWidget, QGroupBox,
                                 QLineEdit, QInputDialog, QTabWidget, QMenu,
                                 QFontComboBox, QHBoxLayout, QApplication,
-                                QToolButton, QLabel)
+                                QToolButton, QLabel, QKeySequence)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 import sys
@@ -348,9 +348,13 @@ class IPythonClient(QWidget):
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
+        clear_console_action = create_action(self, _("Clear Console"),
+                                             QKeySequence("Ctrl+L"),
+                                             icon=get_icon('clear.png'),
+                                             triggered=self.clear_console)
         quit_action = create_action(self, _("&Quit"), icon='exit.png',
                                     triggered=self.exit_callback)
-        add_actions(menu, (None, quit_action))
+        add_actions(menu, (clear_console_action, None, quit_action))
         return menu
     
     def set_font(self, font):
@@ -364,6 +368,9 @@ class IPythonClient(QWidget):
     def restart_kernel(self):
         """Restart the associanted Spyder kernel"""
         self.ipython_widget.request_restart_kernel()
+    
+    def clear_console(self):
+        self.ipython_widget.execute("%clear")
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):

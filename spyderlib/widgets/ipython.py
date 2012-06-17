@@ -67,9 +67,14 @@ class SpyderIPythonWidget(RichIPythonWidget):
         
         # --- Spyder variables ---
         self.ipython_client = None
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                                   self._control.inspect_current_object)
-        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        
+        # --- Keyboard shortcuts ---
+        inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
+                              self._control.inspect_current_object)
+        inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
+        clear_consolesc = QShortcut(QKeySequence("Ctrl+L"), self,
+                                    self.clear_console)
+        clear_consolesc.setContext(Qt.WidgetWithChildrenShortcut)
         
         # --- IPython variables ---
         # To send an interrupt signal to the Spyder kernel
@@ -107,6 +112,9 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
             return default_gui_banner + pylab_message
         else:
             return default_gui_banner
+    
+    def clear_console(self):
+        self.execute("%clear")
 
     #---- IPython private methods ---------------------------------------------
     def _create_control(self):
