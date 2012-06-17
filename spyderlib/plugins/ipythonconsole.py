@@ -302,9 +302,11 @@ class IPythonClient(QWidget):
     def get_options_menu(self):
         """Return options menu"""
         # Kernel
-        self.interrupt_action = create_action(self, _("Interrupt Kernel"),
+        self.interrupt_action = create_action(self, _("Interrupt kernel"),
+                                              icon=get_icon('terminate.png'),
                                               triggered=self.interrupt_kernel)
-        self.restart_action = create_action(self, _("Restart Kernel"),
+        self.restart_action = create_action(self, _("Restart kernel"),
+                                            icon=get_icon('restart.png'),
                                             triggered=self.restart_kernel)
         
         # Help
@@ -324,7 +326,8 @@ class IPythonClient(QWidget):
             actions = [self.interrupt_action, self.restart_action, None] +\
                       self.menu_actions + [None, help_menu]
         else:
-            actions = [self.interrupt_action, self.restart_action, None, help_menu]
+            actions = [self.interrupt_action, self.restart_action, None,
+                       help_menu]
         return actions
     
     def get_toolbar_buttons(self):
