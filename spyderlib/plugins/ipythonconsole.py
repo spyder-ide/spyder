@@ -379,12 +379,15 @@ class IPythonClient(QWidget):
         self.ipython_widget.request_restart_kernel()
     
     def inspect_object(self):
+        """Show how to inspect an object with our object inspector"""
         self.ipython_widget._control.inspect_current_object()
     
     def clear_line(self):
+        """Clear a console line"""
         self.ipython_widget._keyboard_quit()
     
     def clear_console(self):
+        """Clear the whole console"""
         self.ipython_widget.execute("%clear")
     
     #------ Private API -------------------------------------------------------
@@ -784,13 +787,18 @@ class IPythonConsole(SpyderPluginWidget):
             self.tabwidget.setTabText(index, name)
     
     def if_kernel_dies(self, t):
+        """
+        Show a message in the console if the kernel dies.
+        t is the time in seconds between the death and showing the message.
+        """
         message = "It seems the kernel died unexpectedly. Use "\
                   "'Restart Kernel' to continue using this console."
         shellwidget = self.tabwidget.currentWidget()
         shellwidget.ipython_widget._append_plain_text(message + '\n')
     
     def create_new_kernel(self):
-        # Took this bit of code (until if == result) from the IPython project
+        """Create a new kernel if the user asks for it"""
+        # Took this bit of code (until if result == ) from the IPython project
         # (frontend/qt/frontend_widget.py - restart_kernel).
         # Licensed under the BSD license
         message = 'Are you sure you want to restart the kernel?'
@@ -805,6 +813,10 @@ class IPythonConsole(SpyderPluginWidget):
                          lambda cf: self.connect_to_new_kernel(cf, kernel))
     
     def connect_to_new_kernel(self, connection_file, kernel):
+        """
+        After a new kernel is created, execute this action to connect the new
+        kernel to the old client
+        """
         console = self.main.extconsole
         shellwidget = self.tabwidget.currentWidget()
         
