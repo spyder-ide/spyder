@@ -498,18 +498,30 @@ class ExternalConsole(SpyderPluginWidget):
             if id(shell) == shell_id:
                 return index
         
-    def close_console(self, index=None):
+    def close_console(self, index=None, from_ipython_client=False):
         """Close console tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
         if index is None:
             index = self.tabwidget.currentIndex()
-        self.tabwidget.widget(index).close()
-        self.tabwidget.removeTab(index)
-        self.filenames.pop(index)
-        self.shellwidgets.pop(index)
-        self.icons.pop(index)
-        self.emit(SIGNAL('update_plugin_title()'))
+        for i, s in enumerate(self.shellwidgets):
+            if index == i:
+                shellwidget = s
+        if not shellwidget.is_ipython_kernel or from_ipython_client:
+            self.tabwidget.widget(index).close()
+            self.tabwidget.removeTab(index)
+            self.filenames.pop(index)
+            self.shellwidgets.pop(index)
+            self.icons.pop(index)
+            self.emit(SIGNAL('update_plugin_title()'))
+        else:
+            QMessageBox.question(self, _('Trying to kill a kernel?'),
+                               _("You can't close an IPython kernel tab.\n\n"
+                                 "You need to close its associated console\n"
+                                 "instead or you can kill it using the button\n"
+                                 "far to the left."),
+                                 QMessageBox.Ok)
+                                 
         
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""

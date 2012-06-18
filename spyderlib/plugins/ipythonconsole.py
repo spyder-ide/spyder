@@ -772,7 +772,7 @@ class IPythonConsole(SpyderPluginWidget):
                         return
                     close_all = ans == QMessageBox.Yes
                 if close_all:
-                    console.close_console(index=idx)
+                    console.close_console(index=idx, from_ipython_client=True)
                     self.close_related_ipython_clients(widget)
         widget.close()
         
@@ -830,7 +830,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Close old kernel tab
         idx = console.get_shell_index_from_id(shellwidget.kernel_widget_id)
-        console.close_console(index=idx)
+        console.close_console(index=idx, from_ipython_client=True)
         
         # Rename new kernel tab
         kernel_widget_id = id(kernel)
