@@ -809,9 +809,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Took this bit of code (until if result == ) from the IPython project
         # (frontend/qt/frontend_widget.py - restart_kernel).
         # Licensed under the BSD license
-        message = 'Are you sure you want to restart the kernel?'
+        message = _('Are you sure you want to restart the kernel?')
         buttons = QMessageBox.Yes | QMessageBox.No
-        result = QMessageBox.question(self, 'Restart kernel?',
+        result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
         if result == QMessageBox.Yes:
             console = self.main.extconsole
