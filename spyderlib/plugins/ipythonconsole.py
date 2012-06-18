@@ -393,6 +393,15 @@ class IPythonClient(QWidget):
         """Clear the whole console"""
         self.ipython_widget.execute("%clear")
     
+    def if_kernel_dies(self, t):
+        """
+        Show a message in the console if the kernel dies.
+        t is the time in seconds between the death and showing the message.
+        """
+        message = _("It seems the kernel died unexpectedly. Use "
+                    "'Restart kernel' to continue using this console.")
+        self.ipython_widget._append_plain_text(message + '\n')
+    
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
         """Use our Object Inspector to show IPython help texts in rich mode"""
@@ -680,7 +689,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Print a message if kernel dies unexpectedly
         shellwidget.ipython_widget.custom_restart_kernel_died.connect(
-                                              lambda t: self.if_kernel_dies(t))
+                                       lambda t: shellwidget.if_kernel_dies(t))
         
         # Connect text widget to our inspector
         if self.inspector is not None:
@@ -788,16 +797,6 @@ class IPythonConsole(SpyderPluginWidget):
         if match is not None:  # should not fail, but we never know...
             name = _("Console") + " " + match.groups()[0] + '/' + chr(65)
             self.tabwidget.setTabText(index, name)
-    
-    def if_kernel_dies(self, t):
-        """
-        Show a message in the console if the kernel dies.
-        t is the time in seconds between the death and showing the message.
-        """
-        message = "It seems the kernel died unexpectedly. Use "\
-                  "'Restart Kernel' to continue using this console."
-        shellwidget = self.tabwidget.currentWidget()
-        shellwidget.ipython_widget._append_plain_text(message + '\n')
     
     def create_new_kernel(self):
         """Create a new kernel if the user asks for it"""
