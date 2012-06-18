@@ -435,6 +435,12 @@ class IPythonClient(QWidget):
         """Show IPython Cheat Sheet"""
         from IPython.core.usage import quick_reference
         self._show_plain_help(quick_reference)
+    
+    #---- Qt methods ----------------------------------------------------------
+    def closeEvent(self, event):
+        """Reimplement Qt method to stop sending the custom_restart_kernel_died
+        signal"""
+        self.ipython_widget.custom_restart = False
             
 
 class IPythonConsole(SpyderPluginWidget):
