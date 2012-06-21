@@ -1570,7 +1570,7 @@ Please provide any additional information below.
                                        "is not supported on platform %s."
                                        ) % os.name)
         else:
-            self.extconsole.setVisible(True)
+            self.extconsole.visibility_changed(True)
             self.extconsole.raise_()
             self.extconsole.start(
                 fname=unicode(fname), wdir=unicode(wdir), args=unicode(args),
