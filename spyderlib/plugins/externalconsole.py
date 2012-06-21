@@ -519,7 +519,7 @@ class ExternalConsole(SpyderPluginWidget):
                                _("You can't close an IPython kernel tab.\n\n"
                                  "You need to close its associated console\n"
                                  "instead or you can kill it using the button\n"
-                                 "far to the left."),
+                                 "far to the right."),
                                  QMessageBox.Ok)
                                  
         
