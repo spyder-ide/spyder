@@ -500,14 +500,34 @@ class ExternalConsole(SpyderPluginWidget):
         
     def close_console(self, index=None, from_ipython_client=False):
         """Close console tab from index or widget (or close current tab)"""
+        # Get tab index
         if not self.tabwidget.count():
             return
         if index is None:
             index = self.tabwidget.currentIndex()
+        
+        # Detect what widget we are trying to close
         for i, s in enumerate(self.shellwidgets):
             if index == i:
                 shellwidget = s
-        if not shellwidget.is_ipython_kernel or from_ipython_client:
+        
+        # If the tab is an IPython kernel, try to detect if it has a client
+        # connected to it
+        if shellwidget.is_ipython_kernel:
+            ipyclients = self.main.ipyconsole.get_clients()
+            if ipyclients:
+                for ic in ipyclients:
+                    if ic.kernel_widget_id == id(shellwidget):
+                        connected_ipyclient = True
+                        break
+                else:
+                    connected_ipyclient = False
+            else:
+                connected_ipyclient = False
+        
+        # Closing logic
+        if not shellwidget.is_ipython_kernel or from_ipython_client or \
+          not connected_ipyclient:
             self.tabwidget.widget(index).close()
             self.tabwidget.removeTab(index)
             self.filenames.pop(index)
@@ -516,11 +536,11 @@ class ExternalConsole(SpyderPluginWidget):
             self.emit(SIGNAL('update_plugin_title()'))
         else:
             QMessageBox.question(self, _('Trying to kill a kernel?'),
-                               _("You can't close an IPython kernel tab.\n\n"
-                                 "You need to close its associated console\n"
-                                 "instead or you can kill it using the button\n"
-                                 "far to the right."),
-                                 QMessageBox.Ok)
+                _("You can't close this IPython kernel because it has one\n"
+                  "or more consoles connected to it.\n\n"
+                  "You need to close them instead or you can kill the kernel\n"
+                  " using the button far to the right."),
+                  QMessageBox.Ok)
                                  
         
     def set_variableexplorer(self, variableexplorer):
