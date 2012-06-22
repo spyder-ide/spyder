@@ -602,7 +602,7 @@ class IPythonConsole(SpyderPluginWidget):
                 else:
                     return
 
-        # Generating the client name
+        # Generating the client name and setting kernel_widget_id
         match = re.match('^kernel-(\d+).json', cf)
         count = 0
         while True:
@@ -614,6 +614,16 @@ class IPythonConsole(SpyderPluginWidget):
             else:
                 break
             count += 1
+        
+        # Trying to get kernel_widget_id from the currently opened kernels if
+        # the previous procedure fails. This could happen when the first
+        # client connected to a kernel is closed but the kernel is left open
+        # and you try to connect new clients to it
+        if kernel_widget_id is None:
+            console = self.main.extconsole
+            for sw in console.shellwidgets:
+                if sw.connection_file == cf:
+                    kernel_widget_id = id(sw)
 
         # Creating the IPython client widget
         try:

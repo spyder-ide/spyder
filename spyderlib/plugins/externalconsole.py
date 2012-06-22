@@ -817,7 +817,7 @@ class ExternalConsole(SpyderPluginWidget):
                         self.connect(shellwidget,
                                  SIGNAL('create_ipython_client(QString)'),
                                  lambda cf: self.create_ipython_client(
-                                         cf, kernel_widget_id=id(shellwidget)))
+                                         cf, kernel_widget=shellwidget))
                 else:
                     self.python_count += 1
                     tab_name = "Python %d" % self.python_count
@@ -872,8 +872,10 @@ class ExternalConsole(SpyderPluginWidget):
             name = "%s (%s)" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
     
-    def create_ipython_client(self, connection_file, kernel_widget_id):
+    def create_ipython_client(self, connection_file, kernel_widget):
         """Create a new IPython client connected to a kernel just started"""
+        kernel_widget.connection_file = connection_file
+        kernel_widget_id = id(kernel_widget)
         self.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
         self.main.ipyconsole.new_client(connection_file, kernel_widget_id)
         

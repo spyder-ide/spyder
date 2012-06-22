@@ -41,6 +41,7 @@ class ExternalSystemShell(ExternalShellBase):
         # For compatibility with the other shells that can live in the external
         # console
         self.is_ipython_kernel = False
+        self.connection_file = None
 
     def get_icon(self):
         return get_icon('cmdprompt.png')

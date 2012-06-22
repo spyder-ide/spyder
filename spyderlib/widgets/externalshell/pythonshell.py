@@ -209,6 +209,7 @@ class ExternalPythonShell(ExternalShellBase):
         assert isinstance(arguments, basestring)
         self.arguments = arguments
         
+        self.connection_file = None
         self.is_ipython_kernel = ipython_kernel
         if self.is_ipython_kernel:
             interact = False
