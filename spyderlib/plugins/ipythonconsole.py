@@ -826,11 +826,12 @@ class IPythonConsole(SpyderPluginWidget):
         if result == QMessageBox.Yes:
             console = self.main.extconsole
             console.start_ipython_kernel(create_client=False)
-            kernel = console.shellwidgets[-1]
-            self.connect(kernel, SIGNAL('create_ipython_client(QString)'),
-                         lambda cf: self.connect_to_new_kernel(cf, kernel))
+            kernel_widget = console.shellwidgets[-1]
+            self.connect(kernel_widget,
+                      SIGNAL('create_ipython_client(QString)'),
+                      lambda cf: self.connect_to_new_kernel(cf, kernel_widget))
     
-    def connect_to_new_kernel(self, connection_file, kernel):
+    def connect_to_new_kernel(self, connection_file, kernel_widget):
         """
         After a new kernel is created, execute this action to connect the new
         kernel to the old client
@@ -842,14 +843,13 @@ class IPythonConsole(SpyderPluginWidget):
         idx = console.get_shell_index_from_id(shellwidget.kernel_widget_id)
         console.close_console(index=idx, from_ipython_client=True)
         
-        # Rename new kernel tab
-        kernel_widget_id = id(kernel)
-        console.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
+        # Set attributes for the new kernel
+        console.set_ipython_kernel_attrs(connection_file, kernel_widget)
         
         # Connect client to new kernel
         kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
         shellwidget.ipython_widget.kernel_manager = kernel_manager
-        shellwidget.kernel_widget_id = kernel_widget_id
+        shellwidget.kernel_widget_id = id(kernel_widget)
         shellwidget.get_control().setFocus()
         
         # Rename client tab

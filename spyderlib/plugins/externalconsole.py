@@ -863,9 +863,13 @@ class ExternalConsole(SpyderPluginWidget):
         if not ipython_kernel:
             shellwidget.shell.setFocus()
         
-    def rename_ipython_kernel_tab(self, connection_file, kernel_widget_id):
+    def set_ipython_kernel_attrs(self, connection_file, kernel_widget):
         """Add the pid of the kernel process to an IPython kernel tab"""
-        index = self.get_shell_index_from_id(kernel_widget_id)
+        # Set connection file
+        kernel_widget.connection_file = connection_file
+        
+        # Set tab name
+        index = self.get_shell_index_from_id(id(kernel_widget))
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
             text = unicode(self.tabwidget.tabText(index))
@@ -874,10 +878,8 @@ class ExternalConsole(SpyderPluginWidget):
     
     def create_ipython_client(self, connection_file, kernel_widget):
         """Create a new IPython client connected to a kernel just started"""
-        kernel_widget.connection_file = connection_file
-        kernel_widget_id = id(kernel_widget)
-        self.rename_ipython_kernel_tab(connection_file, kernel_widget_id)
-        self.main.ipyconsole.new_client(connection_file, kernel_widget_id)
+        self.set_ipython_kernel_attrs(connection_file, kernel_widget)
+        self.main.ipyconsole.new_client(connection_file, id(kernel_widget))
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
