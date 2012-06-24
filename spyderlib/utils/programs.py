@@ -145,7 +145,7 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess
         # See http://bugs.python.org/issue1759845#msg74142
-        from spyderlib.encoding import to_fs_from_unicode
+        from spyderlib.utils.encoding import to_fs_from_unicode
         subprocess.Popen(to_fs_from_unicode(cmd), shell=True,
                          cwd=to_fs_from_unicode(wdir))
     elif os.name == 'posix':
