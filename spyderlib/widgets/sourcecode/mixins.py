@@ -21,10 +21,12 @@ from spyderlib.qt.QtCore import Qt, QRegExp, SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.utils import sourcecode
+from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import getobj
 
+
+HISTORY_FILENAMES = []
 
 
 class BaseEditMixin(object):
@@ -556,3 +558,34 @@ class InspectObjectMixin(object):
         """
         return getobj(self.get_current_line_to_cursor(), last=last)
 
+
+class SaveHistoryMixin(object):
+    
+    INITHISTORY = None
+    SEPARATOR = None
+    
+    def __init__(self):
+        pass
+    
+    def add_to_history(self, command):
+        """Add command to history"""
+        command = unicode(command)
+        if command in ['', '\n'] or command.startswith('Traceback'):
+            return
+        if command.endswith('\n'):
+            command = command[:-1]
+        self.histidx = None
+        if len(self.history)>0 and self.history[-1] == command:
+            return
+        self.history.append(command)
+        text = os.linesep + command
+        
+        # When the first entry will be written in history file,
+        # the separator will be append first:
+        if self.history_filename not in HISTORY_FILENAMES:
+            HISTORY_FILENAMES.append(self.history_filename)
+            text = self.SEPARATOR + text
+        
+        encoding.write(text, self.history_filename, mode='ab')
+        self.emit(SIGNAL('append_to_history(QString,QString)'),
+                  self.history_filename, text)

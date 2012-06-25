@@ -30,24 +30,21 @@ from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.sourcecode.mixins import (InspectObjectMixin,
-                                                 TracebackLinksMixin)
+                                                 TracebackLinksMixin,
+                                                 SaveHistoryMixin)
 
 
-HISTORY_FILENAMES = []
-
-
-class ShellBaseWidget(ConsoleBaseWidget):
+class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     Shell base widget
     """
-    INITHISTORY = None
-    SEPARATOR = None
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
         """
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
+        SaveHistoryMixin.__init__(self)
                 
         # Prompt position: tuple (line, index)
         self.current_prompt_pos = None
@@ -500,29 +497,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         # Saving truncated history:
         encoding.writelines(rawhistory, self.history_filename)
         return history
-        
-    def add_to_history(self, command):
-        """Add command to history"""
-        command = unicode(command)
-        if command in ['', '\n'] or command.startswith('Traceback'):
-            return
-        if command.endswith('\n'):
-            command = command[:-1]
-        self.histidx = None
-        if len(self.history)>0 and self.history[-1] == command:
-            return
-        self.history.append(command)
-        text = os.linesep + command
-        
-        # When the first entry will be written in history file,
-        # the separator will be append first:
-        if self.history_filename not in HISTORY_FILENAMES:
-            HISTORY_FILENAMES.append(self.history_filename)
-            text = self.SEPARATOR + text
-            
-        encoding.write(text, self.history_filename, mode='ab')
-        self.emit(SIGNAL('append_to_history(QString,QString)'),
-                  self.history_filename, text)
         
     def browse_history(self, backward):
         """Browse history"""

@@ -22,12 +22,14 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
 
 import sys
 import re
+import os
 import os.path as osp
+import time
 
 from IPython.config.loader import Config
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match
@@ -37,6 +39,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonApp
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.widgets.sourcecode import mixins
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -260,12 +263,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 #     confusing for this matter, so I prefered to add this layer. But that's 
 #     just a start: we should replace it by the correct inheritance logic in 
 #     time.
-class IPythonClient(QWidget):
+class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     """Spyder IPython client (or frontend)"""
+    
     CONF_SECTION = 'ipython'
+    SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
+    
     def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
-                 ipython_widget, menu_actions=None):
+                 ipython_widget, history_filename, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
+        mixins.SaveHistoryMixin.__init__(self)
         self.options_button = None
 
         self.connection_file = connection_file
@@ -273,6 +280,8 @@ class IPythonClient(QWidget):
         self.client_name = client_name        
         self.ipython_widget = ipython_widget
         self.menu_actions = menu_actions
+        self.history_filename = get_conf_path(history_filename)
+        self.history = []
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -289,6 +298,13 @@ class IPythonClient(QWidget):
         # Connect the IPython widget to this IPython client:
         # (see spyderlib/widgets/ipython.py for more details about this)
         ipython_widget.set_ipython_client(self)
+        
+        # To save history
+        self.ipython_widget.executing.connect(
+                                      lambda c: self.add_to_history(command=c))
+        
+        # To update history after execution
+        self.ipython_widget.executed.connect(self.update_history)
         
     #------ Public API --------------------------------------------------------
     def get_name(self):
@@ -322,6 +338,8 @@ class IPythonClient(QWidget):
         help_action.setMenu(help_menu)
         add_actions(help_menu, (self.intro_action, self.guiref_action,
                                 self.quickref_action))
+        
+        # Main menu
         if self.menu_actions is not None:
             actions = [self.interrupt_action, self.restart_action, None] +\
                       self.menu_actions + [None, help_menu]
@@ -402,6 +420,9 @@ class IPythonClient(QWidget):
                     "'Restart kernel' to continue using this console.")
         self.ipython_widget._append_plain_text(message + '\n')
     
+    def update_history(self):
+        self.history = self.ipython_widget._history
+    
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
         """Use our Object Inspector to show IPython help texts in rich mode"""
@@ -457,6 +478,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.menu_actions = None
         
         self.inspector = None # Object inspector plugin
+        self.historylog = None # History log plugin
         
         self.shellwidgets = []
         
@@ -532,6 +554,7 @@ class IPythonConsole(SpyderPluginWidget):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
         self.inspector = self.main.inspector
+        self.historylog = self.main.historylog
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -690,6 +713,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         shellwidget = IPythonClient(self, connection_file, kernel_widget_id,
                                     client_name, ipython_widget,
+                                    history_filename='.history.py',
                                     menu_actions=self.menu_actions)
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
@@ -710,6 +734,13 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to our inspector
         if self.inspector is not None:
             shellwidget.get_control().set_inspector(self.inspector)
+        
+        # Connect client to our history log
+        if self.historylog is not None:
+            self.historylog.add_history(shellwidget.history_filename)
+            self.connect(shellwidget,
+                         SIGNAL('append_to_history(QString,QString)'),
+                         self.historylog.append_to_history)
         
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )

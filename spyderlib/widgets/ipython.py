@@ -64,6 +64,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         # To override the Qt widget used by RichIPythonWidget
         self.control_factory = IPythonShellWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
+        RichIPythonWidget.__init__(self, *args, **kw)
         
         # --- Spyder variables ---
         self.ipython_client = None
@@ -82,12 +83,6 @@ class SpyderIPythonWidget(RichIPythonWidget):
         
         # To restart the Spyder kernel in case it dies
         self.custom_restart = True
-        
-        # Configure the ConsoleWidget HTML exporter for our formats.
-        self._html_exporter.image_tag = self._get_image_tag
-
-        # Dictionary for resolving document resource names to SVG data.
-        self._name_to_svg_map = {}
     
     #---- Public API ----------------------------------------------------------
     def set_ipython_client(self, ipython_client):
