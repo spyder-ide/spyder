@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2012-06-02 15:50+Paris, Madrid (heure dété)\n"
-"PO-Revision-Date: 2012-06-25 09:42-0500\n"
+"PO-Revision-Date: 2012-06-25 16:09-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: \n"
@@ -1544,7 +1544,7 @@ msgstr "Terminal de IPython"
 
 #: spyderlib\plugins\ipythonconsole.py:56
 msgid "Display initial banner"
-msgstr ""
+msgstr "Mostrar el banner inicial"
 
 #: spyderlib\plugins\ipythonconsole.py:57
 msgid ""
@@ -1557,28 +1557,31 @@ msgstr ""
 
 #: spyderlib\plugins\ipythonconsole.py:59
 msgid "Use a completion widget"
-msgstr ""
+msgstr "Usar un widget para completar texto"
 
 #: spyderlib\plugins\ipythonconsole.py:61
 msgid "Use a widget instead of plain text output for tab completion"
 msgstr ""
+"Usar un widget en lugar de texto plano para mostrar las\n"
+"posibilidades de completado usando la tecla Tab."
 
 #: spyderlib\plugins\ipythonconsole.py:63
 msgid "Use a pager to display help inside the console"
-msgstr ""
+msgstr "Usar un paginador para mostrar textos adicionales dentro de la terminal"
 
 #: spyderlib\plugins\ipythonconsole.py:65
 msgid ""
 "Useful if you don't want to fill the console with long help texts.\n"
 "Note: Use the Q key to get out of the pager."
 msgstr ""
+"Es útil si no desea cubrir la terminal con largos textos de ayuda.\n"
+"Nota: Debe usar la tecla Q para salir del paginador"
 
 #: spyderlib\plugins\ipythonconsole.py:69
 msgid "Ask for confirmation before closing"
-msgstr ""
+msgstr "Mostrar un diálogo de confirmación antes de cerrar una terminal"
 
 #: spyderlib\plugins\ipythonconsole.py:81
-#, fuzzy
 msgid "Light background"
 msgstr "Fondo claro (color blanco)"
 
@@ -1587,9 +1590,8 @@ msgid "Dark background"
 msgstr "Fondo oscuro (color negro)"
 
 #: spyderlib\plugins\ipythonconsole.py:93
-#, fuzzy
 msgid "Buffer:  "
-msgstr "Almacenar"
+msgstr "Mostrar"
 
 #: spyderlib\plugins\ipythonconsole.py:95
 msgid ""
@@ -1597,20 +1599,25 @@ msgid ""
 "console before truncation. Specifying -1 disables it\n"
 "(not recommended!)"
 msgstr ""
+"Establece el máximo número de líneas que se mostrarán\n"
+"en la terminal en cualquier momento. Si se introduce -1 se\n"
+"mostrarán todas las líneas (no se recomienda!)"
 
 #: spyderlib\plugins\ipythonconsole.py:104
 msgid "Support for graphics (Pylab)"
-msgstr ""
+msgstr "Soporte para crear gráficas (Pylab)"
 
 #: spyderlib\plugins\ipythonconsole.py:105
 msgid "Activate support"
-msgstr ""
+msgstr "Activar el soporte"
 
 #: spyderlib\plugins\ipythonconsole.py:112
 msgid ""
 "This feature requires the Matplotlib module.\n"
 "It seems you don't have it installed."
 msgstr ""
+"Esta característica requiere el módulo Matplotlib.\n"
+"Al parecer no lo tiene instalado."
 
 #: spyderlib\plugins\ipythonconsole.py:117
 msgid "Inline"
@@ -1626,7 +1633,7 @@ msgstr "Salida gráfica:"
 
 #: spyderlib\plugins\ipythonconsole.py:120
 msgid "Decide how graphics are going to be displayed in the console. If unsure, please select <b>%s</b> to put graphics inside the console or <b>%s</b> to interact with them (through zooming and panning) in a separate window."
-msgstr ""
+msgstr "Decidir como se mostrarán las gráficas en la terminal. Si no está seguro, por favor seleccione <b>%s</b> para colocar las gráficas en la consola o <b>%s</b> para interactuar con ellas (a través de acercamientos y paneos) en una ventana aparte."
 
 #: spyderlib\plugins\ipythonconsole.py:140
 msgid "Backend:   "
@@ -1638,7 +1645,7 @@ msgstr "Esta opción será aplicada la próxima vez que una terminal sea abierta
 
 #: spyderlib\plugins\ipythonconsole.py:157
 msgid "Graphics"
-msgstr ""
+msgstr "Gráficas"
 
 #: spyderlib\plugins\ipythonconsole.py:200
 msgid "Client"
