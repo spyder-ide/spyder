@@ -4,6 +4,7 @@ body {
     margin: 0px 20px 15px 20px;
 }
 
+/* --- Title style --- */
 div.title h1 {
     font-size: 180%;
     font-family: 'Trebuchet MS', sans-serif;
@@ -15,6 +16,7 @@ div.title h1 {
     color: #20435C;
 }
 
+/* --- Metadata style --- */
 div.metadata {
     margin-top: 5px;
     margin-bottom: 0px;
@@ -36,10 +38,12 @@ span.argspec-highlight {
     font-weight: 900;
 }
 
+/* --- Docstring div style --- */
 div.docstring {
     margin-top: -1px;
 }
 
+/* --- Headers style --- */
 div.section {
     margin: 20px 0px 0px 0px;
 }
@@ -92,7 +96,23 @@ div.section p {
     text-align: center;
 }
 
-/* Docutils table style */
+/* --- Lists style --- */
+li p span {
+    position: relative;
+    left: -9px;
+}
+
+ol.arabic {
+    margin-left: -8px;
+}
+
+/* --- Literal blocks style --- */
+pre.literal-block {
+    padding-left: 35px;
+    font-size: 95%;
+}
+
+/* --- Docutils table style --- */
 table.docutils {
     font-size: 80%;
     /*margin: 20px 10px 0px;*/
@@ -113,7 +133,7 @@ table.docutils td {
     border-color: transparent;
 }
 
-/* Docutils table headers */
+/* --- Docutils table headers --- */
 table.docutils th {
     background-color: #5AC8E2;
     /*background-color: #D6EBF0;*/
@@ -126,7 +146,7 @@ table.docutils th {
     padding: 6px 0px 6px 8px;
 }
 
-/* Field-list table style */
+/* --- Field-list table style --- */
 table.docutils.field-list {
     font-size: 80%;
     border-collapse: collapse;
@@ -137,7 +157,7 @@ table.docutils.field-list {
     width: 83%;
 }
 
-/* Field-list table headers */
+/* --- Field-list table headers --- */
 table.docutils.field-list th {
     background-color: transparent;
     border-top: transparent;
@@ -148,7 +168,7 @@ table.docutils.field-list th {
     padding: 4px 0px 4px 8px;
 }
 
-/* spacing around example code */
+/* --- Spacing around example code --- */
 div.highlight pre {
     padding: 2px 0px 2px 0px;
     background-color: #EFC;
@@ -173,6 +193,6 @@ dt {
 
 tt {
     background-color: #ECF0F3;
-    font-size: 0,95em;
+    font-size: 95%;
     padding: 0px 1px;
 }
