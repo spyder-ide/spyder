@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # Spyder Profiler's spanish translation file
 # Copyright (C) 2011 Spyder Development team
-# 
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2011-05-15 14:42+Paris, Madrid (heure d'été)\n"
-"PO-Revision-Date: 2011-10-09 11:03-0500\n"
+"PO-Revision-Date: 2012-06-25 21:59-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "Language: \n"
@@ -20,13 +20,15 @@ msgstr ""
 
 #: spyderplugins/p_profiler.py:32
 msgid "Results"
-msgstr ""
+msgstr "Resultados"
 
 #: spyderplugins/p_profiler.py:33
 msgid ""
 "Profiler plugin results (the output of python's profile/cProfile)\n"
 "are stored here:"
 msgstr ""
+"Los resultados del perfilador (es decir la salida de profile o cProfile)\n"
+"son guardados aquí:"
 
 #: spyderplugins/p_profiler.py:61
 msgid "Profiler"
