@@ -615,6 +615,9 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
+        
+        # Breakpoints
+        self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
         self.codecomp_sc = QShortcut(QKeySequence("Ctrl+Space"), self,

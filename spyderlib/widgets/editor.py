@@ -466,8 +466,10 @@ class FileInfo(QObject):
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
         breakpoints = self.editor.get_breakpoints()
-        self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                  self.filename, repr(breakpoints))
+        if self.editor.breakpoints != breakpoints:
+            self.editor.breakpoints = breakpoints
+            self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                      self.filename, repr(breakpoints))
         
 
 class EditorStack(QWidget):
