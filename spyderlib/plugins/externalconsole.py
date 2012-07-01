@@ -193,12 +193,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
         ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
                                 'start_ipython_kernel_at_startup')
-        is_ipython_012p = programs.is_module_installed('IPython.frontend.qt',
-                                                       '>=0.12')
-        ipykstartup_box.setEnabled(is_ipython_012p)
-        if not is_ipython_012p:
+        is_ipython_013p = programs.is_module_installed('IPython.frontend.qt',
+                                                       '>=0.13')
+        ipykstartup_box.setEnabled(is_ipython_013p)
+        if not is_ipython_013p:
             ipykstartup_box.setToolTip(_("This option is not available for "
-                                        "IPython versions prior to v0.12."))
+                                        "IPython versions prior to v0.13."))
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
@@ -957,7 +957,7 @@ class ExternalConsole(SpyderPluginWidget):
                                            _("Open an IPython console"), None,
                                            'ipython_console.png',
                                            triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
+        if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
             interact_menu_actions.append(self.ipython_kernel_action)
         self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions

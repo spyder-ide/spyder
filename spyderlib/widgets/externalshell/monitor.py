@@ -211,7 +211,7 @@ class Monitor(threading.Thread):
                             dict(command="ipython_kernel",
                                  data=self.ipython_kernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython 0.12+ kernel
+                # IPython 0.13+ kernel
                 self.ipython_shell = glbs['__ipythonshell__']
                 self.ipython_shell.modcompletion = moduleCompletion
                 glbs = self.ipython_shell.user_ns

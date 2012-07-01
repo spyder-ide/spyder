@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.12+ client widget
+IPython v0.13+ client widget
 """
 
 # IPython imports
@@ -19,16 +19,16 @@ from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.utils.qthelpers import restore_keyevent
-from spyderlib.utils import programs
 
 # Local imports
 from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
+
 class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
                          mixins.TracebackLinksMixin,
                          mixins.InspectObjectMixin):
-    """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""
+    """QTextEdit widget with features from Spyder's mixins"""
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -62,7 +62,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
-        self.control_factory = IPythonShellWidget
+        self.custom_control = IPythonShellWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
         RichIPythonWidget.__init__(self, *args, **kw)
         
@@ -112,49 +112,6 @@ For more information, type 'help(pylab)'.\n""" % backends[backend_o]
         self.execute("%clear")
 
     #---- IPython private methods ---------------------------------------------
-    def _create_control(self):
-        """Reimplement the IPython text widget creation"""
-        control = self.control_factory()
-        
-        #======================================================================
-        # The following is a copy of the '_create_control' method taken from:
-        # IPython.frontend.qt.console.console_widget.ConsoleWidget
-        #
-        # For future versions, we shall ask to IPython developers to add a 
-        # factory attribute (e.g. "self.control_factory") that we would 
-        # override to avoid this copy.
-        #======================================================================
-        # Install event filters. The filter on the viewport is needed for
-        # mouse events and drag events.
-        control.installEventFilter(self)
-        control.viewport().installEventFilter(self)
-
-        # Connect signals.
-        if programs.is_module_installed('IPython.frontend.qt', '0.12'):
-            control.cursorPositionChanged.connect(self._cursor_position_changed)
-        control.customContextMenuRequested.connect(
-            self._custom_context_menu_requested)
-        control.copyAvailable.connect(self.copy_available)
-        control.redoAvailable.connect(self.redo_available)
-        control.undoAvailable.connect(self.undo_available)
-
-        # Hijack the document size change signal to prevent Qt from adjusting
-        # the viewport's scrollbar. We are relying on an implementation detail
-        # of Q(Plain)TextEdit here, which is potentially dangerous, but without
-        # this functionality we cannot create a nice terminal interface.
-        layout = control.document().documentLayout()
-        layout.documentSizeChanged.disconnect()
-        layout.documentSizeChanged.connect(self._adjust_scrollbars)
-
-        # Configure the control.
-        control.setAttribute(Qt.WA_InputMethodEnabled, True)
-        control.setContextMenuPolicy(Qt.CustomContextMenu)
-        control.setReadOnly(True)
-        control.setUndoRedoEnabled(False)
-        control.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        return control
-        #======================================================================
-
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
@@ -204,7 +161,7 @@ class IPythonApp(IPythonQtConsoleApp):
     def config_color_scheme(self):
         """Set the color scheme for clients.
         
-        In 0.12 this property needs to be set on the App and not on the
+        In 0.13 this property needs to be set on the App and not on the
         widget, so that the widget can be initialized with the right
         scheme.
         TODO: This is a temporary measure until we create proper stylesheets
