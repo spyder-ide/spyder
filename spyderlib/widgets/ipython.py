@@ -80,6 +80,13 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     def showEvent(self, event):
         """Reimplement Qt Method"""
         self.emit(SIGNAL("visibility_changed(bool)"), True)
+    
+    def keyPressEvent(self, event):
+        """Reimplement Qt Method - Basic keypress event handler"""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+        
+        if key == Qt.Key_Slash and self.isVisible():
+            self.emit(SIGNAL("show_find_widget()"))
 
 
 class SpyderIPythonWidget(RichIPythonWidget):

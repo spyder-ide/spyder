@@ -763,6 +763,8 @@ class IPythonConsole(SpyderPluginWidget):
                          self.refresh_plugin)
             self.connect(page_control, SIGNAL('visibility_changed(bool)'),
                          self.refresh_plugin)
+            self.connect(page_control, SIGNAL('show_find_widget()'),
+                         self.find_widget.show)
     
     def close_related_ipython_clients(self, client):
         """Close all IPython clients related to *client*, except itself"""
