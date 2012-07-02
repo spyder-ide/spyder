@@ -41,6 +41,10 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
         self.calltips = False # To not use Spyder calltips
         self.found_results = []
     
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.emit(SIGNAL("visibility_changed(bool)"), True)
+    
     def _key_question(self, text):
         """Action for '?'"""
         parent = self.parentWidget()
@@ -72,6 +76,10 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
         QTextEdit.__init__(self, parent)
         mixins.BaseEditMixin.__init__(self)
         self.found_results = []
+    
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.emit(SIGNAL("visibility_changed(bool)"), True)
 
 
 class SpyderIPythonWidget(RichIPythonWidget):

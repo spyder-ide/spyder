@@ -511,11 +511,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         self.register_widget_shortcuts("Editor", self.find_widget)
-        
-        self.connect(self.find_widget, SIGNAL('visibility_changed(bool)'),
-                     self.refresh_plugin)
-        
         layout.addWidget(self.find_widget)
+        
         self.setLayout(layout)
             
         # Accepting drops
@@ -719,8 +716,12 @@ class IPythonConsole(SpyderPluginWidget):
                                     client_name, ipython_widget,
                                     history_filename='.history.py',
                                     menu_actions=self.menu_actions)
-        self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
+        # QTextEdit Widgets
+        control = shellwidget.ipython_widget._control
+        page_control = shellwidget.ipython_widget._page_control
+        
+        # For tracebacks
+        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
 
         # Handle kernel interrupt
         kernel = self.main.extconsole.shellwidgets[-1]
@@ -737,7 +738,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Connect text widget to our inspector
         if self.inspector is not None:
-            shellwidget.get_control().set_inspector(self.inspector)
+            control.set_inspector(self.inspector)
         
         # Connect client to our history log
         if self.historylog is not None:
@@ -749,10 +750,19 @@ class IPythonConsole(SpyderPluginWidget):
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )
         
+        # Add tab and change focus to it
         self.add_tab(shellwidget, name=shellwidget.get_name())
         self.connect(shellwidget, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
-        self.find_widget.set_editor(shellwidget.get_control())
+        
+        # Update the find widget if focus changes between control and
+        # page_control
+        self.find_widget.set_editor(control)
+        if page_control:
+            self.connect(control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
     
     def close_related_ipython_clients(self, client):
         """Close all IPython clients related to *client*, except itself"""
