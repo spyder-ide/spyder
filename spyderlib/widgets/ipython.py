@@ -25,10 +25,13 @@ from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
 
-class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
-                         mixins.TracebackLinksMixin,
-                         mixins.InspectObjectMixin):
-    """QTextEdit widget with features from Spyder's mixins"""
+class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
+                           mixins.TracebackLinksMixin,
+                           mixins.InspectObjectMixin):
+    """
+    Subclass of QTextEdit with features from Spyder's mixins to use as the
+    control widget for IPython clients
+    """
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -55,14 +58,26 @@ class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event
-            QTextEdit.keyPressEvent(self, event)    
+            QTextEdit.keyPressEvent(self, event)  
+
+
+class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
+    """
+    Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
+    use as the paging widget for IPython clients
+    """
+    QT_CLASS = QTextEdit
+    def __init__(self, parent=None):
+        QTextEdit.__init__(self, parent)
+        mixins.BaseEditMixin.__init__(self)
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
-        self.custom_control = IPythonShellWidget
+        self.custom_control = IPythonControlWidget
+        self.custom_page_control = IPythonPageControlWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
         RichIPythonWidget.__init__(self, *args, **kw)
         

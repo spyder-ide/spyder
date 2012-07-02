@@ -313,7 +313,12 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        return self.ipython_widget._control
+        # page_control is the widget used for paging
+        page_control = self.ipython_widget._page_control
+        if page_control and page_control.isVisible():
+            return page_control
+        else:
+            return self.ipython_widget._control
 
     def get_options_menu(self):
         """Return options menu"""
@@ -507,8 +512,10 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget.hide()
         self.register_widget_shortcuts("Editor", self.find_widget)
         
-        layout.addWidget(self.find_widget)
+        self.connect(self.find_widget, SIGNAL('visibility_changed(bool)'),
+                     self.refresh_plugin)
         
+        layout.addWidget(self.find_widget)
         self.setLayout(layout)
             
         # Accepting drops
