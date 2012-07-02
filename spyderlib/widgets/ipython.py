@@ -39,6 +39,7 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
         mixins.TracebackLinksMixin.__init__(self)
         mixins.InspectObjectMixin.__init__(self)
         self.calltips = False # To not use Spyder calltips
+        self.found_results = []
     
     def _key_question(self, text):
         """Action for '?'"""
@@ -58,7 +59,7 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event
-            QTextEdit.keyPressEvent(self, event)  
+            QTextEdit.keyPressEvent(self, event)
 
 
 class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
@@ -70,6 +71,7 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
         mixins.BaseEditMixin.__init__(self)
+        self.found_results = []
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
