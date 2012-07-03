@@ -569,11 +569,11 @@ class CodeEditor(TextEditBaseWidget):
 
         # Block user data
         self.blockuserdata_list = []
-
+        
         # Update breakpoints if the number of lines in the file changes
         self.connect(self, SIGNAL("blockCountChanged(int)"),
                      self.update_breakpoints)
-        
+
         # Mark occurences timer
         self.occurence_highlighting = None
         self.occurence_timer = QTimer(self)
@@ -1209,14 +1209,10 @@ class CodeEditor(TextEditBaseWidget):
         self.clear_breakpoints()
         for line_number, condition in breakpoints:
             self.add_remove_breakpoint(line_number, condition)
-    
+
     def update_breakpoints(self):
         """Update breakpoints"""
-        current_breakpoints = self.get_breakpoints()
-        if current_breakpoints != self.breakpoints:
-            self.breakpoints = current_breakpoints
-            self.emit(SIGNAL('breakpoints_changed()'))
-
+        self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
     def do_code_completion(self):
