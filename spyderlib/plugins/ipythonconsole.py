@@ -570,14 +570,20 @@ class IPythonConsole(SpyderPluginWidget):
         """Refresh tabwidget"""
         clientwidget = None
         if self.tabwidget.count():
+            # Give focus to the control widget of selected tab 
             clientwidget = self.tabwidget.currentWidget()
-            editor = clientwidget.get_control()
-            editor.setFocus()
+            control = clientwidget.get_control()
+            control.setFocus()
             widgets = clientwidget.get_toolbar_buttons()+[5]
+            
+            # Change extconsole tab to the client's kernel widget
+            idx = self.main.extconsole.get_shell_index_from_id(
+                                                 clientwidget.kernel_widget_id)
+            self.main.extconsole.tabwidget.setCurrentIndex(idx)
         else:
-            editor = None
+            control = None
             widgets = []
-        self.find_widget.set_editor(editor)
+        self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         self.emit(SIGNAL('update_plugin_title()'))
     
