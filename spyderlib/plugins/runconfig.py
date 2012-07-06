@@ -21,6 +21,7 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon, CONF
 from spyderlib.utils.qthelpers import get_std_icon
+from spyderlib.plugins.configdialog import SizeMixin
 
 
 class RunConfiguration(object):
@@ -226,11 +227,11 @@ class RunConfigOptions(QWidget):
             return False
 
 
-class BaseRunConfigDialog(QDialog):
+class BaseRunConfigDialog(QDialog, SizeMixin):
     """Run configuration dialog box, base widget"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.win_size = None
+        SizeMixin.__init__(self)
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -241,15 +242,6 @@ class BaseRunConfigDialog(QDialog):
         self.setWindowIcon(get_icon("run.png"))
         layout = QVBoxLayout()
         self.setLayout(layout)
-
-    def resizeEvent(self, event):
-        """Reimplement Qt method"""
-        QDialog.resizeEvent(self, event)
-        self.win_size = self.size()
-    
-    def get_window_size(self):
-        """Return dialog size, even after C++ object has been destroyed"""
-        return self.win_size
     
     def add_widgets(self, *widgets_or_spacings):
         """Add widgets/spacing to dialog vertical layout"""

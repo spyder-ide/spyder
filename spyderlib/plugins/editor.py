@@ -1830,16 +1830,22 @@ class Editor(SpyderPluginWidget):
     #------ Run Python script
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
+        self.connect(dialog, SIGNAL("size_change(QSize)"),
+                     lambda s: self.set_configdialog_size(s))
+        if self.configdialog_size is not None:
+            dialog.resize(self.configdialog_size)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
         if self.configdialog_size is not None:
             dialog.resize(self.configdialog_size)
         if dialog.exec_():
-            self.configdialog_size = dialog.get_window_size()
             fname = dialog.file_to_run
             if fname is not None:
                 self.load(fname)
                 self.run_file()
+    
+    def set_configdialog_size(self, size):
+        self.configdialog_size = size
         
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""

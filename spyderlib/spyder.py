@@ -316,6 +316,7 @@ class MainWindow(QMainWindow):
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage]
         self.prefs_index = None
+        self.prefs_dialog_size = None
         
         # Actions
         self.close_dockwidget_action = None
@@ -1675,6 +1676,10 @@ Please provide any additional information below.
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)
+        self.connect(dlg, SIGNAL("size_change(QSize)"),
+                     lambda s: self.set_prefs_size(s))
+        if self.prefs_dialog_size is not None:
+            dlg.resize(self.prefs_dialog_size)
         for PrefPageClass in self.general_prefs:
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
@@ -1699,6 +1704,10 @@ Please provide any additional information below.
     def __preference_page_changed(self, index):
         """Preference page index has changed"""
         self.prefs_index = index
+    
+    def set_prefs_size(self, size):
+        """Save preferences dialog size"""
+        self.prefs_dialog_size = size
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,
