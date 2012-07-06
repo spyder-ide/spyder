@@ -396,7 +396,7 @@ class InternalShell(PythonShellWidget):
         else:
             if history:
                 self.add_to_history(cmd)
-        self.interpreter.stdin_write.write(cmd + '\n')
+        self.interpreter.stdin_write.write(cmd.encode("utf-8") + '\n')
         if not self.multithreaded:
             self.interpreter.run_line()
             self.emit(SIGNAL("refresh()"))

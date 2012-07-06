@@ -325,7 +325,7 @@ has the same effect as typing a particular string at the help> prompt.
         The return value is True if more input is required, False if the line 
         was dealt with in some way (this is the same as runsource()).
         """
-        return InteractiveConsole.push(self, line)
+        return InteractiveConsole.push(self, "#coding=utf-8\n" + line)
         
     def resetbuffer(self):
         """Remove any unhandled source text from the input buffer"""
