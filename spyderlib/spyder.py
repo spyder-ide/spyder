@@ -316,6 +316,7 @@ class MainWindow(QMainWindow):
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
                               ColorSchemeConfigPage]
         self.prefs_index = None
+        self.prefs_dialog_size = None
         
         # Actions
         self.close_dockwidget_action = None
@@ -985,15 +986,17 @@ class MainWindow(QMainWindow):
         with *prefix*, under *section*
         default: if True, do not restore inner layout"""
         get_func = CONF.get_default if default else CONF.get
-        width, height = get_func(section, prefix+'size')
+        window_size = get_func(section, prefix+'size')
+        prefs_dialog_size = get_func(section, prefix+'prefs_dialog_size')
         if default:
             hexstate = None
         else:
             hexstate = get_func(section, prefix+'state', None)
-        posx, posy =    get_func(section, prefix+'position')
+        pos = get_func(section, prefix+'position')
         is_maximized =  get_func(section, prefix+'is_maximized')
         is_fullscreen = get_func(section, prefix+'is_fullscreen')
-        return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
+        return hexstate, window_size, prefs_dialog_size, pos, is_maximized, \
+               is_fullscreen
     
     def get_window_settings(self):
         """Return current window settings
@@ -1010,13 +1013,15 @@ class MainWindow(QMainWindow):
         hexstate = str(self.saveState().toHex())
         return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
         
-    def set_window_settings(self, hexstate, width, height, posx, posy,
-                            is_maximized, is_fullscreen):
+    def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
+                            pos, is_maximized, is_fullscreen):
         """Set window settings
         Symetric to the 'get_window_settings' accessor"""
         self.setUpdatesEnabled(False)
-        self.window_size = QSize(width, height)
-        self.window_position = QPoint(posx, posy)
+        self.window_size = QSize(window_size[0], window_size[1]) # width,height
+        self.prefs_dialog_size = QSize(prefs_dialog_size[0],
+                                       prefs_dialog_size[1]) # width,height
+        self.window_position = QPoint(pos[0], pos[1]) # x,y
         self.setWindowState(Qt.WindowNoState)
         self.resize(self.window_size)
         self.move(self.window_position)
@@ -1045,8 +1050,12 @@ class MainWindow(QMainWindow):
     def save_current_window_settings(self, prefix, section='main'):
         """Save current window settings with *prefix* in
         the userconfig-based configuration, under *section*"""
-        size = self.window_size
-        CONF.set(section, prefix+'size', (size.width(), size.height()))
+        win_size = self.window_size
+        prefs_size = self.prefs_dialog_size
+        
+        CONF.set(section, prefix+'size', (win_size.width(), win_size.height()))
+        CONF.set(section, prefix+'prefs_dialog_size',
+                 (prefs_size.width(), prefs_size.height()))
         CONF.set(section, prefix+'is_maximized', self.isMaximized())
         CONF.set(section, prefix+'is_fullscreen', self.isFullScreen())
         pos = self.window_position
@@ -1061,7 +1070,7 @@ class MainWindow(QMainWindow):
     def setup_layout(self, default=False):
         """Setup window layout"""
         prefix = ('lightwindow' if self.light else 'window') + '/'
-        (hexstate, width, height, posx, posy, is_maximized,
+        (hexstate, window_size, prefs_dialog_size, pos, is_maximized,
          is_fullscreen) = self.load_window_settings(prefix, default)
         
         if hexstate is None and not self.light:
@@ -1102,7 +1111,7 @@ class MainWindow(QMainWindow):
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
         
-        self.set_window_settings(hexstate, width, height, posx, posy,
+        self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
 
         # Transition from v2.1 to v2.2:
@@ -1675,6 +1684,10 @@ Please provide any additional information below.
     def edit_preferences(self):
         """Edit Spyder preferences"""
         dlg = ConfigDialog(self)
+        self.connect(dlg, SIGNAL("size_change(QSize)"),
+                     lambda s: self.set_prefs_size(s))
+        if self.prefs_dialog_size is not None:
+            dlg.resize(self.prefs_dialog_size)
         for PrefPageClass in self.general_prefs:
             widget = PrefPageClass(dlg, main=self)
             widget.initialize()
@@ -1699,6 +1712,10 @@ Please provide any additional information below.
     def __preference_page_changed(self, index):
         """Preference page index has changed"""
         self.prefs_index = index
+    
+    def set_prefs_size(self, size):
+        """Save preferences dialog size"""
+        self.prefs_dialog_size = size
 
     #---- Shortcuts
     def register_shortcut(self, qaction_or_qshortcut, context, name,

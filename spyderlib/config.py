@@ -113,6 +113,7 @@ DEFAULTS = [
               'window/position': (10, 10),
               'window/is_maximized': False,
               'window/is_fullscreen': False,
+              'window/prefs_dialog_size': (745, 411),
               'lightwindow/size': (650, 400),
               'lightwindow/position': (30, 30),
               'lightwindow/is_maximized': False,
