@@ -144,6 +144,8 @@ from spyderlib.utils.module_completion import modules_db
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
+# Get the cwd before using WorkingDirectory
+CWD = os.getcwd()
 
 def get_python_doc_path():
     """
@@ -1836,8 +1838,8 @@ def get_options():
                       default=False,
                       help="Profile mode (internal test, "
                            "not related with Python profiling)")
-    options, _args = parser.parse_args()
-    return options
+    options, args = parser.parse_args()
+    return options, args
 
 
 def initialize():
@@ -1913,7 +1915,7 @@ def initialize():
     return app
 
 
-def run_spyder(app, options):
+def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration
@@ -1931,6 +1933,15 @@ def run_spyder(app, options):
             except BaseException:
                 pass
         raise
+    
+    # Args must contain a file name. For now we just take the first one.
+    if args and args[0].endswith('.py'):
+        fname = args[0]
+        if osp.isfile(fname):
+            main.open_file(fname)
+        elif osp.isfile(osp.join(CWD, fname)):
+            main.open_file(osp.join(CWD, fname))
+    
     main.show()
     main.post_visible_setup()
 
@@ -1953,7 +1964,7 @@ def main():
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
-    options = get_options()
+    options, args = get_options()
 
     if set_attached_console_visible is not None:
         set_attached_console_visible(options.debug or options.show_console\
@@ -2015,7 +2026,7 @@ def main():
                                          error_message))
         mainwindow = None
         try:
-            mainwindow = run_spyder(app, options)
+            mainwindow = run_spyder(app, options, args)
         except BaseException:
             CONF.set('main', 'crash', True)
             import traceback
