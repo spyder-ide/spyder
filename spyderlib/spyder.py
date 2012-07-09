@@ -20,6 +20,8 @@ import sys
 import os.path as osp
 import platform
 import re
+import socket
+import threading
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
@@ -422,6 +424,18 @@ class MainWindow(QMainWindow):
         self.save_session_name = None
         
         self.apply_settings()
+        
+        # Server to maintain just one Spyder instance and open files in it if
+        # the user tries to start other instances with:
+        # spyder foo.py
+        t = threading.Thread(target=self.start_open_file_server)
+        t.setDaemon(True)
+        t.start()
+        
+        # Connect the window to the signal emmited by the previous server when
+        # it gets a client connected to it
+        self.connect(self, SIGNAL('open_external_file(QString)'),
+                     lambda f: self.open_file(f))
         
         self.debug_print("End of MainWindow constructor")
         
@@ -1306,6 +1320,7 @@ class MainWindow(QMainWindow):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
+        self.open_file_server.close()
         return True
         
     def add_dockwidget(self, child):
@@ -1767,6 +1782,20 @@ Please provide any additional information below.
         if filename:
             if self.close():
                 self.save_session_name = filename
+    
+    def start_open_file_server(self):
+        self.open_file_server = socket.socket(socket.AF_INET,
+                                              socket.SOCK_STREAM,
+                                              socket.IPPROTO_TCP)
+        self.open_file_server.setsockopt(socket.SOL_SOCKET,
+                                         socket.SO_REUSEADDR, 1)
+        self.open_file_server.bind(('127.0.0.1', 12347))
+        self.open_file_server.listen(1)
+        while 1:
+            req, addr = self.open_file_server.accept()
+            file_to_open = req.recv(1024)
+            self.emit(SIGNAL('open_external_file(QString)'), file_to_open)
+            req.sendall(' ')
 
         
 def get_options():
