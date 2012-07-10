@@ -1951,10 +1951,10 @@ def run_spyder(app, options, args):
         fname = args[0]
         main.open_external_file(fname)
     
-    CONF.set('main', 'started', True)
-    
     main.show()
     main.post_visible_setup()
+    
+    CONF.set('main', 'started', True)
 
     spy.app = app
     spy.window = main
@@ -1977,13 +1977,24 @@ def main():
     # otherwise, optparse won't be able to exit if --help option is passed
     options, args = get_options()
     
-    # Check if there is a running instance and if so, just send the first arg
-    # (which has to be a filename) to open_file_server, so that it can be
-    # opened by it
+    # Check if there is a running instance
     started = False
     if CONF.get('main', 'started', False):
-        started = True
+        # In case Spyder dies while running, the 'started' value will be True
+        # but the app will be closed, so we have to check if it's still
+        # connected to the open_file_server port to be completely sure
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
+                                 socket.IPPROTO_TCP)
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            port = CONF.get('main', 'open_port', 21128)
+            sock.bind( ("127.0.0.1", port) )
+            sock.close()
+        except socket.error, _msg:  # analysis:ignore
+            started = True
     
+    # If it's already running, just send the first arg (which needs to be a
+    # filename) to open_file_server
     if started and args:
         open_file_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                          socket.IPPROTO_TCP)
