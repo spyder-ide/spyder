@@ -437,7 +437,7 @@ class MainWindow(QMainWindow):
         # Connect the window to the signal emmited by the previous server when
         # it gets a client connected to it
         self.connect(self, SIGNAL('open_external_file(QString)'),
-                     lambda f: self.open_file(f))
+                     lambda fname: self.open_external_file(fname))
         
         self.debug_print("End of MainWindow constructor")
         
@@ -1323,6 +1323,7 @@ class MainWindow(QMainWindow):
         self.dialog_manager.close_all()
         self.already_closed = True
         self.open_file_server.close()
+        CONF.set('main', 'started', False)
         return True
         
     def add_dockwidget(self, child):
@@ -1625,6 +1626,12 @@ Please provide any additional information below.
         else:
             fname = file_uri(fname)
             programs.start_file(fname)
+    
+    def open_external_file(self, fname):
+        if osp.isfile(fname):
+            self.open_file(fname)
+        elif osp.isfile(osp.join(CWD, fname)):
+            self.open_file(osp.join(CWD, fname))
 
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
@@ -1795,8 +1802,8 @@ Please provide any additional information below.
         self.open_file_server.listen(1)
         while 1:
             req, addr = self.open_file_server.accept()
-            file_to_open = req.recv(1024)
-            self.emit(SIGNAL('open_external_file(QString)'), file_to_open)
+            fname = req.recv(1024)
+            self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(' ')
 
         
@@ -1935,12 +1942,11 @@ def run_spyder(app, options, args):
         raise
     
     # Args must contain a file name. For now we just take the first one.
-    if args and args[0].endswith('.py'):
+    if args:
         fname = args[0]
-        if osp.isfile(fname):
-            main.open_file(fname)
-        elif osp.isfile(osp.join(CWD, fname)):
-            main.open_file(osp.join(CWD, fname))
+        main.open_external_file(fname)
+    
+    CONF.set('main', 'started', True)
     
     main.show()
     main.post_visible_setup()
@@ -1965,7 +1971,25 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
     options, args = get_options()
-
+    
+    # Check if there is a running instance and if so, just send the first arg
+    # (which has to be a filename) to open_file_server, so that it can be
+    # opened by it
+    started = False
+    if CONF.get('main', 'started', False):
+        started = True
+    
+    if started and args:
+        open_file_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
+                                         socket.IPPROTO_TCP)
+        open_file_client.connect( ("127.0.0.1", 12347) )
+        open_file_client.send(args[0])
+        open_file_client.close()
+        return
+    elif started:
+        return
+    
+    
     if set_attached_console_visible is not None:
         set_attached_console_visible(options.debug or options.show_console\
                                      or options.reset_session\
