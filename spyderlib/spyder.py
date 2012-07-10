@@ -140,12 +140,14 @@ from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils.module_completion import modules_db
+from spyderlib.utils.misc import select_port
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
 # Get the cwd before using WorkingDirectory
 CWD = os.getcwd()
+
 
 def get_python_doc_path():
     """
@@ -1798,7 +1800,10 @@ Please provide any additional information below.
                                               socket.IPPROTO_TCP)
         self.open_file_server.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
-        self.open_file_server.bind(('127.0.0.1', 12347))
+        # default_port = SPYDER_PORT + 1000
+        port = select_port(default_port=21128)
+        CONF.set('main', 'open_port', port)
+        self.open_file_server.bind(('127.0.0.1', port))
         self.open_file_server.listen(1)
         while 1:
             req, addr = self.open_file_server.accept()
@@ -1982,7 +1987,8 @@ def main():
     if started and args:
         open_file_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                          socket.IPPROTO_TCP)
-        open_file_client.connect( ("127.0.0.1", 12347) )
+        port = CONF.get('main', 'open_port')
+        open_file_client.connect( ("127.0.0.1", port) )
         open_file_client.send(args[0])
         open_file_client.close()
         return
