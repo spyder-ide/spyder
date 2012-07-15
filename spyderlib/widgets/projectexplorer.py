@@ -474,11 +474,11 @@ class ExplorerTreeWidget(FilteredDirView):
     def __init__(self, parent):
         FilteredDirView.__init__(self, parent)
         
+        self.workspace = Workspace()
+        
         self.connect(self.fsmodel, SIGNAL('modelReset()'),
                      self.reset_icon_provider)
         self.reset_icon_provider()
-        
-        self.workspace = Workspace()
 
         self.last_folder = None
         
