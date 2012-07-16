@@ -99,6 +99,14 @@ _change_pylint_interpreter()
 # Add RESOURCEPATH to PATH, so that Spyder can find pylint inside the app
 new_path = "os.environ['PATH'] += os.pathsep + os.environ['RESOURCEPATH']\n"
 
+# Add IPYTHONDIR to the app env because it seems IPython gets confused
+# about its location when running inside the app
+ip_dir = \
+"""
+from IPython.utils.path import get_ipython_dir
+os.environ['IPYTHONDIR'] = get_ipython_dir()
+"""
+
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
 run_cmd = "_run('Spyder.py')"
@@ -106,6 +114,6 @@ boot = 'dist/Spyder.app/Contents/Resources/__boot__.py'
 for line in fileinput.input(boot, inplace=True):
     if line.startswith(run_cmd):
         print change_pylint_interpreter
-        print new_path + run_cmd
+        print new_path + ip_dir + run_cmd
     else:
         print line,
