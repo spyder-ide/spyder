@@ -6,6 +6,7 @@
 \.spyderproject$
 \.ropeproject$
 \.orig$
+\.DS_Store$
 ^build/
 ^dist/
 ^bin/
