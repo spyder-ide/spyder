@@ -17,6 +17,7 @@ from distutils.sysconfig import get_python_lib
 import fileinput
 import shutil
 import os
+import os.path as osp
 
 from spyderlib.utils.programs import find_program
 
@@ -106,6 +107,11 @@ ip_dir = \
 from IPython.utils.path import get_ipython_dir
 os.environ['IPYTHONDIR'] = get_ipython_dir()
 """
+
+# Add our docs to the app
+docs = osp.join(sp_dir, 'spyderlib', 'doc')
+docs_dest = osp.join(dest_lib, 'spyderlib', 'doc')
+shutil.copytree(docs, docs_dest)
 
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
