@@ -65,21 +65,22 @@ os.remove('Spyder.py')
 
 # Add pylint executable to the app
 system_pylint = find_program('pylint')
-dest = 'dist/Spyder.app/Contents/Resources/'
-pylint_dest = dest + 'pylint'
+resources = 'dist/Spyder.app/Contents/Resources'
+pylint_dest = resources + osp.sep + 'pylint'
 shutil.copy2(system_pylint, pylint_dest)
 
 # Add pylint deps to the app
-sp_dir = get_python_lib() + '/'
-system_deps = []
-for package in os.listdir(sp_dir):
+system_python_lib = get_python_lib()
+deps = []
+for package in os.listdir(system_python_lib):
     for pd in pylint_deps:
         if package.startswith(pd):
-            system_deps.append(package)
+            deps.append(package)
 
-dest_lib = dest + 'lib/python2.7/'
-for i in system_deps:
-    shutil.copytree(sp_dir + i, dest_lib + i)
+app_python_lib = osp.join(resources, 'lib', 'python2.7')
+for i in deps:
+    shutil.copytree(osp.join(system_python_lib, i),
+                    osp.join(app_python_lib, i))
 
 # Function to change the pylint interpreter
 # (to be added to __boot.py__)
@@ -109,8 +110,8 @@ os.environ['IPYTHONDIR'] = get_ipython_dir()
 """
 
 # Add our docs to the app
-docs = osp.join(sp_dir, 'spyderlib', 'doc')
-docs_dest = osp.join(dest_lib, 'spyderlib', 'doc')
+docs = osp.join(system_python_lib, 'spyderlib', 'doc')
+docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
 shutil.copytree(docs, docs_dest)
 
 # Add our modifications to __boot__.py so that they can be taken into
