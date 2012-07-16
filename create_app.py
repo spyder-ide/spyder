@@ -38,6 +38,7 @@ OPTIONS = {
     'includes': ['cProfile', 'fileinput'],
     'excludes': pylint_deps + ['mercurial'],
     'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
+    'iconfile': 'img_src/spyder.icns',
     'dylib_excludes': ['Qt3Support.framework', 'QtCore.framework',
                        'QtDBus.framework', 'QtDeclarative.framework',
                        'QtDesigner.framework', 'QtDesignerComponents.framework',
