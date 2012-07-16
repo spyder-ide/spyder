@@ -34,7 +34,7 @@ OPTIONS = {
     'compressed' : False,
     'optimize': 2,
     'packages': ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2',
-                 'docutils'],
+                 'docutils', 'IPython', 'zmq', 'pygments'],
     'includes': ['cProfile', 'fileinput'],
     'excludes': pylint_deps + ['mercurial'],
     'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
