@@ -71,17 +71,7 @@ OPTIONS = {
     'includes': INCLUDES,
     'excludes': EXCLUDES,
     'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
-    'iconfile': 'img_src/spyder.icns',
-    'dylib_excludes': ['Qt3Support.framework', 'QtCore.framework',
-                       'QtDBus.framework', 'QtDeclarative.framework',
-                       'QtDesigner.framework', 'QtDesignerComponents.framework',
-                       'QtGui.framework', 'QtHelp.framework',
-                       'QtMultimedia.framework', 'QtNetwork.framework',
-                       'QtOpenGL.framework', 'QtScript.framework',
-                       'QtScriptTools.framework', 'QtSql.framework',
-                       'QtSvg.framework', 'QtTest.framework',
-                       'QtWebKit.framework', 'QtXml.framework',
-                       'QtXmlPatterns.framework', 'phonon.framework']
+    'iconfile': 'img_src/spyder.icns'
 }
 
 setup(
@@ -165,3 +155,6 @@ for line in fileinput.input(boot, inplace=True):
         print new_path + ip_dir + run_cmd
     else:
         print line,
+
+# Run macdeployqt so that the app can use the internal Qt Framework
+subprocess.call(['macdeployqt', 'dist/Spyder.app'])
