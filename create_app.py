@@ -94,21 +94,28 @@ os.remove('Spyder.py')
 # Post-app creation
 #==============================================================================
 
+# Main paths
+resources = 'dist/Spyder.app/Contents/Resources'
+system_python_lib = get_python_lib()
+app_python_lib = osp.join(resources, 'lib', 'python2.7')
+
+# Add our docs to the app
+docs = osp.join(system_python_lib, 'spyderlib', 'doc')
+docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
+shutil.copytree(docs, docs_dest)
+
 # Add pylint executable to the app
 system_pylint = find_program('pylint')
-resources = 'dist/Spyder.app/Contents/Resources'
 pylint_dest = resources + osp.sep + 'pylint'
 shutil.copy2(system_pylint, pylint_dest)
 
 # Add pylint deps to the app
-system_python_lib = get_python_lib()
 deps = []
 for package in os.listdir(system_python_lib):
     for pd in PYLINT_DEPS:
         if package.startswith(pd):
             deps.append(package)
 
-app_python_lib = osp.join(resources, 'lib', 'python2.7')
 for i in deps:
     shutil.copytree(osp.join(system_python_lib, i),
                     osp.join(app_python_lib, i))
@@ -139,11 +146,6 @@ ip_dir = \
 from IPython.utils.path import get_ipython_dir
 os.environ['IPYTHONDIR'] = get_ipython_dir()
 """
-
-# Add our docs to the app
-docs = osp.join(system_python_lib, 'spyderlib', 'doc')
-docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
-shutil.copytree(docs, docs_dest)
 
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
