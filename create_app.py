@@ -18,8 +18,36 @@ import fileinput
 import shutil
 import os
 import os.path as osp
+import sys
 
+from IPython.core.completerlib import module_list
 from spyderlib.utils.programs import find_program
+
+#==============================================================================
+# Auxiliary functions
+#==============================================================================
+
+def get_stdlib_modules():
+    """
+    Returns a list containing the names of all the modules available in the
+    standard library.
+    
+    Based on the function get_root_modules from the IPython project.
+    Present in IPython.core.completerlib
+    
+    Copyright (C) 2010-2011 The IPython Development Team.
+    Distributed under the terms of the BSD License.
+    """
+    modules = list(sys.builtin_module_names)
+    for path in sys.path[1:]:
+        if 'site-packages' not in path:
+            modules += module_list(path)
+    
+    modules = set(modules)
+    if '__init__' in modules:
+        modules.remove('__init__')
+    modules = list(modules)
+    return modules
 
 #==============================================================================
 # App creation
@@ -28,16 +56,19 @@ from spyderlib.utils.programs import find_program
 shutil.copyfile('scripts/spyder', 'Spyder.py')
 
 APP = ['Spyder.py']
-pylint_deps = ['pylint', 'logilab_astng', 'logilab_common']
+PYLINT_DEPS = ['pylint', 'logilab_astng', 'logilab_common']
+EXCLUDES = PYLINT_DEPS + ['mercurial']
+PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
+            'IPython', 'zmq', 'pygments']
+INCLUDES = get_stdlib_modules()
 
 OPTIONS = {
     'argv_emulation': True,
     'compressed' : False,
     'optimize': 2,
-    'packages': ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2',
-                 'docutils', 'IPython', 'zmq', 'pygments'],
-    'includes': ['cProfile', 'fileinput'],
-    'excludes': pylint_deps + ['mercurial'],
+    'packages': PACKAGES,
+    'includes': INCLUDES,
+    'excludes': EXCLUDES,
     'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
     'iconfile': 'img_src/spyder.icns',
     'dylib_excludes': ['Qt3Support.framework', 'QtCore.framework',
@@ -73,7 +104,7 @@ shutil.copy2(system_pylint, pylint_dest)
 system_python_lib = get_python_lib()
 deps = []
 for package in os.listdir(system_python_lib):
-    for pd in pylint_deps:
+    for pd in PYLINT_DEPS:
         if package.startswith(pd):
             deps.append(package)
 
