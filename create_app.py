@@ -18,6 +18,7 @@ import fileinput
 import shutil
 import os
 import os.path as osp
+import subprocess
 import sys
 
 from IPython.core.completerlib import module_list
@@ -98,6 +99,13 @@ os.remove('Spyder.py')
 resources = 'dist/Spyder.app/Contents/Resources'
 system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python2.7')
+
+# Uncompress the app site-packages to have code completion on import
+# statements
+zip_file = app_python_lib + osp.sep + 'site-packages.zip'
+subprocess.call(['unzip', zip_file, '-d',
+                 osp.join(app_python_lib, 'site-packages')])
+os.remove(zip_file)
 
 # Add our docs to the app
 docs = osp.join(system_python_lib, 'spyderlib', 'doc')
