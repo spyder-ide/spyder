@@ -15,6 +15,7 @@ from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 import re
 import os.path as osp
 import socket
+import sys
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
@@ -256,7 +257,10 @@ class ObjectInspector(SpyderPluginWidget):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
-        source_label = QLabel(_("Source"))
+        if sys.platform == 'darwin':
+            source_label = QLabel(_("  Source"))
+        else:
+            source_label = QLabel(_("Source"))
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
