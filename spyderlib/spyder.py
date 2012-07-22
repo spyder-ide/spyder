@@ -592,10 +592,7 @@ class MainWindow(QMainWindow):
                                               "the modules available in your "
                                               "PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
-            if osp.isfile(get_conf_path('db/rootmodules')):
-                self.tools_menu_actions += [update_modules_action, None]
-            else:
-                self.tools_menu_actions += [None]
+            self.tools_menu_actions += [update_modules_action, None]
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
@@ -1639,7 +1636,8 @@ Please provide any additional information below.
         
     def update_modules(self):
         """Update module names list"""
-        del modules_db['rootmodules']
+        if osp.isfile(get_conf_path('db/rootmodules')):
+            del modules_db['rootmodules']
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
