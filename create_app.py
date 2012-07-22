@@ -60,7 +60,7 @@ APP = ['Spyder.py']
 PYLINT_DEPS = ['pylint', 'logilab_astng', 'logilab_common']
 EXCLUDES = PYLINT_DEPS + ['mercurial']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
-            'IPython', 'zmq', 'pygments']
+            'IPython', 'zmq', 'pygments', 'rope']
 INCLUDES = get_stdlib_modules()
 
 OPTIONS = {
