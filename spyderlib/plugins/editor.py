@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 #
 # Copyright © 2009-2010 Pierre Raybaut
 # Licensed under the terms of the MIT License
@@ -1836,16 +1836,11 @@ class Editor(SpyderPluginWidget):
             dialog.resize(self.configdialog_size)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
-        if self.configdialog_size is not None:
-            dialog.resize(self.configdialog_size)
         if dialog.exec_():
             fname = dialog.file_to_run
             if fname is not None:
                 self.load(fname)
                 self.run_file()
-    
-    def set_configdialog_size(self, size):
-        self.configdialog_size = size
         
     def run_file(self, debug=False):
         """Run script inside current interpreter or in a new one"""
@@ -1857,12 +1852,13 @@ class Editor(SpyderPluginWidget):
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
-                dialog.setup(fname)
+                self.connect(dialog, SIGNAL("size_change(QSize)"),
+                             lambda s: self.set_configdialog_size(s))
                 if self.configdialog_size is not None:
                     dialog.resize(self.configdialog_size)
+                dialog.setup(fname)
                 if not dialog.exec_():
                     return
-                self.configdialog_size = dialog.get_window_size()
                 runconf = dialog.get_configuration()
                 
             wdir = runconf.get_working_directory()
@@ -1884,6 +1880,9 @@ class Editor(SpyderPluginWidget):
                 # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
+    def set_configdialog_size(self, size):
+        self.configdialog_size = size
+
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
