@@ -15,6 +15,7 @@ from setuptools import setup
 
 from distutils.sysconfig import get_python_lib
 import fileinput
+import inspect
 import shutil
 import os
 import os.path as osp
@@ -155,6 +156,17 @@ for line in fileinput.input(boot, inplace=True):
         print new_path + ip_dir + run_cmd
     else:
         print line,
+
+# Add missing classes and functions to site.py
+from site import _Printer, _Helper, sethelper
+printer_class = inspect.getsource(_Printer)
+helper_class = inspect.getsource(_Helper)
+sethelper_func = inspect.getsource(sethelper)
+
+with open(app_python_lib + osp.sep + 'site.py', 'a') as f:
+    f.write('\n' + printer_class + '\n')
+    f.write(helper_class + '\n')
+    f.write(sethelper_func)
 
 # Run macdeployqt so that the app can use the internal Qt Framework
 subprocess.call(['macdeployqt', 'dist/Spyder.app'])
