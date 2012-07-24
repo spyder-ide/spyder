@@ -32,8 +32,7 @@ modules_db = PickleShareDB(MODULES_PATH)
 
 def getRootModules():
     """
-    Returns a list containing the names of all the modules available in the
-    folders of the pythonpath.
+    Returns list of names of all modules from PYTHONPATH folders.
     """
     modules = []
     if modules_db.has_key('rootmodules'):
@@ -55,6 +54,11 @@ def getRootModules():
     modules = list(set(modules))
     modules_db['rootmodules'] = modules
     return modules
+
+def reset():
+    """Clear root modules database"""
+    if modules_db.has_key('rootmodules'):
+        del modules_db['rootmodules']
 
 def moduleList(path):
     """

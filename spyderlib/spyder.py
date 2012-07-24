@@ -137,7 +137,7 @@ from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
-from spyderlib.utils.module_completion import modules_db
+from spyderlib.utils import module_completion
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -587,10 +587,9 @@ class MainWindow(QMainWindow):
             update_modules_action = create_action(self,
                                         _("Update module names list"),
                                         None, 'reload.png',
-                                        triggered=self.update_modules,
-                                        tip=_("Update the list of names of all "
-                                              "the modules available in your "
-                                              "PYTHONPATH"))
+                                        triggered=module_completion.reset,
+                                        tip=_("Refresh list of module names "
+                                              "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
             self.tools_menu_actions += [update_modules_action, None]
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
@@ -1633,11 +1632,6 @@ Please provide any additional information below.
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
-        
-    def update_modules(self):
-        """Update module names list"""
-        if osp.isfile(get_conf_path('db/rootmodules')):
-            del modules_db['rootmodules']
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
