@@ -59,7 +59,7 @@ shutil.copyfile('scripts/spyder', 'Spyder.py')
 
 APP = ['Spyder.py']
 PYLINT_DEPS = ['pylint', 'logilab_astng', 'logilab_common']
-EXCLUDES = PYLINT_DEPS + ['mercurial']
+EXCLUDES = PYLINT_DEPS + ['mercurial', 'nose']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope']
 INCLUDES = get_stdlib_modules()
