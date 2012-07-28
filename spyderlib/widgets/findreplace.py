@@ -327,15 +327,18 @@ class FindReplace(QWidget):
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):
-            replace_text = self.replace_text.currentText()
-            search_text = self.search_text.currentText()
+            replace_text = unicode(self.replace_text.currentText())
+            search_text = unicode(self.search_text.currentText())
             pattern = search_text if self.re_button.isChecked() else None
+            case = self.case_button.isChecked()
             first = True
             while True:
                 if first:
                     # First found
-                    if self.editor.has_selected_text() and \
-                       self.editor.get_selected_text() == unicode(search_text):
+                    seltxt = unicode(self.editor.get_selected_text())
+                    cmptxt1 = search_text if case else search_text.lower()
+                    cmptxt2 = seltxt if case else seltxt.lower()
+                    if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
                         # Text was already found, do nothing
                         pass
                     else:
@@ -368,9 +371,7 @@ class FindReplace(QWidget):
                 else:
                     seltxt = unicode(cursor.selectedText())
                     cursor.removeSelectedText()
-                    cursor.insertText(re.sub(unicode(pattern),
-                                             unicode(replace_text),
-                                             unicode(seltxt)))
+                    cursor.insertText(re.sub(pattern, replace_text, seltxt))
                 if self.find_next():
                     found_cursor = self.editor.textCursor()
                     cursor.setPosition(found_cursor.selectionStart(),
