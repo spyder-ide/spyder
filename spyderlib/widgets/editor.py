@@ -30,7 +30,7 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import _, DEBUG, STDOUT
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import get_icon, EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -169,8 +169,12 @@ class AnalysisThread(QThread):
     
     def run(self):
         """Run analysis"""
-        self.results = self.checker(self.source_code)
-
+        try:
+            self.results = self.checker(self.source_code)
+        except Exception:
+            if DEBUG:
+                import traceback
+                traceback.print_exc(file=STDERR)
 
 class ThreadManager(QObject):
     """Analysis thread manager"""
@@ -228,7 +232,9 @@ class ThreadManager(QObject):
             for thread in threadlist:
                 if thread.isFinished():
                     end_callback = self.end_callbacks.pop(id(thread))
-                    end_callback(thread.results)
+                    if thread.results is not None:
+                        #  The thread was executed successfully
+                        end_callback(thread.results)
                     thread.setParent(None)
                     thread = None
                 else:
