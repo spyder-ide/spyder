@@ -331,8 +331,6 @@ class FindReplace(QWidget):
             search_text = self.search_text.currentText()
             pattern = search_text if self.re_button.isChecked() else None
             first = True
-            cursor = self.editor.textCursor()
-            cursor.beginEditBlock()
             while True:
                 if first:
                     # First found
@@ -348,6 +346,8 @@ class FindReplace(QWidget):
                     wrapped = False
                     position = self.editor.get_position('cursor')
                     position0 = position
+                    cursor = self.editor.textCursor()
+                    cursor.beginEditBlock()
                 else:
                     position1 = self.editor.get_position('cursor')
                     if wrapped:
