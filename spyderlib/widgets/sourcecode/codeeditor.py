@@ -1039,7 +1039,7 @@ class CodeEditor(TextEditBaseWidget):
             maxb /= 10
             digits += 1
         if self.linenumbers_margin:
-            linenumbers_margin = 3+self.fontMetrics().width('9')*digits
+            linenumbers_margin = 3+self.fontMetrics().width('9'*digits)
         else:
             linenumbers_margin = 0
         return linenumbers_margin+self.get_markers_margin()
@@ -1343,7 +1343,7 @@ class CodeEditor(TextEditBaseWidget):
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.get_linenumberarea_width() \
-            +self.fontMetrics().width('9')*self.edge_line.column+5
+            +self.fontMetrics().width('9'*self.edge_line.column)+5
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
