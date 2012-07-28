@@ -12,8 +12,11 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QShortcut, QKeySequence)
+                                QWidget, QSizePolicy, QShortcut, QKeySequence,
+                                QTextCursor)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
+
+import re
 
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
@@ -328,6 +331,8 @@ class FindReplace(QWidget):
             search_text = self.search_text.currentText()
             pattern = search_text if self.re_button.isChecked() else None
             first = True
+            cursor = self.editor.textCursor()
+            cursor.beginEditBlock()
             while True:
                 if first:
                     # First found
@@ -357,9 +362,25 @@ class FindReplace(QWidget):
                     if is_position_inf(position1, position0):
                         wrapped = True
                     position0 = position1
-                self.editor.replace(replace_text, pattern=pattern)
-                if not self.find_next():
+                if pattern is None:
+                    cursor.removeSelectedText()
+                    cursor.insertText(replace_text)
+                else:
+                    seltxt = unicode(cursor.selectedText())
+                    cursor.removeSelectedText()
+                    cursor.insertText(re.sub(unicode(pattern),
+                                             unicode(replace_text),
+                                             unicode(seltxt)))
+                if self.find_next():
+                    found_cursor = self.editor.textCursor()
+                    cursor.setPosition(found_cursor.selectionStart(),
+                                       QTextCursor.MoveAnchor)
+                    cursor.setPosition(found_cursor.selectionEnd(),
+                                       QTextCursor.KeepAnchor)
+                else:
                     break
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)
+            if cursor is not None:
+                cursor.endEditBlock()
