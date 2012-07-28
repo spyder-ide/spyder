@@ -494,6 +494,12 @@ The process may not exit as a result of clicking this button
             self.emit(SIGNAL('started()'))
             
         return self.process
+
+    def finished(self, exit_code, exit_status):
+        """Reimplement ExternalShellBase method"""
+        ExternalShellBase.finished(self, exit_code, exit_status)
+        self.introspection_socket = None
+
     
 #===============================================================================
 #    Input/Output
@@ -509,6 +515,9 @@ The process may not exit as a result of clicking this button
         QApplication.processEvents()
         
     def send_to_process(self, text):
+        if not self.is_running():
+            return
+            
         if not isinstance(text, basestring):
             text = unicode(text)
         if self.install_qt_inputhook and self.introspection_socket is not None:
