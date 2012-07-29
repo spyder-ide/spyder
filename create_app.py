@@ -108,6 +108,16 @@ system_pylint = find_program('pylint')
 pylint_dest = resources + osp.sep + 'pylint'
 shutil.copy2(system_pylint, pylint_dest)
 
+# Change pylint interpreter to use the internal python app
+# (assuming Spyder was properly installed in Applications)
+for line in fileinput.input(pylint_dest, inplace=True):
+    if line.startswith('#!'):
+        interpreter_path = osp.join('/Applications', 'Spyder.app', 'Contents',
+                                    'MacOs', 'python')
+        print '#!' + interpreter_path
+    else:
+        print line,
+
 # Add pylint deps to the app
 deps = []
 for package in os.listdir(system_python_lib):
@@ -119,19 +129,24 @@ for i in deps:
     shutil.copytree(osp.join(system_python_lib, i),
                     osp.join(app_python_lib, i))
 
-# Function to change the pylint interpreter
+# Function to change the pylint interpreter if the app is ran
+# outside Applications
 # (to be added to __boot.py__)
 change_pylint_interpreter = \
 """
 def _change_pylint_interpreter():
     import fileinput
-    for line in fileinput.input('pylint', inplace=True):
-        if line.startswith('#!'):
-            l = len('Spyder')
-            interpreter_path = os.environ['EXECUTABLEPATH'][:-l] + 'python'
-            print '#!%s' % interpreter_path
-        else:
-            print line,
+    try:
+        for line in fileinput.input('pylint', inplace=True):
+           if line.startswith('#!'):
+               l = len('Spyder')
+               interpreter_path = os.environ['EXECUTABLEPATH'][:-l] + 'python'
+               print '#!' + interpreter_path
+           else:
+               print line,
+    except:
+        pass
+
 _change_pylint_interpreter()
 """
 
