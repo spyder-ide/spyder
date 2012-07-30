@@ -51,6 +51,19 @@ def get_stdlib_modules():
     modules = list(modules)
     return modules
 
+def change_interpreter(program):
+    """
+    Change the interpreter path of the Python scripts included in the app.
+    This assumes Spyder was properly installed in Applications
+    """
+    for line in fileinput.input(program, inplace=True):
+        if line.startswith('#!'):
+            interpreter_path = osp.join('/Applications', 'Spyder.app',
+                                        'Contents', 'MacOs', 'python')
+            print '#!' + interpreter_path
+        else:
+            print line,
+
 #==============================================================================
 # App creation
 #==============================================================================
@@ -58,8 +71,8 @@ def get_stdlib_modules():
 shutil.copyfile('scripts/spyder', 'Spyder.py')
 
 APP = ['Spyder.py']
-PYLINT_DEPS = ['pylint', 'logilab_astng', 'logilab_common']
-EXCLUDES = PYLINT_DEPS + ['mercurial', 'nose']
+DEPS = ['pylint', 'logilab_astng', 'logilab_common', 'pep8', 'setuptools']
+EXCLUDES = DEPS + ['mercurial', 'nose']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope']
 INCLUDES = get_stdlib_modules()
@@ -103,41 +116,53 @@ docs = osp.join(system_python_lib, 'spyderlib', 'doc')
 docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
 shutil.copytree(docs, docs_dest)
 
-# Add pylint executable to the app
-system_pylint = find_program('pylint')
-pylint_dest = resources + osp.sep + 'pylint'
-shutil.copy2(system_pylint, pylint_dest)
+# Add necessary Python programs to the app
+PROGRAMS = ['pylint', 'pep8']
+system_progs = [find_program(p) for p in PROGRAMS]
+progs_dest = [resources + osp.sep + p for p in PROGRAMS]
+for i in range(len(PROGRAMS)):
+    shutil.copy2(system_progs[i], progs_dest[i])
 
-# Change pylint interpreter to use the internal python app
-# (assuming Spyder was properly installed in Applications)
-for line in fileinput.input(pylint_dest, inplace=True):
-    if line.startswith('#!'):
-        interpreter_path = osp.join('/Applications', 'Spyder.app', 'Contents',
-                                    'MacOs', 'python')
-        print '#!' + interpreter_path
-    else:
-        print line,
+# Change PROGRAMS interpreter path to use the one shipped
+# with the app
+for pd in progs_dest:
+    change_interpreter(pd)
 
-# Add pylint deps to the app
+# Add deps needed for PROGRAMS to the app
 deps = []
 for package in os.listdir(system_python_lib):
-    for pd in PYLINT_DEPS:
-        if package.startswith(pd):
+    for d in DEPS:
+        if package.startswith(d):
             deps.append(package)
 
 for i in deps:
-    shutil.copytree(osp.join(system_python_lib, i),
-                    osp.join(app_python_lib, i))
+    if osp.isdir(osp.join(system_python_lib, i)):
+        shutil.copytree(osp.join(system_python_lib, i),
+                        osp.join(app_python_lib, i))
+    else:
+        shutil.copy2(osp.join(system_python_lib, i),
+                     osp.join(app_python_lib, i))
 
-# Function to change the pylint interpreter if the app is ran
-# outside Applications
+# Hack to make pep8 work inside the app
+pep8_egg = filter(lambda d: d.startswith('pep8'), deps)[0]
+pep8_script = osp.join(app_python_lib, pep8_egg, 'pep8.py')
+for line in fileinput.input(pep8_script, inplace=True):
+    if line.strip().startswith('codes = ERRORCODE_REGEX.findall'):
+        print "            codes = ERRORCODE_REGEX.findall(function.__doc__ or 'W000')"
+    else:
+        print line,
+
+# Function to change the interpreter of PROGRAMS if the app
+# is ran outside Applications
 # (to be added to __boot.py__)
-change_pylint_interpreter = \
+change_interpreter = \
 """
-def _change_pylint_interpreter():
+PROGRAMS = %s
+
+def _change_interpreter(program):
     import fileinput
     try:
-        for line in fileinput.input('pylint', inplace=True):
+        for line in fileinput.input(program, inplace=True):
            if line.startswith('#!'):
                l = len('Spyder')
                interpreter_path = os.environ['EXECUTABLEPATH'][:-l] + 'python'
@@ -147,10 +172,11 @@ def _change_pylint_interpreter():
     except:
         pass
 
-_change_pylint_interpreter()
-"""
+for p in PROGRAMS:
+    _change_interpreter(p)
+""" % str(PROGRAMS)
 
-# Add RESOURCEPATH to PATH, so that Spyder can find pylint inside the app
+# Add RESOURCEPATH to PATH, so that Spyder can find PROGRAMS inside the app
 new_path = "os.environ['PATH'] += os.pathsep + os.environ['RESOURCEPATH']\n"
 
 # Add IPYTHONDIR to the app env because it seems IPython gets confused
@@ -167,8 +193,10 @@ run_cmd = "_run('Spyder.py')"
 boot = 'dist/Spyder.app/Contents/Resources/__boot__.py'
 for line in fileinput.input(boot, inplace=True):
     if line.startswith(run_cmd):
-        print change_pylint_interpreter
-        print new_path + ip_dir + run_cmd
+        print change_interpreter
+        print new_path
+        print ip_dir
+        print run_cmd
     else:
         print line,
 
