@@ -1069,7 +1069,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Open interpreter"""
         if wdir is None:
             wdir = os.getcwdu()
-        self.visibility_changed(True)
+        if not self.main.light:
+            self.visibility_changed(True)
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True)
         

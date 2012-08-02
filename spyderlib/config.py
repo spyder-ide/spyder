@@ -118,6 +118,13 @@ DEFAULTS = [
               'lightwindow/position': (30, 30),
               'lightwindow/is_maximized': False,
               'lightwindow/is_fullscreen': False,
+
+              # The following setting is currently not used but necessary from 
+              # a programmatical point of view (see spyder.py):
+              # (may become useful in the future if we add a button to change 
+              # settings within the "light mode")
+              'lightwindow/prefs_dialog_size': (745, 411),
+
               'memory_usage/enable': True,
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
