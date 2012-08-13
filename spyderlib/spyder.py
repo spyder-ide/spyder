@@ -24,8 +24,6 @@ import re
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 
-import spy
-
 # Test if IPython v0.12+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
 if is_module_installed('IPython.frontend.qt', '>=0.12'):
@@ -662,7 +660,9 @@ class MainWindow(QMainWindow):
             # Internal console plugin
             self.console = Console(self, namespace, debug=self.debug,
                                    exitfunc=self.closing, profile=self.profile,
-                                   multithreaded=self.multithreaded)
+                                   multithreaded=self.multithreaded,
+                                   message='Inspect Spyder internals: '\
+                                           'spy.app, spy.window')
             self.console.register_plugin()
             
             # Working directory plugin
@@ -1885,6 +1885,12 @@ def initialize():
     return app
 
 
+class Spy(object):
+    """Inspect Spyder internals"""
+    def __init__(self, app, window):
+        self.app = app
+        self.window = window
+
 def run_spyder(app, options):
     """
     Create and show Spyder's main window
@@ -1905,9 +1911,8 @@ def run_spyder(app, options):
         raise
     main.show()
     main.post_visible_setup()
-
-    spy.app = app
-    spy.window = main
+    
+    main.console.shell.interpreter.namespace['spy'] = Spy(app=app, window=main)
 
     app.exec_()
     return main
