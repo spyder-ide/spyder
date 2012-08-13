@@ -320,6 +320,10 @@ class BaseEditMixin(object):
         cursor.select(QTextCursor.BlockUnderCursor)
         return unicode(cursor.selectedText())
     
+    def get_current_line_to_cursor(self):
+        """Return text from prompt to cursor"""
+        return self.get_text(self.current_prompt_pos, 'cursor')
+    
     def get_line_number_at(self, coordinates):
         """Return line number at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
@@ -534,9 +538,6 @@ class InspectObjectMixin(object):
             doc = self.get__doc__(text)
             if doc is not None:
                 self.show_calltip(_("Documentation"), doc)
-    
-    def get_current_line_to_cursor(self):
-        return self.get_text(self.current_prompt_pos, 'cursor')
     
     def get_last_obj(self, last=False):
         """
