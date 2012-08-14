@@ -806,6 +806,27 @@ class MainWindow(QMainWindow):
                                             'qtassistant.png', "assistant")
             if qta_act:
                 self.help_menu_actions.append(qta_act)
+            # Windows-only: documentation located in sys.prefix/Doc
+            def add_doc_action(text, path):
+                """Add doc action to help menu"""
+                ext = osp.splitext(path)[1]
+                if ext:
+                    icon = get_icon(ext[1:]+".png")
+                else:
+                    icon = get_std_icon("DirIcon")
+                path = file_uri(path)
+                action = create_action(self, text, icon=icon,
+                       triggered=lambda path=path: programs.start_file(path))
+                self.help_menu_actions.append(action)
+            if os.name == 'nt':
+                sysdocpth = osp.join(sys.prefix, 'Doc')
+                for docfn in os.listdir(sysdocpth):
+                    match = re.match(r'([a-zA-Z\_]*)(doc)?(-dev)?.(chm|pdf)',
+                                     docfn)
+                    if match is not None:
+                        pname = match.groups()[0]
+                        if pname not in ('Python', ):
+                            add_doc_action(pname, osp.join(sysdocpth, docfn))
             # Documentation provided by Python(x,y), if available
             try:
                 from xy.config import DOC_PATH as xy_doc_path
@@ -813,18 +834,8 @@ class MainWindow(QMainWindow):
                 def add_xydoc(text, pathlist):
                     for path in pathlist:
                         if osp.exists(path):
-                            ext = osp.splitext(path)[1]
-                            if ext:
-                                icon = get_icon(ext[1:]+".png")
-                            else:
-                                icon = get_std_icon("DirIcon")
-                            path = file_uri(path)
-                            action = create_action(self, text, icon=icon,
-                                                   triggered=lambda path=path:
-                                                   programs.start_file(path))
-                            self.help_menu_actions.append(action)
+                            add_doc_action(text, path)
                             break
-                self.help_menu_actions.append(None)
                 add_xydoc(_("Python(x,y) documentation folder"),
                           [xy_doc_path])
                 add_xydoc(_("IPython documentation"),
