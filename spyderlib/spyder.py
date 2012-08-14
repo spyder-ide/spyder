@@ -1923,7 +1923,9 @@ def run_spyder(app, options):
     main.show()
     main.post_visible_setup()
     
-    main.console.shell.interpreter.namespace['spy'] = Spy(app=app, window=main)
+    if not main.light:
+        main.console.shell.interpreter.namespace['spy'] = \
+                                                    Spy(app=app, window=main)
 
     app.exec_()
     return main
