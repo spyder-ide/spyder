@@ -423,6 +423,24 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     def update_history(self):
         self.history = self.ipython_widget._history
     
+    def interrupt_message(self):
+        """
+        Print an interrupt message when the client is connected to an external
+        kernel
+        """
+        message = _("Kernel process is either remote or unspecified. "
+                    "Cannot interrupt")
+        self.ipython_widget._append_plain_text(message + '\n')
+    
+    def restart_message(self):
+        """
+        Print a restart message when the client is connected to an external
+        kernel
+        """
+        message = _("Kernel process is either remote or unspecified. "
+                    "Cannot restart.")
+        self.ipython_widget._append_plain_text(message + '\n')
+    
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
         """Use our Object Inspector to show IPython help texts in rich mode"""
@@ -728,28 +746,30 @@ class IPythonConsole(SpyderPluginWidget):
 
         # Handle kernel interrupt
         extconsoles = self.main.extconsole.shellwidgets
+        spyder_kernel = None
         if extconsoles:
             if extconsoles[-1].connection_file == connection_file:
-                kernel = extconsoles[-1]
+                spyder_kernel = extconsoles[-1]
                 ipython_widget.custom_interrupt_requested.connect(
-                                                     kernel.keyboard_interrupt)
-            else:
-                kernel = None
-        else:
-            kernel = None
+                                              spyder_kernel.keyboard_interrupt)
+        if spyder_kernel is None:
+            ipython_widget.custom_interrupt_requested.connect(
+                                                 shellwidget.interrupt_message)
         
         # Handle kernel restarts asked by the user
-        if kernel:
+        if spyder_kernel is not None:
             ipython_widget.custom_restart_requested.connect(
                                                         self.create_new_kernel)
+        else:
+            ipython_widget.custom_restart_requested.connect(
+                                                   shellwidget.restart_message)
         
         # Print a message if kernel dies unexpectedly
-        if kernel:
-            ipython_widget.custom_restart_kernel_died.connect(
+        ipython_widget.custom_restart_kernel_died.connect(
                                        lambda t: shellwidget.if_kernel_dies(t))
         
         # Connect text widget to our inspector
-        if kernel:
+        if spyder_kernel is not None:
             if self.inspector is not None:
                 shellwidget.get_control().set_inspector(self.inspector)
         
