@@ -579,7 +579,8 @@ class IPythonConsole(SpyderPluginWidget):
             # Change extconsole tab to the client's kernel widget
             idx = self.main.extconsole.get_shell_index_from_id(
                                                  clientwidget.kernel_widget_id)
-            self.main.extconsole.tabwidget.setCurrentIndex(idx)
+            if idx is not None:
+                self.main.extconsole.tabwidget.setCurrentIndex(idx)
         else:
             control = None
             widgets = []
@@ -721,25 +722,36 @@ class IPythonConsole(SpyderPluginWidget):
                                     client_name, ipython_widget,
                                     history_filename='.history.py',
                                     menu_actions=self.menu_actions)
+        ipython_widget = shellwidget.ipython_widget
         self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
                      self.go_to_error)
 
         # Handle kernel interrupt
-        kernel = self.main.extconsole.shellwidgets[-1]
-        shellwidget.ipython_widget.custom_interrupt_requested.connect(
+        extconsoles = self.main.extconsole.shellwidgets
+        if extconsoles:
+            if extconsoles[-1].connection_file == connection_file:
+                kernel = extconsoles[-1]
+                ipython_widget.custom_interrupt_requested.connect(
                                                      kernel.keyboard_interrupt)
+            else:
+                kernel = None
+        else:
+            kernel = None
         
         # Handle kernel restarts asked by the user
-        shellwidget.ipython_widget.custom_restart_requested.connect(
+        if kernel:
+            ipython_widget.custom_restart_requested.connect(
                                                         self.create_new_kernel)
         
         # Print a message if kernel dies unexpectedly
-        shellwidget.ipython_widget.custom_restart_kernel_died.connect(
+        if kernel:
+            ipython_widget.custom_restart_kernel_died.connect(
                                        lambda t: shellwidget.if_kernel_dies(t))
         
         # Connect text widget to our inspector
-        if self.inspector is not None:
-            shellwidget.get_control().set_inspector(self.inspector)
+        if kernel:
+            if self.inspector is not None:
+                shellwidget.get_control().set_inspector(self.inspector)
         
         # Connect client to our history log
         if self.historylog is not None:
