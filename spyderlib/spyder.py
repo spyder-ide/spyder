@@ -821,8 +821,8 @@ class MainWindow(QMainWindow):
             if os.name == 'nt':
                 sysdocpth = osp.join(sys.prefix, 'Doc')
                 for docfn in os.listdir(sysdocpth):
-                    match = re.match(r'([a-zA-Z\_]*)(doc)?(-dev)?.(chm|pdf)',
-                                     docfn)
+                    pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
+                    match = re.match(pt, docfn)
                     if match is not None:
                         pname = match.groups()[0]
                         if pname not in ('Python', ):
