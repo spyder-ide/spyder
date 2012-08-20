@@ -345,7 +345,12 @@ class Workspace(object):
         """Create project from root path, add it to workspace
         Return the created project instance"""
         project = Project()
-        project.set_root_path(root_path)
+        try:
+            project.set_root_path(root_path)
+        except OSError:
+            #  This may happens when loading a Workspace with absolute paths
+            #  which has just been moved to a different location
+            return
         self.projects.append(project)
         self.save()
         
