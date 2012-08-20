@@ -230,11 +230,19 @@ class Workspace(object):
         
     def _get_project_paths(self):
         """Return workspace projects root path list"""
-        return [proj.root_path for proj in self.projects]
+        # Convert project absolute paths to paths relative to Workspace root
+        offset = len(self.root_path)+len(os.pathsep)
+        return [proj.root_path[offset:] for proj in self.projects]
 
     def _set_project_paths(self, pathlist):
         """Set workspace projects root path list"""
-        for root_path in pathlist:
+        # Convert paths relative to Workspace root to project absolute paths
+        for path in pathlist:
+            if path.startswith(self.root_path):
+                # do nothing, this is the old Workspace format
+                root_path = path
+            else:
+                root_path = osp.join(self.root_path, path)
             self.add_project(root_path)
             
     project_paths = property(_get_project_paths, _set_project_paths)
@@ -253,7 +261,7 @@ class Workspace(object):
         """Set workspace root path"""
         if self.name is None:
             self.name = osp.basename(root_path)
-        self.root_path = unicode(root_path)
+        self.root_path = unicode(osp.abspath(root_path))
         config_path = self.__get_workspace_config_path()
         if osp.exists(config_path):
             self.load()
