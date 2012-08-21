@@ -158,7 +158,13 @@ class UserConfig(ConfigParser):
         """
         Save config into the associated .ini file
         """
-        conf_file = file(self.filename(),'w')
+        fname = self.filename()
+
+        # See comment #5 on Issue 1086
+        if osp.isfile(fname):
+            os.remove(fname)
+
+        conf_file = file(fname, 'w')
         self.write(conf_file)
         conf_file.close()
 
