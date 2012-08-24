@@ -153,12 +153,8 @@ class CompletionProposal(object):
 
     def __init__(self, name, scope, pyname=None):
         self.name = name
-        self.scope = scope
         self.pyname = pyname
-        if pyname is not None:
-            self.type = self._get_type()
-        else:
-            self.type = None
+        self.scope = self._get_scope(scope)
 
     def __str__(self):
         return '%s (%s, %s)' % (self.name, self.scope, self.type)
@@ -180,10 +176,10 @@ class CompletionProposal(object):
             if isinstance(pyobject, pyobjects.AbstractFunction):
                 return pyobject.get_param_names()
 
-    def _get_type(self):
+    @property
+    def type(self):
         pyname = self.pyname
         if isinstance(pyname, builtins.BuiltinName):
-            self.scope = 'builtin'
             pyobject = pyname.get_object()
             if isinstance(pyobject, builtins.BuiltinFunction):
                 return 'function'
@@ -194,18 +190,23 @@ class CompletionProposal(object):
                  isinstance(pyobject, builtins.BuiltinName):
                 return 'instance'
         elif isinstance(pyname, pynames.ImportedModule):
-            self.scope = 'imported'
             return 'module'
         elif isinstance(pyname, pynames.ImportedName) or \
            isinstance(pyname, pynames.DefinedName):
-            if isinstance(pyname, pynames.ImportedName):
-                self.scope = 'imported'
             pyobject = pyname.get_object()
             if isinstance(pyobject, pyobjects.AbstractFunction):
                 return 'function'
             if isinstance(pyobject, pyobjects.AbstractClass):
                 return 'class'
         return 'instance'
+
+    def _get_scope(self, scope):
+        if isinstance(self.pyname, builtins.BuiltinName):
+            return 'builtin'
+        if isinstance(self.pyname, pynames.ImportedModule) or \
+           isinstance(self.pyname, pynames.ImportedName):
+            return 'imported'
+        return scope
 
     def get_doc(self):
         """Get the proposed object's docstring.

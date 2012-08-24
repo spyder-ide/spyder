@@ -54,6 +54,11 @@ def start_file(filename):
     Returns True if successfull, otherwise returns False."""
     from spyderlib.qt.QtGui import QDesktopServices
     from spyderlib.qt.QtCore import QUrl
+
+    # We need to use setUrl instead of setPath because this is the only
+    # cross-platform way to open external files. setPath fails completely on
+    # Mac and doesn't open non-ascii files on Linux.
+    # Fixes Issue 740
     url = QUrl()
     url.setUrl(filename)
     return QDesktopServices.openUrl(url)
@@ -126,20 +131,36 @@ def get_python_args(fname, python_args, interact, debug, end_args):
 def run_python_script_in_terminal(fname, wdir, args, interact,
                                   debug, python_args):
     """Run Python script in an external system terminal"""
+    
+    # If fname has spaces on it it can't be ran on Windows, so we have to
+    # enclose it in quotes
+    if os.name == 'nt':
+        fname = '"' + fname + '"'
+    
     p_args = ['python']
     p_args += get_python_args(fname, python_args, interact, debug, args)
+    
     if os.name == 'nt':
-        subprocess.Popen('start cmd.exe /c ' + ' '.join(p_args),
-                         shell=True, cwd=wdir)
+        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
+        # Command line and cwd have to be converted to the filesystem
+        # encoding before passing them to subprocess
+        # See http://bugs.python.org/issue1759845#msg74142
+        from spyderlib.utils.encoding import to_fs_from_unicode
+        subprocess.Popen(to_fs_from_unicode(cmd), shell=True,
+                         cwd=to_fs_from_unicode(wdir))
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
-            run_program(cmd, ['-x'] + p_args, cwd=wdir)
+            run_program(cmd, ['--working-directory', wdir, '-x'] + p_args,
+                        cwd=wdir)
             return
         cmd = 'konsole'
         if is_program_installed(cmd):
-            run_program(cmd, ['-e'] + p_args, cwd=wdir)
+            run_program(cmd, ['--workdir', wdir, '-e'] + p_args,
+                        cwd=wdir)
             return
+        # TODO: Add a fallback to xterm for Linux and the necessary code for
+        #       OSX
     else:
         raise NotImplementedError
 
@@ -148,13 +169,51 @@ def is_module_installed(module_name, version=None):
     """Return True if module *module_name* is installed
     
     If version is not None, checking module version 
-    (module must have an attribute named '__version__')"""
+    (module must have an attribute named '__version__')
+    
+    version may starts with =, >= or > to specify the exact requirement"""
     try:
         mod = __import__(module_name)
         if version is None:
             return True
         else:
-            return getattr(mod, '__version__').startswith(version)
+            match = re.search('[0-9]', version)
+            assert match is not None, "Invalid version number"
+            symb = version[:match.start()]
+            if not symb:
+                symb = '='
+            assert symb in ('>=', '>', '='),\
+                   "Invalid version condition '%s'" % symb
+            version = version[match.start():]
+            try:
+                actver = getattr(mod, '__version__',
+                                 getattr(mod, 'VERSION', None))
+            except AttributeError:
+                return False
+            def getvlist(version):
+                """Return an integer list from a version string"""
+                vl = version.split('.')
+                while vl and not vl[-1].isdigit():
+                    vl = vl[:-1]
+                return [int(nb) for nb in vl]
+            vlist = getvlist(version)
+            actvlist = getvlist(actver)
+            actvlist = actvlist[:len(vlist)]
+            vlist = vlist[:len(actvlist)]
+            if not vlist or not actvlist:
+                return False
+            for index, (nb, actnb) in enumerate(zip(vlist, actvlist)):
+                if nb == actnb:
+                    if index == len(vlist)-1 and '=' not in symb:
+                        return False
+                    else:
+                        continue
+                elif actnb < nb:
+                    return False
+                elif actnb > nb and symb == '=':
+                    return False
+            else:
+                return True
     except ImportError:
         return False
 

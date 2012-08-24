@@ -27,7 +27,27 @@ class BaseComboBox(QComboBox):
         QComboBox.__init__(self, parent)
         self.setEditable(True)
         self.setCompleter(QCompleter(self))
-        
+
+    # --- overrides
+    def keyPressEvent(self, event):
+        """Handle key press events"""
+        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            valid = self.is_valid(self.currentText())
+            if valid or valid is None:
+                self.add_current_text()
+                self.selected()
+        else:
+            QComboBox.keyPressEvent(self, event)
+
+    def focusOutEvent(self, event):
+        """Handle focus out event"""
+        # this also moves mouse-selected items in drop down to the top
+        valid = self.is_valid(self.currentText())
+        if valid or valid is None:
+            self.add_current_text()
+        QComboBox.focusOutEvent(self, event)
+
+    # --- own methods
     def is_valid(self, qstr):
         """
         Return True if string is valid
@@ -58,16 +78,6 @@ class BaseComboBox(QComboBox):
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
         self.add_text(self.currentText())
-        self.selected()
-
-    def keyPressEvent(self, event):
-        """Handle key press events"""
-        if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            valid = self.is_valid(self.currentText())
-            if valid or valid is None:
-                self.add_current_text()
-        else:
-            QComboBox.keyPressEvent(self, event)
         
 
 class PatternComboBox(BaseComboBox):

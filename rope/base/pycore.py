@@ -75,12 +75,13 @@ class PyCore(object):
 
     def get_module(self, name, folder=None):
         """Returns a `PyObject` if the module was found."""
+        # check if this is a builtin module
+        pymod = self._builtin_module(name)
+        if pymod is not None:
+             return pymod
         module = self.find_module(name, folder)
         if module is None:
-            module = self._builtin_module(name)
-            if module is None:
-                raise ModuleNotFoundError('Module %s not found' % name)
-            return module
+            raise ModuleNotFoundError('Module %s not found' % name)
         return self.resource_to_pyobject(module)
 
     def _builtin_submodules(self, modname):
@@ -318,6 +319,8 @@ class _ModuleCache(object):
         else:
             result = PyModule(self.pycore, resource=resource,
                               force_errors=force_errors)
+            if result.has_errors:
+                return result
         self.module_map[resource] = result
         self.observer.add_resource(resource)
         return result

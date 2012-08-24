@@ -1,3 +1,21 @@
+# Known Bugs when inlining a function/method
+# The values passed to function are inlined using _inlined_variable.
+# This may cause two problems, illustrated in the examples below
+#
+# def foo(var1):
+#    var1 = var1*10
+#    return var1
+#
+#  If a call to foo(20) is inlined, the result of inlined function is 20,
+#  but it should be 200.
+#
+# def foo(var1):
+#    var2 = var1*10
+#    return var2
+#
+# 2- If a call to foo(10+10) is inlined the result of inlined function is 110
+#  but it should be 200.
+
 import re
 
 import rope.base.exceptions
@@ -8,6 +26,11 @@ from rope.base.change import ChangeSet, ChangeContents
 from rope.refactor import (occurrences, rename, sourceutils,
                            importutils, move, change_signature)
 
+def unique_prefix():
+    n = 0
+    while True:
+        yield "__" + str(n) + "__"
+        n += 1
 
 def create_inline(project, resource, offset):
     """Create a refactoring object for inlining
@@ -216,6 +239,7 @@ class InlineVariable(_Inliner):
         changes = ChangeSet('Inline variable <%s>' % self.name)
         jobset = task_handle.create_jobset('Calculating changes',
                                            len(resources))
+
         for resource in resources:
             jobset.started_job(resource.path)
             if resource == self.resource:
@@ -304,7 +328,7 @@ def _join_lines(lines):
 
 
 class _DefinitionGenerator(object):
-
+    unique_prefix = unique_prefix()
     def __init__(self, project, pyfunction, body=None):
         self.pycore = project.pycore
         self.pyfunction = pyfunction
@@ -336,15 +360,14 @@ class _DefinitionGenerator(object):
     def get_function_name(self):
         return self.pyfunction.get_name()
 
-    def get_definition(self, primary, pyname, call, returns=False):
+    def get_definition(self, primary, pyname, call, host_vars=[],returns=False):
         # caching already calculated definitions
-        key = (call, returns)
-        if key not in self._calculated_definitions:
-            self._calculated_definitions[key] = self._calculate_definition(
-                primary, pyname, call, returns)
-        return self._calculated_definitions[key]
+        return self._calculate_definition(primary, pyname, call,
+                           host_vars, returns)
 
-    def _calculate_definition(self, primary, pyname, call, returns):
+    def _calculate_header(self, primary, pyname, call):
+        # A header is created which initializes parameters
+        # to the values passed to the function.
         call_info = rope.refactor.functionutils.CallInfo.read(
             primary, pyname, self.definition_info, call)
         paramdict = self.definition_params
@@ -354,15 +377,48 @@ class _DefinitionGenerator(object):
             paramdict[param_name] = value
         header = ''
         to_be_inlined = []
+        mod = self.pycore.get_string_module(self.body)
+        all_names = mod.get_scope().get_names()
+        assigned_names = [name for name in all_names if
+            isinstance(all_names[name], rope.base.pynamesdef.AssignedName)]
         for name, value in paramdict.items():
             if name != value and value is not None:
                 header += name + ' = ' + value.replace('\n', ' ') + '\n'
                 to_be_inlined.append(name)
+        return header, to_be_inlined
+
+    def _calculate_definition(self, primary, pyname, call, host_vars, returns):
+
+        header, to_be_inlined = self._calculate_header(primary, pyname, call)
+
         source = header + self.body
+        mod = self.pycore.get_string_module(source)
+        name_dict = mod.get_scope().get_names()
+        all_names =   [x for x in  name_dict if
+            not isinstance(name_dict[x], rope.base.builtins.BuiltinName)]
+
+        # If there is a name conflict, all variable names
+        # inside the inlined function are renamed
+        if len(set(all_names).intersection(set(host_vars))) > 0:
+
+            prefix = _DefinitionGenerator.unique_prefix.next()
+            guest = self.pycore.get_string_module(source, self.resource)
+
+            to_be_inlined = [prefix+item for item in to_be_inlined]
+            for item in all_names:
+                pyname = guest[item]
+                occurrence_finder = occurrences.create_finder(
+                                        self.pycore, item, pyname)
+                source = rename.rename_in_module(occurrence_finder,
+                                         prefix+item, pymodule=guest)
+                guest = self.pycore.get_string_module(source, self.resource)
+
+        #parameters not reassigned inside the functions are now inlined.
         for name in to_be_inlined:
             pymodule = self.pycore.get_string_module(source, self.resource)
             pyname = pymodule[name]
             source = _inline_variable(self.pycore, pymodule, pyname, name)
+
         return self._replace_returns_with(source, returns)
 
     def _replace_returns_with(self, source, returns):
@@ -451,15 +507,21 @@ class _InlineFunctionCallsForModuleHandle(object):
                                logical_line_in(lineno)
         line_start = self.lines.get_line_start(start_line)
         line_end = self.lines.get_line_end(end_line)
+
+
         returns = self.source[line_start:start].strip() != '' or \
                   self.source[end_parens:line_end].strip() != ''
         indents = sourceutils.get_indents(self.lines, start_line)
         primary, pyname = occurrence.get_primary_and_pyname()
+
+        host = self.pycore.resource_to_pyobject(self.resource)
+        scope = host.scope.get_inner_scope_for_line(lineno)
         definition, returned = self.generator.get_definition(
-            primary, pyname, self.source[start:end_parens], returns=returns)
+            primary, pyname, self.source[start:end_parens], scope.get_names(), returns=returns)
+
         end = min(line_end + 1, len(self.source))
-        change_collector.add_change(
-            line_start, end, sourceutils.fix_indentation(definition, indents))
+        change_collector.add_change(line_start, end,
+               sourceutils.fix_indentation(definition, indents))
         if returns:
             name = returned
             if name is None:

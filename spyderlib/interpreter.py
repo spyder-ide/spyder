@@ -69,6 +69,7 @@ class Interpreter(InteractiveConsole, threading.Thread):
         self.namespace['__name__'] = '__main__'
         self.namespace['execfile'] = self.execfile
         self.namespace['runfile'] = self.runfile
+        self.namespace['raw_input'] = self.raw_input_replacement
         self.namespace['help'] = self.help_replacement
                     
         # Capture all interactive input/output 
@@ -83,9 +84,11 @@ class Interpreter(InteractiveConsole, threading.Thread):
         self.stdout_write = Output()
         self.stderr_write = Output()
         
-        self.widget_proxy = WidgetProxy()
+        self.input_condition = threading.Condition()
+        self.widget_proxy = WidgetProxy(self.input_condition)
         
         self.redirect_stds()
+        
 
     #------ Standard input/output
     def redirect_stds(self):
@@ -102,8 +105,18 @@ class Interpreter(InteractiveConsole, threading.Thread):
             sys.stderr = self.initial_stderr
             sys.stdin = self.initial_stdin
 
+    def raw_input_replacement(self, prompt=''):
+        """For raw_input builtin function emulation"""
+        self.widget_proxy.wait_input(prompt)
+        self.input_condition.acquire()
+        while not self.widget_proxy.data_available():
+            self.input_condition.wait()
+        inp = self.widget_proxy.input_data
+        self.input_condition.release()
+        return inp
+        
     def help_replacement(self, text=None, interactive=False):
-        """For help() support"""
+        """For help builtin function emulation"""
         if text is not None and not interactive:
             return pydoc.help(text)
         elif text is None:
@@ -131,7 +144,7 @@ such as "spam", type "modules spam".
                 print "no Python documentation found for '%r'" % text
         self.write(os.linesep)
         self.widget_proxy.new_prompt("help> ")
-        inp = self.raw_input()
+        inp = self.raw_input_replacement()
         if inp.strip():
             self.help_replacement(inp, interactive=True)
         else:
@@ -312,7 +325,7 @@ has the same effect as typing a particular string at the help> prompt.
         The return value is True if more input is required, False if the line 
         was dealt with in some way (this is the same as runsource()).
         """
-        return InteractiveConsole.push(self, line)
+        return InteractiveConsole.push(self, "#coding=utf-8\n" + line)
         
     def resetbuffer(self):
         """Remove any unhandled source text from the input buffer"""

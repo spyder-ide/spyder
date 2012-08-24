@@ -45,7 +45,7 @@ Licensed under the terms of the MIT License
     Runtime dependencies
     
         Python 2.5+
-        PyQt4 4.4+ or PySide 1.0.8+
+        PyQt4 4.4+ or PySide 1.1.1+ (PyQt4 is recommended)
             
         Recommended modules
             pyflakes v0.5.0+ (real-time code analysis)
@@ -56,7 +56,9 @@ Licensed under the terms of the MIT License
             matplotlib (2D/3D plotting)
 	    
         Optional modules
-            IPython (enhanced Python interpreter)
+            IPython 0.12+ (enhanced Python interpreter)
+                On Ubuntu you need to install ipython-qtconsole, on Fedora
+                ipython-gui and on Gentoo ipython with the qt4 USE flag.
             pylint (powerful code analysis)
             pep8 (style analysis)
 

@@ -61,14 +61,7 @@ else:
 _base = str
 _getcwd = os.getcwd
 try:
-    # ============
-    # Spyder patch
-    # ============
-    # It's not only neccesary to know that the filesystem supports UTF-8. It's
-    # also needed to check that the locale's encoding is UTF-8.
-    import locale
-    if os.path.supports_unicode_filenames and \
-        locale.getpreferredencoding() == 'UTF-8':
+    if os.path.supports_unicode_filenames:
         _base = unicode
         _getcwd = os.getcwdu
 except AttributeError:

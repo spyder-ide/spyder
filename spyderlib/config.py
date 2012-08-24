@@ -28,9 +28,9 @@ from spyderlib.utils import iofuncs, codeanalysis
 
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Times', 'Lucida Grande', 'Calibri',
+              'Bitstream Charter', 'Lucida Grande', 'Calibri',
               'MS Shell Dlg 2', 'Verdana', 'Geneva', 'Lucid', 'Arial',
-              'Helvetica', 'Avant Garde', 'sans-serif']
+              'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
 
 MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
              'Bitstream Vera Sans Mono', 'Andale Mono', 'Liberation Mono',
@@ -71,7 +71,7 @@ def _get_filters(filetypes):
     for title, ftypes in filetypes:
         filters.append("%s (*%s)" % (title, " *".join(ftypes)))
     filters.append("%s (*)" % _("All files"))
-    return "\n".join(filters)
+    return ";;".join(filters)
 
 def _get_extensions(filetypes):
     ftype_list = []
@@ -113,10 +113,18 @@ DEFAULTS = [
               'window/position': (10, 10),
               'window/is_maximized': False,
               'window/is_fullscreen': False,
+              'window/prefs_dialog_size': (745, 411),
               'lightwindow/size': (650, 400),
               'lightwindow/position': (30, 30),
               'lightwindow/is_maximized': False,
               'lightwindow/is_fullscreen': False,
+
+              # The following setting is currently not used but necessary from 
+              # a programmatical point of view (see spyder.py):
+              # (may become useful in the future if we add a button to change 
+              # settings within the "light mode")
+              'lightwindow/prefs_dialog_size': (745, 411),
+
               'memory_usage/enable': True,
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
@@ -204,9 +212,33 @@ DEFAULTS = [
               'umd/verbose': True,
               'umd/namelist': ['guidata', 'guiqwt'],
               'light_background': True,
-              'ipython_set_color': True,
               'merge_output_channels': os.name != 'nt',
               'colorize_sys_stderr': os.name != 'nt',
+              }),
+            ('ipython_console',
+             {
+              'font/family': MONOSPACE,
+              'font/size': MEDIUM,
+              'font/italic': False,
+              'font/bold': False,
+              'show_banner': True,
+              'use_gui_completion': True,
+              'use_pager': True,
+              'show_calltips': False,
+              'ask_before_closing': True,
+              'light_color': True,
+              'dark_color': False,
+              'buffer_size': 10000,
+              'pylab': True,
+              'pylab/autoload': True,
+              'pylab/backend': 0,
+              'pylab/inline/figure_format': 0,
+              'pylab/inline/resolution': 72,
+              'pylab/inline/width': 6,
+              'pylab/inline/height': 4,
+              'startup/run_lines': '',
+              'startup/use_run_file': False,
+              'startup/run_file': ''
               }),
             ('variable_explorer',
              {

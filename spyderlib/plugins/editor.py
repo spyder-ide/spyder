@@ -641,7 +641,7 @@ class Editor(SpyderPluginWidget):
                                name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
                 _("&Configure..."), icon='configure.png',
-                tip=_("Edit run configurations"),
+                tip=_("Edit run configurations"), menurole=QAction.NoRole,
                 triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
@@ -1001,9 +1001,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL("update_plugin_title()"),
                      lambda: self.emit(SIGNAL("update_plugin_title()")))
 
-        self.connect(self, SIGNAL("editor_focus_changed()"),
+        self.connect(editorstack, SIGNAL("editor_focus_changed()"),
                      self.save_focus_editorstack)
-        self.connect(self, SIGNAL('editor_focus_changed()'),
+        self.connect(editorstack, SIGNAL('editor_focus_changed()'),
                      self.main.plugin_focus_changed)
         
         self.connect(editorstack, SIGNAL('close_file(long,long)'),
@@ -1057,6 +1057,8 @@ class Editor(SpyderPluginWidget):
         
     def clone_editorstack(self, editorstack):
         editorstack.clone_from(self.editorstacks[0])
+        for finfo in editorstack.data:
+            self.register_widget_shortcuts("Editor", finfo.editor)
         
     @Slot(int, int)
     def close_file_in_all_editorstacks(self, editorstack_id, index):
@@ -1294,8 +1296,8 @@ class Editor(SpyderPluginWidget):
         else:
             breakpoints = []
         save_breakpoints(filename, breakpoints)
+        self.emit(SIGNAL("breakpoints_saved()"))
         
-                
     #------ File I/O
     def __load_temp_file(self):
         """Load temporary file from a text file in user home directory"""
@@ -1349,9 +1351,13 @@ class Editor(SpyderPluginWidget):
         if encoding_match:
             enc = encoding_match.group(1)
         # Initialize template variables
-        username = os.environ.get('USERNAME', None) # Windows, Linux
+        # Windows
+        username = encoding.to_unicode_from_fs(os.environ.get('USERNAME',
+                                                              ''))
+        # Linux, Mac OS X
         if not username:
-            username = os.environ.get('USER', '-')  # Mac OS
+            username = encoding.to_unicode_from_fs(os.environ.get('USER',
+                                                                  '-'))
         VARS = {
             'date':time.ctime(),
             'username':username,
@@ -1485,7 +1491,7 @@ class Editor(SpyderPluginWidget):
             self.dockwidget.raise_()
         
         def _convert(fname):
-            fname = osp.abspath(encoding.to_unicode(fname))
+            fname = osp.abspath(encoding.to_unicode_from_fs(fname))
             if os.name == 'nt' and len(fname) >= 2 and fname[1] == ':':
                 fname = fname[0].upper()+fname[1:]
             return fname
@@ -1678,7 +1684,18 @@ class Editor(SpyderPluginWidget):
         """Run winpdb to debug current file"""
         if self.save():
             fname = self.get_current_filename()
-            programs.run_program(WINPDB_PATH, [fname])
+            runconf = get_run_configuration(fname)
+            if runconf is None:
+                args = []
+                wdir = None
+            else:
+                args = runconf.get_arguments().split()
+                wdir = runconf.get_working_directory()
+                # Handle the case where wdir comes back as an empty string
+                # when the working directory dialog checkbox is unchecked.
+                if not wdir:
+                    wdir = None
+            programs.run_program(WINPDB_PATH, [fname]+args, wdir)
         
     def toggle_eol_chars(self, os_name):
         editor = self.get_current_editor()
@@ -1803,6 +1820,7 @@ class Editor(SpyderPluginWidget):
     def clear_all_breakpoints(self):
         """Clear breakpoints in all files"""
         clear_all_breakpoints()
+        self.emit(SIGNAL("breakpoints_saved()"))
         editorstack = self.get_current_editorstack()
         if editorstack is not None:
             for data in editorstack.data:
@@ -1812,12 +1830,13 @@ class Editor(SpyderPluginWidget):
     #------ Run Python script
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
-        fname = osp.abspath(self.get_current_filename())
-        dialog.setup(fname)
+        self.connect(dialog, SIGNAL("size_change(QSize)"),
+                     lambda s: self.set_configdialog_size(s))
         if self.configdialog_size is not None:
             dialog.resize(self.configdialog_size)
+        fname = osp.abspath(self.get_current_filename())
+        dialog.setup(fname)
         if dialog.exec_():
-            self.configdialog_size = dialog.get_window_size()
             fname = dialog.file_to_run
             if fname is not None:
                 self.load(fname)
@@ -1833,12 +1852,13 @@ class Editor(SpyderPluginWidget):
             runconf = get_run_configuration(fname)
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
-                dialog.setup(fname)
+                self.connect(dialog, SIGNAL("size_change(QSize)"),
+                             lambda s: self.set_configdialog_size(s))
                 if self.configdialog_size is not None:
                     dialog.resize(self.configdialog_size)
+                dialog.setup(fname)
                 if not dialog.exec_():
                     return
-                self.configdialog_size = dialog.get_window_size()
                 runconf = dialog.get_configuration()
                 
             wdir = runconf.get_working_directory()
@@ -1860,6 +1880,9 @@ class Editor(SpyderPluginWidget):
                 # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
+    def set_configdialog_size(self, size):
+        self.configdialog_size = size
+
     def debug_file(self):
         """Debug current script"""
         self.run_file(debug=True)
@@ -1891,10 +1914,32 @@ class Editor(SpyderPluginWidget):
         """Apply configuration file's plugin settings"""
         # toggle_fullpath_sorting
         if self.editorstacks is not None:
+            # --- syntax highlight and text rendering settings
             color_scheme_n = 'color_scheme_name'
             color_scheme_o = get_color_scheme(self.get_option(color_scheme_n))
             font_n = 'plugin_font'
             font_o = self.get_plugin_font()
+            currentline_n = 'highlight_current_line'
+            currentline_o = self.get_option(currentline_n)
+            occurence_n = 'occurence_highlighting'
+            occurence_o = self.get_option(occurence_n)
+            occurence_timeout_n = 'occurence_highlighting/timeout'
+            occurence_timeout_o = self.get_option(occurence_timeout_n)
+            for editorstack in self.editorstacks:
+                if font_n in options:
+                    scs = color_scheme_o if color_scheme_n in options else None
+                    editorstack.set_default_font(font_o, scs)
+                elif color_scheme_n in options:
+                    editorstack.set_color_scheme(color_scheme_o)
+                if currentline_n in options:
+                    editorstack.set_highlight_current_line_enabled(
+                                                                currentline_o)
+                if occurence_n in options:
+                    editorstack.set_occurence_highlighting_enabled(occurence_o)
+                if occurence_timeout_n in options:
+                    editorstack.set_occurence_highlighting_timeout(
+                                                        occurence_timeout_o)
+            # --- everything else
             fpsorting_n = 'fullpath_sorting'
             fpsorting_o = self.get_option(fpsorting_n)
             tabbar_n = 'show_tab_bar'
@@ -1905,12 +1950,6 @@ class Editor(SpyderPluginWidget):
             edgeline_o = self.get_option(edgeline_n)
             edgelinecol_n = 'edge_line_column'
             edgelinecol_o = self.get_option(edgelinecol_n)
-            currentline_n = 'highlight_current_line'
-            currentline_o = self.get_option(currentline_n)
-            occurence_n = 'occurence_highlighting'
-            occurence_o = self.get_option(occurence_n)
-            occurence_timeout_n = 'occurence_highlighting/timeout'
-            occurence_timeout_o = self.get_option(occurence_timeout_n)
             wrap_n = 'wrap'
             wrap_o = self.get_option(wrap_n)
             tabindent_n = 'tab_always_indent'
@@ -1963,11 +2002,6 @@ class Editor(SpyderPluginWidget):
                     window.editorwidget.outlineexplorer.set_fullpath_sorting(
                                                                     fpsorting_o)
             for editorstack in self.editorstacks:
-                if font_n in options:
-                    scs = color_scheme_o if color_scheme_n in options else None
-                    editorstack.set_default_font(font_o, scs)
-                elif color_scheme_n in options:
-                    editorstack.set_color_scheme(color_scheme_o)
                 if fpsorting_n in options:
                     editorstack.set_fullpath_sorting_enabled(fpsorting_o)
                 if tabbar_n in options:
@@ -1979,14 +2013,6 @@ class Editor(SpyderPluginWidget):
                     editorstack.set_edgeline_enabled(edgeline_o)
                 if edgelinecol_n in options:
                     editorstack.set_edgeline_column(edgelinecol_o)
-                if currentline_n in options:
-                    editorstack.set_highlight_current_line_enabled(
-                                                                currentline_o)
-                if occurence_n in options:
-                    editorstack.set_occurence_highlighting_enabled(occurence_o)
-                if occurence_timeout_n in options:
-                    editorstack.set_occurence_highlighting_timeout(
-                                                        occurence_timeout_o)
                 if wrap_n in options:
                     editorstack.set_wrap_enabled(wrap_o)
                 if tabindent_n in options:

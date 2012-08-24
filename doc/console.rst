@@ -11,7 +11,6 @@ process at any time.
 Many command windows may be created in the **Console**:
 
     * Python interpreter
-    * IPython interpreter (the external module `IPython` is required)
     * Running Python script
     * System command window (this terminal emulation window has quite limited 
       features compared to a real terminal: it may be useful on Windows 

@@ -15,6 +15,7 @@ from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 import re
 import os.path as osp
 import socket
+import sys
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
@@ -28,6 +29,14 @@ from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.browser import WebView
 from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
+
+#XXX: hardcoded dependency on optional IPython plugin component
+#     that requires the hack to make this work without IPython
+if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
+    from spyderlib.widgets.ipython import IPythonShellWidget
+else:
+    IPythonShellWidget = None
+
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
 try:
@@ -35,7 +44,7 @@ try:
     from spyderlib.utils.inspector.sphinxify import (CSS_PATH, sphinxify,
                                                      warning, generate_context)
 except ImportError:
-    sphinxify = sphinx_version = None
+    sphinxify = sphinx_version = None  # analysis:ignore
 
 
 class ObjectComboBox(EditableComboBox):
@@ -54,23 +63,22 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        shell = self.object_inspector.shell
         objtxt = unicode(qstr)
-        if shell is not None:
-            self.object_inspector._check_if_shell_is_running()
-            if self.object_inspector.get_option('automatic_import'):
-                shell = self.object_inspector.internal_shell
+        if self.object_inspector.get_option('automatic_import'):
+            shell = self.object_inspector.internal_shell
+            if shell is not None:
                 return shell.is_defined(objtxt, force_import=True)
-            else:
+        shell = self.object_inspector.get_shell()
+        if shell is not None:
+            try:
+                return shell.is_defined(objtxt)
+            except socket.error:
+                shell = self.object_inspector.get_shell()
                 try:
                     return shell.is_defined(objtxt)
                 except socket.error:
-                    self.object_inspector._check_if_shell_is_running()
-                    try:
-                        return shell.is_defined(objtxt)
-                    except socket.error:
-                        # Well... too bad!
-                        pass
+                    # Well... too bad!
+                    pass
         
     def validate_current_text(self):
         self.validate(self.currentText())
@@ -176,14 +184,10 @@ class PlainText(QWidget):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-        
-    def set_font(self, font, color_scheme=None):
-        """Set font"""
-        self.editor.set_font(font, color_scheme=color_scheme)
-        
-    def set_color_scheme(self, color_scheme):
-        """Set color scheme"""
-        self.editor.set_color_scheme(color_scheme)
+
+    def set_text_format(self, font=None, color_scheme=None):
+        """Set font and color scheme"""
+        self.editor.set_text_format(font, color_scheme)
         
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
@@ -208,6 +212,8 @@ class ObjectInspector(SpyderPluginWidget):
     LOG_PATH = get_conf_path('.inspector')
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
+        
+        self.internal_shell = None
 
         # Initialize plugin
         self.initialize_plugin()
@@ -223,7 +229,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.rich_text = RichText(self)
         
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_style(self.get_plugin_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
@@ -251,7 +257,10 @@ class ObjectInspector(SpyderPluginWidget):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
-        source_label = QLabel(_("Source"))
+        if sys.platform == 'darwin':
+            source_label = QLabel(_("  Source"))
+        else:
+            source_label = QLabel(_("Source"))
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
@@ -390,13 +399,11 @@ class ObjectInspector(SpyderPluginWidget):
         self.wrap_action.setChecked(wrap_o)
         math_n = 'math'
         math_o = self.get_option(math_n)
-        if font_n in options:
-            scs = color_scheme_o if color_scheme_n in options else None
-            self.set_plain_text_font(font_o, color_scheme=scs)
+        font = font_o if font_n in options else None
+        scs = color_scheme_o if color_scheme_n in options else None
+        self.set_plain_text_style(font, color_scheme=scs)
         if rich_font_n in options:
             self.set_rich_text_font(rich_font_o)
-        elif color_scheme_n in options:
-            self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)
         if math_n in options:
@@ -465,20 +472,16 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text mode font"""
         self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
         
-    def set_plain_text_font(self, font, color_scheme=None):
-        """Set plain text mode font"""
-        self.plain_text.set_font(font, color_scheme=color_scheme)
+    def set_plain_text_style(self, font=None, color_scheme=None):
+        """Set plain text mode font and color_scheme"""
+        self.plain_text.set_text_format(font, color_scheme)
 
-    def set_plain_text_color_scheme(self, color_scheme):
-        """Set plain text mode color scheme"""
-        self.plain_text.set_color_scheme(color_scheme)
-        
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
                                       _("Select a new font"))
         if valid:
-            self.set_plain_text_font(font)
+            self.set_plain_text_style(font)
             set_font(font, self.CONF_SECTION)
             
     def toggle_wrap_mode(self, checked):
@@ -683,32 +686,26 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_shell(self, shell):
         """Bind to shell"""
-        self.shell = shell
-
-    def get_running_python_shell(self):
-        shell = None
-        if self.external_console is not None:
-            shell = self.external_console.get_running_python_shell()
-        if shell is None:
-            shell = self.internal_shell
-        return shell
-        
-    def shell_terminated(self, shell):
-        """
-        External shell has terminated:
-        binding object inspector to another shell
-        """
-        if self.shell is shell:
-            self.shell = self.get_running_python_shell()
-        
-    def _check_if_shell_is_running(self):
-        """
-        Checks if bound external shell is still running.
-        Otherwise, switch to internal console
-        """
+        if IPythonShellWidget is not None:
+            # XXX(anatoli): hack to make Spyder run on systems without IPython
+            #               there should be a better way
+            if isinstance(shell, IPythonShellWidget):
+                # XXX: this ignores passed argument completely
+                self.shell = self.external_console.get_current_shell()
+        else:
+            self.shell = shell
+    
+    def get_shell(self):
+        """Return shell which is currently bound to object inspector,
+        or another running shell if it has been terminated"""
         if not isinstance(self.shell, ExtPythonShellWidget) \
            or not self.shell.externalshell.is_running():
-            self.shell = self.get_running_python_shell()
+            self.shell = None
+            if self.external_console is not None:
+                self.shell = self.external_console.get_running_python_shell()
+            if self.shell is None:
+                self.shell = self.internal_shell
+        return self.shell
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
@@ -737,22 +734,19 @@ class ObjectInspector(SpyderPluginWidget):
         
     def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
-        if self.shell is None:
-            return
-        self._check_if_shell_is_running()
-        if self.shell is None:
+        shell = self.get_shell()
+        if shell is None:
             return
         obj_text = unicode(obj_text)
         
-        if self.shell.is_defined(obj_text):
-            shell = self.shell
-        elif self.get_option('automatic_import') and \
-             self.internal_shell.is_defined(obj_text, force_import=True):
-            shell = self.internal_shell
-        else:
-            shell = None
-            doc_text = None
-            source_text = None
+        if not shell.is_defined(obj_text):
+            if self.get_option('automatic_import') and\
+               self.internal_shell.is_defined(obj_text, force_import=True):
+                shell = self.internal_shell
+            else:
+                shell = None
+                doc_text = None
+                source_text = None
             
         if shell is not None:
             doc_text = shell.get_doc(obj_text)

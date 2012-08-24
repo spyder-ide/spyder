@@ -10,6 +10,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import SIGNAL
 
+import os
 import os.path as osp
 
 # Local imports
@@ -174,11 +175,9 @@ class HistoryLog(SpyderPluginWidget):
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         for editor in self.editors:
-            if font_n in options:
-                scs = color_scheme_o if color_scheme_n in options else None
-                editor.set_font(font_o, scs)
-            elif color_scheme_n in options:
-                editor.set_color_scheme(color_scheme_o)
+            font = font_o if font_n in options else None
+            scs = color_scheme_o if color_scheme_n in options else None
+            editor.set_text_format(font, scs)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
         
@@ -201,7 +200,7 @@ class HistoryLog(SpyderPluginWidget):
         Add new history tab
         Slot for SIGNAL('add_history(QString)') emitted by shell instance
         """
-        filename = encoding.to_unicode(filename)
+        filename = encoding.to_unicode_from_fs(filename)
         if filename in self.filenames:
             return
         editor = codeeditor.CodeEditor(self)
@@ -217,7 +216,7 @@ class HistoryLog(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        editor.set_font( self.get_plugin_font(), color_scheme )
+        editor.set_text_format( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)
@@ -239,7 +238,9 @@ class HistoryLog(SpyderPluginWidget):
         Slot for SIGNAL('append_to_history(QString,QString)')
         emitted by shell instance
         """
-        filename, command = encoding.to_unicode(filename), unicode(command)
+        if not isinstance(filename, basestring): # filename is a QString
+            filename = unicode(filename.toUtf8(), 'utf-8')
+        command = unicode(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
         if self.get_option('go_to_eof'):

@@ -6,7 +6,7 @@ Dependencies
 
 Requirements:
     * Python 2.5+ 
-    * PyQt4 4.4+ or PySide 1.0.8+
+    * PyQt4 4.4+ or PySide 1.1.1+ (PyQt4 is recommended)
 
 Recommended modules:
     * pyflakes v0.5.0+ (real-time code analysis)
@@ -15,10 +15,10 @@ Recommended modules:
     * numpy (N-dimensional arrays)
     * scipy (signal/image processing)
     * matplotlib (2D/3D plotting)
-    * psutil (memory/CPU usage in status bar)
+    * psutil 0.3+ (memory/CPU usage in status bar)
 
 Optional modules:
-    * IPython (enhanced Python interpreter)
+    * IPython 0.12+ (enhanced Python interpreter)
     * pylint (code analysis)
     * pep8 (style analysis)
 

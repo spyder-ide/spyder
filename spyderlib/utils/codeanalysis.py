@@ -50,6 +50,12 @@ def check_with_pyflakes(source_code, filename=None):
             return []
         else:
             return [(value.args[0], value.lineno)]
+    except (ValueError, TypeError):
+        # Example of ValueError: file contains invalid \x escape character
+        # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797)
+        # Example of TypeError: file contains null character
+        # (see http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796)
+        return []
     else:
         # Okay, it's syntactically valid.  Now check it.
         w = Checker(tree, filename)
@@ -67,7 +73,7 @@ PYFLAKES_REQVER = '0.5.0'
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
-    return programs.is_module_installed('pyflakes', PYFLAKES_REQVER)
+    return programs.is_module_installed('pyflakes', '>='+PYFLAKES_REQVER)
 
 
 def get_checker_executable(name):

@@ -221,7 +221,7 @@ class ExternalShellBase(QWidget):
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
 
     def set_buttons_runnning_state(self, state):
-        self.run_button.setVisible(not state)
+        self.run_button.setVisible(not state and not self.is_ipython_kernel)
         self.kill_button.setVisible(state)
     
     def start_shell(self, ask_for_arguments=False):

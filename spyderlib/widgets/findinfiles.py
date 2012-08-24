@@ -26,7 +26,8 @@ import os.path as osp
 from subprocess import Popen, PIPE
 
 # Local imports
-from spyderlib.utils import programs
+from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
+from spyderlib.utils.misc import abspardir, get_common_path
 from spyderlib.utils.qthelpers import (get_std_icon, create_toolbutton,
                                        get_filetype_icon)
 from spyderlib.baseconfig import _
@@ -35,37 +36,10 @@ from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
 
 
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
-
-def get_common_path(pathlist):
-    """Return common path for all paths in pathlist"""
-    common = osp.commonprefix(pathlist)
-    if len(common) > 1:
-        if not osp.isdir(common):
-            common = osp.dirname(common)
-        return osp.abspath(common)
-
-def is_hg_installed():
-    """Return True if Mercurial is installed"""
-    return programs.find_program('hg') is not None
-
-def get_hg_root(path):
-    """Return Mercurial root directory path"""
-    previous_path = path
-    while not osp.isdir(osp.join(path, '.hg')):
-        path = abspardir(path)
-        if path == previous_path:
-            return
-        else:
-            previous_path = path
-    return osp.abspath(path)
-
 #def find_files_in_hg_manifest(rootpath, include, exclude):
 #    p = Popen("hg manifest", stdout=PIPE)
 #    found = []
-#    hgroot = get_hg_root(rootpath)
+#    hgroot = get_vcs_root(rootpath)
 #    for path in p.stdout.read().splitlines():
 #        dirname = osp.join('.', osp.dirname(path))
 #        if re.search(exclude, dirname+os.sep):
@@ -202,7 +176,7 @@ class SearchThread(QThread):
     def find_files_in_hg_manifest(self):
         p = Popen(['hg', 'manifest'], stdout=PIPE,
                   cwd=self.rootpath, shell=True)
-        hgroot = get_hg_root(self.rootpath)
+        hgroot = get_vcs_root(self.rootpath)
         self.pathlist = [hgroot]
         for path in p.stdout.read().splitlines():
             with QMutexLocker(self.mutex):
@@ -447,7 +421,7 @@ class FindOptions(QWidget):
     def detect_hg_repository(self, path=None):
         if path is None:
             path = os.getcwdu()
-        hg_repository = is_hg_installed() and get_hg_root(path) is not None
+        hg_repository = is_hg_installed() and get_vcs_root(path) is not None
         self.hg_manifest.setEnabled(hg_repository)
         if not hg_repository and self.hg_manifest.isChecked():
             self.custom_dir.setChecked(True)

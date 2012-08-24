@@ -30,7 +30,7 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import _, DEBUG, STDOUT
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import get_icon, EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
@@ -169,8 +169,12 @@ class AnalysisThread(QThread):
     
     def run(self):
         """Run analysis"""
-        self.results = self.checker(self.source_code)
-
+        try:
+            self.results = self.checker(self.source_code)
+        except Exception:
+            if DEBUG:
+                import traceback
+                traceback.print_exc(file=STDERR)
 
 class ThreadManager(QObject):
     """Analysis thread manager"""
@@ -228,7 +232,9 @@ class ThreadManager(QObject):
             for thread in threadlist:
                 if thread.isFinished():
                     end_callback = self.end_callbacks.pop(id(thread))
-                    end_callback(thread.results)
+                    if thread.results is not None:
+                        #  The thread was executed successfully
+                        end_callback(thread.results)
                     thread.setParent(None)
                     thread = None
                 else:
@@ -466,8 +472,10 @@ class FileInfo(QObject):
     def breakpoints_changed(self):
         """Breakpoint list has changed"""
         breakpoints = self.editor.get_breakpoints()
-        self.emit(SIGNAL("save_breakpoints(QString,QString)"),
-                  self.filename, repr(breakpoints))
+        if self.editor.breakpoints != breakpoints:
+            self.editor.breakpoints = breakpoints
+            self.emit(SIGNAL("save_breakpoints(QString,QString)"),
+                      self.filename, repr(breakpoints))
         
 
 class EditorStack(QWidget):
@@ -645,6 +653,9 @@ class EditorStack(QWidget):
         self.tabs.set_close_function(self.close_file)
         if hasattr(self.tabs, 'setDocumentMode') \
            and not sys.platform == 'darwin':
+            # Don't set document mode to true on OSX because it generates
+            # a crash when the editor is detached from the main window
+            # Fixes Issue 561
             self.tabs.setDocumentMode(True)
         self.connect(self.tabs, SIGNAL('currentChanged(int)'),
                      self.current_changed)
@@ -923,7 +934,7 @@ class EditorStack(QWidget):
             self.color_scheme = color_scheme
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_font(font, color_scheme)
+                finfo.editor.set_text_format(font, color_scheme)
             
     def set_color_scheme(self, color_scheme):
         self.color_scheme = color_scheme
@@ -1039,7 +1050,8 @@ class EditorStack(QWidget):
             text = u"%s — %s"
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
-        if filename == encoding.to_unicode(self.tempfile_path):
+        if self.tempfile_path is not None\
+           and filename == encoding.to_unicode_from_fs(self.tempfile_path):
             temp_file_str = unicode(_("Temporary file"))
             if self.fullpath_sorting_enabled:
                 return "%s (%s)" % (text, temp_file_str)
@@ -1486,6 +1498,7 @@ class EditorStack(QWidget):
         for finfo in self.data:
             if fwidget is finfo.editor:
                 self.refresh()
+        self.emit(SIGNAL("editor_focus_changed()"))
         
     def _refresh_outlineexplorer(self, index=None, update=True, clear=False):
         """Refresh outline explorer panel"""
@@ -1741,10 +1754,6 @@ class EditorStack(QWidget):
         """Cursor position of one of the editor in the stack has changed"""
         self.emit(SIGNAL('editor_cursor_position_changed(int,int)'),
                   line, index)
-        
-    def editor_focus_changed(self):
-        """Focus of one of the editor in the stack has changed"""
-        self.emit(SIGNAL("editor_focus_changed()"))
     
     def send_to_inspector(self, qstr1, qstr2=None, qstr3=None,
                           qstr4=None, force=False):
@@ -1791,7 +1800,7 @@ class EditorStack(QWidget):
                   _("Loading %s...") % filename)
         text, enc = encoding.read(filename)
         finfo = self.create_new_editor(filename, enc, text, set_current)
-        index = self.get_stack_index()
+        index = self.data.index(finfo)
         self._refresh_outlineexplorer(index, update=True)
         self.emit(SIGNAL('ending_long_process(QString)'), "")
         if self.isVisible() and self.checkeolchars_enabled \
@@ -2337,10 +2346,14 @@ def test():
     test = EditorPluginExample()
     test.resize(900, 700)
     test.show()
+    import time
+    t0 = time.time()
     test.load(__file__)
     test.load("explorer.py")
     test.load("dicteditor.py")
     test.load("sourcecode/codeeditor.py")
+    test.load("../spyder.py")
+    print "Elapsed time: %.3f s" % (time.time()-t0)
     sys.exit(app.exec_())
     
 if __name__ == "__main__":

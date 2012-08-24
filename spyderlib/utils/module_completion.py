@@ -28,23 +28,22 @@ from spyderlib.utils.external.pickleshare import PickleShareDB
 MODULES_PATH = get_conf_path('db')
 TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
 
-db = PickleShareDB(MODULES_PATH)
+modules_db = PickleShareDB(MODULES_PATH)
 
 def getRootModules():
     """
-    Returns a list containing the names of all the modules available in the
-    folders of the pythonpath.
+    Returns list of names of all modules from PYTHONPATH folders.
     """
     modules = []
-    if db.has_key('rootmodules'):
-        return db['rootmodules']
+    if modules_db.has_key('rootmodules'):
+        return modules_db['rootmodules']
     t = time()
     for path in sys.path:
         modules += moduleList(path)        
         if time() - t > TIMEOUT_GIVEUP:
             print "Module list generation is taking too long, we give up."
             print
-            db['rootmodules'] = []
+            modules_db['rootmodules'] = []
             return []
     
     modules += sys.builtin_module_names
@@ -53,8 +52,13 @@ def getRootModules():
     if '__init__' in modules:
         modules.remove('__init__')
     modules = list(set(modules))
-    db['rootmodules'] = modules
+    modules_db['rootmodules'] = modules
     return modules
+
+def reset():
+    """Clear root modules database"""
+    if modules_db.has_key('rootmodules'):
+        del modules_db['rootmodules']
 
 def moduleList(path):
     """

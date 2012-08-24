@@ -305,14 +305,18 @@ class MoveGlobal(object):
 
         module_with_imports = self.import_tools.module_imports(pymodule)
         source = pymodule.source_code
+        lineno = 0
         if module_with_imports.imports:
-            start = pymodule.lines.get_line_end(
-                module_with_imports.imports[-1].end_line - 1)
-            result = source[:start + 1] + '\n\n'
+            lineno = module_with_imports.imports[-1].end_line - 1
         else:
-            result = ''
-            start = -1
-        result += moving + source[start + 1:]
+            while lineno < pymodule.lines.length() and \
+                  pymodule.lines.get_line(lineno + 1).lstrip().startswith('#'):
+                lineno += 1
+        if lineno > 0:
+            cut = pymodule.lines.get_line_end(lineno) + 1
+            result = source[:cut] + '\n\n' + moving + source[cut:]
+        else:
+            result = moving + source
 
         # Organizing imports
         source = result

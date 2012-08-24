@@ -75,10 +75,12 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         text = ''
-        from spyderlib.widgets.editor import TextEditBaseWidget
-        if isinstance(widget, TextEditBaseWidget):
+        try:
             if widget.has_selected_text():
                 text = widget.get_selected_text()
+        except AttributeError:
+            # This is not a text widget deriving from TextEditBaseWidget
+            pass
         self.set_search_text(text)
         if text:
             self.find()

@@ -16,9 +16,9 @@ import time
 import os.path as osp
 import re
 
-from spyderlib.qt.QtGui import (QMenu, QApplication, QCursor, QToolTip,
-                                QKeySequence, QMessageBox, QMouseEvent,
-                                QTextCursor, QTextCharFormat, QShortcut)
+from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
+                                QMessageBox, QMouseEvent, QTextCursor,
+                                QTextCharFormat, QShortcut)
 from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, SIGNAL, Property
 from spyderlib.qt.compat import getsavefilename
 
@@ -26,28 +26,25 @@ from spyderlib.qt.compat import getsavefilename
 from spyderlib.baseconfig import get_conf_path, _, STDERR
 from spyderlib.config import CONF, get_icon, get_font
 from spyderlib.utils import encoding
-from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.dochelpers import getobj
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
+from spyderlib.widgets.sourcecode.mixins import (InspectObjectMixin,
+                                                 TracebackLinksMixin,
+                                                 SaveHistoryMixin)
 
 
-HISTORY_FILENAMES = []
-
-
-class ShellBaseWidget(ConsoleBaseWidget):
+class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     """
     Shell base widget
     """
-    INITHISTORY = None
-    SEPARATOR = None
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
         """
         parent : specifies the parent widget
         """
         ConsoleBaseWidget.__init__(self, parent)
+        SaveHistoryMixin.__init__(self)
                 
         # Prompt position: tuple (line, index)
         self.current_prompt_pos = None
@@ -156,9 +153,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         
         
     #------ Input buffer
-    def get_current_line_to_cursor(self):
-        return self.get_text(self.current_prompt_pos, 'cursor')
-    
     def get_current_line_from_cursor(self):
         return self.get_text('cursor', 'eof')
     
@@ -208,6 +202,8 @@ class ShellBaseWidget(ConsoleBaseWidget):
         """
         Print a new prompt and save its (line, index) position
         """
+        if self.get_cursor_line_column()[1] != 0:
+            self.write('\n')
         self.write(prompt, prompt=True)
         # now we update our cursor giving end of prompt
         self.current_prompt_pos = self.get_position('cursor')
@@ -404,15 +400,15 @@ class ShellBaseWidget(ConsoleBaseWidget):
             # the event queue - i.e. if the busy buffer is ever implemented)
             ConsoleBaseWidget.keyPressEvent(self, event)
 
-        elif key == Qt.Key_Escape and ctrl and shift:
-            self._key_ctrl_shift_escape()    
-
         elif key == Qt.Key_Escape and shift:
-            self._key_shift_escape()
+            self.clear_line()
 
         elif key == Qt.Key_Escape:
             self._key_escape()
                 
+        elif key == Qt.Key_L and ctrl:
+            self.clear_terminal()
+            
         elif key == Qt.Key_V and ctrl:
             self.paste()
             
@@ -471,10 +467,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         raise NotImplementedError
     def _key_escape(self):
         raise NotImplementedError
-    def _key_shift_escape(self):
-        raise NotImplementedError
-    def _key_ctrl_shift_escape(self):
-        raise NotImplementedError
     def _key_question(self, text):
         raise NotImplementedError
     def _key_parenleft(self, text):
@@ -505,29 +497,6 @@ class ShellBaseWidget(ConsoleBaseWidget):
         # Saving truncated history:
         encoding.writelines(rawhistory, self.history_filename)
         return history
-        
-    def add_to_history(self, command):
-        """Add command to history"""
-        command = unicode(command)
-        if command in ['', '\n'] or command.startswith('Traceback'):
-            return
-        if command.endswith('\n'):
-            command = command[:-1]
-        self.histidx = None
-        if len(self.history)>0 and self.history[-1] == command:
-            return
-        self.history.append(command)
-        text = os.linesep + command
-        
-        # When the first entry will be written in history file,
-        # the separator will be append first:
-        if self.history_filename not in HISTORY_FILENAMES:
-            HISTORY_FILENAMES.append(self.history_filename)
-            text = self.SEPARATOR + text
-            
-        encoding.write(text, self.history_filename, mode='ab')
-        self.emit(SIGNAL('append_to_history(QString,QString)'),
-                  self.history_filename, text)
         
     def browse_history(self, backward):
         """Browse history"""
@@ -682,26 +651,20 @@ class ShellBaseWidget(ConsoleBaseWidget):
         raise NotImplementedError
 
 
-class PythonShellWidget(ShellBaseWidget):
-    """
-    Python shell widget
-    """
+class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
+                        TracebackLinksMixin):
+    """Python shell widget"""
+    QT_CLASS = ShellBaseWidget
+
     INITHISTORY = ['# -*- coding: utf-8 -*-',
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
     def __init__(self, parent, history_filename, debug=False, profile=False):
-        ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
-        
-        self.inspector = None
-        self.inspector_enabled = True
-        
-        # Allow raw_input support:
-        self.input_loop = None
-        self.input_mode = False
-        
-        # Mouse cursor
-        self.__cursor_changed = False
+        ShellBaseWidget.__init__(self, parent,
+                                 history_filename, debug, profile)
+        TracebackLinksMixin.__init__(self)
+        InspectObjectMixin.__init__(self)
 
         # Local shortcuts
         self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
@@ -734,7 +697,7 @@ class PythonShellWidget(ShellBaseWidget):
                                      tip=_("Clear line"),
                                      triggered=self.clear_line)
         clear_action = create_action(self, _("Clear shell"),
-                                     QKeySequence("Ctrl+Shift+Escape"),
+                                     QKeySequence("Ctrl+L"),
                                      icon=get_icon('clear.png'),
                                      tip=_("Clear shell contents "
                                            "('cls' command)"),
@@ -759,36 +722,6 @@ class PythonShellWidget(ShellBaseWidget):
         QApplication.clipboard().setText(text)
     
     
-    #------Mouse events
-    def mouseReleaseEvent(self, event):
-        """Go to error"""
-        ConsoleBaseWidget.mouseReleaseEvent(self, event)            
-        text = self.get_line_at(event.pos())
-        if get_error_match(text) and not self.has_selected_text():
-            self.emit(SIGNAL("go_to_error(QString)"), text)
-
-    def mouseMoveEvent(self, event):
-        """Show Pointing Hand Cursor on error messages"""
-        text = self.get_line_at(event.pos())
-        if get_error_match(text):
-            if not self.__cursor_changed:
-                QApplication.setOverrideCursor(QCursor(Qt.PointingHandCursor))
-                self.__cursor_changed = True
-            event.accept()
-            return
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-        ConsoleBaseWidget.mouseMoveEvent(self, event)
-        
-    def leaveEvent(self, event):
-        """If cursor has not been restored yet, do it now"""
-        if self.__cursor_changed:
-            QApplication.restoreOverrideCursor()
-            self.__cursor_changed = False
-        ConsoleBaseWidget.leaveEvent(self, event)
-
-                
     #------ Key handlers
     def postprocess_keyevent(self, event):
         """Process keypress event"""
@@ -853,12 +786,6 @@ class PythonShellWidget(ShellBaseWidget):
         """Action for ESCAPE key"""
         if self.is_completion_widget_visible():
             self.hide_completion_widget()
-    
-    def _key_shift_escape(self):
-        self.clear_line()
-
-    def _key_ctrl_shift_escape(self):
-        self.clear_terminal()
 
     def _key_question(self, text):
         """Action for '?'"""
@@ -915,9 +842,6 @@ class PythonShellWidget(ShellBaseWidget):
     def get_dir(self, objtxt):
         """Return dir(object)"""
         raise NotImplementedError
-    def get_completion(self, objtxt):
-        """Return completion list associated to object name"""
-        pass
     def get_module_completion(self, objtxt):
         """Return module completion list associated to object name"""
         pass
@@ -974,30 +898,6 @@ class PythonShellWidget(ShellBaseWidget):
                                       automatic=automatic)
             return
         
-        #-- IPython only -------------------------------------------------------
-        # Using IPython code completion feature: __IP.complete
-        elif ' ' in text and not text.endswith(' '):
-            try1 = text.split(' ')[-1]
-            obj_list = self.get_completion(try1)
-            if obj_list:
-                self.show_completion_list(obj_list, completion_text=try1,
-                                          automatic=automatic)
-                return
-        elif text.startswith('%'):
-            # IPython magic commands
-            obj_list = self.get_completion(text)
-            if obj_list:
-                self.show_completion_list(obj_list, completion_text=text,
-                                          automatic=automatic)
-            # There is no point continuing the process when text starts with '%'
-            return
-        obj_list = self.get_completion(last_obj)
-        if not text.endswith('.') and last_obj and obj_list:
-            self.show_completion_list(obj_list, completion_text=last_obj,
-                                      automatic=automatic)
-            return
-        #-----------------------------------------------------------------------
-        
         obj_dir = self.get_dir(last_obj)
         if last_obj and obj_dir and text.endswith('.'):
             self.show_completion_list(obj_dir, automatic=automatic)
@@ -1040,68 +940,11 @@ class PythonShellWidget(ShellBaseWidget):
                                       completion_text=text[q_pos+1:],
                                       automatic=automatic)
             return
-    
-    def show_docstring(self, text, call=False, force=False):
-        """Show docstring or arguments"""
-        text = unicode(text) # Useful only for ExternalShellBase
-        
-        insp_enabled = self.inspector_enabled or force
-        if force and self.inspector is not None:
-            self.inspector.dockwidget.setVisible(True)
-            self.inspector.dockwidget.raise_()
-        if insp_enabled and (self.inspector is not None) and \
-           (self.inspector.dockwidget.isVisible()):
-            # ObjectInspector widget exists and is visible
-            self.inspector.set_shell(self)
-            self.inspector.set_object_text(text, ignore_unknown=True)
-            self.setFocus() # if inspector was not at top level, raising it to
-                            # top will automatically give it focus because of
-                            # the visibility_changed signal, so we must give
-                            # focus back to shell
-            if call and self.calltips:
-                # Display argument list if this is function call
-                iscallable = self.iscallable(text)
-                if iscallable is not None:
-                    if iscallable:
-                        arglist = self.get_arglist(text)
-                        if isinstance(arglist, bool):
-                            arglist = []
-                        if arglist:
-                            self.show_calltip(_("Arguments"),
-                                              arglist, '#129625')
-        elif self.calltips: # inspector is not visible or link is disabled
-            doc = self.get__doc__(text)
-            if doc is not None:
-                self.show_calltip(_("Documentation"), doc)
         
         
     #------ Miscellanous
-    def get_last_obj(self, last=False):
-        """
-        Return the last valid object on the current line
-        """
-        return getobj(self.get_current_line_to_cursor(), last=last)
-        
-    def set_inspector(self, inspector):
-        """Set ObjectInspector DockWidget reference"""
-        self.inspector = inspector
-        self.inspector.set_shell(self)
-
     def set_inspector_enabled(self, state):
         self.inspector_enabled = state
-        
-    def inspect_current_object(self):
-        text = ''
-        text1 = self.get_text('sol', 'cursor')
-        tl1 = re.findall(r'([a-zA-Z_]+[0-9a-zA-Z_\.]*)', text1)
-        if tl1 and text1.endswith(tl1[-1]):
-            text += tl1[-1]
-        text2 = self.get_text('cursor', 'eol')
-        tl2 = re.findall(r'([0-9a-zA-Z_\.]+[0-9a-zA-Z_\.]*)', text2)
-        if tl2 and text2.startswith(tl2[0]):
-            text += tl2[0]
-        if text:
-            self.show_docstring(text, force=True)
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):

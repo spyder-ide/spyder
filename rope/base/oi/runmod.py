@@ -187,6 +187,7 @@ def __rope_start_everything():
 
         def close(self):
             self.sender.close()
+            sys.settrace(None)
 
     def _realpath(path):
         return os.path.realpath(os.path.abspath(os.path.expanduser(path)))

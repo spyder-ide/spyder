@@ -28,7 +28,7 @@ def apply():
     
     See [1], [2] and [3] in module docstring."""
     import rope
-    if rope.VERSION not in ('0.9.3', '0.9.2'):
+    if rope.VERSION not in ('0.9.4', '0.9.3', '0.9.2'):
         raise ImportError, "rope %s can't be patched" % rope.VERSION
 
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
@@ -51,6 +51,8 @@ def apply():
         # [2] ...so that forced builtin modules (i.e. modules that were 
         # declared as 'extension_modules' in rope preferences) will be indeed
         # recognized as builtins by rope, as expected
+        # 
+        # This patch is included in rope 0.9.4+ but applying it anyway is ok
         def get_module(self, name, folder=None):
             """Returns a `PyObject` if the module was found."""
             # check if this is a builtin module

@@ -92,8 +92,8 @@ class RopeProject(object):
     def create_rope_project(self, root_path):
         try:
             import rope.base.project
-            self.project = rope.base.project.Project(root_path,
-                                                          **ROPE_PREFS)
+            self.project = rope.base.project.Project(
+                encoding.to_fs_from_unicode(root_path), **ROPE_PREFS)
         except ImportError:
             self.project = None
             if DEBUG:
@@ -519,7 +519,19 @@ class CodeEditor(TextEditBaseWidget):
         self.connect(self, SIGNAL("updateRequest(QRect,int)"),
                      self.update_linenumberarea)
 
-        # Syntax highlighting
+
+        # --- Syntax highlight entrypoint ---
+        #
+        # - if set, self.highlighter is responsible for
+        #   - coloring raw text data inside editor on load
+        #   - coloring text data when editor is cloned
+        #   - updating document highlight on line edits
+        #   - providing color palette (scheme) for the editor
+        #   - providing data for Outliner
+        # - self.highlighter is not responsible for
+        #   - background highlight for current line
+        #   - background highlight for search / current line occurences
+
         self.highlighter_class = syntaxhighlighters.TextSH
         self.highlighter = None
         ccs = 'Spyder'
@@ -530,6 +542,7 @@ class CodeEditor(TextEditBaseWidget):
         #  Background colors: current line, occurences
         self.currentline_color = QColor(Qt.red).lighter(190)
         self.highlight_current_line_enabled = False
+        
 
         # Scrollbar flag area
         self.scrollflagarea_enabled = None
@@ -540,7 +553,7 @@ class CodeEditor(TextEditBaseWidget):
         self.todo_color = "#B4D4F3"
         self.breakpoint_color = "#30E62E"
 
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
         self.document_id = id(self)
 
@@ -556,6 +569,10 @@ class CodeEditor(TextEditBaseWidget):
 
         # Block user data
         self.blockuserdata_list = []
+        
+        # Update breakpoints if the number of lines in the file changes
+        self.connect(self, SIGNAL("blockCountChanged(int)"),
+                     self.update_breakpoints)
 
         # Mark occurences timer
         self.occurence_highlighting = None
@@ -593,6 +610,9 @@ class CodeEditor(TextEditBaseWidget):
         self.setMouseTracking(True)
         self.__cursor_changed = False
         self.ctrl_click_color = QColor(Qt.blue)
+        
+        # Breakpoints
+        self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
         self.codecomp_sc = QShortcut(QKeySequence("Ctrl+Space"), self,
@@ -723,12 +743,9 @@ class CodeEditor(TextEditBaseWidget):
 
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
-            self.update_linenumberarea_width(0)
-        elif font is not None:
-            self.set_font(font, color_scheme)
-        elif color_scheme is not None:
-            self.set_color_scheme(color_scheme)
+            self.update_linenumberarea_width()
 
+        self.set_text_format(font, color_scheme)
         self.toggle_wrap_mode(wrap)
 
     def set_tab_mode(self, enable):
@@ -794,9 +811,19 @@ class CodeEditor(TextEditBaseWidget):
                     else:
                         self.classfunc_match = CFMatch()
                     break
+        self._set_highlighter(sh_class)
+
+    def _set_highlighter(self, sh_class):
         if self.highlighter_class is not sh_class:
             self.highlighter_class = sh_class
-            self.apply_highlighter_settings()
+            if self.highlighter is not None:
+                # Removing old highlighter
+                # TODO: test if leaving parent/document as is eats memory
+                self.highlighter.setParent(None)
+                self.highlighter.setDocument(None)
+            self.highlighter = self.highlighter_class(self.document(),
+                                                self.font(), self.color_scheme)
+            self._apply_highlighter_color_scheme()
 
     def is_python(self):
         return self.highlighter_class is syntaxhighlighters.PythonSH
@@ -811,6 +838,7 @@ class CodeEditor(TextEditBaseWidget):
         """
         if self.highlighter is not None:
             self.highlighter.rehighlight()
+        self.highlight_current_line()
 
 
     def setup_margins(self, linenumbers=True, markers=True):
@@ -995,7 +1023,7 @@ class CodeEditor(TextEditBaseWidget):
     def set_linenumberarea_enabled(self, state):
         self.linenumberarea_enabled = state
         self.linenumberarea.setVisible(state)
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
     def get_linenumberarea_width(self):
         """Return current line number area width"""
@@ -1011,13 +1039,17 @@ class CodeEditor(TextEditBaseWidget):
             maxb /= 10
             digits += 1
         if self.linenumbers_margin:
-            linenumbers_margin = 3+self.fontMetrics().width('9')*digits
+            linenumbers_margin = 3+self.fontMetrics().width('9'*digits)
         else:
             linenumbers_margin = 0
         return linenumbers_margin+self.get_markers_margin()
 
-    def update_linenumberarea_width(self, new_block_count):
-        """Update line number area width"""
+    def update_linenumberarea_width(self, new_block_count=None):
+        """
+        Update line number area width.
+        
+        new_block_count is needed to handle blockCountChanged(int) signal
+        """
         self.setViewportMargins(self.compute_linenumberarea_width(), 0,
                                 self.get_scrollflagarea_width(), 0)
 
@@ -1030,7 +1062,7 @@ class CodeEditor(TextEditBaseWidget):
                                        self.linenumberarea.width(),
                                        qrect.height())
         if qrect.contains(self.viewport().rect()):
-            self.update_linenumberarea_width(0)
+            self.update_linenumberarea_width()
 
     def linenumberarea_paint_event(self, event):
         """Painting line number area"""
@@ -1178,6 +1210,9 @@ class CodeEditor(TextEditBaseWidget):
         for line_number, condition in breakpoints:
             self.add_remove_breakpoint(line_number, condition)
 
+    def update_breakpoints(self):
+        """Update breakpoints"""
+        self.emit(SIGNAL('breakpoints_changed()'))
 
     #-----Code introspection
     def do_code_completion(self):
@@ -1207,7 +1242,7 @@ class CodeEditor(TextEditBaseWidget):
         """Toggle scroll flag area visibility"""
         self.scrollflagarea_enabled = state
         self.scrollflagarea.setVisible(state)
-        self.update_linenumberarea_width(0)
+        self.update_linenumberarea_width()
 
     def get_scrollflagarea_width(self):
         """Return scroll flag area width"""
@@ -1308,7 +1343,7 @@ class CodeEditor(TextEditBaseWidget):
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.get_linenumberarea_width() \
-            +self.fontMetrics().width('9')*self.edge_line.column+5
+            +self.fontMetrics().width('9'*self.edge_line.column)+5
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
@@ -1316,7 +1351,7 @@ class CodeEditor(TextEditBaseWidget):
 
     #-----highlight current line
     def highlight_current_line(self):
-        """Highlight current line"""
+        """Highlight current line. Works without self.highlighter"""
         if self.highlight_current_line_enabled:
             selection = QTextEdit.ExtraSelection()
             selection.format.setProperty(QTextFormat.FullWidthSelection,
@@ -1336,7 +1371,7 @@ class CodeEditor(TextEditBaseWidget):
         self.remove_selected_text()
 
     def _apply_highlighter_color_scheme(self):
-        """Apply syntax highlighter color scheme"""
+        """Apply color scheme from syntax highlighter to the editor"""
         hl = self.highlighter
         if hl is not None:
             self.set_palette(background=hl.get_background_color(),
@@ -1347,47 +1382,32 @@ class CodeEditor(TextEditBaseWidget):
             self.area_background_color = hl.get_sideareas_color()
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
-        self.highlight_current_line()
 
-    def apply_highlighter_settings(self, color_scheme=None):
-        """Apply syntax highlighter settings"""
-        if self.highlighter_class is not None:
-            if not isinstance(self.highlighter, self.highlighter_class):
-                # Highlighter object has not been constructed yet
-                # or language has changed so it must be re-constructed
-                if self.highlighter is not None:
-                    # Removing old highlighter
-                    self.highlighter.setParent(None)
-                    self.highlighter.setDocument(None)
-                self.highlighter = self.highlighter_class(self.document(),
-                                                self.font(), self.color_scheme)
-                self._apply_highlighter_color_scheme()
-            else:
-                # Highlighter object has already been created:
-                # updating highlighter settings (font and color scheme)
-                self.highlighter.setup_formats(self.font())
-                if color_scheme is not None:
-                    self.set_color_scheme(color_scheme)
-                else:
-                    self.highlighter.rehighlight()
-
-    def set_font(self, font, color_scheme=None):
-        """Set shell font"""
-        # Note: why using this method to set color scheme instead of
-        #       'set_color_scheme'? To avoid rehighlighting the document twice
-        #       at startup.
+    def set_text_format(self, font=None, color_scheme=None):
+        """Set font and color_scheme at once to avoid rehighlighting twice"""
+        # update CodeEditor attributes
+        if font is not None:
+           self.setFont(font)
+           self.update_linenumberarea_width()
         if color_scheme is not None:
-            self.color_scheme = color_scheme
-        self.setFont(font)
-        self.update_linenumberarea_width(0)
-        self.apply_highlighter_settings(color_scheme)
+           self.color_scheme = color_scheme
+        
+        # update highligher
+        if self.highlighter is not None:
+            self.highlighter.setup_text_format(font, color_scheme)
+            # update CodeEditor again from highlighter
+            if color_scheme is not None:
+                self._apply_highlighter_color_scheme()
+    
+        self.rehighlight()
+
+    def set_font(self, font):
+        """Set shell font"""
+        self.set_text_format(font)
 
     def set_color_scheme(self, color_scheme):
-        """Set syntax highlighter color scheme"""
-        self.color_scheme = color_scheme
-        if self.highlighter is not None:
-            self.highlighter.set_color_scheme(color_scheme)
-        self._apply_highlighter_color_scheme()
+        """Set color scheme for syntax highlighting"""
+        self.set_text_format(color_scheme=color_scheme)
 
     def set_text(self, text):
         """Set the text of the editor"""
@@ -1634,6 +1654,14 @@ class CodeEditor(TextEditBaseWidget):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
+                # When commenting lines add prefix before the first character
+                # to help users to maintain indentation
+                if prefix == self.comment_string:
+                    text = unicode(cursor.block().text())
+                    # Only move the cursor if the line has some level of
+                    # indentation
+                    if text != text.lstrip():
+                        cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
@@ -1641,8 +1669,17 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-            if begins_at_block_start:
-                # Extending selection to prefix:
+
+            # Decide wheter to extend the selection after insterting comments.
+            # 'text' in this case corresponds to the one of the first line in
+            # the selection (last to be assigned on the previous block).
+            extend_on_comment = True
+            if prefix == self.comment_string:
+                if text != text.lstrip():
+                    extend_on_comment = False
+
+            # Extending selection to prefix
+            if begins_at_block_start and extend_on_comment:
                 cursor = self.textCursor()
                 start_pos = cursor.selectionStart()
                 end_pos = cursor.selectionEnd()
@@ -1657,6 +1694,10 @@ class CodeEditor(TextEditBaseWidget):
             # Add prefix to current line
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
+            if prefix == self.comment_string:
+                text = unicode(cursor.block().text())
+                if text != text.lstrip():
+                    cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
 

@@ -15,11 +15,10 @@ http://code.google.com/p/spyderlib/issues/detail?id=741
 # pylint: disable=C0103
 
 import os
-import subprocess
 import sys
 import optparse
 
-# Parsing command line options
+# --- Parse command line
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="Arguments for Spyder's main script are specified after the "\
@@ -40,6 +39,7 @@ sys.argv = [sys.argv[0]] + args
 print("Executing Spyder from source checkout")
 DEVPATH = os.path.dirname(os.path.abspath(__file__))
 
+# --- Test environment for sanity
 # Warn if Spyder is located on non-ASCII path
 # http://code.google.com/p/spyderlib/issues/detail?id=812
 try:
@@ -49,14 +49,8 @@ except UnicodeDecodeError:
     print("      which is known to cause problems (see issue #812).")
     raw_input("Press Enter to continue or Ctrl-C to abort...")
 
-# Retrieving Mercurial revision number
-try:
-    output = subprocess.Popen('hg id -nib "%s"' % DEVPATH, shell=True,
-                              stdout=subprocess.PIPE).communicate()
-    hgid, hgnum, hgbranch = output[0].strip().split()
-    print("Revision %s:%s, Branch: %s" % (hgnum, hgid, hgbranch))
-except Exception as exc:
-    print("Error: Failed to get revision number from Mercurial - %s" % exc)
+from spyderlib.utils.vcs import get_hg_revision
+print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
@@ -77,17 +71,9 @@ else:
 # Importing Spyder (among other things, this has the effect of setting the 
 # QT_API environment variable if this has not yet been done just above)
 from spyderlib import spyder
-QT_API = os.environ['QT_API']
-QT_LIB = {'pyqt': 'PyQt4', 'pyside': 'PySide'}[QT_API]
-if QT_API == 'pyqt':
-    import sip
-    try:
-        QT_LIB += (" (API v%d)" % sip.getapi('QString'))
-    except AttributeError:
-        pass
+from spyderlib import qt
 print("03. Imported Spyder %s (Qt %s via %s %s)" % \
-    (spyder.__version__, spyder.qt.QtCore.__version__,
-     QT_LIB, spyder.qt.__version__))
+    (spyder.__version__, qt.QtCore.__version__, qt.API_NAME, qt.__version__))
 
 # Executing Spyder
 if not options.hide_console:

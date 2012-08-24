@@ -8,6 +8,54 @@
   * *Object Inspector*:
     * Add the capability to render mathematical equations using the MathJax Sphinx extension (it requires Sphinx 1.1+)
 
+== Version 2.1.10 ==
+
+=== Bug fixes (since v2.1.9) ===
+
+  * Critical bugs:
+    * Spyder crashed at startup/!TypeError: `_isdir()` takes exactly 1 argument (0 given). Affects only Windows platforms with Python 3.2.2+ or 2.7.3+)
+    * Spyder was freezing when working with netCDF4 objects in the interactive console
+    * Console: h5py was systematically imported to avoid crashes with the HDF5 plugin (Variable Explorer's I/O plugin). These ugly workarounds introduced with revision 3affc82ce081 were removed in this changeset to avoid side effects like DLL version conflict on Windows platforms. The main risk of this change is to break the HDF5 plugin on some configurations. But this is the best compromise.
+  * General:
+    * Fixed regression: when no Qt library is installed (!PyQt/!PySide), warning the user with a Tkinter dialog box (if possible)
+    * Fixed Preferences Dialog flickering issue introduced with revision a4e1565e93c5
+    * Run configuration dialog: fixed Tab focus order behavior
+    * Fixed "Run > Configure..." and "PYTHONPATH management" entry locations on MacOSX
+    * Updated bootstrap script and Qt library selection logic to accomodate launch of Spyder using PySide while PyQt is also installed (Issue 1013, see Issue 975 for additional background).
+    * Fixed several encoding problems preventing Spyder from launching when the user's home directory contains non-ASCII characters (Issue 812, Issue 1027).
+    * Debugging: Issue 684: Debug with winpdb will now use the command line options and working directory specified in the General Setting section of the Run Configuration dialog
+  * Console:
+    * Changed "Clear shell" shortcut to "Ctrl+L" to avoid conflict with the Windows Task Manager shortcut on Windows platforms
+    * Preferences/Advanced options: added option to start an IPython kernel at startup
+  * Editor:
+    * When multiple files were open, close-clicking 1 file was closing 2 files on 64-bits OS
+    * Conditional breakpoint could not be changed to regular breakpoint
+    * Outline Explorer: removed obsolete decorated methods icon (a decorated method is now shown exactly as a regular method)
+    * Top-left corner menu (file list): fixed common prefix removal feature
+    * "Outline" item selection opened in incorrect split panel due to a lost signal when focus changed from an editor to another
+    * when splitting window after changing a shortcut, old shortcut was still active
+  * Internal console/fixed an old regression: re-added help(), raw_input() support
+  * Profiler: tree was sometimes empty + fixed error when file path contained "&"
+  * File/Project explorer: fixed [by shchelokovskyy] Git commit/browse support
+  * Find in files: fixed crash due to a bug in the common prefix finder function
+
+=== Other changes (since v2.1.9) ===
+
+  * Checked Spyder's `rope` patch compatibility with rope v0.9.4
+  * IPython plugin (experimental):
+    * added support for "Execute in current interpreter"
+    * added support for "Execute selection or block (F9)"
+    * imports from local directory did not work
+    * when a new kernel is started in Console, tabifying the frontend to the Console (for the first created frontend) and the next frontends to the previously created frontend
+    * clients (frontends) may now really be closed (see context menu). The associated kernel and related clients may be closed as well (a message box dialog ask the user about this)
+    * added support for the "Object Inspector to/from IPython kernel" link
+    * improved reliability of the "Editor to/from IPython kernel" link
+    * fixed focus management issue (link with variable explorer and object inspector)
+
+----
+
+== Version 2.1.9 ==
+
 === Bug fixes (since v2.1.8) ===
 
   * Run configuration/bugfix: command line options were not properly parsed

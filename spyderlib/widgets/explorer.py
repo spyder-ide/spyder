@@ -29,15 +29,15 @@ import shutil
 
 # Local imports
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
-from spyderlib.utils import misc, encoding, programs, scm
+from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
 
 
 def fixpath(path):
-    """Fix/normalize path"""
+    """Normalize path fixing case, making absolute and removing symlinks"""
     norm = osp.normcase if os.name == 'nt' else osp.normpath
-    return norm(osp.abspath(path))
+    return norm(osp.abspath(osp.realpath(path)))
 
 
 def create_script(fname):
@@ -62,11 +62,6 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
             namelist.append(item)
     return sorted(dirlist, key=unicode.lower) + \
            sorted(namelist, key=unicode.lower)
-
-
-def abspardir(path):
-    """Return absolute parent dir"""
-    return osp.abspath(osp.join(path, os.pardir))
 
 
 def has_subdirectories(path, include, exclude, show_all):
@@ -259,19 +254,19 @@ class DirView(QTreeView):
             actions.append(move_action)
         actions += [None]
         
-        # SCM support is quite limited for now, so we are enabling the SCM
+        # VCS support is quite limited for now, so we are enabling the VCS
         # related actions only when a single file/folder is selected:
         dirname = fnames[0] if osp.isdir(fnames[0]) else osp.dirname(fnames[0])
-        if len(fnames) == 1 and scm.is_scm_repository(dirname):
-            scm_ci = create_action(self, _("Commit"),
-                                   icon="scm_commit.png",
+        if len(fnames) == 1 and vcs.is_vcs_repository(dirname):
+            vcs_ci = create_action(self, _("Commit"),
+                                   icon="vcs_commit.png",
                                    triggered=lambda fnames=[dirname]:
-                                   self.scm_command(fnames, tool='commit'))
-            scm_log = create_action(self, _("Browse repository"),
-                                    icon="scm_browse.png",
+                                   self.vcs_command(fnames, tool='commit'))
+            vcs_log = create_action(self, _("Browse repository"),
+                                    icon="vcs_browse.png",
                                     triggered=lambda fnames=[dirname]:
-                                    self.scm_command(fnames, tool='browse'))
-            actions += [None, scm_ci, scm_log]
+                                    self.vcs_command(fnames, tool='browse'))
+            actions += [None, vcs_ci, vcs_log]
         
         return actions
 
@@ -291,12 +286,6 @@ class DirView(QTreeView):
                                triggered=lambda fnames=fnames:
                                self.open_interpreter(fnames))
         actions.append(action)
-        if programs.is_module_installed('IPython', '0.1'):
-            _title = _("Open IPython here")
-            action = create_action(self, _title, icon="ipython.png",
-                                   triggered=lambda fnames=fnames:
-                                   self.open_ipython(fnames))
-            actions.append(action)
         return actions
         
     def create_context_menu_actions(self):
@@ -423,11 +412,6 @@ class DirView(QTreeView):
         """Open interpreter"""
         for path in sorted(fnames):
             self.parent_widget.emit(SIGNAL("open_interpreter(QString)"), path)
-            
-    def open_ipython(self, fnames):
-        """Open IPython"""
-        for path in sorted(fnames):
-            self.parent_widget.emit(SIGNAL("open_ipython(QString)"), path)
         
     def run(self, fnames=None):
         """Run Python scripts"""
@@ -635,12 +619,12 @@ class DirView(QTreeView):
                                      SIGNAL("create_module(QString)"), fname)
         self.create_new_file(basedir, title, filters, create_func)
         
-    #----- SCM actions
-    def scm_command(self, fnames, tool):
-        """SCM command (Mercurial, git...)"""
+    #----- VCS actions
+    def vcs_command(self, fnames, tool):
+        """VCS command (Mercurial, git...)"""
         try:
             for path in sorted(fnames):
-                scm.run_scm_tool(path, tool=tool)
+                vcs.run_vcs_tool(path, tool=tool)
         except RuntimeError, error:
             QMessageBox.critical(self, _("Error"),
                                  _("<b>Unable to find external program.</b>"

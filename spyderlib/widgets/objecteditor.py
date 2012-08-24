@@ -127,8 +127,7 @@ def oedit(obj, modal=True, namespace=None):
         import os
         qt_inputhook = os.environ.get("INSTALL_QT_INPUTHOOK",
                                       "").lower() == "true"
-        if os.name == 'nt' and not qt_inputhook \
-           and not os.environ.get('IPYTHON', False):
+        if os.name == 'nt' and not qt_inputhook:
             app.exec_()
 
 

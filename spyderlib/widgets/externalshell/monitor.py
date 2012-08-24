@@ -112,9 +112,10 @@ class Monitor(threading.Thread):
     def __init__(self, host, introspection_port, notification_port,
                  shell_id, timeout, auto_refresh):
         threading.Thread.__init__(self)
-        self.ipython_shell = None
-        self.ipython_kernel = None
         self.setDaemon(True)
+
+        self.ipython_kernel = None
+        self.ipython_shell = None
         
         self.pdb_obj = None
         
@@ -143,7 +144,6 @@ class Monitor(threading.Thread):
                        "is_array": self.is_array,
                        "is_image": self.is_image,
                        "get_globals_keys": self.get_globals_keys,
-                       "getcomplist": self.getcomplist,
                        "getmodcomplist": self.getmodcomplist,
                        "getcdlistdir": _getcdlistdir,
                        "getcwd": self.getcwd,
@@ -211,11 +211,8 @@ class Monitor(threading.Thread):
                             dict(command="ipython_kernel",
                                  data=self.ipython_kernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython >=v0.11
+                # IPython 0.12+ kernel
                 self.ipython_shell = glbs['__ipythonshell__']
-                if not hasattr(self.ipython_shell, 'user_ns'):
-                    # IPython v0.10
-                    self.ipython_shell = self.ipython_shell.IP
                 self.ipython_shell.modcompletion = moduleCompletion
                 glbs = self.ipython_shell.user_ns
             self._mglobals = glbs
@@ -352,25 +349,10 @@ class Monitor(threading.Thread):
         obj, valid = self._eval(objtxt)
         if valid:
             return getsource(obj)
-    
-    def getcomplist(self, name):
-        """Return completion list for object named *name*
-        ** IPython only **"""
-        if self.ipython_shell:
-            complist = self.ipython_shell.complete(name)
-            if len(complist) == 2 and isinstance(complist[1], list):
-                # IPython v0.11
-                return complist[1]
-            else:
-                # IPython v0.10
-                return complist
             
     def getmodcomplist(self, name):
         """Return module completion list for object named *name*"""
-        if self.ipython_shell:
-            return self.ipython_shell.modcompletion(name)
-        else:
-            return moduleCompletion(name)
+        return moduleCompletion(name)
                 
     #------ Other
     def is_array(self, name):
@@ -393,17 +375,15 @@ class Monitor(threading.Thread):
 
     def getcwd(self):
         """Return current working directory"""
-        if self.ipython_shell:
-            return self.ipython_shell.magic_pwd()
-        else:
-            return os.getcwdu()
+        return os.getcwdu()
     
     def setcwd(self, dirname):
         """Set current working directory"""
-        if self.ipython_shell:
-            self.ipython_shell.magic_cd("-q "+dirname)
-        else:
-            return os.chdir(dirname)
+        try:
+            dirname = dirname.decode('utf-8')
+        except (UnicodeError, TypeError):
+            pass
+        return os.chdir(dirname)
             
     def getenv(self):
         """Return os.environ"""
@@ -440,8 +420,8 @@ class Monitor(threading.Thread):
         """
         settings = self.remote_view_settings
         if settings:
-            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
             ns = self.get_current_namespace()
+            more_excluded_names = ['In', 'Out'] if self.ipython_shell else None
             remote_view = make_remote_view(ns, settings, more_excluded_names)
             communicate(self.n_request,
                         dict(command="remote_view", data=remote_view))

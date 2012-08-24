@@ -1,5 +1,6 @@
 import rope.base.exceptions
 import rope.base.pyobjects
+from rope.base.builtins import Lambda
 from rope.base import worder
 
 
@@ -34,8 +35,10 @@ class DefinitionInfo(object):
         scope = pyfunction.get_scope()
         parent = scope.parent
         parameter_names = pyfunction.get_param_names()
-        is_method = pyfunction.get_kind() == 'method'
-        info = _FunctionParser(code, is_method)
+        kind = pyfunction.get_kind()
+        is_method = kind == 'method'
+        is_lambda = kind == 'lambda'
+        info = _FunctionParser(code, is_method, is_lambda)
         args, keywords = info.get_parameters()
         args_arg = None
         keywords_arg = None
@@ -56,7 +59,10 @@ class DefinitionInfo(object):
         word_finder = worder.Worder(pymodule.source_code)
         lineno = pyfunction.get_ast().lineno
         start = pymodule.lines.get_line_start(lineno)
-        call = word_finder.get_function_and_args_in_header(start)
+        if isinstance(pyfunction, Lambda):
+            call = word_finder.get_lambda_and_args(start)
+        else:
+            call = word_finder.get_function_and_args_in_header(start)
         return DefinitionInfo._read(pyfunction, call)
 
 
@@ -183,11 +189,14 @@ class ArgumentMapping(object):
 
 class _FunctionParser(object):
 
-    def __init__(self, call, implicit_arg):
+    def __init__(self, call, implicit_arg, is_lambda=False):
         self.call = call
         self.implicit_arg = implicit_arg
         self.word_finder = worder.Worder(self.call)
-        self.last_parens = self.call.rindex(')')
+        if is_lambda:
+            self.last_parens = self.call.rindex(':')
+        else:
+            self.last_parens = self.call.rindex(')')
         self.first_parens = self.word_finder._find_parens_start(self.last_parens)
 
     def get_parameters(self):

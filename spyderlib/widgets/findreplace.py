@@ -12,14 +12,26 @@
 # pylint: disable=R0201
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QGridLayout, QCheckBox, QLabel,
-                                QWidget, QSizePolicy, QShortcut, QKeySequence)
+                                QWidget, QSizePolicy, QShortcut, QKeySequence,
+                                QTextCursor)
 from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
+
+import re
 
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.baseconfig import _
 from spyderlib.config import get_icon
+
+
+def is_position_sup(pos1, pos2):
+    """Return True is pos1 > pos2"""
+    return pos1 > pos2
+    
+def is_position_inf(pos1, pos2):
+    """Return True is pos1 < pos2"""
+    return pos1 < pos2
 
 
 class FindReplace(QWidget):
@@ -48,6 +60,9 @@ class FindReplace(QWidget):
         # Find layout
         self.search_text = PatternComboBox(self, tip=_("Search string"),
                                            adjust_to_minimum=False)
+        self.connect(self.search_text, SIGNAL('valid(bool)'),
+                     lambda state:
+                     self.find(changed=False, forward=True, rehighlight=False))
         self.connect(self.search_text.lineEdit(),
                      SIGNAL("textEdited(QString)"), self.text_has_been_edited)
         
@@ -264,7 +279,7 @@ class FindReplace(QWidget):
         state = self.find(changed=False, forward=False, rehighlight=False)
         self.editor.setFocus()
         return state
-        
+
     def text_has_been_edited(self, text):
         """Find text has been edited (this slot won't be triggered when 
         setting the search pattern combo box text programmatically"""
@@ -312,15 +327,18 @@ class FindReplace(QWidget):
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):
-            replace_text = self.replace_text.currentText()
-            search_text = self.search_text.currentText()
+            replace_text = unicode(self.replace_text.currentText())
+            search_text = unicode(self.search_text.currentText())
             pattern = search_text if self.re_button.isChecked() else None
+            case = self.case_button.isChecked()
             first = True
             while True:
                 if first:
                     # First found
-                    if self.editor.has_selected_text() and \
-                       self.editor.get_selected_text() == unicode(search_text):
+                    seltxt = unicode(self.editor.get_selected_text())
+                    cmptxt1 = search_text if case else search_text.lower()
+                    cmptxt2 = seltxt if case else seltxt.lower()
+                    if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
                         # Text was already found, do nothing
                         pass
                     else:
@@ -331,24 +349,39 @@ class FindReplace(QWidget):
                     wrapped = False
                     position = self.editor.get_position('cursor')
                     position0 = position
+                    cursor = self.editor.textCursor()
+                    cursor.beginEditBlock()
                 else:
                     position1 = self.editor.get_position('cursor')
                     if wrapped:
                         if position1 == position or \
-                           self.editor.is_position_sup(position1, position):
+                           is_position_sup(position1, position):
                             # Avoid infinite loop: replace string includes
                             # part of the search string
                             break
                     if position1 == position0:
                         # Avoid infinite loop: single found occurence
                         break
-                    if self.editor.is_position_inf(position1, position0):
+                    if is_position_inf(position1, position0):
                         wrapped = True
                     position0 = position1
-                self.editor.replace(replace_text, pattern=pattern)
-                if not self.find_next():
+                if pattern is None:
+                    cursor.removeSelectedText()
+                    cursor.insertText(replace_text)
+                else:
+                    seltxt = unicode(cursor.selectedText())
+                    cursor.removeSelectedText()
+                    cursor.insertText(re.sub(pattern, replace_text, seltxt))
+                if self.find_next():
+                    found_cursor = self.editor.textCursor()
+                    cursor.setPosition(found_cursor.selectionStart(),
+                                       QTextCursor.MoveAnchor)
+                    cursor.setPosition(found_cursor.selectionEnd(),
+                                       QTextCursor.KeepAnchor)
+                else:
                     break
                 if not self.all_check.isChecked():
                     break
             self.all_check.setCheckState(Qt.Unchecked)
-            
+            if cursor is not None:
+                cursor.endEditBlock()
