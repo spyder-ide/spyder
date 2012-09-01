@@ -1030,7 +1030,7 @@ class IPythonConsole(SpyderPluginWidget):
             if cl.kernel_widget_id == kernel_id:
                 return cl.ipywidget
         else:
-            raise ValueError, "Unknown kernel widget ID %r" % kernel_id
+            raise ValueError("Unknown kernel widget ID %r" % kernel_id)
         
     def add_tab(self, widget, name):
         """Add tab"""

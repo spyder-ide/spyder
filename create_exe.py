@@ -9,7 +9,7 @@
 try:
     from guidata.disthelpers import Distribution
 except ImportError:
-    raise ImportError, "This script requires guidata 1.5+"
+    raise ImportError("This script requires guidata 1.5+")
 
 import os.path as osp
 import imp

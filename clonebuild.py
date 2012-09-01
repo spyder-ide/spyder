@@ -105,7 +105,7 @@ def build_pythonxy_plugin(plugin_dir, plugin_version):
         if osp.isfile(nsis_exe):
             break
     else:
-        raise RuntimeError, "NSIS is not installed on this computer."
+        raise RuntimeError("NSIS is not installed on this computer.")
 
     for fname in nsis_files:
         os.system('"%s" %s' % (nsis_exe, fname))

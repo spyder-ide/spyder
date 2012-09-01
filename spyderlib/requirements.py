@@ -21,7 +21,7 @@ def show_warning(message):
         tkMessageBox.showerror("Spyder", message)
     except ImportError:
         pass
-    raise RuntimeError, message
+    raise RuntimeError(message)
 
 def check_path():
     """Check sys.path: is Spyder properly installed?"""

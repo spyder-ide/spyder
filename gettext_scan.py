@@ -7,7 +7,7 @@
 try:
     from guidata.gettext_helpers import do_rescan, do_rescan_files
 except ImportError:
-    raise ImportError, "This script requires guidata >= v1.3.0."
+    raise ImportError("This script requires guidata >= v1.3.0.")
 
 if __name__ == "__main__":
     do_rescan("spyderlib")

@@ -589,7 +589,7 @@ def evalsc(command):
             from spyderlib import baseconfig
             execfile(baseconfig.SCIENTIFIC_STARTUP, namespace)
         else:
-            raise NotImplementedError, "Unsupported command: '%s'" % command
+            raise NotImplementedError("Unsupported command: '%s'" % command)
 
 __builtin__.evalsc = evalsc
 

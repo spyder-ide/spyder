@@ -42,7 +42,7 @@ def add_to_distribution(dist):
     try:
         dist.add_qt_bindings()
     except AttributeError:
-        raise ImportError, "This script requires guidata 1.5+"
+        raise ImportError("This script requires guidata 1.5+")
     for _modname in ('spyderlib', 'spyderplugins'):
         dist.add_module_data_files(_modname, ("", ),
                                    ('.png', '.svg', '.html', '.png', '.txt',

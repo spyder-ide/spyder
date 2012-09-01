@@ -49,7 +49,7 @@ elif os.name == 'nt':
     # Backup plan for Windows platforms
     memory_usage = windows_memory_usage
 else:
-    raise ImportError, "Feature requires psutil 0.3+ on non Windows platforms"
+    raise ImportError("Feature requires psutil 0.3+ on non Windows platforms")
 
 
 if __name__ == '__main__':

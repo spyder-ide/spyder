@@ -231,9 +231,9 @@ class UserConfig(ConfigParser):
         if section is None:
             section = self.DEFAULT_SECTION_NAME
         elif not isinstance(section, (str, unicode)):
-            raise ValueError, "Argument 'section' must be a string"
+            raise ValueError("Argument 'section' must be a string")
         if not isinstance(option, (str, unicode)):
-            raise ValueError, "Argument 'option' must be a string"
+            raise ValueError("Argument 'option' must be a string")
         return section
 
     def get_default(self, section, option):
