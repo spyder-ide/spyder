@@ -694,25 +694,32 @@ class TextEditBaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
     def stdkey_tab(self):
         self.insert_text(self.indent_chars)
 
-    def stdkey_home(self, shift, prompt_pos=None):
+    def stdkey_home(self, shift, ctrl, prompt_pos=None):
         """Smart HOME feature: cursor is first moved at 
         indentation position, then at the start of the line"""
-        if prompt_pos is None:
-            start_position = self.get_position('sol')
-        else:
-            start_position = self.get_position(prompt_pos)
-        text = self.get_text(start_position, 'eol')
-        indent_pos = start_position+len(text)-len(text.lstrip())
-        cursor = self.textCursor()
         move_mode = self.__get_move_mode(shift)
-        if cursor.position() != indent_pos:
-            cursor.setPosition(indent_pos, move_mode)
+        if ctrl:
+            self.moveCursor(QTextCursor.Start, move_mode)
         else:
-            cursor.setPosition(start_position, move_mode)
-        self.setTextCursor(cursor)
+            cursor = self.textCursor()
+            if prompt_pos is None:
+                start_position = self.get_position('sol')
+            else:
+                start_position = self.get_position(prompt_pos)
+            text = self.get_text(start_position, 'eol')
+            indent_pos = start_position+len(text)-len(text.lstrip())
+            if cursor.position() != indent_pos:
+                cursor.setPosition(indent_pos, move_mode)
+            else:
+                cursor.setPosition(start_position, move_mode)
+            self.setTextCursor(cursor)
 
-    def stdkey_end(self, shift):
-        self.moveCursor(QTextCursor.EndOfBlock, self.__get_move_mode(shift))
+    def stdkey_end(self, shift, ctrl):
+        move_mode = self.__get_move_mode(shift)
+        if ctrl:
+            self.moveCursor(QTextCursor.End, move_mode)
+        else:
+            self.moveCursor(QTextCursor.EndOfBlock, move_mode)
 
     def stdkey_pageup(self):
         pass

@@ -135,7 +135,7 @@ class RopeProject(object):
             if DEBUG:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
             return [proposal.name for proposal in proposals]
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
@@ -173,7 +173,7 @@ class RopeProject(object):
                 return [cts, doc_text]
             else:
                 return []
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
@@ -198,7 +198,7 @@ class RopeProject(object):
             if resource is not None:
                 filename = resource.real_path
             return filename, lineno
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
@@ -2202,8 +2202,12 @@ class CodeEditor(TextEditBaseWidget):
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.emit(SIGNAL('trigger_code_completion(bool)'), True)
-        elif key == Qt.Key_Home and not ctrl:
-            self.stdkey_home(shift)
+        elif key == Qt.Key_Home:
+            self.stdkey_home(shift, ctrl)
+        elif key == Qt.Key_End:
+            # See Issue 495: on MacOS X, it is necessary to redefine this 
+            # basic action which should have been implemented natively
+            self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
             position = self.get_position('cursor')

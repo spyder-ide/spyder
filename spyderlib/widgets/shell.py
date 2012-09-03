@@ -369,10 +369,10 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
             method('word' if ctrl else 'character', direction='right')
 
         elif (key == Qt.Key_Home) or ((key == Qt.Key_Up) and ctrl):
-            self._key_home(shift)
+            self._key_home(shift, ctrl)
 
         elif (key == Qt.Key_End) or ((key == Qt.Key_Down) and ctrl):
-            self._key_end(shift)
+            self._key_end(shift, ctrl)
 
         elif key == Qt.Key_Up:
             if not self.is_cursor_on_last_line():
@@ -457,9 +457,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         raise NotImplementedError
     def _key_ctrl_space(self):
         raise NotImplementedError
-    def _key_home(self, shift):
+    def _key_home(self, shift, ctrl):
         raise NotImplementedError
-    def _key_end(self, shift):
+    def _key_end(self, shift, ctrl):
         raise NotImplementedError
     def _key_pageup(self):
         raise NotImplementedError
@@ -764,15 +764,15 @@ class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
         if not self.is_completion_widget_visible():
             self.show_code_completion(automatic=False)
                 
-    def _key_home(self, shift):
+    def _key_home(self, shift, ctrl):
         """Action for Home key"""
         if self.is_cursor_on_last_line():
-            self.stdkey_home(shift, self.current_prompt_pos)
+            self.stdkey_home(shift, ctrl, self.current_prompt_pos)
                 
-    def _key_end(self, shift):
+    def _key_end(self, shift, ctrl):
         """Action for End key"""
         if self.is_cursor_on_last_line():
-            self.stdkey_end(shift)
+            self.stdkey_end(shift, ctrl)
                 
     def _key_pageup(self):
         """Action for PageUp key"""
