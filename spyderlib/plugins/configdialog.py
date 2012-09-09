@@ -687,9 +687,20 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(cpu_layout)
         sbar_group.setLayout(sbar_layout)
         
+        debug_group = QGroupBox(_("Debugging"))
+        popup_console_box = newcb(_("Pop up internal console when errors "
+                                    "were intercepted"),
+                                  'show_internal_console_if_traceback',
+                                  default=False)
+        
+        debug_layout = QVBoxLayout()
+        debug_layout.addWidget(popup_console_box)
+        debug_group.setLayout(debug_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
         vlayout.addWidget(sbar_group)
+        vlayout.addWidget(debug_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
         
