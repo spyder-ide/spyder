@@ -1006,9 +1006,9 @@ class Editor(SpyderPluginWidget):
         self.connect(editorstack, SIGNAL('editor_focus_changed()'),
                      self.main.plugin_focus_changed)
         
-        self.connect(editorstack, SIGNAL('close_file(long,long)'),
+        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(long,long)'),
+        self.connect(editorstack, SIGNAL('file_saved(QString,int)'),
                      self.file_saved_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
@@ -1061,18 +1061,18 @@ class Editor(SpyderPluginWidget):
             self.register_widget_shortcuts("Editor", finfo.editor)
         
     @Slot(int, int)
-    def close_file_in_all_editorstacks(self, editorstack_id, index):
+    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
-            if id(editorstack) != editorstack_id:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
                 
     @Slot(int, int)
-    def file_saved_in_editorstack(self, editorstack_id, index):
+    def file_saved_in_editorstack(self, editorstack_id_str, index):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
-            if id(editorstack) != editorstack_id:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(index)
         
         

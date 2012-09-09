@@ -1226,7 +1226,13 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
             
             self.remove_from_data(index)
-            self.emit(SIGNAL('close_file(long,long)'), id(self), index)
+            
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL('close_file(QString,int)'), str(id(self)), index)
+            
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
@@ -1317,7 +1323,13 @@ class EditorStack(QWidget):
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-            self.emit(SIGNAL('file_saved(long,long)'), id(self), index)
+            
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL('file_saved(QString,int)'), str(id(self)), index)
+
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
@@ -2286,7 +2298,7 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, SIGNAL('close_file(long,long)'),
+        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -2329,9 +2341,9 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    def close_file_in_all_editorstacks(self, editorstack_id, index):
+    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
-            if id(editorstack) != editorstack_id:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
