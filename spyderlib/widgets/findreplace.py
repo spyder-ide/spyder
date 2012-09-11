@@ -313,7 +313,7 @@ class FindReplace(QWidget):
             found = self.editor.find_text(text, changed, forward, case=case,
                                           words=words, regexp=regexp)
             self.search_text.lineEdit().setStyleSheet(self.STYLE[found])
-            if found:
+            if self.is_code_editor and found:
                 if rehighlight or not self.editor.found_results:
                     self.highlight_timer.stop()
                     if start_highlight_timer:
