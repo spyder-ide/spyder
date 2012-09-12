@@ -423,7 +423,7 @@ class DirView(QTreeView):
     def remove_tree(self, dirname):
         """Remove whole directory tree
         Reimplemented in project explorer widget"""
-        shutil.rmtree(dirname)
+        shutil.rmtree(dirname, onerror=misc.onerror)
     
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
