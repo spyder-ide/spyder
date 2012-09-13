@@ -96,7 +96,7 @@ INCLUDE_PATTERNS = [r'|'.join(['\\'+_ext+r'$' for _ext in EDIT_EXT if _ext])+\
                     r'|README|INSTALL',
                     r'\.pyw?$|\.ipy$|\.txt$|\.rst$',
                     '.']
-EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|build',
+EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
                     r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn']
 
 # Name filters for file/project explorers (excluding files without extension)
