@@ -934,7 +934,7 @@ class EditorStack(QWidget):
             self.color_scheme = color_scheme
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_text_format(font, color_scheme)
+                finfo.editor.set_font(font, color_scheme)
             
     def set_color_scheme(self, color_scheme):
         self.color_scheme = color_scheme
