@@ -131,7 +131,11 @@ class BaseSH(QSyntaxHighlighter):
         self.outlineexplorer_data = {}
         
         self.font = font
-        self.__set_color_scheme(color_scheme)
+        self._check_color_scheme(color_scheme)
+        if isinstance(color_scheme, basestring):
+            self.color_scheme = COLORS[color_scheme]
+        else:
+            self.color_scheme = color_scheme
         
         self.background_color = None
         self.currentline_color = None
@@ -142,7 +146,7 @@ class BaseSH(QSyntaxHighlighter):
         self.unmatched_p_color = None
 
         self.formats = None
-        self.setup_text_format()
+        self.setup_formats(font)
         
     def get_background_color(self):
         return QColor(self.background_color)
@@ -169,14 +173,12 @@ class BaseSH(QSyntaxHighlighter):
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
 
-    def setup_text_format(self, font=None, color_scheme=None):
+    def setup_formats(self, font=None):
         base_format = QTextCharFormat()
         if font is not None:
             self.font = font
         if self.font is not None:
             base_format.setFont(self.font)
-        if color_scheme is not None:
-            self.__set_color_scheme(color_scheme)
         self.formats = {}
         colors = self.color_scheme.copy()
         self.background_color = colors.pop("background")
@@ -195,14 +197,21 @@ class BaseSH(QSyntaxHighlighter):
             format.setFontItalic(italic)
             self.formats[name] = format
 
-    def __set_color_scheme(self, color_scheme):
+    def _check_color_scheme(self, color_scheme):
         if isinstance(color_scheme, basestring):
             assert color_scheme in COLOR_SCHEME_NAMES
-            self.color_scheme = COLORS[color_scheme]
         else:
             assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
+
+    def set_color_scheme(self, color_scheme):
+        self._check_color_scheme(color_scheme)
+        if isinstance(color_scheme, basestring):
+            self.color_scheme = COLORS[color_scheme]
+        else:
             self.color_scheme = color_scheme
-    
+        self.setup_formats()
+        self.rehighlight()
+
     def highlightBlock(self, text):
         raise NotImplementedError
             
