@@ -70,6 +70,10 @@ def kernel_config():
     if use_file_o and run_file_o:
         cfg.IPKernelApp.file_to_run = run_file_o
     
+    # Autocall
+    autocall_o = CONF.get('ipython_console', 'autocall')
+    cfg.ZMQInteractiveShell.autocall = autocall_o
+    
     return cfg
 
 def set_edit_magic(shell):

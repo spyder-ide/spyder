@@ -249,6 +249,29 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         spyder_group.setLayout(spyder_layout)
         
         # ---- Advanced settings ----
+        # Autocall group
+        autocall_group = QGroupBox(_("Autocall"))
+        autocall_label = QLabel(_("Autocall makes IPython automatically call "
+                                "any callable object even if you didn't type "
+                                "explicit parentheses. For example, if you "
+                                "type <i>str 43</i> it becomes <i>str(43)</i> "
+                                "automatically. It can be set to <b>Smart</b>, "
+                                "where it is not applied if there are no "
+                                "arguments after the callable; and <b>Full</b>, "
+                                "where all callable objects are automatically "
+                                "called (even if no arguments are present)."))
+        autocall_label.setWordWrap(True)
+        
+        autocall_opts = (('Off', 0), ('Smart', 1), ('Full', 2))
+        autocall_box = self.create_combobox(
+                                      "Autocall:  ", autocall_opts, 'autocall',
+                                      default = 0)
+        
+        autocall_layout = QVBoxLayout()
+        autocall_layout.addWidget(autocall_label)
+        autocall_layout.addWidget(autocall_box)
+        autocall_group.setLayout(autocall_layout)
+        
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
         prompts_label = QLabel(_("This lets you modify how Input and Output "
@@ -281,7 +304,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group,
                                     spyder_group), _("Startup"))
-        tabs.addTab(self.create_tab(prompts_group),
+        tabs.addTab(self.create_tab(autocall_group, prompts_group),
                                     _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
