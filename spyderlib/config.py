@@ -230,7 +230,9 @@ DEFAULTS = [
               'pylab/inline/height': 4,
               'startup/run_lines': '',
               'startup/use_run_file': False,
-              'startup/run_file': ''
+              'startup/run_file': '',
+              'in_prompt': '',
+              'out_prompt': ''
               }),
             ('variable_explorer',
              {

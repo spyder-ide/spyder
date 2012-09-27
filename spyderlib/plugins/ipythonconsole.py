@@ -239,6 +239,31 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(file_radio)
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
+        
+        # ---- Advanced settings ----
+        # Prompts group
+        prompts_group = QGroupBox(_("Prompts"))
+        prompts_label = QLabel(_("This lets you modify how Input and Output "
+                                 "prompts are shown in the console."))
+        prompts_label.setWordWrap(True)
+        in_prompt_edit = self.create_lineedit(_("Input prompt:"),
+                                  'in_prompt', '',
+                                  _('Default is<br>'
+                                    'In [&lt;span class="in-prompt-number"&gt;'
+                                    '%i&lt;/span&gt;]:'),
+                                  alignment=Qt.Horizontal)
+        out_prompt_edit = self.create_lineedit(_("Output prompt:"),
+                                 'out_prompt', '',
+                                 _('Default is<br>'
+                                   'Out[&lt;span class="out-prompt-number"&gt;'
+                                   '%i&lt;/span&gt;]:'),
+                                 alignment=Qt.Horizontal)
+        
+        prompts_layout = QVBoxLayout()
+        prompts_layout.addWidget(prompts_label)
+        prompts_layout.addWidget(in_prompt_edit)
+        prompts_layout.addWidget(out_prompt_edit)
+        prompts_group.setLayout(prompts_layout)
 
         # --- Tabs organization ---
         tabs = QTabWidget()
@@ -248,6 +273,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group),
                                     _("Startup"))
+        tabs.addTab(self.create_tab(prompts_group),
+                                    _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
@@ -692,6 +719,14 @@ class IPythonConsole(SpyderPluginWidget):
         # Buffer size
         buffer_size_o = self.get_option('buffer_size')
         cfg.IPythonWidget.buffer_size = buffer_size_o
+        
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            cfg.IPythonWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            cfg.IPythonWidget.out_prompt = out_prompt_o
         
         return cfg
     
