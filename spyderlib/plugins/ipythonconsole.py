@@ -240,6 +240,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
         
+        # Spyder group
+        spyder_group = QGroupBox(_("Spyder startup"))
+        ipystartup_box = newcb(_("Open an IPython console at startup"),
+                                 "open_ipython_at_startup")
+        spyder_layout = QVBoxLayout()
+        spyder_layout.addWidget(ipystartup_box)
+        spyder_group.setLayout(spyder_layout)
+        
         # ---- Advanced settings ----
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
@@ -247,17 +255,17 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                  "prompts are shown in the console."))
         prompts_label.setWordWrap(True)
         in_prompt_edit = self.create_lineedit(_("Input prompt:"),
-                                  'in_prompt', '',
+                                    'in_prompt', '',
                                   _('Default is<br>'
                                     'In [&lt;span class="in-prompt-number"&gt;'
                                     '%i&lt;/span&gt;]:'),
-                                  alignment=Qt.Horizontal)
+                                    alignment=Qt.Horizontal)
         out_prompt_edit = self.create_lineedit(_("Output prompt:"),
-                                 'out_prompt', '',
+                                   'out_prompt', '',
                                  _('Default is<br>'
                                    'Out[&lt;span class="out-prompt-number"&gt;'
                                    '%i&lt;/span&gt;]:'),
-                                 alignment=Qt.Horizontal)
+                                   alignment=Qt.Horizontal)
         
         prompts_layout = QVBoxLayout()
         prompts_layout.addWidget(prompts_label)
@@ -271,8 +279,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                                    _("Startup"))
+        tabs.addTab(self.create_tab(run_lines_group, run_file_group,
+                                    spyder_group), _("Startup"))
         tabs.addTab(self.create_tab(prompts_group),
                                     _("Advanced Settings"))
 
