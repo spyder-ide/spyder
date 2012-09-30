@@ -822,7 +822,16 @@ class CssSH(BaseWebSH):
 
 from pygments.lexers import get_lexer_by_name
 from pygments.token import (Text, Other, Keyword, Name, String, Number, 
-                            Comment, Generic,Token)
+                            Comment, Generic, Token)
+
+# IMPORTANT NOTE:
+# --------------
+# Do not be tempted to generalize the use of PygmentsSH (that is tempting 
+# because it would lead to more generic and compact code, and not only in 
+# this very module) because this generic syntax highlighter is far slower
+# than the native ones (all classes above). For example, a Python syntax
+# highlighter based on PygmentsSH would be 2 to 3 times slower than the 
+# current native PythonSH syntax highlighter.
 
 class PygmentsSH(BaseSH):
     """ Generic Pygments syntax highlighter """
@@ -835,7 +844,7 @@ class PygmentsSH(BaseSH):
                Other: "normal",
                Keyword: "keyword",
                Token.Operator: "normal",
-               Name.Builtin: "definition",
+               Name.Builtin: "builtin",
                Name: "normal",
                Comment: "comment",
                String: "string",
@@ -849,7 +858,7 @@ class PygmentsSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def get_fmt(self,typ):
-        """ Get the format code for this type """        
+        """ Get the format code for this type """
         # Exact matches first
         for key in self._tokmap:
             if typ is key:
