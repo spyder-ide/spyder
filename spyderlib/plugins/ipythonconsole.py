@@ -158,7 +158,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             backends.append( ("Tkinter", 6) )
         backends = tuple(backends)
         
-        backend_box = self.create_combobox( _("Backend:   "), backends,
+        backend_box = self.create_combobox( _("Backend:")+"   ", backends,
                                        'pylab/backend', default=0,
                                        tip=_("This option will be applied the "
                                              "next time a console is opened."))
@@ -177,19 +177,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "this backend"))
         inline_label.setWordWrap(True)
         formats = (("PNG", 0), ("SVG", 1))
-        format_box = self.create_combobox( _("Format:   "), formats,
+        format_box = self.create_combobox(_("Format:")+"   ", formats,
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
-                          _("Resolution:  "), _(" dpi"),
+                          _("Resolution:")+"  ", " "+_("dpi"),
                           'pylab/inline/resolution', min_=56, max_=112, step=1,
                           tip=_("Only used when the format is PNG. Default is "
                                 "72"))
         width_spin = self.create_spinbox(
-                          _("Width:  "), _(" inches"),
+                          _("Width:")+"  ", " "+_("inches"),
                           'pylab/inline/width', min_=4, max_=20, step=1,
                           tip=_("Default is 6"))
         height_spin = self.create_spinbox(
-                          _("Height:  "), _(" inches"),
+                          _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=4, max_=20, step=1,
                           tip=_("Default is 4"))
         
@@ -369,7 +369,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
-        inspect_action = create_action(self, _("Inspect current objetc"),
+        inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence("Ctrl+I"),
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)

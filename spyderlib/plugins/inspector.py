@@ -261,10 +261,11 @@ class ObjectInspector(SpyderPluginWidget):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
+        txt = _("Source")
         if sys.platform == 'darwin':
-            source_label = QLabel(_("  Source"))
+            source_label = QLabel("  " + txt)
         else:
-            source_label = QLabel(_("Source"))
+            source_label = QLabel(txt)
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
