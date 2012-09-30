@@ -48,7 +48,7 @@ from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
-from spyderlib.widgets.sourcecode import syntaxhighlighters
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
@@ -453,27 +453,22 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES = {
-                 ('py', 'pyw', 'python', 'ipy'): (syntaxhighlighters.PythonSH,
-                                                  '#', PythonCFM),
-                 ('pyx', 'pxi', 'pxd'): (syntaxhighlighters.CythonSH,
-                                         '#', PythonCFM),
-                 ('f', 'for', 'f77'): (syntaxhighlighters.Fortran77SH,
-                                       'c', None),
-                 ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
-                                         '!', None),
-                 ('pro',): (syntaxhighlighters.IdlSH, ';', None),
-                 ('diff', 'patch', 'rej'): (syntaxhighlighters.DiffSH, '',
-                                            None),
-                 ('css',): (syntaxhighlighters.CssSH, '', None),
-                 ('po', 'pot'): (syntaxhighlighters.GetTextSH, '#', None),
-                 ('htm', 'html'): (syntaxhighlighters.HtmlSH, '', None),
-                 ('c', 'cc', 'cpp', 'cxx',
-                  'h', 'hh', 'hpp', 'hxx',
-                  ): (syntaxhighlighters.CppSH, '//', None),
-                 ('cl',): (syntaxhighlighters.OpenCLSH, '//', None),
-#                 ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
-#                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-#                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
+                 ('py', 'pyw', 'python', 'ipy'): (sh.PythonSH, '#', PythonCFM),
+                 ('pyx', 'pxi', 'pxd'): (sh.CythonSH, '#', PythonCFM),
+                 ('f', 'for', 'f77'): (sh.Fortran77SH, 'c', None),
+                 ('f90', 'f95', 'f2k'): (sh.FortranSH, '!', None),
+                 ('pro',): (sh.IdlSH, ';', None),
+                 ('m',): (sh.MatlabSH, '%', None),
+                 ('diff', 'patch', 'rej'): (sh.DiffSH, '', None),
+                 ('css',): (sh.CssSH, '', None),
+                 ('po', 'pot'): (sh.GetTextSH, '#', None),
+                 ('htm', 'html'): (sh.HtmlSH, '', None),
+                 ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
+                  ): (sh.CppSH, '//', None),
+                 ('cl',): (sh.OpenCLSH, '//', None),
+                 ('bat', 'cmd', 'nt'): (sh.BatchSH, 'rem ', None),
+                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
+                  'cfg', 'cnf', 'aut', 'iss'): (sh.IniSH, '#', None),
                  }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
@@ -532,11 +527,11 @@ class CodeEditor(TextEditBaseWidget):
         #   - background highlight for current line
         #   - background highlight for search / current line occurences
 
-        self.highlighter_class = syntaxhighlighters.TextSH
+        self.highlighter_class = sh.TextSH
         self.highlighter = None
         ccs = 'Spyder'
-        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
+        if ccs not in sh.COLOR_SCHEME_NAMES:
+            ccs = sh.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
 
         #  Background colors: current line, occurences
@@ -802,7 +797,7 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.supported_language = False
         self.comment_string = ''
-        sh_class = syntaxhighlighters.TextSH
+        sh_class = sh.TextSH
         if language is not None:
             for key in self.LANGUAGES:
                 if language.lower() in key:
@@ -829,10 +824,10 @@ class CodeEditor(TextEditBaseWidget):
             self._apply_highlighter_color_scheme()
 
     def is_python(self):
-        return self.highlighter_class is syntaxhighlighters.PythonSH
+        return self.highlighter_class is sh.PythonSH
 
     def is_cython(self):
-        return self.highlighter_class is syntaxhighlighters.CythonSH
+        return self.highlighter_class is sh.CythonSH
 
     def rehighlight(self):
         """

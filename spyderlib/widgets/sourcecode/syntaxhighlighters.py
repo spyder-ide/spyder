@@ -799,11 +799,9 @@ from pygments.token import (Text, Other, Keyword, Name, String, Number,
 
 class PygmentsSH(BaseSH):
     """ Generic Pygments syntax highlighter """
-
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
-
     # Map Pygments tokens to Spyder tokens
     _tokmap = {Text: "normal", 
                Generic: "normal", 
@@ -815,69 +813,49 @@ class PygmentsSH(BaseSH):
                Comment: "comment",
                String: "string",
                Number: "number"}
-
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
-
     def __init__(self, parent, font=None, color_scheme=None):
-
         # Load Pygments' Lexer
         if self._lang_name is not None:
             self._lexer = get_lexer_by_name(self._lang_name)
-
         BaseSH.__init__(self, parent, font, color_scheme)
 
-
     def get_fmt(self,typ):
-        """ Get the format code for this type """
-        
+        """ Get the format code for this type """        
         # Exact matches first
         for key in self._tokmap:
             if typ is key:
-                return self._tokmap[key]
-            
+                return self._tokmap[key]            
         # Partial (parent-> child) matches
         for key in self._tokmap:
             if typ in key.subtypes:
                 return self._tokmap[key]
-
         return 'normal'
 
     def highlightBlock(self, text):
-        """ Actually highlight the block """
-        
-        text = unicode(text)        
-        
-        lextree = self._lexer.get_tokens(text)
-        
+        """ Actually highlight the block """        
+        text = unicode(text)                
+        lextree = self._lexer.get_tokens(text)        
         ct = 0
-        for item in lextree:
-            
-            typ, val = item
-            
+        for item in lextree:            
+            typ, val = item            
             key = self.get_fmt(typ)
-
             start = ct
-            ct += len(val)
-        
+            ct += len(val)        
             self.setFormat(start, ct-start, self.formats[key])
 
+class BatchSH(PygmentsSH):
+    """Batch highlighter"""
+    _lang_name = 'bat'
 
-class TcshSH(PygmentsSH):
-    """Tcsh highlighter """
+class IniSH(PygmentsSH):
+    """INI highlighter"""
+    _lang_name = 'ini'
 
-    _lang_name = 'tcsh'
-
-class RubySH(PygmentsSH):
-    """ Ruby highlighter"""
-
-    _lang_name = 'ruby'
-
-class BashSH(PygmentsSH):
-    """ Bash highlighter"""
-
-    _lang_name = 'bash'
-
+class MatlabSH(PygmentsSH):
+    """Matlab highlighter"""
+    _lang_name = 'matlab'
 
 
 if __name__ == '__main__':

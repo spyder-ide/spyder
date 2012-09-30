@@ -56,6 +56,7 @@ EDIT_FILETYPES = (
     (_("OpenCL files"), ('.cl', )),
     (_("Fortran files"), ('.f', '.for', '.f77', '.f90', '.f95', '.f2k')),
     (_("IDL files"), ('.pro', )),
+    (_("MATLAB files"), ('.m', )),
     (_("Patch and diff files"), ('.patch', '.diff', '.rej')),
     (_("Batch files"), ('.bat', '.cmd')),
     (_("Text files"), ('.txt',)),
