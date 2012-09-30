@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2012-09-30 10:49+Paris, Madrid (heure d’été)\n"
+"POT-Creation-Date: 2012-09-30 14:19+Paris, Madrid (heure d’été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -68,14 +68,18 @@ msgid "gettext files"
 msgstr ""
 
 #: spyderlib\config.py:65
-msgid "Web page files"
+msgid "NSIS files"
 msgstr ""
 
 #: spyderlib\config.py:66
+msgid "Web page files"
+msgstr ""
+
+#: spyderlib\config.py:67
 msgid "Configuration files"
 msgstr ""
 
-#: spyderlib\config.py:74 spyderlib\widgets\explorer.py:603
+#: spyderlib\config.py:75 spyderlib\widgets\explorer.py:603
 msgid "All files"
 msgstr ""
 
@@ -376,7 +380,7 @@ msgstr ""
 #: spyderlib\plugins\editor.py:1438 spyderlib\plugins\inspector.py:271
 #: spyderlib\widgets\editor.py:531
 #: spyderlib\widgets\sourcecode\codeeditor.py:235
-#: spyderlib\widgets\sourcecode\codeeditor.py:2439
+#: spyderlib\widgets\sourcecode\codeeditor.py:2440
 msgid "Editor"
 msgstr ""
 
@@ -547,7 +551,7 @@ msgid "<u>Note</u>: add <b>analysis:ignore</b> in a comment to ignore code/style
 msgstr ""
 
 #: spyderlib\plugins\editor.py:212
-#: spyderlib\widgets\sourcecode\codeeditor.py:1560
+#: spyderlib\widgets\sourcecode\codeeditor.py:1561
 msgid "Code analysis"
 msgstr ""
 
@@ -813,12 +817,12 @@ msgid "Go to next cursor position"
 msgstr ""
 
 #: spyderlib\plugins\editor.py:716
-#: spyderlib\widgets\sourcecode\codeeditor.py:2022
+#: spyderlib\widgets\sourcecode\codeeditor.py:2023
 msgid "Comment"
 msgstr ""
 
 #: spyderlib\plugins\editor.py:716
-#: spyderlib\widgets\sourcecode\codeeditor.py:2022
+#: spyderlib\widgets\sourcecode\codeeditor.py:2023
 msgid "Uncomment"
 msgstr ""
 
@@ -1675,7 +1679,7 @@ msgid "IPython Help"
 msgstr ""
 
 #: spyderlib\plugins\ipythonconsole.py:372
-msgid "Inspect current objetc"
+msgid "Inspect current object"
 msgstr ""
 
 #: spyderlib\plugins\ipythonconsole.py:376
@@ -2088,39 +2092,39 @@ msgstr ""
 msgid "&Replace text"
 msgstr ""
 
-#: spyderlib\spyder.py:467 spyderlib\widgets\sourcecode\codeeditor.py:1998
+#: spyderlib\spyder.py:467 spyderlib\widgets\sourcecode\codeeditor.py:1999
 msgid "Undo"
 msgstr ""
 
-#: spyderlib\spyder.py:469 spyderlib\widgets\sourcecode\codeeditor.py:2001
+#: spyderlib\spyder.py:469 spyderlib\widgets\sourcecode\codeeditor.py:2002
 msgid "Redo"
 msgstr ""
 
 #: spyderlib\spyder.py:470 spyderlib\widgets\arrayeditor.py:325
 #: spyderlib\widgets\dicteditor.py:558 spyderlib\widgets\shell.py:120
-#: spyderlib\widgets\sourcecode\codeeditor.py:2007
+#: spyderlib\widgets\sourcecode\codeeditor.py:2008
 msgid "Copy"
 msgstr ""
 
 #: spyderlib\spyder.py:472 spyderlib\widgets\shell.py:116
-#: spyderlib\widgets\sourcecode\codeeditor.py:2004
+#: spyderlib\widgets\sourcecode\codeeditor.py:2005
 msgid "Cut"
 msgstr ""
 
 #: spyderlib\spyder.py:473 spyderlib\widgets\dicteditor.py:555
 #: spyderlib\widgets\shell.py:124
-#: spyderlib\widgets\sourcecode\codeeditor.py:2010
+#: spyderlib\widgets\sourcecode\codeeditor.py:2011
 msgid "Paste"
 msgstr ""
 
 #: spyderlib\spyder.py:475 spyderlib\widgets\explorer.py:436
 #: spyderlib\widgets\projectexplorer.py:945 spyderlib\widgets\shell.py:133
-#: spyderlib\widgets\sourcecode\codeeditor.py:2013
+#: spyderlib\widgets\sourcecode\codeeditor.py:2014
 msgid "Delete"
 msgstr ""
 
 #: spyderlib\spyder.py:478 spyderlib\widgets\shell.py:137
-#: spyderlib\widgets\sourcecode\codeeditor.py:2017
+#: spyderlib\widgets\sourcecode\codeeditor.py:2018
 msgid "Select All"
 msgstr ""
 
@@ -3716,19 +3720,19 @@ msgstr ""
 msgid "Line count:"
 msgstr ""
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1166
+#: spyderlib\widgets\sourcecode\codeeditor.py:1167
 msgid "Breakpoint"
 msgstr ""
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1167
+#: spyderlib\widgets\sourcecode\codeeditor.py:1168
 msgid "Condition:"
 msgstr ""
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1614
+#: spyderlib\widgets\sourcecode\codeeditor.py:1615
 msgid "To do"
 msgstr ""
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:2025
+#: spyderlib\widgets\sourcecode\codeeditor.py:2026
 msgid "Go to definition"
 msgstr ""
 

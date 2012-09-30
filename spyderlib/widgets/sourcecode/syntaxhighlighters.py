@@ -468,14 +468,17 @@ C_KEYWORDS1 = 'and and_eq bitand bitor break case catch const const_cast continu
 C_KEYWORDS2 = 'a addindex addtogroup anchor arg attention author b brief bug c class code date def defgroup deprecated dontinclude e em endcode endhtmlonly ifdef endif endlatexonly endlink endverbatim enum example exception f$ file fn hideinitializer htmlinclude htmlonly if image include ingroup internal invariant interface latexonly li line link mainpage name namespace nosubgrouping note overload p page par param post pre ref relates remarks return retval sa section see showinitializer since skip skipline subsection test throw todo typedef union until var verbatim verbinclude version warning weakgroup'
 C_KEYWORDS3 = 'asm auto class compl false true volatile wchar_t'
 
-def make_generic_c_patterns(keywords, builtins):
+def make_generic_c_patterns(keywords, builtins,
+                            instance=None, define=None, comment=None):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kw = r"\b" + any("keyword", keywords.split()) + r"\b"
     builtin = r"\b" + any("builtin", builtins.split()+C_TYPES.split()) + r"\b"
-    comment = any("comment", [r"//[^\n]*",r"\/\*(.*?)\*\/"])
+    if comment is None:
+        comment = any("comment", [r"//[^\n]*",r"\/\*(.*?)\*\/"])
     comment_start = any("comment_start", [r"\/\*"])
     comment_end = any("comment_end", [r"\*\/"])
-    instance = any("instance", [r"\bthis\b"])
+    if instance is None:
+        instance = any("instance", [r"\bthis\b"])
     number = any("number",
                  [r"\b[+-]?[0-9]+[lL]?\b",
                   r"\b[+-]?0[xX][0-9A-Fa-f]+[lL]?\b",
@@ -483,7 +486,8 @@ def make_generic_c_patterns(keywords, builtins):
     sqstring = r"(\b[rRuU])?'[^'\\\n]*(\\.[^'\\\n]*)*'?"
     dqstring = r'(\b[rRuU])?"[^"\\\n]*(\\.[^"\\\n]*)*"?'
     string = any("string", [sqstring, dqstring])
-    define = any("define", [r"#[^\n]*"])
+    if define is None:
+        define = any("define", [r"#[^\n]*"])
     return "|".join([instance, kw, comment, string, number,
                      comment_start, comment_end, builtin,
                      define, any("SYNC", [r"\n"])])
@@ -669,6 +673,29 @@ class DiffSH(BaseSH):
             self.setFormat(0, len(text), self.formats["number"])
         elif text.startswith("@"):
             self.setFormat(0, len(text), self.formats["builtin"])
+
+
+#==============================================================================
+# NSIS highlighter
+#==============================================================================
+
+def make_nsis_patterns():
+    "Strongly inspired from idlelib.ColorDelegator.make_pat"
+    kwstr1 = 'Abort AddBrandingImage AddSize AllowRootDirInstall AllowSkipFiles AutoCloseWindow BGFont BGGradient BrandingText BringToFront Call CallInstDLL Caption ClearErrors CompletedText ComponentText CopyFiles CRCCheck CreateDirectory CreateFont CreateShortCut Delete DeleteINISec DeleteINIStr DeleteRegKey DeleteRegValue DetailPrint DetailsButtonText DirText DirVar DirVerify EnableWindow EnumRegKey EnumRegValue Exec ExecShell ExecWait Exch ExpandEnvStrings File FileBufSize FileClose FileErrorText FileOpen FileRead FileReadByte FileSeek FileWrite FileWriteByte FindClose FindFirst FindNext FindWindow FlushINI Function FunctionEnd GetCurInstType GetCurrentAddress GetDlgItem GetDLLVersion GetDLLVersionLocal GetErrorLevel GetFileTime GetFileTimeLocal GetFullPathName GetFunctionAddress GetInstDirError GetLabelAddress GetTempFileName Goto HideWindow ChangeUI CheckBitmap Icon IfAbort IfErrors IfFileExists IfRebootFlag IfSilent InitPluginsDir InstallButtonText InstallColors InstallDir InstallDirRegKey InstProgressFlags InstType InstTypeGetText InstTypeSetText IntCmp IntCmpU IntFmt IntOp IsWindow LangString LicenseBkColor LicenseData LicenseForceSelection LicenseLangString LicenseText LoadLanguageFile LogSet LogText MessageBox MiscButtonText Name OutFile Page PageCallbacks PageEx PageExEnd Pop Push Quit ReadEnvStr ReadINIStr ReadRegDWORD ReadRegStr Reboot RegDLL Rename ReserveFile Return RMDir SearchPath Section SectionEnd SectionGetFlags SectionGetInstTypes SectionGetSize SectionGetText SectionIn SectionSetFlags SectionSetInstTypes SectionSetSize SectionSetText SendMessage SetAutoClose SetBrandingImage SetCompress SetCompressor SetCompressorDictSize SetCtlColors SetCurInstType SetDatablockOptimize SetDateSave SetDetailsPrint SetDetailsView SetErrorLevel SetErrors SetFileAttributes SetFont SetOutPath SetOverwrite SetPluginUnload SetRebootFlag SetShellVarContext SetSilent ShowInstDetails ShowUninstDetails ShowWindow SilentInstall SilentUnInstall Sleep SpaceTexts StrCmp StrCpy StrLen SubCaption SubSection SubSectionEnd UninstallButtonText UninstallCaption UninstallIcon UninstallSubCaption UninstallText UninstPage UnRegDLL Var VIAddVersionKey VIProductVersion WindowIcon WriteINIStr WriteRegBin WriteRegDWORD WriteRegExpandStr WriteRegStr WriteUninstaller XPStyle'
+    kwstr2 = 'all alwaysoff ARCHIVE auto both bzip2 components current custom details directory false FILE_ATTRIBUTE_ARCHIVE FILE_ATTRIBUTE_HIDDEN FILE_ATTRIBUTE_NORMAL FILE_ATTRIBUTE_OFFLINE FILE_ATTRIBUTE_READONLY FILE_ATTRIBUTE_SYSTEM FILE_ATTRIBUTE_TEMPORARY force grey HIDDEN hide IDABORT IDCANCEL IDIGNORE IDNO IDOK IDRETRY IDYES ifdiff ifnewer instfiles instfiles lastused leave left level license listonly lzma manual MB_ABORTRETRYIGNORE MB_DEFBUTTON1 MB_DEFBUTTON2 MB_DEFBUTTON3 MB_DEFBUTTON4 MB_ICONEXCLAMATION MB_ICONINFORMATION MB_ICONQUESTION MB_ICONSTOP MB_OK MB_OKCANCEL MB_RETRYCANCEL MB_RIGHT MB_SETFOREGROUND MB_TOPMOST MB_YESNO MB_YESNOCANCEL nevershow none NORMAL off OFFLINE on READONLY right RO show silent silentlog SYSTEM TEMPORARY text textonly true try uninstConfirm windows zlib'
+    kwstr3 = 'MUI_ABORTWARNING MUI_ABORTWARNING_CANCEL_DEFAULT MUI_ABORTWARNING_TEXT MUI_BGCOLOR MUI_COMPONENTSPAGE_CHECKBITMAP MUI_COMPONENTSPAGE_NODESC MUI_COMPONENTSPAGE_SMALLDESC MUI_COMPONENTSPAGE_TEXT_COMPLIST MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_INFO MUI_COMPONENTSPAGE_TEXT_DESCRIPTION_TITLE MUI_COMPONENTSPAGE_TEXT_INSTTYPE MUI_COMPONENTSPAGE_TEXT_TOP MUI_CUSTOMFUNCTION_ABORT MUI_CUSTOMFUNCTION_GUIINIT MUI_CUSTOMFUNCTION_UNABORT MUI_CUSTOMFUNCTION_UNGUIINIT MUI_DESCRIPTION_TEXT MUI_DIRECTORYPAGE_BGCOLOR MUI_DIRECTORYPAGE_TEXT_DESTINATION MUI_DIRECTORYPAGE_TEXT_TOP MUI_DIRECTORYPAGE_VARIABLE MUI_DIRECTORYPAGE_VERIFYONLEAVE MUI_FINISHPAGE_BUTTON MUI_FINISHPAGE_CANCEL_ENABLED MUI_FINISHPAGE_LINK MUI_FINISHPAGE_LINK_COLOR MUI_FINISHPAGE_LINK_LOCATION MUI_FINISHPAGE_NOAUTOCLOSE MUI_FINISHPAGE_NOREBOOTSUPPORT MUI_FINISHPAGE_REBOOTLATER_DEFAULT MUI_FINISHPAGE_RUN MUI_FINISHPAGE_RUN_FUNCTION MUI_FINISHPAGE_RUN_NOTCHECKED MUI_FINISHPAGE_RUN_PARAMETERS MUI_FINISHPAGE_RUN_TEXT MUI_FINISHPAGE_SHOWREADME MUI_FINISHPAGE_SHOWREADME_FUNCTION MUI_FINISHPAGE_SHOWREADME_NOTCHECKED MUI_FINISHPAGE_SHOWREADME_TEXT MUI_FINISHPAGE_TEXT MUI_FINISHPAGE_TEXT_LARGE MUI_FINISHPAGE_TEXT_REBOOT MUI_FINISHPAGE_TEXT_REBOOTLATER MUI_FINISHPAGE_TEXT_REBOOTNOW MUI_FINISHPAGE_TITLE MUI_FINISHPAGE_TITLE_3LINES MUI_FUNCTION_DESCRIPTION_BEGIN MUI_FUNCTION_DESCRIPTION_END MUI_HEADER_TEXT MUI_HEADER_TRANSPARENT_TEXT MUI_HEADERIMAGE MUI_HEADERIMAGE_BITMAP MUI_HEADERIMAGE_BITMAP_NOSTRETCH MUI_HEADERIMAGE_BITMAP_RTL MUI_HEADERIMAGE_BITMAP_RTL_NOSTRETCH MUI_HEADERIMAGE_RIGHT MUI_HEADERIMAGE_UNBITMAP MUI_HEADERIMAGE_UNBITMAP_NOSTRETCH MUI_HEADERIMAGE_UNBITMAP_RTL MUI_HEADERIMAGE_UNBITMAP_RTL_NOSTRETCH MUI_HWND MUI_ICON MUI_INSTALLCOLORS MUI_INSTALLOPTIONS_DISPLAY MUI_INSTALLOPTIONS_DISPLAY_RETURN MUI_INSTALLOPTIONS_EXTRACT MUI_INSTALLOPTIONS_EXTRACT_AS MUI_INSTALLOPTIONS_INITDIALOG MUI_INSTALLOPTIONS_READ MUI_INSTALLOPTIONS_SHOW MUI_INSTALLOPTIONS_SHOW_RETURN MUI_INSTALLOPTIONS_WRITE MUI_INSTFILESPAGE_ABORTHEADER_SUBTEXT MUI_INSTFILESPAGE_ABORTHEADER_TEXT MUI_INSTFILESPAGE_COLORS MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT MUI_INSTFILESPAGE_FINISHHEADER_TEXT MUI_INSTFILESPAGE_PROGRESSBAR MUI_LANGDLL_ALLLANGUAGES MUI_LANGDLL_ALWAYSSHOW MUI_LANGDLL_DISPLAY MUI_LANGDLL_INFO MUI_LANGDLL_REGISTRY_KEY MUI_LANGDLL_REGISTRY_ROOT MUI_LANGDLL_REGISTRY_VALUENAME MUI_LANGDLL_WINDOWTITLE MUI_LANGUAGE MUI_LICENSEPAGE_BGCOLOR MUI_LICENSEPAGE_BUTTON MUI_LICENSEPAGE_CHECKBOX MUI_LICENSEPAGE_CHECKBOX_TEXT MUI_LICENSEPAGE_RADIOBUTTONS MUI_LICENSEPAGE_RADIOBUTTONS_TEXT_ACCEPT MUI_LICENSEPAGE_RADIOBUTTONS_TEXT_DECLINE MUI_LICENSEPAGE_TEXT_BOTTOM MUI_LICENSEPAGE_TEXT_TOP MUI_PAGE_COMPONENTS MUI_PAGE_CUSTOMFUNCTION_LEAVE MUI_PAGE_CUSTOMFUNCTION_PRE MUI_PAGE_CUSTOMFUNCTION_SHOW MUI_PAGE_DIRECTORY MUI_PAGE_FINISH MUI_PAGE_HEADER_SUBTEXT MUI_PAGE_HEADER_TEXT MUI_PAGE_INSTFILES MUI_PAGE_LICENSE MUI_PAGE_STARTMENU MUI_PAGE_WELCOME MUI_RESERVEFILE_INSTALLOPTIONS MUI_RESERVEFILE_LANGDLL MUI_SPECIALINI MUI_STARTMENU_GETFOLDER MUI_STARTMENU_WRITE_BEGIN MUI_STARTMENU_WRITE_END MUI_STARTMENUPAGE_BGCOLOR MUI_STARTMENUPAGE_DEFAULTFOLDER MUI_STARTMENUPAGE_NODISABLE MUI_STARTMENUPAGE_REGISTRY_KEY MUI_STARTMENUPAGE_REGISTRY_ROOT MUI_STARTMENUPAGE_REGISTRY_VALUENAME MUI_STARTMENUPAGE_TEXT_CHECKBOX MUI_STARTMENUPAGE_TEXT_TOP MUI_UI MUI_UI_COMPONENTSPAGE_NODESC MUI_UI_COMPONENTSPAGE_SMALLDESC MUI_UI_HEADERIMAGE MUI_UI_HEADERIMAGE_RIGHT MUI_UNABORTWARNING MUI_UNABORTWARNING_CANCEL_DEFAULT MUI_UNABORTWARNING_TEXT MUI_UNCONFIRMPAGE_TEXT_LOCATION MUI_UNCONFIRMPAGE_TEXT_TOP MUI_UNFINISHPAGE_NOAUTOCLOSE MUI_UNFUNCTION_DESCRIPTION_BEGIN MUI_UNFUNCTION_DESCRIPTION_END MUI_UNGETLANGUAGE MUI_UNICON MUI_UNPAGE_COMPONENTS MUI_UNPAGE_CONFIRM MUI_UNPAGE_DIRECTORY MUI_UNPAGE_FINISH MUI_UNPAGE_INSTFILES MUI_UNPAGE_LICENSE MUI_UNPAGE_WELCOME MUI_UNWELCOMEFINISHPAGE_BITMAP MUI_UNWELCOMEFINISHPAGE_BITMAP_NOSTRETCH MUI_UNWELCOMEFINISHPAGE_INI MUI_WELCOMEFINISHPAGE_BITMAP MUI_WELCOMEFINISHPAGE_BITMAP_NOSTRETCH MUI_WELCOMEFINISHPAGE_CUSTOMFUNCTION_INIT MUI_WELCOMEFINISHPAGE_INI MUI_WELCOMEPAGE_TEXT MUI_WELCOMEPAGE_TITLE MUI_WELCOMEPAGE_TITLE_3LINES'
+    bistr = 'addincludedir addplugindir AndIf cd define echo else endif error execute If ifdef ifmacrodef ifmacrondef ifndef include insertmacro macro macroend onGUIEnd onGUIInit onInit onInstFailed onInstSuccess onMouseOverSection onRebootFailed onSelChange onUserAbort onVerifyInstDir OrIf packhdr system undef verbose warning'
+    instance = any("instance", [r'\$\{.*?\}', r'\$[A-Za-z0-9\_]*'])
+    define = any("define", [r"\![^\n]*"])
+    comment = any("comment", [r"\;[^\n]*", r"\#[^\n]*", r"\/\*(.*?)\*\/"])
+    return make_generic_c_patterns(kwstr1+' '+kwstr2+' '+kwstr3, bistr,
+                                   instance=instance, define=define,
+                                   comment=comment)
+
+class NsisSH(CppSH):
+    """NSIS Syntax Highlighter"""
+    # Syntax highlighting rules:
+    PROG = re.compile(make_nsis_patterns(), re.S)
 
 
 #==============================================================================

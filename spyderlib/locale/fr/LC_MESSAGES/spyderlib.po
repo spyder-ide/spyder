@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
-"POT-Creation-Date: 2012-09-30 10:49+Paris, Madrid (heure dt)\n"
+"POT-Creation-Date: 2012-09-30 14:19+Paris, Madrid (heure dt)\n"
 "PO-Revision-Date: 2011-04-11 21:41+2\n"
 "Last-Translator: Pierre Raybaut\n"
 "Language-Team: Python\n"
@@ -67,14 +67,18 @@ msgid "gettext files"
 msgstr "Fichiers gettext"
 
 #: spyderlib\config.py:65
+msgid "NSIS files"
+msgstr "Fichiers NSIS"
+
+#: spyderlib\config.py:66
 msgid "Web page files"
 msgstr "Fichiers web"
 
-#: spyderlib\config.py:66
+#: spyderlib\config.py:67
 msgid "Configuration files"
 msgstr "Configurations"
 
-#: spyderlib\config.py:74 spyderlib\widgets\explorer.py:603
+#: spyderlib\config.py:75 spyderlib\widgets\explorer.py:603
 msgid "All files"
 msgstr "Tous les fichiers"
 
@@ -376,7 +380,7 @@ msgstr "Chemin d'accès de l'exécutable :"
 #: spyderlib\plugins\editor.py:1438 spyderlib\plugins\inspector.py:271
 #: spyderlib\widgets\editor.py:531
 #: spyderlib\widgets\sourcecode\codeeditor.py:235
-#: spyderlib\widgets\sourcecode\codeeditor.py:2439
+#: spyderlib\widgets\sourcecode\codeeditor.py:2440
 msgid "Editor"
 msgstr "Éditeur"
 
@@ -575,7 +579,7 @@ msgstr ""
 "veuillez visiter la page de la %s."
 
 #: spyderlib\plugins\editor.py:212
-#: spyderlib\widgets\sourcecode\codeeditor.py:1560
+#: spyderlib\widgets\sourcecode\codeeditor.py:1561
 msgid "Code analysis"
 msgstr "Analyse de code"
 
@@ -859,12 +863,12 @@ msgid "Go to next cursor position"
 msgstr "Aller à la position suivante du curseur"
 
 #: spyderlib\plugins\editor.py:716
-#: spyderlib\widgets\sourcecode\codeeditor.py:2022
+#: spyderlib\widgets\sourcecode\codeeditor.py:2023
 msgid "Comment"
 msgstr "Commenter"
 
 #: spyderlib\plugins\editor.py:716
-#: spyderlib\widgets\sourcecode\codeeditor.py:2022
+#: spyderlib\widgets\sourcecode\codeeditor.py:2023
 msgid "Uncomment"
 msgstr "Décommenter"
 
@@ -1866,15 +1870,21 @@ msgstr "Effacer la console"
 msgid ""
 "It seems the kernel died unexpectedly. Use 'Restart kernel' to continue "
 "using this console."
-msgstr "Le noyau a été arrêté de façon inattendue. Redémarrez le noyau pour continuer d'utiliser cette console."
+msgstr ""
+"Le noyau a été arrêté de façon inattendue. Redémarrez le noyau pour "
+"continuer d'utiliser cette console."
 
 #: spyderlib\plugins\ipythonconsole.py:431
 msgid "Kernel process is either remote or unspecified. Cannot interrupt"
-msgstr "Le processus du noyau est soit distant, soit non spécifié : impossible d'arrêter le noyau."
+msgstr ""
+"Le processus du noyau est soit distant, soit non spécifié : impossible "
+"d'arrêter le noyau."
 
 #: spyderlib\plugins\ipythonconsole.py:440
 msgid "Kernel process is either remote or unspecified. Cannot restart."
-msgstr "Le processus du noyau est soit distant, soit non spécifié : impossible de redémarrer le noyau."
+msgstr ""
+"Le processus du noyau est soit distant, soit non spécifié : impossible de "
+"redémarrer le noyau."
 
 #: spyderlib\plugins\ipythonconsole.py:555
 msgid "Connect to an existing kernel"
@@ -2291,39 +2301,39 @@ msgstr "Rechercher le &précédent"
 msgid "&Replace text"
 msgstr "&Remplacer"
 
-#: spyderlib\spyder.py:467 spyderlib\widgets\sourcecode\codeeditor.py:1998
+#: spyderlib\spyder.py:467 spyderlib\widgets\sourcecode\codeeditor.py:1999
 msgid "Undo"
 msgstr "Annuler"
 
-#: spyderlib\spyder.py:469 spyderlib\widgets\sourcecode\codeeditor.py:2001
+#: spyderlib\spyder.py:469 spyderlib\widgets\sourcecode\codeeditor.py:2002
 msgid "Redo"
 msgstr "Répéter"
 
 #: spyderlib\spyder.py:470 spyderlib\widgets\arrayeditor.py:325
 #: spyderlib\widgets\dicteditor.py:558 spyderlib\widgets\shell.py:120
-#: spyderlib\widgets\sourcecode\codeeditor.py:2007
+#: spyderlib\widgets\sourcecode\codeeditor.py:2008
 msgid "Copy"
 msgstr "Copier"
 
 #: spyderlib\spyder.py:472 spyderlib\widgets\shell.py:116
-#: spyderlib\widgets\sourcecode\codeeditor.py:2004
+#: spyderlib\widgets\sourcecode\codeeditor.py:2005
 msgid "Cut"
 msgstr "Couper"
 
 #: spyderlib\spyder.py:473 spyderlib\widgets\dicteditor.py:555
 #: spyderlib\widgets\shell.py:124
-#: spyderlib\widgets\sourcecode\codeeditor.py:2010
+#: spyderlib\widgets\sourcecode\codeeditor.py:2011
 msgid "Paste"
 msgstr "Coller"
 
 #: spyderlib\spyder.py:475 spyderlib\widgets\explorer.py:436
 #: spyderlib\widgets\projectexplorer.py:945 spyderlib\widgets\shell.py:133
-#: spyderlib\widgets\sourcecode\codeeditor.py:2013
+#: spyderlib\widgets\sourcecode\codeeditor.py:2014
 msgid "Delete"
 msgstr "Supprimer"
 
 #: spyderlib\spyder.py:478 spyderlib\widgets\shell.py:137
-#: spyderlib\widgets\sourcecode\codeeditor.py:2017
+#: spyderlib\widgets\sourcecode\codeeditor.py:2018
 msgid "Select All"
 msgstr "Sélectionner tout"
 
@@ -4111,19 +4121,19 @@ msgstr "Aller à la ligne :"
 msgid "Line count:"
 msgstr "Nombre de lignes :"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1166
+#: spyderlib\widgets\sourcecode\codeeditor.py:1167
 msgid "Breakpoint"
 msgstr "Point d'arrêt"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1167
+#: spyderlib\widgets\sourcecode\codeeditor.py:1168
 msgid "Condition:"
 msgstr "Condition :"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:1614
+#: spyderlib\widgets\sourcecode\codeeditor.py:1615
 msgid "To do"
 msgstr "À faire"
 
-#: spyderlib\widgets\sourcecode\codeeditor.py:2025
+#: spyderlib\widgets\sourcecode\codeeditor.py:2026
 msgid "Go to definition"
 msgstr "Aller à la définition de l'objet"
 

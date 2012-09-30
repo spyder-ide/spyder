@@ -462,6 +462,7 @@ class CodeEditor(TextEditBaseWidget):
                  ('diff', 'patch', 'rej'): (sh.DiffSH, '', None),
                  ('css',): (sh.CssSH, '', None),
                  ('po', 'pot'): (sh.GetTextSH, '#', None),
+                 ('nsi', 'nsh'): (sh.NsisSH, '#', None),
                  ('htm', 'html'): (sh.HtmlSH, '', None),
                  ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
                   ): (sh.CppSH, '//', None),
