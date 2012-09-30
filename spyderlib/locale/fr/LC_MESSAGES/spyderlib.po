@@ -1406,7 +1406,7 @@ msgstr "Modules externes"
 
 #: spyderlib\plugins\externalconsole.py:538
 msgid "Trying to kill a kernel?"
-msgstr ""
+msgstr "Tentative d'arrêt d'un noyau"
 
 #: spyderlib\plugins\externalconsole.py:539
 msgid ""
@@ -1415,7 +1415,7 @@ msgid ""
 "\n"
 "You need to close them instead or you can kill the kernel\n"
 " using the button far to the right."
-msgstr ""
+msgstr "Le noyau ne peut pas être fermé car au moins une console frontale y est connectée.\n\nVeuillez soit fermer au préalable toutes les consoles connectées ou appuyer sur le bouton à l'extrême droite pour tuer le processus du noyau."
 
 #: spyderlib\plugins\externalconsole.py:683
 msgid ""
@@ -1697,7 +1697,7 @@ msgstr "Activer"
 
 #: spyderlib\plugins\ipythonconsole.py:112
 msgid "Automatically load Pylab and NumPy"
-msgstr ""
+msgstr "Importer automatiquement Pylab et NumPy"
 
 #: spyderlib\plugins\ipythonconsole.py:114
 msgid ""
@@ -1705,7 +1705,7 @@ msgid ""
 "the commands to do plots. Useful to work with other\n"
 "plotting libraries different to Matplotlib or to develop \n"
 "GUIs with Spyder."
-msgstr ""
+msgstr "Import automatique de toutes les fonctions de représentation graphique et de calcul numérique"
 
 #: spyderlib\plugins\ipythonconsole.py:133
 msgid ""
@@ -1801,7 +1801,7 @@ msgid ""
 "You can run several lines of code when a console is started. Please "
 "introduce each one separated by commas, for example:<br><i>import os, import "
 "sys</i>"
-msgstr ""
+msgstr "Plusieurs lignes de code peuvent être exécutées lors du démarrage de la console. Veuillez séparer deux lignes consécutives par une virgule - par exemple :<br><i>import os, import sys</i>"
 
 #: spyderlib\plugins\ipythonconsole.py:216
 msgid "Lines:"
