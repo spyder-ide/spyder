@@ -26,7 +26,8 @@ import os
 import os.path as osp
 import time
 
-from IPython.config.loader import Config
+from IPython.config.loader import Config, load_pyconfig_files
+from IPython.core.application import get_ipython_dir
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
@@ -746,40 +747,56 @@ class IPythonConsole(SpyderPluginWidget):
         This let us create each client with its own config (as oppossed to
         IPythonQtConsoleApp, where all clients have the same config)
         """
-        cfg = Config()
+        # ---- IPython config ----
+        try:
+            profile_path = osp.join(get_ipython_dir(), 'profile_default')
+            full_ip_cfg = load_pyconfig_files(['ipython_qtconsole_config.py'],
+                                              profile_path)
+            
+            # From the full config we only select the IPythonWidget section
+            # because the others have no effect here.
+            ip_cfg = Config({'IPythonWidget': full_ip_cfg.IPythonWidget})
+        except:
+            ip_cfg = Config()
+       
+        # ---- Spyder config ----
+        spy_cfg = Config()
         
         # Make the pager widget a rich one (i.e a QTextEdit)
-        cfg.IPythonWidget.kind = 'rich'
+        spy_cfg.IPythonWidget.kind = 'rich'
         
         # Gui completion widget
         gui_comp_o = self.get_option('use_gui_completion')
         completions = {True: 'droplist', False: 'ncurses'}
-        cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
+        spy_cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
 
         # Pager
         pager_o = self.get_option('use_pager')
         if pager_o:
-            cfg.IPythonWidget.paging = 'inside'
+            spy_cfg.IPythonWidget.paging = 'inside'
         else:
-            cfg.IPythonWidget.paging = 'none'
+            spy_cfg.IPythonWidget.paging = 'none'
         
         # Calltips
         calltips_o = self.get_option('show_calltips')
-        cfg.IPythonWidget.enable_calltips = calltips_o
+        spy_cfg.IPythonWidget.enable_calltips = calltips_o
 
         # Buffer size
         buffer_size_o = self.get_option('buffer_size')
-        cfg.IPythonWidget.buffer_size = buffer_size_o
+        spy_cfg.IPythonWidget.buffer_size = buffer_size_o
         
         # Prompts
         in_prompt_o = self.get_option('in_prompt')
         out_prompt_o = self.get_option('out_prompt')
         if in_prompt_o:
-            cfg.IPythonWidget.in_prompt = in_prompt_o
+            spy_cfg.IPythonWidget.in_prompt = in_prompt_o
         if out_prompt_o:
-            cfg.IPythonWidget.out_prompt = out_prompt_o
+            spy_cfg.IPythonWidget.out_prompt = out_prompt_o
         
-        return cfg
+        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+        # over IPython ones
+        ip_cfg._merge(spy_cfg)
+        return ip_cfg
     
     def initialize_application(self):
         """Initialize IPython application"""
