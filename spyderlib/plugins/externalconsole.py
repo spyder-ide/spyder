@@ -13,7 +13,8 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout)
+                                QTabWidget, QFontComboBox, QHBoxLayout,
+                                QApplication, QCursor)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
@@ -870,6 +871,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Create a new IPython client connected to a kernel just started"""
         self.set_ipython_kernel_attrs(connection_file, kernel_widget)
         self.main.ipyconsole.new_client(connection_file, id(kernel_widget))
+        QApplication.restoreOverrideCursor()  # Stop busy cursor indication
+        QApplication.processEvents()
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -1065,6 +1068,12 @@ class ExternalConsole(SpyderPluginWidget):
         
     def start_ipython_kernel(self, wdir=None, create_client=True):
         """Start new IPython kernel"""
+        # Add a WaitCursor visual indication, because it takes too much time
+        # to display a new console (3 to 5 secs). It's stopped in
+        # create_ipython_client
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+        
         if wdir is None:
             wdir = os.getcwdu()
         self.main.ipyconsole.visibility_changed(True)
