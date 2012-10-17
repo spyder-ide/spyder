@@ -251,16 +251,18 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # ---- Advanced settings ----
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
-        greedy_label = QLabel(_("This will enable TAB completion on elements "
-                                "of lists, results of function calls, etc, "
-                                "<i>without</i> assigning them to a variable. "
+        greedy_label = QLabel(_("This will enable <tt>Tab</tt> completion on "
+                                "elements of lists, results of function calls, "
+                                "etc, <i>without</i> assigning them to a "
+                                "variable.<br>"
                                 "For example, you can get completions on "
-                                "things like <tt>li[0].&lt;TAB&gt;</tt> or "
-                                "<tt>ins.meth().&lt;TAB&gt;</tt><br>"
-                                "<b>Warning</b>: It can be unsafe because the "
-                                "code is actually evaluated on TAB."))
+                                "things like <tt>li[0].&lt;Tab&gt;</tt> or "
+                                "<tt>ins.meth().&lt;Tab&gt;</tt>"))
         greedy_label.setWordWrap(True)
-        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer")
+        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer",
+                           tip="<b>Warning</b>: It can be unsafe because the "
+                                "code is actually evaluated when you press "
+                                "<tt>Tab</tt>.")
         
         greedy_layout = QVBoxLayout()
         greedy_layout.addWidget(greedy_label)
@@ -271,19 +273,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
                                 "any callable object even if you didn't type "
-                                "explicit parentheses. For example, if you "
-                                "type <i>str 43</i> it becomes <i>str(43)</i> "
-                                "automatically. It can be set to <b>Smart</b>, "
-                                "where it is not applied if there are no "
-                                "arguments after the callable; and <b>Full</b>, "
-                                "where all callable objects are automatically "
-                                "called (even if no arguments are present)."))
+                                "explicit parentheses.<br>"
+                                "For example, if you type <i>str 43</i> it "
+                                "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
         
         autocall_opts = (('Off', 0), ('Smart', 1), ('Full', 2))
         autocall_box = self.create_combobox(
-                                      "Autocall:  ", autocall_opts, 'autocall',
-                                      default = 0)
+                         "Autocall:  ", autocall_opts, 'autocall', default = 0,
+                         tip=_("On <b>Smart</b> mode, Autocall is not applied "
+                               "if there are no arguments after the callable. "
+                               "On <b>Full</b> mode, all callable objects are "
+                               "automatically called (even if no arguments "
+                               "are present)."))
         
         autocall_layout = QVBoxLayout()
         autocall_layout.addWidget(autocall_label)
