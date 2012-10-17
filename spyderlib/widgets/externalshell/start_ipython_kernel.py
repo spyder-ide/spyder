@@ -74,6 +74,10 @@ def kernel_config():
     autocall_o = CONF.get('ipython_console', 'autocall')
     cfg.ZMQInteractiveShell.autocall = autocall_o
     
+    # Greedy completer
+    greedy_o = CONF.get('ipython_console', 'greedy_completer')
+    cfg.IPCompleter.greedy = greedy_o
+    
     return cfg
 
 def set_edit_magic(shell):

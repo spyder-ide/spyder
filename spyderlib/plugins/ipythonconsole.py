@@ -249,6 +249,24 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         spyder_group.setLayout(spyder_layout)
         
         # ---- Advanced settings ----
+        # Greedy completer group
+        greedy_group = QGroupBox(_("Greedy completion"))
+        greedy_label = QLabel(_("This will enable TAB completion on elements "
+                                "of lists, results of function calls, etc, "
+                                "<i>without</i> assigning them to a variable. "
+                                "For example, you can get completions on "
+                                "things like <tt>li[0].&lt;TAB&gt;</tt> or "
+                                "<tt>ins.meth().&lt;TAB&gt;</tt><br>"
+                                "<b>Warning</b>: It can be unsafe because the "
+                                "code is actually evaluated on TAB."))
+        greedy_label.setWordWrap(True)
+        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer")
+        
+        greedy_layout = QVBoxLayout()
+        greedy_layout.addWidget(greedy_label)
+        greedy_layout.addWidget(greedy_box)
+        greedy_group.setLayout(greedy_layout)
+        
         # Autocall group
         autocall_group = QGroupBox(_("Autocall"))
         autocall_label = QLabel(_("Autocall makes IPython automatically call "
@@ -304,8 +322,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group,
                                     spyder_group), _("Startup"))
-        tabs.addTab(self.create_tab(autocall_group, prompts_group),
-                                    _("Advanced Settings"))
+        tabs.addTab(self.create_tab(greedy_group, autocall_group,
+                                    prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
