@@ -12,28 +12,39 @@ import os.path as osp
 
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    from IPython.config.loader import Config
+    from IPython.config.loader import Config, load_pyconfig_files
+    from IPython.core.application import get_ipython_dir
     from spyderlib.config import CONF
     
-    cfg = Config()
+    # ---- IPython config ----
+    try:
+        profile_path = osp.join(get_ipython_dir(), 'profile_default')
+        ip_cfg = load_pyconfig_files(['ipython_config.py',
+                                      'ipython_qtconsole_config.py'],
+                                      profile_path)
+    except:
+        ip_cfg = Config()
+    
+    # ---- Spyder config ----
+    spy_cfg = Config()
     
     # Until we implement Issue 1052:
     # http://code.google.com/p/spyderlib/issues/detail?id=1052
-    cfg.InteractiveShell.xmode = 'Plain'
+    spy_cfg.InteractiveShell.xmode = 'Plain'
     
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab')
     
     # Automatically load Pylab and Numpy
     autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-    cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
+    spy_cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
     
     # Pylab backend configuration
     if pylab_o:
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        cfg.IPKernelApp.pylab = backends[backend_o]
+        spy_cfg.IPKernelApp.pylab = backends[backend_o]
         
         # Inline backend configuration
         if backends[backend_o] == 'inline':
@@ -41,44 +52,47 @@ def kernel_config():
            format_o = CONF.get('ipython_console',
                                'pylab/inline/figure_format', 0)
            formats = {0: 'png', 1: 'svg'}
-           cfg.InlineBackend.figure_format = formats[format_o]
+           spy_cfg.InlineBackend.figure_format = formats[format_o]
            
            # Resolution
-           cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
+           spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
                                    'font.size': 10,
                                    'figure.subplot.bottom': .125
                                    }
            resolution_o = CONF.get('ipython_console', 
                                    'pylab/inline/resolution')
-           cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
+           spy_cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
            
            # Figure size
            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
-           cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
+           spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
     
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
-        cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
+        spy_cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
                                          run_lines_o.split(','))
     
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
     if use_file_o and run_file_o:
-        cfg.IPKernelApp.file_to_run = run_file_o
+        spy_cfg.IPKernelApp.file_to_run = run_file_o
     
     # Autocall
     autocall_o = CONF.get('ipython_console', 'autocall')
-    cfg.ZMQInteractiveShell.autocall = autocall_o
+    spy_cfg.ZMQInteractiveShell.autocall = autocall_o
     
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
-    cfg.IPCompleter.greedy = greedy_o
+    spy_cfg.IPCompleter.greedy = greedy_o
     
-    return cfg
+    # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+    # over IPython ones
+    ip_cfg._merge(spy_cfg)
+    return ip_cfg
 
 def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
