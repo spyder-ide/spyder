@@ -99,11 +99,17 @@ def set_edit_magic(shell):
     from spyderlib.utils import programs
     
     if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
-        shell.magics_manager.magics['line']['ed'] = \
-          shell.magics_manager.magics['line']['edit']
-        shell.magics_manager.magics['line']['edit'] = open_in_spyder
+        # For some users, trying to replace %edit with open_in_spyder could
+        # give a crash when starting a kernel. I've seen it after updating
+        # from 2.1
+        try:
+            shell.magics_manager.magics['line']['ed'] = \
+              shell.magics_manager.magics['line']['edit']
+            shell.magics_manager.magics['line']['edit'] = open_in_spyder
+        except:
+            pass
     else:
-        # Don't want to know how things were in previous versions
+        # Don't wanna know how things were in previous versions
         pass
     
 # Remove this module's path from sys.path:
