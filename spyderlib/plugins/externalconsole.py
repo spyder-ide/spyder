@@ -801,9 +801,9 @@ class ExternalConsole(SpyderPluginWidget):
                              self.open_file_in_spyder)
             if fname is None:
                 if ipython_kernel:
-                    tab_name = "IPyKernel"
-                    tab_icon1 = get_icon('ipython.png')
-                    tab_icon2 = get_icon('ipython_t.png')
+                    tab_name = _("Kernel")
+                    tab_icon1 = get_icon('ipython_console.png')
+                    tab_icon2 = get_icon('ipython_console_t.png')
                     if ipython_client:
                         self.connect(shellwidget,
                                  SIGNAL('create_ipython_client(QString)'),
