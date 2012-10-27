@@ -293,6 +293,23 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         autocall_layout.addWidget(autocall_box)
         autocall_group.setLayout(autocall_layout)
         
+        # Sympy group
+        sympy_group = QGroupBox(_("Symbolic Mathematics"))
+        sympy_label = QLabel(_("Perfom symbolic operations in the console "
+                               "(e.g. integrals, derivatives, vector calculus, "
+                               "etc) and get the outputs in a beautifully "
+                               "printed style."))
+        sympy_label.setWordWrap(True)
+        sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
+                          tip="This option loads the Sympy library to work "
+                              "with it.<br>Please refer to its documentation "
+                              "to learn how to use it.")
+        
+        sympy_layout = QVBoxLayout()
+        sympy_layout.addWidget(sympy_label)
+        sympy_layout.addWidget(sympy_box)
+        sympy_group.setLayout(sympy_layout)
+        
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
         prompts_label = QLabel(_("This lets you modify how Input and Output "
@@ -325,7 +342,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     _("Graphics"))
         tabs.addTab(self.create_tab(run_lines_group, run_file_group,
                                     spyder_group), _("Startup"))
-        tabs.addTab(self.create_tab(greedy_group, autocall_group,
+        tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()

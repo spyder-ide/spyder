@@ -10,6 +10,25 @@
 import sys
 import os.path as osp
 
+def sympy_config(version):
+    """Sympy configuration"""
+    
+    lines = """
+from __future__ import division
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
+"""
+    
+    if version >= '0.7.2':
+        extension = 'sympy.interactive.ipythonprinting'
+    else:
+        extension = 'sympyprinting'
+    
+    return lines, extension
+
+
 def kernel_config():
     """Create a config object with IPython kernel options"""
     from IPython.config.loader import Config, load_pyconfig_files
@@ -88,6 +107,21 @@ def kernel_config():
     # Greedy completer
     greedy_o = CONF.get('ipython_console', 'greedy_completer')
     spy_cfg.IPCompleter.greedy = greedy_o
+    
+    # Sympy loading
+    sympy_o = CONF.get('ipython_console', 'symbolic_math')
+    if sympy_o:
+        try:
+            from sympy import __version__ as version
+            lines, extension = sympy_config(version)
+            if run_lines_o:
+                spy_cfg.IPKernelApp.exec_lines.append(lines)
+            else:
+                spy_cfg.IPKernelApp.exec_lines = [lines]
+            spy_cfg.IPKernelApp.extra_extension = extension
+            spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
+        except ImportError:
+            pass
     
     # Merge IPython and Spyder configs. Spyder prefs will have prevalence
     # over IPython ones
