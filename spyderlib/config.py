@@ -240,7 +240,13 @@ DEFAULTS = [
               'pylab/inline/height': 4,
               'startup/run_lines': '',
               'startup/use_run_file': False,
-              'startup/run_file': ''
+              'startup/run_file': '',
+              'open_ipython_at_startup': False,
+              'greedy_completer': False,
+              'autocall': 0,
+              'symbolic_math': False,
+              'in_prompt': '',
+              'out_prompt': ''
               }),
             ('variable_explorer',
              {

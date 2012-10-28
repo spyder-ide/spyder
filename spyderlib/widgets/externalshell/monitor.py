@@ -128,6 +128,9 @@ class Monitor(threading.Thread):
         self.inputhook_flag = False
         self.first_inputhook_call = True
         
+        # To grab the IPython internal namespace
+        self.ip = None
+        
         # Connecting to introspection server
         self.i_request = socket.socket( socket.AF_INET )
         self.i_request.connect( (host, introspection_port) )
@@ -211,10 +214,10 @@ class Monitor(threading.Thread):
                             dict(command="ipython_kernel",
                                  data=self.ipython_kernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
-                # IPython 0.12+ kernel
+                # IPython 0.13+ kernel
                 self.ipython_shell = glbs['__ipythonshell__']
-                self.ipython_shell.modcompletion = moduleCompletion
                 glbs = self.ipython_shell.user_ns
+                self.ip = self.ipython_shell.get_ipython()
             self._mglobals = glbs
             return glbs
     
@@ -222,14 +225,24 @@ class Monitor(threading.Thread):
         """Return current namespace, i.e. globals() if not debugging,
         or a dictionary containing both locals() and globals() 
         for current frame when debugging"""
+        ns = {}
         glbs = self.mglobals()
+
         if self.pdb_frame is None:
-            return glbs
+            ns.update(glbs)
         else:
-            ns = {}
             ns.update(glbs)
             ns.update(self.pdb_locals)
-            return ns
+        
+        # Add magics to ns so we can show help about them on the Object
+        # Inspector
+        if self.ip:
+            line_magics = self.ip.magics_manager.magics['line']
+            cell_magics = self.ip.magics_manager.magics['cell']
+            ns.update(line_magics)
+            ns.update(cell_magics)
+        
+        return ns
     
     def get_reference_namespace(self, name):
         """Return namespace where reference name is defined,

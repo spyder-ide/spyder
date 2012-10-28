@@ -2070,7 +2070,7 @@ class CodeEditor(TextEditBaseWidget):
         This simply counts whether the number of quote characters of either
         type in the string is odd.
         
-        Take from the IPython project (in IPython/core/completer.py in v0.12)
+        Take from the IPython project (in IPython/core/completer.py in v0.13)
         Spyder team: Add some changes to deal with escaped quotes
         
         - Copyright (C) 2008-2011 IPython Development Team

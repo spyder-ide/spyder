@@ -13,7 +13,8 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout)
+                                QTabWidget, QFontComboBox, QHBoxLayout,
+                                QApplication, QCursor)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
@@ -190,19 +191,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         startup_group = QGroupBox(_("Startup"))
         pystartup_box = newcb(_("Open a Python interpreter at startup"),
                               'open_python_at_startup')
-
-        ipykstartup_box = newcb(_("Start an IPython kernel at startup"),
-                                'start_ipython_kernel_at_startup')
-        is_ipython_012p = programs.is_module_installed('IPython.frontend.qt',
-                                                       '>=0.12')
-        ipykstartup_box.setEnabled(is_ipython_012p)
-        if not is_ipython_012p:
-            ipykstartup_box.setToolTip(_("This option is not available for "
-                                        "IPython versions prior to v0.12."))
         
         startup_layout = QVBoxLayout()
         startup_layout.addWidget(pystartup_box)
-        startup_layout.addWidget(ipykstartup_box)
         startup_group.setLayout(startup_layout)
         
         # PYTHONSTARTUP replacement
@@ -810,9 +801,9 @@ class ExternalConsole(SpyderPluginWidget):
                              self.open_file_in_spyder)
             if fname is None:
                 if ipython_kernel:
-                    tab_name = "IPyKernel"
-                    tab_icon1 = get_icon('ipython.png')
-                    tab_icon2 = get_icon('ipython_t.png')
+                    tab_name = _("Kernel")
+                    tab_icon1 = get_icon('ipython_console.png')
+                    tab_icon2 = get_icon('ipython_console_t.png')
                     if ipython_client:
                         self.connect(shellwidget,
                                  SIGNAL('create_ipython_client(QString)'),
@@ -880,6 +871,8 @@ class ExternalConsole(SpyderPluginWidget):
         """Create a new IPython client connected to a kernel just started"""
         self.set_ipython_kernel_attrs(connection_file, kernel_widget)
         self.main.ipyconsole.new_client(connection_file, id(kernel_widget))
+        QApplication.restoreOverrideCursor()  # Stop busy cursor indication
+        QApplication.processEvents()
         
     def open_file_in_spyder(self, fname, lineno):
         """Open file in Spyder's editor from remote process"""
@@ -957,7 +950,7 @@ class ExternalConsole(SpyderPluginWidget):
                                            _("Open an IPython console"), None,
                                            'ipython_console.png',
                                            triggered=self.start_ipython_kernel)
-        if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
+        if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
             interact_menu_actions.append(self.ipython_kernel_action)
         self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
@@ -1062,7 +1055,7 @@ class ExternalConsole(SpyderPluginWidget):
         """Open an interpreter or an IPython kernel at startup"""
         if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
-        if self.get_option('start_ipython_kernel_at_startup', False):
+        if CONF.get('ipython_console', 'open_ipython_at_startup', False):
             self.start_ipython_kernel()
             
     def open_interpreter(self, wdir=None):
@@ -1076,6 +1069,12 @@ class ExternalConsole(SpyderPluginWidget):
         
     def start_ipython_kernel(self, wdir=None, create_client=True):
         """Start new IPython kernel"""
+        # Add a WaitCursor visual indication, because it takes too much time
+        # to display a new console (3 to 5 secs). It's stopped in
+        # create_ipython_client
+        QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
+        QApplication.processEvents()
+        
         if wdir is None:
             wdir = os.getcwdu()
         self.main.ipyconsole.visibility_changed(True)

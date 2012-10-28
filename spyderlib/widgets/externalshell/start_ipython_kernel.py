@@ -10,30 +10,60 @@
 import sys
 import os.path as osp
 
+def sympy_config(version):
+    """Sympy configuration"""
+    
+    lines = """
+from __future__ import division
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
+"""
+    
+    if version >= '0.7.2':
+        extension = 'sympy.interactive.ipythonprinting'
+    else:
+        extension = 'sympyprinting'
+    
+    return lines, extension
+
+
 def kernel_config():
     """Create a config object with IPython kernel options"""
-    from IPython.config.loader import Config
+    from IPython.config.loader import Config, load_pyconfig_files
+    from IPython.core.application import get_ipython_dir
     from spyderlib.config import CONF
     
-    cfg = Config()
+    # ---- IPython config ----
+    try:
+        profile_path = osp.join(get_ipython_dir(), 'profile_default')
+        ip_cfg = load_pyconfig_files(['ipython_config.py',
+                                      'ipython_qtconsole_config.py'],
+                                      profile_path)
+    except:
+        ip_cfg = Config()
+    
+    # ---- Spyder config ----
+    spy_cfg = Config()
     
     # Until we implement Issue 1052:
     # http://code.google.com/p/spyderlib/issues/detail?id=1052
-    cfg.InteractiveShell.xmode = 'Plain'
+    spy_cfg.InteractiveShell.xmode = 'Plain'
     
     # Pylab activation option
     pylab_o = CONF.get('ipython_console', 'pylab')
     
     # Automatically load Pylab and Numpy
     autoload_pylab_o = CONF.get('ipython_console', 'pylab/autoload')
-    cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
+    spy_cfg.IPKernelApp.pylab_import_all = pylab_o and autoload_pylab_o
     
     # Pylab backend configuration
     if pylab_o:
         backend_o = CONF.get('ipython_console', 'pylab/backend', 0)
         backends = {0: 'inline', 1: 'auto', 2: 'qt', 3: 'osx', 4: 'gtk',
                     5: 'wx', 6: 'tk'}
-        cfg.IPKernelApp.pylab = backends[backend_o]
+        spy_cfg.IPKernelApp.pylab = backends[backend_o]
         
         # Inline backend configuration
         if backends[backend_o] == 'inline':
@@ -41,50 +71,79 @@ def kernel_config():
            format_o = CONF.get('ipython_console',
                                'pylab/inline/figure_format', 0)
            formats = {0: 'png', 1: 'svg'}
-           cfg.InlineBackend.figure_format = formats[format_o]
+           spy_cfg.InlineBackend.figure_format = formats[format_o]
            
            # Resolution
-           cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
+           spy_cfg.InlineBackend.rc = {'figure.figsize': (6.0, 4.0),
                                    'savefig.dpi': 72,
                                    'font.size': 10,
                                    'figure.subplot.bottom': .125
                                    }
            resolution_o = CONF.get('ipython_console', 
                                    'pylab/inline/resolution')
-           cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
+           spy_cfg.InlineBackend.rc['savefig.dpi'] = resolution_o
            
            # Figure size
            width_o = float(CONF.get('ipython_console', 'pylab/inline/width'))
            height_o = float(CONF.get('ipython_console', 'pylab/inline/height'))
-           cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
+           spy_cfg.InlineBackend.rc['figure.figsize'] = (width_o, height_o)
     
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
-        cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
+        spy_cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
                                          run_lines_o.split(','))
     
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')
     run_file_o = CONF.get('ipython_console', 'startup/run_file')
     if use_file_o and run_file_o:
-        cfg.IPKernelApp.file_to_run = run_file_o
+        spy_cfg.IPKernelApp.file_to_run = run_file_o
     
-    return cfg
+    # Autocall
+    autocall_o = CONF.get('ipython_console', 'autocall')
+    spy_cfg.ZMQInteractiveShell.autocall = autocall_o
+    
+    # Greedy completer
+    greedy_o = CONF.get('ipython_console', 'greedy_completer')
+    spy_cfg.IPCompleter.greedy = greedy_o
+    
+    # Sympy loading
+    sympy_o = CONF.get('ipython_console', 'symbolic_math')
+    if sympy_o:
+        try:
+            from sympy import __version__ as version
+            lines, extension = sympy_config(version)
+            if run_lines_o:
+                spy_cfg.IPKernelApp.exec_lines.append(lines)
+            else:
+                spy_cfg.IPKernelApp.exec_lines = [lines]
+            spy_cfg.IPKernelApp.extra_extension = extension
+            spy_cfg.LaTeXTool.backends = ['dvipng', 'matplotlib']
+        except ImportError:
+            pass
+    
+    # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+    # over IPython ones
+    ip_cfg._merge(spy_cfg)
+    return ip_cfg
 
 def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
     from spyderlib.utils import programs
     
-    if programs.is_module_installed('IPython.frontend.qt', '0.12'):
-        shell.magic_ed = shell.magic_edit
-        shell.magic_edit = open_in_spyder
-    elif programs.is_module_installed('IPython.frontend.qt', '>0.12'):
-        shell.magics_manager.magics['line']['ed'] = \
-          shell.magics_manager.magics['line']['edit']
-        shell.magics_manager.magics['line']['edit'] = open_in_spyder
+    if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
+        # For some users, trying to replace %edit with open_in_spyder could
+        # give a crash when starting a kernel. I've seen it after updating
+        # from 2.1
+        try:
+            shell.magics_manager.magics['line']['ed'] = \
+              shell.magics_manager.magics['line']['edit']
+            shell.magics_manager.magics['line']['edit'] = open_in_spyder
+        except:
+            pass
     else:
-        # Don't want to know how things were in previous versions
+        # Don't wanna know how things were in previous versions
         pass
     
 # Remove this module's path from sys.path:
@@ -101,7 +160,7 @@ __name__ = '__main__'
 # executed in interactive mode):
 sys.path.insert(0, '')
 
-# IPython >=v0.12 Kernel
+# IPython >=v0.13 Kernel
 
 # Fire up the kernel instance.
 from IPython.zmq.ipkernel import IPKernelApp
