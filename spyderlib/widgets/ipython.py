@@ -131,6 +131,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
     def show_banner(self):
         """Banner for IPython clients with pylab message"""
         from IPython.core.usage import default_gui_banner
+        banner = default_gui_banner
         
         pylab_o = CONF.get('ipython_console', 'pylab', True)
         if pylab_o:
@@ -141,9 +142,20 @@ class SpyderIPythonWidget(RichIPythonWidget):
             pylab_message = """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.\n""" % backends[backend_o]
-            return default_gui_banner + pylab_message
-        else:
-            return default_gui_banner
+            banner = banner + pylab_message
+        
+        sympy_o = CONF.get('ipython_console', 'symbolic_math', True)
+        if sympy_o:
+            lines = """
+These commands were executed:
+from __future__ import division
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
+"""
+            banner = banner + lines
+        return banner
     
     def clear_console(self):
         self.execute("%clear")
