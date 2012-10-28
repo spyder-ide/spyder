@@ -252,9 +252,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         # ---- Advanced settings ----
         # Greedy completer group
         greedy_group = QGroupBox(_("Greedy completion"))
-        greedy_label = QLabel(_("This will enable <tt>Tab</tt> completion on "
-                                "elements of lists, results of function calls, "
-                                "etc, <i>without</i> assigning them to a "
+        greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
+                                "of lists, results of function calls, etc, "
+                                "<i>without</i> assigning them to a "
                                 "variable.<br>"
                                 "For example, you can get completions on "
                                 "things like <tt>li[0].&lt;Tab&gt;</tt> or "
@@ -302,8 +302,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         sympy_label.setWordWrap(True)
         sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
                           tip="This option loads the Sympy library to work "
-                              "with it.<br>Please refer to its documentation "
-                              "to learn how to use it.")
+                              "with.<br>Please refer to its documentation to "
+                              "learn how to use it.")
         
         sympy_layout = QVBoxLayout()
         sympy_layout.addWidget(sympy_label)
@@ -320,8 +320,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
-        prompts_label = QLabel(_("This lets you modify how Input and Output "
-                                 "prompts are shown in the console."))
+        prompts_label = QLabel(_("Modify how Input and Output prompts are "
+                                 "shown in the console."))
         prompts_label.setWordWrap(True)
         in_prompt_edit = self.create_lineedit(_("Input prompt:"),
                                     'in_prompt', '',
