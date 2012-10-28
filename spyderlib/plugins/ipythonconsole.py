@@ -310,6 +310,14 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         sympy_layout.addWidget(sympy_box)
         sympy_group.setLayout(sympy_layout)
         
+        sympy_present = programs.is_module_installed("sympy")
+        if not sympy_present:
+            self.set_option("symbolic_math", False)
+            sympy_box.setEnabled(False)
+            sympy_tip = _("This feature requires the Sympy library.\n"
+                          "It seems you don't have it installed.")
+            sympy_box.setToolTip(sympy_tip)
+        
         # Prompts group
         prompts_group = QGroupBox(_("Prompts"))
         prompts_label = QLabel(_("This lets you modify how Input and Output "
