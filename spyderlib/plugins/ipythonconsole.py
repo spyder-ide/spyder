@@ -348,8 +348,8 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group,
-                                    spyder_group), _("Startup"))
+        tabs.addTab(self.create_tab(spyder_group, run_lines_group,
+                                    run_file_group), _("Startup"))
         tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
                                     prompts_group), _("Advanced Settings"))
 
