@@ -1930,6 +1930,7 @@ class Spy(object):
         self.app = app
         self.window = window
 
+def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration
@@ -1961,7 +1962,6 @@ class Spy(object):
                                                     Spy(app=app, window=main)
 
     CONF.set('main', 'started', True)
-
     app.exec_()
     return main
 
