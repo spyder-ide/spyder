@@ -19,8 +19,8 @@ import sys
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import (get_icon, CONF, get_color_scheme,
-                              get_font, set_font)
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon, get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)

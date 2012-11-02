@@ -24,8 +24,9 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QObject, Signal
 
 # Local imports
 from spyderlib.utils.qthelpers import toggle_actions
-from spyderlib.config import CONF, get_font, set_font, get_icon
+from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
+from spyderlib.guiconfig import get_font, set_font, get_icon
 from spyderlib.plugins.configdialog import SpyderConfigPage
     
 

@@ -20,7 +20,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)

@@ -17,7 +17,7 @@ import sys
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        create_toolbutton, action2button)
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 

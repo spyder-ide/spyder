@@ -31,7 +31,7 @@ from IPython.core.application import get_ipython_dir
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,

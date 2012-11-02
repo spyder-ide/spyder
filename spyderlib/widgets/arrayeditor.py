@@ -28,7 +28,7 @@ import StringIO
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, get_font
+from spyderlib.guiconfig import get_icon, get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication)
 

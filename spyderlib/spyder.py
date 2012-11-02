@@ -115,8 +115,8 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
-from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
-                              EDIT_EXT, IMPORT_EXT)
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT
+from spyderlib.guiconfig import get_icon, get_image_path, get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError

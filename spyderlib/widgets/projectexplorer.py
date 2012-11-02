@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ElementTree
 from spyderlib.utils import misc
 from spyderlib.utils.qthelpers import get_std_icon, create_action
 from spyderlib.baseconfig import _, STDERR
-from spyderlib.config import get_icon, get_image_path
+from spyderlib.guiconfig import get_icon, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager

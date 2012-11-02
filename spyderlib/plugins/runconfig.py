@@ -19,7 +19,8 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, CONF
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.plugins.configdialog import SizeMixin
 

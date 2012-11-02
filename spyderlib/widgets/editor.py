@@ -31,7 +31,8 @@ from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
-from spyderlib.config import get_icon, EDIT_FILTERS, EDIT_EXT
+from spyderlib.config import EDIT_FILTERS, EDIT_EXT
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)

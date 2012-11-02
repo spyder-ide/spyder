@@ -30,7 +30,7 @@ import re
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import create_toolbutton
 from spyderlib.baseconfig import get_conf_path, get_translation
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,

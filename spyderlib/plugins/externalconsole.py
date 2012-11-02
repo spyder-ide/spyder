@@ -26,7 +26,8 @@ import re
 
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
-from spyderlib.config import get_icon, CONF
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_trailing_single_backslash,

@@ -17,7 +17,7 @@ from spyderlib.qt.QtCore import SIGNAL, Qt
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_pylint", dirname="spyderplugins")
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 
