@@ -432,7 +432,7 @@ def _get_globals():
     from __main__ import __dict__ as namespace
     shell = namespace.get('__ipythonshell__')
     if shell is not None and hasattr(shell, 'user_ns'):
-        # IPython 0.12+ kernel
+        # IPython 0.13+ kernel
         return shell.user_ns
     else:
         # Python interpreter

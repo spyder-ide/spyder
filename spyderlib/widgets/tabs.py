@@ -20,7 +20,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action)
@@ -76,9 +76,15 @@ class TabBar(QTabBar):
         if index_to == -1:
             index_to = self.count()
         if mimeData.data("tabbar-id").toLong()[0] != id(self):
-            tabwidget_from = mimeData.data("tabwidget-id").toLong()[0]
-            self.emit(SIGNAL("move_tab(long,int,int)"), 
+            tabwidget_from = str(mimeData.data("tabwidget-id").toLong()[0])
+            
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL("move_tab(QString,int,int)"), 
                       tabwidget_from, index_from, index_to)
+
             event.acceptProposedAction()
         elif index_from != index_to:
             self.emit(SIGNAL("move_tab(int,int)"), index_from, index_to)
@@ -246,7 +252,7 @@ class Tabs(BaseTabs):
                           corner_widgets, menu_use_tooltips)
         tab_bar = TabBar(self, parent)
         self.connect(tab_bar, SIGNAL('move_tab(int,int)'), self.move_tab)
-        self.connect(tab_bar, SIGNAL('move_tab(long,int,int)'),
+        self.connect(tab_bar, SIGNAL('move_tab(QString,int,int)'),
                      self.move_tab_from_another_tabwidget)
         self.setTabBar(tab_bar)
         self.index_history = []
@@ -303,5 +309,10 @@ class Tabs(BaseTabs):
     def move_tab_from_another_tabwidget(self, tabwidget_from,
                                         index_from, index_to):
         """Move tab from a tabwidget to another"""
-        self.emit(SIGNAL('move_tab(long,long,int,int)'),
-                  tabwidget_from, id(self), index_from, index_to)
+            
+        # We pass self object IDs as QString objs, because otherwise it would 
+        # depend on the platform: long for 64bit, int for 32bit. Replacing 
+        # by long all the time is not working on some 32bit platforms 
+        # (see Issue 1094, Issue 1098)
+        self.emit(SIGNAL('move_tab(QString,QString,int,int)'),
+                  tabwidget_from, str(id(self)), index_from, index_to)

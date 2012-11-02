@@ -26,11 +26,9 @@ import threading
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
 
-import spy
-
-# Test if IPython v0.12+ is installed to eventually switch to PyQt API #2
+# Test if IPython v0.13+ is installed to eventually switch to PyQt API #2
 from spyderlib.utils.programs import is_module_installed
-if is_module_installed('IPython.frontend.qt', '>=0.12'):
+if is_module_installed('IPython.frontend.qt', '>=0.13'):
     # Importing IPython will eventually set the QT_API environment variable
     import IPython  # analysis:ignore
     if os.environ.get('QT_API', 'pyqt') == 'pyqt':
@@ -55,23 +53,8 @@ requirements.check_qt()
 set_attached_console_visible = None
 is_attached_console_visible = None
 if os.name == 'nt':
-    try:
-        import win32gui, win32console, win32con
-        win32console.GetConsoleWindow() # do nothing, this is just a test
-        def set_attached_console_visible(state):
-            """Show/hide console window attached to current window
-            
-            This is for Windows platforms only. Requires pywin32 library."""
-            win32gui.ShowWindow(win32console.GetConsoleWindow(),
-                                win32con.SW_SHOW if state else win32con.SW_HIDE)
-        def is_attached_console_visible():
-            """Return True if attached console window is visible"""
-            return win32gui.IsWindowVisible(win32console.GetConsoleWindow())
-    except (ImportError, NotImplementedError):
-        # This is not a Windows platform (ImportError)
-        # or pywin32 is not installed (ImportError)
-        # or GetConsoleWindow is not implemented on current platform
-        pass
+    from spyderlib.utils.windows import (set_attached_console_visible,
+                                         is_attached_console_visible)
 
 # Workaround: importing rope.base.project here, otherwise this module can't
 # be imported if Spyder was executed from another folder than spyderlib
@@ -118,7 +101,7 @@ except ImportError:
     OnlineHelp = None  # analysis:ignore
 from spyderlib.plugins.explorer import Explorer
 from spyderlib.plugins.externalconsole import ExternalConsole
-if is_module_installed('IPython.frontend.qt', '>=0.12'):
+if is_module_installed('IPython.frontend.qt', '>=0.13'):
     # TODO: add ability for plugins to disable themself if their
     #       requirements are not met before failing during import
     from spyderlib.plugins.ipythonconsole import IPythonConsole
@@ -134,12 +117,12 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
-from spyderlib.config import (get_icon, get_image_path, CONF, get_shortcut,
-                              EDIT_EXT, IMPORT_EXT)
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT
+from spyderlib.guiconfig import get_icon, get_image_path, get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
-from spyderlib.utils.module_completion import modules_db
+from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 
 
@@ -605,15 +588,11 @@ class MainWindow(QMainWindow):
             update_modules_action = create_action(self,
                                         _("Update module names list"),
                                         None, 'reload.png',
-                                        triggered=self.update_modules,
-                                        tip=_("Update the list of names of all "
-                                              "the modules available in your "
-                                              "PYTHONPATH"))
+                                        triggered=module_completion.reset,
+                                        tip=_("Refresh list of module names "
+                                              "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
-            if osp.isfile(get_conf_path('db/rootmodules')):
-                self.tools_menu_actions += [update_modules_action, None]
-            else:
-                self.tools_menu_actions += [None]
+            self.tools_menu_actions += [update_modules_action, None]
             self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
@@ -684,7 +663,9 @@ class MainWindow(QMainWindow):
             # Internal console plugin
             self.console = Console(self, namespace, debug=self.debug,
                                    exitfunc=self.closing, profile=self.profile,
-                                   multithreaded=self.multithreaded)
+                                   multithreaded=self.multithreaded,
+                                   message='Inspect Spyder internals: '\
+                                           'spy.app, spy.window')
             self.console.register_plugin()
             
             # Working directory plugin
@@ -764,7 +745,7 @@ class MainWindow(QMainWindow):
         #XXX: we need to think of what to do with the light mode...
         #     ---> but for now, simply hiding the dockwidget like in standard 
         #          mode should be sufficient
-        if is_module_installed('IPython.frontend.qt', '>=0.12'):
+        if is_module_installed('IPython.frontend.qt', '>=0.13'):
             self.set_splash(_("Loading IPython console..."))
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
@@ -828,6 +809,27 @@ class MainWindow(QMainWindow):
                                             'qtassistant.png', "assistant")
             if qta_act:
                 self.help_menu_actions.append(qta_act)
+            # Windows-only: documentation located in sys.prefix/Doc
+            def add_doc_action(text, path):
+                """Add doc action to help menu"""
+                ext = osp.splitext(path)[1]
+                if ext:
+                    icon = get_icon(ext[1:]+".png")
+                else:
+                    icon = get_std_icon("DirIcon")
+                path = file_uri(path)
+                action = create_action(self, text, icon=icon,
+                       triggered=lambda path=path: programs.start_file(path))
+                self.help_menu_actions.append(action)
+            if os.name == 'nt':
+                sysdocpth = osp.join(sys.prefix, 'Doc')
+                for docfn in os.listdir(sysdocpth):
+                    pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
+                    match = re.match(pt, docfn)
+                    if match is not None:
+                        pname = match.groups()[0]
+                        if pname not in ('Python', ):
+                            add_doc_action(pname, osp.join(sysdocpth, docfn))
             # Documentation provided by Python(x,y), if available
             try:
                 from xy.config import DOC_PATH as xy_doc_path
@@ -835,18 +837,8 @@ class MainWindow(QMainWindow):
                 def add_xydoc(text, pathlist):
                     for path in pathlist:
                         if osp.exists(path):
-                            ext = osp.splitext(path)[1]
-                            if ext:
-                                icon = get_icon(ext[1:]+".png")
-                            else:
-                                icon = get_std_icon("DirIcon")
-                            path = file_uri(path)
-                            action = create_action(self, text, icon=icon,
-                                                   triggered=lambda path=path:
-                                                   programs.start_file(path))
-                            self.help_menu_actions.append(action)
+                            add_doc_action(text, path)
                             break
-                self.help_menu_actions.append(None)
                 add_xydoc(_("Python(x,y) documentation folder"),
                           [xy_doc_path])
                 add_xydoc(_("IPython documentation"),
@@ -998,6 +990,15 @@ class MainWindow(QMainWindow):
         # then set them again as floating windows here.
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
+        # In MacOS X 10.7 our app is not displayed after initialized (I don't
+        # know why because this doesn't happen when started from the terminal),
+        # so we need to resort to this hack to make it appear.
+        if sys.platform == 'darwin':
+            if 'Spyder.app' in __file__:
+                import subprocess
+                idx = __file__.index('Spyder.app')
+                app_path = __file__[:idx]
+                subprocess.call(['open', app_path + 'Spyder.app'])
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1663,10 +1664,6 @@ Please provide any additional information below.
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
         
-    def update_modules(self):
-        """Update module names list"""
-        del modules_db['rootmodules']
-        
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
@@ -1927,7 +1924,12 @@ def initialize():
     return app
 
 
-def run_spyder(app, options, args):
+class Spy(object):
+    """Inspect Spyder internals"""
+    def __init__(self, app, window):
+        self.app = app
+        self.window = window
+
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration
@@ -1954,10 +1956,11 @@ def run_spyder(app, options, args):
     main.show()
     main.post_visible_setup()
     
-    CONF.set('main', 'started', True)
+    if not main.light:
+        main.console.shell.interpreter.namespace['spy'] = \
+                                                    Spy(app=app, window=main)
 
-    spy.app = app
-    spy.window = main
+    CONF.set('main', 'started', True)
 
     app.exec_()
     return main

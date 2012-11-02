@@ -25,7 +25,7 @@ import xml.etree.ElementTree as ElementTree
 from spyderlib.utils import misc
 from spyderlib.utils.qthelpers import get_std_icon, create_action
 from spyderlib.baseconfig import _, STDERR
-from spyderlib.config import get_icon, get_image_path
+from spyderlib.guiconfig import get_icon, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
@@ -230,11 +230,19 @@ class Workspace(object):
         
     def _get_project_paths(self):
         """Return workspace projects root path list"""
-        return [proj.root_path for proj in self.projects]
+        # Convert project absolute paths to paths relative to Workspace root
+        offset = len(self.root_path)+len(os.pathsep)
+        return [proj.root_path[offset:] for proj in self.projects]
 
     def _set_project_paths(self, pathlist):
         """Set workspace projects root path list"""
-        for root_path in pathlist:
+        # Convert paths relative to Workspace root to project absolute paths
+        for path in pathlist:
+            if path.startswith(self.root_path):
+                # do nothing, this is the old Workspace format
+                root_path = path
+            else:
+                root_path = osp.join(self.root_path, path)
             self.add_project(root_path)
             
     project_paths = property(_get_project_paths, _set_project_paths)
@@ -253,7 +261,7 @@ class Workspace(object):
         """Set workspace root path"""
         if self.name is None:
             self.name = osp.basename(root_path)
-        self.root_path = unicode(root_path)
+        self.root_path = unicode(osp.abspath(root_path))
         config_path = self.__get_workspace_config_path()
         if osp.exists(config_path):
             self.load()
@@ -345,7 +353,12 @@ class Workspace(object):
         """Create project from root path, add it to workspace
         Return the created project instance"""
         project = Project()
-        project.set_root_path(root_path)
+        try:
+            project.set_root_path(root_path)
+        except OSError:
+            #  This may happens when loading a Workspace with absolute paths
+            #  which has just been moved to a different location
+            return
         self.projects.append(project)
         self.save()
         
@@ -474,11 +487,11 @@ class ExplorerTreeWidget(FilteredDirView):
     def __init__(self, parent):
         FilteredDirView.__init__(self, parent)
         
+        self.workspace = Workspace()
+        
         self.connect(self.fsmodel, SIGNAL('modelReset()'),
                      self.reset_icon_provider)
         self.reset_icon_provider()
-        
-        self.workspace = Workspace()
 
         self.last_folder = None
         

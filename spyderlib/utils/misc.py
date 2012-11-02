@@ -11,6 +11,7 @@ from __future__ import with_statement
 import os
 import os.path as osp
 import sys
+import stat
 
 
 def __remove_pyc_pyo(fname):
@@ -44,6 +45,22 @@ def move_file(source, dest):
     import shutil
     shutil.copy(source, dest)
     remove_file(source)
+
+
+def onerror(function, path, excinfo):
+    """Error handler for `shutil.rmtree`.
+    
+    If the error is due to an access error (read-only file), it 
+    attempts to add write permission and then retries.
+    If the error is for another reason, it re-raises the error.
+    
+    Usage: `shutil.rmtree(path, onerror=onerror)"""
+    if not os.access(path, os.W_OK):
+        # Is the error an access error?
+        os.chmod(path, stat.S_IWUSR)
+        function(path)
+    else:
+        raise
 
 
 def select_port(default_port=20128):

@@ -32,7 +32,7 @@ from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.baseconfig import _, get_supported_types
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 
 SUPPORTED_TYPES = get_supported_types()
 

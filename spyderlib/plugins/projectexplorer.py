@@ -11,7 +11,8 @@ from spyderlib.qt.QtCore import SIGNAL
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, VALID_EXT
+from spyderlib.config import VALID_EXT
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin

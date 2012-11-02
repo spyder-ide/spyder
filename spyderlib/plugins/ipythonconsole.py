@@ -26,11 +26,12 @@ import os
 import os.path as osp
 import time
 
-from IPython.config.loader import Config
+from IPython.config.loader import Config, load_pyconfig_files
+from IPython.core.application import get_ipython_dir
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
@@ -158,7 +159,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
             backends.append( ("Tkinter", 6) )
         backends = tuple(backends)
         
-        backend_box = self.create_combobox( _("Backend:   "), backends,
+        backend_box = self.create_combobox( _("Backend:")+"   ", backends,
                                        'pylab/backend', default=0,
                                        tip=_("This option will be applied the "
                                              "next time a console is opened."))
@@ -177,19 +178,19 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "this backend"))
         inline_label.setWordWrap(True)
         formats = (("PNG", 0), ("SVG", 1))
-        format_box = self.create_combobox( _("Format:   "), formats,
+        format_box = self.create_combobox(_("Format:")+"   ", formats,
                                        'pylab/inline/figure_format', default=0)
         resolution_spin = self.create_spinbox(
-                          _("Resolution:  "), _(" dpi"),
+                          _("Resolution:")+"  ", " "+_("dpi"),
                           'pylab/inline/resolution', min_=56, max_=112, step=1,
                           tip=_("Only used when the format is PNG. Default is "
                                 "72"))
         width_spin = self.create_spinbox(
-                          _("Width:  "), _(" inches"),
+                          _("Width:")+"  ", " "+_("inches"),
                           'pylab/inline/width', min_=4, max_=20, step=1,
                           tip=_("Default is 6"))
         height_spin = self.create_spinbox(
-                          _("Height:  "), _(" inches"),
+                          _("Height:")+"  ", " "+_("inches"),
                           'pylab/inline/height', min_=4, max_=20, step=1,
                           tip=_("Default is 4"))
         
@@ -239,6 +240,107 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         run_file_layout.addWidget(file_radio)
         run_file_layout.addWidget(run_file_browser)
         run_file_group.setLayout(run_file_layout)
+        
+        # Spyder group
+        spyder_group = QGroupBox(_("Spyder startup"))
+        ipystartup_box = newcb(_("Open an IPython console at startup"),
+                                 "open_ipython_at_startup")
+        spyder_layout = QVBoxLayout()
+        spyder_layout.addWidget(ipystartup_box)
+        spyder_group.setLayout(spyder_layout)
+        
+        # ---- Advanced settings ----
+        # Greedy completer group
+        greedy_group = QGroupBox(_("Greedy completion"))
+        greedy_label = QLabel(_("Enable <tt>Tab</tt> completion on elements "
+                                "of lists, results of function calls, etc, "
+                                "<i>without</i> assigning them to a "
+                                "variable.<br>"
+                                "For example, you can get completions on "
+                                "things like <tt>li[0].&lt;Tab&gt;</tt> or "
+                                "<tt>ins.meth().&lt;Tab&gt;</tt>"))
+        greedy_label.setWordWrap(True)
+        greedy_box = newcb(_("Use the greedy completer"), "greedy_completer",
+                           tip="<b>Warning</b>: It can be unsafe because the "
+                                "code is actually evaluated when you press "
+                                "<tt>Tab</tt>.")
+        
+        greedy_layout = QVBoxLayout()
+        greedy_layout.addWidget(greedy_label)
+        greedy_layout.addWidget(greedy_box)
+        greedy_group.setLayout(greedy_layout)
+        
+        # Autocall group
+        autocall_group = QGroupBox(_("Autocall"))
+        autocall_label = QLabel(_("Autocall makes IPython automatically call "
+                                "any callable object even if you didn't type "
+                                "explicit parentheses.<br>"
+                                "For example, if you type <i>str 43</i> it "
+                                "becomes <i>str(43)</i> automatically."))
+        autocall_label.setWordWrap(True)
+        
+        autocall_opts = (('Off', 0), ('Smart', 1), ('Full', 2))
+        autocall_box = self.create_combobox(
+                         "Autocall:  ", autocall_opts, 'autocall', default = 0,
+                         tip=_("On <b>Smart</b> mode, Autocall is not applied "
+                               "if there are no arguments after the callable. "
+                               "On <b>Full</b> mode, all callable objects are "
+                               "automatically called (even if no arguments "
+                               "are present)."))
+        
+        autocall_layout = QVBoxLayout()
+        autocall_layout.addWidget(autocall_label)
+        autocall_layout.addWidget(autocall_box)
+        autocall_group.setLayout(autocall_layout)
+        
+        # Sympy group
+        sympy_group = QGroupBox(_("Symbolic Mathematics"))
+        sympy_label = QLabel(_("Perfom symbolic operations in the console "
+                               "(e.g. integrals, derivatives, vector calculus, "
+                               "etc) and get the outputs in a beautifully "
+                               "printed style."))
+        sympy_label.setWordWrap(True)
+        sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
+                          tip="This option loads the Sympy library to work "
+                              "with.<br>Please refer to its documentation to "
+                              "learn how to use it.")
+        
+        sympy_layout = QVBoxLayout()
+        sympy_layout.addWidget(sympy_label)
+        sympy_layout.addWidget(sympy_box)
+        sympy_group.setLayout(sympy_layout)
+        
+        sympy_present = programs.is_module_installed("sympy")
+        if not sympy_present:
+            self.set_option("symbolic_math", False)
+            sympy_box.setEnabled(False)
+            sympy_tip = _("This feature requires the Sympy library.\n"
+                          "It seems you don't have it installed.")
+            sympy_box.setToolTip(sympy_tip)
+        
+        # Prompts group
+        prompts_group = QGroupBox(_("Prompts"))
+        prompts_label = QLabel(_("Modify how Input and Output prompts are "
+                                 "shown in the console."))
+        prompts_label.setWordWrap(True)
+        in_prompt_edit = self.create_lineedit(_("Input prompt:"),
+                                    'in_prompt', '',
+                                  _('Default is<br>'
+                                    'In [&lt;span class="in-prompt-number"&gt;'
+                                    '%i&lt;/span&gt;]:'),
+                                    alignment=Qt.Horizontal)
+        out_prompt_edit = self.create_lineedit(_("Output prompt:"),
+                                   'out_prompt', '',
+                                 _('Default is<br>'
+                                   'Out[&lt;span class="out-prompt-number"&gt;'
+                                   '%i&lt;/span&gt;]:'),
+                                   alignment=Qt.Horizontal)
+        
+        prompts_layout = QVBoxLayout()
+        prompts_layout.addWidget(prompts_label)
+        prompts_layout.addWidget(in_prompt_edit)
+        prompts_layout.addWidget(out_prompt_edit)
+        prompts_group.setLayout(prompts_layout)
 
         # --- Tabs organization ---
         tabs = QTabWidget()
@@ -246,8 +348,10 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
-        tabs.addTab(self.create_tab(run_lines_group, run_file_group),
-                                    _("Startup"))
+        tabs.addTab(self.create_tab(spyder_group, run_lines_group,
+                                    run_file_group), _("Startup"))
+        tabs.addTab(self.create_tab(greedy_group, autocall_group, sympy_group,
+                                    prompts_group), _("Advanced Settings"))
 
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
@@ -313,7 +417,12 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     
     def get_control(self):
         """Return the text widget (or similar) to give focus to"""
-        return self.ipython_widget._control
+        # page_control is the widget used for paging
+        page_control = self.ipython_widget._page_control
+        if page_control and page_control.isVisible():
+            return page_control
+        else:
+            return self.ipython_widget._control
 
     def get_options_menu(self):
         """Return options menu"""
@@ -369,7 +478,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     def add_actions_to_context_menu(self, menu):
         """Add actions to IPython widget context menu"""
         # See spyderlib/widgets/ipython.py for more details on this method
-        inspect_action = create_action(self, _("Inspect current objetc"),
+        inspect_action = create_action(self, _("Inspect current object"),
                                     QKeySequence("Ctrl+I"),
                                     icon=get_std_icon('MessageBoxInformation'),
                                     triggered=self.inspect_object)
@@ -422,6 +531,24 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     
     def update_history(self):
         self.history = self.ipython_widget._history
+    
+    def interrupt_message(self):
+        """
+        Print an interrupt message when the client is connected to an external
+        kernel
+        """
+        message = _("Kernel process is either remote or unspecified. "
+                    "Cannot interrupt")
+        self.ipython_widget._append_plain_text(message + '\n')
+    
+    def restart_message(self):
+        """
+        Print a restart message when the client is connected to an external
+        kernel
+        """
+        message = _("Kernel process is either remote or unspecified. "
+                    "Cannot restart.")
+        self.ipython_widget._append_plain_text(message + '\n')
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
@@ -506,7 +633,6 @@ class IPythonConsole(SpyderPluginWidget):
         self.find_widget = FindReplace(self)
         self.find_widget.hide()
         self.register_widget_shortcuts("Editor", self.find_widget)
-        
         layout.addWidget(self.find_widget)
         
         self.setLayout(layout)
@@ -579,7 +705,8 @@ class IPythonConsole(SpyderPluginWidget):
             # Change extconsole tab to the client's kernel widget
             idx = self.main.extconsole.get_shell_index_from_id(
                                                  clientwidget.kernel_widget_id)
-            self.main.extconsole.tabwidget.setCurrentIndex(idx)
+            if idx is not None:
+                self.main.extconsole.tabwidget.setCurrentIndex(idx)
         else:
             control = None
             widgets = []
@@ -670,35 +797,56 @@ class IPythonConsole(SpyderPluginWidget):
         This let us create each client with its own config (as oppossed to
         IPythonQtConsoleApp, where all clients have the same config)
         """
-        cfg = Config()
+        # ---- IPython config ----
+        try:
+            profile_path = osp.join(get_ipython_dir(), 'profile_default')
+            full_ip_cfg = load_pyconfig_files(['ipython_qtconsole_config.py'],
+                                              profile_path)
+            
+            # From the full config we only select the IPythonWidget section
+            # because the others have no effect here.
+            ip_cfg = Config({'IPythonWidget': full_ip_cfg.IPythonWidget})
+        except:
+            ip_cfg = Config()
+       
+        # ---- Spyder config ----
+        spy_cfg = Config()
         
         # Make the pager widget a rich one (i.e a QTextEdit)
-        cfg.IPythonWidget.kind = 'rich'
+        spy_cfg.IPythonWidget.kind = 'rich'
         
         # Gui completion widget
         gui_comp_o = self.get_option('use_gui_completion')
-        if programs.is_module_installed('IPython.frontend.qt', '>0.12'):
-            completions = {True: 'droplist', False: 'ncurses'}
-            cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
-        else:
-            cfg.IPythonWidget.gui_completion = gui_comp_o
+        completions = {True: 'droplist', False: 'ncurses'}
+        spy_cfg.IPythonWidget.gui_completion = completions[gui_comp_o]
 
         # Pager
         pager_o = self.get_option('use_pager')
         if pager_o:
-            cfg.IPythonWidget.paging = 'inside'
+            spy_cfg.IPythonWidget.paging = 'inside'
         else:
-            cfg.IPythonWidget.paging = 'none'
+            spy_cfg.IPythonWidget.paging = 'none'
         
         # Calltips
         calltips_o = self.get_option('show_calltips')
-        cfg.IPythonWidget.enable_calltips = calltips_o
+        spy_cfg.IPythonWidget.enable_calltips = calltips_o
 
         # Buffer size
         buffer_size_o = self.get_option('buffer_size')
-        cfg.IPythonWidget.buffer_size = buffer_size_o
+        spy_cfg.IPythonWidget.buffer_size = buffer_size_o
         
-        return cfg
+        # Prompts
+        in_prompt_o = self.get_option('in_prompt')
+        out_prompt_o = self.get_option('out_prompt')
+        if in_prompt_o:
+            spy_cfg.IPythonWidget.in_prompt = in_prompt_o
+        if out_prompt_o:
+            spy_cfg.IPythonWidget.out_prompt = out_prompt_o
+        
+        # Merge IPython and Spyder configs. Spyder prefs will have prevalence
+        # over IPython ones
+        ip_cfg._merge(spy_cfg)
+        return ip_cfg
     
     def initialize_application(self):
         """Initialize IPython application"""
@@ -721,25 +869,40 @@ class IPythonConsole(SpyderPluginWidget):
                                     client_name, ipython_widget,
                                     history_filename='.history.py',
                                     menu_actions=self.menu_actions)
-        self.connect(shellwidget.get_control(), SIGNAL("go_to_error(QString)"),
-                     self.go_to_error)
+        # QTextEdit Widgets
+        control = shellwidget.ipython_widget._control
+        page_control = shellwidget.ipython_widget._page_control
+        
+        # For tracebacks
+        self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
 
         # Handle kernel interrupt
-        kernel = self.main.extconsole.shellwidgets[-1]
-        shellwidget.ipython_widget.custom_interrupt_requested.connect(
-                                                     kernel.keyboard_interrupt)
+        extconsoles = self.main.extconsole.shellwidgets
+        spyder_kernel = None
+        if extconsoles:
+            if extconsoles[-1].connection_file == connection_file:
+                spyder_kernel = extconsoles[-1]
+                ipython_widget.custom_interrupt_requested.connect(
+                                              spyder_kernel.keyboard_interrupt)
+        if spyder_kernel is None:
+            ipython_widget.custom_interrupt_requested.connect(
+                                                 shellwidget.interrupt_message)
         
         # Handle kernel restarts asked by the user
-        shellwidget.ipython_widget.custom_restart_requested.connect(
+        if spyder_kernel is not None:
+            ipython_widget.custom_restart_requested.connect(
                                                         self.create_new_kernel)
+        else:
+            ipython_widget.custom_restart_requested.connect(
+                                                   shellwidget.restart_message)
         
         # Print a message if kernel dies unexpectedly
-        shellwidget.ipython_widget.custom_restart_kernel_died.connect(
+        ipython_widget.custom_restart_kernel_died.connect(
                                        lambda t: shellwidget.if_kernel_dies(t))
         
         # Connect text widget to our inspector
-        if self.inspector is not None:
-            shellwidget.get_control().set_inspector(self.inspector)
+        if spyder_kernel is not None and self.inspector is not None:
+            control.set_inspector(self.inspector)
         
         # Connect client to our history log
         if self.historylog is not None:
@@ -751,10 +914,21 @@ class IPythonConsole(SpyderPluginWidget):
         # Apply settings to newly created client widget:
         shellwidget.set_font( self.get_plugin_font() )
         
+        # Add tab and change focus to it
         self.add_tab(shellwidget, name=shellwidget.get_name())
         self.connect(shellwidget, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
-        self.find_widget.set_editor(shellwidget.get_control())
+        
+        # Update the find widget if focus changes between control and
+        # page_control
+        self.find_widget.set_editor(control)
+        if page_control:
+            self.connect(control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('visibility_changed(bool)'),
+                         self.refresh_plugin)
+            self.connect(page_control, SIGNAL('show_find_widget()'),
+                         self.find_widget.show)
     
     def close_related_ipython_clients(self, client):
         """Close all IPython clients related to *client*, except itself"""

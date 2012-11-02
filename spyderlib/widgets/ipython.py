@@ -5,30 +5,38 @@
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.12+ client widget
+IPython v0.13+ client widget
 """
+
+# Std imports
+import atexit
+import os
+import os.path as osp
 
 # IPython imports
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
 from IPython.lib.kernel import find_connection_file
-from IPython.core.application import BaseIPythonApplication
+from IPython.core.application import BaseIPythonApplication, get_ipython_dir
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.utils.qthelpers import restore_keyevent
-from spyderlib.utils import programs
 
 # Local imports
 from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
-class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
-                         mixins.TracebackLinksMixin,
-                         mixins.InspectObjectMixin):
-    """QTextEdit widgets with features from Spyder's mixins.BaseEditMixin"""
+
+class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
+                           mixins.TracebackLinksMixin,
+                           mixins.InspectObjectMixin):
+    """
+    Subclass of QTextEdit with features from Spyder's mixins to use as the
+    control widget for IPython clients
+    """
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
@@ -36,6 +44,11 @@ class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
         mixins.TracebackLinksMixin.__init__(self)
         mixins.InspectObjectMixin.__init__(self)
         self.calltips = False # To not use Spyder calltips
+        self.found_results = []
+    
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.emit(SIGNAL("visibility_changed(bool)"), True)
     
     def _key_question(self, text):
         """Action for '?'"""
@@ -55,14 +68,38 @@ class IPythonShellWidget(QTextEdit, mixins.BaseEditMixin,
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event
-            QTextEdit.keyPressEvent(self, event)    
+            QTextEdit.keyPressEvent(self, event)
+
+
+class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
+    """
+    Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
+    use as the paging widget for IPython clients
+    """
+    QT_CLASS = QTextEdit
+    def __init__(self, parent=None):
+        QTextEdit.__init__(self, parent)
+        mixins.BaseEditMixin.__init__(self)
+        self.found_results = []
+    
+    def showEvent(self, event):
+        """Reimplement Qt Method"""
+        self.emit(SIGNAL("visibility_changed(bool)"), True)
+    
+    def keyPressEvent(self, event):
+        """Reimplement Qt Method - Basic keypress event handler"""
+        event, text, key, ctrl, shift = restore_keyevent(event)
+        
+        if key == Qt.Key_Slash and self.isVisible():
+            self.emit(SIGNAL("show_find_widget()"))
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """Spyder's IPython widget"""
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
-        self.control_factory = IPythonShellWidget
+        self.custom_control = IPythonControlWidget
+        self.custom_page_control = IPythonPageControlWidget
         super(RichIPythonWidget, self).__init__(*args, **kw)
         RichIPythonWidget.__init__(self, *args, **kw)
         
@@ -94,6 +131,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
     def show_banner(self):
         """Banner for IPython clients with pylab message"""
         from IPython.core.usage import default_gui_banner
+        banner = default_gui_banner
         
         pylab_o = CONF.get('ipython_console', 'pylab', True)
         if pylab_o:
@@ -104,57 +142,25 @@ class SpyderIPythonWidget(RichIPythonWidget):
             pylab_message = """
 Welcome to pylab, a matplotlib-based Python environment [backend: %s].
 For more information, type 'help(pylab)'.\n""" % backends[backend_o]
-            return default_gui_banner + pylab_message
-        else:
-            return default_gui_banner
+            banner = banner + pylab_message
+        
+        sympy_o = CONF.get('ipython_console', 'symbolic_math', True)
+        if sympy_o:
+            lines = """
+These commands were executed:
+from __future__ import division
+from sympy import *
+x, y, z, t = symbols('x y z t')
+k, m, n = symbols('k m n', integer=True)
+f, g, h = symbols('f g h', cls=Function)
+"""
+            banner = banner + lines
+        return banner
     
     def clear_console(self):
         self.execute("%clear")
 
     #---- IPython private methods ---------------------------------------------
-    def _create_control(self):
-        """Reimplement the IPython text widget creation"""
-        control = self.control_factory()
-        
-        #======================================================================
-        # The following is a copy of the '_create_control' method taken from:
-        # IPython.frontend.qt.console.console_widget.ConsoleWidget
-        #
-        # For future versions, we shall ask to IPython developers to add a 
-        # factory attribute (e.g. "self.control_factory") that we would 
-        # override to avoid this copy.
-        #======================================================================
-        # Install event filters. The filter on the viewport is needed for
-        # mouse events and drag events.
-        control.installEventFilter(self)
-        control.viewport().installEventFilter(self)
-
-        # Connect signals.
-        if programs.is_module_installed('IPython.frontend.qt', '0.12'):
-            control.cursorPositionChanged.connect(self._cursor_position_changed)
-        control.customContextMenuRequested.connect(
-            self._custom_context_menu_requested)
-        control.copyAvailable.connect(self.copy_available)
-        control.redoAvailable.connect(self.redo_available)
-        control.undoAvailable.connect(self.undo_available)
-
-        # Hijack the document size change signal to prevent Qt from adjusting
-        # the viewport's scrollbar. We are relying on an implementation detail
-        # of Q(Plain)TextEdit here, which is potentially dangerous, but without
-        # this functionality we cannot create a nice terminal interface.
-        layout = control.document().documentLayout()
-        layout.documentSizeChanged.disconnect()
-        layout.documentSizeChanged.connect(self._adjust_scrollbars)
-
-        # Configure the control.
-        control.setAttribute(Qt.WA_InputMethodEnabled, True)
-        control.setContextMenuPolicy(Qt.CustomContextMenu)
-        control.setReadOnly(True)
-        control.setUndoRedoEnabled(False)
-        control.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
-        return control
-        #======================================================================
-
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
@@ -191,6 +197,15 @@ class IPythonApp(IPythonQtConsoleApp):
     def initialize_all_except_qt(self, argv=None):
         BaseIPythonApplication.initialize(self, argv=argv)
         IPythonConsoleApp.initialize(self, argv=argv)
+    
+    def cleanup_connection_file(self, connection_file):
+        """Clean our own connection files at exit"""
+        connection_file = osp.join(get_ipython_dir(), 'profile_default',
+                                   'security', connection_file)
+        try:
+            os.remove(connection_file)
+        except OSError:
+            pass
 
     def create_kernel_manager(self, connection_file=None):
         """Create a kernel manager"""
@@ -204,7 +219,7 @@ class IPythonApp(IPythonQtConsoleApp):
     def config_color_scheme(self):
         """Set the color scheme for clients.
         
-        In 0.12 this property needs to be set on the App and not on the
+        In 0.13 this property needs to be set on the App and not on the
         widget, so that the widget can be initialized with the right
         scheme.
         TODO: This is a temporary measure until we create proper stylesheets
@@ -228,6 +243,7 @@ class IPythonApp(IPythonQtConsoleApp):
             widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
         self.init_colors(widget)
         widget.kernel_manager = kernel_manager
+        atexit.register(self.cleanup_connection_file, connection_file)
         return widget
 #==============================================================================
 

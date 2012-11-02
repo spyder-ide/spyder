@@ -57,7 +57,11 @@ class MyBuildDoc(setup_command.BuildDoc):
         try:
             setup_command.BuildDoc.run(self)
         except UnicodeDecodeError:
-            print >>sys.stderr, "ERROR: unable to build documentation because Sphinx do not handle source path with non-ASCII characters. Please try to move the source package to another location (path with *only* ASCII characters)."        
+            print >>sys.stderr, "ERROR: unable to build documentation "\
+                                "because Sphinx do not handle source path "\
+                                "with non-ASCII characters. Please try to "\
+                                "move the source package to another location "\
+                                "(path with *only* ASCII characters)."        
         sys.path.pop(0)
 
 
@@ -68,30 +72,56 @@ NAME = 'spyder'
 LIBNAME = 'spyderlib'
 from spyderlib import __version__, __project_url__
 
+
+def get_packages():
+    """Return package list"""
+    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
+    if os.name == 'nt':
+        # Adding pyflakes and rope to the package if available in the 
+        # repository (this is not conventional but Spyder really need 
+        # those tools and there is not decent package manager on 
+        # Windows platforms, so...)
+        for name in ('rope', 'pyflakes'):
+            if osp.isdir(name):
+                packages += get_subpackages(name)
+    return packages
+    
+
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
-      long_description="""The spyderlib library provides powerful console and 
-editor related widgets to your Qt application (PyQt4 or PySide). It also 
-includes a Scientific Python development environment named 'Spyder', an 
-alternative to IDLE with powerful interactive features such as variable 
-explorer (with GUI-based editors for dictionaries, lists, NumPy arrays, etc.), 
-object inspector, online help, and a lot more.""",
+      long_description=\
+"""The spyderlib library includes Spyder, a free open-source Python 
+development environment providing MATLAB-like features in a simple 
+and light-weighted software.
+It also provides ready-to-use pure-Python widgets to your PyQt4 or 
+PySide application: source code editor with syntax highlighting and 
+code introspection/analysis features, NumPy array editor, dictionary 
+editor, Python console, etc.""",
       download_url='%s/files/%s-%s.zip' % (__project_url__, NAME, __version__),
       author="Pierre Raybaut",
       url=__project_url__,
       license='MIT',
       keywords='PyQt4 PySide editor shell console widgets IDE',
       platforms=['any'],
-      packages=get_subpackages(LIBNAME)+get_subpackages('spyderplugins'),
+      packages=get_packages(),
       package_data={LIBNAME:
                     get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css',
                                                '.html', '.js')),
                     'spyderplugins':
-                    get_package_data('spyderplugins', ('.mo', '.svg', '.png'))},
+                    get_package_data('spyderplugins',
+                                     ('.mo', '.svg', '.png'))},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in 
-               (['spyder', 'spyder.bat'] if os.name == 'nt' else ['spyder'])],
+               (['spyder', 'spyder.bat', "%s_win_post_install.py" % NAME,
+                 'spyder.ico', 'spyder_light.ico']
+                if os.name == 'nt' else ['spyder'])],
+      options={"bdist_wininst":
+               {"install_script": "%s_win_post_install.py" % NAME,
+                "title": "%s-%s" % (NAME, __version__),
+                "user_access_control": "auto"},
+               "bdist_msi":
+               {"install_script": "%s_win_post_install.py" % NAME}},
       classifiers=['License :: OSI Approved :: MIT License',
                    'Operating System :: MacOS',
                    'Operating System :: Microsoft :: Windows',

@@ -21,7 +21,7 @@ import os.path as osp
 # Local imports
 from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 
 
 class PathManager(QDialog):

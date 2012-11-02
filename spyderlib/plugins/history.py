@@ -16,7 +16,8 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon, CONF, get_color_scheme
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon, get_color_scheme
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions)
 from spyderlib.widgets.tabs import Tabs
@@ -175,9 +176,11 @@ class HistoryLog(SpyderPluginWidget):
         wrap_o = self.get_option(wrap_n)
         self.wrap_action.setChecked(wrap_o)
         for editor in self.editors:
-            font = font_o if font_n in options else None
-            scs = color_scheme_o if color_scheme_n in options else None
-            editor.set_text_format(font, scs)
+            if font_n in options:
+                scs = color_scheme_o if color_scheme_n in options else None
+                editor.set_font(font_o, scs)
+            elif color_scheme_n in options:
+                editor.set_color_scheme(color_scheme_o)
             if wrap_n in options:
                 editor.toggle_wrap_mode(wrap_o)
         
@@ -216,7 +219,7 @@ class HistoryLog(SpyderPluginWidget):
                      lambda: self.emit(SIGNAL("focus_changed()")))
         editor.setReadOnly(True)
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        editor.set_text_format( self.get_plugin_font(), color_scheme )
+        editor.set_font( self.get_plugin_font(), color_scheme )
         editor.toggle_wrap_mode( self.get_option('wrap') )
 
         text, _ = encoding.read(filename)

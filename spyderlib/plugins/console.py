@@ -23,7 +23,8 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
                                        DialogManager)
@@ -194,8 +195,9 @@ class Console(SpyderPluginWidget):
     def traceback_available(self):
         """Traceback is available in the internal console: showing the 
         internal console automatically to warn the user"""
-        self.dockwidget.show()
-        self.dockwidget.raise_()
+        if CONF.get('main', 'show_internal_console_if_traceback', False):
+            self.dockwidget.show()
+            self.dockwidget.raise_()
         
     #------ Public API ---------------------------------------------------------
     def quit(self):

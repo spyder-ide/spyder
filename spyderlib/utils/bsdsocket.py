@@ -10,6 +10,7 @@
 # by redirecting output streams through a socket. Any exception in this module
 # and failure to read out buffers will most likely lock up Spyder.
 
+import os
 import socket
 import struct
 import cPickle as pickle
@@ -36,11 +37,21 @@ def read_packet(sock, timeout=None):
     sock.settimeout(timeout)
     dlen, data = None, None
     try:
-        datalen = sock.recv(SZ)
-        dlen, = struct.unpack("l", datalen)
-        data = ''
-        while len(data) < dlen:
-            data += sock.recv(dlen)
+        if os.name == 'nt':
+            #  Windows implementation
+            datalen = sock.recv(SZ)
+            dlen, = struct.unpack("l", datalen)
+            data = ''
+            while len(data) < dlen:
+                data += sock.recv(dlen)
+        else:
+            #  Linux/MacOSX implementation
+            #  Thanks to eborisch:
+            #  http://code.google.com/p/spyderlib/issues/detail?id=1106
+            datalen = sock.recv(SZ, socket.MSG_WAITALL)
+            if len(datalen) == SZ:
+                dlen, = struct.unpack("l", datalen)
+                data = sock.recv(dlen, socket.MSG_WAITALL)
     except socket.timeout:
         raise
     except socket.error:

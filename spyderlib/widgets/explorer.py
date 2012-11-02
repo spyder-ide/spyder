@@ -31,7 +31,7 @@ import shutil
 from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 
 
 def fixpath(path):
@@ -423,7 +423,7 @@ class DirView(QTreeView):
     def remove_tree(self, dirname):
         """Remove whole directory tree
         Reimplemented in project explorer widget"""
-        shutil.rmtree(dirname)
+        shutil.rmtree(dirname, onerror=misc.onerror)
     
     def delete_file(self, fname, multiple, yes_to_all):
         """Delete file"""
@@ -673,6 +673,9 @@ class DirView(QTreeView):
     def restore_directory_state(self, fname):
         """Restore directory expanded state"""
         root = osp.normpath(unicode(fname))
+        if not osp.exists(root):
+            # Directory has been (re)moved outside Spyder
+            return
         for basename in os.listdir(root):
             path = osp.normpath(osp.join(root, basename))
             if osp.isdir(path) and path in self.__expanded_state:

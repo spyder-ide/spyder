@@ -40,7 +40,8 @@ from spyderlib.qt.compat import to_qvariant
 #TODO: Try to separate this module from spyderlib to create a self
 #      consistent editor module (Qt source code and shell widgets library)
 from spyderlib.baseconfig import get_conf_path, _, DEBUG
-from spyderlib.config import CONF, get_font, get_icon, get_image_path
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_font, get_icon, get_image_path
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        mimedata2url)
 from spyderlib.utils.dochelpers import getobj
@@ -48,7 +49,7 @@ from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
-from spyderlib.widgets.sourcecode import syntaxhighlighters
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
@@ -135,7 +136,7 @@ class RopeProject(object):
             if DEBUG:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
             return [proposal.name for proposal in proposals]
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
@@ -173,7 +174,7 @@ class RopeProject(object):
                 return [cts, doc_text]
             else:
                 return []
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
@@ -198,7 +199,7 @@ class RopeProject(object):
             if resource is not None:
                 filename = resource.real_path
             return filename, lineno
-        except Exception, _error:
+        except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
@@ -453,27 +454,23 @@ def get_file_language(filename, text=None):
 class CodeEditor(TextEditBaseWidget):
     """Source Code Editor Widget based exclusively on Qt"""
     LANGUAGES = {
-                 ('py', 'pyw', 'python', 'ipy'): (syntaxhighlighters.PythonSH,
-                                                  '#', PythonCFM),
-                 ('pyx', 'pxi', 'pxd'): (syntaxhighlighters.CythonSH,
-                                         '#', PythonCFM),
-                 ('f', 'for', 'f77'): (syntaxhighlighters.Fortran77SH,
-                                       'c', None),
-                 ('f90', 'f95', 'f2k'): (syntaxhighlighters.FortranSH,
-                                         '!', None),
-                 ('pro',): (syntaxhighlighters.IdlSH, ';', None),
-                 ('diff', 'patch', 'rej'): (syntaxhighlighters.DiffSH, '',
-                                            None),
-                 ('css',): (syntaxhighlighters.CssSH, '', None),
-                 ('po', 'pot'): (syntaxhighlighters.GetTextSH, '#', None),
-                 ('htm', 'html'): (syntaxhighlighters.HtmlSH, '', None),
-                 ('c', 'cc', 'cpp', 'cxx',
-                  'h', 'hh', 'hpp', 'hxx',
-                  ): (syntaxhighlighters.CppSH, '//', None),
-                 ('cl',): (syntaxhighlighters.OpenCLSH, '//', None),
-#                 ('bat', 'cmd', 'nt'): (QsciLexerBatch, 'rem ', None),
-#                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
-#                  'cfg', 'cnf', 'aut', 'iss'): (QsciLexerProperties, '#', None),
+                 ('py', 'pyw', 'python', 'ipy'): (sh.PythonSH, '#', PythonCFM),
+                 ('pyx', 'pxi', 'pxd'): (sh.CythonSH, '#', PythonCFM),
+                 ('f', 'for', 'f77'): (sh.Fortran77SH, 'c', None),
+                 ('f90', 'f95', 'f2k'): (sh.FortranSH, '!', None),
+                 ('pro',): (sh.IdlSH, ';', None),
+                 ('m',): (sh.MatlabSH, '%', None),
+                 ('diff', 'patch', 'rej'): (sh.DiffSH, '', None),
+                 ('css',): (sh.CssSH, '', None),
+                 ('po', 'pot'): (sh.GetTextSH, '#', None),
+                 ('nsi', 'nsh'): (sh.NsisSH, '#', None),
+                 ('htm', 'html'): (sh.HtmlSH, '', None),
+                 ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
+                  ): (sh.CppSH, '//', None),
+                 ('cl',): (sh.OpenCLSH, '//', None),
+                 ('bat', 'cmd', 'nt'): (sh.BatchSH, 'rem ', None),
+                 ('properties', 'session', 'ini', 'inf', 'reg', 'url',
+                  'cfg', 'cnf', 'aut', 'iss'): (sh.IniSH, '#', None),
                  }
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
@@ -532,11 +529,11 @@ class CodeEditor(TextEditBaseWidget):
         #   - background highlight for current line
         #   - background highlight for search / current line occurences
 
-        self.highlighter_class = syntaxhighlighters.TextSH
+        self.highlighter_class = sh.TextSH
         self.highlighter = None
         ccs = 'Spyder'
-        if ccs not in syntaxhighlighters.COLOR_SCHEME_NAMES:
-            ccs = syntaxhighlighters.COLOR_SCHEME_NAMES[0]
+        if ccs not in sh.COLOR_SCHEME_NAMES:
+            ccs = sh.COLOR_SCHEME_NAMES[0]
         self.color_scheme = ccs
 
         #  Background colors: current line, occurences
@@ -744,8 +741,11 @@ class CodeEditor(TextEditBaseWidget):
         if cloned_from is not None:
             self.set_as_clone(cloned_from)
             self.update_linenumberarea_width()
+        elif font is not None:
+            self.set_font(font, color_scheme)
+        elif color_scheme is not None:
+            self.set_color_scheme(color_scheme)
 
-        self.set_text_format(font, color_scheme)
         self.toggle_wrap_mode(wrap)
 
     def set_tab_mode(self, enable):
@@ -799,7 +799,7 @@ class CodeEditor(TextEditBaseWidget):
         self.tab_indents = language in self.TAB_ALWAYS_INDENTS
         self.supported_language = False
         self.comment_string = ''
-        sh_class = syntaxhighlighters.TextSH
+        sh_class = sh.TextSH
         if language is not None:
             for key in self.LANGUAGES:
                 if language.lower() in key:
@@ -826,10 +826,10 @@ class CodeEditor(TextEditBaseWidget):
             self._apply_highlighter_color_scheme()
 
     def is_python(self):
-        return self.highlighter_class is syntaxhighlighters.PythonSH
+        return self.highlighter_class is sh.PythonSH
 
     def is_cython(self):
-        return self.highlighter_class is syntaxhighlighters.CythonSH
+        return self.highlighter_class is sh.CythonSH
 
     def rehighlight(self):
         """
@@ -1039,7 +1039,7 @@ class CodeEditor(TextEditBaseWidget):
             maxb /= 10
             digits += 1
         if self.linenumbers_margin:
-            linenumbers_margin = 3+self.fontMetrics().width('9')*digits
+            linenumbers_margin = 3+self.fontMetrics().width('9'*digits)
         else:
             linenumbers_margin = 0
         return linenumbers_margin+self.get_markers_margin()
@@ -1343,7 +1343,7 @@ class CodeEditor(TextEditBaseWidget):
         x = self.blockBoundingGeometry(self.firstVisibleBlock()) \
             .translated(offset.x(), offset.y()).left() \
             +self.get_linenumberarea_width() \
-            +self.fontMetrics().width('9')*self.edge_line.column+5
+            +self.fontMetrics().width('9'*self.edge_line.column)+5
         self.edge_line.setGeometry(\
                         QRect(x, cr.top(), 1, cr.bottom()))
         self.__set_scrollflagarea_geometry(cr)
@@ -1383,31 +1383,35 @@ class CodeEditor(TextEditBaseWidget):
             self.matched_p_color = hl.get_matched_p_color()
             self.unmatched_p_color = hl.get_unmatched_p_color()
 
-    def set_text_format(self, font=None, color_scheme=None):
-        """Set font and color_scheme at once to avoid rehighlighting twice"""
-        # update CodeEditor attributes
-        if font is not None:
-           self.setFont(font)
-           self.update_linenumberarea_width()
-        if color_scheme is not None:
-           self.color_scheme = color_scheme
-        
-        # update highligher
+    def apply_highlighter_settings(self, color_scheme=None):
+        """Apply syntax highlighter settings"""
         if self.highlighter is not None:
-            self.highlighter.setup_text_format(font, color_scheme)
-            # update CodeEditor again from highlighter
+            # Updating highlighter settings (font and color scheme)
+            self.highlighter.setup_formats(self.font())
             if color_scheme is not None:
-                self._apply_highlighter_color_scheme()
-    
-        self.rehighlight()
+                self.set_color_scheme(color_scheme)
+            else:
+                self.highlighter.rehighlight()
 
-    def set_font(self, font):
+    def set_font(self, font, color_scheme=None):
         """Set shell font"""
-        self.set_text_format(font)
+        # Note: why using this method to set color scheme instead of
+        #       'set_color_scheme'? To avoid rehighlighting the document twice
+        #       at startup.
+        if color_scheme is not None:
+            self.color_scheme = color_scheme
+        self.setFont(font)
+        self.update_linenumberarea_width()
+        self.apply_highlighter_settings(color_scheme)
 
     def set_color_scheme(self, color_scheme):
         """Set color scheme for syntax highlighting"""
-        self.set_text_format(color_scheme=color_scheme)
+        self.color_scheme = color_scheme
+        if self.highlighter is not None:
+            # this calls self.highlighter.rehighlight()
+            self.highlighter.set_color_scheme(color_scheme)
+            self._apply_highlighter_color_scheme()
+        self.highlight_current_line()
 
     def set_text(self, text):
         """Set the text of the editor"""
@@ -2067,7 +2071,7 @@ class CodeEditor(TextEditBaseWidget):
         This simply counts whether the number of quote characters of either
         type in the string is odd.
         
-        Take from the IPython project (in IPython/core/completer.py in v0.12)
+        Take from the IPython project (in IPython/core/completer.py in v0.13)
         Spyder team: Add some changes to deal with escaped quotes
         
         - Copyright (C) 2008-2011 IPython Development Team
@@ -2202,8 +2206,12 @@ class CodeEditor(TextEditBaseWidget):
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
                     self.emit(SIGNAL('trigger_code_completion(bool)'), True)
-        elif key == Qt.Key_Home and not ctrl:
-            self.stdkey_home(shift)
+        elif key == Qt.Key_Home:
+            self.stdkey_home(shift, ctrl)
+        elif key == Qt.Key_End:
+            # See Issue 495: on MacOS X, it is necessary to redefine this 
+            # basic action which should have been implemented natively
+            self.stdkey_end(shift, ctrl)
         elif text == '(' and not self.has_selected_text():
             self.hide_completion_widget()
             position = self.get_position('cursor')

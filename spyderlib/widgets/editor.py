@@ -30,8 +30,9 @@ import os.path as osp
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
-from spyderlib.baseconfig import _, DEBUG, STDOUT
-from spyderlib.config import get_icon, EDIT_FILTERS, EDIT_EXT
+from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
+from spyderlib.config import EDIT_FILTERS, EDIT_EXT
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import (create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -169,8 +170,12 @@ class AnalysisThread(QThread):
     
     def run(self):
         """Run analysis"""
-        self.results = self.checker(self.source_code)
-
+        try:
+            self.results = self.checker(self.source_code)
+        except Exception:
+            if DEBUG:
+                import traceback
+                traceback.print_exc(file=STDERR)
 
 class ThreadManager(QObject):
     """Analysis thread manager"""
@@ -228,7 +233,9 @@ class ThreadManager(QObject):
             for thread in threadlist:
                 if thread.isFinished():
                     end_callback = self.end_callbacks.pop(id(thread))
-                    end_callback(thread.results)
+                    if thread.results is not None:
+                        #  The thread was executed successfully
+                        end_callback(thread.results)
                     thread.setParent(None)
                     thread = None
                 else:
@@ -928,7 +935,7 @@ class EditorStack(QWidget):
             self.color_scheme = color_scheme
         if self.data:
             for finfo in self.data:
-                finfo.editor.set_text_format(font, color_scheme)
+                finfo.editor.set_font(font, color_scheme)
             
     def set_color_scheme(self, color_scheme):
         self.color_scheme = color_scheme
@@ -1220,7 +1227,13 @@ class EditorStack(QWidget):
                 self.outlineexplorer.remove_editor(finfo.editor)
             
             self.remove_from_data(index)
-            self.emit(SIGNAL('close_file(long,long)'), id(self), index)
+            
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL('close_file(QString,int)'), str(id(self)), index)
+            
             if not self.data and self.is_closable:
                 # editortabwidget is empty: removing it
                 # (if it's not the first editortabwidget)
@@ -1311,7 +1324,13 @@ class EditorStack(QWidget):
             finfo.newly_created = False
             self.emit(SIGNAL('encoding_changed(QString)'), finfo.encoding)
             finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
-            self.emit(SIGNAL('file_saved(long,long)'), id(self), index)
+            
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL('file_saved(QString,int)'), str(id(self)), index)
+
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
             self.analyze_script(index)
@@ -2280,7 +2299,7 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
-        self.connect(editorstack, SIGNAL('close_file(long,long)'),
+        self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -2323,9 +2342,9 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
-    def close_file_in_all_editorstacks(self, editorstack_id, index):
+    def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
-            if id(editorstack) != editorstack_id:
+            if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)

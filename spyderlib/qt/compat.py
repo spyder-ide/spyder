@@ -66,12 +66,12 @@ if os.environ['QT_API'] == 'pyqt':
             # PyQt API #2
             return qobj
 else:
-    def to_qvariant(obj=None):
+    def to_qvariant(obj=None):  # analysis:ignore
         """Convert Python object to QVariant
         This is a transitional function from PyQt API#1 (QVariant exist) 
         to PyQt API#2 and Pyside (QVariant does not exist)"""
         return obj
-    def from_qvariant(qobj=None, pytype=None):
+    def from_qvariant(qobj=None, pytype=None):  # analysis:ignore
         """Convert QVariant object to Python object
         This is a transitional function from PyQt API #1 (QVariant exist) 
         to PyQt API #2 and Pyside (QVariant does not exist)"""
@@ -111,7 +111,7 @@ def _qfiledialog_wrapper(attr, parent=None, caption='', basedir='',
         from spyderlib.qt.QtCore import QString
     except ImportError:
         # PySide or PyQt >=v4.6
-        QString = None
+        QString = None  # analysis:ignore
     tuple_returned = True
     try:
         # PyQt >=v4.6
@@ -131,6 +131,12 @@ def _qfiledialog_wrapper(attr, parent=None, caption='', basedir='',
     try:
         result = func(parent, caption, basedir,
                       filters, selectedfilter, options)
+    except TypeError:
+        # The selectedfilter option (`initialFilter` in Qt) has only been 
+        # introduced in Jan. 2010 for PyQt v4.7, that's why we handle here 
+        # the TypeError exception which will be raised with PyQt v4.6
+        # (see Issue 960 for more details)
+        result = func(parent, caption, basedir, filters, options)
     finally:
         if sys.platform == "win32":
             # On Windows platforms: restore standard outputs

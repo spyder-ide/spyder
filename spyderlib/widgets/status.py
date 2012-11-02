@@ -11,7 +11,7 @@ from spyderlib.qt.QtCore import QTimer, SIGNAL
 
 # Local import
 from spyderlib.baseconfig import _
-from spyderlib.config import get_font
+from spyderlib.guiconfig import get_font
 
 
 class StatusBarWidget(QWidget):

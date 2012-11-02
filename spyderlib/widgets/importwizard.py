@@ -22,7 +22,7 @@ from functools import partial as ft_partial
 
 # Local import
 from spyderlib.baseconfig import _
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.utils.qthelpers import add_actions, create_action
 
 def try_to_parse(value):

@@ -15,11 +15,12 @@ from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
 import re
 import os.path as osp
 import socket
+import sys
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.config import (get_icon, CONF, get_color_scheme,
-                              get_font, set_font)
+from spyderlib.config import CONF
+from spyderlib.guiconfig import get_icon, get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import (create_toolbutton, add_actions,
                                        create_action)
@@ -31,10 +32,10 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 #XXX: hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if programs.is_module_installed('IPython.frontend.qt', '>=0.12'):
-    from spyderlib.widgets.ipython import IPythonShellWidget
+if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
+    from spyderlib.widgets.ipython import IPythonControlWidget
 else:
-    IPythonShellWidget = None
+    IPythonControlWidget = None
 
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 
@@ -183,10 +184,14 @@ class PlainText(QWidget):
         layout.addWidget(self.editor)
         layout.addWidget(self.find_widget)
         self.setLayout(layout)
-
-    def set_text_format(self, font=None, color_scheme=None):
-        """Set font and color scheme"""
-        self.editor.set_text_format(font, color_scheme)
+        
+    def set_font(self, font, color_scheme=None):
+        """Set font"""
+        self.editor.set_font(font, color_scheme=color_scheme)
+        
+    def set_color_scheme(self, color_scheme):
+        """Set color scheme"""
+        self.editor.set_color_scheme(color_scheme)
         
     def set_text(self, text, is_code):
         self.editor.set_highlight_current_line(is_code)
@@ -228,7 +233,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.rich_text = RichText(self)
         
         color_scheme = get_color_scheme(self.get_option('color_scheme_name'))
-        self.set_plain_text_style(self.get_plugin_font(), color_scheme)
+        self.set_plain_text_font(self.get_plugin_font(), color_scheme)
         self.plain_text.editor.toggle_wrap_mode(self.get_option('wrap'))
         
         # Add entries to read-only editor context-menu
@@ -256,7 +261,11 @@ class ObjectInspector(SpyderPluginWidget):
         # Object name
         layout_edit = QHBoxLayout()
         layout_edit.setContentsMargins(0, 0, 0, 0)
-        source_label = QLabel(_("Source"))
+        txt = _("Source")
+        if sys.platform == 'darwin':
+            source_label = QLabel("  " + txt)
+        else:
+            source_label = QLabel(txt)
         layout_edit.addWidget(source_label)
         self.source_combo = QComboBox(self)
         self.source_combo.addItems([_("Console"), _("Editor")])
@@ -395,11 +404,13 @@ class ObjectInspector(SpyderPluginWidget):
         self.wrap_action.setChecked(wrap_o)
         math_n = 'math'
         math_o = self.get_option(math_n)
-        font = font_o if font_n in options else None
-        scs = color_scheme_o if color_scheme_n in options else None
-        self.set_plain_text_style(font, color_scheme=scs)
+        if font_n in options:
+            scs = color_scheme_o if color_scheme_n in options else None
+            self.set_plain_text_font(font_o, color_scheme=scs)
         if rich_font_n in options:
             self.set_rich_text_font(rich_font_o)
+        elif color_scheme_n in options:
+            self.set_plain_text_color_scheme(color_scheme_o)
         if wrap_n in options:
             self.toggle_wrap_mode(wrap_o)
         if math_n in options:
@@ -468,16 +479,20 @@ class ObjectInspector(SpyderPluginWidget):
         """Set rich text mode font"""
         self.rich_text.set_font(font, fixed_font=self.get_plugin_font())
         
-    def set_plain_text_style(self, font=None, color_scheme=None):
-        """Set plain text mode font and color_scheme"""
-        self.plain_text.set_text_format(font, color_scheme)
+    def set_plain_text_font(self, font, color_scheme=None):
+        """Set plain text mode font"""
+        self.plain_text.set_font(font, color_scheme=color_scheme)
 
+    def set_plain_text_color_scheme(self, color_scheme):
+        """Set plain text mode color scheme"""
+        self.plain_text.set_color_scheme(color_scheme)
+        
     def change_font(self):
         """Change console font"""
         font, valid = QFontDialog.getFont(get_font(self.CONF_SECTION), self,
                                       _("Select a new font"))
         if valid:
-            self.set_plain_text_style(font)
+            self.set_plain_text_font(font)
             set_font(font, self.CONF_SECTION)
             
     def toggle_wrap_mode(self, checked):
@@ -682,10 +697,10 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_shell(self, shell):
         """Bind to shell"""
-        if IPythonShellWidget is not None:
+        if IPythonControlWidget is not None:
             # XXX(anatoli): hack to make Spyder run on systems without IPython
             #               there should be a better way
-            if isinstance(shell, IPythonShellWidget):
+            if isinstance(shell, IPythonControlWidget):
                 # XXX: this ignores passed argument completely
                 self.shell = self.external_console.get_current_shell()
         else:

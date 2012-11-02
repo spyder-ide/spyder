@@ -10,8 +10,9 @@ import os
 import os.path as osp
 
 from spyderlib.baseconfig import _
-from spyderlib.config import (get_icon, CONF, CUSTOM_COLOR_SCHEME_NAME,
-                              set_default_color_scheme, COLOR_SCHEME_NAMES)
+from spyderlib.config import CONF
+from spyderlib.guiconfig import (get_icon, CUSTOM_COLOR_SCHEME_NAME,
+                                 set_default_color_scheme, COLOR_SCHEME_NAMES)
 from spyderlib.utils.qthelpers import get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
@@ -687,9 +688,20 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(cpu_layout)
         sbar_group.setLayout(sbar_layout)
         
+        debug_group = QGroupBox(_("Debugging"))
+        popup_console_box = newcb(_("Pop up internal console when errors "
+                                    "were intercepted"),
+                                  'show_internal_console_if_traceback',
+                                  default=False)
+        
+        debug_layout = QVBoxLayout()
+        debug_layout.addWidget(popup_console_box)
+        debug_group.setLayout(debug_layout)
+        
         vlayout = QVBoxLayout()
         vlayout.addWidget(interface_group)
         vlayout.addWidget(sbar_group)
+        vlayout.addWidget(debug_group)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
         

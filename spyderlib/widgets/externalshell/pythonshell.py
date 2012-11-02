@@ -24,7 +24,7 @@ from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _, get_module_source_path
-from spyderlib.config import get_icon
+from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate, write_packet
@@ -494,6 +494,12 @@ The process may not exit as a result of clicking this button
             self.emit(SIGNAL('started()'))
             
         return self.process
+
+    def finished(self, exit_code, exit_status):
+        """Reimplement ExternalShellBase method"""
+        ExternalShellBase.finished(self, exit_code, exit_status)
+        self.introspection_socket = None
+
     
 #===============================================================================
 #    Input/Output
@@ -509,6 +515,9 @@ The process may not exit as a result of clicking this button
         QApplication.processEvents()
         
     def send_to_process(self, text):
+        if not self.is_running():
+            return
+            
         if not isinstance(text, basestring):
             text = unicode(text)
         if self.install_qt_inputhook and self.introspection_socket is not None:
