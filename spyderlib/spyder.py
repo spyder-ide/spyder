@@ -124,6 +124,7 @@ from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
+from spyderlib.cli_options import get_options
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
@@ -1799,7 +1800,7 @@ Please provide any additional information below.
                                          socket.SO_REUSEADDR, 1)
         # default_port = SPYDER_PORT + 1000
         port = select_port(default_port=21128)
-        CONF.set('main', 'open_port', port)
+        CONF.set('main', 'open_file_port', port)
         self.open_file_server.bind(('127.0.0.1', port))
         self.open_file_server.listen(1)
         while 1:
@@ -1809,48 +1810,6 @@ Please provide any additional information below.
             req.sendall(' ')
 
         
-def get_options():
-    """
-    Convert options into commands
-    return commands, message
-    """
-    import optparse
-    parser = optparse.OptionParser(usage="spyder [options]")
-    parser.add_option('-l', '--light', dest="light", action='store_true',
-                      default=False,
-                      help="Light version (all add-ons are disabled)")
-    parser.add_option('--session', dest="startup_session", default='',
-                      help="Startup session")
-    parser.add_option('--defaults', dest="reset_to_defaults",
-                      action='store_true', default=False,
-                      help="Reset to configuration settings to defaults")
-    parser.add_option('--reset', dest="reset_session",
-                      action='store_true', default=False,
-                      help="Remove all configuration files!")
-    parser.add_option('--optimize', dest="optimize",
-                      action='store_true', default=False,
-                      help="Optimize Spyder bytecode (this may require "
-                           "administrative privileges)")
-    parser.add_option('-w', '--workdir', dest="working_directory", default=None,
-                      help="Default working directory")
-    parser.add_option('-d', '--debug', dest="debug", action='store_true',
-                      default=False,
-                      help="Debug mode (stds are not redirected)")
-    parser.add_option('--showconsole', dest="show_console",
-                      action='store_true', default=False,
-                      help="Show parent console (Windows only)")
-    parser.add_option('--multithread', dest="multithreaded",
-                      action='store_true', default=False,
-                      help="Internal console is executed in another thread "
-                           "(separate from main application thread)")
-    parser.add_option('--profile', dest="profile", action='store_true',
-                      default=False,
-                      help="Profile mode (internal test, "
-                           "not related with Python profiling)")
-    options, args = parser.parse_args()
-    return options, args
-
-
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
     app = qapplication()
@@ -1979,36 +1938,6 @@ def main():
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
     options, args = get_options()
-    
-    # Check if there is a running instance
-    started = False
-    if CONF.get('main', 'started', False):
-        # In case Spyder dies while running, the 'started' value will be True
-        # but the app will be closed, so we have to check if it's still
-        # connected to the open_file_server port to be completely sure
-        try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
-                                 socket.IPPROTO_TCP)
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            port = CONF.get('main', 'open_port', 21128)
-            sock.bind( ("127.0.0.1", port) )
-            sock.close()
-        except socket.error, _msg:  # analysis:ignore
-            started = True
-    
-    # If it's already running, just send the first arg (which needs to be a
-    # filename) to open_file_server
-    if started and args:
-        open_file_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
-                                         socket.IPPROTO_TCP)
-        port = CONF.get('main', 'open_port')
-        open_file_client.connect( ("127.0.0.1", port) )
-        open_file_client.send(args[0])
-        open_file_client.close()
-        return
-    elif started:
-        return
-    
     
     if set_attached_console_visible is not None:
         set_attached_console_visible(options.debug or options.show_console\
