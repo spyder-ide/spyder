@@ -117,7 +117,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
-from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_icon, get_image_path, get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -416,7 +416,7 @@ class MainWindow(QMainWindow):
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with:
         # spyder foo.py
-        t = threading.Thread(target=self.start_open_file_server)
+        t = threading.Thread(target=self.start_open_files_server)
         t.setDaemon(True)
         t.start()
         
@@ -1326,7 +1326,7 @@ class MainWindow(QMainWindow):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
-        self.open_file_server.close()
+        self.open_files_server.close()
         CONF.set('main', 'started', False)
         return True
         
@@ -1792,19 +1792,18 @@ Please provide any additional information below.
             if self.close():
                 self.save_session_name = filename
     
-    def start_open_file_server(self):
-        self.open_file_server = socket.socket(socket.AF_INET,
+    def start_open_files_server(self):
+        self.open_files_server = socket.socket(socket.AF_INET,
                                               socket.SOCK_STREAM,
                                               socket.IPPROTO_TCP)
-        self.open_file_server.setsockopt(socket.SOL_SOCKET,
+        self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
-        # default_port = SPYDER_PORT + 1000
-        port = select_port(default_port=21128)
-        CONF.set('main', 'open_file_port', port)
-        self.open_file_server.bind(('127.0.0.1', port))
-        self.open_file_server.listen(1)
+        port = select_port(default_port=OPEN_FILES_PORT)
+        CONF.set('main', 'open_files_port', port)
+        self.open_files_server.bind(('127.0.0.1', port))
+        self.open_files_server.listen(1)
         while 1:
-            req, addr = self.open_file_server.accept()
+            req, addr = self.open_files_server.accept()
             fname = req.recv(1024)
             self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(' ')

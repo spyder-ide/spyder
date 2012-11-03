@@ -24,7 +24,7 @@ def main():
     if args:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                socket.IPPROTO_TCP)
-        port = CONF.get('main', 'open_file_port')
+        port = CONF.get('main', 'open_files_port')
         client.connect( ("127.0.0.1", port) )
         client.send(osp.abspath(args[0]))
         client.close()

@@ -101,7 +101,7 @@ NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
 
 # Port used to detect if there is a running instance and to communicate with
 # it to open external files
-OPEN_FILE_PORT = 21128
+OPEN_FILES_PORT = 21128
 
 DEFAULTS = [
             ('main',
@@ -130,7 +130,7 @@ DEFAULTS = [
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
               'started': True,
-              'open_file_port': OPEN_FILE_PORT
+              'open_files_port': OPEN_FILES_PORT
               }),
             ('quick_layouts',
              {
