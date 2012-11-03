@@ -11,7 +11,7 @@ def get_options():
     Convert options into commands
     return commands, message
     """
-    parser = optparse.OptionParser(usage="spyder [options]")
+    parser = optparse.OptionParser(usage="spyder [options] file")
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
@@ -19,7 +19,7 @@ def get_options():
                       help="Startup session")
     parser.add_option('--defaults', dest="reset_to_defaults",
                       action='store_true', default=False,
-                      help="Reset to configuration settings to defaults")
+                      help="Reset configuration settings to defaults")
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Remove all configuration files!")
