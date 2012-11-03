@@ -9,9 +9,8 @@ if CONF.get('main', 'started'):
     # but the app will be closed, so we have to check if it's still
     # connected to the open_files_server port to be completely sure
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
-                             socket.IPPROTO_TCP)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         port = CONF.get('main', 'open_files_port')
         sock.bind( ("127.0.0.1", port) )
         sock.close()
