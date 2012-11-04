@@ -1329,7 +1329,8 @@ class EditorStack(QWidget):
             # depend on the platform: long for 64bit, int for 32bit. Replacing 
             # by long all the time is not working on some 32bit platforms 
             # (see Issue 1094, Issue 1098)
-            self.emit(SIGNAL('file_saved(QString,int)'), str(id(self)), index)
+            self.emit(SIGNAL('file_saved(QString,int,QString)'),
+                      str(id(self)), index, finfo.filename)
 
             finfo.editor.document().setModified(False)
             self.modification_changed(index=index)
@@ -1353,13 +1354,16 @@ class EditorStack(QWidget):
                                         str(error)))
             return False
         
-    def file_saved_in_other_editorstack(self, index):
+    def file_saved_in_other_editorstack(self, index, filename):
         """
         File was just saved in another editorstack, let's synchronize!
         This avoid file to be automatically reloaded
+        
+        Filename is passed in case file was just saved as another name
         """
         finfo = self.data[index]
         finfo.newly_created = False
+        finfo.filename = unicode(filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
     
     def select_savename(self, original_filename):

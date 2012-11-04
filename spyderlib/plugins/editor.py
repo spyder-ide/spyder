@@ -1009,7 +1009,7 @@ class Editor(SpyderPluginWidget):
         
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
-        self.connect(editorstack, SIGNAL('file_saved(QString,int)'),
+        self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
                      self.file_saved_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
@@ -1070,11 +1070,11 @@ class Editor(SpyderPluginWidget):
                 editorstack.blockSignals(False)
                 
     @Slot(int, int)
-    def file_saved_in_editorstack(self, editorstack_id_str, index):
+    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
         """A file was saved in editorstack, this notifies others"""
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
-                editorstack.file_saved_in_other_editorstack(index)
+                editorstack.file_saved_in_other_editorstack(index, filename)
         
         
     #------ Handling editor windows    
