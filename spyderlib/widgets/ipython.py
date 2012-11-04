@@ -100,8 +100,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
         self.custom_page_control = IPythonPageControlWidget
-        super(RichIPythonWidget, self).__init__(*args, **kw)
-        RichIPythonWidget.__init__(self, *args, **kw)
+        super(SpyderIPythonWidget, self).__init__(*args, **kw)
         
         # --- Spyder variables ---
         self.ipython_client = None
