@@ -1101,7 +1101,8 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
             # File type has changed!
-            language = get_file_language(new_filename)
+            txt = unicode(finfo.editor.get_text_with_eol())
+            language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language)
         set_new_index = index == self.get_stack_index()
         finfo.filename = new_filename
