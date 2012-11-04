@@ -50,12 +50,17 @@ class ResultsTree(OneColumnTree):
         self.data = None
         self.set_title('')
         
-    def activated(self):
-        data = self.data.get(self.currentItem())
+    def activated(self, item):
+        """Double-click event"""
+        data = self.data.get(item)
         if data is not None:
             fname, lineno = data
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
                                fname, lineno, '')
+
+    def clicked(self, item):
+        """Click event"""
+        self.activated(item)
         
     def clear_results(self):
         self.clear()

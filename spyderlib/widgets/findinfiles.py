@@ -521,12 +521,17 @@ class ResultsBrowser(OneColumnTree):
         self.set_title('')
         self.root_items = None
         
-    def activated(self):
+    def activated(self, item):
+        """Double-click event"""
         itemdata = self.data.get(self.currentItem())
         if itemdata is not None:
             filename, lineno = itemdata
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
                                filename, lineno, self.search_text)
+
+    def clicked(self, item):
+        """Click event"""
+        self.activated(item)
         
     def set_results(self, search_text, results, pathlist, nb,
                     error_flag, completed):

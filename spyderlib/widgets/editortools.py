@@ -410,12 +410,6 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             editor_id = self.editor_ids[self.current_editor]
             self.root_item_selected(self.editor_items[editor_id])
 
-    def clicked(self, item):
-        """Click event"""
-        if isinstance(item, FileRootItem):
-            self.root_item_selected(item)
-        self.activated(item)
-
     def get_root_item(self, item):
         root_item = item
         while isinstance(root_item.parent(), QTreeWidgetItem):
@@ -441,8 +435,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                         self.current_editor = editor
                         break
                 break
-    
-    
+
+    def clicked(self, item):
+        """Click event"""
+        if isinstance(item, FileRootItem):
+            self.root_item_selected(item)
+        self.activated(item)
+
+
 class OutlineExplorerWidget(QWidget):
     """
     Class browser

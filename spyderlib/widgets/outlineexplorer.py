@@ -65,8 +65,12 @@ class OutlineExplorer(OneColumnTree):
         return (self.fname, self.classes, self.lines)
 
     def activated(self, item):
-        """Double-click or click event"""
+        """Double-click event"""
         self.emit(SIGNAL('go_to_line(int)'), self.lines[item])
+
+    def clicked(self, item):
+        """Click event"""
+        self.activated(item)
         
     def populate_classes(self):
         """Populate classes"""

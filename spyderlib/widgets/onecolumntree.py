@@ -48,10 +48,11 @@ class OneColumnTree(QTreeWidget):
                      self.item_selection_changed)
         self.item_selection_changed()
                      
-    def activated(self):
+    def activated(self, item):
+        """Double-click event"""
         raise NotImplementedError
         
-    def clicked(self):
+    def clicked(self, item):
         pass
                      
     def set_title(self, title):
