@@ -103,7 +103,12 @@ def check(args, source_code, filename=None, options=None):
         return []
     if options is not None:
         args += options
-    source_code += '\n'
+    if any(['pyflakes' in arg for arg in args]):
+        #  Pyflakes requires an ending new line (pep8 don't! -- see Issue 1123)
+        #  Note: this code is not used right now as it is faster to invoke 
+        #  pyflakes in current Python interpreter (see `check_with_pyflakes` 
+        #  function above) than calling it through a subprocess
+        source_code += '\n'
     if filename is None:
         # Creating a temporary file because file does not exist yet 
         # or is not up-to-date
