@@ -59,6 +59,7 @@ Licensed under the terms of the MIT License
             IPython 0.13+ (enhanced Python interpreter)
                 On Ubuntu you need to install ipython-qtconsole, on Fedora
                 ipython-gui and on Gentoo ipython with the qt4 USE flag.
+            pygments (syntax highlighting for MATLAB, batch and ini files)
             pylint (powerful code analysis)
             pep8 (style analysis)
 

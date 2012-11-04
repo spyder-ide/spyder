@@ -820,10 +820,6 @@ class CssSH(BaseWebSH):
 # Pygments based omni-parser
 #==============================================================================
 
-from pygments.lexers import get_lexer_by_name
-from pygments.token import (Text, Other, Keyword, Name, String, Number, 
-                            Comment, Generic, Token)
-
 # IMPORTANT NOTE:
 # --------------
 # Do not be tempted to generalize the use of PygmentsSH (that is tempting 
@@ -838,20 +834,25 @@ class PygmentsSH(BaseSH):
     # Store the language name and a ref to the lexer
     _lang_name = None
     _lexer = None
-    # Map Pygments tokens to Spyder tokens
-    _tokmap = {Text: "normal", 
-               Generic: "normal", 
-               Other: "normal",
-               Keyword: "keyword",
-               Token.Operator: "normal",
-               Name.Builtin: "builtin",
-               Name: "normal",
-               Comment: "comment",
-               String: "string",
-               Number: "number"}
     # Syntax highlighting states (from one text block to another):
     NORMAL = 0
     def __init__(self, parent, font=None, color_scheme=None):
+        # Warning: do not move out those import statements
+        # (pygments is an optional dependency)
+        from pygments.lexers import get_lexer_by_name
+        from pygments.token import (Text, Other, Keyword, Name, String, Number,
+                                    Comment, Generic, Token)
+        # Map Pygments tokens to Spyder tokens
+        self._tokmap = {Text: "normal", 
+                        Generic: "normal", 
+                        Other: "normal",
+                        Keyword: "keyword",
+                        Token.Operator: "normal",
+                        Name.Builtin: "builtin",
+                        Name: "normal",
+                        Comment: "comment",
+                        String: "string",
+                        Number: "number"}
         # Load Pygments' Lexer
         if self._lang_name is not None:
             self._lexer = get_lexer_by_name(self._lang_name)

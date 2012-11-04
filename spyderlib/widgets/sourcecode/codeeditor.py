@@ -472,6 +472,14 @@ class CodeEditor(TextEditBaseWidget):
                  ('properties', 'session', 'ini', 'inf', 'reg', 'url',
                   'cfg', 'cnf', 'aut', 'iss'): (sh.IniSH, '#', None),
                  }
+    try:
+        import pygments  # analysis:ignore
+    except ImportError:
+        # Removing all syntax highlighters requiring pygments to be installed
+        for key, (sh_class, comment_string, CFMatch) in LANGUAGES.items():
+            if issubclass(sh_class, sh.PygmentsSH):
+                LANGUAGES.pop(key)
+    
     TAB_ALWAYS_INDENTS = ('py', 'pyw', 'python', 'c', 'cpp', 'cl', 'h')
 
     def __init__(self, parent=None):
