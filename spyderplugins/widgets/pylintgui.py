@@ -95,7 +95,7 @@ class ResultsTree(OneColumnTree):
                     i_base = module.find(basename)
                     module = module[i_base:]
                 dirname = osp.dirname(self.filename)
-                if module.startswith('.'):
+                if module.startswith('.') or module == basename:
                     modname = osp.join(dirname, module)
                 else:
                     modname = osp.join(dirname, *module.split('.'))
