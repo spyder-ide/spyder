@@ -1958,12 +1958,12 @@ class CodeEditor(TextEditBaseWidget):
         cursor.endEditBlock()
 
     def __is_comment_bar(self, cursor):
-        return cursor.block().text().startsWith('#' + '='*79)
+        return unicode(cursor.block().text()).startswith('#' + '='*79)
 
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         def __is_comment_bar(cursor):
-            return cursor.block().text().startsWith('#' + '='*79)
+            return unicode(cursor.block().text()).startswith('#' + '='*79)
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
@@ -1975,7 +1975,7 @@ class CodeEditor(TextEditBaseWidget):
         if not __is_comment_bar(cursor1):
             return
         def __in_block_comment(cursor):
-            return cursor.block().text().startsWith('#')
+            return unicode(cursor.block().text()).startswith('#')
         # Finding second comment bar
         cursor2 = QTextCursor(cursor1)
         cursor2.movePosition(QTextCursor.NextBlock)
