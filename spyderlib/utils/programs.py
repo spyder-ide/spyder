@@ -185,9 +185,8 @@ def is_module_installed(module_name, version=None):
             assert symb in ('>=', '>', '='),\
                    "Invalid version condition '%s'" % symb
             version = version[match.start():]
-            try:
-                actver = getattr(mod, '__version__', getattr(mod, 'VERSION'))
-            except AttributeError:
+            actver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
+            if actver is None:
                 return False
             def getvlist(version):
                 """Return an integer list from a version string"""
@@ -221,3 +220,4 @@ if __name__ == '__main__':
     print find_program('hg')
     print shell_split('-q -o -a')
     print shell_split(u'-q "d:\\Python de xxxx\\t.txt" -o -a')
+    print is_module_installed('IPython', '>=0.12')
