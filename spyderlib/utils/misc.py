@@ -128,7 +128,7 @@ def fix_reference_name(name, blacklist=None):
         if not re.match(r'[a-zA-Z]', name[0]):
             name = name[1:]
             continue
-    name = str(name.lower())
+    name = str(name)
     if not name:
         name = "data"
     if blacklist is not None and name in blacklist:
