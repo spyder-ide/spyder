@@ -1450,22 +1450,16 @@ class MainWindow(QMainWindow):
             </li></ul>
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
-            <p>Python %s, Qt %s, %s %s on %s"""
+            <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % ("Spyder", __version__, revlink, __project_url__,
-                 "<span style=\'color: #444444\'><b>",
-                 pyflakes_version,
-                 "</b></span>",
-                 "<span style=\'color: #444444\'><b>",
-                 rope_version,
-                 "</b></span>",
-                 "<span style=\'color: #444444\'><b>",
-                 "</b></span>",
-                 __project_url__, __forum_url__,
-                 platform.python_version(),
-                 spyderlib.qt.QtCore.__version__,
-                 spyderlib.qt.API_NAME,
-                 spyderlib.qt.__version__,
-                 platform.system()) )
+               "<span style=\'color: #444444\'><b>", pyflakes_version,
+               "</b></span>", "<span style=\'color: #444444\'><b>",
+               rope_version, "</b></span>",
+               "<span style=\'color: #444444\'><b>", "</b></span>",
+               __project_url__, __forum_url__, platform.python_version(),
+               64 if sys.maxsize > 2**32 else 32,
+               spyderlib.qt.QtCore.__version__, spyderlib.qt.API_NAME,
+               spyderlib.qt.__version__, platform.system()))
 
     def report_issue(self):
         import urllib
