@@ -332,6 +332,7 @@ class FindReplace(QWidget):
             pattern = search_text if self.re_button.isChecked() else None
             case = self.case_button.isChecked()
             first = True
+            cursor = None
             while True:
                 if first:
                     # First found
