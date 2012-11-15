@@ -23,6 +23,9 @@ def get_options():
     parser.add_option('--reset', dest="reset_session",
                       action='store_true', default=False,
                       help="Remove all configuration files!")
+    parser.add_option('--clean-start', dest="clean_start", action='store_true',
+                      default=False,
+                      help="Force Spyder to start in case it's not starting")
     parser.add_option('--optimize', dest="optimize",
                       action='store_true', default=False,
                       help="Optimize Spyder bytecode (this may require "
