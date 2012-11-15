@@ -129,7 +129,8 @@ from spyderlib.cli_options import get_options
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
-# Get the cwd before using WorkingDirectory
+# Get the cwd before initializing WorkingDirectory, which sets it to the one
+# used in the last session
 CWD = os.getcwd()
 
 
@@ -1614,7 +1615,7 @@ Please provide any additional information below.
         self.extconsole.raise_()
         self.extconsole.execute_python_code(lines)
         
-    def open_file(self, fname):
+    def open_file(self, fname, external=False):
         """
         Open filename with the appropriate application
         Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
@@ -1627,15 +1628,19 @@ Please provide any additional information below.
         elif self.variableexplorer is not None and ext in IMPORT_EXT\
              and ext in ('.spydata', '.mat', '.npy', '.h5'):
             self.variableexplorer.import_data(fname)
-        else:
+        elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
     
     def open_external_file(self, fname):
+        """
+        Open external files that can be handled either by the Editor or the
+        variable explorer inside Spyder.
+        """
         if osp.isfile(fname):
-            self.open_file(fname)
+            self.open_file(fname, external=True)
         elif osp.isfile(osp.join(CWD, fname)):
-            self.open_file(osp.join(CWD, fname))
+            self.open_file(osp.join(CWD, fname), external=True)
 
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
