@@ -129,7 +129,7 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
-              'started': True,
+              'started': False,
               'open_files_port': OPEN_FILES_PORT
               }),
             ('quick_layouts',
