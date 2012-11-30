@@ -1,26 +1,23 @@
 #!/usr/bin/env python
-import socket
+import atexit
 
+from spyderlib.baseconfig import get_conf_path
 from spyderlib.config import CONF
+from spyderlib.utils.external import lockfile
 
-# Check if there is a running instance.
-# In case Spyder dies while running, the 'started' value will be True
-# but the app will be closed, so we have to check if it's still
-# connected to the open_files_server port to be completely sure
-started = False
-if CONF.get('main', 'single_instance') and CONF.get('main', 'started'):
-    try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        port = CONF.get('main', 'open_files_port')
-        sock.bind( ("127.0.0.1", port) )
-        sock.close()
-    except socket.error, _msg:  # analysis:ignore
-        started = True
-
-if not started:
+if CONF.get('main', 'single_instance'):
+    lockf = get_conf_path('spyder.lock')
+    lock = lockfile.FilesystemLock(lockf)
+    
+    # lock.lock() tries to lock spyder.lock. If it fails,
+    # returns False and so we try to start the client
+    if not lock.lock():
+        from spyderlib import client
+        client.main()
+    else:
+        atexit.register(lock.unlock)
+        from spyderlib import spyder
+        spyder.main()
+else:
     from spyderlib import spyder
     spyder.main()
-else:
-    from spyderlib import client
-    client.main()

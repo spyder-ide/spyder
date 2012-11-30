@@ -1330,7 +1330,6 @@ class MainWindow(QMainWindow):
         self.already_closed = True
         if CONF.get('main', 'single_instance'):
             self.open_files_server.close()
-            CONF.set('main', 'started', False)
         return True
         
     def add_dockwidget(self, child):
@@ -1925,10 +1924,6 @@ def run_spyder(app, options, args):
     if not main.light:
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
-    if CONF.get('main', 'single_instance'):
-        CONF.set('main', 'started', True)
-    else:
-        CONF.set('main', 'started', False)
     app.exec_()
     return main
 
