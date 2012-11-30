@@ -3,11 +3,12 @@ import socket
 
 from spyderlib.config import CONF
 
+# Check if there is a running instance.
+# In case Spyder dies while running, the 'started' value will be True
+# but the app will be closed, so we have to check if it's still
+# connected to the open_files_server port to be completely sure
 started = False
-if CONF.get('main', 'started'):
-    # In case Spyder dies while running, the 'started' value will be True
-    # but the app will be closed, so we have to check if it's still
-    # connected to the open_files_server port to be completely sure
+if CONF.get('main', 'single_instance') and CONF.get('main', 'started'):
     try:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         #sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

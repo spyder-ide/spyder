@@ -417,14 +417,15 @@ class MainWindow(QMainWindow):
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with:
         # spyder foo.py
-        t = threading.Thread(target=self.start_open_files_server)
-        t.setDaemon(True)
-        t.start()
+        if CONF.get('main', 'single_instance'):
+            t = threading.Thread(target=self.start_open_files_server)
+            t.setDaemon(True)
+            t.start()
         
-        # Connect the window to the signal emmited by the previous server when
-        # it gets a client connected to it
-        self.connect(self, SIGNAL('open_external_file(QString)'),
-                     lambda fname: self.open_external_file(fname))
+            # Connect the window to the signal emmited by the previous server
+            # when it gets a client connected to it
+            self.connect(self, SIGNAL('open_external_file(QString)'),
+                         lambda fname: self.open_external_file(fname))
         
         self.debug_print("End of MainWindow constructor")
         
@@ -1327,8 +1328,9 @@ class MainWindow(QMainWindow):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
-        self.open_files_server.close()
-        CONF.set('main', 'started', False)
+        if CONF.get('main', 'single_instance'):
+            self.open_files_server.close()
+            CONF.set('main', 'started', False)
         return True
         
     def add_dockwidget(self, child):
@@ -1923,8 +1925,10 @@ def run_spyder(app, options, args):
     if not main.light:
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
-
-    CONF.set('main', 'started', True)
+    if CONF.get('main', 'single_instance'):
+        CONF.set('main', 'started', True)
+    else:
+        CONF.set('main', 'started', False)
     app.exec_()
     return main
 
