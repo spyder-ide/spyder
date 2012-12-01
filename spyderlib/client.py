@@ -22,11 +22,7 @@ from spyderlib.config import CONF
 def main():
     options, args = get_options()
 
-    # A safety measure: force a restart in case Spyder is not starting
-    if options.clean_start:
-        from spyderlib import spyder
-        spyder.main()
-    elif args:
+    if args:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                socket.IPPROTO_TCP)
         port = CONF.get('main', 'open_files_port')
