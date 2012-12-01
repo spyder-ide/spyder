@@ -14,6 +14,7 @@ The arg can be a Python script or files with these extensions: .spydata, .mat,
 
 import os.path as osp
 import socket
+import time
 
 from spyderlib.cli_options import get_options
 from spyderlib.config import CONF
@@ -23,16 +24,25 @@ def main():
 
     # A safety measure: force a restart in case Spyder is not starting
     if options.clean_start:
-        CONF.set('main', 'started', False)
         from spyderlib import spyder
         spyder.main()
     elif args:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,
                                socket.IPPROTO_TCP)
         port = CONF.get('main', 'open_files_port')
-        client.connect( ("127.0.0.1", port) )
-        client.send(osp.abspath(args[0]))
-        client.close()
+        
+        # Wait ~50 secs to for the server to be up
+        # Taken from http://stackoverflow.com/a/4766598/438386
+        for x in xrange(200):
+            try:
+                client.connect(("127.0.0.1", port))
+                client.send(osp.abspath(args[0]))
+                client.close()
+            except socket.error:
+                time.sleep(0.25)
+                continue
+            break
+        
         return
     else:
         return
