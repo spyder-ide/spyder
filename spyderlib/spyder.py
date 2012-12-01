@@ -413,20 +413,6 @@ class MainWindow(QMainWindow):
         self.save_session_name = None
         
         self.apply_settings()
-        
-        # Server to maintain just one Spyder instance and open files in it if
-        # the user tries to start other instances with:
-        # spyder foo.py
-        if CONF.get('main', 'single_instance'):
-            t = threading.Thread(target=self.start_open_files_server)
-            t.setDaemon(True)
-            t.start()
-        
-            # Connect the window to the signal emmited by the previous server
-            # when it gets a client connected to it
-            self.connect(self, SIGNAL('open_external_file(QString)'),
-                         lambda fname: self.open_external_file(fname))
-        
         self.debug_print("End of MainWindow constructor")
         
     def debug_print(self, message):
@@ -987,12 +973,14 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
+
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating 
         # windows, so we must dock them before showing the mainwindow,
         # then set them again as floating windows here.
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
+
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
@@ -1002,6 +990,19 @@ class MainWindow(QMainWindow):
                 idx = __file__.index('Spyder.app')
                 app_path = __file__[:idx]
                 subprocess.call(['open', app_path + 'Spyder.app'])
+
+        # Server to maintain just one Spyder instance and open files in it if
+        # the user tries to start other instances with
+        # $ spyder foo.py
+        if CONF.get('main', 'single_instance'):
+            t = threading.Thread(target=self.start_open_files_server)
+            t.setDaemon(True)
+            t.start()
+        
+            # Connect the window to the signal emmited by the previous server
+            # when it gets a client connected to it
+            self.connect(self, SIGNAL('open_external_file(QString)'),
+                         lambda fname: self.open_external_file(fname))
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
