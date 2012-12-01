@@ -11,7 +11,7 @@ def get_options():
     Convert options into commands
     return commands, message
     """
-    parser = optparse.OptionParser(usage="spyder [options] file")
+    parser = optparse.OptionParser(usage="spyder [options] files")
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")

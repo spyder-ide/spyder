@@ -1913,18 +1913,18 @@ def run_spyder(app, options, args):
             except BaseException:
                 pass
         raise
-    
-    # Args must contain a file name. For now we just take the first one.
-    if args:
-        fname = args[0]
-        main.open_external_file(fname)
-    
+
     main.show()
     main.post_visible_setup()
     
     if not main.light:
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
+
+        if args:
+            for a in args:
+                main.open_external_file(a)
+        
     app.exec_()
     return main
 
