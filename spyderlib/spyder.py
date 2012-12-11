@@ -1808,7 +1808,7 @@ Please provide any additional information below.
         port = select_port(default_port=OPEN_FILES_PORT)
         CONF.set('main', 'open_files_port', port)
         self.open_files_server.bind(('127.0.0.1', port))
-        self.open_files_server.listen(1)
+        self.open_files_server.listen(20)
         while 1:
             req, addr = self.open_files_server.accept()
             fname = req.recv(1024)
