@@ -1812,7 +1812,8 @@ Please provide any additional information below.
         while 1:
             req, addr = self.open_files_server.accept()
             fname = req.recv(1024)
-            self.emit(SIGNAL('open_external_file(QString)'), fname)
+            if not self.light:
+                self.emit(SIGNAL('open_external_file(QString)'), fname)
             req.sendall(' ')
 
         
