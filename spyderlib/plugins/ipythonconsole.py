@@ -683,8 +683,9 @@ class IPythonConsole(SpyderPluginWidget):
         self.historylog = self.main.historylog
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
+        if self.main.editor:
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                         self.main.editor.load)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
