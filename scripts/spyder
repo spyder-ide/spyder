@@ -8,17 +8,17 @@ from spyderlib.config import CONF
 from spyderlib.utils.external import lockfile
 
 if CONF.get('main', 'single_instance'):
-    # Minimal delay (0.1 secs) to avoid that several
+    # Minimal delay (0.1-0.2 secs) to avoid that several
     # instances started at the same time step in their
     # own foots while trying to create the lock file
-    time.sleep(random.random()/10)
+    time.sleep(random.randrange(1000, 2000, 90)/10000.)
     
     # Lock file creation
     lockf = get_conf_path('spyder.lock')
     lock = lockfile.FilesystemLock(lockf)
     
     # lock.lock() tries to lock spyder.lock. If it fails,
-    # returns False and so we try to start the client
+    # it returns False and so we try to start the client
     if not lock.lock():
         from spyderlib import client
         client.main()
