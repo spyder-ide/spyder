@@ -735,6 +735,10 @@ class MainWindow(QMainWindow):
             debug_control_action.setMenu(self.debug_menu)
             # XXX: This hard-coded insertion location is not ideal.
             self.run_menu_actions.insert(4, debug_control_action)
+            # Insert the debug action from the run actions menu
+            # as the first entry in the debug toolbar.
+            # XXX: This hard-coded action selection is not ideal.
+            self.debug_toolbar_actions.insert(0, self.run_menu_actions[1])
             
             # Populating file menu entries
             quit_action = create_action(self, _("&Quit"),
