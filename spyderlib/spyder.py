@@ -1577,8 +1577,7 @@ Please provide any additional information below.
             from spyderlib.widgets.editor import EditorWidget
             while not isinstance(plugin, EditorWidget):
                 plugin = plugin.parent()
-            return plugin
-            
+            return plugin         
     
     def find(self):
         """Global find callback"""
@@ -1608,28 +1607,38 @@ Please provide any additional information below.
             
     def debug_next(self):
         """Debug next line"""
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code("next")
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("next")
             
     def debug_continue(self):
         """Debug Continue"""
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code("continue")
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("continue")
         
     def debug_exit(self):
         """Debug exit debug console"""
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code("exit")
+        shell = get_focus_python_shell()       
+        if shell is not None:        
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("exit")
         
     def debug_step(self):
         """Debug Step into"""
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code("step")
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("step")
         
     def debug_return(self):
         """Debug Return"""
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code("return")    
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("return")    
             
     def global_callback(self):
         """Global callback"""
