@@ -33,20 +33,28 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+# ----+- Python 3 compatibility -+----
+from __future__ import print_function
+try:
+    basestring
+except NameError:
+    # Python 3
+    basestring = unicode = str
+
 # History:
 # 1.0.11: added support for PySide
 # 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.11'
+__version__ = '1.0.12'
 __license__ = __doc__
 
 
 try:
     from spyderlib.qt.QtGui import QFormLayout
 except ImportError:
-    raise ImportError, "Warning: formlayout requires PyQt4 >v4.3"
+    raise ImportError("Warning: formlayout requires PyQt4 >v4.3")
 
 from spyderlib.qt.QtGui import (QWidget, QLineEdit, QComboBox, QLabel,
                                 QSpinBox, QIcon, QStyle, QDialogButtonBox,
@@ -187,7 +195,7 @@ class FontLayout(QGridLayout):
         # Font size
         self.size = QComboBox(parent)
         self.size.setEditable(True)
-        sizelist = range(6, 12) + range(12, 30, 2) + [36, 48, 72]
+        sizelist = list(range(6, 12)) + list(range(12, 30, 2)) + [36, 48, 72]
         size = font.pointSize()
         if size not in sizelist:
             sizelist.append(size)
@@ -230,11 +238,11 @@ class FormWidget(QWidget):
             self.formlayout.addRow(QLabel(comment))
             self.formlayout.addRow(QLabel(" "))
         if DEBUG:
-            print "\n"+("*"*80)
-            print "DATA:", self.data
-            print "*"*80
-            print "COMMENT:", comment
-            print "*"*80
+            print("\n"+("*"*80))
+            print("DATA:", self.data)
+            print("*"*80)
+            print("COMMENT:", comment)
+            print("*"*80)
             
     def get_dialog(self):
         """Return FormDialog instance"""
@@ -246,7 +254,7 @@ class FormWidget(QWidget):
     def setup(self):
         for label, value in self.data:
             if DEBUG:
-                print "value:", value
+                print("value:", value)
             if label is None and value is None:
                 # Separator: (None, None)
                 self.formlayout.addRow(QLabel(" "), QLabel(" "))
@@ -278,8 +286,9 @@ class FormWidget(QWidget):
                 elif selindex in keys:
                     selindex = keys.index(selindex)
                 elif not isinstance(selindex, int):
-                    print >>STDERR, "Warning: '%s' index is invalid (label: " \
-                                    "%s, value: %s)" % (selindex, label, value)
+                    print("Warning: '%s' index is invalid (label: "\
+                          "%s, value: %s)" % (selindex, label, value),
+                          file=STDERR)
                     selindex = 0
                 field.setCurrentIndex(selindex)
             elif isinstance(value, bool):
@@ -535,19 +544,19 @@ if __name__ == "__main__":
     #--------- datalist example
     datalist = create_datalist_example()
     def apply_test(data):
-        print "data:", data
-    print "result:", fedit(datalist, title="Example",
+        print("data:", data)
+    print("result:", fedit(datalist, title="Example",
                            comment="This is just an <b>example</b>.",
-                           apply=apply_test)
+                           apply=apply_test))
     
     #--------- datagroup example
     datagroup = create_datagroup_example()
-    print "result:", fedit(datagroup, "Global title")
-        
+    print("result:", fedit(datagroup, "Global title"))
+    
     #--------- datagroup inside a datagroup example
     datalist = create_datalist_example()
     datagroup = create_datagroup_example()
-    print "result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
+    print("result:", fedit(((datagroup, "Title 1", "Tab 1 comment"),
                             (datalist, "Title 2", "Tab 2 comment"),
                             (datalist, "Title 3", "Tab 3 comment")),
-                            "Global title")
+                            "Global title"))
