@@ -4,6 +4,7 @@
 import os
 import sys
 import os.path as osp
+import struct
 
 
 def install():
@@ -12,7 +13,7 @@ def install():
     start_menu = osp.join(get_special_folder_path('CSIDL_COMMON_PROGRAMS'),
                           'Spyder (Py%i.%i %i bit)' % (sys.version_info[0],
                                                        sys.version_info[1],
-                                                       8*tuple.__itemsize__))
+                                                       struct.calcsize('P')*8))
     if not osp.isdir(start_menu):
         os.mkdir(start_menu)
         directory_created(start_menu)
