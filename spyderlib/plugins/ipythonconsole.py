@@ -751,15 +751,16 @@ class IPythonConsole(SpyderPluginWidget):
                               QLineEdit.Normal)
                 if valid:
                     cf = str(cf)
-                    if cf.isdigit():
-                        cf = 'kernel-%s.json' % cf
-                    if re.match('^kernel-(\d+).json', cf):
+                    match = re.match('(kernel-|^)([a-fA-F0-9-]+)(.json|$)', cf)
+                    kernel_num = match.groups()[1]
+                    if kernel_num:
+                        cf = 'kernel-%s.json' % kernel_num
                         break
                 else:
                     return
 
         # Generating the client name and setting kernel_widget_id
-        match = re.match('^kernel-(\d+).json', cf)
+        match = re.match('^kernel-([a-fA-F0-9-]+).json', cf)
         count = 0
         while True:
             client_name = match.groups()[0]+'/'+chr(65+count)
