@@ -124,7 +124,10 @@ class UserConfig(ConfigParser):
                 # If no defaults are defined, set .ini file settings as default
                 self.set_as_defaults()
         # In any case, the resulting config is saved in config file:
-        self.__save()
+        # FIXME (Carlos): Commenting this for now because it's corrupting our
+        # config on Windows when a user tries to open several files at once. Is
+        # this really necessary?
+        # self.__save()
         
     def get_version(self, version='0.0.0'):
         """Return configuration (not application!) version"""

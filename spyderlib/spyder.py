@@ -20,6 +20,8 @@ import sys
 import os.path as osp
 import platform
 import re
+import socket
+import threading
 
 # Keeping a reference to the original sys.exit before patching it
 ORIGINAL_SYS_EXIT = sys.exit
@@ -115,15 +117,21 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR)
-from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT
+from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_icon, get_image_path, get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError
 from spyderlib.utils import module_completion
+from spyderlib.utils.misc import select_port
+from spyderlib.cli_options import get_options
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
+
+# Get the cwd before initializing WorkingDirectory, which sets it to the one
+# used in the last session
+CWD = os.getcwd()
 
 
 def get_python_doc_path():
@@ -405,7 +413,6 @@ class MainWindow(QMainWindow):
         self.save_session_name = None
         
         self.apply_settings()
-        
         self.debug_print("End of MainWindow constructor")
         
     def debug_print(self, message):
@@ -966,12 +973,14 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
+
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating 
         # windows, so we must dock them before showing the mainwindow,
         # then set them again as floating windows here.
         for widget in self.floating_dockwidgets:
             widget.setFloating(True)
+
         # In MacOS X 10.7 our app is not displayed after initialized (I don't
         # know why because this doesn't happen when started from the terminal),
         # so we need to resort to this hack to make it appear.
@@ -981,6 +990,19 @@ class MainWindow(QMainWindow):
                 idx = __file__.index('Spyder.app')
                 app_path = __file__[:idx]
                 subprocess.call(['open', app_path + 'Spyder.app'])
+
+        # Server to maintain just one Spyder instance and open files in it if
+        # the user tries to start other instances with
+        # $ spyder foo.py
+        if CONF.get('main', 'single_instance'):
+            t = threading.Thread(target=self.start_open_files_server)
+            t.setDaemon(True)
+            t.start()
+        
+            # Connect the window to the signal emmited by the previous server
+            # when it gets a client connected to it
+            self.connect(self, SIGNAL('open_external_file(QString)'),
+                         lambda fname: self.open_external_file(fname))
         
     def load_window_settings(self, prefix, default=False, section='main'):
         """Load window layout settings from userconfig-based configuration
@@ -1307,6 +1329,8 @@ class MainWindow(QMainWindow):
                 return False
         self.dialog_manager.close_all()
         self.already_closed = True
+        if CONF.get('main', 'single_instance'):
+            self.open_files_server.close()
         return True
         
     def add_dockwidget(self, child):
@@ -1587,7 +1611,7 @@ Please provide any additional information below.
         self.extconsole.raise_()
         self.extconsole.execute_python_code(lines)
         
-    def open_file(self, fname):
+    def open_file(self, fname, external=False):
         """
         Open filename with the appropriate application
         Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
@@ -1600,9 +1624,19 @@ Please provide any additional information below.
         elif self.variableexplorer is not None and ext in IMPORT_EXT\
              and ext in ('.spydata', '.mat', '.npy', '.h5'):
             self.variableexplorer.import_data(fname)
-        else:
+        elif not external:
             fname = file_uri(fname)
             programs.start_file(fname)
+    
+    def open_external_file(self, fname):
+        """
+        Open external files that can be handled either by the Editor or the
+        variable explorer inside Spyder.
+        """
+        if osp.isfile(fname):
+            self.open_file(fname, external=True)
+        elif osp.isfile(osp.join(CWD, fname)):
+            self.open_file(osp.join(CWD, fname), external=True)
 
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
@@ -1758,50 +1792,25 @@ Please provide any additional information below.
         if filename:
             if self.close():
                 self.save_session_name = filename
+    
+    def start_open_files_server(self):
+        self.open_files_server = socket.socket(socket.AF_INET,
+                                               socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP)
+        self.open_files_server.setsockopt(socket.SOL_SOCKET,
+                                          socket.SO_REUSEADDR, 1)
+        port = select_port(default_port=OPEN_FILES_PORT)
+        CONF.set('main', 'open_files_port', port)
+        self.open_files_server.bind(('127.0.0.1', port))
+        self.open_files_server.listen(20)
+        while 1:
+            req, addr = self.open_files_server.accept()
+            fname = req.recv(1024)
+            if not self.light:
+                self.emit(SIGNAL('open_external_file(QString)'), fname)
+            req.sendall(' ')
 
         
-def get_options():
-    """
-    Convert options into commands
-    return commands, message
-    """
-    import optparse
-    parser = optparse.OptionParser(usage="spyder [options]")
-    parser.add_option('-l', '--light', dest="light", action='store_true',
-                      default=False,
-                      help="Light version (all add-ons are disabled)")
-    parser.add_option('--session', dest="startup_session", default='',
-                      help="Startup session")
-    parser.add_option('--defaults', dest="reset_to_defaults",
-                      action='store_true', default=False,
-                      help="Reset to configuration settings to defaults")
-    parser.add_option('--reset', dest="reset_session",
-                      action='store_true', default=False,
-                      help="Remove all configuration files!")
-    parser.add_option('--optimize', dest="optimize",
-                      action='store_true', default=False,
-                      help="Optimize Spyder bytecode (this may require "
-                           "administrative privileges)")
-    parser.add_option('-w', '--workdir', dest="working_directory", default=None,
-                      help="Default working directory")
-    parser.add_option('-d', '--debug', dest="debug", action='store_true',
-                      default=False,
-                      help="Debug mode (stds are not redirected)")
-    parser.add_option('--showconsole', dest="show_console",
-                      action='store_true', default=False,
-                      help="Show parent console (Windows only)")
-    parser.add_option('--multithread', dest="multithreaded",
-                      action='store_true', default=False,
-                      help="Internal console is executed in another thread "
-                           "(separate from main application thread)")
-    parser.add_option('--profile', dest="profile", action='store_true',
-                      default=False,
-                      help="Profile mode (internal test, "
-                           "not related with Python profiling)")
-    options, _args = parser.parse_args()
-    return options
-
-
 def initialize():
     """Initialize Qt, patching sys.exit and eventually setting up ETS"""
     app = qapplication()
@@ -1881,7 +1890,7 @@ class Spy(object):
         self.app = app
         self.window = window
 
-def run_spyder(app, options):
+def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
     Patch matplotlib for figure integration
@@ -1899,6 +1908,7 @@ def run_spyder(app, options):
             except BaseException:
                 pass
         raise
+
     main.show()
     main.post_visible_setup()
     
@@ -1906,6 +1916,10 @@ def run_spyder(app, options):
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
 
+        if args:
+            for a in args:
+                main.open_external_file(a)
+        
     app.exec_()
     return main
 
@@ -1922,8 +1936,8 @@ def main():
     # Note regarding Options:
     # It's important to collect options before monkey patching sys.exit,
     # otherwise, optparse won't be able to exit if --help option is passed
-    options = get_options()
-
+    options, args = get_options()
+    
     if set_attached_console_visible is not None:
         set_attached_console_visible(options.debug or options.show_console\
                                      or options.reset_session\
@@ -1984,7 +1998,7 @@ def main():
                                          error_message))
         mainwindow = None
         try:
-            mainwindow = run_spyder(app, options)
+            mainwindow = run_spyder(app, options, args)
         except BaseException:
             CONF.set('main', 'crash', True)
             import traceback

@@ -652,8 +652,16 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
         
+        single_instance_box = newcb(_("Use a single instance"),
+                                    'single_instance',
+                                    tip=_("Set this to open external<br> "
+                                          "python, .spy and .mat files in an "
+                                          "already running instance (Requires "
+                                          "a restart)"))
+        
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)
+        interface_layout.addWidget(single_instance_box)
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)

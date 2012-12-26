@@ -99,6 +99,10 @@ EXCLUDE_PATTERNS = [r'\.pyc$|\.pyo$|\.orig$|\.hg|\.svn|\bbuild\b',
 NAME_FILTERS = ['*' + _ext for _ext in VALID_EXT + SHOW_EXT if _ext]+\
                ['README', 'INSTALL', 'LICENSE', 'CHANGELOG']
 
+# Port used to detect if there is a running instance and to communicate with
+# it to open external files
+OPEN_FILES_PORT = 21128
+
 DEFAULTS = [
             ('main',
              {
@@ -125,6 +129,8 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
+              'single_instance': True,
+              'open_files_port': OPEN_FILES_PORT
               }),
             ('quick_layouts',
              {
