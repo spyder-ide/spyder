@@ -1801,10 +1801,10 @@ Please provide any additional information below.
     
     def start_open_files_server(self):
         self.open_files_server = socket.socket(socket.AF_INET,
-                                              socket.SOCK_STREAM,
-                                              socket.IPPROTO_TCP)
+                                               socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP)
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
-                                         socket.SO_REUSEADDR, 1)
+                                          socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
         CONF.set('main', 'open_files_port', port)
         self.open_files_server.bind(('127.0.0.1', port))
