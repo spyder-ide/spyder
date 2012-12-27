@@ -1681,17 +1681,8 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-
-            # Decide wheter to extend the selection after insterting comments.
-            # 'text' in this case corresponds to the one of the first line in
-            # the selection (last to be assigned on the previous block).
-            extend_on_comment = True
-            if prefix == self.comment_string:
-                if text != text.lstrip():
-                    extend_on_comment = False
-
-            # Extending selection to prefix
-            if begins_at_block_start and extend_on_comment:
+            if begins_at_block_start:
+                # Extending selection to prefix:
                 cursor = self.textCursor()
                 start_pos = cursor.selectionStart()
                 end_pos = cursor.selectionEnd()
