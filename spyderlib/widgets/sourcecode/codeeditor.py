@@ -1793,10 +1793,13 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        cursor.movePosition(QTextCursor.PreviousBlock)
-        prevtext = unicode(cursor.block().text()).rstrip()
+        for prevline in xrange(block_nb-1, -1, -1):
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prevtext = unicode(cursor.block().text()).rstrip()
+            if not prevtext.strip().startswith('#'):
+                break
         indent = self.get_block_indentation(block_nb)
-        correct_indent = self.get_block_indentation(block_nb-1)
+        correct_indent = self.get_block_indentation(prevline)
         if prevtext.endswith(':'):
             # Indent
             correct_indent += len(self.indent_chars)
