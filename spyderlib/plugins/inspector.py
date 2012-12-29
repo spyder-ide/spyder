@@ -720,15 +720,17 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
-        self._sphinx_thread = thread = SphinxThread()
-        thread.text = text
-        thread.parent = self
-        thread.finished.connect(self._set_sphinx_text)
-        thread.start()
-
-    def _set_sphinx_text(self):
+        self._sphinx_thread = SphinxThread()
+        self._sphinx_thread.parent = self
+        self._sphinx_thread.text = text
+        self._sphinx_thread.finished.connect(self._on_sphinx_thread_finish)
+        self._sphinx_thread.start() 
+        
+    def _on_sphinx_thread_finish(self):
+        """Set our sphinx documentation based on thread result
+        """
         html_text = self._sphinx_thread.html_text
-        self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))    
+        self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
     def show_help(self, obj_text, ignore_unknown=False):
         """Show help"""
@@ -811,3 +813,4 @@ class SphinxThread(QThread):
         else:
             html_text = warning(parent.no_doc_string)
         self.html_text = html_text
+        
