@@ -131,6 +131,7 @@ class ProfilerWidget(QWidget):
         
         self.process = None
         self.set_running_state(False)
+        self.start_button.setEnabled(False)
         
         if not is_profiler_installed():
             # This should happen only on certain GNU/Linux distributions 
