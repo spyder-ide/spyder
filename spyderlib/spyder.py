@@ -617,7 +617,7 @@ class MainWindow(QMainWindow):
                        programs.run_python_script('winpython', 'controlpanel'))
             self.external_tools_menu_actions.append(self.wp_action)
             if not is_module_installed('winpython'):
-                self.wp_action .setDisabled(True)
+                self.wp_action.setDisabled(True)
                 self.wp_action.setToolTip(self.wp_action.toolTip() + \
                                           '\nPlease install WinPython to '
                                           'enable this feature')
