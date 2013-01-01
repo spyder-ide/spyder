@@ -235,6 +235,8 @@ class MainWindow(QMainWindow):
          ('xy', "http://www.pythonxy.com",
           _("Python(x,y)"), "pythonxy.png"),
          ('numpy', "http://docs.scipy.org/doc/",
+         ('winpython', "http://code.google.com/p/winpython/",
+          _("WinPython"), "winpython.svg"),
           _("Numpy and Scipy documentation"),
           "scipy.png"),
          ('matplotlib', "http://matplotlib.sourceforge.net/contents.html",
@@ -607,6 +609,17 @@ class MainWindow(QMainWindow):
                 self.xy_action.setDisabled(True)
                 self.xy_action.setToolTip(self.xy_action.toolTip() + \
                                           '\nPlease install Python(x,y) to '
+                                          'enable this feature')
+            # WinPython control panel
+            self.wp_action = create_action(self, _("WinPython control panel"),
+                       icon=get_icon('winpython.svg'),
+                       triggered=lambda:
+                       programs.run_python_script('winpython', 'controlpanel'))
+            self.external_tools_menu_actions.append(self.wp_action)
+            if not is_module_installed('winpython'):
+                self.wp_action .setDisabled(True)
+                self.wp_action.setToolTip(self.wp_action.toolTip() + \
+                                          '\nPlease install WinPython to '
                                           'enable this feature')
             # Qt-related tools
             additact = [None]
