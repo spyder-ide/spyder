@@ -539,7 +539,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         """
         message = _("Kernel process is either remote or unspecified. "
                     "Cannot interrupt")
-        QMessageBox.information(None, "IPython", message)
+        QMessageBox.information(self, "IPython", message)
     
     def restart_message(self):
         """
@@ -548,7 +548,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         """
         message = _("Kernel process is either remote or unspecified. "
                     "Cannot restart.")
-        QMessageBox.information(None, "IPython", message)
+        QMessageBox.information(self, "IPython", message)
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
