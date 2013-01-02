@@ -349,6 +349,8 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
+        self.debug_menu = None
+        self.debug_menu_actions = []
         
         # Status bar widgets
         self.mem_status = None
@@ -367,7 +369,8 @@ class MainWindow(QMainWindow):
         self.source_toolbar_actions = []
         self.run_toolbar = None
         self.run_toolbar_actions = []
-        
+        self.debug_toolbar = None
+        self.debug_toolbar_actions = []
         # Set Window title and icon
         title = "Spyder"
         if self.debug:
@@ -485,7 +488,36 @@ class MainWindow(QMainWindow):
                                                     'editdelete.png')
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
-                                                       'selectall.png')
+                                                       'selectall.png')                                        
+            self.debug_next_action = create_action(self, "Debug Step Over", 
+                                           icon='down.png', tip="Debug Step Over", 
+                                           triggered= self.debug_next) 
+            self.register_shortcut(self.debug_next_action, "_",
+                       "Debug Step Over", "Ctrl+F10")
+            self.debug_continue_action = create_action(self, "Debug Continue",
+                                           icon='compfile.png',
+                                           tip="Debug Continue", 
+                                           triggered= self.debug_continue)                                                 
+            self.register_shortcut(self.debug_continue_action, "_",
+                       "Debug Continue", "Ctrl+F12")
+            self.debug_step_action = create_action(self, "Debug Step Into", 
+                                           icon='next.png',
+                                           tip="Debug Step Into", 
+                                           triggered= self.debug_step)                
+            self.register_shortcut(self.debug_step_action, "_",
+                       "Debug Step Into", "Ctrl+F11")                             
+            self.debug_return_action = create_action(self, "Debug Step Return", 
+                                           icon='previous.png',
+                                           tip="Debug Step Return", 
+                                           triggered= self.debug_return)               
+            self.register_shortcut(self.debug_return_action, "_",
+                       "Debug Step Return", "Ctrl+Shift+F11")
+            self.debug_exit_action = create_action(self, "Debug Exit", 
+                                           icon='stop.png',
+                                           tip="Debug Exit", 
+                                           triggered= self.debug_exit)                                        
+            self.register_shortcut(self.debug_exit_action, "_",
+                       "Debug Exit", "Ctrl+Shift+F12")
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
@@ -496,6 +528,16 @@ class MainWindow(QMainWindow):
             self.search_toolbar_actions = [self.find_action,
                                            self.find_next_action,
                                            self.replace_action]
+            self.debug_menu_actions = [self.debug_next_action,
+                                       self.debug_step_action,
+                                       self.debug_return_action,
+                                       self.debug_continue_action,
+                                       self.debug_exit_action]            
+            self.debug_toolbar_actions = [self.debug_next_action,
+                                         self.debug_step_action,
+                                         self.debug_return_action,
+                                         self.debug_continue_action,
+                                         self.debug_exit_action]
 
         namespace = None
         if not self.light:
@@ -546,6 +588,10 @@ class MainWindow(QMainWindow):
             self.run_toolbar = self.create_toolbar(_("Run toolbar"),
                                                    "run_toolbar")
             
+            # Debug toolbar                                       
+            self.debug_toolbar = self.create_toolbar(_("Debug toolbar"),
+                                                   "debug_toolbar")
+                                                  
             # Interact menu/toolbar
             self.interact_menu = self.menuBar().addMenu(_("&Interpreters"))
             
@@ -708,6 +754,20 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Loading editor..."))
             self.editor = Editor(self)
             self.editor.register_plugin()
+            
+            # The editor plugin is largely responsible for setting up
+            # the Run menu. We'll insert the debug_menu into the Run
+            # menu now that the editor has already been registered.
+            self.debug_menu = QMenu(_("Debugging control"))
+            add_actions(self.debug_menu, self.debug_menu_actions)
+            debug_control_action = create_action(self, _("Debugging control"))
+            debug_control_action.setMenu(self.debug_menu)
+            # XXX: This hard-coded insertion location is not ideal.
+            self.run_menu_actions.insert(4, debug_control_action)
+            # Insert the debug action from the run actions menu
+            # as the first entry in the debug toolbar.
+            # XXX: This hard-coded action selection is not ideal.
+            self.debug_toolbar_actions.insert(0, self.run_menu_actions[1])
             
             # Populating file menu entries
             quit_action = create_action(self, _("&Quit"),
@@ -965,8 +1025,9 @@ class MainWindow(QMainWindow):
             add_actions(self.edit_toolbar, self.edit_toolbar_actions)
             add_actions(self.search_toolbar, self.search_toolbar_actions)
             add_actions(self.source_toolbar, self.source_toolbar_actions)
+            add_actions(self.debug_toolbar, self.debug_toolbar_actions)
             add_actions(self.run_toolbar, self.run_toolbar_actions)
-        
+            
         # Apply all defined shortcuts (plugins + 3rd-party plugins)
         self.apply_shortcuts()
         
@@ -1214,6 +1275,8 @@ class MainWindow(QMainWindow):
             return
         self.update_edit_menu()
         self.update_search_menu()
+        
+        # Now deal with Python shell and IPython plugins 
         shell = get_focus_python_shell()
         if shell is not None:
             # A Python shell widget has focus
@@ -1236,7 +1299,6 @@ class MainWindow(QMainWindow):
                         if self.inspector is not None:
                             self.inspector.set_shell(kw)
                         self.variableexplorer.set_shellwidget_from_id(kwid)
-                        
                         # Setting the kernel widget as current widget for the 
                         # external console's tabwidget: this is necessary for
                         # the editor/console link to be working (otherwise,
@@ -1318,7 +1380,7 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu.clear()
         popmenu = self.createPopupMenu()
         add_actions(self.windows_toolbars_menu, popmenu.actions())
-        
+    
     def set_splash(self, message):
         """Set splash message"""
         if message:
@@ -1570,7 +1632,7 @@ Please provide any additional information below.
             from spyderlib.widgets.editor import EditorWidget
             while not isinstance(plugin, EditorWidget):
                 plugin = plugin.parent()
-            return plugin
+            return plugin         
     
     def find(self):
         """Global find callback"""
@@ -1597,6 +1659,41 @@ Please provide any additional information below.
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
+            
+    def debug_next(self):
+        """Debug next line"""
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("next")
+            
+    def debug_continue(self):
+        """Debug Continue"""
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("continue")
+        
+    def debug_exit(self):
+        """Debug exit debug console"""
+        shell = get_focus_python_shell()       
+        if shell is not None:        
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("exit")
+        
+    def debug_step(self):
+        """Debug Step into"""
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("step")
+        
+    def debug_return(self):
+        """Debug Return"""
+        shell = get_focus_python_shell()       
+        if shell is not None:
+            self.extconsole.raise_()
+            self.extconsole.execute_python_code("return")    
             
     def global_callback(self):
         """Global callback"""
