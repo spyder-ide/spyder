@@ -683,7 +683,14 @@ class DirView(QTreeView):
                 if self._to_be_loaded is None:
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
-                self.setExpanded(self.get_index(path), True)
+
+                # Prevent Qt from crashing or showing warnings like:
+                # "QSortFilterProxyModel: index from wrong model passed to 
+                # mapFromSource", probably due to the fact that the file 
+                # system model is being built
+                QTimer.singleShot(50, lambda path=path:
+                                  self.setExpanded(self.get_index(path), True))
+
         if not self.__expanded_state:
             self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
                             self.restore_directory_state)
@@ -694,7 +701,7 @@ class DirView(QTreeView):
             return
         path = osp.normpath(unicode(fname))
         if path in self._to_be_loaded:
-            self._to_be_loaded.pop(self._to_be_loaded.index(path))
+            self._to_be_loaded.remove(path)
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
             self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
                             self.follow_directories_loaded)
