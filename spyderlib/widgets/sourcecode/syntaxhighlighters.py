@@ -116,6 +116,24 @@ COLORS = {
            "number":     ("#800000", False, False),
            "instance":   ("#924900", False, True),
            },
+          'Spyder/Dark':
+          {#  Name          Color    Bold   Italic
+           "background":  "#131926",
+           "currentline": "#2b2b43",
+           "occurence":   "#abab67",
+           "ctrlclick":   "#0000ff",
+           "sideareas":   "#282828",
+           "matched_p":   "#009800",
+           "unmatched_p": "#c80000",
+           "normal":     ("#ffffff", False, False),
+           "keyword":    ("#558eff", False, False),
+           "builtin":    ("#aa00aa", False, False),
+           "definition": ("#ffffff", True,  False),
+           "comment":    ("#7f7f7f", False, False),
+           "string":     ("#11a642", False, True),
+           "number":     ("#c80000", False, False),
+           "instance":   ("#be5f00", False, True),
+           },
           }
 COLOR_SCHEME_NAMES = COLORS.keys()
 
