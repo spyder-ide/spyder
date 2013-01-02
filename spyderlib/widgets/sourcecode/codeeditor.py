@@ -1666,14 +1666,6 @@ class CodeEditor(TextEditBaseWidget):
 
             while cursor.position() >= start_pos:
                 cursor.movePosition(QTextCursor.StartOfBlock)
-                # When commenting lines add prefix before the first character
-                # to help users to maintain indentation
-                if prefix == self.comment_string:
-                    text = unicode(cursor.block().text())
-                    # Only move the cursor if the line has some level of
-                    # indentation
-                    if text != text.lstrip():
-                        cursor.movePosition(QTextCursor.NextWord)
                 cursor.insertText(prefix)
                 if start_pos == 0 and cursor.blockNumber() == 0:
                     # Avoid infinite loop when indenting the very first line
@@ -1681,17 +1673,8 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 cursor.movePosition(QTextCursor.EndOfBlock)
             cursor.endEditBlock()
-
-            # Decide wheter to extend the selection after insterting comments.
-            # 'text' in this case corresponds to the one of the first line in
-            # the selection (last to be assigned on the previous block).
-            extend_on_comment = True
-            if prefix == self.comment_string:
-                if text != text.lstrip():
-                    extend_on_comment = False
-
-            # Extending selection to prefix
-            if begins_at_block_start and extend_on_comment:
+            if begins_at_block_start:
+                # Extending selection to prefix:
                 cursor = self.textCursor()
                 start_pos = cursor.selectionStart()
                 end_pos = cursor.selectionEnd()
@@ -1706,10 +1689,6 @@ class CodeEditor(TextEditBaseWidget):
             # Add prefix to current line
             cursor.beginEditBlock()
             cursor.movePosition(QTextCursor.StartOfBlock)
-            if prefix == self.comment_string:
-                text = unicode(cursor.block().text())
-                if text != text.lstrip():
-                    cursor.movePosition(QTextCursor.NextWord)
             cursor.insertText(prefix)
             cursor.endEditBlock()
 
@@ -1793,10 +1772,13 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        cursor.movePosition(QTextCursor.PreviousBlock)
-        prevtext = unicode(cursor.block().text()).rstrip()
+        for prevline in xrange(block_nb-1, -1, -1):
+            cursor.movePosition(QTextCursor.PreviousBlock)
+            prevtext = unicode(cursor.block().text()).rstrip()
+            if not prevtext.strip().startswith('#'):
+                break
         indent = self.get_block_indentation(block_nb)
-        correct_indent = self.get_block_indentation(block_nb-1)
+        correct_indent = self.get_block_indentation(prevline)
         if prevtext.endswith(':'):
             # Indent
             correct_indent += len(self.indent_chars)
