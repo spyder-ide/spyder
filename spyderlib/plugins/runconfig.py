@@ -28,18 +28,19 @@ from spyderlib.plugins.configdialog import SizeMixin
 class RunConfiguration(object):
     """Run configuration"""
     def __init__(self, fname=None):
-        self.args = ''
-        self.args_enabled = False
+        self.args = None
+        self.args_enabled = None
         self.wdir = None
-        self.wdir_enabled = False
+        self.wdir_enabled = None
+        self.current = None
+        self.systerm = None
+        self.interact = None
+        self.python_args = None
+        self.python_args_enabled = None
+        self.set(CONF.get('run', 'defaultconfiguration', default={}))
         if fname is not None:
             self.wdir = osp.dirname(fname)
             self.wdir_enabled = True
-        self.current = False
-        self.systerm = False
-        self.interact = False
-        self.python_args = ''
-        self.python_args_enabled = False
         
     def set(self, options):
         self.args = options.get('args', '')
