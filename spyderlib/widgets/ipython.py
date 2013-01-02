@@ -8,16 +8,11 @@
 IPython v0.13+ client widget
 """
 
-# Std imports
-import atexit
-import os
-import os.path as osp
-
 # IPython imports
 from IPython.frontend.qt.kernelmanager import QtKernelManager
 from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
 from IPython.lib.kernel import find_connection_file
-from IPython.core.application import BaseIPythonApplication, get_ipython_dir
+from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
 
@@ -197,15 +192,6 @@ class IPythonApp(IPythonQtConsoleApp):
         BaseIPythonApplication.initialize(self, argv=argv)
         IPythonConsoleApp.initialize(self, argv=argv)
     
-    def cleanup_connection_file(self, connection_file):
-        """Clean our own connection files at exit"""
-        connection_file = osp.join(get_ipython_dir(), 'profile_default',
-                                   'security', connection_file)
-        try:
-            os.remove(connection_file)
-        except OSError:
-            pass
-
     def create_kernel_manager(self, connection_file=None):
         """Create a kernel manager"""
         cf = find_connection_file(connection_file, profile='default')
@@ -242,7 +228,6 @@ class IPythonApp(IPythonQtConsoleApp):
             widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
         self.init_colors(widget)
         widget.kernel_manager = kernel_manager
-        atexit.register(self.cleanup_connection_file, connection_file)
         return widget
 #==============================================================================
 
