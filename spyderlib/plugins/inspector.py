@@ -10,7 +10,7 @@ from spyderlib.qt.QtGui import (QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
                                 QMenu, QToolButton, QGroupBox, QFontComboBox,
                                 QActionGroup, QFontDialog, QWidget, QComboBox,
                                 QLineEdit, QMessageBox)
-from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer
+from spyderlib.qt.QtCore import SIGNAL, QUrl, QTimer, QThread
 
 import re
 import os.path as osp
@@ -720,27 +720,16 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
-        math_o = self.get_option('math')
-        if text is not None and text['doc'] != '':
-            try:
-                context = generate_context(title=text['title'],
-                                           argspec=text['argspec'],
-                                           note=text['note'],
-                                           math=math_o)
-                html_text = sphinxify(text['doc'], context)
-            except Exception, error:
-                import sphinx
-                QMessageBox.critical(self,
-                            _('Object inspector'),
-                            _("The following error occured when calling "
-                              "<b>Sphinx %s</b>. <br>Please check if this "
-                              "version of Sphinx is supported by Spyder."
-                              "<br><br>Error message:<br>%s"
-                              ) % (sphinx.__version__, unicode(error)))
-                self.plain_text_action.setChecked(True)
-                return
-        else:
-            html_text = warning(self.no_doc_string)
+        self._sphinx_thread = SphinxThread()
+        self._sphinx_thread.parent = self
+        self._sphinx_thread.text = text
+        self._sphinx_thread.finished.connect(self._on_sphinx_thread_finish)
+        self._sphinx_thread.start() 
+        
+    def _on_sphinx_thread_finish(self):
+        """Set our sphinx documentation based on thread result
+        """
+        html_text = self._sphinx_thread.html_text
         self.set_rich_text_html(html_text, QUrl.fromLocalFile(CSS_PATH))
         
     def show_help(self, obj_text, ignore_unknown=False):
@@ -795,3 +784,33 @@ class ObjectInspector(SpyderPluginWidget):
         
         self.set_plain_text(hlp_text, is_code=is_code)
         return True
+
+
+class SphinxThread(QThread):
+
+    def run(self):
+        text = self.text
+        parent = self.parent
+        math_o = parent.get_option('math')
+        if text is not None and text['doc'] != '':
+            try:
+                context = generate_context(title=text['title'],
+                                           argspec=text['argspec'],
+                                           note=text['note'],
+                                           math=math_o)
+                html_text = sphinxify(text['doc'], context)
+            except Exception, error:
+                import sphinx
+                QMessageBox.critical(parent,
+                            _('Object inspector'),
+                            _("The following error occured when calling "
+                              "<b>Sphinx %s</b>. <br>Please check if this "
+                              "version of Sphinx is supported by Spyder."
+                              "<br><br>Error message:<br>%s"
+                              ) % (sphinx.__version__, unicode(error)))
+                parent.plain_text_action.setChecked(True)
+                return
+        else:
+            html_text = warning(parent.no_doc_string)
+        self.html_text = html_text
+        
