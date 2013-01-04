@@ -7,7 +7,6 @@
 """Module checking Spyder installation requirements"""
 
 import sys
-import os
 import os.path as osp
 
 def check_version(actual_str, required_str):
