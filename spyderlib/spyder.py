@@ -728,8 +728,8 @@ class MainWindow(QMainWindow):
             self.console = Console(self, namespace, debug=self.debug,
                                    exitfunc=self.closing, profile=self.profile,
                                    multithreaded=self.multithreaded,
-                                   message='Inspect Spyder internals: '\
-                                           'spy.app, spy.window')
+                                   message='Inspect Spyder internals:\n'\
+                                           '  spy.app, spy.window, dir(spy)')
             self.console.register_plugin()
             
             # Working directory plugin

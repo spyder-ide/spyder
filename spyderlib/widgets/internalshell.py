@@ -186,8 +186,7 @@ class InternalShell(PythonShellWidget):
             self.interpreter.start()
         
         # Interpreter banner
-        banner = create_banner(_('Type "copyright", "credits" or "license" '
-                                 'for more information.'), self.message)
+        banner = create_banner(self.message)
         self.write(banner, prompt=True)
 
         # Initial commands
