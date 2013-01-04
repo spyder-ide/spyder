@@ -39,12 +39,17 @@ from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 
+import spyderlib.spyder
+
 
 def create_banner(moreinfo, message=''):
-    """Create shell banner"""
+    """Create internal shell banner"""
+    versions = spyderlib.spyder.get_versions()
     if message:
         message = '\n' + message + '\n'
-    return 'Python %s on %s\n' % (sys.version, sys.platform) + \
+    return 'Spyder %s on Python %s [%s]\n' % (versions['spyder'],
+                                         versions['python'],
+                                         versions['system']) +\
             moreinfo+'\n' + message + '\n'
 
 

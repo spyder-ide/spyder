@@ -1529,20 +1529,17 @@ class MainWindow(QMainWindow):
             from rope import VERSION as rope_version
         except ImportError:
             rope_version = not_installed  # analysis:ignore
+        versions = get_versions()
         # Show Mercurial revision for development version
         revlink = ''
-        import spyderlib
-        spyderpath = spyderlib.__path__[0]
-        if osp.isdir(osp.abspath(spyderpath)):
-            full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
-            if full:
-                revlink = " (<a href='%s%s'>%s:%s</a>)" % (
-                    'http://code.google.com/p/spyderlib/source/detail?r=',
-                    full.strip('+'), short, full)
-        import spyderlib.qt.QtCore
+        if versions['revision']:
+            revlink = " (<a href='http://code.google.com/p/spyderlib/source/"\
+                      "detail?r=%s'>%s</a>)" % (
+                         versions['revision'].split(':')[0].strip('+'),
+                         versions['revision'])
         QMessageBox.about(self,
             _("About %s") % "Spyder",
-            """<b>%s %s</b> %s
+            """<b>Spyder %s</b> %s
             <br>Scientific PYthon Development EnviRonment
             <p>Copyright &copy; 2009-2012 Pierre Raybaut
             <br>Licensed under the terms of the MIT License
@@ -1566,24 +1563,23 @@ class MainWindow(QMainWindow):
             <p>This project is part of 
             <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
-            % ("Spyder", __version__, revlink, __project_url__,
+            % (versions['spyder'], revlink, __project_url__,
                "<span style=\'color: #444444\'><b>", pyflakes_version,
                "</b></span>", "<span style=\'color: #444444\'><b>",
                rope_version, "</b></span>",
                "<span style=\'color: #444444\'><b>", "</b></span>",
-               __project_url__, __forum_url__, platform.python_version(),
-               64 if sys.maxsize > 2**32 else 32,
-               spyderlib.qt.QtCore.__version__, spyderlib.qt.API_NAME,
-               spyderlib.qt.__version__, platform.system()))
+               __project_url__, __forum_url__, versions['python'],
+               versions['bitness'], versions['qt'], versions['qt_api'],
+               versions['qt_api_ver'], versions['system']))
 
     def report_issue(self):
         import urllib
-        import spyderlib
+        versions = get_versions()
         # Get Mercurial revision for development version
         revlink = ''
-        spyderpath = spyderlib.__path__[0]
-        if osp.isdir(osp.abspath(spyderpath)):
-            full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+        if versions['revision']:
+            full, short = versions['revision'].split(':')
+            full = full.strip('+')
             if full:
                 revlink = " (%s:r%s)" % (short, full)
         issue_template = """\
@@ -1600,13 +1596,13 @@ What is the expected output? What do you see instead?
 
 
 Please provide any additional information below.
-""" % (__version__,
+""" % (versions['spyder'],
        revlink,
-       platform.python_version(),
-       spyderlib.qt.QtCore.__version__,
-       spyderlib.qt.API_NAME,
-       spyderlib.qt.__version__,
-       platform.system())
+       versions['python'],
+       versions['qt'],
+       versions['qt_api'],
+       versions['qt_api_ver'],
+       versions['system'])
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
         url.addEncodedQueryItem("comment", urllib.quote(issue_template))
@@ -2010,11 +2006,37 @@ def initialize():
     return app
 
 
+def get_versions():
+    """
+    Get version information for components used by Spyder
+    """
+    import spyderlib
+    spyderpath = spyderlib.__path__[0]
+    full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+    revision = None
+    if full:
+        revision = '%s:%s' % (full, short)
+    return {
+        'spyder': __version__,
+        'python': platform.python_version(),  # "2.7.3"
+        'bitness': 64 if sys.maxsize > 2**32 else 32,
+        'qt': spyderlib.qt.QtCore.__version__,
+        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
+        'qt_api_ver': spyderlib.qt.__version__,
+        'system': platform.system(),          # Linux, Windows, ...
+        'revision': revision,  # '9fdf926eccce+:2430+'
+    }
+
 class Spy(object):
     """Inspect Spyder internals"""
     def __init__(self, app, window):
         self.app = app
         self.window = window
+    def __dir__(self):
+        return self.__dict__.keys() +\
+                 [x for x in dir(self.__class__) if x[0] != '_']
+    def versions(self):
+        return get_versions()
 
 def run_spyder(app, options, args):
     """
@@ -2038,7 +2060,7 @@ def run_spyder(app, options, args):
     main.show()
     main.post_visible_setup()
     
-    if not main.light:
+    if main.console:
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
 
