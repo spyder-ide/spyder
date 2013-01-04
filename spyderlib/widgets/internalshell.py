@@ -42,15 +42,11 @@ from spyderlib.widgets.shell import PythonShellWidget
 import spyderlib.spyder
 
 
-def create_banner(moreinfo, message=''):
+def create_banner(message):
     """Create internal shell banner"""
     versions = spyderlib.spyder.get_versions()
-    if message:
-        message = '\n' + message + '\n'
-    return 'Spyder %s on Python %s [%s]\n' % (versions['spyder'],
-                                         versions['python'],
-                                         versions['system']) +\
-            moreinfo+'\n' + message + '\n'
+    return 'Spyder %s on Python %s [%s]\n%s' % (
+        versions['spyder'], versions['python'], versions['system'], message)
 
 
 class SysOutput(QObject):
