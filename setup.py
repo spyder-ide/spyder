@@ -87,6 +87,12 @@ def get_packages():
     return packages
     
 
+# Note: the '[...]_win_post_install.py' script is installed even on non-Windows
+# platforms due to a bug in pip installation process (see Issue 1158)
+SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
+if os.name == 'nt':
+    SCRIPTS += ['spyder.bat', 'spyder.ico', 'spyder_light.ico']
+
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
@@ -112,10 +118,7 @@ editor, Python console, etc.""",
                     get_package_data('spyderplugins',
                                      ('.mo', '.svg', '.png'))},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
-      scripts=[osp.join('scripts', fname) for fname in 
-               (['spyder', 'spyder.bat', "%s_win_post_install.py" % NAME,
-                 'spyder.ico', 'spyder_light.ico']
-                if os.name == 'nt' else ['spyder'])],
+      scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       options={"bdist_wininst":
                {"install_script": "%s_win_post_install.py" % NAME,
                 "title": "%s-%s" % (NAME, __version__),
