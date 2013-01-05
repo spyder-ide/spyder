@@ -128,7 +128,8 @@ editor, Python console, etc.""",
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       options={"bdist_wininst":
                {"install_script": "%s_win_post_install.py" % NAME,
-                "title": "%s-%s" % (NAME, __version__),
+                "title": "%s %s" % (NAME.capitalize(), __version__),
+                "bitmap": osp.join('img_src', 'spyder-bdist_wininst.bmp'),
                 "user_access_control": "auto"},
                "bdist_msi":
                {"install_script": "%s_win_post_install.py" % NAME}},
