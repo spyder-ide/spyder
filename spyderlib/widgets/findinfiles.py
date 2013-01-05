@@ -72,7 +72,7 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 #    nb = 0
 #    for fname in filenames:
 #        for lineno, line in enumerate(file(fname)):
-#            for text in texts:
+#            for text, enc in texts:
 #                if regexp:
 #                    found = re.search(text, line)
 #                    if found is not None:
@@ -81,16 +81,17 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 #                    found = line.find(text)
 #                    if found > -1:
 #                        break
+#            line_dec = line.decode(enc)
 #            if regexp:
 #                for match in re.finditer(text, line):
 #                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno+1, match.start(), line))
+#                    res.append((lineno+1, match.start(), line_dec))
 #                    results[osp.abspath(fname)] = res
 #                    nb += 1
 #            else:
 #                while found > -1:
 #                    res = results.get(osp.abspath(fname), [])
-#                    res.append((lineno+1, found, line))
+#                    res.append((lineno+1, found, line_dec))
 #                    results[osp.abspath(fname)] = res
 #                    for text in texts:
 #                        found = line.find(text, found+1)
@@ -229,8 +230,8 @@ class SearchThread(QThread):
                 if self.stopped:
                     return
             try:
-                for lineno, line in enumerate(file(fname)):
-                    for text in self.texts:
+                for lineno, line in enumerate(open(fname)):
+                    for text, enc in self.texts:
                         if self.text_re:
                             found = re.search(text, line)
                             if found is not None:
@@ -239,16 +240,17 @@ class SearchThread(QThread):
                             found = line.find(text)
                             if found > -1:
                                 break
+                    line_dec = line.decode(enc)
                     if self.text_re:
                         for match in re.finditer(text, line):
                             res = self.results.get(osp.abspath(fname), [])
-                            res.append((lineno+1, match.start(), line))
+                            res.append((lineno+1, match.start(), line_dec))
                             self.results[osp.abspath(fname)] = res
                             self.nb += 1
                     else:
                         while found > -1:
                             res = self.results.get(osp.abspath(fname), [])
-                            res.append((lineno+1, found, line))
+                            res.append((lineno+1, found, line_dec))
                             self.results[osp.abspath(fname)] = res
                             for text in self.texts:
                                 found = line.find(text, found+1)
@@ -438,12 +440,12 @@ class FindOptions(QWidget):
         if not utext:
             return
         try:
-            texts = [str(utext)]
+            texts = [(utext.encode('ascii'), 'ascii')]
         except UnicodeEncodeError:
             texts = []
-            for encoding in self.supported_encodings:
+            for enc in self.supported_encodings:
                 try:
-                    texts.append( utext.encode(encoding) )
+                    texts.append((utext.encode(enc), enc))
                 except UnicodeDecodeError:
                     pass
         text_re = self.edit_regexp.isChecked()
