@@ -93,13 +93,20 @@ SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
 if os.name == 'nt':
     SCRIPTS += ['spyder.bat', 'spyder.ico', 'spyder_light.ico']
 
+# Adding a message for the bdist_wininst installer
+WININST_MSG = ""
+if 'bdist_wininst' in ''.join(sys.argv):
+    WININST_MSG = \
+"""Please uninstall any previous version of Spyder before continue.
+
+"""
+
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
-      long_description=\
-"""The spyderlib library includes Spyder, a free open-source Python 
-development environment providing MATLAB-like features in a simple 
-and light-weighted software.
+      long_description=WININST_MSG + \
+"""Spyder is an interactive Python development environment providing 
+MATLAB-like features in a simple and light-weighted software.
 It also provides ready-to-use pure-Python widgets to your PyQt4 or 
 PySide application: source code editor with syntax highlighting and 
 code introspection/analysis features, NumPy array editor, dictionary 
