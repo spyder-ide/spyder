@@ -688,7 +688,12 @@ class DirView(QTreeView):
                 # "QSortFilterProxyModel: index from wrong model passed to 
                 # mapFromSource", probably due to the fact that the file 
                 # system model is being built
-                QTimer.singleShot(50, lambda path=path:
+                #
+                # This is just a workaround (any cleaner implementation would
+                # be welcomed). The delay was first set to 50ms, but with 
+                # slower machines, it appears that 200ms is a better choice:
+                # https://groups.google.com/group/spyderlib/browse_thread/thread/f5f2b7da8218e1fa
+                QTimer.singleShot(200, lambda path=path:
                                   self.setExpanded(self.get_index(path), True))
 
         if not self.__expanded_state:
