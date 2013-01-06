@@ -81,7 +81,10 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 #                    found = line.find(text)
 #                    if found > -1:
 #                        break
-#            line_dec = line.decode(enc)
+#                    try:
+#                        line_dec = line.decode(enc)
+#                    except UnicodeDecodeError:
+#                        line_dec = line
 #            if regexp:
 #                for match in re.finditer(text, line):
 #                    res = results.get(osp.abspath(fname), [])
@@ -240,7 +243,10 @@ class SearchThread(QThread):
                             found = line.find(text)
                             if found > -1:
                                 break
-                    line_dec = line.decode(enc)
+                    try:
+                        line_dec = line.decode(enc)
+                    except UnicodeDecodeError:
+                        line_dec = line
                     if self.text_re:
                         for match in re.finditer(text, line):
                             res = self.results.get(osp.abspath(fname), [])
