@@ -266,7 +266,7 @@ class SearchThread(QThread):
                             res = self.results.get(osp.abspath(fname), [])
                             res.append((lineno+1, found, line_dec))
                             self.results[osp.abspath(fname)] = res
-                            for text in self.texts:
+                            for text, enc in self.texts:
                                 found = line.find(text, found+1)
                                 if found > -1:
                                     break
