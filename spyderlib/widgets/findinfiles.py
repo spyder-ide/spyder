@@ -24,6 +24,7 @@ import re
 import fnmatch
 import os.path as osp
 from subprocess import Popen, PIPE
+import traceback
 
 # Local imports
 from spyderlib.utils.vcs import is_hg_installed, get_vcs_root
@@ -136,15 +137,22 @@ class SearchThread(QThread):
         self.completed = False
         
     def run(self):
-        self.filenames = []
-        if self.hg_manifest:
-            ok = self.find_files_in_hg_manifest()
-        elif self.python_path:
-            ok = self.find_files_in_python_path()
-        else:
-            ok = self.find_files_in_path(self.rootpath)
-        if ok:
-            self.find_string_in_files()
+        try:
+            self.filenames = []
+            if self.hg_manifest:
+                ok = self.find_files_in_hg_manifest()
+            elif self.python_path:
+                ok = self.find_files_in_python_path()
+            else:
+                ok = self.find_files_in_path(self.rootpath)
+            if ok:
+                self.find_string_in_files()
+        except Exception:
+            # Important note: we have to handle unexpected exceptions by 
+            # ourselves because they won't be catched by the main thread
+            # (known QThread limitation/bug)
+            traceback.print_exc()
+            self.error_flag = _("Unexpected error: see internal console")
         self.stop()
         self.emit(SIGNAL("finished(bool)"), self.completed)
         
