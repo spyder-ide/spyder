@@ -1654,42 +1654,7 @@ Please provide any additional information below.
         plugin = self.find()
         if plugin is not None:
             plugin.find_widget.show_replace()
-            
-    def debug_next(self):
-        """Debug next line"""
-        shell = get_focus_python_shell()       
-        if shell is not None:
-            self.extconsole.raise_()
-            self.extconsole.execute_python_code("next")
-            
-    def debug_continue(self):
-        """Debug Continue"""
-        shell = get_focus_python_shell()       
-        if shell is not None:
-            self.extconsole.raise_()
-            self.extconsole.execute_python_code("continue")
-        
-    def debug_exit(self):
-        """Debug exit debug console"""
-        shell = get_focus_python_shell()       
-        if shell is not None:        
-            self.extconsole.raise_()
-            self.extconsole.execute_python_code("exit")
-        
-    def debug_step(self):
-        """Debug Step into"""
-        shell = get_focus_python_shell()       
-        if shell is not None:
-            self.extconsole.raise_()
-            self.extconsole.execute_python_code("step")
-        
-    def debug_return(self):
-        """Debug Return"""
-        shell = get_focus_python_shell()       
-        if shell is not None:
-            self.extconsole.raise_()
-            self.extconsole.execute_python_code("return")    
-            
+
     def global_callback(self):
         """Global callback"""
         widget = QApplication.focusWidget()
@@ -1759,6 +1724,47 @@ Please provide any additional information below.
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
+    #---- Debugging Actions    
+    def debug_next(self):
+        """Debug next line"""
+        shell = self.extconsole.get_current_shell().parent()     
+        if shell.is_ipython_kernel:
+            return
+        else:
+            self.execute_python_code_in_external_console("next")
+            
+    def debug_continue(self):
+        """Debug Continue"""
+        shell = self.extconsole.get_current_shell().parent()     
+        if shell.is_ipython_kernel:
+            return
+        else:
+            self.execute_python_code_in_external_console("continue")
+        
+    def debug_exit(self):
+        """Debug exit debug console"""
+        shell = self.extconsole.get_current_shell().parent()     
+        if shell.is_ipython_kernel:
+            return
+        else:
+            self.execute_python_code_in_external_console("exit")
+        
+    def debug_step(self):
+        """Debug Step into"""
+        shell = self.extconsole.get_current_shell().parent()     
+        if shell.is_ipython_kernel:
+            return
+        else:
+            self.execute_python_code_in_external_console("step")
+        
+    def debug_return(self):
+        """Debug Return"""
+        shell = self.extconsole.get_current_shell().parent()     
+        if shell.is_ipython_kernel:
+            return
+        else:
+            self.execute_python_code_in_external_console("return")    
+    
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
