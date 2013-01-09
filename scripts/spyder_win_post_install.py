@@ -22,18 +22,21 @@ def install():
     python = osp.join(sys.prefix, 'python.exe')
     script = osp.join(sys.prefix, 'scripts', 'spyder')
     workdir = "%HOMEDRIVE%%HOMEPATH%"
+    import distutils.sysconfig
+    lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
+    ico_dir = osp.join(lib_dir, 'spyderlib', 'windows')
 
     desc = 'Scientific Python Development EnvironmEnt, an alternative to IDLE'
     fname = osp.join(start_menu, 'Spyder (full).lnk')
-    iconpath = osp.join(sys.prefix, 'scripts', 'spyder.ico')
-    create_shortcut(python, desc, fname, '"%s"' % script, workdir, iconpath)
+    create_shortcut(python, desc, fname, '"%s"' % script, workdir,
+                    osp.join(ico_dir, 'spyder.ico'))
     file_created(fname)
 
     desc += '. Light configuration: console and variable explorer only.'
     fname = osp.join(start_menu, 'Spyder (light).lnk')
-    iconpath = osp.join(sys.prefix, 'scripts', 'spyder_light.ico')
     create_shortcut(python, desc, fname,
-                    '"%s" --light' % script, workdir, iconpath)
+                    '"%s" --light' % script, workdir,
+                    osp.join(ico_dir, 'spyder_light.ico'))
     file_created(fname)
 
     fname = osp.join(start_menu, 'Spyder-Reset all settings.lnk')

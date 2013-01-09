@@ -85,13 +85,14 @@ def get_packages():
             if osp.isdir(name):
                 packages += get_subpackages(name)
     return packages
-    
 
 # Note: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
 SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
+EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js']
 if os.name == 'nt':
-    SCRIPTS += ['spyder.bat', 'spyder.ico', 'spyder_light.ico']
+    SCRIPTS += ['spyder.bat']
+    EXTLIST += ['.ico']
 
 # Adding a message for the bdist_wininst installer
 WININST_MSG = ""
@@ -118,12 +119,9 @@ editor, Python console, etc.""",
       keywords='PyQt4 PySide editor shell console widgets IDE',
       platforms=['any'],
       packages=get_packages(),
-      package_data={LIBNAME:
-                    get_package_data(LIBNAME, ('.mo', '.svg', '.png', '.css',
-                                               '.html', '.js')),
+      package_data={LIBNAME: get_package_data(LIBNAME, EXTLIST),
                     'spyderplugins':
-                    get_package_data('spyderplugins',
-                                     ('.mo', '.svg', '.png'))},
+                    get_package_data('spyderplugins', EXTLIST)},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
       options={"bdist_wininst":
