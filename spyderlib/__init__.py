@@ -49,3 +49,26 @@ def add_to_distribution(dist):
                                     '.js', '.inv', '.ico', '.css', '.doctree',
                                     '.qm', '.py',),
                                    copy_to_root=False)
+
+def get_versions():
+    """Get version information for components used by Spyder"""
+    import sys
+    import os.path as osp
+    import platform
+    import spyderlib
+    from spyderlib.utils import vcs
+    spyderpath = spyderlib.__path__[0]
+    full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
+    revision = None
+    if full:
+        revision = '%s:%s' % (full, short)
+    return {
+        'spyder': spyderlib.__version__,
+        'python': platform.python_version(),  # "2.7.3"
+        'bitness': 64 if sys.maxsize > 2**32 else 32,
+        'qt': spyderlib.qt.QtCore.__version__,
+        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
+        'qt_api_ver': spyderlib.qt.__version__,
+        'system': platform.system(),          # Linux, Windows, ...
+        'revision': revision,  # '9fdf926eccce+:2430+'
+    }

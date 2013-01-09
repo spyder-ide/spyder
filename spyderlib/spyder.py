@@ -18,7 +18,6 @@ Licensed under the terms of the MIT License
 import os
 import sys
 import os.path as osp
-import platform
 import re
 import socket
 import threading
@@ -77,8 +76,8 @@ from spyderlib.qt.compat import (from_qvariant, getopenfilename,
 from spyderlib.qt import QtSvg  # analysis:ignore
 
 # Local imports
-from spyderlib import __version__, __project_url__, __forum_url__
-from spyderlib.utils import encoding, vcs, programs
+from spyderlib import __version__, __project_url__, __forum_url__, get_versions
+from spyderlib.utils import encoding, programs
 try:
     from spyderlib.utils.environ import WinUserEnvDialog
 except ImportError:
@@ -2005,27 +2004,6 @@ def initialize():
     
     return app
 
-
-def get_versions():
-    """
-    Get version information for components used by Spyder
-    """
-    import spyderlib
-    spyderpath = spyderlib.__path__[0]
-    full, short, branch = vcs.get_hg_revision(osp.dirname(spyderpath))
-    revision = None
-    if full:
-        revision = '%s:%s' % (full, short)
-    return {
-        'spyder': __version__,
-        'python': platform.python_version(),  # "2.7.3"
-        'bitness': 64 if sys.maxsize > 2**32 else 32,
-        'qt': spyderlib.qt.QtCore.__version__,
-        'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
-        'qt_api_ver': spyderlib.qt.__version__,
-        'system': platform.system(),          # Linux, Windows, ...
-        'revision': revision,  # '9fdf926eccce+:2430+'
-    }
 
 class Spy(object):
     """Inspect Spyder internals"""

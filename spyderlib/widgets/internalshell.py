@@ -18,7 +18,6 @@ import __builtin__
 from spyderlib.widgets.objecteditor import oedit
 __builtin__.oedit = oedit
 
-import sys
 import os
 import threading
 from time import time
@@ -28,6 +27,7 @@ from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import SIGNAL, QObject, QEventLoop
 
 # Local import
+from spyderlib import get_versions
 from spyderlib.utils.qthelpers import create_action, get_std_icon
 from spyderlib.interpreter import Interpreter
 from spyderlib.utils.dochelpers import getargtxt, getsource, getdoc, getobjdir
@@ -39,12 +39,10 @@ from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 
-import spyderlib.spyder
-
 
 def create_banner(message):
     """Create internal shell banner"""
-    versions = spyderlib.spyder.get_versions()
+    versions = get_versions()
     return 'Spyder %s on Python %s [%s]\n%s' % (
         versions['spyder'], versions['python'], versions['system'], message)
 

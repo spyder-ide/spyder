@@ -70,8 +70,8 @@ else:
 
 # Importing Spyder (among other things, this has the effect of setting the 
 # QT_API environment variable if this has not yet been done just above)
-from spyderlib import spyder
-versions = spyder.get_versions()
+from spyderlib import get_versions
+versions = get_versions()
 print("03. Imported Spyder %s (Qt %s via %s %s)" % \
     (versions['spyder'],
      versions['qt'], versions['qt_api'], versions['qt_api_ver']))
@@ -81,4 +81,5 @@ if not options.hide_console:
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--showconsole")  # Windows only: show parent console
 print("04. Executing spyder.main()")
+from spyderlib import spyder
 spyder.main()
