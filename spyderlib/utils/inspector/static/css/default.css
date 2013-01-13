@@ -8,12 +8,19 @@ body {
 div.title h1 {
     font-size: 180%;
     font-family: 'Trebuchet MS', sans-serif;
-    background-color: #E6E6E6;
+    background-color: #6487DC;
+    background-image: -webkit-gradient(
+        linear,
+        left bottom,
+        left top,
+        color-stop(0, #6487DC),
+        color-stop(1, #666EDC)
+    );
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.45);
     font-weight: normal;
-    border-bottom: 1px solid #CCC;
     padding: 6px 0px 6px 20px;
     margin: 0px -20px;
-    color: #20435C;
+    color: #FFFFFF;
 }
 
 /* --- Metadata style --- */
