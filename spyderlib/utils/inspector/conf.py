@@ -31,6 +31,7 @@ if sphinx_version < "1.1" or not math:
     extensions = ['sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.mathjax']
+extensions.append('sphinx.ext.autosummary')
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['templates']
