@@ -25,10 +25,17 @@ div.title h1 {
 
 /* --- Metadata style --- */
 div.metadata {
-    margin-top: 5px;
-    margin-bottom: 0px;
-    border-bottom: 2px solid #CCC;
+    margin-top: 10px;
+    margin-bottom: 15px;
     padding: 1px;
+    background-color: #EEEEEE;
+    border: 1px solid #C9C9C9;
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    box-shadow: 1px 1px 7px #CACACA;
+    color: #333333;
 }
 
 div.metadata p {
