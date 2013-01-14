@@ -279,14 +279,16 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                 "becomes <i>str(43)</i> automatically."))
         autocall_label.setWordWrap(True)
         
-        autocall_opts = (('Off', 0), ('Smart', 1), ('Full', 2))
+        smart = _('Smart')
+        full = _('Full')
+        autocall_opts = ((_('Off'), 0), (smart, 1), (full, 2))
         autocall_box = self.create_combobox(
-                         "Autocall:  ", autocall_opts, 'autocall', default = 0,
-                         tip=_("On <b>Smart</b> mode, Autocall is not applied "
-                               "if there are no arguments after the callable. "
-                               "On <b>Full</b> mode, all callable objects are "
-                               "automatically called (even if no arguments "
-                               "are present)."))
+                       _("Autocall:  "), autocall_opts, 'autocall', default=0,
+                       tip=_("On <b>%s</b> mode, Autocall is not applied if "
+                             "there are no arguments after the callable. On "
+                             "<b>%s</b> mode, all callable objects are "
+                             "automatically called (even if no arguments are "
+                             "present).") % (smart, full))
         
         autocall_layout = QVBoxLayout()
         autocall_layout.addWidget(autocall_label)
@@ -301,9 +303,9 @@ class IPythonConsoleConfigPage(PluginConfigPage):
                                "printed style."))
         sympy_label.setWordWrap(True)
         sympy_box = newcb(_("Use symbolic math"), "symbolic_math",
-                          tip="This option loads the Sympy library to work "
-                              "with.<br>Please refer to its documentation to "
-                              "learn how to use it.")
+                          tip=_("This option loads the Sympy library to work "
+                                "with.<br>Please refer to its documentation to "
+                                "learn how to use it."))
         
         sympy_layout = QVBoxLayout()
         sympy_layout.addWidget(sympy_label)
