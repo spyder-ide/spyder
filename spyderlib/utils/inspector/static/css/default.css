@@ -23,6 +23,24 @@ div.title h1 {
     color: #FFFFFF;
 }
 
+/*
+ * The next two styles are needed to
+ * modify the anchors present on the
+ * title of pages like scipy.stats or
+ * scipy.io
+ */
+div.title h1 a {
+    color: transparent;
+    cursor: default;
+}
+
+div.title h1 tt {
+    font-size: 95%;
+    background-color: transparent;
+    color: #FFFFFF;
+}
+
+
 /* --- Metadata style --- */
 div.metadata {
     margin-top: 10px;
