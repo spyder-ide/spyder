@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-# Copyright (C) 2012 The Spyder Team
+# Copyright (C) 2013 The Spyder Development Team
 # Distributed under the terms of the BSD License
 
 """Sphinx conf file for the object inspector rich text mode"""
@@ -31,6 +31,9 @@ if sphinx_version < "1.1" or not math:
     extensions = ['sphinx.ext.jsmath']
 else:
     extensions = ['sphinx.ext.mathjax']
+
+# For scipy and matplotlib docstrings, which need this extension to
+# be rendered correctly (see Issue 1138)
 extensions.append('sphinx.ext.autosummary')
 
 # Add any paths that contain templates here, relative to this directory.
@@ -50,7 +53,7 @@ master_doc = 'docstring'
 
 # General information about the project.
 project = u"Object Inspector"
-copyright = u'2009--2012, The Spyder Development Team'
+copyright = u'2009--2013, The Spyder Development Team'
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.
