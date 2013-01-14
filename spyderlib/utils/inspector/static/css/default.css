@@ -45,6 +45,7 @@ div.title h1 tt {
 div.metadata {
     margin-top: 10px;
     margin-bottom: 15px;
+    margin-right: 1px;
     padding: 1px;
     background-color: #EEEEEE;
     border: 1px solid #C9C9C9;
@@ -73,6 +74,10 @@ span.argspec-highlight {
 /* --- Docstring div style --- */
 div.docstring {
     margin-top: -1px;
+}
+
+div.docstring p {
+    padding: 0px 10px 0px;
 }
 
 /* --- Headers style --- */
