@@ -81,13 +81,18 @@ div.section {
 }
 
 div.section h2 {
-    font-size: 140%;    
+    font-size: 140%;
     font-family: 'Trebuchet MS', sans-serif;
     font-weight: normal;
     background-color: #F2F2F2;
     border: 1px solid #CCC;
     color: #20435C;
     padding: 4px 0px 4px 8px;
+}
+
+div.section h3 {
+    font-size: 110%;
+    padding: 0px 5px 0px;
 }
 
 dl.docutils {
