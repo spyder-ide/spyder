@@ -62,6 +62,10 @@ def get_versions():
     revision = None
     if full:
         revision = '%s:%s' % (full, short)
+    if not sys.platform == 'darwin':  # To avoid a crash with our Mac app
+        system = platform.system()
+    else:
+        system = 'Darwin'
     return {
         'spyder': spyderlib.__version__,
         'python': platform.python_version(),  # "2.7.3"
@@ -69,6 +73,6 @@ def get_versions():
         'qt': spyderlib.qt.QtCore.__version__,
         'qt_api': spyderlib.qt.API_NAME,      # PySide or PyQt4
         'qt_api_ver': spyderlib.qt.__version__,
-        'system': platform.system(),          # Linux, Windows, ...
+        'system': system,   # Linux, Windows, ...
         'revision': revision,  # '9fdf926eccce+:2430+'
     }
