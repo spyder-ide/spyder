@@ -135,6 +135,10 @@ try:
         # To use the help command
         site._Helper = osx_app_site._Helper
         site.sethelper = osx_app_site.sethelper
+
+        # Missing variables
+        site.USER_BASE = osx_app_site.getuserbase()
+        site.USER_SITE = osx_app_site.getusersitepackages()
     
     import sitecustomize  #analysis:ignore
 except ImportError:
