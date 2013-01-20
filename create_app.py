@@ -80,7 +80,7 @@ INCLUDES = get_stdlib_modules()
 OPTIONS = {
     'argv_emulation': True,
     'compressed' : False,
-    'optimize': 2,
+    'optimize': 1,
     'packages': PACKAGES,
     'includes': INCLUDES,
     'excludes': EXCLUDES,
