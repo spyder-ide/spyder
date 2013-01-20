@@ -35,7 +35,7 @@ def get_stdlib_modules():
     standard library.
     
     Based on the function get_root_modules from the IPython project.
-    Present in IPython.core.completerlib
+    Present in IPython.core.completerlib in v0.13.1
     
     Copyright (C) 2010-2011 The IPython Development Team.
     Distributed under the terms of the BSD License.
@@ -199,17 +199,6 @@ for line in fileinput.input(boot, inplace=True):
         print run_cmd
     else:
         print line,
-
-# Add missing classes and functions to site.py
-from site import _Printer, _Helper, sethelper
-printer_class = inspect.getsource(_Printer)
-helper_class = inspect.getsource(_Helper)
-sethelper_func = inspect.getsource(sethelper)
-
-with open(app_python_lib + osp.sep + 'site.py', 'a') as f:
-    f.write('\n' + printer_class + '\n')
-    f.write(helper_class + '\n')
-    f.write(sethelper_func)
 
 # Run macdeployqt so that the app can use the internal Qt Framework
 subprocess.call(['macdeployqt', 'dist/Spyder.app'])
