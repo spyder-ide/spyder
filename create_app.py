@@ -24,6 +24,7 @@ import sys
 
 from IPython.core.completerlib import module_list
 from spyderlib.utils.programs import find_program
+from spyderlib import __version__ as spy_version
 
 #==============================================================================
 # Auxiliary functions
@@ -85,7 +86,8 @@ OPTIONS = {
     'packages': PACKAGES,
     'includes': INCLUDES,
     'excludes': EXCLUDES,
-    'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
+    'plist': {'CFBundleIdentifier': 'org.spyder-ide',
+              'CFBundleShortVersionString': spy_version},
     'iconfile': 'img_src/spyder.icns'
 }
 
