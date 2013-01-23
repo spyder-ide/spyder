@@ -128,13 +128,12 @@ try:
     if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         import site
         import osx_app_site
-
-        # To print the initial banner
-        site._Printer = osx_app_site._Printer
-
+        
+        # To print copyright, credits and license
+        osx_app_site.setcopyright()
+        
         # To use the help command
-        site._Helper = osx_app_site._Helper
-        site.sethelper = osx_app_site.sethelper
+        osx_app_site.sethelper()
 
         # Missing variables
         site.USER_BASE = osx_app_site.getuserbase()

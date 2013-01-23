@@ -119,6 +119,23 @@ class _Printer(object):
                 if key == 'q':
                     break
 
+def setcopyright():
+    """Set 'copyright' and 'credits' in __builtin__"""
+    __builtin__.copyright = _Printer("copyright", sys.copyright)
+    if sys.platform[:4] == 'java':
+        __builtin__.credits = _Printer(
+            "credits",
+            "Jython is maintained by the Jython developers (www.jython.org).")
+    else:
+        __builtin__.credits = _Printer("credits", """\
+    Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands
+    for supporting Python development.  See www.python.org for more information.""")
+    here = os.path.dirname(os.__file__)
+    __builtin__.license = _Printer(
+        "license", "See http://www.python.org/%.3s/license.html" % sys.version,
+        ["LICENSE.txt", "LICENSE"],
+        [os.path.join(here, os.pardir), here, os.curdir])
+
 
 class _Helper(object):
     """Define the builtin 'help'.
