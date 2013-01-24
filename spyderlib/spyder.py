@@ -348,8 +348,6 @@ class MainWindow(QMainWindow):
         self.windows_toolbars_menu = None
         self.help_menu = None
         self.help_menu_actions = []
-        self.debug_menu = None
-        self.debug_menu_actions = []
         
         # Status bar widgets
         self.mem_status = None
@@ -370,6 +368,7 @@ class MainWindow(QMainWindow):
         self.run_toolbar_actions = []
         self.debug_toolbar = None
         self.debug_toolbar_actions = []
+        
         # Set Window title and icon
         title = "Spyder"
         if self.debug:
@@ -487,37 +486,7 @@ class MainWindow(QMainWindow):
                                                     'editdelete.png')
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
-                                                       'selectall.png')                                        
-            _text = _("Debug Step Over")
-            self.debug_next_action = create_action(self, _text, 
-                   icon='arrow-step-over.png', tip=_text, 
-                   triggered=lambda: self.debug_command("next")) 
-            self.register_shortcut(self.debug_next_action, "_",
-                       "Debug Step Over", "Ctrl+F10")
-            _text = _("Debug Continue")
-            self.debug_continue_action = create_action(self, _text,
-                   icon='control.png', tip=_text, 
-                   triggered=lambda: self.debug_command("continue"))                                                 
-            self.register_shortcut(self.debug_continue_action, "_",
-                       "Debug Continue", "Ctrl+F12")
-            _text = _("Debug Step Into")
-            self.debug_step_action = create_action(self, _text, 
-                   icon='arrow-step-in.png', tip=_text, 
-                   triggered=lambda: self.debug_command("step"))                
-            self.register_shortcut(self.debug_step_action, "_",
-                       "Debug Step Into", "Ctrl+F11")                             
-            _text = _("Debug Step Return")
-            self.debug_return_action = create_action(self, _text, 
-                   icon='arrow-step-out.png', tip=_text, 
-                   triggered=lambda: self.debug_command("return"))               
-            self.register_shortcut(self.debug_return_action, "_",
-                       "Debug Step Return", "Ctrl+Shift+F11")
-            _text = _("Debug Exit")
-            self.debug_exit_action = create_action(self, _text,
-                   icon='stop.png', tip=_text, 
-                   triggered=lambda: self.debug_command("exit"))                                       
-            self.register_shortcut(self.debug_exit_action, "_",
-                       "Debug Exit", "Ctrl+Shift+F12")
+                                                       'selectall.png')
             self.edit_menu_actions = [self.undo_action, self.redo_action,
                                       None, self.cut_action, self.copy_action,
                                       self.paste_action, self.delete_action,
@@ -528,16 +497,6 @@ class MainWindow(QMainWindow):
             self.search_toolbar_actions = [self.find_action,
                                            self.find_next_action,
                                            self.replace_action]
-            self.debug_menu_actions = [self.debug_next_action,
-                                       self.debug_step_action,
-                                       self.debug_return_action,
-                                       self.debug_continue_action,
-                                       self.debug_exit_action]            
-            self.debug_toolbar_actions = [self.debug_next_action,
-                                         self.debug_step_action,
-                                         self.debug_return_action,
-                                         self.debug_continue_action,
-                                         self.debug_exit_action]
 
         namespace = None
         if not self.light:
@@ -754,20 +713,6 @@ class MainWindow(QMainWindow):
             self.set_splash(_("Loading editor..."))
             self.editor = Editor(self)
             self.editor.register_plugin()
-            
-            # The editor plugin is largely responsible for setting up
-            # the Run menu. We'll insert the debug_menu into the Run
-            # menu now that the editor has already been registered.
-            self.debug_menu = QMenu(_("Debugging control"))
-            add_actions(self.debug_menu, self.debug_menu_actions)
-            debug_control_action = create_action(self, _("Debugging control"))
-            debug_control_action.setMenu(self.debug_menu)
-            # XXX: This hard-coded insertion location is not ideal.
-            self.run_menu_actions.insert(4, debug_control_action)
-            # Insert the debug action from the run actions menu
-            # as the first entry in the debug toolbar.
-            # XXX: This hard-coded action selection is not ideal.
-            self.debug_toolbar_actions.insert(0, self.run_menu_actions[1])
             
             # Populating file menu entries
             quit_action = create_action(self, _("&Quit"),
@@ -1727,14 +1672,6 @@ Please provide any additional information below.
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
-    def debug_command(self, command):
-        """Debug actions"""
-        shell = self.extconsole.get_current_shell().parent()     
-        if shell.is_ipython_kernel:
-            return
-        else:
-            self.execute_python_code_in_external_console(command)
-            
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""

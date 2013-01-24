@@ -74,7 +74,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                                name="List breakpoints", default="Ctrl+B")
         
         # A fancy way to insert the action into the Breakpoints menu under
-        # the assumption that Breakpoints is the only QMenu in the list.
+        # the assumption that Breakpoints is the first QMenu in the list.
         for item in self.main.run_menu_actions:
             try:
                 menu_title = item.title()
@@ -86,6 +86,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                 if not isinstance(menu_title, unicode): # string is a QString
                     menu_title = unicode(menu_title.toUtf8(), 'utf-8')
                 item.addAction(list_action)
+                break
         self.main.editor.pythonfile_dependent_actions += [list_action]
                     
     def refresh_plugin(self):

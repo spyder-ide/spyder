@@ -628,6 +628,39 @@ class Editor(SpyderPluginWidget):
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
+        debug_next_action = create_action(self, _("Step Over"), 
+               icon='arrow-step-over.png', tip=_("Debug Step Over"), 
+               triggered=lambda: self.debug_command("next")) 
+        self.register_shortcut(debug_next_action, "_",
+                   "Debug Step Over", "Ctrl+F10")
+        debug_continue_action = create_action(self, _("Continue"),
+               icon='control.png', tip=_("Debug Continue"), 
+               triggered=lambda: self.debug_command("continue"))                                                 
+        self.register_shortcut(debug_continue_action, "_",
+                   "Debug Continue", "Ctrl+F12")
+        debug_step_action = create_action(self, _("Step Into"), 
+               icon='arrow-step-in.png', tip=_("Debug Step Into"), 
+               triggered=lambda: self.debug_command("step"))                
+        self.register_shortcut(debug_step_action, "_",
+                   "Debug Step Into", "Ctrl+F11")                             
+        debug_return_action = create_action(self, _("Step Return"), 
+               icon='arrow-step-out.png', tip=_("Debug Step Return"), 
+               triggered=lambda: self.debug_command("return"))               
+        self.register_shortcut(debug_return_action, "_",
+                   "Debug Step Return", "Ctrl+Shift+F11")
+        debug_exit_action = create_action(self, _("Exit"),
+               icon='stop.png', tip=_("Debug Exit"), 
+               triggered=lambda: self.debug_command("exit"))                                       
+        self.register_shortcut(debug_exit_action, "_",
+                   "Debug Exit", "Ctrl+Shift+F12")        
+        debug_control_menu_actions = [debug_next_action,
+                                      debug_step_action,
+                                      debug_return_action,
+                                      debug_continue_action,
+                                      debug_exit_action]
+        debug_control_menu = QMenu(_("Debugging control"))
+        add_actions(debug_control_menu, debug_control_menu_actions)   
+        
         run_action = create_action(self, _("&Run"), icon='run.png',
                 tip=_("Run active script in a new Python interpreter"),
                 triggered=self.run_file)
@@ -826,13 +859,21 @@ class Editor(SpyderPluginWidget):
         self.main.search_toolbar_actions += [gotoline_action]
         
         run_menu_actions = [run_action, debug_action, configure_action,
-                            breakpoints_menu, None,
+                            breakpoints_menu, debug_control_menu, None,
                             re_run_action, run_selected_action, None,
                             self.winpdb_action]
         self.main.run_menu_actions += run_menu_actions
         run_toolbar_actions = [run_action, debug_action, configure_action,
                                run_selected_action, re_run_action]
         self.main.run_toolbar_actions += run_toolbar_actions
+        
+        debug_toolbar_actions = [debug_action,
+                                 debug_next_action,
+                                 debug_step_action,
+                                 debug_return_action,
+                                 debug_continue_action,
+                                 debug_exit_action]
+        self.main.debug_toolbar_actions += debug_toolbar_actions
         
         source_menu_actions = [eol_menu, trailingspaces_action,
                                fixindentation_action]
@@ -1826,7 +1867,14 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             for data in editorstack.data:
                 data.editor.clear_breakpoints()
-        
+                
+    def debug_command(self, command):
+        """Debug actions"""
+        shellwidget = self.main.extconsole.get_current_shell().parent()     
+        if shellwidget.is_ipython_kernel:
+            return
+        else:
+            self.main.execute_python_code_in_external_console(command)
     
     #------ Run Python script
     def edit_run_configurations(self):
