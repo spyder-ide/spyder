@@ -167,9 +167,8 @@ class UserConfig(ConfigParser):
         if osp.isfile(fname):
             os.remove(fname)
 
-        conf_file = file(fname, 'w')
-        self.write(conf_file)
-        conf_file.close()
+        with open(fname, 'w') as configfile:
+            self.write(configfile)
 
     def filename(self):
         """
