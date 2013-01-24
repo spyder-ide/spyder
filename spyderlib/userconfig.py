@@ -33,6 +33,8 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
+from __future__ import with_statement
+
 __version__ = '1.0.13'
 __license__ = __doc__
 
