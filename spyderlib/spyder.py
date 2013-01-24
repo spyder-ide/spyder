@@ -488,33 +488,34 @@ class MainWindow(QMainWindow):
             self.selectall_action = create_edit_action("Select All",
                                                        _("Select All"),
                                                        'selectall.png')                                        
-            self.debug_next_action = create_action(self, "Debug Step Over", 
-                                           icon='arrow-step-over.png', tip="Debug Step Over", 
-                                           triggered= self.debug_next) 
+            _text = _("Debug Step Over")
+            self.debug_next_action = create_action(self, _text, 
+                   icon='arrow-step-over.png', tip=_text, 
+                   triggered=lambda: self.debug_command("next")) 
             self.register_shortcut(self.debug_next_action, "_",
                        "Debug Step Over", "Ctrl+F10")
-            self.debug_continue_action = create_action(self, "Debug Continue",
-                                           icon='control.png',
-                                           tip="Debug Continue", 
-                                           triggered= self.debug_continue)                                                 
+            _text = _("Debug Continue")
+            self.debug_continue_action = create_action(self, _text,
+                   icon='control.png', tip=_text, 
+                   triggered=lambda: self.debug_command("continue"))                                                 
             self.register_shortcut(self.debug_continue_action, "_",
                        "Debug Continue", "Ctrl+F12")
-            self.debug_step_action = create_action(self, "Debug Step Into", 
-                                           icon='arrow-step-in.png',
-                                           tip="Debug Step Into", 
-                                           triggered= self.debug_step)                
+            _text = _("Debug Step Into")
+            self.debug_step_action = create_action(self, _text, 
+                   icon='arrow-step-in.png', tip=_text, 
+                   triggered=lambda: self.debug_command("step"))                
             self.register_shortcut(self.debug_step_action, "_",
                        "Debug Step Into", "Ctrl+F11")                             
-            self.debug_return_action = create_action(self, "Debug Step Return", 
-                                           icon='arrow-step-out.png',
-                                           tip="Debug Step Return", 
-                                           triggered= self.debug_return)               
+            _text = _("Debug Step Return")
+            self.debug_return_action = create_action(self, _text, 
+                   icon='arrow-step-out.png', tip=_text, 
+                   triggered=lambda: self.debug_command("return"))               
             self.register_shortcut(self.debug_return_action, "_",
                        "Debug Step Return", "Ctrl+Shift+F11")
-            self.debug_exit_action = create_action(self, "Debug Exit", 
-                                           icon='stop.png',
-                                           tip="Debug Exit", 
-                                           triggered= self.debug_exit)                                        
+            _text = _("Debug Exit")
+            self.debug_exit_action = create_action(self, _text,
+                   icon='stop.png', tip=_text, 
+                   triggered=lambda: self.debug_command("exit"))                                       
             self.register_shortcut(self.debug_exit_action, "_",
                        "Debug Exit", "Ctrl+Shift+F12")
             self.edit_menu_actions = [self.undo_action, self.redo_action,
@@ -1726,47 +1727,14 @@ Please provide any additional information below.
         elif osp.isfile(osp.join(CWD, fname)):
             self.open_file(osp.join(CWD, fname), external=True)
 
-    #---- Debugging Actions    
-    def debug_next(self):
-        """Debug next line"""
+    def debug_command(self, command):
+        """Debug actions"""
         shell = self.extconsole.get_current_shell().parent()     
         if shell.is_ipython_kernel:
             return
         else:
-            self.execute_python_code_in_external_console("next")
+            self.execute_python_code_in_external_console(command)
             
-    def debug_continue(self):
-        """Debug Continue"""
-        shell = self.extconsole.get_current_shell().parent()     
-        if shell.is_ipython_kernel:
-            return
-        else:
-            self.execute_python_code_in_external_console("continue")
-        
-    def debug_exit(self):
-        """Debug exit debug console"""
-        shell = self.extconsole.get_current_shell().parent()     
-        if shell.is_ipython_kernel:
-            return
-        else:
-            self.execute_python_code_in_external_console("exit")
-        
-    def debug_step(self):
-        """Debug Step into"""
-        shell = self.extconsole.get_current_shell().parent()     
-        if shell.is_ipython_kernel:
-            return
-        else:
-            self.execute_python_code_in_external_console("step")
-        
-    def debug_return(self):
-        """Debug Return"""
-        shell = self.extconsole.get_current_shell().parent()     
-        if shell.is_ipython_kernel:
-            return
-        else:
-            self.execute_python_code_in_external_console("return")    
-    
     #---- PYTHONPATH management, etc.
     def get_spyder_pythonpath(self):
         """Return Spyder PYTHONPATH"""
