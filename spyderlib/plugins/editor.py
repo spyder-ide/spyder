@@ -1870,9 +1870,23 @@ class Editor(SpyderPluginWidget):
                 
     def debug_command(self, command):
         """Debug actions"""
-        shellwidget = self.main.extconsole.get_current_shell().parent()     
+        shellwidget = self.main.extconsole.get_current_shell().parent()
         if shellwidget.is_ipython_kernel:
-            return
+            #  IPython Console plugin
+            ipyconsole = self.main.ipyconsole         
+            # Try to send code to the currently focused client. This is
+            # necessary because several clients can be connected to the
+            # same kernel
+            ipyclient = ipyconsole.tabwidget.currentWidget()
+            if ipyclient.kernel_widget_id == id(shellwidget):
+                ipyclient.ipython_widget.write_to_stdin(command)
+            # This will send code to the first client whose kernel is
+            # shellwidget. Useful in case the user has manually changed the
+            # focused kernel.
+            else:
+                ipw = ipyconsole.get_ipython_widget(id(shellwidget))
+                ipw.write_to_stdin(command)
+                ipw.setFocus()
         else:
             self.main.execute_python_code_in_external_console(command)
     

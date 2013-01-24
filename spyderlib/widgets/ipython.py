@@ -153,6 +153,14 @@ f, g, h = symbols('f g h', cls=Function)
     
     def clear_console(self):
         self.execute("%clear")
+        
+    def write_to_stdin(self, line):
+        """
+        Send raw characters to the IPython kernel through stdin
+        but only if the kernel is currently looking for raw input.
+        """
+        if self._reading:
+            self.kernel_manager.stdin_channel.input(line)
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):
