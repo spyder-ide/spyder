@@ -97,10 +97,19 @@ def getdoc(obj):
             argspec = getsignaturesfromtext(first_line, '')
             if argspec:
                 text['argspec'] = argspec[0]
-                
-                # Eliminate the first docstring line if we found the argspec
-                doc_st = text['doc'].find('\n') + 2
-                text['doc'] = text['doc'][doc_st:]
+                # Many scipy and numpy docstrings begin with a function
+                # signature on the first line. This ends up begin redundant
+                # when we are using title and argspec to create the
+                # rich text "Definition:" field. We'll carefully remove this
+                # redundancy but only under a strict set of conditions:
+                # Remove the starting charaters of the 'doc' portion *iff*
+                # the non-whitespace characters on the first line 
+                # match *exactly* the combined function title 
+                # and argspec we determined above.
+                title_and_argspec = text['title'] + text['argspec']
+                if first_line == title_and_argspec:
+                    text['doc'] = text['doc'].replace(
+                        title_and_argspec, '', 1)
             else:
                 text['argspec'] = '(...)'
         
