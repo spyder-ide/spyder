@@ -489,24 +489,24 @@ class MainWindow(QMainWindow):
                                                        _("Select All"),
                                                        'selectall.png')                                        
             self.debug_next_action = create_action(self, "Debug Step Over", 
-                                           icon='down.png', tip="Debug Step Over", 
+                                           icon='arrow-step-over.png', tip="Debug Step Over", 
                                            triggered= self.debug_next) 
             self.register_shortcut(self.debug_next_action, "_",
                        "Debug Step Over", "Ctrl+F10")
             self.debug_continue_action = create_action(self, "Debug Continue",
-                                           icon='compfile.png',
+                                           icon='control.png',
                                            tip="Debug Continue", 
                                            triggered= self.debug_continue)                                                 
             self.register_shortcut(self.debug_continue_action, "_",
                        "Debug Continue", "Ctrl+F12")
             self.debug_step_action = create_action(self, "Debug Step Into", 
-                                           icon='next.png',
+                                           icon='arrow-step-in.png',
                                            tip="Debug Step Into", 
                                            triggered= self.debug_step)                
             self.register_shortcut(self.debug_step_action, "_",
                        "Debug Step Into", "Ctrl+F11")                             
             self.debug_return_action = create_action(self, "Debug Step Return", 
-                                           icon='previous.png',
+                                           icon='arrow-step-out.png',
                                            tip="Debug Step Return", 
                                            triggered= self.debug_return)               
             self.register_shortcut(self.debug_return_action, "_",
@@ -1553,6 +1553,8 @@ class MainWindow(QMainWindow):
             powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
             <br>Most of the icons are coming from the %sCrystal Project%s 
             (&copy; 2006-2007 Everaldo Coelho)
+            <br>Some icons by <a href="http://p.yusukekamiyamane.com/">
+            Yusuke Kamiyamane</a>. All rights reserved.
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
             <a href="%s">Google Code</a>
