@@ -109,7 +109,7 @@ def getdoc(obj):
                 title_and_argspec = text['title'] + text['argspec']
                 if first_line == title_and_argspec:
                     text['doc'] = text['doc'].replace(
-                        title_and_argspec, '', 1)
+                        title_and_argspec, '', 1).lstrip()
             else:
                 text['argspec'] = '(...)'
         
