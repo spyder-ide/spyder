@@ -857,7 +857,11 @@ class Editor(SpyderPluginWidget):
         self.search_menu_actions = [gotoline_action]
         self.main.search_menu_actions += self.search_menu_actions
         self.main.search_toolbar_actions += [gotoline_action]
-        
+          
+        # The breakpoints plugin is expecting that
+        # breakpoints_menu will be the first QMenu in run_menu_actions
+        # If breakpoints_menu must be moved below another QMenu in the list 
+        # please update the breakpoints plugin accordingly.         
         run_menu_actions = [run_action, debug_action, configure_action,
                             breakpoints_menu, debug_control_menu, None,
                             re_run_action, run_selected_action, None,

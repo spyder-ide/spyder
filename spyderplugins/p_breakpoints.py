@@ -86,6 +86,10 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                 if not isinstance(menu_title, unicode): # string is a QString
                     menu_title = unicode(menu_title.toUtf8(), 'utf-8')
                 item.addAction(list_action)
+                # If we've reached this point it means we've located the 
+                # first QMenu in the run_menu. Since there might be other
+                # QMenu entries in run_menu, we'll break so that the
+                # breakpoint action is only inserted once into the run_menu.
                 break
         self.main.editor.pythonfile_dependent_actions += [list_action]
                     
