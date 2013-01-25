@@ -8,4 +8,5 @@ generated Python documentation on installed module, including your own modules
 .. image:: images/onlinehelp.png
 
 Related plugins:
-    * :doc:`inspector`
+
+* :doc:`inspector`

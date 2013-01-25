@@ -9,4 +9,5 @@ an `__init__.py` script).
 .. image:: images/pylint.png
 
 Related plugins:
-    * :doc:`editor`
+
+* :doc:`editor`

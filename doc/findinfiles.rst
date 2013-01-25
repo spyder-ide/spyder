@@ -8,4 +8,5 @@ support for maximum search customization.
 .. image:: images/findinfiles.png
 
 Related plugins:
-    * :doc:`editor`
+
+* :doc:`editor`

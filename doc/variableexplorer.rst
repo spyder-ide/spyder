@@ -38,5 +38,6 @@ effect on console's performance:
 
 
 Related plugins:
-    * :doc:`console`
-    * :doc:`internalconsole`
+
+* :doc:`console`
+* :doc:`internalconsole`

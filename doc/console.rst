@@ -10,29 +10,30 @@ process at any time.
 
 Many command windows may be created in the **Console**:
 
-    * Python interpreter
-    * Running Python script
-    * System command window (this terminal emulation window has quite limited 
-      features compared to a real terminal: it may be useful on Windows 
-      platforms where the system terminal is not much more powerful - on the 
-      contrary, on GNU/Linux, a real system terminal is opened, outside Spyder)
+* Python interpreter
+* Running Python script
+* System command window (this terminal emulation window has quite limited 
+  features compared to a real terminal: it may be useful on Windows 
+  platforms where the system terminal is not much more powerful - on the 
+  contrary, on GNU/Linux, a real system terminal is opened, outside Spyder)
 
 Python-based command windows support the following features:
 
-    * Code completion and calltips
-    * Variable explorer with GUI-based editors for arrays, lists, 
-      dictionaries, strings, etc.
-    * Debugging with standard Python debugger (`pdb`): at each breakpoint 
-      the corresponding script is opened in the :doc:`editor` at the breakpoint 
-      line number
-    * User Module Deleter (see below)
+* Code completion and calltips
+* Variable explorer with GUI-based editors for arrays, lists, 
+  dictionaries, strings, etc.
+* Debugging with standard Python debugger (`pdb`): at each breakpoint 
+  the corresponding script is opened in the :doc:`editor` at the breakpoint 
+  line number
+* User Module Deleter (see below)
 
 
 Related plugins:
-    * :doc:`inspector`
-    * :doc:`historylog`
-    * :doc:`editor`
-    * :doc:`explorer`
+
+* :doc:`inspector`
+* :doc:`historylog`
+* :doc:`editor`
+* :doc:`explorer`
 
 
 Reloading modules: the User Module Deleter (UMD)

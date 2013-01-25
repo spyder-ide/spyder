@@ -20,6 +20,7 @@ Horizontal/vertical splitting feature:
 .. image:: images/editor3.png
 
 Related plugins:
-    * :doc:`console`
-    * :doc:`explorer`
-    * :doc:`findinfiles`
+
+* :doc:`console`
+* :doc:`explorer`
+* :doc:`findinfiles`

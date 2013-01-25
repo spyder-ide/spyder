@@ -7,4 +7,5 @@ or command windows.
 .. image:: images/historylog.png
 
 Related plugins:
-    * :doc:`console`
+
+* :doc:`console`

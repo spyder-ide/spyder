@@ -15,5 +15,6 @@ Windows explorer window (Windows only):
 
 
 Related plugins:
-    * :doc:`console`
-    * :doc:`editor`
+
+* :doc:`console`
+* :doc:`editor`

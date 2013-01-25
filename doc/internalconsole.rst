@@ -11,8 +11,8 @@ thread (this is optional and for example this is not the case in Spyder itself).
 
 The internal console support the following features:
 
-    * Code completion and calltips
-    * User Module Deleter (as in :doc:`console`)
+* Code completion and calltips
+* User Module Deleter (as in :doc:`console`)
 
 Special commands
 ----------------

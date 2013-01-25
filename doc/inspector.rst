@@ -29,5 +29,6 @@ if the object is pure Python):
 .. image:: images/inspector_source.png
 
 Related plugins:
-    * :doc:`console`
-    * :doc:`editor`
+
+* :doc:`console`
+* :doc:`editor`
