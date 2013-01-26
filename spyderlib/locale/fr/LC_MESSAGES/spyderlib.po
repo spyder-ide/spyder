@@ -16,7 +16,7 @@ msgstr ""
 
 #: spyderlib\config.py:46
 msgid "Python files"
-msgstr "Fichier Python"
+msgstr "Fichiers Python"
 
 #: spyderlib\config.py:47
 msgid "Cython/Pyrex files"
@@ -73,6 +73,10 @@ msgstr "Fichiers NSIS"
 #: spyderlib\config.py:60
 msgid "Web page files"
 msgstr "Fichiers web"
+
+#: spyderlib\config.py:61
+msgid "XML files"
+msgstr "Fichiers XML"
 
 #: spyderlib\config.py:61
 msgid "Configuration files"

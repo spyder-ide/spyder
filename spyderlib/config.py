@@ -58,6 +58,7 @@ EDIT_FILETYPES = (
     (_("gettext files"), ('.po', '.pot')),
     (_("NSIS files"), ('.nsi', '.nsh')),
     (_("Web page files"), ('.css', '.htm', '.html',)),
+    (_("XML files"), ('.xml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
                  )

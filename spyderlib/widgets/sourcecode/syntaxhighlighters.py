@@ -908,6 +908,10 @@ class IniSH(PygmentsSH):
     """INI highlighter"""
     _lang_name = 'ini'
 
+class XmlSH(PygmentsSH):
+    """XML highlighter"""
+    _lang_name = 'xml'
+
 class MatlabSH(PygmentsSH):
     """Matlab highlighter"""
     _lang_name = 'matlab'
