@@ -73,10 +73,13 @@ LIBNAME = 'spyderlib'
 from spyderlib import __version__, __project_url__
 
 
+WINDOWS_INSTALLER = 'bdist_wininst' in ''.join(sys.argv) or\
+                    'bdist_msi' in ''.join(sys.argv)
+
 def get_packages():
     """Return package list"""
     packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
-    if os.name == 'nt':
+    if WINDOWS_INSTALLER:
         # Adding pyflakes and rope to the package if available in the 
         # repository (this is not conventional but Spyder really need 
         # those tools and there is not decent package manager on 
@@ -94,9 +97,9 @@ if os.name == 'nt':
     SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
 
-# Adding a message for the bdist_wininst installer
+# Adding a message for the Windows installers
 WININST_MSG = ""
-if 'bdist_wininst' in ''.join(sys.argv):
+if WINDOWS_INSTALLER:
     WININST_MSG = \
 """Please uninstall any previous version of Spyder before continue.
 
