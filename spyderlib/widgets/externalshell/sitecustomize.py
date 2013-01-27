@@ -104,6 +104,27 @@ if os.name == 'nt': # Windows platforms
     except ImportError:
         pass
 
+# Several fixes for our Mac app
+if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+    import site
+    import osx_app_site
+
+    # To print copyright, credits and license
+    osx_app_site.setcopyright()
+
+    # To use the help command
+    osx_app_site.sethelper()
+
+    # Missing variables
+    site.USER_BASE = osx_app_site.getuserbase()
+    site.USER_SITE = osx_app_site.getusersitepackages()
+
+    # Change the interpreter's sys.path in case is not the one
+    # that comes with the app
+    interpreter = os.environ.get('SPYDER_INTERPRETER')
+    if 'Spyder.app' not in interpreter:
+        new_sys_path = os.environ.get('SPYDER_APP_SYS_PATH')
+        sys.path = eval(new_sys_path)
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)

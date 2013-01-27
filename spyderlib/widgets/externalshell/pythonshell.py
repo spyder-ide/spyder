@@ -459,8 +459,7 @@ The process may not exit as a result of clicking this button
         
         # Adding path list to PYTHONPATH environment variable
         add_pathlist_to_PYTHONPATH(env, pathlist)
-        
-        self.process.setEnvironment(env)
+
         #-------------------------Python specific-------------------------------
                         
         self.connect(self.process, SIGNAL("readyReadStandardOutput()"),
@@ -481,6 +480,19 @@ The process may not exit as a result of clicking this button
         executable = self.pythonexecutable
         if executable is None:
             executable = get_python_executable()
+        
+        # For our Mac app: Save sys.path when the interpreter is not the
+        # same that comes with the app
+        if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+            env.append('SPYDER_INTERPRETER=%s' % executable)
+            if 'Spyder.app' not in executable:
+                import subprocess
+                int_sys_path = subprocess.check_output([executable, '-E', '-c',
+                                                 'import sys; print sys.path'])
+                new_sys_path = pathlist + eval(int_sys_path)
+                env.append('SPYDER_APP_SYS_PATH=%s' % str(new_sys_path))
+
+        self.process.setEnvironment(env)
         self.process.start(executable, p_args)
         #-------------------------Python specific-------------------------------
             

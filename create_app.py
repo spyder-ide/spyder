@@ -24,6 +24,7 @@ import sys
 
 from IPython.core.completerlib import module_list
 from spyderlib.utils.programs import find_program
+from spyderlib import __version__ as spy_version
 
 #==============================================================================
 # Auxiliary functions
@@ -35,7 +36,7 @@ def get_stdlib_modules():
     standard library.
     
     Based on the function get_root_modules from the IPython project.
-    Present in IPython.core.completerlib
+    Present in IPython.core.completerlib in v0.13.1
     
     Copyright (C) 2010-2011 The IPython Development Team.
     Distributed under the terms of the BSD License.
@@ -74,17 +75,19 @@ APP = ['Spyder.py']
 DEPS = ['pylint', 'logilab_astng', 'logilab_common', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial', 'nose']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
-            'IPython', 'zmq', 'pygments', 'rope']
+            'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL',
+            'sklearn', 'skimage', 'pandas', 'sympy', 'mpmath', 'statsmodels']
 INCLUDES = get_stdlib_modules()
 
 OPTIONS = {
     'argv_emulation': True,
     'compressed' : False,
-    'optimize': 2,
+    'optimize': 1,
     'packages': PACKAGES,
     'includes': INCLUDES,
     'excludes': EXCLUDES,
-    'plist': { 'CFBundleIdentifier': 'org.spyder-ide'},
+    'plist': {'CFBundleIdentifier': 'org.spyder-ide',
+              'CFBundleShortVersionString': spy_version},
     'iconfile': 'img_src/spyder.icns'
 }
 
@@ -199,17 +202,6 @@ for line in fileinput.input(boot, inplace=True):
         print run_cmd
     else:
         print line,
-
-# Add missing classes and functions to site.py
-from site import _Printer, _Helper, sethelper
-printer_class = inspect.getsource(_Printer)
-helper_class = inspect.getsource(_Helper)
-sethelper_func = inspect.getsource(sethelper)
-
-with open(app_python_lib + osp.sep + 'site.py', 'a') as f:
-    f.write('\n' + printer_class + '\n')
-    f.write(helper_class + '\n')
-    f.write(sethelper_func)
 
 # Run macdeployqt so that the app can use the internal Qt Framework
 subprocess.call(['macdeployqt', 'dist/Spyder.app'])
