@@ -63,11 +63,16 @@ EDIT_FILETYPES = (
                                 '.reg', '.cfg', '.desktop')),
                  )
 
+def _create_filter(title, ftypes):
+    return "%s (*%s)" % (title, " *".join(ftypes))
+
+ALL_FILTER = "%s (*)" % _("All files")
+
 def _get_filters(filetypes):
     filters = []
     for title, ftypes in filetypes:
-        filters.append("%s (*%s)" % (title, " *".join(ftypes)))
-    filters.append("%s (*)" % _("All files"))
+        filters.append(_create_filter(title, ftypes))
+    filters.append(ALL_FILTER)
     return ";;".join(filters)
 
 def _get_extensions(filetypes):
@@ -75,6 +80,16 @@ def _get_extensions(filetypes):
     for _title, ftypes in filetypes:
         ftype_list += list(ftypes)
     return ftype_list
+
+def get_filter(filetypes, ext):
+    """Return filter associated to file extension"""
+    if not ext:
+        return ALL_FILTER
+    for title, ftypes in filetypes:
+        if ext in ftypes:
+            return _create_filter(title, ftypes)
+    else:
+        return ''
 
 EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
