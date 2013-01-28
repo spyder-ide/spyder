@@ -621,7 +621,8 @@ class CodeEditor(TextEditBaseWidget):
         self.breakpoints = self.get_breakpoints()
 
         # Keyboard shortcuts
-        self.codecomp_sc = QShortcut(QKeySequence("Ctrl+Space"), self,
+        ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
+        self.codecomp_sc = QShortcut(QKeySequence(ctrl+"+Space"), self,
                                      self.do_code_completion)
         self.codecomp_sc.setContext(Qt.WidgetWithChildrenShortcut)
         dup_seq = "Ctrl+Alt+Up" if os.name == 'nt' else "Shift+Alt+Up"
@@ -661,10 +662,11 @@ class CodeEditor(TextEditBaseWidget):
         text (string): action/shortcut description
         default (string): default key sequence
         """
+        ctrl = "Meta" if sys.platform == 'darwin' else "Ctrl"
         return [
-                (self.codecomp_sc, "Code completion", "Ctrl+Space"),
-                (self.duplicate_sc, "Duplicate line", "Ctrl+Alt+Up"),
-                (self.copyline_sc, "Copy line", "Ctrl+Alt+Down"),
+                (self.codecomp_sc, "Code completion", ctrl+"+Space"),
+                (self.duplicate_sc, "Duplicate line", ctrl+"+Alt+Up"),
+                (self.copyline_sc, "Copy line", ctrl+"+Alt+Down"),
                 (self.movelineup_sc, "Move line up", "Alt+Up"),
                 (self.movelinedown_sc, "Move line down", "Alt+Down"),
                 (self.deleteline_sc, "Delete line", "Ctrl+D"),
