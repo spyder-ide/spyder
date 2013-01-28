@@ -109,13 +109,9 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
     import site
     import osx_app_site
 
-    # To print copyright, credits and license
     osx_app_site.setcopyright()
-
-    # To use the help command
     osx_app_site.sethelper()
-
-    # Missing variables
+    site._Printer = osx_app_site._Printer
     site.USER_BASE = osx_app_site.getuserbase()
     site.USER_SITE = osx_app_site.getusersitepackages()
 
