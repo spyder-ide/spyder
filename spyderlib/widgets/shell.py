@@ -308,7 +308,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         #  if not on current line)
         ctrl = event.modifiers() & Qt.ControlModifier
         meta = event.modifiers() & Qt.MetaModifier    # meta=ctrl in OSX
-        if event.key() == (Qt.Key_C and ctrl) or (Qt.Key_C and meta):
+        if event.key() == Qt.Key_C and \
+          ((Qt.MetaModifier | Qt.ControlModifier) & event.modifiers()):
             if meta and sys.platform == 'darwin':
                 self.interrupt()
             elif ctrl:
