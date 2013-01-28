@@ -15,6 +15,7 @@ import os
 import time
 import os.path as osp
 import re
+import sys
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QMouseEvent, QTextCursor,
@@ -226,9 +227,13 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         """Copy text to clipboard... or keyboard interrupt"""
         if self.has_selected_text():
             ConsoleBaseWidget.copy(self)
-        else:
-            self.emit(SIGNAL("keyboard_interrupt()"))
-            
+        elif not sys.platform == 'darwin':
+            self.interrupt()
+
+    def interrupt(self):
+        """Keyboard interrupt"""
+        self.emit(SIGNAL("keyboard_interrupt()"))
+
     def cut(self):
         """Cut text"""
         self.check_selection()
@@ -302,8 +307,12 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         # (otherwise, right below, we would remove selection
         #  if not on current line)
         ctrl = event.modifiers() & Qt.ControlModifier
-        if event.key() == Qt.Key_C and ctrl:
-            self.copy()
+        meta = event.modifiers() & Qt.MetaModifier    # meta=ctrl in OSX
+        if event.key() == (Qt.Key_C and ctrl) or (Qt.Key_C and meta):
+            if meta and sys.platform == 'darwin':
+                self.interrupt()
+            elif ctrl:
+                self.copy()
             event.accept()
             return True
         
