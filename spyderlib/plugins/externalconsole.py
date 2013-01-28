@@ -529,10 +529,10 @@ class ExternalConsole(SpyderPluginWidget):
             self.emit(SIGNAL('update_plugin_title()'))
         else:
             QMessageBox.question(self, _('Trying to kill a kernel?'),
-                _("You can't close this kernel because it has one or more\n"
-                  "consoles connected to it.\n\n"
-                  "You need to close them instead or you can kill the kernel\n"
-                  " using the button far to the right."),
+                _("You can't close this kernel because it has one or more "
+                  "consoles connected to it.<br><br>"
+                  "You need to close them instead or you can kill the kernel "
+                  "using the button far to the right."),
                   QMessageBox.Ok)
                                  
         
