@@ -27,7 +27,7 @@ from tempfile import mkdtemp
 # 3rd party imports
 from docutils.utils import SystemMessage as SystemMessage
 from jinja2 import Environment, FileSystemLoader
-from sphinx import __version__ as sphinx_version
+import sphinx
 from sphinx.application import Sphinx
 
 # Local imports
@@ -91,7 +91,8 @@ def generate_context(title, argspec, note, math):
       # Static variables
       'css_path': CSS_PATH,
       'js_path': osp.join(CONFDIR_PATH, 'js'),
-      'right_sphinx_version': '' if sphinx_version < "1.1" else 'true',
+      'jquery_path': osp.join(sphinx.package_dir, 'themes', 'basic', 'static'),
+      'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
       'platform': sys.platform
     }
     
