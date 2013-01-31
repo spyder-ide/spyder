@@ -13,7 +13,7 @@
 
 from spyderlib.qt.QtGui import (QComboBox, QFont, QToolTip, QSizePolicy,
                                 QCompleter)
-from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl
+from spyderlib.qt.QtCore import SIGNAL, Qt, QUrl, QTimer
 
 import os.path as osp
 
@@ -32,19 +32,15 @@ class BaseComboBox(QComboBox):
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            valid = self.is_valid(self.currentText())
-            if valid or valid is None:
-                self.add_current_text()
-                self.selected()
+            self.add_current_text()
         else:
             QComboBox.keyPressEvent(self, event)
 
     def focusOutEvent(self, event):
         """Handle focus out event"""
-        # this also moves mouse-selected items in drop down to the top
-        valid = self.is_valid(self.currentText())
-        if valid or valid is None:
-            self.add_current_text()
+        # Calling asynchronously the 'add_current_text' to avoid crash
+        # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
+        QTimer.singleShot(50, self.add_current_text)
         QComboBox.focusOutEvent(self, event)
 
     # --- own methods
@@ -77,7 +73,10 @@ class BaseComboBox(QComboBox):
             
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
-        self.add_text(self.currentText())
+        valid = self.is_valid(self.currentText())
+        if valid or valid is None:
+            self.add_text(self.currentText())
+            self.selected()
         
 
 class PatternComboBox(BaseComboBox):
