@@ -31,7 +31,8 @@ import sphinx
 from sphinx.application import Sphinx
 
 # Local imports
-from spyderlib.baseconfig import get_module_source_path, _
+from spyderlib.baseconfig import (_, get_module_data_path,
+                                  get_module_source_path)
 from spyderlib.utils import encoding
 
 # Note: we do not use __file__ because it won't be working in the stand-alone
@@ -79,6 +80,14 @@ def generate_context(title, argspec, note, math):
     -------
     A dict of strings to be used by Jinja to generate the webpage
     """
+
+    # To let Debian packagers redefine the MathJax location so they can use
+    # their own package for it. See Issue 1230, comment #7.
+    js_path = osp.join(CONFDIR_PATH, 'js')
+    mathjax_path = get_module_data_path('spyderlib',
+                                        relpath=osp.join('utils', 'inspector',
+                                                         js_path, 'mathjax'),
+                                        attr_name='MATHJAXPATH')
     
     context = \
     {
@@ -90,8 +99,9 @@ def generate_context(title, argspec, note, math):
       
       # Static variables
       'css_path': CSS_PATH,
-      'js_path': osp.join(CONFDIR_PATH, 'js'),
+      'js_path': js_path,
       'jquery_path': osp.join(sphinx.package_dir, 'themes', 'basic', 'static'),
+      'mathjax_path': mathjax_path,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
       'platform': sys.platform
     }
