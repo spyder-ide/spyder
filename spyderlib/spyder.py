@@ -1506,8 +1506,12 @@ class MainWindow(QMainWindow):
             </li><li>Discussions around the project: 
             <a href="%s">Google Group</a>
             </li></ul>
-            <p>This project is part of 
-            <a href="http://www.pythonxy.com">Python(x,y) distribution</a>
+            <p>This project is part of a larger effort to promote and 
+            facilitate the use of Python for scientific and enginering 
+            software development. The popular Python distributions 
+            <a href="http://www.pythonxy.com">Python(x,y)</a> and 
+            <a href="http://code.google.com/p/winpython/">WinPython</a> 
+            also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
             % (versions['spyder'], revlink, __project_url__,
                "<span style=\'color: #444444\'><b>", pyflakes_version,
