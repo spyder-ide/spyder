@@ -606,27 +606,9 @@ class ExternalConsole(SpyderPluginWidget):
         """Execute Python code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
                                         interpreter_only=interpreter_only)
-        if shellwidget is not None:
-            if shellwidget.is_ipython_kernel:
-                #  IPython Console plugin
-                ipyconsole = self.main.ipyconsole
-                
-                # Try to send code to the currently focused client. This is
-                # necessary because several clients can be connected to the
-                # same kernel
-                ipyclient = ipyconsole.tabwidget.currentWidget()
-                if ipyclient.kernel_widget_id == id(shellwidget):
-                    ipyclient.ipython_widget.execute(unicode(lines))
-                # This will send code to the first client whose kernel is
-                # shellwidget. Useful in case the user has manually changed the
-                # focused kernel.
-                else:
-                    ipw = ipyconsole.get_ipython_widget(id(shellwidget))
-                    ipw.execute(unicode(lines))
-                    ipw.setFocus()
-            else:
-                shellwidget.shell.execute_lines(unicode(lines))
-                shellwidget.shell.setFocus()
+        if (shellwidget is not None) and (not shellwidget.is_ipython_kernel):
+            shellwidget.shell.execute_lines(unicode(lines))
+            shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""      

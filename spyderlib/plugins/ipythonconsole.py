@@ -659,7 +659,21 @@ class IPythonConsole(SpyderPluginWidget):
         shellwidget = self.tabwidget.currentWidget()
         if shellwidget is not None:
             return shellwidget.get_control()
-        
+
+    def get_selected_client(self):
+        """
+        Return the currently selected client
+        """
+        ipy_client = self.tabwidget.currentWidget()
+        if ipy_client is not None:
+            return ipy_client
+
+    def execute_python_code(self, lines):
+        ipy_client = self.get_selected_client()
+        if ipy_client is not None:
+            ipy_client.ipython_widget.execute(unicode(lines))
+            ipy_client.get_control().setFocus()
+
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         client_action = create_action(self, _("Connect to an existing kernel"),
