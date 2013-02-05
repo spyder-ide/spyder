@@ -1889,7 +1889,7 @@ class Editor(SpyderPluginWidget):
             # same kernel
             ipyclient = ipyconsole.tabwidget.currentWidget()
             if ipyclient.kernel_widget_id == id(shellwidget):
-                ipyclient.ipython_widget.write_to_stdin(command)
+                ipyclient.ipywidget.write_to_stdin(command)
             # This will send code to the first client whose kernel is
             # shellwidget. Useful in case the user has manually changed the
             # focused kernel.
