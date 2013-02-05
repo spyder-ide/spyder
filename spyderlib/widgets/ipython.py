@@ -5,7 +5,7 @@
 # (see spyderlib/__init__.py for details)
 
 """
-IPython v0.13+ client widget
+IPython v0.13+ client's widget
 """
 
 # IPython imports
@@ -30,7 +30,7 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
                            mixins.InspectObjectMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
-    control widget for IPython clients
+    control widget for IPython widgets
     """
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
@@ -69,7 +69,7 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
 class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
-    use as the paging widget for IPython clients
+    use as the paging widget for IPython widgets
     """
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
@@ -90,7 +90,12 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
 
 
 class SpyderIPythonWidget(RichIPythonWidget):
-    """Spyder's IPython widget"""
+    """
+    Spyder's IPython widget
+
+    This class has custom control and page_control widgets, additional methods
+    to provide missing functionality and a couple more keyboard shortcuts.
+    """
     def __init__(self, *args, **kw):
         # To override the Qt widget used by RichIPythonWidget
         self.custom_control = IPythonControlWidget
@@ -123,7 +128,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         self.exit_requested.connect(ipython_client.exit_callback)
     
     def show_banner(self):
-        """Banner for IPython clients with pylab message"""
+        """Banner for IPython widgets with pylab message"""
         from IPython.core.usage import default_gui_banner
         banner = default_gui_banner
         
@@ -169,8 +174,10 @@ f, g, h = symbols('f g h', cls=Function)
         return self.ipython_client.add_actions_to_context_menu(menu)
     
     def _banner_default(self):
-        """Reimplement banner creation to let the user decide if he wants a
-        banner or not"""
+        """
+        Reimplement banner creation to let the user decide if he wants a
+        banner or not
+        """
         banner_o = CONF.get('ipython_console', 'show_banner', True)
         if banner_o:
             return self.show_banner()
@@ -210,7 +217,7 @@ class IPythonApp(IPythonQtConsoleApp):
         return kernel_manager
 
     def config_color_scheme(self):
-        """Set the color scheme for clients.
+        """Set the color scheme for widgets.
         
         In 0.13 this property needs to be set on the App and not on the
         widget, so that the widget can be initialized with the right
@@ -226,8 +233,7 @@ class IPythonApp(IPythonQtConsoleApp):
             self.config.ZMQInteractiveShell.colors = 'LightBG'
     
     def new_ipywidget(self, connection_file=None, config=None):
-        """Create and return a new client (frontend)
-        from connection file basename"""
+        """Create and return a new widget from a connection file basename"""
         kernel_manager = self.create_kernel_manager(connection_file)
         self.config_color_scheme()
         if config is not None:
