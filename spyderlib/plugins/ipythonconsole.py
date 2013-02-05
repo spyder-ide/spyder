@@ -959,14 +959,13 @@ class IPythonConsole(SpyderPluginWidget):
               cl.connection_file == client.connection_file:
                 self.close_console(widget=cl)
     
-    def get_ipython_widget(self, kernel_widget_id):
-        """Return IPython widget (ipython_plugin.ipywidget) 
-        associated to kernel_widget_id"""
+    def get_ipywidget_by_kernelwidget_id(self, kernel_id):
+        """Return the IPython widget associated to a kernel widget id"""
         for cl in self.clients:
-            if cl.kernel_widget_id == kernel_widget_id:
+            if cl.kernel_widget_id == kernel_id:
                 return cl.ipywidget
         else:
-            raise ValueError, "Unknown kernel widget ID %r" % kernel_widget_id
+            raise ValueError, "Unknown kernel widget ID %r" % kernel_id
         
     def add_tab(self, widget, name):
         """Add tab"""

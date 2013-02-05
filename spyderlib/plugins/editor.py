@@ -1894,7 +1894,8 @@ class Editor(SpyderPluginWidget):
             # shellwidget. Useful in case the user has manually changed the
             # focused kernel.
             else:
-                ipw = ipyconsole.get_ipython_widget(id(shellwidget))
+                ipw = ipyconsole.get_ipywidget_by_kernelwidget_id(
+                                                               id(shellwidget))
                 ipw.write_to_stdin(command)
                 ipw.setFocus()
         else:
