@@ -103,7 +103,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         super(SpyderIPythonWidget, self).__init__(*args, **kw)
         
         # --- Spyder variables ---
-        self.ipython_client = None
+        self.ipyclient = None
         
         # --- Keyboard shortcuts ---
         inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
@@ -121,11 +121,11 @@ class SpyderIPythonWidget(RichIPythonWidget):
         self.custom_restart = True
     
     #---- Public API ----------------------------------------------------------
-    def set_ipython_client(self, ipython_client):
+    def set_ipython_client(self, ipyclient):
         """Bind this IPython widget to an IPython client widget
         (see spyderlib/plugins/ipythonconsole.py)"""
-        self.ipython_client = ipython_client
-        self.exit_requested.connect(ipython_client.exit_callback)
+        self.ipyclient = ipyclient
+        self.exit_requested.connect(ipyclient.exit_callback)
     
     def show_banner(self):
         """Banner for IPython widgets with pylab message"""
@@ -171,7 +171,7 @@ f, g, h = symbols('f g h', cls=Function)
     def _context_menu_make(self, pos):
         """Reimplement the IPython context menu"""
         menu = super(SpyderIPythonWidget, self)._context_menu_make(pos)
-        return self.ipython_client.add_actions_to_context_menu(menu)
+        return self.ipyclient.add_actions_to_context_menu(menu)
     
     def _banner_default(self):
         """
