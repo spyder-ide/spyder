@@ -815,12 +815,12 @@ class IPythonConsole(SpyderPluginWidget):
                                    "<b>`%s`") % cf)
             return
 
-    def client_config(self):
-        """Generate a Config instance for IPython clients using our config
+    def ipywidget_config(self):
+        """Generate a Config instance for IPython widgets using our config
         system
         
-        This let us create each client with its own config (as oppossed to
-        IPythonQtConsoleApp, where all clients have the same config)
+        This let us create each widget with its own config (as oppossed to
+        IPythonQtConsoleApp, where all widgets have the same config)
         """
         # ---- IPython config ----
         try:
@@ -887,7 +887,7 @@ class IPythonConsole(SpyderPluginWidget):
         #======================================================================
         # For IPython developers review [2]
         ipywidget = self.ipython_app.new_ipywidget(connection_file,
-                                                   config=self.client_config())
+                                                config=self.ipywidget_config())
         #======================================================================
 
         client = IPythonClient(self, connection_file, kernel_widget_id,
