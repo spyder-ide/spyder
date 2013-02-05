@@ -225,7 +225,7 @@ class IPythonApp(IPythonQtConsoleApp):
         else:
             self.config.ZMQInteractiveShell.colors = 'LightBG'
     
-    def create_new_client(self, connection_file=None, config=None):
+    def new_ipywidget(self, connection_file=None, config=None):
         """Create and return a new client (frontend)
         from connection file basename"""
         kernel_manager = self.create_kernel_manager(connection_file)
@@ -246,14 +246,14 @@ if __name__ == '__main__':
     iapp = IPythonApp()
     iapp.initialize(["--pylab=inline"])
     
-    widget1 = iapp.create_new_client()
+    widget1 = iapp.new_ipywidget()
     widget1.show()
 
     # Ugly pause but that's just for testing    
     import time
     time.sleep(2)
     
-    widget2 = iapp.create_new_client()
+    widget2 = iapp.new_ipywidget()
     widget2.show()
     
     # Start the application main loop.
