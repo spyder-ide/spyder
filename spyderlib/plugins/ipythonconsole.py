@@ -719,17 +719,17 @@ class IPythonConsole(SpyderPluginWidget):
     
     def refresh_plugin(self):
         """Refresh tabwidget"""
-        clientwidget = None
+        client = None
         if self.tabwidget.count():
-            # Give focus to the control widget of selected tab 
-            clientwidget = self.tabwidget.currentWidget()
-            control = clientwidget.get_control()
+            # Give focus to the control widget of the selected tab
+            client = self.tabwidget.currentWidget()
+            control = client.get_control()
             control.setFocus()
-            widgets = clientwidget.get_toolbar_buttons()+[5]
+            widgets = client.get_toolbar_buttons()+[5]
             
             # Change extconsole tab to the client's kernel widget
             idx = self.main.extconsole.get_shell_index_from_id(
-                                                 clientwidget.kernel_widget_id)
+                                                       client.kernel_widget_id)
             if idx is not None:
                 self.main.extconsole.tabwidget.setCurrentIndex(idx)
         else:
@@ -788,9 +788,9 @@ class IPythonConsole(SpyderPluginWidget):
         count = 0
         while True:
             client_name = match.groups()[0]+'/'+chr(65+count)
-            for clw in self.get_clients():
-                if clw.client_name == client_name:
-                    kernel_widget_id = clw.kernel_widget_id
+            for cl in self.get_clients():
+                if cl.client_name == client_name:
+                    kernel_widget_id = cl.kernel_widget_id
                     break
             else:
                 break
@@ -901,20 +901,20 @@ class IPythonConsole(SpyderPluginWidget):
         # For tracebacks
         self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
 
-        # Handle kernel interrupt
+        # Handle kernel interrupts
         extconsoles = self.main.extconsole.shellwidgets
-        spyder_kernel = None
+        kernel_widget = None
         if extconsoles:
             if extconsoles[-1].connection_file == connection_file:
-                spyder_kernel = extconsoles[-1]
+                kernel_widget = extconsoles[-1]
                 ipywidget.custom_interrupt_requested.connect(
-                                              spyder_kernel.keyboard_interrupt)
-        if spyder_kernel is None:
+                                              kernel_widget.keyboard_interrupt)
+        if kernel_widget is None:
             ipywidget.custom_interrupt_requested.connect(
                                                       client.interrupt_message)
         
         # Handle kernel restarts asked by the user
-        if spyder_kernel is not None:
+        if kernel_widget is not None:
             ipywidget.custom_restart_requested.connect(self.create_new_kernel)
         else:
             ipywidget.custom_restart_requested.connect(client.restart_message)
@@ -924,7 +924,7 @@ class IPythonConsole(SpyderPluginWidget):
                                             lambda t: client.if_kernel_dies(t))
         
         # Connect text widget to our inspector
-        if spyder_kernel is not None and self.inspector is not None:
+        if kernel_widget is not None and self.inspector is not None:
             control.set_inspector(self.inspector)
         
         # Connect client to our history log
@@ -986,29 +986,29 @@ class IPythonConsole(SpyderPluginWidget):
         self.clients.insert(index_to, client)
         self.emit(SIGNAL('update_plugin_title()'))
         
-    def close_console(self, index=None, widget=None, force=False):
+    def close_console(self, index=None, client=None, force=False):
         """Close console tab from index or widget (or close current tab)"""
         if not self.tabwidget.count():
             return
-        if widget is not None:
-            index = self.tabwidget.indexOf(widget)
-        if index is None and widget is None:
+        if client is not None:
+            index = self.tabwidget.indexOf(client)
+        if index is None and client is None:
             index = self.tabwidget.currentIndex()
         if index is not None:
-            widget = self.tabwidget.widget(index)
+            client = self.tabwidget.widget(index)
 
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
-        if not force and isinstance(widget, IPythonClient):
+        if not force and isinstance(client, IPythonClient):
             extconsole = self.main.extconsole
-            idx = extconsole.get_shell_index_from_id(widget.kernel_widget_id)
+            idx = extconsole.get_shell_index_from_id(client.kernel_widget_id)
             if idx is not None:
                 close_all = True
                 if self.get_option('ask_before_closing'):
                     ans = QMessageBox.question(self, self.get_plugin_title(),
                            _("%s will be closed.\n"
                              "Do you want to kill the associated kernel "
-                             "and all of its clients?") % widget.get_name(),
+                             "and all of its clients?") % client.get_name(),
                            QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
                     if ans == QMessageBox.Cancel:
                         return
@@ -1016,12 +1016,12 @@ class IPythonConsole(SpyderPluginWidget):
                 if close_all:
                     extconsole.close_console(index=idx,
                                              from_ipython_client=True)
-                    self.close_related_ipython_clients(widget)
-        widget.close()
+                    self.close_related_ipython_clients(client)
+        client.close()
         
-        # Note: widget index may have changed after closing related widgets
-        self.tabwidget.removeTab(self.tabwidget.indexOf(widget))
-        self.clients.remove(widget)
+        # Note: client index may have changed after closing related widgets
+        self.tabwidget.removeTab(self.tabwidget.indexOf(client))
+        self.clients.remove(client)
 
         self.emit(SIGNAL('update_plugin_title()'))
         
