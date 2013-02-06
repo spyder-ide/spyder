@@ -669,7 +669,7 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client.get_control()
 
-    def get_selected_client(self):
+    def get_current_client(self):
         """
         Return the currently selected client
         """
@@ -679,18 +679,27 @@ class IPythonConsole(SpyderPluginWidget):
 
     def run_script_in_current_client(self, filename, wdir, args, debug):
         """Run script in current client, if any"""
-        line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                             unicode(filename))
-        norm = lambda text: remove_trailing_single_backslash(unicode(text))
-        if args:
-            line += ", args=r'%s'" % norm(args)
-        if wdir:
-            line += ", wdir=r'%s'" % norm(wdir)
-        line += ")"
+        client = self.get_current_client()
+        if client is not None:
+            if client.kernel_widget_id is not None:
+                line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
+                                     unicode(filename))
+                norm = lambda text: remove_trailing_single_backslash(
+                                                                 unicode(text))
+                if args:
+                    line += ", args=r'%s'" % norm(args)
+                if wdir:
+                    line += ", wdir=r'%s'" % norm(wdir)
+                line += ")"
+            else:
+                line = "%run " + unicode(filename)
+                if args:
+                    line += " %s" % norm(args)
+        
         self.execute_python_code(line)
 
     def execute_python_code(self, lines):
-        client = self.get_selected_client()
+        client = self.get_current_client()
         if client is not None:
             client.ipywidget.execute(unicode(lines))
             client.get_control().setFocus()
