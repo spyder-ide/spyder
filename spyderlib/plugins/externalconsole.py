@@ -974,7 +974,7 @@ class ExternalConsole(SpyderPluginWidget):
                          self.main.editor.load(fname,lineno,word,
                                                processevents=processevents))
             self.connect(self.main.editor,
-                         SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
+                         SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)

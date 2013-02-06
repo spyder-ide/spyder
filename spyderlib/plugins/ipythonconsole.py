@@ -33,7 +33,8 @@ from IPython.core.application import get_ipython_dir
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
-from spyderlib.utils.misc import get_error_match
+from spyderlib.utils.misc import (get_error_match,
+                                  remove_trailing_single_backslash)
 from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
                                        add_actions, get_std_icon)
 from spyderlib.widgets.tabs import Tabs
@@ -676,6 +677,18 @@ class IPythonConsole(SpyderPluginWidget):
         if client is not None:
             return client
 
+    def run_script_in_current_client(self, filename, wdir, args, debug):
+        """Run script in current client, if any"""
+        line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
+                             unicode(filename))
+        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+        if args:
+            line += ", args=r'%s'" % norm(args)
+        if wdir:
+            line += ", wdir=r'%s'" % norm(wdir)
+        line += ")"
+        self.execute_python_code(line)
+
     def execute_python_code(self, lines):
         client = self.get_selected_client()
         if client is not None:
@@ -707,9 +720,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.historylog = self.main.historylog
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
-        if self.main.editor:
-            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                         self.main.editor.load)
+        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                     self.main.editor.load)
+        self.connect(self.main.editor,
+                     SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                     self.run_script_in_current_client)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""

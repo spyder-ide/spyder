@@ -1970,8 +1970,14 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm) = self.__last_ec_exec
         if current:
-            self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+            if self.main.ipyconsole.isvisible:
+                self.emit(
+                  SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                  fname, wdir, args, debug)
+            else:
+                self.emit(
+                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
+                  fname, wdir, args, debug)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,
