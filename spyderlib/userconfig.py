@@ -38,7 +38,7 @@ from __future__ import with_statement
 __version__ = '1.0.13'
 __license__ = __doc__
 
-import os, re, os.path as osp, shutil
+import os, re, os.path as osp, shutil, time
 from ConfigParser import (ConfigParser, MissingSectionHeaderError,
                           NoSectionError, NoOptionError)
 
@@ -168,6 +168,11 @@ class UserConfig(ConfigParser):
         # See comment #5 on Issue 1086
         if osp.isfile(fname):
             os.remove(fname)
+
+        # See Issue 1242. Slowing down the rate of file object
+        # creation seems to have a soothing effect on Windows woes.
+        # XXX: It would be nice to eliminate this workaround someday.
+        time.sleep(0.05)
 
         with open(fname, 'w') as configfile:
             self.write(configfile)
