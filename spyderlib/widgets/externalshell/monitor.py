@@ -114,7 +114,7 @@ class Monitor(threading.Thread):
         threading.Thread.__init__(self)
         self.setDaemon(True)
 
-        self.ipython_kernel = None
+        self.ipykernel = None
         self.ipython_shell = None
         
         self.pdb_obj = None
@@ -208,11 +208,11 @@ class Monitor(threading.Thread):
                 self._mglobals = glbs
             else:
                 glbs = self._mglobals
-            if self.ipython_kernel is None and '__ipythonkernel__' in glbs:
-                self.ipython_kernel = glbs['__ipythonkernel__']
+            if self.ipykernel is None and '__ipythonkernel__' in glbs:
+                self.ipykernel = glbs['__ipythonkernel__']
                 communicate(self.n_request,
-                            dict(command="ipython_kernel",
-                                 data=self.ipython_kernel.connection_file))
+                            dict(command="ipykernel",
+                                 data=self.ipykernel.connection_file))
             if self.ipython_shell is None and '__ipythonshell__' in glbs:
                 # IPython 0.13+ kernel
                 self.ipython_shell = glbs['__ipythonshell__']

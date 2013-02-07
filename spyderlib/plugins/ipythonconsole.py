@@ -407,7 +407,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
 
         # Connect the IPython widget to this IPython client:
         # (see spyderlib/widgets/ipython.py for more details about this)
-        ipywidget.set_ipython_client(self)
+        ipywidget.set_ipyclient(self)
         
         # To save history
         self.ipywidget.executing.connect(
@@ -718,7 +718,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Plugin actions
         extconsole = self.main.extconsole
-        self.menu_actions = [extconsole.ipython_kernel_action, client_action]
+        self.menu_actions = [extconsole.ipykernel_action, client_action]
         
         return self.menu_actions
     
@@ -976,7 +976,7 @@ class IPythonConsole(SpyderPluginWidget):
             self.connect(page_control, SIGNAL('show_find_widget()'),
                          self.find_widget.show)
     
-    def close_related_ipython_clients(self, client):
+    def close_related_ipyclients(self, client):
         """Close all IPython clients related to *client*, except itself"""
         for cl in self.clients[:]:
             if cl is not client and \
@@ -1038,9 +1038,8 @@ class IPythonConsole(SpyderPluginWidget):
                         return
                     close_all = ans == QMessageBox.Yes
                 if close_all:
-                    extconsole.close_console(index=idx,
-                                             from_ipython_client=True)
-                    self.close_related_ipython_clients(client)
+                    extconsole.close_console(index=idx, from_ipyclient=True)
+                    self.close_related_ipyclients(client)
         client.close()
         
         # Note: client index may have changed after closing related widgets
@@ -1063,7 +1062,7 @@ class IPythonConsole(SpyderPluginWidget):
             if id(client) == client_id:
                 return index
     
-    def rename_ipython_client_tab(self, connection_file, client_widget_id):
+    def rename_ipyclient_tab(self, connection_file, client_widget_id):
         """Add the pid of the kernel process to an IPython client tab"""
         index = self.get_client_index_from_id(client_widget_id)
         match = re.match('^kernel-(\d+).json', connection_file)
@@ -1082,7 +1081,7 @@ class IPythonConsole(SpyderPluginWidget):
                                       message, buttons)
         if result == QMessageBox.Yes:
             extconsole = self.main.extconsole
-            extconsole.start_ipython_kernel(create_client=False)
+            extconsole.start_ipykernel(create_client=False)
             kernel_widget = extconsole.shellwidgets[-1]
             self.connect(kernel_widget,
                       SIGNAL('create_ipython_client(QString)'),
@@ -1098,10 +1097,10 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Close old kernel tab
         idx = extconsole.get_shell_index_from_id(client.kernel_widget_id)
-        extconsole.close_console(index=idx, from_ipython_client=True)
+        extconsole.close_console(index=idx, from_ipyclient=True)
         
         # Set attributes for the new kernel
-        extconsole.set_ipython_kernel_attrs(connection_file, kernel_widget)
+        extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
         
         # Connect client to new kernel
         kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
@@ -1111,7 +1110,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         # Rename client tab
         client_widget_id = id(client)
-        self.rename_ipython_client_tab(connection_file, client_widget_id)
+        self.rename_ipyclient_tab(connection_file, client_widget_id)
             
     #----Drag and drop
     #TODO: try and reimplement this block

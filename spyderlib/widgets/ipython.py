@@ -121,7 +121,7 @@ class SpyderIPythonWidget(RichIPythonWidget):
         self.custom_restart = True
     
     #---- Public API ----------------------------------------------------------
-    def set_ipython_client(self, ipyclient):
+    def set_ipyclient(self, ipyclient):
         """Bind this IPython widget to an IPython client widget
         (see spyderlib/plugins/ipythonconsole.py)"""
         self.ipyclient = ipyclient

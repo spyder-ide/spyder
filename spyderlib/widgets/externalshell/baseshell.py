@@ -221,7 +221,7 @@ class ExternalShellBase(QWidget):
             self.disconnect(self.timer, SIGNAL("timeout()"), self.show_time)
 
     def set_buttons_runnning_state(self, state):
-        self.run_button.setVisible(not state and not self.is_ipython_kernel)
+        self.run_button.setVisible(not state and not self.is_ipykernel)
         self.kill_button.setVisible(state)
     
     def start_shell(self, ask_for_arguments=False):
@@ -299,7 +299,7 @@ def test():
     from spyderlib.plugins.variableexplorer import VariableExplorer
     settings = VariableExplorer.get_settings()
     shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),
-                                ipython_kernel=True, stand_alone=settings,
+                                ipykernel=True, stand_alone=settings,
                                 arguments="-q4thread -pylab -colors LightBG",
                                 mpl_patch_enabled=True, light_background=False)
 #    shell = ExternalPythonShell(wdir=osp.dirname(spyderlib.__file__),

@@ -150,7 +150,7 @@ class ExternalPythonShell(ExternalShellBase):
     SHELL_CLASS = ExtPythonShellWidget
     def __init__(self, parent=None, fname=None, wdir=None,
                  interact=False, debug=False, path=[], python_args='',
-                 ipython_kernel=False, arguments='', stand_alone=None,
+                 ipykernel=False, arguments='', stand_alone=None,
                  umd_enabled=True, umd_namelist=[], umd_verbose=True,
                  pythonstartup=None, pythonexecutable=None,
                  monitor_enabled=True, mpl_patch_enabled=True,
@@ -210,8 +210,8 @@ class ExternalPythonShell(ExternalShellBase):
         self.arguments = arguments
         
         self.connection_file = None
-        self.is_ipython_kernel = ipython_kernel
-        if self.is_ipython_kernel:
+        self.is_ipykernel = ipykernel
+        if self.is_ipykernel:
             interact = False
             # Running our custom startup script for IPython kernels:
             # (see spyderlib/widgets/externalshell/start_ipython_kernel.py)

@@ -1881,7 +1881,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         shellwidget = self.main.extconsole.get_current_shell().parent()
-        if shellwidget.is_ipython_kernel:
+        if shellwidget.is_ipykernel:
             #  IPython Console plugin
             ipyconsole = self.main.ipyconsole         
             # Try to send code to the currently focused client. This is

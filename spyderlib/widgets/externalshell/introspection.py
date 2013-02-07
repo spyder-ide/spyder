@@ -167,7 +167,7 @@ class NotificationThread(QThread):
                     self.emit(SIGNAL('refresh_namespace_browser()'))
                 elif command == 'remote_view':
                     self.sig_process_remote_view.emit(data)
-                elif command == 'ipython_kernel':
+                elif command == 'ipykernel':
                     self.emit(SIGNAL('new_ipython_kernel(QString)'), data)
                 elif command == 'open_file':
                     fname, lineno = data
