@@ -365,15 +365,15 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     """
     Spyder IPython client or frontend.
 
-    This is a layer to the IPython Qt widget (i.e. RichIPythonWidget + our
-    additions = SpyderIPythonWidget), which becomes the `ipywidget` attribute
+    This is a layer on top of the IPython Qt widget (i.e. RichIPythonWidget +
+    our additions = SpyderIPythonWidget), which becomes the ipywidget attribute
     of this class. We are doing this for several reasons:
 
     1. To add more variables and methods needed to connect the widget to other
        Spyder plugins and also increase its funcionality.
-    2. To let it clear what has been added by us to IPython widgets.
+    2. To make it clear what has been added by us to IPython widgets.
     3. To avoid possible name conflicts between our widgets and theirs (e.g.
-       `self.history` and `self._history` respectively)
+       self.history and self._history, respectively)
     """
     
     CONF_SECTION = 'ipython'
