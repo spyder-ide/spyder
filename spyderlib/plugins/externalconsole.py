@@ -863,7 +863,7 @@ class ExternalConsole(SpyderPluginWidget):
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
             text = unicode(self.tabwidget.tabText(index))
-            name = "%s (%s)" % (text, match.groups()[0])
+            name = "%s %s" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
     
     def create_ipyclient(self, connection_file, kernel_widget):
