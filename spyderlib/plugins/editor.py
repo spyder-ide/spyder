@@ -1899,7 +1899,7 @@ class Editor(SpyderPluginWidget):
                 ipw.write_to_stdin(command)
                 ipw.setFocus()
         else:
-            self.main.execute_python_code_in_external_console(command)
+            self.main.extconsole.execute_python_code(command)
     
     #------ Run Python script
     def edit_run_configurations(self):
