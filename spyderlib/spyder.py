@@ -1643,10 +1643,11 @@ Please provide any additional information below.
                 python_args=unicode(python_args) )
         
     def execute_python_code_in_external_console(self, lines):
-        """Execute lines in external console"""
-        self.extconsole.setVisible(True)
-        self.extconsole.raise_()
-        self.extconsole.execute_python_code(lines)
+        """Execute lines in external or IPython console"""
+        if self.ipyconsole.isvisible:
+            self.ipyconsole.execute_python_code(lines)
+        else:
+            self.extconsole.execute_python_code(lines)
         
     def open_file(self, fname, external=False):
         """

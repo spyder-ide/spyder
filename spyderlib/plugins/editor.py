@@ -1881,7 +1881,7 @@ class Editor(SpyderPluginWidget):
     def debug_command(self, command):
         """Debug actions"""
         shellwidget = self.main.extconsole.get_current_shell().parent()
-        if shellwidget.is_ipython_kernel:
+        if shellwidget.is_ipykernel:
             #  IPython Console plugin
             ipyconsole = self.main.ipyconsole         
             # Try to send code to the currently focused client. This is
@@ -1889,12 +1889,13 @@ class Editor(SpyderPluginWidget):
             # same kernel
             ipyclient = ipyconsole.tabwidget.currentWidget()
             if ipyclient.kernel_widget_id == id(shellwidget):
-                ipyclient.ipython_widget.write_to_stdin(command)
+                ipyclient.ipywidget.write_to_stdin(command)
             # This will send code to the first client whose kernel is
             # shellwidget. Useful in case the user has manually changed the
             # focused kernel.
             else:
-                ipw = ipyconsole.get_ipython_widget(id(shellwidget))
+                ipw = ipyconsole.get_ipywidget_by_kernelwidget_id(
+                                                               id(shellwidget))
                 ipw.write_to_stdin(command)
                 ipw.setFocus()
         else:
@@ -1969,8 +1970,14 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm) = self.__last_ec_exec
         if current:
-            self.emit(SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
-                      fname, wdir, args, debug)
+            if self.main.ipyconsole.isvisible:
+                self.emit(
+                  SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                  fname, wdir, args, debug)
+            else:
+                self.emit(
+                  SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
+                  fname, wdir, args, debug)
         else:
             self.main.open_external_console(fname, wdir, args, interact,
                                             debug, python, python_args,

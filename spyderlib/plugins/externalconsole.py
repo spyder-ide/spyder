@@ -491,7 +491,7 @@ class ExternalConsole(SpyderPluginWidget):
             if id(shell) == shell_id:
                 return index
         
-    def close_console(self, index=None, from_ipython_client=False):
+    def close_console(self, index=None, from_ipyclient=False):
         """Close console tab from index or widget (or close current tab)"""
         # Get tab index
         if not self.tabwidget.count():
@@ -506,7 +506,7 @@ class ExternalConsole(SpyderPluginWidget):
         
         # If the tab is an IPython kernel, try to detect if it has a client
         # connected to it
-        if shellwidget.is_ipython_kernel:
+        if shellwidget.is_ipykernel:
             ipyclients = self.main.ipyconsole.get_clients()
             if ipyclients:
                 for ic in ipyclients:
@@ -519,7 +519,7 @@ class ExternalConsole(SpyderPluginWidget):
                 connected_ipyclient = False
         
         # Closing logic
-        if not shellwidget.is_ipython_kernel or from_ipython_client or \
+        if not shellwidget.is_ipykernel or from_ipyclient or \
           not connected_ipyclient:
             self.tabwidget.widget(index).close()
             self.tabwidget.removeTab(index)
@@ -606,27 +606,9 @@ class ExternalConsole(SpyderPluginWidget):
         """Execute Python code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
                                         interpreter_only=interpreter_only)
-        if shellwidget is not None:
-            if shellwidget.is_ipython_kernel:
-                #  IPython Console plugin
-                ipyconsole = self.main.ipyconsole
-                
-                # Try to send code to the currently focused client. This is
-                # necessary because several clients can be connected to the
-                # same kernel
-                ipyclient = ipyconsole.tabwidget.currentWidget()
-                if ipyclient.kernel_widget_id == id(shellwidget):
-                    ipyclient.ipython_widget.execute(unicode(lines))
-                # This will send code to the first client whose kernel is
-                # shellwidget. Useful in case the user has manually changed the
-                # focused kernel.
-                else:
-                    ipw = ipyconsole.get_ipython_widget(id(shellwidget))
-                    ipw.execute(unicode(lines))
-                    ipw.setFocus()
-            else:
-                shellwidget.shell.execute_lines(unicode(lines))
-                shellwidget.shell.setFocus()
+        if (shellwidget is not None) and (not shellwidget.is_ipykernel):
+            shellwidget.shell.execute_lines(unicode(lines))
+            shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""      
@@ -635,7 +617,7 @@ class ExternalConsole(SpyderPluginWidget):
         # during repeated, rapid entry of debugging commands.    
         self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
                   fname, lineno, '',False)
-        if shellwidget.is_ipython_kernel:
+        if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
             ipw.setFocus()
@@ -643,7 +625,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
-              python=True, ipython_kernel=False, ipython_client=False,
+              python=True, ipykernel=False, ipyclient=False,
               python_args=''):
         """
         Start new console
@@ -656,8 +638,8 @@ class ExternalConsole(SpyderPluginWidget):
         interact: inspect script interactively after its execution
         debug: run pdb
         python: True: Python interpreter, False: terminal
-        ipython_kernel: True: IPython kernel
-        ipython_client: True: Automatically create an IPython client
+        ipykernel: True: IPython kernel
+        ipyclient: True: Automatically create an IPython client
         python_args: additionnal Python interpreter command line options
                    (option "-u" is mandatory, see widgets.externalshell package)
         """
@@ -725,7 +707,7 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget = ExternalPythonShell(self, fname, wdir,
                            interact, debug, path=pythonpath,
                            python_args=python_args,
-                           ipython_kernel=ipython_kernel,
+                           ipykernel=ipykernel,
                            arguments=args, stand_alone=sa_settings,
                            pythonstartup=pythonstartup,
                            pythonexecutable=pythonexecutable,
@@ -802,14 +784,14 @@ class ExternalConsole(SpyderPluginWidget):
                 self.connect(shellwidget, SIGNAL('open_file(QString,int)'),
                              self.open_file_in_spyder)
             if fname is None:
-                if ipython_kernel:
+                if ipykernel:
                     tab_name = _("Kernel")
                     tab_icon1 = get_icon('ipython_console.png')
                     tab_icon2 = get_icon('ipython_console_t.png')
-                    if ipython_client:
+                    if ipyclient:
                         self.connect(shellwidget,
                                  SIGNAL('create_ipython_client(QString)'),
-                                 lambda cf: self.create_ipython_client(
+                                 lambda cf: self.create_ipyclient(
                                          cf, kernel_widget=shellwidget))
                 else:
                     self.python_count += 1
@@ -845,7 +827,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.find_widget.set_editor(shellwidget.shell)
         self.tabwidget.setTabToolTip(index, fname if wdir is None else wdir)
         self.tabwidget.setCurrentIndex(index)
-        if self.dockwidget and not self.ismaximized and not ipython_kernel:
+        if self.dockwidget and not self.ismaximized and not ipykernel:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
         
@@ -853,10 +835,10 @@ class ExternalConsole(SpyderPluginWidget):
         
         # Start process and give focus to console
         shellwidget.start_shell()
-        if not ipython_kernel:
+        if not ipykernel:
             shellwidget.shell.setFocus()
         
-    def set_ipython_kernel_attrs(self, connection_file, kernel_widget):
+    def set_ipykernel_attrs(self, connection_file, kernel_widget):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
@@ -881,12 +863,12 @@ class ExternalConsole(SpyderPluginWidget):
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
             text = unicode(self.tabwidget.tabText(index))
-            name = "%s (%s)" % (text, match.groups()[0])
+            name = "%s %s" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
     
-    def create_ipython_client(self, connection_file, kernel_widget):
+    def create_ipyclient(self, connection_file, kernel_widget):
         """Create a new IPython client connected to a kernel just started"""
-        self.set_ipython_kernel_attrs(connection_file, kernel_widget)
+        self.set_ipykernel_attrs(connection_file, kernel_widget)
         self.main.ipyconsole.new_client(connection_file, id(kernel_widget))
         # QApplication.restoreOverrideCursor()  # Stop busy cursor indication
         # QApplication.processEvents()
@@ -963,12 +945,12 @@ class ExternalConsole(SpyderPluginWidget):
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
-        self.ipython_kernel_action = create_action(self,
-                                           _("Open an IPython console"), None,
-                                           'ipython_console.png',
-                                           triggered=self.start_ipython_kernel)
+        self.ipykernel_action = create_action(self,
+                                              _("Open an IPython console"),
+                                              None, 'ipython_console.png',
+                                              triggered=self.start_ipykernel)
         if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
-            interact_menu_actions.append(self.ipython_kernel_action)
+            interact_menu_actions.append(self.ipykernel_action)
         self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         
@@ -992,7 +974,7 @@ class ExternalConsole(SpyderPluginWidget):
                          self.main.editor.load(fname,lineno,word,
                                                processevents=processevents))
             self.connect(self.main.editor,
-                         SIGNAL('run_in_current_console(QString,QString,QString,bool)'),
+                         SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)
@@ -1073,7 +1055,7 @@ class ExternalConsole(SpyderPluginWidget):
         if self.get_option('open_python_at_startup', True):
             self.open_interpreter()
         if CONF.get('ipython_console', 'open_ipython_at_startup', False):
-            self.start_ipython_kernel()
+            self.start_ipykernel()
             
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
@@ -1084,11 +1066,11 @@ class ExternalConsole(SpyderPluginWidget):
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True)
         
-    def start_ipython_kernel(self, wdir=None, create_client=True):
+    def start_ipykernel(self, wdir=None, create_client=True):
         """Start new IPython kernel"""
         # Add a WaitCursor visual indication, because it takes too much time
         # to display a new console (3 to 5 secs). It's stopped in
-        # create_ipython_client
+        # create_ipyclient
         # QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
         # QApplication.processEvents()
         
@@ -1097,7 +1079,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.main.ipyconsole.visibility_changed(True)
         self.start(fname=None, wdir=unicode(wdir), args='',
                    interact=True, debug=False, python=True,
-                   ipython_kernel=True, ipython_client=create_client)
+                   ipykernel=True, ipyclient=create_client)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""
