@@ -692,7 +692,8 @@ class IPythonConsole(SpyderPluginWidget):
                     line += ", wdir=r'%s'" % norm(wdir)
                 line += ")"
             else:
-                line = "%run " + unicode(filename)
+                line = "%"
+                line += "run '%s'" % unicode(filename)
                 if args:
                     line += " %s" % norm(args)
         
