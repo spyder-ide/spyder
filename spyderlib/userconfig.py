@@ -163,19 +163,24 @@ class UserConfig(ConfigParser):
         """
         Save config into the associated .ini file
         """
+        # See Issue 1086 and 1242 for background on why this
+        # method contains all the exception handling.
         fname = self.filename()
 
-        # See comment #5 on Issue 1086
-        if osp.isfile(fname):
-            os.remove(fname)
-
-        # See Issue 1242. Slowing down the rate of file object
-        # creation seems to have a soothing effect on Windows woes.
-        # XXX: It would be nice to eliminate this workaround someday.
-        time.sleep(0.05)
-
-        with open(fname, 'w') as configfile:
-            self.write(configfile)
+        try: # the "easy" way
+            with open(fname, 'w') as conf_file:
+                self.write(conf_file)
+        except IOError:
+            try: # the "delete and sleep" way
+                if osp.isfile(fname):
+                    os.remove(fname)
+                time.sleep(0.05)
+                with open(fname, 'w') as conf_file:
+                    self.write(conf_file)
+            except Exception as e:
+                print "Failed to write user configuration file."
+                print "Please submit a bug report."
+                raise(e)
 
     def filename(self):
         """
