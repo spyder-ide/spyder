@@ -679,13 +679,13 @@ class IPythonConsole(SpyderPluginWidget):
 
     def run_script_in_current_client(self, filename, wdir, args, debug):
         """Run script in current client, if any"""
+        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+
         client = self.get_current_client()
         if client is not None:
             if client.kernel_widget_id is not None:
                 line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
                                      unicode(filename))
-                norm = lambda text: remove_trailing_single_backslash(
-                                                                 unicode(text))
                 if args:
                     line += ", args=r'%s'" % norm(args)
                 if wdir:
