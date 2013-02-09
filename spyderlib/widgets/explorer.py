@@ -327,6 +327,22 @@ class DirView(QTreeView):
         add_actions(self.menu, self.create_context_menu_actions())
     
     #---- Events
+    def viewportEvent(self, event):
+        """Reimplement Qt method"""
+
+        # Prevent Qt from crashing or showing warnings like:
+        # "QSortFilterProxyModel: index from wrong model passed to 
+        # mapFromSource", probably due to the fact that the file system model 
+        # is being built. See Issue 1250.
+        #
+        # This workaround was inspired by the following KDE bug:
+        # https://bugs.kde.org/show_bug.cgi?id=172198
+        #
+        # Apparently, this is a bug from Qt itself.
+        self.executeDelayedItemsLayout()
+        
+        return QTreeView.viewportEvent(self, event)        
+                
     def contextMenuEvent(self, event):
         """Override Qt method"""
         self.update_menu()
@@ -683,19 +699,7 @@ class DirView(QTreeView):
                 if self._to_be_loaded is None:
                     self._to_be_loaded = []
                 self._to_be_loaded.append(path)
-
-                # Prevent Qt from crashing or showing warnings like:
-                # "QSortFilterProxyModel: index from wrong model passed to 
-                # mapFromSource", probably due to the fact that the file 
-                # system model is being built
-                #
-                # This is just a workaround (any cleaner implementation would
-                # be welcomed). The delay was first set to 50ms, but with 
-                # slower machines, it appears that 200ms is a better choice:
-                # https://groups.google.com/group/spyderlib/browse_thread/thread/f5f2b7da8218e1fa
-                QTimer.singleShot(200, lambda path=path:
-                                  self.setExpanded(self.get_index(path), True))
-
+                self.setExpanded(self.get_index(path), True)
         if not self.__expanded_state:
             self.disconnect(self.fsmodel, SIGNAL('directoryLoaded(QString)'),
                             self.restore_directory_state)
