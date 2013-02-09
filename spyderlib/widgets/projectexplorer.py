@@ -8,6 +8,8 @@
 
 # pylint: disable=C0103
 
+from __future__ import with_statement
+
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton)
@@ -116,11 +118,19 @@ class Project(object):
         
     def load(self):
         """Load project data"""
+        fname = self.__get_project_config_path()
         try:
-            data = cPickle.loads(file(self.__get_project_config_path(),
-                                      'U').read())
-        except (IOError, OSError):
-            self.ioerror_flag = True
+            # Old format (Spyder 2.0-2.1 for Python 2)
+            with open(fname, 'U') as fdesc:
+                data = cPickle.loads(fdesc.read())
+        except cPickle.PickleError:
+            try:
+                # New format (Spyder >=2.2 for Python 2 and Python 3)
+                with open(fname, 'rb') as fdesc:
+                    data = cPickle.loads(fdesc.read())
+            except (IOError, OSError, cPickle.PickleError):
+                self.ioerror_flag = True
+                return
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
             print >>STDERR, "Warning: converting old configuration file " \
@@ -137,7 +147,8 @@ class Project(object):
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
         try:
-            cPickle.dump(data, file(self.__get_project_config_path(), 'w'))
+            with open(self.__get_project_config_path(), 'wb') as fdesc:
+                cPickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
         
@@ -278,23 +289,32 @@ class Workspace(object):
         return osp.join(self.root_path, self.CONFIG_NAME)
         
     def load(self):
-        """Load project data"""
-        fdesc = file(self.__get_workspace_config_path(), 'U')
+        """Load workspace data"""
+        fname = self.__get_workspace_config_path()
         try:
-            data = cPickle.loads(fdesc.read())
-        except (IOError, OSError):
-            self.ioerror_flag = True
+            # Old format (Spyder 2.0-2.1 for Python 2)
+            with open(fname, 'U') as fdesc:
+                data = cPickle.loads(fdesc.read())
+        except cPickle.PickleError:
+            try:
+                # New format (Spyder >=2.2 for Python 2 and Python 3)
+                with open(fname, 'rb') as fdesc:
+                    data = cPickle.loads(fdesc.read())
+            except (IOError, OSError, cPickle.PickleError):
+                self.ioerror_flag = True
+                return
         for attr in self.CONFIG_ATTR:
             setattr(self, attr, data[attr])
         self.save()
     
     def save(self):
-        """Save project data"""
+        """Save workspace data"""
         data = {}
         for attr in self.CONFIG_ATTR:
             data[attr] = getattr(self, attr)
         try:
-            cPickle.dump(data, file(self.__get_workspace_config_path(), 'w'))
+            with open(self.__get_workspace_config_path(), 'wb') as fdesc:
+                cPickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
         
@@ -715,6 +735,9 @@ class ExplorerTreeWidget(FilteredDirView):
         project = self.workspace.add_project(folder)
         self.set_folder_names(self.workspace.get_folder_names())
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        
+        self.check_for_io_errors()
+        
         return project
         
     def open_projects(self, projects, open_related=True):

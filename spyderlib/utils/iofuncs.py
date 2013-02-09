@@ -150,7 +150,8 @@ def save_dictionary(data, filename):
             if saved_arrays:
                 data['__saved_arrays__'] = saved_arrays
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
-        cPickle.dump(data, file(pickle_filename, 'w'))
+        with open(pickle_filename, 'wb') as fdesc:
+            cPickle.dump(data, fdesc, 2)
         tar = tarfile.open(filename, "w")
         for fname in [pickle_filename]+[fn for fn in saved_arrays.itervalues()]:
             tar.add(osp.basename(fname))
@@ -174,7 +175,14 @@ def load_dictionary(filename):
         tar = tarfile.open(filename, "r")
         tar.extractall()
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
-        data = cPickle.loads(file(pickle_filename, 'U').read())
+        try:
+            # Old format (Spyder 2.0-2.1 for Python 2)
+            with open(pickle_filename, 'U') as fdesc:
+                data = cPickle.loads(fdesc.read())
+        except cPickle.PickleError:
+            # New format (Spyder >=2.2 for Python 2 and Python 3)
+            with open(pickle_filename, 'rb') as fdesc:
+                data = cPickle.loads(fdesc.read())
         saved_arrays = {}
         if load_array is not None:
             # Loading numpy arrays saved with np.save
