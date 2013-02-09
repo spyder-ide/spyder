@@ -32,7 +32,8 @@ class BaseComboBox(QComboBox):
     def keyPressEvent(self, event):
         """Handle key press events"""
         if event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
-            self.add_current_text()
+            if self.add_current_text_if_valid():
+                self.selected()
         else:
             QComboBox.keyPressEvent(self, event)
 
@@ -40,7 +41,7 @@ class BaseComboBox(QComboBox):
         """Handle focus out event"""
         # Calling asynchronously the 'add_current_text' to avoid crash
         # https://groups.google.com/group/spyderlib/browse_thread/thread/2257abf530e210bd
-        QTimer.singleShot(50, self.add_current_text)
+        QTimer.singleShot(50, self.add_current_text_if_valid)
         QComboBox.focusOutEvent(self, event)
 
     # --- own methods
@@ -73,10 +74,14 @@ class BaseComboBox(QComboBox):
             
     def add_current_text(self):
         """Add current text to combo box history (convenient method)"""
+        self.add_text(self.currentText())
+            
+    def add_current_text_if_valid(self):
+        """Add current text to combo box history if valid"""
         valid = self.is_valid(self.currentText())
         if valid or valid is None:
-            self.add_text(self.currentText())
-            self.selected()
+            self.add_current_text()
+            return True
         
 
 class PatternComboBox(BaseComboBox):

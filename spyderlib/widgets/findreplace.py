@@ -271,6 +271,7 @@ class FindReplace(QWidget):
         """Find next occurence"""
         state = self.find(changed=False, forward=True, rehighlight=False)
         self.editor.setFocus()
+        self.search_text.add_current_text()
         return state
         
     def find_previous(self):
