@@ -698,7 +698,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line += "\"%s\"" % unicode(filename)
                 if args:
                     line += " %s" % norm(args)
-        self.execute_python_code(line)
+            self.execute_python_code(line)
 
     def execute_python_code(self, lines):
         client = self.get_current_client()
