@@ -706,6 +706,11 @@ class IPythonConsole(SpyderPluginWidget):
             client.ipywidget.execute(unicode(lines))
             client.get_control().setFocus()
 
+    def write_to_stdin(self, line):
+        client = self.get_current_client()
+        if client is not None:
+            client.ipywidget.write_to_stdin(line)
+    
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         client_action = create_action(self, _("Connect to an existing kernel"),
