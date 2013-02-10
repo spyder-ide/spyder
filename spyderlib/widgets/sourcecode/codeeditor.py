@@ -1909,10 +1909,12 @@ class CodeEditor(TextEditBaseWidget):
         """Uncomment current line or selection"""
         self.remove_prefix(self.comment_string)
 
+    def __blockcomment_bar(self):
+        return self.comment_string + '='*(79-len(self.comment_string))
+
     def blockcomment(self):
         """Block comment current line or selection"""
-        comline = self.comment_string + '='*(79-len(self.comment_string)) \
-                  + self.get_line_separator()
+        comline = self.__blockcomment_bar() + self.get_line_separator()
         cursor = self.textCursor()
         if self.has_selected_text():
             self.extend_selection_to_complete_lines()
@@ -1941,13 +1943,11 @@ class CodeEditor(TextEditBaseWidget):
         cursor.insertText(comline)
         cursor.endEditBlock()
 
-    def __is_comment_bar(self, cursor):
-        return unicode(cursor.block().text()).startswith('#' + '='*79)
-
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         def __is_comment_bar(cursor):
-            return unicode(cursor.block().text()).startswith('#' + '='*79)
+            return unicode(cursor.block().text()
+                           ).startswith(self.__blockcomment_bar())
         # Finding first comment bar
         cursor1 = self.textCursor()
         if __is_comment_bar(cursor1):
