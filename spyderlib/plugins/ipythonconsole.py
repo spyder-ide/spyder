@@ -403,7 +403,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         vlayout.addWidget(self.ipywidget)
         self.setLayout(vlayout)
         
-        self.exit_callback = lambda: plugin.close_console(widget=self)
+        self.exit_callback = lambda: plugin.close_console(client=self)
 
         # Connect the IPython widget to this IPython client:
         # (see spyderlib/widgets/ipython.py for more details about this)
@@ -988,7 +988,7 @@ class IPythonConsole(SpyderPluginWidget):
         for cl in self.clients[:]:
             if cl is not client and \
               cl.connection_file == client.connection_file:
-                self.close_console(widget=cl)
+                self.close_console(client=cl)
     
     def get_ipywidget_by_kernelwidget_id(self, kernel_id):
         """Return the IPython widget associated to a kernel widget id"""
