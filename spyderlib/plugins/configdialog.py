@@ -700,7 +700,7 @@ class MainConfigPage(GeneralConfigPage):
         popup_console_box = newcb(_("Pop up internal console when errors "
                                     "were intercepted"),
                                   'show_internal_console_if_traceback',
-                                  default=False)
+                                  default=True)
         
         debug_layout = QVBoxLayout()
         debug_layout.addWidget(popup_console_box)
