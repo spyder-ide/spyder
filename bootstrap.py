@@ -72,9 +72,10 @@ else:
 # QT_API environment variable if this has not yet been done just above)
 from spyderlib import spyder, get_versions
 versions = get_versions()
-print("03. Imported Spyder %s (Qt %s via %s %s)" % \
-    (versions['spyder'],
-     versions['qt'], versions['qt_api'], versions['qt_api_ver']))
+print("03. Imported Spyder %s" % versions['spyder'])
+print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
+      (versions['python'], versions['bitness'], versions['qt'],
+       versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
 # Executing Spyder
 if not options.hide_console:
