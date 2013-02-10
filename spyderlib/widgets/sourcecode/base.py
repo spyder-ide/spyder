@@ -11,14 +11,15 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+import os
 import re
 import string
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
                                 QListWidget, QPlainTextEdit, QPalette,
-                                QMainWindow, QTextOption)
-from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop
+                                QMainWindow, QTextOption, QMouseEvent)
+from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
 
 
 # Local imports
@@ -731,7 +732,19 @@ class TextEditBaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
         pass
 
                 
-    #----Focus
+    #----Qt Events
+    def mousePressEvent(self, event):
+        """Reimplement Qt method"""
+        if os.name != 'posix' and event.button() == Qt.MidButton:
+            self.setFocus()
+            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
+                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
+            QPlainTextEdit.mousePressEvent(self, event)
+            QPlainTextEdit.mouseReleaseEvent(self, event)
+            self.paste()
+        else:
+            QPlainTextEdit.mousePressEvent(self, event)
+
     def focusInEvent(self, event):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))

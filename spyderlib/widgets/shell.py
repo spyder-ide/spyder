@@ -18,9 +18,10 @@ import re
 import sys
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
-                                QMessageBox, QMouseEvent, QTextCursor,
-                                QTextCharFormat, QShortcut)
-from spyderlib.qt.QtCore import Qt, QCoreApplication, QTimer, SIGNAL, Property
+                                QMessageBox, QTextCursor, QTextCharFormat,
+                                QShortcut)
+from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
+                                 Property)
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
@@ -610,24 +611,6 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         if next:
             return False
         return ConsoleBaseWidget.focusNextPrevChild(self, next)
-        
-    def mousePressEvent(self, event):
-        """
-        Re-implemented to handle the mouse press event.
-        event: the mouse press event (QMouseEvent)
-        """
-        if event.button() == Qt.MidButton:
-            text = self.get_selected_text()
-            # Simulating left mouse button:
-            event = QMouseEvent(QMouseEvent.MouseButtonPress, event.pos(),
-                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
-            ConsoleBaseWidget.mousePressEvent(self, event)
-            if self.new_input_line:
-                self.on_new_line()
-            self.insert_text(text)
-            event.accept()
-        else:
-            ConsoleBaseWidget.mousePressEvent(self, event)
 
     
     #------ Drag and drop

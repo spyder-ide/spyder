@@ -23,17 +23,16 @@ import os.path as osp
 import time
 
 from spyderlib.qt import is_pyqt46
-from spyderlib.qt.QtGui import (QMouseEvent, QColor, QMenu, QApplication,
-                                QSplitter, QFont, QTextEdit, QTextFormat,
-                                QPainter, QTextCursor, QPlainTextEdit, QBrush,
-                                QTextDocument, QTextCharFormat, QPixmap,
-                                QPrinter, QToolTip, QCursor, QInputDialog,
-                                QTextBlockUserData, QLineEdit, QShortcut,
-                                QKeySequence, QWidget, QVBoxLayout, QKeyEvent,
-                                QHBoxLayout, QLabel, QDialog, QIntValidator,
+from spyderlib.qt.QtGui import (QColor, QMenu, QApplication, QSplitter, QFont,
+                                QTextEdit, QTextFormat, QPainter, QTextCursor,
+                                QBrush, QTextDocument, QTextCharFormat,
+                                QPixmap, QPrinter, QToolTip, QCursor, QLabel,
+                                QInputDialog, QTextBlockUserData, QLineEdit,
+                                QShortcut, QKeySequence, QWidget, QVBoxLayout,
+                                QKeyEvent, QHBoxLayout, QDialog, QIntValidator,
                                 QDialogButtonBox, QGridLayout)
-from spyderlib.qt.QtCore import (Qt, SIGNAL, QEvent, QTimer, QRect, QRegExp,
-                                 QSize, SLOT, Slot)
+from spyderlib.qt.QtCore import (Qt, SIGNAL, QTimer, QRect, QRegExp, QSize,
+                                 SLOT, Slot)
 from spyderlib.qt.compat import to_qvariant
 
 # Local import
@@ -2151,7 +2150,7 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
-                    QPlainTextEdit.keyPressEvent(self, event)
+                    TextEditBaseWidget.keyPressEvent(self, event)
                     self.fix_indent()
             elif shift:
                 # Ignoring QPlainTextEdit default Shift+Enter keybinding
@@ -2159,7 +2158,7 @@ class CodeEditor(TextEditBaseWidget):
                 event = QKeyEvent(event.type(), event.key(), Qt.NoModifier,
                                   event.text(), event.isAutoRepeat(),
                                   event.count())
-                QPlainTextEdit.keyPressEvent(self, event)
+                TextEditBaseWidget.keyPressEvent(self, event)
                 return
         elif key == Qt.Key_Insert and not shift and not ctrl:
             self.setOverwriteMode(not self.overwriteMode())
@@ -2168,7 +2167,7 @@ class CodeEditor(TextEditBaseWidget):
             leading_length = len(leading_text)
             trailing_spaces = leading_length-len(leading_text.rstrip())
             if self.has_selected_text() or not self.intelligent_backspace:
-                QPlainTextEdit.keyPressEvent(self, event)
+                TextEditBaseWidget.keyPressEvent(self, event)
             else:
                 trailing_text = self.get_text('cursor', 'eol')
                 if not leading_text.strip() \
@@ -2176,7 +2175,7 @@ class CodeEditor(TextEditBaseWidget):
                     if leading_length % len(self.indent_chars) == 0:
                         self.unindent()
                     else:
-                        QPlainTextEdit.keyPressEvent(self, event)
+                        TextEditBaseWidget.keyPressEvent(self, event)
                 elif trailing_spaces and not trailing_text.strip():
                     self.remove_suffix(leading_text[-trailing_spaces:])
                 elif leading_text and trailing_text and \
@@ -2188,7 +2187,7 @@ class CodeEditor(TextEditBaseWidget):
                                         QTextCursor.KeepAnchor, 2)
                     cursor.removeSelectedText()
                 else:
-                    QPlainTextEdit.keyPressEvent(self, event)
+                    TextEditBaseWidget.keyPressEvent(self, event)
                     if self.is_completion_widget_visible():
                         self.completion_text = self.completion_text[:-1]
         elif key == Qt.Key_Period:
@@ -2231,7 +2230,7 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.movePosition(QTextCursor.PreviousCharacter)
                 self.setTextCursor(cursor)
             else:
-                QPlainTextEdit.keyPressEvent(self, event)
+                TextEditBaseWidget.keyPressEvent(self, event)
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
             self._auto_insert_quotes(event, key)
@@ -2247,7 +2246,7 @@ class CodeEditor(TextEditBaseWidget):
                 cursor.clearSelection()
                 self.setTextCursor(cursor)
             else:
-                QPlainTextEdit.keyPressEvent(self, event)
+                TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Colon and not self.has_selected_text() \
              and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
@@ -2256,7 +2255,7 @@ class CodeEditor(TextEditBaseWidget):
                 prevtxt = unicode(self.textCursor().block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            QPlainTextEdit.keyPressEvent(self, event)
+            TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Space and not shift and not ctrl \
              and not self.has_selected_text() and self.auto_unindent_enabled:
             leading_text = self.get_text('sol', 'cursor')
@@ -2265,7 +2264,7 @@ class CodeEditor(TextEditBaseWidget):
                 prevtxt = unicode(self.textCursor().block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
-            QPlainTextEdit.keyPressEvent(self, event)
+            TextEditBaseWidget.keyPressEvent(self, event)
         elif key == Qt.Key_Tab:
             # Important note: <TAB> can't be called with a QShortcut because
             # of its singular role with respect to widget focus management
@@ -2275,14 +2274,14 @@ class CodeEditor(TextEditBaseWidget):
             # there is no point since <TAB> can't (see above)
             self.unindent()
         else:
-            QPlainTextEdit.keyPressEvent(self, event)
+            TextEditBaseWidget.keyPressEvent(self, event)
             if self.is_completion_widget_visible() and text:
                 self.completion_text += text
 
     def mouseMoveEvent(self, event):
         """Underline words when pressing <CONTROL>"""
         if self.has_selected_text():
-            QPlainTextEdit.mouseMoveEvent(self, event)
+            TextEditBaseWidget.mouseMoveEvent(self, event)
             return
         if self.go_to_definition_enabled and \
            event.modifiers() & Qt.ControlModifier:
@@ -2306,7 +2305,7 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
-        QPlainTextEdit.mouseMoveEvent(self, event)
+        TextEditBaseWidget.mouseMoveEvent(self, event)
 
     def leaveEvent(self, event):
         """If cursor has not been restored yet, do it now"""
@@ -2314,7 +2313,7 @@ class CodeEditor(TextEditBaseWidget):
             QApplication.restoreOverrideCursor()
             self.__cursor_changed = False
             self.clear_extra_selections('ctrl_click')
-        QPlainTextEdit.leaveEvent(self, event)
+        TextEditBaseWidget.leaveEvent(self, event)
         
     def go_to_definition_from_cursor(self, cursor=None):
         """Go to definition from cursor instance (QTextCursor)"""
@@ -2332,20 +2331,13 @@ class CodeEditor(TextEditBaseWidget):
 
     def mousePressEvent(self, event):
         """Reimplement Qt method"""
-        if os.name != 'posix' and event.button() == Qt.MidButton:
-            self.setFocus()
-            event = QMouseEvent(QEvent.MouseButtonPress, event.pos(),
-                                Qt.LeftButton, Qt.LeftButton, Qt.NoModifier)
-            QPlainTextEdit.mousePressEvent(self, event)
-            QPlainTextEdit.mouseReleaseEvent(self, event)
-            self.paste()
-        elif event.button() == Qt.LeftButton \
-             and (event.modifiers() & Qt.ControlModifier):
-            QPlainTextEdit.mousePressEvent(self, event)
+        if event.button() == Qt.LeftButton\
+           and (event.modifiers() & Qt.ControlModifier):
+            TextEditBaseWidget.mousePressEvent(self, event)
             cursor = self.cursorForPosition(event.pos())
             self.go_to_definition_from_cursor(cursor)
         else:
-            QPlainTextEdit.mousePressEvent(self, event)
+            TextEditBaseWidget.mousePressEvent(self, event)
 
     def contextMenuEvent(self, event):
         """Reimplement Qt method"""
