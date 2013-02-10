@@ -8,13 +8,21 @@
 IPython v0.13+ client's widget
 """
 
+import sys
+import os
+
 # IPython imports
 from IPython.frontend.qt.kernelmanager import QtKernelManager
-from IPython.frontend.qt.console.qtconsoleapp import IPythonQtConsoleApp
 from IPython.lib.kernel import find_connection_file
 from IPython.core.application import BaseIPythonApplication
-from IPython.frontend.qt.console.qtconsoleapp import IPythonConsoleApp
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.frontend.qt.console import qtconsoleapp
+if os.name == 'nt':
+    # Disabling IPython exception hook which is installed on Windows (when 
+    # importing the IPython.frontend.qt.console.qtconsoleapp module) because 
+    # it is not required with Spyder (it's Spyder's internal console purpose 
+    # to show tracebacks)
+    sys.excepthook = qtconsoleapp.old_excepthook
 
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
@@ -202,10 +210,10 @@ f, g, h = symbols('f g h', cls=Function)
 #----> See "IPython developers review" [3] here below
 #==============================================================================
 # For IPython developers review [3]
-class IPythonApp(IPythonQtConsoleApp):
+class IPythonApp(qtconsoleapp.IPythonQtConsoleApp):
     def initialize_all_except_qt(self, argv=None):
         BaseIPythonApplication.initialize(self, argv=argv)
-        IPythonConsoleApp.initialize(self, argv=argv)
+        qtconsoleapp.IPythonConsoleApp.initialize(self, argv=argv)
     
     def create_kernel_manager(self, connection_file=None):
         """Create a kernel manager"""
