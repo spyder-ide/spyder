@@ -447,6 +447,9 @@ The process may not exit as a result of clicking this button
             env.append('UMD_ENABLED=%r' % self.umd_enabled)
             env.append('UMD_NAMELIST=%s' % ','.join(self.umd_namelist))
             env.append('UMD_VERBOSE=%r' % self.umd_verbose)
+
+        # IPython kernel
+        env.append('IPYTHON_KERNEL=%r' % self.is_ipykernel)
             
         pathlist = []
 

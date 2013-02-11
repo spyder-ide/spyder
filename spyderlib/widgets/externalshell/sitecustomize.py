@@ -264,6 +264,11 @@ else:
 #===============================================================================
 # Monkey-patching pdb
 #===============================================================================
+
+if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
+    from IPython.core.debugger import Pdb as ipyPdb
+    pdb.Pdb = ipyPdb
+
 class SpyderPdb(pdb.Pdb):
     def set_spyder_breakpoints(self):
         self.clear_all_breaks()
