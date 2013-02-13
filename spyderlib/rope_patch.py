@@ -125,12 +125,30 @@ def apply():
             return (None, None)
     builtins.BuiltinName = PatchedBuiltinName
     
-    # [4] Patching PyDocExtractor so that _get_class_docstring and
-    # _get_single_function_docstring don't add a 2 spaces indent to
-    # every docstring. The only value that we are modifying is the indent
-    # keyword, from 2 to 0.
+    # [4] Patching several PyDocExtractor methods:
+    # 1. get_doc:
+    # To force rope to return the docstring of any object which has one, even
+    # if it's not an instance of AbstractFunction, AbstractClass, or
+    # AbstractModule.
+    #
+    # 2. _get_class_docstring and _get_single_function_docstring:
+    # To not let rope add a 2 spaces indentation to every docstring, which was
+    # breaking our rich text mode. The only value that we are modifying is the
+    # 'indents' keyword of those methods, from 2 to 0.
+    #
     from rope.contrib import codeassist
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
+        def get_doc(self, pyobject):
+            if isinstance(pyobject, pyobjects.AbstractFunction):
+                return self._get_function_docstring(pyobject)
+            elif isinstance(pyobject, pyobjects.AbstractClass):
+                return self._get_class_docstring(pyobject)
+            elif isinstance(pyobject, pyobjects.AbstractModule):
+                return self._trim_docstring(pyobject.get_doc())
+            elif pyobject.get_doc() is not None:  # Spyder patch
+                return self._trim_docstring(pyobject.get_doc())
+            return None
+        
         def _get_class_docstring(self, pyclass):
             contents = self._trim_docstring(pyclass.get_doc(), indents=0)
             supers = [super.get_name() for super in pyclass.get_superclasses()]
