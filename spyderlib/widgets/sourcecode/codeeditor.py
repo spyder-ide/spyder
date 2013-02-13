@@ -161,18 +161,18 @@ class RopeProject(object):
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
-                try:
-                    doc_text = rope.contrib.codeassist.get_doc(self.project,
-                                    source_code, offset, resource, maxfixes=3)
-                    if DEBUG:
-                        log_dt(LOG_FILENAME, "get_doc", t0)
-                except Exception, _error:
-                    doc_text = ''
-                    if DEBUG:
-                        log_last_error(LOG_FILENAME, "get_doc")
-                return [cts, doc_text]
             else:
-                return []
+                cts = ''
+            try:
+                doc_text = rope.contrib.codeassist.get_doc(self.project,
+                                     source_code, offset, resource, maxfixes=3)
+                if DEBUG:
+                    log_dt(LOG_FILENAME, "get_doc", t0)
+            except Exception, _error:
+                doc_text = ''
+                if DEBUG:
+                    log_last_error(LOG_FILENAME, "get_doc")
+            return [cts, doc_text]
         except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
