@@ -1880,11 +1880,14 @@ class Editor(SpyderPluginWidget):
                 
     def debug_command(self, command):
         """Debug actions"""
-        if self.main.ipyconsole.isvisible:
-            self.main.ipyconsole.write_to_stdin(command)
-            focus_widget = self.main.ipyconsole.get_focus_widget()
-            if focus_widget:
-                focus_widget.setFocus()
+        if self.main.ipyconsole is not None:
+            if self.main.ipyconsole.isvisible:
+                self.main.ipyconsole.write_to_stdin(command)
+                focus_widget = self.main.ipyconsole.get_focus_widget()
+                if focus_widget:
+                    focus_widget.setFocus()
+            else:
+                self.main.extconsole.execute_python_code(command)
         else:
             self.main.extconsole.execute_python_code(command)
     
@@ -1957,10 +1960,15 @@ class Editor(SpyderPluginWidget):
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm) = self.__last_ec_exec
         if current:
-            if self.main.ipyconsole.isvisible:
-                self.emit(
-                  SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                  fname, wdir, args, debug)
+            if self.main.ipyconsole is not None:
+                if self.main.ipyconsole.isvisible:
+                    self.emit(
+                      SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                      fname, wdir, args, debug)
+                else:
+                    self.emit(
+                      SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
+                      fname, wdir, args, debug)
             else:
                 self.emit(
                   SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),

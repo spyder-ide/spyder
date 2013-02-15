@@ -1644,8 +1644,11 @@ Please provide any additional information below.
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external or IPython console"""
-        if self.ipyconsole.isvisible:
-            self.ipyconsole.execute_python_code(lines)
+        if self.ipyconsole is not None:        
+            if self.ipyconsole.isvisible:
+                self.ipyconsole.execute_python_code(lines)
+            else:
+                self.extconsole.execute_python_code(lines) 
         else:
             self.extconsole.execute_python_code(lines)
         
