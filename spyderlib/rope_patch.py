@@ -20,7 +20,8 @@ See this thread:
 http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
-it breaks the work of Sphinx on the Object Inspector.
+it breaks the work of Sphinx on the Object Inspector. Also, to better control
+how to get calltips of forced builtin objects.
 """
 
 def apply():
@@ -83,28 +84,10 @@ def apply():
                      not module.get_child(packages[-1] + '.py').is_folder():
                     return module.get_child(packages[-1] + '.py')
     pycore.PyCore = PatchedPyCore
-    
-    # [2] Patching BuiltinFunction for the calltip/doc functions to be 
-    # able to retrieve the function signatures with forced builtins
-    from rope.base import builtins, pyobjects
-    from spyderlib.utils.dochelpers import getargs
-    class PatchedBuiltinFunction(builtins.BuiltinFunction):
-        def __init__(self, returned=None, function=None, builtin=None,
-                     argnames=[], parent=None):
-            builtins._BuiltinElement.__init__(self, builtin, parent)
-            pyobjects.AbstractFunction.__init__(self)
-            self.argnames = argnames
-            if not argnames and builtin:
-                self.argnames = getargs(self.builtin)
-            if self.argnames is None:
-                self.argnames = []
-            self.returned = returned
-            self.function = function
-    builtins.BuiltinFunction = PatchedBuiltinFunction
 
     # [2] Patching BuiltinName for the go to definition feature to simply work 
     # with forced builtins
-    from rope.base import libutils
+    from rope.base import builtins, libutils, pyobjects
     import inspect
     class PatchedBuiltinName(builtins.BuiltinName):
         def _pycore(self):
@@ -136,8 +119,17 @@ def apply():
     # breaking our rich text mode. The only value that we are modifying is the
     # 'indents' keyword of those methods, from 2 to 0.
     #
+    # 3. get_calltip
+    # To easily get calltips of forced builtins
     from rope.contrib import codeassist
+    from spyderlib.utils.dochelpers import getdoc
+    from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
+        def get_builtin_doc(self, pyobject):
+            if hasattr(pyobject, 'builtin'):
+                buitin = pyobject.builtin
+                return getdoc(buitin)
+            
         def get_doc(self, pyobject):
             if isinstance(pyobject, pyobjects.AbstractFunction):
                 return self._get_function_docstring(pyobject)
@@ -148,6 +140,25 @@ def apply():
             elif pyobject.get_doc() is not None:  # Spyder patch
                 return self._trim_docstring(pyobject.get_doc())
             return None
+
+        def get_calltip(self, pyobject, ignore_unknown=False, remove_self=False):
+            if hasattr(pyobject, 'builtin'):
+                doc = self.get_builtin_doc(pyobject)
+                return doc['title'] + doc['argspec']
+            try:
+                if isinstance(pyobject, pyobjects.AbstractClass):
+                    pyobject = pyobject['__init__'].get_object()
+                if not isinstance(pyobject, pyobjects.AbstractFunction):
+                    pyobject = pyobject['__call__'].get_object()
+            except exceptions.AttributeNotFoundError:
+                return None
+            if ignore_unknown and not isinstance(pyobject, pyobjects.PyFunction):
+                return
+            if isinstance(pyobject, pyobjects.AbstractFunction):
+                result = self._get_function_signature(pyobject, add_module=True)
+                if remove_self and self._is_method(pyobject):
+                    return result.replace('(self)', '()').replace('(self, ', '(')
+                return result
         
         def _get_class_docstring(self, pyclass):
             contents = self._trim_docstring(pyclass.get_doc(), indents=0)
