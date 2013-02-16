@@ -140,6 +140,9 @@ def apply():
                     docstring = self._trim_docstring(docstring)
                 else:
                     docstring = ''
+                # TODO: Add a module_name key, so that the name could appear
+                # on the OI text filed but not be used by sphinx to render
+                # the page
                 doc = {'name': '',
                        'argspec': '',
                        'note': '',
