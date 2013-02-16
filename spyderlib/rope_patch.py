@@ -134,6 +134,18 @@ def apply():
             if hasattr(pyobject, 'builtin'):
                 doc = self.get_builtin_doc(pyobject)
                 return doc
+            elif isinstance(pyobject, builtins.BuiltinModule):
+                docstring = pyobject.get_doc()
+                if docstring is not None:
+                    docstring = self._trim_docstring(docstring)
+                else:
+                    docstring = ''
+                doc = {'name': '',
+                       'argspec': '',
+                       'note': '',
+                       'docstring': docstring
+                       }
+                return doc
             elif isinstance(pyobject, pyobjects.AbstractFunction):
                 return self._get_function_docstring(pyobject)
             elif isinstance(pyobject, pyobjects.AbstractClass):
