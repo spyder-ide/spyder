@@ -68,7 +68,10 @@ class BaseComboBox(QComboBox):
         if index != -1:
             self.removeItem(index)
             self.insertItem(0, '')
-            self.setCurrentIndex(1)
+            if text != '':
+                self.setCurrentIndex(1)
+            else:
+                self.setCurrentIndex(0)
         else:
             self.setCurrentIndex(0)
             
