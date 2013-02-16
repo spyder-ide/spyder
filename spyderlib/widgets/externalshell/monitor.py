@@ -15,7 +15,7 @@ from spyderlib.utils.dochelpers import (getargtxt, getdoc, getsource,
                                         getobjdir, isdefined)
 from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
-from spyderlib.utils.module_completion import moduleCompletion
+from spyderlib.utils.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
 
 SUPPORTED_TYPES = get_supported_types()
@@ -365,7 +365,7 @@ class Monitor(threading.Thread):
             
     def getmodcomplist(self, name):
         """Return module completion list for object named *name*"""
-        return moduleCompletion(name)
+        return module_completion(name)
                 
     #------ Other
     def is_array(self, name):

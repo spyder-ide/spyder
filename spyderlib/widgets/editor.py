@@ -29,7 +29,7 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
-from spyderlib.utils.module_completion import moduleCompletion
+from spyderlib.utils.module_completion import module_completion
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT
 from spyderlib.guiconfig import get_icon
@@ -303,7 +303,7 @@ class FileInfo(QObject):
         text = self.editor.get_text('sol', 'cursor')
         
         if text.startswith('import '):
-            comp_list = moduleCompletion(text)
+            comp_list = module_completion(text)
             words = text.split(' ')
             if ',' in words[-1]:
                 words = words[-1].split(',')
@@ -313,7 +313,7 @@ class FileInfo(QObject):
                                                  automatic=automatic)
             return
         elif text.startswith('from '):
-            comp_list = moduleCompletion(text)
+            comp_list = module_completion(text)
             words = text.split(' ')
             if '(' in words[-1]:
                 words = words[:-2] + words[-1].split('(')
