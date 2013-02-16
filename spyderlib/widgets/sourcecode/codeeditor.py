@@ -161,6 +161,8 @@ class RopeProject(object):
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
+                if '(.)' in cts:
+                    cts = cts.replace('(.)', '(...)')
             try:
                 doc_text = rope.contrib.codeassist.get_doc(self.project,
                                      source_code, offset, resource, maxfixes=3)
