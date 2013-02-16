@@ -534,15 +534,12 @@ class Editor(SpyderPluginWidget):
                     [win.get_layout_settings() for win in self.editorwindows])
         self.set_option('filenames', filenames)
         self.set_option('recent_files', self.recent_files)
-        is_ok = True
-        for editorstack in self.editorstacks:
-            is_ok = is_ok and editorstack.save_if_changed(cancelable)
-            if not is_ok and cancelable:
-                break
-        if is_ok:
+        if not editorstack.save_if_changed(cancelable) and cancelable:
+            return False
+        else:
             for win in self.editorwindows[:]:
                 win.close()
-        return is_ok
+            return True
 
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
