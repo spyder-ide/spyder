@@ -352,18 +352,19 @@ class FileInfo(QObject):
         obj_fullname = ''
         signatures = []
         cts, doc_text = textlist
-        cts = cts.replace('.__init__', '')
-        parpos = cts.find('(')
-        if parpos:
-            obj_fullname = cts[:parpos]
-            obj_name = obj_fullname.split('.')[-1]
-            cts = cts.replace(obj_fullname, obj_name)
-            signatures = [cts]
-            if '()' in cts:
-                # Either inspected object has no argument, or it's 
-                # a builtin or an extension -- in this last case 
-                # the following attempt may succeed:
-                signatures = getsignaturesfromtext(doc_text, obj_name)
+        if cts:
+            cts = cts.replace('.__init__', '')
+            parpos = cts.find('(')
+            if parpos:
+                obj_fullname = cts[:parpos]
+                obj_name = obj_fullname.split('.')[-1]
+                cts = cts.replace(obj_fullname, obj_name)
+                signatures = [cts]
+                if '()' in cts:
+                    # Either inspected object has no argument, or it's 
+                    # a builtin or an extension -- in this last case 
+                    # the following attempt may succeed:
+                    signatures = getsignaturesfromtext(doc_text, obj_name)
         if not obj_fullname:
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
