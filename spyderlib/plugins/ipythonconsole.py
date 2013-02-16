@@ -704,6 +704,7 @@ class IPythonConsole(SpyderPluginWidget):
         client = self.get_current_client()
         if client is not None:
             client.ipywidget.execute(unicode(lines))
+            self.activateWindow()
             client.get_control().setFocus()
 
     def write_to_stdin(self, line):
@@ -967,9 +968,11 @@ class IPythonConsole(SpyderPluginWidget):
         # Apply settings to newly created client widget:
         client.set_font( self.get_plugin_font() )
         
-        # Add tab and change focus to it
+        # Add tab and connect focus signals to client's control widgets
         self.add_tab(client, name=client.get_name())
-        self.connect(client, SIGNAL('focus_changed()'),
+        self.connect(control, SIGNAL('focus_changed()'),
+                     lambda: self.emit(SIGNAL('focus_changed()')))
+        self.connect(page_control, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
         
         # Update the find widget if focus changes between control and
@@ -1007,6 +1010,7 @@ class IPythonConsole(SpyderPluginWidget):
         if self.dockwidget and not self.ismaximized:
             self.dockwidget.setVisible(True)
             self.dockwidget.raise_()
+        self.activateWindow()
         widget.get_control().setFocus()
         
     def move_tab(self, index_from, index_to):
