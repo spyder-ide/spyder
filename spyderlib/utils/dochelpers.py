@@ -133,6 +133,10 @@ def getdoc(obj):
             else:
                 doc['argspec'] = '(...)'
         
+        # Remove self from argspec
+        argspec = doc['argspec']
+        doc['argspec'] = argspec.replace('(self)', '()').replace('(self, ', '(')
+        
     return doc
 
 def getsource(obj):
