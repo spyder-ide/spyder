@@ -21,7 +21,7 @@ http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
 it breaks the work of Sphinx on the Object Inspector. Also, to better control
-how to get calltips of forced builtin objects.
+how to get calltips and docstrings of forced builtin objects.
 """
 
 def apply():
@@ -89,6 +89,7 @@ def apply():
     # with forced builtins
     from rope.base import builtins, libutils, pyobjects
     import inspect
+    import os.path as osp
     class PatchedBuiltinName(builtins.BuiltinName):
         def _pycore(self):
             p = self.pyobject
@@ -100,6 +101,8 @@ def apply():
             if not inspect.isbuiltin(self.pyobject):
                 _lines, lineno = inspect.getsourcelines(self.pyobject.builtin)
                 path = inspect.getfile(self.pyobject.builtin)
+                if path.endswith('pyc') and osp.isfile(path[:-1]):
+                    path = path[:-1]
                 pycore = self._pycore()
                 if pycore and pycore.project:
                     resource = libutils.path_to_resource(pycore.project, path)
