@@ -216,7 +216,9 @@ if __name__ == "__main__":
 
     assert sorted(module_completion('from xml.etree import '), key=str.lower) ==\
         ['cElementTree', 'ElementInclude', 'ElementPath', 'ElementTree']
-    
+
+    assert module_completion('import sys, zl') == ['zlib']
+
     s = 'from xml.etree.ElementTree import '
     assert module_completion(s + 'V') == ['VERSION']
 
