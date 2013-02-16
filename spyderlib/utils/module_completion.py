@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 """Module completion auxiliary functions"""
 
-#*****************************************************************************
+#------------------------------------------------------------------------------
 #
-#  The functions on this file were taken from the file core/completerlib,
+#  Most functions on this file were taken from the file core/completerlib,
 #  which belongs to the IPython project (v0.13). They were added here because
-#  a) IPython is not a runtime dependency of Spyder, and b) we want to perfom
+#  a) IPython is not an Spyder runtime dependency, and b) we want to perfom
 #  module completion not only on our Python console, but also on our source
 #  code editor.
 #  Several of these functions were modified to make it work according to our
 #  needs
 #
 #  Distributed under the terms of the BSD License.
+#  Copyright (C) 2010-2011 The IPython Development Team.
+#  Copyright (C) 2013 The Spyder Development Team
 #
-#*****************************************************************************
+#------------------------------------------------------------------------------
 
 import imp
 import inspect
@@ -26,8 +28,15 @@ from zipimport import zipimporter
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
+
+# Path to the modules database
 MODULES_PATH = get_conf_path('db')
-TIMEOUT_GIVEUP = 20 # Time in seconds after which we give up
+
+# Time in seconds after which we give up
+TIMEOUT_GIVEUP = 20
 
 # Regular expression for the python import statement
 import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
@@ -35,8 +44,12 @@ import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
                        r'(?P<suffix>%s)$' %
                        r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
 
+# Modules database
 modules_db = PickleShareDB(MODULES_PATH)
 
+#-----------------------------------------------------------------------------
+# Utilities
+#-----------------------------------------------------------------------------
 
 def module_list(path):
     """
