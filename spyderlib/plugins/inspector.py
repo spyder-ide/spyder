@@ -350,11 +350,10 @@ class ObjectInspector(SpyderPluginWidget):
         self.setLayout(layout)
         
         # Add worker thread for handling rich text rendering
-        self._sphinx_thread = SphinxThread(
-            text={},
-            html_text_no_doc=warning(self.no_doc_string),
-            math_option=self.get_option('math')
-            )
+        self._sphinx_thread = SphinxThread(text={},
+                                  html_text_no_doc=warning(self.no_doc_string),
+                                  math_option=self.get_option('math')
+                              )
         self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
                      self._on_sphinx_thread_html_ready)
         self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
@@ -539,18 +538,19 @@ class ObjectInspector(SpyderPluginWidget):
         self.show_source_action.setChecked(False)
             
     def set_plain_text(self, text, is_code):
-        """Set plain text"""
+        """Set plain text docs"""
         
-        if type(text) is dict:        
-            title = text['title']
-            if title:
-                rst_title = ''.join(['='*len(title), '\n', text['title'], '\n',
-                                 '='*len(title), '\n\n'])
+        # text is coming from utils.dochelpers.getdoc
+        if type(text) is dict:
+            name = text['name']
+            if name:
+                rst_title = ''.join(['='*len(name), '\n', name, '\n',
+                                    '='*len(name), '\n\n'])
             else:
                 rst_title = ''
             
             if text['argspec']:
-                definition = ''.join(['Definition: ', title, text['argspec'],
+                definition = ''.join(['Definition: ', name, text['argspec'],
                                       '\n'])
             else:
                 definition = ''
@@ -560,7 +560,8 @@ class ObjectInspector(SpyderPluginWidget):
             else:
                 note = ''
 
-            full_text = ''.join([rst_title, definition, note, text['doc']])
+            full_text = ''.join([rst_title, definition, note,
+                                 text['docstring']])
         else:
             full_text = text
         
@@ -610,8 +611,10 @@ class ObjectInspector(SpyderPluginWidget):
             self.dockwidget.blockSignals(False)
         
     def set_rope_doc(self, text, force_refresh=False):
-        """Use the object inspector to show text computed with rope
-        from the editor plugin"""
+        """
+        Use the object inspector to show text computed with rope from the
+        Editor plugin
+        """
         if (self.locked and not force_refresh):
             return
         self.switch_to_editor_source()
@@ -627,7 +630,8 @@ class ObjectInspector(SpyderPluginWidget):
         
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(True)
-        self.__eventually_raise_inspector(text['doc'], force=force_refresh)
+        self.__eventually_raise_inspector(text['docstring'],
+                                          force=force_refresh)
         if self.dockwidget is not None:
             self.dockwidget.blockSignals(False)
             
@@ -829,13 +833,13 @@ class SphinxThread(QThread):
 
     def run(self):
         text = self.text
-        if text is not None and text['doc'] != '':
+        if text is not None and text['docstring'] != '':
             try:
-                context = generate_context(title=text['title'],
+                context = generate_context(name=text['name'],
                                            argspec=text['argspec'],
                                            note=text['note'],
                                            math=self.math_option)
-                html_text = sphinxify(text['doc'], context)
+                html_text = sphinxify(text['docstring'], context)
             except Exception, error:
                 self.emit(SIGNAL('error_msg(QString)'), unicode(error))
                 return

@@ -126,9 +126,8 @@ def apply():
     from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
         def get_builtin_doc(self, pyobject):
-            if hasattr(pyobject, 'builtin'):
-                buitin = pyobject.builtin
-                return getdoc(buitin)
+            buitin = pyobject.builtin
+            return getdoc(buitin)
             
         def get_doc(self, pyobject):
             if isinstance(pyobject, pyobjects.AbstractFunction):
@@ -144,7 +143,7 @@ def apply():
         def get_calltip(self, pyobject, ignore_unknown=False, remove_self=False):
             if hasattr(pyobject, 'builtin'):
                 doc = self.get_builtin_doc(pyobject)
-                return doc['title'] + doc['argspec']
+                return doc['name'] + doc['argspec']
             try:
                 if isinstance(pyobject, pyobjects.AbstractClass):
                     pyobject = pyobject['__init__'].get_object()
