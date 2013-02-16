@@ -113,6 +113,7 @@ def apply():
     # To force rope to return the docstring of any object which has one, even
     # if it's not an instance of AbstractFunction, AbstractClass, or
     # AbstractModule.
+    # Also, to use utils.dochelpers.getdoc to get docs from forced builtins.
     #
     # 2. _get_class_docstring and _get_single_function_docstring:
     # To not let rope add a 2 spaces indentation to every docstring, which was
@@ -130,7 +131,10 @@ def apply():
             return getdoc(buitin)
             
         def get_doc(self, pyobject):
-            if isinstance(pyobject, pyobjects.AbstractFunction):
+            if hasattr(pyobject, 'builtin'):
+                doc = self.get_builtin_doc(pyobject)
+                return doc
+            elif isinstance(pyobject, pyobjects.AbstractFunction):
                 return self._get_function_docstring(pyobject)
             elif isinstance(pyobject, pyobjects.AbstractClass):
                 return self._get_class_docstring(pyobject)
