@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 # Spyder's ExternalPythonShell sitecustomize
 
+from __future__ import print_function
+
 import sys
 import os
 import os.path as osp
@@ -123,7 +125,7 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         sys.path = eval(new_sys_path)
 
 # Set standard outputs encoding:
-# (otherwise, for example, print u"é" will fail)
+# (otherwise, for example, print(u"é") will fail)
 encoding = None
 try:
     import locale
@@ -174,14 +176,15 @@ else:
             try:
                 source = source.__file__
             except AttributeError:
-                print "The argument must be either a string or a module object"
+                print("The argument must be either a string"
+                      "or a module object", file=sys.stderr)
         if source.endswith('.pyc'):
             source = source[:-1]
         source = osp.abspath(source)
         if osp.exists(source):
             monitor.notify_open_file(source, lineno=lineno)
         else:
-            print "Can't open file %s" % source
+            print("Can't open file %s" % source, file=sys.stderr)
     __builtin__.open_in_spyder = open_in_spyder
     
     # * PyQt4:
@@ -324,7 +327,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print old_ref, old_func
+            #print(old_ref, old_func)
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
@@ -390,7 +393,7 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
             try:
                 original_setapi(name, no)
             except ValueError, msg:
-                print >>sys.stderr, "Warning/PyQt4-Spyder (%s)" % str(msg)
+                print("Warning/PyQt4-Spyder (%s)" % str(msg), file=sys.stderr)
         sip.setapi = patched_setapi
     except ImportError:
         pass
@@ -443,8 +446,8 @@ class UserModuleDeleter(object):
                     log.append(modname)
                     del sys.modules[modname]
         if verbose and log:
-            print "\x1b[4;33m%s\x1b[24m%s\x1b[0m" % ("UMD has deleted",
-                                                     ": "+", ".join(log))
+            print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
+                  % ("UMD has deleted", ": "+", ".join(log)))
 
 __umd__ = None
 
@@ -533,7 +536,7 @@ def evalsc(command):
         else:
             from subprocess import Popen, PIPE
             Popen(command, shell=True, stdin=PIPE)
-            print '\n'
+            print('\n')
     else:
         # General command
         namespace = _get_globals()
@@ -550,7 +553,7 @@ def evalsc(command):
                 except KeyError:
                     pass
         elif command in ('cd', 'pwd'):
-            print os.getcwdu()
+            print(os.getcwdu())
         elif command == 'ls':
             if os.name == 'nt':
                 evalsc('!dir')
