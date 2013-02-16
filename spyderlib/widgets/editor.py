@@ -277,8 +277,8 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_calltip(int)'),
-                     self.trigger_calltip)
+        self.connect(editor, SIGNAL('trigger_calltip_and_doc_rendering(int)'),
+                     self.trigger_calltip_and_doc_rendering)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
         
@@ -336,8 +336,8 @@ class FileInfo(QObject):
                                                      automatic)
                 return
         
-    def trigger_calltip(self, position, auto=True):
-        """Trigger calltip"""
+    def trigger_calltip_and_doc_rendering(self, position, auto=True):
+        """Trigger calltip and docstring rendering in the Object Inspector"""
         # auto is True means that trigger_calltip was called automatically,
         # i.e. the user has just entered an opening parenthesis -- in that 
         # case, we don't want to force the object inspector to be visible, 
@@ -345,13 +345,13 @@ class FileInfo(QObject):
         source_code = unicode(self.editor.toPlainText())
         offset = position
         
-        textlist = self.rope_project.get_calltip_text(source_code, offset,
-                                                      self.filename)
-        if not textlist:
+        helplist = self.rope_project.get_calltip_and_docs(source_code, offset,
+                                                          self.filename)
+        if not helplist:
             return
         obj_fullname = ''
         signatures = []
-        cts, doc_text = textlist
+        cts, doc_text = helplist
         if cts:
             cts = cts.replace('.__init__', '')
             parpos = cts.find('(')
@@ -735,7 +735,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
-            finfo.trigger_calltip(position, auto=False)
+            finfo.trigger_calltip_and_doc_rendering(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
