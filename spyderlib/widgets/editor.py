@@ -1090,7 +1090,11 @@ class EditorStack(QWidget):
         self.tabs.clear()
         for finfo in self.data:
             icon = get_filetype_icon(finfo.filename)
-            tab_text = self.get_tab_text(finfo.filename)
+            if finfo.newly_created:
+                is_modified = True
+            else:
+                is_modified = None
+            tab_text = self.get_tab_text(finfo.filename, is_modified)
             tab_tip = self.get_tab_tip(finfo.filename)
             index = self.tabs.addTab(finfo.editor, icon, tab_text)
             self.tabs.setTabToolTip(index, tab_tip)
@@ -1118,6 +1122,7 @@ class EditorStack(QWidget):
     def set_stack_title(self, index, is_modified):
         finfo = self.data[index]
         fname = finfo.filename
+        is_modified = is_modified or finfo.newly_created
         is_readonly = finfo.editor.isReadOnly()
         tab_text = self.get_tab_text(fname, is_modified, is_readonly)
         tab_tip = self.get_tab_tip(fname, is_modified, is_readonly)
