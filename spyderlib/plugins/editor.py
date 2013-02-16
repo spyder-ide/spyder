@@ -1056,6 +1056,9 @@ class Editor(SpyderPluginWidget):
                      self.close_file_in_all_editorstacks)
         self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
                      self.file_saved_in_editorstack)
+        self.connect(editorstack,
+                     SIGNAL('file_renamed_in_data(QString,int,QString)'),
+                     self.file_renamed_in_data_in_editorstack)
         
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
@@ -1120,8 +1123,16 @@ class Editor(SpyderPluginWidget):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.file_saved_in_other_editorstack(index, filename)
-        
-        
+
+    @Slot(int, int)
+    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
+                                            index, filename):
+        """A file was renamed in data in editorstack, this notifies others"""
+        for editorstack in self.editorstacks:
+            if str(id(editorstack)) != editorstack_id_str:
+                editorstack.rename_in_data(index, filename)
+
+
     #------ Handling editor windows    
     def setup_other_windows(self):
         """Setup toolbars and menus for 'New window' instances"""

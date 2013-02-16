@@ -18,7 +18,7 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QSplitter, QListWidget, QListWidgetItem,
                                 QDialog, QLineEdit)
 from spyderlib.qt.QtCore import (SIGNAL, Qt, QFileInfo, QThread, QObject,
-                                 QByteArray, QSize, QPoint, QTimer)
+                                 QByteArray, QSize, QPoint, QTimer, Slot)
 from spyderlib.qt.compat import getsavefilename
 
 import os
@@ -1390,7 +1390,16 @@ class EditorStack(QWidget):
                     return
                 if ao_index < index:
                     index -= 1
+
             new_index = self.rename_in_data(index, new_filename=filename)
+
+            # We pass self object ID as a QString, because otherwise it would 
+            # depend on the platform: long for 64bit, int for 32bit. Replacing 
+            # by long all the time is not working on some 32bit platforms 
+            # (see Issue 1094, Issue 1098)
+            self.emit(SIGNAL('file_renamed_in_data(QString,int,QString)'),
+                      str(id(self)), index, filename)
+
             ok = self.save(index=new_index, force=True)
             self.refresh(new_index)
             self.set_stack_index(new_index)
@@ -2304,8 +2313,15 @@ class EditorPluginExample(QSplitter):
         font = QFont("Courier New")
         font.setPointSize(10)
         editorstack.set_default_font(font, color_scheme='Spyder')
+
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
+        self.connect(editorstack, SIGNAL('file_saved(QString,int,QString)'),
+                     self.file_saved_in_editorstack)
+        self.connect(editorstack,
+                     SIGNAL('file_renamed_in_data(QString,int,QString)'),
+                     self.file_renamed_in_data_in_editorstack)
+
         self.connect(editorstack, SIGNAL("create_new_window()"),
                      self.create_new_window)
         self.connect(editorstack, SIGNAL('plugin_load(QString)'),
@@ -2347,13 +2363,33 @@ class EditorPluginExample(QSplitter):
     def get_focus_widget(self):
         pass
 
+    @Slot(int, int)
     def close_file_in_all_editorstacks(self, editorstack_id_str, index):
         for editorstack in self.editorstacks:
             if str(id(editorstack)) != editorstack_id_str:
                 editorstack.blockSignals(True)
                 editorstack.close_file(index, force=True)
                 editorstack.blockSignals(False)
-                
+
+    # This method is never called in this plugin example. It's here only 
+    # to show how to use the file_saved signal (see above).
+    @Slot(int, int)
+    def file_saved_in_editorstack(self, editorstack_id_str, index, filename):
+        """A file was saved in editorstack, this notifies others"""
+        for editorstack in self.editorstacks:
+            if str(id(editorstack)) != editorstack_id_str:
+                editorstack.file_saved_in_other_editorstack(index, filename)
+
+    # This method is never called in this plugin example. It's here only 
+    # to show how to use the file_saved signal (see above).
+    @Slot(int, int)
+    def file_renamed_in_data_in_editorstack(self, editorstack_id_str,
+                                            index, filename):
+        """A file was renamed in data in editorstack, this notifies others"""
+        for editorstack in self.editorstacks:
+            if str(id(editorstack)) != editorstack_id_str:
+                editorstack.rename_in_data(index, filename)
+
     def register_widget_shortcuts(self, context, widget):
         """Fake!"""
         pass
