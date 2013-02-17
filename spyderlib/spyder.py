@@ -415,9 +415,14 @@ class MainWindow(QMainWindow):
         self.next_session_name = None
         self.save_session_name = None
         
+        # Track which console plugin type had last focus
+        # True: Console plugin
+        # False: IPython console plugin
+        self.last_console_plugin_focus_was_python = True
+        
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
-        
+    
     def debug_print(self, message):
         """Debug prints"""
         if self.debug:
@@ -1224,6 +1229,7 @@ class MainWindow(QMainWindow):
         shell = get_focus_python_shell()
         if shell is not None:
             # A Python shell widget has focus
+            self.last_console_plugin_focus_was_python = True
             if self.inspector is not None:
                 #  The object inspector may be disabled in .spyder.ini
                 self.inspector.set_shell(shell)
@@ -1232,9 +1238,9 @@ class MainWindow(QMainWindow):
                 shell = shell.parent()
             self.variableexplorer.set_shellwidget_from_id(id(shell))
         elif self.ipyconsole is not None:
-            # Checking if any IPython client has focus
             focus_client = self.ipyconsole.get_focus_client()
             if focus_client is not None:
+                self.last_console_plugin_focus_was_python = False
                 kwid = focus_client.kernel_widget_id
                 if kwid is not None:
                     idx = self.extconsole.get_shell_index_from_id(kwid)
@@ -1644,11 +1650,11 @@ Please provide any additional information below.
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external or IPython console"""
-        if self.ipyconsole is not None:        
-            if self.ipyconsole.isvisible:
-                self.ipyconsole.execute_python_code(lines)
+        if self.ipyconsole is not None:
+            if self.last_console_plugin_focus_was_python:
+                self.extconsole.execute_python_code(lines)
             else:
-                self.extconsole.execute_python_code(lines) 
+                self.ipyconsole.execute_python_code(lines) 
         else:
             self.extconsole.execute_python_code(lines)
         

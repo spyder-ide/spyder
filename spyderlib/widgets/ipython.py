@@ -73,6 +73,15 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
             # Let the parent widget handle the key press event
             QTextEdit.keyPressEvent(self, event)
 
+    def focusInEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(IPythonControlWidget, self).focusInEvent(event)
+    
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(IPythonControlWidget, self).focusOutEvent(event)
 
 class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     """
@@ -96,6 +105,15 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
         if key == Qt.Key_Slash and self.isVisible():
             self.emit(SIGNAL("show_find_widget()"))
 
+    def focusInEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(IPythonPageControlWidget, self).focusInEvent(event)
+    
+    def focusOutEvent(self, event):
+        """Reimplement Qt method to send focus change notification"""
+        self.emit(SIGNAL('focus_changed()'))
+        return super(IPythonPageControlWidget, self).focusOutEvent(event)
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """

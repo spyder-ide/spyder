@@ -608,6 +608,7 @@ class ExternalConsole(SpyderPluginWidget):
                                         interpreter_only=interpreter_only)
         if (shellwidget is not None) and (not shellwidget.is_ipykernel):
             shellwidget.shell.execute_lines(unicode(lines))
+            self.activateWindow()
             shellwidget.shell.setFocus()
             
     def pdb_has_stopped(self, fname, lineno, shellwidget):
@@ -620,8 +621,10 @@ class ExternalConsole(SpyderPluginWidget):
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
+            self.main.ipyconsole.activateWindow()
             ipw.setFocus()
         else:
+            self.activateWindow()
             shellwidget.shell.setFocus()
         
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
@@ -836,6 +839,7 @@ class ExternalConsole(SpyderPluginWidget):
         # Start process and give focus to console
         shellwidget.start_shell()
         if not ipykernel:
+            self.activateWindow()
             shellwidget.shell.setFocus()
         
     def set_ipykernel_attrs(self, connection_file, kernel_widget):
