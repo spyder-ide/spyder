@@ -13,8 +13,7 @@
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
-                                QTabWidget, QFontComboBox, QHBoxLayout,
-                                QApplication, QCursor)
+                                QTabWidget, QFontComboBox, QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
@@ -39,6 +38,15 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+
+
+def is_mpl_patch_available():
+    """Return True if Matplotlib patch is available"""
+    if programs.is_module_installed('matplotlib'):
+        from spyderlib import mpl_patch
+        return mpl_patch.is_available()
+    else:
+        return False
 
 
 class ExternalConsoleConfigPage(PluginConfigPage):
@@ -338,11 +346,9 @@ to use this feature wisely, e.g. for debugging purpose."""))
                      mpl_patch_label.setEnabled)
         
         mpl_installed = programs.is_module_installed('matplotlib')
-        if mpl_installed:
-            from spyderlib import mpl_patch
-            if not mpl_patch.is_available():
-                mpl_patch_box.hide()
-                mpl_patch_label.hide()
+        if not is_mpl_patch_available():
+            mpl_patch_box.hide()
+            mpl_patch_label.hide()
         
         mpl_layout = QVBoxLayout()
         mpl_layout.addLayout(mpl_backend_layout)
@@ -682,7 +688,8 @@ class ExternalConsole(SpyderPluginWidget):
             else:
                 pythonstartup = self.get_option('pythonstartup', None)
             monitor_enabled = self.get_option('monitor/enabled')
-            mpl_patch_enabled = self.get_option('matplotlib/patch')
+            mpl_patch_enabled = is_mpl_patch_available() and\
+                                self.get_option('matplotlib/patch')
             if self.get_option('matplotlib/backend/enabled'):
                 mpl_backend = self.get_option('matplotlib/backend/value')
             else:
