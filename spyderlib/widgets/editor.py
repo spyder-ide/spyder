@@ -1769,6 +1769,10 @@ class EditorStack(QWidget):
                      lambda state: self.modification_changed(state,
                                                     editor_id=id(editor)))
         self.connect(editor, SIGNAL("focus_in()"), self.focus_changed)
+        self.connect(editor, SIGNAL('zoom_in()'),
+                     lambda: self.emit(SIGNAL('zoom_in()')))
+        self.connect(editor, SIGNAL('zoom_out()'),
+                     lambda: self.emit(SIGNAL('zoom_out()')))
         if self.outlineexplorer is not None:
             # Removing editor reference from outline explorer settings:
             self.connect(editor, SIGNAL("destroyed()"),

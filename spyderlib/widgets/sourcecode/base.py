@@ -755,6 +755,16 @@ class TextEditBaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
         """Reimplemented to handle focus"""
         self.emit(SIGNAL("focus_changed()"))
         QPlainTextEdit.focusOutEvent(self, event)
+    
+    def wheelEvent(self, event):
+        """Reimplemented to emit zoom in/out signals when Ctrl is pressed"""
+        if event.modifiers() & Qt.ControlModifier:
+            if event.delta() < 0:
+                self.emit(SIGNAL("zoom_out()"))
+            elif event.delta() > 0:
+                self.emit(SIGNAL("zoom_in()"))
+            return
+        QPlainTextEdit.wheelEvent(self, event)
 
 
 class QtANSIEscapeCodeHandler(ANSIEscapeCodeHandler):

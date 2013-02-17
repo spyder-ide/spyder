@@ -1048,6 +1048,9 @@ class Editor(SpyderPluginWidget):
                      self.save_focus_editorstack)
         self.connect(editorstack, SIGNAL('editor_focus_changed()'),
                      self.main.plugin_focus_changed)
+
+        self.connect(editorstack, SIGNAL('zoom_in()'), lambda: self.zoom(1))
+        self.connect(editorstack, SIGNAL('zoom_out()'), lambda: self.zoom(-1))
         
         self.connect(editorstack, SIGNAL('close_file(QString,int)'),
                      self.close_file_in_all_editorstacks)
@@ -1990,8 +1993,20 @@ class Editor(SpyderPluginWidget):
         """Run selection or current line in external console"""
         editorstack = self.get_current_editorstack()
         editorstack.run_selection_or_block()
-        
-        
+
+
+    #------ Zoom in/out
+    def zoom(self, constant):
+        """Zoom in/out"""
+        font = self.get_plugin_font()
+        size = font.pointSize() + constant
+        if size > 0:
+            font.setPointSize(size)
+            for editorstack in self.editorstacks:
+                editorstack.set_default_font(font)
+            self.set_plugin_font(font)
+
+
     #------ Options
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
