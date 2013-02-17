@@ -267,6 +267,13 @@ else:
 #===============================================================================
 
 if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
+
+    #XXX If Matplotlib is not imported first, the IPython import will fail
+    try:
+        import matplotlib  # analysis:ignore
+    except ImportError:
+        pass
+
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
 
