@@ -10,16 +10,15 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QFontDialog, QInputDialog,
                                 QToolButton, QMenu, QFontComboBox, QGroupBox)
 from spyderlib.qt.QtCore import SIGNAL
 
-import os
 import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_icon, get_color_scheme
-from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       add_actions)
+from spyderlib.guiconfig import get_color_scheme
+from spyderlib.utils.qthelpers import (get_icon, create_action,
+                                       create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace

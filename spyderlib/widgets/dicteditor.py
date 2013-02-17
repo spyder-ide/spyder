@@ -28,9 +28,10 @@ from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
 # Local import
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon, get_font
+from spyderlib.guiconfig import get_font
 from spyderlib.utils.misc import fix_reference_name
-from spyderlib.utils.qthelpers import add_actions, create_action, qapplication
+from spyderlib.utils.qthelpers import (get_icon, add_actions, create_action,
+                                       qapplication)
 from spyderlib.widgets.dicteditorutils import (sort_against, get_size,
                get_human_readable_type, value_to_display, get_color_name,
                is_known_type, FakeObject, Image, ndarray, array, MaskedArray,

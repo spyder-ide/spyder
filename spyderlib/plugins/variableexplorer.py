@@ -12,7 +12,7 @@ from spyderlib.qt.QtCore import Signal
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_icon
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.utils import programs
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
 from spyderlib.widgets.externalshell.monitor import REMOTE_SETTINGS

@@ -11,9 +11,9 @@ import os.path as osp
 
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.guiconfig import (get_icon, CUSTOM_COLOR_SCHEME_NAME,
+from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme, COLOR_SCHEME_NAMES)
-from spyderlib.utils.qthelpers import get_std_icon
+from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
 

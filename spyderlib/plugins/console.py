@@ -24,10 +24,9 @@ import os.path as osp
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_icon
 from spyderlib.utils.misc import get_error_match
-from spyderlib.utils.qthelpers import (create_action, add_actions, mimedata2url,
-                                       DialogManager)
+from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+                                       mimedata2url, DialogManager)
 from spyderlib.utils.environ import EnvDialog
 from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace

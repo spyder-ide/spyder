@@ -19,10 +19,10 @@ from spyderlib.qt.QtCore import SIGNAL, Qt, QTimer
 import re
 
 # Local imports
-from spyderlib.utils.qthelpers import get_std_icon, create_toolbutton
+from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
+                                       create_toolbutton)
 from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon
 
 
 def is_position_sup(pos1, pos2):

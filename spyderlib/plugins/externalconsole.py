@@ -27,12 +27,11 @@ import atexit
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
 from spyderlib.config import CONF
-from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match, get_python_executable,
                                   remove_trailing_single_backslash,
                                   is_python_script)
-from spyderlib.utils.qthelpers import create_action, mimedata2url
+from spyderlib.utils.qthelpers import get_icon, create_action, mimedata2url
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell

@@ -108,16 +108,18 @@ from spyderlib.plugins.variableexplorer import VariableExplorer
 from spyderlib.plugins.findinfiles import FindInFiles
 from spyderlib.plugins.projectexplorer import ProjectExplorer
 from spyderlib.plugins.outlineexplorer import OutlineExplorer
-from spyderlib.utils.qthelpers import (create_action, add_actions, get_std_icon,
+from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
+                                       get_std_icon,
                                        create_module_bookmark_actions,
                                        create_bookmark_action,
                                        create_program_action, DialogManager,
                                        keybinding, qapplication,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
-                                  get_module_source_path, STDOUT, STDERR)
+                                  get_module_source_path, STDOUT, STDERR,
+                                  get_image_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
-from spyderlib.guiconfig import get_icon, get_image_path, get_shortcut
+from spyderlib.guiconfig import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
 from spyderlib.userconfig import NoDefault, NoOptionError

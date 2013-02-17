@@ -13,7 +13,8 @@ from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
 # Local import
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon, get_font
+from spyderlib.guiconfig import get_font
+from spyderlib.utils.qthelpers import get_icon
 
 
 class TextEditor(QDialog):

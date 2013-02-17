@@ -11,13 +11,14 @@ import os.path as osp
 
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
-                                QKeyEvent, QMenu, QKeySequence, QToolButton)
+                                QKeyEvent, QMenu, QKeySequence, QToolButton,
+                                QPixmap)
 from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 # Local import
-from spyderlib.guiconfig import get_icon
+from spyderlib.baseconfig import get_image_path
 from spyderlib.utils import programs
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
@@ -29,6 +30,23 @@ from spyderlib.utils import programs
 # (self.listwidget is widget *a* and self is widget *b*)
 #    self.connect(self.listwidget, SIGNAL('option_changed'),
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
+
+
+def get_icon(name, default=None):
+    """Return image inside a QIcon object"""
+    if default is None:
+        return QIcon(get_image_path(name))
+    elif isinstance(default, QIcon):
+        icon_path = get_image_path(name, default=None)
+        return default if icon_path is None else QIcon(icon_path)
+    else:
+        return QIcon(get_image_path(name, default))
+
+def get_image_label(name, default="not_found.png"):
+    """Return image inside a QLabel object"""
+    label = QLabel()
+    label.setPixmap(QPixmap(get_image_path(name, default)))
+    return label
 
 
 def qapplication(translate=True):

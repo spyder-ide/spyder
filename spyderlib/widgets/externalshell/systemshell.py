@@ -16,7 +16,7 @@ locale_codec = QTextCodec.codecForLocale()
 from spyderlib.utils import encoding
 from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget

@@ -32,8 +32,7 @@ from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import moduleCompletion
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT
-from spyderlib.guiconfig import get_icon
-from spyderlib.utils.qthelpers import (create_action, add_actions,
+from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
 from spyderlib.widgets.tabs import BaseTabs

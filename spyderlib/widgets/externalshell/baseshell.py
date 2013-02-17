@@ -22,10 +22,9 @@ from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QTimer, Qt,
 locale_codec = QTextCodec.codecForLocale()
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       add_actions)
+from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
+                                       create_action, add_actions)
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.guiconfig import get_icon
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist):

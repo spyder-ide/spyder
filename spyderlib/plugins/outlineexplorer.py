@@ -15,7 +15,7 @@ from spyderlib.qt.QtCore import SIGNAL, Signal
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
 

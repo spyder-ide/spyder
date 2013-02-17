@@ -28,10 +28,10 @@ import os.path as osp
 import shutil
 
 # Local imports
-from spyderlib.utils.qthelpers import create_action, add_actions, file_uri
+from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
+                                       file_uri)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon
 
 
 def fixpath(path):

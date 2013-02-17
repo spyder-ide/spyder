@@ -14,10 +14,9 @@ from spyderlib.qt.QtCore import SIGNAL, QUrl
 import sys
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_action, add_actions,
+from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        create_toolbutton, action2button)
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
 

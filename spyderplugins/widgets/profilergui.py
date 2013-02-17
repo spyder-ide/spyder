@@ -32,10 +32,9 @@ import time
 
 # Local imports
 from spyderlib.utils.qthelpers import (create_toolbutton, get_item_user_text,
-                                       set_item_user_text)
+                                       set_item_user_text, get_icon)
 from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import get_conf_path, get_translation
-from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell

@@ -17,14 +17,13 @@ locale_codec = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
-from spyderlib.utils.qthelpers import (create_toolbutton, create_action,
-                                       get_std_icon, DialogManager,
-                                       add_actions)
+from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
+                                       create_toolbutton, create_action,
+                                       DialogManager)
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _, get_module_source_path
-from spyderlib.guiconfig import get_icon
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate, write_packet

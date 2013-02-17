@@ -25,46 +25,6 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.sourcecode.syntaxhighlighters import (
                                  COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
 
-IMG_PATH = []
-def add_image_path(path):
-    if not osp.isdir(path):
-        return
-    global IMG_PATH
-    IMG_PATH.append(path)
-    for _root, dirs, _files in os.walk(path):
-        for dir in dirs:
-            IMG_PATH.append(osp.join(path, dir))
-
-add_image_path(get_module_data_path('spyderlib', relpath='images'))
-
-from spyderlib.otherplugins import PLUGIN_PATH
-if PLUGIN_PATH is not None:
-    add_image_path(osp.join(PLUGIN_PATH, 'images'))
-
-def get_image_path(name, default="not_found.png"):
-    """Return image absolute path"""
-    for img_path in IMG_PATH:
-        full_path = osp.join(img_path, name)
-        if osp.isfile(full_path):
-            return osp.abspath(full_path)
-    if default is not None:
-        return osp.abspath(osp.join(img_path, default))
-
-def get_icon( name, default=None ):
-    """Return image inside a QIcon object"""
-    if default is None:
-        return QIcon(get_image_path(name))
-    elif isinstance(default, QIcon):
-        icon_path = get_image_path(name, default=None)
-        return default if icon_path is None else QIcon(icon_path)
-    else:
-        return QIcon(get_image_path(name, default))
-
-def get_image_label( name, default="not_found.png" ):
-    """Return image inside a QLabel object"""
-    label = QLabel()
-    label.setPixmap(QPixmap(get_image_path(name, default)))
-    return label
 
 def font_is_installed(font):
     """Check if font is installed"""

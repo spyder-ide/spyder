@@ -16,8 +16,9 @@ import sys
 
 # Local imports
 from spyderlib.baseconfig import _
-from spyderlib.guiconfig import (get_icon, get_shortcut, set_shortcut,
+from spyderlib.guiconfig import (get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
+from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins.configdialog import GeneralConfigPage
 
 

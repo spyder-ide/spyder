@@ -115,7 +115,7 @@ def apply():
         def _init_toolbar(self):
             super(NavigationToolbar2QT, self)._init_toolbar()
             if edit_parameters is None:
-                from spyderlib.config import get_icon
+                from spyderlib.utils.qthelpers import get_icon
                 a = self.addAction(get_icon("options.svg"),
                                    'Customize', self.edit_parameters)
                 a.setToolTip('Edit curves line and axes parameters')

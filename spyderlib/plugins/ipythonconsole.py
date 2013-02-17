@@ -31,12 +31,11 @@ from IPython.core.application import get_ipython_dir
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
-from spyderlib.guiconfig import get_icon
 from spyderlib.utils import programs
 from spyderlib.utils.misc import (get_error_match,
                                   remove_trailing_single_backslash)
-from spyderlib.utils.qthelpers import (create_action, create_toolbutton,
-                                       add_actions, get_std_icon)
+from spyderlib.utils.qthelpers import (get_icon, get_std_icon, create_action,
+                                       create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import IPythonApp
 from spyderlib.widgets.findreplace import FindReplace

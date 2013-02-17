@@ -7,7 +7,7 @@
 """Module that provides a GUI-based editor for matplotlib's figure options"""
 
 from spyderlib.widgets.formlayout import fedit
-from spyderlib.config import get_icon
+from spyderlib.utils.qthelpers import get_icon
 
 import matplotlib.cm, matplotlib.image
 from matplotlib.colors import rgb2hex, is_color_like

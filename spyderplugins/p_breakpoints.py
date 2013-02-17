@@ -17,8 +17,7 @@ from spyderlib.qt.QtCore import SIGNAL
 # Local imports
 from spyderlib.baseconfig import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
-from spyderlib.guiconfig import get_icon
-from spyderlib.utils.qthelpers import create_action
+from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.plugins import SpyderPluginMixin
 
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
