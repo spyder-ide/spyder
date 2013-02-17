@@ -1078,6 +1078,12 @@ class ExternalConsole(SpyderPluginWidget):
         
     def start_ipykernel(self, wdir=None, create_client=True):
         """Start new IPython kernel"""
+        if create_client and not self.get_option('monitor/enabled'):
+            QMessageBox.warning(self, _('Open an IPython console'),
+                _("The console monitor was disabled: the IPython kernel will "
+                  "be started as expected, but an IPython console will have "
+                  "to be connected manually to the kernel."), QMessageBox.Ok)
+        
         # Add a WaitCursor visual indication, because it takes too much time
         # to display a new console (3 to 5 secs). It's stopped in
         # create_ipyclient
