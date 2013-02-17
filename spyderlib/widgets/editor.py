@@ -302,7 +302,8 @@ class FileInfo(QObject):
         offset = self.editor.get_position('cursor')
         text = self.editor.get_text('sol', 'cursor')
         
-        if text.startswith('import '):
+        if text.lstrip().startswith('import '):
+            text = text.lstrip()
             comp_list = module_completion(text)
             words = text.split(' ')
             if ',' in words[-1]:
@@ -312,7 +313,8 @@ class FileInfo(QObject):
                                                  completion_text=words[-1],
                                                  automatic=automatic)
             return
-        elif text.startswith('from '):
+        elif text.lstrip().startswith('from '):
+            text = text.lstrip()
             comp_list = module_completion(text)
             words = text.split(' ')
             if '(' in words[-1]:
