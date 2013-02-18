@@ -6,6 +6,7 @@
 
 """Running programs utilities"""
 
+from distutils.version import LooseVersion
 import os
 import os.path as osp
 import sys
@@ -165,6 +166,32 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
         raise NotImplementedError
 
 
+def check_version(actver, version, cmp_op):
+    """
+    Check version string of an active module against a required version.
+
+    If dev/prerelease tags result in TypeError for string-number comparison,
+    it is assumed that the dependency is satisfied.
+    Users on dev branches are responsible for keeping their own packages up to
+    date.
+    
+    Copyright (C) 2013  The IPython Development Team
+
+    Distributed under the terms of the BSD License.
+    """
+    try:
+        if cmp_op == '>':
+            return LooseVersion(actver) > LooseVersion(version)
+        elif cmp_op == '>=':
+            return LooseVersion(actver) >= LooseVersion(version)
+        elif cmp_op == '=':
+            return LooseVersion(actver) == LooseVersion(version)
+        else:
+            return False
+    except TypeError:
+        return True
+
+
 def is_module_installed(module_name, version=None):
     """Return True if module *module_name* is installed
     
@@ -188,30 +215,8 @@ def is_module_installed(module_name, version=None):
             actver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
             if actver is None:
                 return False
-            def getvlist(version):
-                """Return an integer list from a version string"""
-                vl = version.split('.')
-                while vl and not vl[-1].isdigit():
-                    vl = vl[:-1]
-                return [int(nb) for nb in vl]
-            vlist = getvlist(version)
-            actvlist = getvlist(actver)
-            actvlist = actvlist[:len(vlist)]
-            vlist = vlist[:len(actvlist)]
-            if not vlist or not actvlist:
-                return False
-            for index, (nb, actnb) in enumerate(zip(vlist, actvlist)):
-                if nb == actnb:
-                    if index == len(vlist)-1 and '=' not in symb:
-                        return False
-                    else:
-                        continue
-                elif actnb < nb:
-                    return False
-                elif actnb > nb and symb == '=':
-                    return False
             else:
-                return True
+                return check_version(actver, version, symb)
     except ImportError:
         return False
 
