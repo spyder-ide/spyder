@@ -100,19 +100,22 @@ def get_root_modules(paths):
         project.
     """
     modules = []
+    spy_modules = []
+    
+    for path in paths:
+        spy_modules += module_list(path)
+    spy_modules = set(spy_modules)
+    if '__init__' in spy_modules:
+        spy_modules.remove('__init__')
+    spy_modules = list(spy_modules)
     
     if modules_db.has_key('rootmodules'):
-        spy_modules = []
-        for path in paths:
-            spy_modules += module_list(path)
-        if '__init__' in spy_modules:
-            spy_modules.remove('__init__')
         return spy_modules + modules_db['rootmodules']
 
     t = time()
     modules = list(sys.builtin_module_names)
     # TODO: Change this sys.path for console's interpreter sys.path
-    for path in paths + sys.path:
+    for path in sys.path:
         modules += module_list(path)        
         if time() - t > TIMEOUT_GIVEUP:
             print "Module list generation is taking too long, we give up.\n"
@@ -120,11 +123,14 @@ def get_root_modules(paths):
             return []
     
     modules = set(modules)
-    if '__init__' in modules:
-        modules.remove('__init__')
+    excluded_modules = ['__init__'] + spy_modules
+    for mod in excluded_modules:
+        if mod in modules:
+            modules.remove(mod)
     modules = list(modules)
+
     modules_db['rootmodules'] = modules
-    return modules
+    return spy_modules + modules
 
 
 def is_importable(module, attr, only_modules):
