@@ -1852,8 +1852,15 @@ Please provide any additional information below.
         CONF.set('main', 'open_files_port', port)
         self.open_files_server.bind(('127.0.0.1', port))
         self.open_files_server.listen(20)
-        while 1:
-            req, addr = self.open_files_server.accept()
+        while True:
+            try:
+                req, dummy = self.open_files_server.accept()
+            except socket.error as e:
+                # See Issue 1275 for details on why errno 4 is
+                # silently ignored here.
+                if e.args[0] == 4:
+                    continue
+                raise
             fname = req.recv(1024)
             if not self.light:
                 self.emit(SIGNAL('open_external_file(QString)'), fname)

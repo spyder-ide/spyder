@@ -59,7 +59,14 @@ class IntrospectionServer(threading.Thread):
         
         while True:
             sock.listen(2)
-            conn, _addr = sock.accept()
+            try:
+                conn, _addr = sock.accept()
+            except socket.error as e:
+                # See Issue 1275 for details on why errno 4 is
+                # silently ignored here.
+                if e.args[0] == 4:
+                    continue
+                raise
             shell_id = read_packet(conn)
             if shell_id is not None:
                 self.send_socket(shell_id, conn)
