@@ -90,17 +90,29 @@ def module_list(path):
     return list(set(modules))
 
 
-def get_root_modules():
+def get_root_modules(paths):
     """
     Returns list of names of all modules from PYTHONPATH folders.
+    
+    paths : list
+        A list of additional paths that Spyder adds to PYTHONPATH. They are
+        comming from our PYTHONPATH manager and from the currently selected
+        project.
     """
     modules = []
+    
     if modules_db.has_key('rootmodules'):
-        return modules_db['rootmodules']
+        spy_modules = []
+        for path in paths:
+            spy_modules += module_list(path)
+        if '__init__' in spy_modules:
+            spy_modules.remove('__init__')
+        return spy_modules + modules_db['rootmodules']
 
     t = time()
     modules = list(sys.builtin_module_names)
-    for path in sys.path:
+    # TODO: Change this sys.path for console's interpreter sys.path
+    for path in paths + sys.path:
         modules += module_list(path)        
         if time() - t > TIMEOUT_GIVEUP:
             print "Module list generation is taking too long, we give up.\n"
@@ -147,16 +159,16 @@ def try_import(mod, only_modules=False):
     return list(completions)
 
 
-def dot_completion(mod):
+def dot_completion(mod, paths):
     if len(mod) < 2:
-        return filter(lambda x: x.startswith(mod[0]), get_root_modules())
+        return filter(lambda x: x.startswith(mod[0]), get_root_modules(paths))
     completion_list = try_import('.'.join(mod[:-1]), True)
     completion_list = filter(lambda x: x.startswith(mod[-1]), completion_list)
     completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
     return completion_list
 
 
-def module_completion(line):
+def module_completion(line, paths=[]):
     """
     Returns a list containing the completion possibilities for an import line.
     
@@ -178,18 +190,18 @@ def module_completion(line):
     # 'import xy<tab> or import xy<tab>, '
     if words[0] == 'import':
         if nwords == 2 and words[1] == '':
-            return get_root_modules()
+            return get_root_modules(paths)
         if ',' == words[-1][-1]:
             return [' ']       
         mod = words[-1].split('.')
-        return dot_completion(mod)
+        return dot_completion(mod, paths)
 
     # 'from xy<tab>'
     if nwords < 3 and (words[0] == 'from'):
         if nwords == 1:
-            return get_root_modules()
+            return get_root_modules(paths)
         mod = words[1].split('.')
-        return dot_completion(mod)
+        return dot_completion(mod, paths)
 
     # 'from xyz import abc<tab>'
     if nwords >= 3 and words[0] == 'from':

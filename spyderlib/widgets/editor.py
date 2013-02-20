@@ -269,6 +269,7 @@ class FileInfo(QObject):
         self.newly_created = new
         self.encoding = encoding
         self.editor = editor
+        self.path = []
         self.rope_project = codeeditor.get_rope_project()
         self.classes = (filename, None, None)
         self.analysis_results = []
@@ -304,7 +305,7 @@ class FileInfo(QObject):
         
         if text.lstrip().startswith('import '):
             text = text.lstrip()
-            comp_list = module_completion(text)
+            comp_list = module_completion(text, self.path)
             words = text.split(' ')
             if ',' in words[-1]:
                 words = words[-1].split(',')
@@ -315,7 +316,7 @@ class FileInfo(QObject):
             return
         elif text.lstrip().startswith('from '):
             text = text.lstrip()
-            comp_list = module_completion(text)
+            comp_list = module_completion(text, self.path)
             words = text.split(' ')
             if '(' in words[-1]:
                 words = words[:-2] + words[-1].split('(')

@@ -1687,7 +1687,6 @@ Please provide any additional information below.
             sys.path.insert(1, path)
 
     def remove_path_from_sys_path(self):
-
         """Remove Spyder path from sys.path"""
         sys_path = sys.path
         while sys_path[1] in self.get_spyder_pythonpath():
@@ -1703,12 +1702,14 @@ Please provide any additional information below.
         dialog.exec_()
         self.add_path_to_sys_path()
         encoding.writelines(self.path, self.spyder_path) # Saving path
+        self.emit(SIGNAL("pythonpath_changed()"))
         
     def pythonpath_changed(self):
         """Project Explorer PYTHONPATH contribution has changed"""
         self.remove_path_from_sys_path()
         self.project_path = self.projectexplorer.get_pythonpath()
         self.add_path_to_sys_path()
+        self.emit(SIGNAL("pythonpath_changed()"))
     
     def win_env(self):
         """Show Windows current user environment variables"""
