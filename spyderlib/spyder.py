@@ -20,6 +20,7 @@ import sys
 import os.path as osp
 import re
 import socket
+import errno
 import threading
 
 # Keeping a reference to the original sys.exit before patching it
@@ -1856,9 +1857,9 @@ Please provide any additional information below.
             try:
                 req, dummy = self.open_files_server.accept()
             except socket.error as e:
-                # See Issue 1275 for details on why errno 4 is
+                # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
-                if e.args[0] == 4:
+                if e.args[0] == errno.EINTR:
                     continue
                 raise
             fname = req.recv(1024)
