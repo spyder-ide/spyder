@@ -363,9 +363,9 @@ class Monitor(threading.Thread):
         if valid:
             return getsource(obj)
             
-    def getmodcomplist(self, name):
+    def getmodcomplist(self, name, path):
         """Return module completion list for object named *name*"""
-        return module_completion(name)
+        return module_completion(name, path)
                 
     #------ Other
     def is_array(self, name):

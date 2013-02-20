@@ -455,6 +455,8 @@ class ExternalConsole(SpyderPluginWidget):
                      self.refresh_plugin)
         self.connect(self.tabwidget, SIGNAL('move_data(int,int)'),
                      self.move_tab)
+        self.connect(self.main, SIGNAL("pythonpath_changed()"),
+                     self.set_path)
                      
         self.tabwidget.set_close_function(self.close_console)
 
@@ -539,6 +541,15 @@ class ExternalConsole(SpyderPluginWidget):
     def set_variableexplorer(self, variableexplorer):
         """Set variable explorer plugin"""
         self.variableexplorer = variableexplorer
+    
+    def set_path(self):
+        """Set consoles PYTHONPATH if changed by the user"""
+        from spyderlib.widgets.externalshell import pythonshell
+        for sw in self.shellwidgets:
+            if isinstance(sw, pythonshell.ExternalPythonShell):
+                if sw.is_interpreter and sw.is_running():
+                    sw.path = self.main.get_spyder_pythonpath()
+                    sw.shell.path = sw.path
         
     def __find_python_shell(self, interpreter_only=False):
         current_index = self.tabwidget.currentIndex()
