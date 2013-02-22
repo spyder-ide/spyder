@@ -20,6 +20,7 @@
 import imp
 import inspect
 import os.path
+import pkgutil
 import re
 from time import time
 import sys
@@ -48,7 +49,7 @@ import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
 modules_db = PickleShareDB(MODULES_PATH)
 
 #-----------------------------------------------------------------------------
-# Utilities
+# Utility functions
 #-----------------------------------------------------------------------------
 
 def module_list(path):
@@ -133,6 +134,21 @@ def get_root_modules(paths):
     return spy_modules + modules
 
 
+def get_submodules(mod):
+    """Get all submodules of a given module"""
+    try:
+        m = __import__(mod)
+        submodules = [mod]
+        submods = pkgutil.walk_packages(m.__path__, m.__name__ + '.')
+        for sm in submods:
+            sm_name = sm[1]
+            submodules.append(sm_name)
+    except:
+        return []
+    
+    return submodules
+
+
 def is_importable(module, attr, only_modules):
     if only_modules:
         return inspect.ismodule(getattr(module, attr))
@@ -173,6 +189,9 @@ def dot_completion(mod, paths):
     completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
     return completion_list
 
+#-----------------------------------------------------------------------------
+# Main functions
+#-----------------------------------------------------------------------------
 
 def module_completion(line, paths=[]):
     """
@@ -230,6 +249,35 @@ def reset():
     if modules_db.has_key('rootmodules'):
         del modules_db['rootmodules']
 
+
+def get_preferred_submodules():
+    """
+    Get all submodules of the main scientific modules and others of our
+    interest
+    """
+    if modules_db.has_key('submodules'):
+        return modules_db['submodules']
+    
+    mods = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx', 'statsmodels',
+            'matplotlib', 'sklearn', 'skimage', 'mpmath', 'os', 'PIL',
+            'OpenGL', 'array', 'audioop', 'binascii', 'cPickle', 'cStringIO',
+            'cmath', 'collections', 'datetime', 'errno', 'exceptions', 'gc',
+            'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap', 'msvcrt',
+            'nt', 'operator', 'parser', 'rgbimg', 'signal', 'strop', 'sys',
+            'thread', 'time', 'wx', 'wxPython', 'xxsubtype', 'zipimport',
+             'zlib', 'nose']
+
+    submodules = []
+    for m in mods:
+        submods = get_submodules(m)
+        submodules += submods
+    
+    modules_db['submodules'] = submodules
+    return submodules
+
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     # Some simple tests.
