@@ -37,13 +37,13 @@
 
 <body>
     {# Docstring header #}
-    {% if Title %}
-    <div class="title"> <h1> {{Title}} </h1> </div>
+    {% if name %}
+    <div class="title"> <h1> {{name}} </h1> </div>
 
     {% if argspec or note %}
     <div class="metadata">
         {% if argspec %}
-        <p> <b>Definition :</b> <span class="def"> {{Title}}{{argspec}} </span> </p>
+        <p> <b>Definition :</b> <span class="def"> {{name}}{{argspec}} </span> </p>
         {% endif %}
 
         {% if note %}

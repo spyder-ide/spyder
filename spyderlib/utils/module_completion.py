@@ -1,23 +1,27 @@
 # -*- coding: utf-8 -*-
 """Module completion auxiliary functions"""
 
-#*****************************************************************************
+#------------------------------------------------------------------------------
 #
-#  The functions on this file were taken from the file ipy_completers,
-#  which belongs to the IPython project. They were added here because a)
-#  IPython is not a runtime dependency of Spyder, and b) we want to perfom
-#  module completion not only on an ipython shell, but also on a regular
-#  python interpreter and a source code editor.
-#  Besides, we needed to modify moduleCompletion to make it work as a regular
-#  python function, and not as a mix of python and readline completion, which
-#  is how we think it works on IPython.
+#  Most functions on this file were taken from the file core/completerlib,
+#  which belongs to the IPython project (v0.13). They were added here because
+#  a) IPython is not an Spyder runtime dependency, and b) we want to perfom
+#  module completion not only on our Python console, but also on our source
+#  code editor.
+#  Several of these functions were modified to make it work according to our
+#  needs
 #
 #  Distributed under the terms of the BSD License.
+#  Copyright (C) 2010-2011 The IPython Development Team.
+#  Copyright (C) 2013 The Spyder Development Team
 #
-#*****************************************************************************
+#------------------------------------------------------------------------------
 
+import imp
 import inspect
 import os.path
+import pkgutil
+import re
 from time import time
 import sys
 from zipimport import zipimporter
@@ -25,138 +29,209 @@ from zipimport import zipimporter
 from spyderlib.baseconfig import get_conf_path
 from spyderlib.utils.external.pickleshare import PickleShareDB
 
-MODULES_PATH = get_conf_path('db')
-TIMEOUT_GIVEUP = 20 #Time in seconds after which we give up
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
 
+# Path to the modules database
+MODULES_PATH = get_conf_path('db')
+
+# Time in seconds after which we give up
+TIMEOUT_GIVEUP = 20
+
+# Regular expression for the python import statement
+import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
+                       r'(?P<package>[/\\]__init__)?'
+                       r'(?P<suffix>%s)$' %
+                       r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
+
+# Modules database
 modules_db = PickleShareDB(MODULES_PATH)
 
-def getRootModules():
-    """
-    Returns list of names of all modules from PYTHONPATH folders.
-    """
-    modules = []
-    if modules_db.has_key('rootmodules'):
-        return modules_db['rootmodules']
-    t = time()
-    for path in sys.path:
-        modules += moduleList(path)        
-        if time() - t > TIMEOUT_GIVEUP:
-            print "Module list generation is taking too long, we give up."
-            print
-            modules_db['rootmodules'] = []
-            return []
-    
-    modules += sys.builtin_module_names
-      
-    modules = list(set(modules))
-    if '__init__' in modules:
-        modules.remove('__init__')
-    modules = list(set(modules))
-    modules_db['rootmodules'] = modules
-    return modules
+#-----------------------------------------------------------------------------
+# Utility functions
+#-----------------------------------------------------------------------------
 
-def reset():
-    """Clear root modules database"""
-    if modules_db.has_key('rootmodules'):
-        del modules_db['rootmodules']
-
-def moduleList(path):
+def module_list(path):
     """
     Return the list containing the names of the modules available in the given
     folder.
     """
+    # sys.path has the cwd as an empty string, but isdir/listdir need it as '.'
+    if path == '':
+        path = '.'
+
+    # A few local constants to be used in loops below
+    pjoin = os.path.join
 
     if os.path.isdir(path):
-        folder_list = os.listdir(path)
-    elif path.endswith('.egg'):
-        try:
-            folder_list = [f for f in zipimporter(path)._files]
-        except:
-            folder_list = []
+        # Build a list of all files in the directory and all files
+        # in its subdirectories. For performance reasons, do not
+        # recurse more than one level into subdirectories.
+        files = []
+        for root, dirs, nondirs in os.walk(path):
+            subdir = root[len(path)+1:]
+            if subdir:
+                files.extend(pjoin(subdir, f) for f in nondirs)
+                dirs[:] = [] # Do not recurse into additional subdirectories.
+            else:
+                files.extend(nondirs)
     else:
-        folder_list = []
-    #folder_list = glob.glob(os.path.join(path,'*'))
-    folder_list = [p for p in folder_list  \
-       if os.path.exists(os.path.join(path, p,'__init__.py'))\
-           or p[-3:] in ('.py','.so')\
-           or p[-4:] in ('.pyc','.pyo','.pyd')]
+        try:
+            files = list(zipimporter(path)._files.keys())
+        except:
+            files = []
 
-    folder_list = [os.path.basename(p).split('.')[0] for p in folder_list]
-    return folder_list
+    # Build a list of modules which match the import_re regex.
+    modules = []
+    for f in files:
+        m = import_re.match(f)
+        if m:
+            modules.append(m.group('name'))
+    return list(set(modules))
 
-def moduleCompletion(line):
+
+def get_root_modules(paths):
+    """
+    Returns list of names of all modules from PYTHONPATH folders.
+    
+    paths : list
+        A list of additional paths that Spyder adds to PYTHONPATH. They are
+        comming from our PYTHONPATH manager and from the currently selected
+        project.
+    """
+    modules = []
+    spy_modules = []
+    
+    for path in paths:
+        spy_modules += module_list(path)
+    spy_modules = set(spy_modules)
+    if '__init__' in spy_modules:
+        spy_modules.remove('__init__')
+    spy_modules = list(spy_modules)
+    
+    if modules_db.has_key('rootmodules'):
+        return spy_modules + modules_db['rootmodules']
+
+    t = time()
+    modules = list(sys.builtin_module_names)
+    # TODO: Change this sys.path for console's interpreter sys.path
+    for path in sys.path:
+        modules += module_list(path)        
+        if time() - t > TIMEOUT_GIVEUP:
+            print "Module list generation is taking too long, we give up.\n"
+            modules_db['rootmodules'] = []
+            return []
+    
+    modules = set(modules)
+    excluded_modules = ['__init__'] + spy_modules
+    for mod in excluded_modules:
+        if mod in modules:
+            modules.remove(mod)
+    modules = list(modules)
+
+    modules_db['rootmodules'] = modules
+    return spy_modules + modules
+
+
+def get_submodules(mod):
+    """Get all submodules of a given module"""
+    try:
+        m = __import__(mod)
+        submodules = [mod]
+        submods = pkgutil.walk_packages(m.__path__, m.__name__ + '.')
+        for sm in submods:
+            sm_name = sm[1]
+            submodules.append(sm_name)
+    except:
+        return []
+    
+    return submodules
+
+
+def is_importable(module, attr, only_modules):
+    if only_modules:
+        return inspect.ismodule(getattr(module, attr))
+    else:
+        return not(attr[:2] == '__' and attr[-2:] == '__')
+
+
+def try_import(mod, only_modules=False):
+    try:
+        m = __import__(mod)
+    except:
+        return []
+    mods = mod.split('.')
+    for module in mods[1:]:
+        m = getattr(m, module)
+
+    m_is_init = hasattr(m, '__file__') and '__init__' in m.__file__
+
+    completions = []
+    if (not hasattr(m, '__file__')) or (not only_modules) or m_is_init:
+        completions.extend([attr for attr in dir(m) if
+                            is_importable(m, attr, only_modules)])
+
+    completions.extend(getattr(m, '__all__', []))
+    if m_is_init:
+        completions.extend(module_list(os.path.dirname(m.__file__)))
+    completions = set(completions)
+    if '__init__' in completions:
+        completions.remove('__init__')
+    return list(completions)
+
+
+def dot_completion(mod, paths):
+    if len(mod) < 2:
+        return filter(lambda x: x.startswith(mod[0]), get_root_modules(paths))
+    completion_list = try_import('.'.join(mod[:-1]), True)
+    completion_list = filter(lambda x: x.startswith(mod[-1]), completion_list)
+    completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
+    return completion_list
+
+#-----------------------------------------------------------------------------
+# Main functions
+#-----------------------------------------------------------------------------
+
+def module_completion(line, paths=[]):
     """
     Returns a list containing the completion possibilities for an import line.
+    
     The line looks like this :
     'import xml.d'
     'from xml.dom import'
     """
-    def tryImport(mod, only_modules=False):
-        def isImportable(module, attr):
-            if only_modules:
-                return inspect.ismodule(getattr(module, attr))
-            else:
-                return not(attr[:2] == '__' and attr[-2:] == '__')
-        try:
-            m = __import__(mod)
-        except:
-            return []
-        completion_list = []
-        mods = mod.split('.')
-        for module in mods[1:]:
-            try:
-                m = getattr(m,module)
-            except:
-                return []
-        if (not hasattr(m, '__file__')) or (not only_modules) or\
-           (hasattr(m, '__file__') and '__init__' in m.__file__):
-            completion_list = [attr for attr in dir(m) if isImportable(m, attr)]
-        completion_list.extend(getattr(m,'__all__',[]))
-        if hasattr(m, '__file__') and '__init__' in m.__file__:
-            completion_list.extend(moduleList(os.path.dirname(m.__file__)))
-        completion_list = list(set(completion_list))
-        if '__init__' in completion_list:
-            completion_list.remove('__init__')
-        return completion_list
-        
-    def dotCompletion(mod):
-        if len(mod) < 2:
-            return filter(lambda x: x.startswith(mod[0]), getRootModules())
-        
-        completion_list = tryImport('.'.join(mod[:-1]), True)
-        completion_list = filter(lambda x: x.startswith(mod[-1]),
-                                 completion_list)
-        completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
-        return completion_list
 
     words = line.split(' ')
+    nwords = len(words)
     
-    if len(words) == 3 and words[0] == 'from':
+    # from whatever <tab> -> 'import '
+    if nwords == 3 and words[0] == 'from':
         if words[2].startswith('i') or words[2] == '':
             return ['import ']
         else:
             return []
-            
-    if words[0] == 'import':
-        if len(words) == 2 and words[1] == '':
-            return getRootModules()
 
+    # 'import xy<tab> or import xy<tab>, '
+    if words[0] == 'import':
+        if nwords == 2 and words[1] == '':
+            return get_root_modules(paths)
         if ',' == words[-1][-1]:
-            return [' ']
-        
+            return [' ']       
         mod = words[-1].split('.')
-        return dotCompletion(mod)
-        
-    if len(words) < 3 and (words[0] == 'from'):
-        if len(words) == 1:
-            return getRootModules()
-        
+        return dot_completion(mod, paths)
+
+    # 'from xy<tab>'
+    if nwords < 3 and (words[0] == 'from'):
+        if nwords == 1:
+            return get_root_modules(paths)
         mod = words[1].split('.')
-        return dotCompletion(mod)
-    
-    if len(words) >= 3 and words[0] == 'from':
+        return dot_completion(mod, paths)
+
+    # 'from xyz import abc<tab>'
+    if nwords >= 3 and words[0] == 'from':
         mod = words[1]
-        completion_list = tryImport(mod)
+        completion_list = try_import(mod)
         if words[2] == 'import' and words[3] != '':
             if '(' in words[-1]:
                 words = words[:-2] + words[-1].split('(')
@@ -169,29 +244,66 @@ def moduleCompletion(line):
     return []
         
 
+def reset():
+    """Clear root modules database"""
+    if modules_db.has_key('rootmodules'):
+        del modules_db['rootmodules']
+
+
+def get_preferred_submodules():
+    """
+    Get all submodules of the main scientific modules and others of our
+    interest
+    """
+    if modules_db.has_key('submodules'):
+        return modules_db['submodules']
+    
+    mods = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx', 'statsmodels',
+            'matplotlib', 'sklearn', 'skimage', 'mpmath', 'os', 'PIL',
+            'OpenGL', 'array', 'audioop', 'binascii', 'cPickle', 'cStringIO',
+            'cmath', 'collections', 'datetime', 'errno', 'exceptions', 'gc',
+            'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap', 'msvcrt',
+            'nt', 'operator', 'parser', 'rgbimg', 'signal', 'strop', 'sys',
+            'thread', 'time', 'wx', 'wxPython', 'xxsubtype', 'zipimport',
+             'zlib', 'nose']
+
+    submodules = []
+    for m in mods:
+        submods = get_submodules(m)
+        submodules += submods
+    
+    modules_db['submodules'] = submodules
+    return submodules
+
+#-----------------------------------------------------------------------------
+# Tests
+#-----------------------------------------------------------------------------
+
 if __name__ == "__main__":
     # Some simple tests.
     # Sort operations are done by the completion widget, so we have to
     # replicate them here.
-    # We've chosen to use xml on all tests because it's on the standard
+    # We've chosen to use xml on most tests because it's on the standard
     # library. This way we can ensure they work on all plataforms.
     
-    assert sorted(moduleCompletion('import xml.')) == \
+    assert sorted(module_completion('import xml.')) == \
         ['xml.dom', 'xml.etree', 'xml.parsers', 'xml.sax']
 
-    assert sorted(moduleCompletion('import xml.d')) ==  ['xml.dom']
+    assert sorted(module_completion('import xml.d')) ==  ['xml.dom']
 
-    assert moduleCompletion('from xml.etree ') == ['import ']
+    assert module_completion('from xml.etree ') == ['import ']
 
-    assert sorted(moduleCompletion('from xml.etree import '),key=str.lower) ==\
+    assert sorted(module_completion('from xml.etree import '), key=str.lower) ==\
         ['cElementTree', 'ElementInclude', 'ElementPath', 'ElementTree']
-        
-    s = 'from xml.etree.ElementTree import '
-    assert moduleCompletion(s + 'V') == ['VERSION']
 
-    assert sorted(moduleCompletion(s + 'VERSION,XM')) == \
+    assert module_completion('import sys, zl') == ['zlib']
+
+    s = 'from xml.etree.ElementTree import '
+    assert module_completion(s + 'V') == ['VERSION']
+
+    assert sorted(module_completion(s + 'VERSION, XM')) == \
         ['XML', 'XMLID', 'XMLParser', 'XMLTreeBuilder']
 
-    assert moduleCompletion(s + '(dum') == ['dump']
+    assert module_completion(s + '(dum') == ['dump']
 
-    assert moduleCompletion(s + '(dump,Su') == ['SubElement']
+    assert module_completion(s + '(dump, Su') == ['SubElement']

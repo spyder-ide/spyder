@@ -381,6 +381,10 @@ class Editor(SpyderPluginWidget):
         # Setup new windows:
         self.connect(self.main, SIGNAL('all_actions_defined()'),
                      self.setup_other_windows)
+
+        # Change module completions when PYTHONPATH changes
+        self.connect(self.main, SIGNAL("pythonpath_changed()"),
+                     self.set_path)
         
         # Find widget
         self.find_widget = FindReplace(self, enable_replace=True)
@@ -440,6 +444,7 @@ class Editor(SpyderPluginWidget):
             position = current_editor.get_position('cursor')
             self.add_cursor_position_to_history(filename, position)
         self.update_cursorpos_actions()
+        self.set_path()
         
     def set_projectexplorer(self, projectexplorer):
         self.projectexplorer = projectexplorer
@@ -1220,7 +1225,10 @@ class Editor(SpyderPluginWidget):
         Return the editor instance associated to *filename*"""
         editorstack = self.get_current_editorstack(editorwindow)
         return editorstack.set_current_filename(filename)
-    
+
+    def set_path(self):
+        for finfo in self.editorstacks[0].data:
+            finfo.path = self.main.get_spyder_pythonpath()
     
     #------ Refresh methods
     def refresh_file_dependent_actions(self):
@@ -1453,6 +1461,7 @@ class Editor(SpyderPluginWidget):
         # can't be destroyed), then cloning this editor widget in all other
         # editorstacks:
         finfo = self.editorstacks[0].new(fname, enc, text)
+        finfo.path = self.main.get_spyder_pythonpath()
         self._clone_file_everywhere(finfo)
         current_editor = current_es.set_current_filename(finfo.filename)
         self.register_widget_shortcuts("Editor", current_editor)
@@ -1541,7 +1550,6 @@ class Editor(SpyderPluginWidget):
                 if CONF.get('workingdir', 'editor/open/auto_set_to_basedir'):
                     directory = osp.dirname(filenames[0])
                     self.emit(SIGNAL("open_dir(QString)"), directory)
-
             else:
                 return
             
@@ -1585,6 +1593,7 @@ class Editor(SpyderPluginWidget):
                 # that can't be destroyed), then cloning this editor widget in
                 # all other editorstacks:
                 finfo = self.editorstacks[0].load(filename, set_current=False)
+                finfo.path = self.main.get_spyder_pythonpath()
                 self._clone_file_everywhere(finfo)
                 current_editor = current_es.set_current_filename(filename)
                 current_editor.set_breakpoints(load_breakpoints(filename))

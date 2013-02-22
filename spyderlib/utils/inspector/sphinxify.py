@@ -55,7 +55,7 @@ def warning(message):
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
 
-def generate_context(title, argspec, note, math):
+def generate_context(name, argspec, note, math):
     """
     Generate the html_context dictionary for our Sphinx conf file.
     
@@ -65,8 +65,8 @@ def generate_context(title, argspec, note, math):
 
     Parameters
     ----------
-    title : str
-        Docstring title.
+    name : str
+        Object's name.
     note : str
         A note describing what type has the function or method being
         introspected
@@ -93,7 +93,7 @@ def generate_context(title, argspec, note, math):
     {
       # Arg dependent variables
       'math_on': 'true' if math else '',
-      'Title': title, # title in lowercase seems to be used by Sphinx
+      'name': name,
       'argspec': argspec,
       'note': note,
       
@@ -142,13 +142,13 @@ def sphinxify(docstring, context, buildername='html'):
         suffix = '.txt'
     output_name = base_name + suffix
 
-    # This is needed so users can type \\ on latex eqnarray envs inside of raw
+    # This is needed so users can type \\ on latex eqnarray envs inside raw
     # docstrings
     if context['right_sphinx_version'] and context['math_on']:
         docstring = docstring.replace('\\\\', '\\\\\\\\')
     
     # Add a class to several characters on the argspec. This way we can
-    # colorize them using css, in a similar way to what IPython does.
+    # highlight them using css, in a similar way to what IPython does.
     argspec = context['argspec']
     for char in ['=', ',', '(', ')', '*', '**']:
         argspec = argspec.replace(char,

@@ -36,6 +36,7 @@ class ExtPythonShellWidget(PythonShellWidget):
     def __init__(self, parent, history_filename, debug=False, profile=False):
         PythonShellWidget.__init__(self, parent, history_filename,
                                    debug, profile)
+        self.path = []
     
     def set_externalshell(self, externalshell):
         # ExternalShellBase instance:
@@ -121,7 +122,8 @@ class ExtPythonShellWidget(PythonShellWidget):
         
     def get_module_completion(self, objtxt):
         """Return module completion list associated to object name"""
-        return self.ask_monitor("getmodcomplist('%s')" % objtxt)
+        return self.ask_monitor("getmodcomplist('%s', %s)" % \
+                                                           (objtxt, self.path))
     
     def get_cwd(self):
         """Return shell current working directory"""
@@ -231,6 +233,7 @@ class ExternalPythonShell(ExternalShellBase):
         
         # Additional python path list
         self.path = path
+        self.shell.path = path
         
     def set_introspection_socket(self, introspection_socket):
         self.introspection_socket = introspection_socket

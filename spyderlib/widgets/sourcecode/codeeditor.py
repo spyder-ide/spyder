@@ -69,19 +69,14 @@ try:
 except ImportError:
     pass
 
+
 #TODO: The following preferences should be customizable in the future
 ROPE_PREFS = {'ignore_syntax_errors': True,
               'ignore_bad_imports': True,
               'soa_followed_calls': 2,
-              'extension_modules': [
-        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
-        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
-        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
-        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
-        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
-        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
-        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
+              'extension_modules': [],
               }
+
 
 class RopeProject(object):
     def __init__(self):
@@ -116,6 +111,9 @@ class RopeProject(object):
         if self.project is not None:
             self.project.validate(self.project.root)
 
+    def set_pref(self, key, value):
+        self.project.prefs.set(key, value)
+
     def get_completion_list(self, source_code, offset, filename):
         if self.project is None:
             return []
@@ -140,7 +138,7 @@ class RopeProject(object):
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
 
-    def get_calltip_text(self, source_code, offset, filename):
+    def get_calltip_and_docs(self, source_code, offset, filename):
         if self.project is None:
             return []
         try:
@@ -161,18 +159,18 @@ class RopeProject(object):
             if cts is not None:
                 while '..' in cts:
                     cts = cts.replace('..', '.')
-                try:
-                    doc_text = rope.contrib.codeassist.get_doc(self.project,
-                                    source_code, offset, resource, maxfixes=3)
-                    if DEBUG:
-                        log_dt(LOG_FILENAME, "get_doc", t0)
-                except Exception, _error:
-                    doc_text = ''
-                    if DEBUG:
-                        log_last_error(LOG_FILENAME, "get_doc")
-                return [cts, doc_text]
-            else:
-                return []
+                if '(.)' in cts:
+                    cts = cts.replace('(.)', '(...)')
+            try:
+                doc_text = rope.contrib.codeassist.get_doc(self.project,
+                                     source_code, offset, resource, maxfixes=3)
+                if DEBUG:
+                    log_dt(LOG_FILENAME, "get_doc", t0)
+            except Exception, _error:
+                doc_text = ''
+                if DEBUG:
+                    log_last_error(LOG_FILENAME, "get_doc")
+            return [cts, doc_text]
         except Exception, _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
@@ -202,6 +200,7 @@ class RopeProject(object):
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
+
 
 ROPE_PROJECT = None
 def get_rope_project():
@@ -2219,7 +2218,8 @@ class CodeEditor(TextEditBaseWidget):
                 self.insert_text(text)
             if (self.is_python() or self.is_cython()) and \
                self.get_text('sol', 'cursor') and self.calltips:
-                self.emit(SIGNAL('trigger_calltip(int)'), position)
+                self.emit(SIGNAL('trigger_calltip_and_doc_rendering(int)'),
+                          position)
         elif text in ('[', '{') and not self.has_selected_text() \
           and self.close_parentheses_enabled:
             s_trailing_text = self.get_text('cursor', 'eol').strip()

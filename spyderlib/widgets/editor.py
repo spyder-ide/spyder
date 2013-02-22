@@ -29,7 +29,8 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
-from spyderlib.utils.module_completion import moduleCompletion
+from spyderlib.utils.module_completion import (module_completion,
+                                               get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
@@ -176,6 +177,21 @@ class AnalysisThread(QThread):
                 import traceback
                 traceback.print_exc(file=STDERR)
 
+
+class GetSubmodulesThread(QThread):
+    """
+    A thread to generate a list of submodules to be passed to Rope
+    extension_modules preference
+    """
+    def __init__(self):
+        super(GetSubmodulesThread, self).__init__()
+        self.submods = []
+
+    def run(self):
+        self.submods = get_preferred_submodules()
+        self.emit(SIGNAL('submods_ready()'))
+
+
 class ThreadManager(QObject):
     """Analysis thread manager"""
     def __init__(self, parent, max_simultaneous_threads=2):
@@ -268,16 +284,19 @@ class FileInfo(QObject):
         self.newly_created = new
         self.encoding = encoding
         self.editor = editor
+        self.path = []
+        self.submods_thread = GetSubmodulesThread()
         self.rope_project = codeeditor.get_rope_project()
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
-        
+
+        self.submods_thread.start()
         self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
-        self.connect(editor, SIGNAL('trigger_calltip(int)'),
-                     self.trigger_calltip)
+        self.connect(editor, SIGNAL('trigger_calltip_and_doc_rendering(int)'),
+                     self.trigger_calltip_and_doc_rendering)
         self.connect(editor, SIGNAL("go_to_definition(int)"),
                      self.go_to_definition)
         
@@ -286,10 +305,16 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
+        self.connect(self.submods_thread, SIGNAL('submods_ready()'),
+                     self.update_extension_modules)
         
         self.pyflakes_results = None
         self.pep8_results = None
-        
+    
+    def update_extension_modules(self):
+        self.rope_project.set_pref('extension_modules',
+                                   self.submods_thread.submods)
+    
     def text_changed(self):
         """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
@@ -301,8 +326,9 @@ class FileInfo(QObject):
         offset = self.editor.get_position('cursor')
         text = self.editor.get_text('sol', 'cursor')
         
-        if text.startswith('import '):
-            comp_list = moduleCompletion(text)
+        if text.lstrip().startswith('import '):
+            text = text.lstrip()
+            comp_list = module_completion(text, self.path)
             words = text.split(' ')
             if ',' in words[-1]:
                 words = words[-1].split(',')
@@ -311,8 +337,9 @@ class FileInfo(QObject):
                                                  completion_text=words[-1],
                                                  automatic=automatic)
             return
-        elif text.startswith('from '):
-            comp_list = moduleCompletion(text)
+        elif text.lstrip().startswith('from '):
+            text = text.lstrip()
+            comp_list = module_completion(text, self.path)
             words = text.split(' ')
             if '(' in words[-1]:
                 words = words[:-2] + words[-1].split('(')
@@ -335,8 +362,8 @@ class FileInfo(QObject):
                                                      automatic)
                 return
         
-    def trigger_calltip(self, position, auto=True):
-        """Trigger calltip"""
+    def trigger_calltip_and_doc_rendering(self, position, auto=True):
+        """Trigger calltip and docstring rendering in the Object Inspector"""
         # auto is True means that trigger_calltip was called automatically,
         # i.e. the user has just entered an opening parenthesis -- in that 
         # case, we don't want to force the object inspector to be visible, 
@@ -344,29 +371,36 @@ class FileInfo(QObject):
         source_code = unicode(self.editor.toPlainText())
         offset = position
         
-        textlist = self.rope_project.get_calltip_text(source_code, offset,
-                                                      self.filename)
-        if not textlist:
+        helplist = self.rope_project.get_calltip_and_docs(source_code, offset,
+                                                          self.filename)
+        if not helplist:
             return
         obj_fullname = ''
         signatures = []
-        cts, doc_text = textlist
-        cts = cts.replace('.__init__', '')
-        parpos = cts.find('(')
-        if parpos:
-            obj_fullname = cts[:parpos]
-            obj_name = obj_fullname.split('.')[-1]
-            cts = cts.replace(obj_fullname, obj_name)
-            signatures = [cts]
-            if '()' in cts:
-                # Either inspected object has no argument, or it's 
-                # a builtin or an extension -- in this last case 
-                # the following attempt may succeed:
-                signatures = getsignaturesfromtext(doc_text, obj_name)
+        cts, doc_text = helplist
+        if cts:
+            cts = cts.replace('.__init__', '')
+            parpos = cts.find('(')
+            if parpos:
+                obj_fullname = cts[:parpos]
+                obj_name = obj_fullname.split('.')[-1]
+                cts = cts.replace(obj_fullname, obj_name)
+                signatures = [cts]
+                if '()' in cts:
+                    # Either inspected object has no argument, or it's 
+                    # a builtin or an extension -- in this last case 
+                    # the following attempt may succeed:
+                    signatures = getsignaturesfromtext(doc_text, obj_name)
         if not obj_fullname:
             obj_fullname = codeeditor.get_primary_at(source_code, offset)
         if obj_fullname and not obj_fullname.startswith('self.') and doc_text:
-            if signatures:
+            # doc_text was generated by utils.dochelpers.getdoc
+            if type(doc_text) is dict:
+                obj_fullname = doc_text['name']
+                argspec = doc_text['argspec']
+                note = doc_text['note']
+                doc_text = doc_text['docstring']
+            elif signatures:
                 argspec_st = signatures[0].find('(')
                 argspec = signatures[0][argspec_st:]
                 module_end = obj_fullname.rfind('.')
@@ -727,7 +761,7 @@ class EditorStack(QWidget):
             editor = self.get_current_editor()
             position = editor.get_position('cursor')
             finfo = self.get_current_finfo()
-            finfo.trigger_calltip(position, auto=False)
+            finfo.trigger_calltip_and_doc_rendering(position, auto=False)
         else:
             text = self.get_current_editor().get_current_object()
             if text:
@@ -1803,12 +1837,12 @@ class EditorStack(QWidget):
                                                force_refresh=force)
             else:
                 objtxt = unicode(qstr1)
-                title = objtxt.split('.')[-1]
+                name = objtxt.split('.')[-1]
                 argspec = unicode(qstr2)
                 note = unicode(qstr3)
-                doc = unicode(qstr4)
-                text = {'obj_text': objtxt, 'title': title, 'argspec': argspec,
-                        'note': note, 'doc': doc}
+                docstring = unicode(qstr4)
+                text = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
+                        'note': note, 'docstring': docstring}
                 self.inspector.set_rope_doc(text, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()

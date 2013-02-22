@@ -20,7 +20,8 @@ See this thread:
 http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
-it breaks the work of Sphinx on the Object Inspector.
+it breaks the work of Sphinx on the Object Inspector. Also, to better control
+how to get calltips and docstrings of forced builtin objects.
 """
 
 def apply():
@@ -83,29 +84,12 @@ def apply():
                      not module.get_child(packages[-1] + '.py').is_folder():
                     return module.get_child(packages[-1] + '.py')
     pycore.PyCore = PatchedPyCore
-    
-    # [2] Patching BuiltinFunction for the calltip/doc functions to be 
-    # able to retrieve the function signatures with forced builtins
-    from rope.base import builtins, pyobjects
-    from spyderlib.utils.dochelpers import getargs
-    class PatchedBuiltinFunction(builtins.BuiltinFunction):
-        def __init__(self, returned=None, function=None, builtin=None,
-                     argnames=[], parent=None):
-            builtins._BuiltinElement.__init__(self, builtin, parent)
-            pyobjects.AbstractFunction.__init__(self)
-            self.argnames = argnames
-            if not argnames and builtin:
-                self.argnames = getargs(self.builtin)
-            if self.argnames is None:
-                self.argnames = []
-            self.returned = returned
-            self.function = function
-    builtins.BuiltinFunction = PatchedBuiltinFunction
 
     # [2] Patching BuiltinName for the go to definition feature to simply work 
     # with forced builtins
-    from rope.base import libutils
+    from rope.base import builtins, libutils, pyobjects
     import inspect
+    import os.path as osp
     class PatchedBuiltinName(builtins.BuiltinName):
         def _pycore(self):
             p = self.pyobject
@@ -117,6 +101,8 @@ def apply():
             if not inspect.isbuiltin(self.pyobject):
                 _lines, lineno = inspect.getsourcelines(self.pyobject.builtin)
                 path = inspect.getfile(self.pyobject.builtin)
+                if path.endswith('pyc') and osp.isfile(path[:-1]):
+                    path = path[:-1]
                 pycore = self._pycore()
                 if pycore and pycore.project:
                     resource = libutils.path_to_resource(pycore.project, path)
@@ -125,12 +111,76 @@ def apply():
             return (None, None)
     builtins.BuiltinName = PatchedBuiltinName
     
-    # [4] Patching PyDocExtractor so that _get_class_docstring and
-    # _get_single_function_docstring don't add a 2 spaces indent to
-    # every docstring. The only value that we are modifying is the indent
-    # keyword, from 2 to 0.
+    # [4] Patching several PyDocExtractor methods:
+    # 1. get_doc:
+    # To force rope to return the docstring of any object which has one, even
+    # if it's not an instance of AbstractFunction, AbstractClass, or
+    # AbstractModule.
+    # Also, to use utils.dochelpers.getdoc to get docs from forced builtins.
+    #
+    # 2. _get_class_docstring and _get_single_function_docstring:
+    # To not let rope add a 2 spaces indentation to every docstring, which was
+    # breaking our rich text mode. The only value that we are modifying is the
+    # 'indents' keyword of those methods, from 2 to 0.
+    #
+    # 3. get_calltip
+    # To easily get calltips of forced builtins
     from rope.contrib import codeassist
+    from spyderlib.utils.dochelpers import getdoc
+    from rope.base import exceptions
     class PatchedPyDocExtractor(codeassist.PyDocExtractor):
+        def get_builtin_doc(self, pyobject):
+            buitin = pyobject.builtin
+            return getdoc(buitin)
+            
+        def get_doc(self, pyobject):
+            if hasattr(pyobject, 'builtin'):
+                doc = self.get_builtin_doc(pyobject)
+                return doc
+            elif isinstance(pyobject, builtins.BuiltinModule):
+                docstring = pyobject.get_doc()
+                if docstring is not None:
+                    docstring = self._trim_docstring(docstring)
+                else:
+                    docstring = ''
+                # TODO: Add a module_name key, so that the name could appear
+                # on the OI text filed but not be used by sphinx to render
+                # the page
+                doc = {'name': '',
+                       'argspec': '',
+                       'note': '',
+                       'docstring': docstring
+                       }
+                return doc
+            elif isinstance(pyobject, pyobjects.AbstractFunction):
+                return self._get_function_docstring(pyobject)
+            elif isinstance(pyobject, pyobjects.AbstractClass):
+                return self._get_class_docstring(pyobject)
+            elif isinstance(pyobject, pyobjects.AbstractModule):
+                return self._trim_docstring(pyobject.get_doc())
+            elif pyobject.get_doc() is not None:  # Spyder patch
+                return self._trim_docstring(pyobject.get_doc())
+            return None
+
+        def get_calltip(self, pyobject, ignore_unknown=False, remove_self=False):
+            if hasattr(pyobject, 'builtin'):
+                doc = self.get_builtin_doc(pyobject)
+                return doc['name'] + doc['argspec']
+            try:
+                if isinstance(pyobject, pyobjects.AbstractClass):
+                    pyobject = pyobject['__init__'].get_object()
+                if not isinstance(pyobject, pyobjects.AbstractFunction):
+                    pyobject = pyobject['__call__'].get_object()
+            except exceptions.AttributeNotFoundError:
+                return None
+            if ignore_unknown and not isinstance(pyobject, pyobjects.PyFunction):
+                return
+            if isinstance(pyobject, pyobjects.AbstractFunction):
+                result = self._get_function_signature(pyobject, add_module=True)
+                if remove_self and self._is_method(pyobject):
+                    return result.replace('(self)', '()').replace('(self, ', '(')
+                return result
+        
         def _get_class_docstring(self, pyclass):
             contents = self._trim_docstring(pyclass.get_doc(), indents=0)
             supers = [super.get_name() for super in pyclass.get_superclasses()]
