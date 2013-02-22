@@ -69,19 +69,14 @@ try:
 except ImportError:
     pass
 
+
 #TODO: The following preferences should be customizable in the future
 ROPE_PREFS = {'ignore_syntax_errors': True,
               'ignore_bad_imports': True,
               'soa_followed_calls': 2,
-              'extension_modules': [
-        "PyQt4", "PyQt4.QtGui", "QtGui", "PyQt4.QtCore", "QtCore",
-        "PyQt4.QtScript", "QtScript", "os.path", "numpy", "scipy", "PIL",
-        "OpenGL", "array", "audioop", "binascii", "cPickle", "cStringIO",
-        "cmath", "collections", "datetime", "errno", "exceptions", "gc",
-        "imageop", "imp", "itertools", "marshal", "math", "mmap", "msvcrt",
-        "nt", "operator", "os", "parser", "rgbimg", "signal", "strop", "sys",
-        "thread", "time", "wx", "wxPython", "xxsubtype", "zipimport", "zlib"],
+              'extension_modules': [],
               }
+
 
 class RopeProject(object):
     def __init__(self):
@@ -115,6 +110,9 @@ class RopeProject(object):
     def validate_rope_project(self):
         if self.project is not None:
             self.project.validate(self.project.root)
+
+    def set_pref(self, key, value):
+        self.project.prefs.set(key, value)
 
     def get_completion_list(self, source_code, offset, filename):
         if self.project is None:
@@ -202,6 +200,7 @@ class RopeProject(object):
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
+
 
 ROPE_PROJECT = None
 def get_rope_project():

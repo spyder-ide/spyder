@@ -29,7 +29,8 @@ import os.path as osp
 # Local imports
 from spyderlib.utils import encoding, sourcecode, programs, codeanalysis
 from spyderlib.utils.dochelpers import getsignaturesfromtext
-from spyderlib.utils.module_completion import module_completion
+from spyderlib.utils.module_completion import (module_completion,
+                                               get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
 from spyderlib.config import EDIT_FILTERS, EDIT_EXT
 from spyderlib.guiconfig import get_icon
@@ -177,6 +178,21 @@ class AnalysisThread(QThread):
                 import traceback
                 traceback.print_exc(file=STDERR)
 
+
+class GetSubmodulesThread(QThread):
+    """
+    A thread to generate a list of submodules to be passed to Rope
+    extension_modules preference
+    """
+    def __init__(self):
+        super(GetSubmodulesThread, self).__init__()
+        self.submods = []
+
+    def run(self):
+        self.submods = get_preferred_submodules()
+        self.emit(SIGNAL('submods_ready()'))
+
+
 class ThreadManager(QObject):
     """Analysis thread manager"""
     def __init__(self, parent, max_simultaneous_threads=2):
@@ -270,12 +286,14 @@ class FileInfo(QObject):
         self.encoding = encoding
         self.editor = editor
         self.path = []
+        self.submods_thread = GetSubmodulesThread()
         self.rope_project = codeeditor.get_rope_project()
         self.classes = (filename, None, None)
         self.analysis_results = []
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
-        
+
+        self.submods_thread.start()
         self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
         self.connect(editor, SIGNAL('trigger_calltip_and_doc_rendering(int)'),
@@ -288,10 +306,16 @@ class FileInfo(QObject):
         
         self.connect(editor, SIGNAL('breakpoints_changed()'),
                      self.breakpoints_changed)
+        self.connect(self.submods_thread, SIGNAL('submods_ready()'),
+                     self.update_extension_modules)
         
         self.pyflakes_results = None
         self.pep8_results = None
-        
+    
+    def update_extension_modules(self):
+        self.rope_project.set_pref('extension_modules',
+                                   self.submods_thread.submods)
+    
     def text_changed(self):
         """Editor's text has changed"""
         self.emit(SIGNAL('text_changed_at(QString,int)'),
