@@ -13,11 +13,13 @@ The Scientific PYthon Development EnviRonment
 
 from distutils.core import setup
 from distutils.command.build import build
-from sphinx import setup_command
+from distutils.command.install_data import install_data
 import os
 import os.path as osp
+import subprocess
 import sys
 
+from sphinx import setup_command
 
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
@@ -65,7 +67,18 @@ class MyBuildDoc(setup_command.BuildDoc):
         sys.path.pop(0)
 
 
-cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc}
+class MyInstallData(install_data):
+    def run(self):
+        install_data.run(self)
+        if sys.platform.startswith('linux'):
+            try:
+                subprocess.call(['update-desktop-database'])
+            except:
+                print >>sys.stderr, "ERROR: unable to update desktop database"
+        
+
+cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc,
+            'install_data': MyInstallData}
 
 
 NAME = 'spyder'
