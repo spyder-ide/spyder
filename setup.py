@@ -105,6 +105,12 @@ if WINDOWS_INSTALLER:
 
 """
 
+if sys.platform.startswith('linux'):
+    data_files = [('share/applications', ['scripts/spyder.desktop']),
+                  ('share/pixmaps', ['img_src/spyder.png'])]
+else:
+    data_files = []
+
 setup(name=NAME,
       version=__version__,
       description='Scientific PYthon Development EnviRonment',
@@ -127,6 +133,7 @@ editor, Python console, etc.""",
                     get_package_data('spyderplugins', EXTLIST)},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
+      data_files=data_files,
       options={"bdist_wininst":
                {"install_script": "%s_win_post_install.py" % NAME,
                 "title": "%s %s" % (NAME.capitalize(), __version__),
