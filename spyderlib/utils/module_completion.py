@@ -265,7 +265,7 @@ def get_preferred_submodules():
             'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap', 'msvcrt',
             'nt', 'operator', 'parser', 'rgbimg', 'signal', 'strop', 'sys',
             'thread', 'time', 'wx', 'wxPython', 'xxsubtype', 'zipimport',
-             'zlib', 'nose']
+             'zlib', 'nose', 'PyQt4', 'PySide', 'os.path']
 
     submodules = []
     for m in mods:
