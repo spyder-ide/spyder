@@ -143,8 +143,10 @@ def get_submodules(mod):
         for sm in submods:
             sm_name = sm[1]
             submodules.append(sm_name)
-    except:
+    except ImportError:
         return []
+    except:
+        return [mod]
     
     return submodules
 
