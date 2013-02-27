@@ -102,12 +102,12 @@ def get_packages():
                 packages += get_subpackages(name)
     return packages
 
-# Note: the '[...]_win_post_install.py' script is installed even on non-Windows
+# NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
 # platforms due to a bug in pip installation process (see Issue 1158)
-SCRIPTS = ['spyder']
+SCRIPTS = ['spyder', '%s_win_post_install.py' % NAME]
 EXTLIST = ['.mo', '.svg', '.png', '.css', '.html', '.js']
 if os.name == 'nt':
-    SCRIPTS += ['spyder.bat', '%s_win_post_install.py' % NAME]
+    SCRIPTS += ['spyder.bat']
     EXTLIST += ['.ico']
 
 # Adding a message for the Windows installers
