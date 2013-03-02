@@ -1763,6 +1763,8 @@ class EditorStack(QWidget):
                      lambda s1, s2:
                      self.emit(SIGNAL("save_breakpoints(QString,QString)"),
                                s1, s2))
+        self.connect(editor, SIGNAL("triggers_run_selection()"),
+                     self.run_selection_or_block)
         language = get_file_language(fname, txt)
         editor.setup_editor(
                 linenumbers=self.linenumbers_enabled,

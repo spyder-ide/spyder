@@ -2016,13 +2016,19 @@ class CodeEditor(TextEditBaseWidget):
                            icon=get_icon("comment.png"),
                            triggered=self.toggle_comment)
         self.gotodef_action = create_action(self, _("Go to definition"),
-                           triggered=self.go_to_definition_from_cursor)
+                                   triggered=self.go_to_definition_from_cursor)
+        run_selected_action = create_action(self,
+                                        _("Run &selection or current block"),
+                                        icon='run_selection.png',
+                                        triggered=lambda: self.emit(
+                                           SIGNAL('triggers_run_selection()')))
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
                                 None, selectall_action, None,
                                 toggle_comment_action, None,
+                                run_selected_action,
                                 self.gotodef_action))
             
         # Read-only context-menu
