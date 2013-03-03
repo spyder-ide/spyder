@@ -8,22 +8,10 @@
 IPython v0.13+ client's widget
 """
 
-import sys
-import os
-
 # IPython imports
-from IPython.frontend.qt.kernelmanager import QtKernelManager
-from IPython.lib.kernel import find_connection_file
-from IPython.core.application import BaseIPythonApplication
 from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
-from IPython.frontend.qt.console import qtconsoleapp
-if os.name == 'nt':
-    # Disabling IPython exception hook which is installed on Windows (when 
-    # importing the IPython.frontend.qt.console.qtconsoleapp module) because 
-    # it is not required with Spyder (it's Spyder's internal console purpose 
-    # to show tracebacks)
-    sys.excepthook = qtconsoleapp.old_excepthook
 
+# Qt imports
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.utils.qthelpers import restore_keyevent
@@ -83,6 +71,7 @@ class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
         self.emit(SIGNAL('focus_changed()'))
         return super(IPythonControlWidget, self).focusOutEvent(event)
 
+
 class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
@@ -114,6 +103,7 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
         return super(IPythonPageControlWidget, self).focusOutEvent(event)
+
 
 class SpyderIPythonWidget(RichIPythonWidget):
     """
@@ -220,73 +210,3 @@ f, g, h = symbols('f g h', cls=Function)
         """Reimplement Qt method to send focus change notification"""
         self.emit(SIGNAL('focus_changed()'))
         return super(SpyderIPythonWidget, self).focusOutEvent(event)
-
-
-#TODO: We have to ask an IPython developer to read this, I'm sure that we are
-#      not using the IPython API as it should be... at least I hope so!
-#----> See "IPython developers review" [1] & [2] in plugins/ipythonconsole.py
-#----> See "IPython developers review" [3] here below
-#==============================================================================
-# For IPython developers review [3]
-class IPythonApp(qtconsoleapp.IPythonQtConsoleApp):
-    def initialize_all_except_qt(self, argv=None):
-        BaseIPythonApplication.initialize(self, argv=argv)
-        qtconsoleapp.IPythonConsoleApp.initialize(self, argv=argv)
-    
-    def create_kernel_manager(self, connection_file=None):
-        """Create a kernel manager"""
-        cf = find_connection_file(connection_file, profile='default')
-        kernel_manager = QtKernelManager(connection_file=cf,
-                                         config=self.config)
-        kernel_manager.load_connection_file()
-        kernel_manager.start_channels()
-        return kernel_manager
-
-    def config_color_scheme(self):
-        """Set the color scheme for widgets.
-        
-        In 0.13 this property needs to be set on the App and not on the
-        widget, so that the widget can be initialized with the right
-        scheme.
-        TODO: This is a temporary measure until we create proper stylesheets
-        for the widget using our own color schemes, which by the way can be
-        passed directly to it.
-        """
-        dark_color_o = CONF.get('ipython_console', 'dark_color', False)
-        if dark_color_o:
-            self.config.ZMQInteractiveShell.colors = 'Linux'
-        else:
-            self.config.ZMQInteractiveShell.colors = 'LightBG'
-    
-    def new_ipywidget(self, connection_file=None, config=None):
-        """Create and return a new widget from a connection file basename"""
-        kernel_manager = self.create_kernel_manager(connection_file)
-        self.config_color_scheme()
-        if config is not None:
-            widget = SpyderIPythonWidget(config=config, local_kernel=False)
-        else:
-            widget = SpyderIPythonWidget(config=self.config, local_kernel=False)
-        self.init_colors(widget)
-        widget.kernel_manager = kernel_manager
-        return widget
-#==============================================================================
-
-
-if __name__ == '__main__':
-    from spyderlib.qt.QtGui import QApplication
-    
-    iapp = IPythonApp()
-    iapp.initialize(["--pylab=inline"])
-    
-    widget1 = iapp.new_ipywidget()
-    widget1.show()
-
-    # Ugly pause but that's just for testing    
-    import time
-    time.sleep(2)
-    
-    widget2 = iapp.new_ipywidget()
-    widget2.show()
-    
-    # Start the application main loop.
-    QApplication.instance().exec_()

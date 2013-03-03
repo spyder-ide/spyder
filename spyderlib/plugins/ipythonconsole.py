@@ -28,6 +28,8 @@ import time
 
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
+from IPython.frontend.qt.kernelmanager import QtKernelManager
+from IPython.lib.kernel import find_connection_file
 
 # Local imports
 from spyderlib.baseconfig import get_conf_path, _
@@ -37,7 +39,7 @@ from spyderlib.utils.misc import (get_error_match,
 from spyderlib.utils.qthelpers import (get_icon, get_std_icon, create_action,
                                        create_toolbutton, add_actions)
 from spyderlib.widgets.tabs import Tabs
-from spyderlib.widgets.ipython import IPythonApp
+from spyderlib.widgets.ipython import SpyderIPythonWidget
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.widgets.sourcecode import mixins
@@ -82,17 +84,6 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
         interface_group.setLayout(interface_layout)
-        
-        # Background Color Group
-        bg_group = QGroupBox(_("Background color"))
-        light_radio = self.create_radiobutton(_("Light background"),
-                                              'light_color')
-        dark_radio = self.create_radiobutton(_("Dark background"),
-                                             'dark_color')
-        bg_layout = QVBoxLayout()
-        bg_layout.addWidget(light_radio)
-        bg_layout.addWidget(dark_radio)
-        bg_group.setLayout(bg_layout)
 
         # Source Code Group
         source_code_group = QGroupBox(_("Source code"))
@@ -346,7 +337,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
 
         # --- Tabs organization ---
         tabs = QTabWidget()
-        tabs.addTab(self.create_tab(font_group, interface_group, bg_group,
+        tabs.addTab(self.create_tab(font_group, interface_group, 
                                     source_code_group), _("Display"))
         tabs.addTab(self.create_tab(pylab_group, backend_group, inline_group),
                                     _("Graphics"))
@@ -602,14 +593,11 @@ class IPythonConsole(SpyderPluginWidget):
 
     This is a widget with tabs where each one is an IPythonClient
     """
-
     CONF_SECTION = 'ipython_console'
     CONFIGWIDGET_CLASS = IPythonConsoleConfigPage
+
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
-        
-        self.ipython_app = None
-        self.initialize_application()
 
         self.tabwidget = None
         self.menu_actions = None
@@ -775,6 +763,23 @@ class IPythonConsole(SpyderPluginWidget):
         font = self.get_plugin_font()
         for client in self.clients:
             client.set_font(font)
+
+    def create_kernel_manager(self, connection_file=None):
+        """Create a kernel manager"""
+        cf = find_connection_file(connection_file, profile='default')
+        kernel_manager = QtKernelManager(connection_file=cf, config=None)
+        kernel_manager.load_connection_file()
+        kernel_manager.start_channels()
+        return kernel_manager
+
+    def new_ipywidget(self, connection_file=None, config=None):
+        """
+        Create and return a new IPyhon widget from a connection file basename
+        """
+        kernel_manager = self.create_kernel_manager(connection_file)
+        widget = SpyderIPythonWidget(config=config, local_kernel=False)
+        widget.kernel_manager = kernel_manager
+        return widget
     
     #------ Public API --------------------------------------------------------
     def get_clients(self):
@@ -904,27 +909,17 @@ class IPythonConsole(SpyderPluginWidget):
         ip_cfg._merge(spy_cfg)
         return ip_cfg
     
-    def initialize_application(self):
-        """Initialize IPython application"""
-        #======================================================================
-        # For IPython developers review [1]
-        self.ipython_app = IPythonApp()
-        # Is the following line really necessary?
-        #self.ipython_app.initialize_all_except_qt()
-        #======================================================================
-
     def register_client(self, connection_file, kernel_widget_id, client_name):
         """Register new IPython client"""
-        #======================================================================
-        # For IPython developers review [2]
-        ipywidget = self.ipython_app.new_ipywidget(connection_file,
+
+        ipywidget = self.new_ipywidget(connection_file,
                                                 config=self.ipywidget_config())
-        #======================================================================
 
         client = IPythonClient(self, connection_file, kernel_widget_id,
                                client_name, ipywidget,
                                history_filename='.history.py',
                                menu_actions=self.menu_actions)
+
         # QTextEdit Widgets
         control = client.ipywidget._control
         page_control = client.ipywidget._page_control
@@ -1113,7 +1108,7 @@ class IPythonConsole(SpyderPluginWidget):
         extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
         
         # Connect client to new kernel
-        kernel_manager = self.ipython_app.create_kernel_manager(connection_file)        
+        kernel_manager = self.create_kernel_manager(connection_file)        
         client.ipywidget.kernel_manager = kernel_manager
         client.kernel_widget_id = id(kernel_widget)
         client.get_control().setFocus()
