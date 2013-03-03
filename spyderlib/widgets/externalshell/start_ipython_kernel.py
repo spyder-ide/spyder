@@ -10,6 +10,7 @@
 import sys
 import os.path as osp
 
+
 def sympy_config(version):
     """Sympy configuration"""
     
@@ -128,6 +129,7 @@ def kernel_config():
     ip_cfg._merge(spy_cfg)
     return ip_cfg
 
+
 def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
     from spyderlib.utils import programs
@@ -145,7 +147,8 @@ def set_edit_magic(shell):
     else:
         # Don't wanna know how things were in previous versions
         pass
-    
+
+
 # Remove this module's path from sys.path:
 try:
     sys.path.remove(osp.dirname(__file__))
