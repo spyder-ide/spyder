@@ -8,13 +8,8 @@
 
 import sys
 import os.path as osp
+from distutils.version import LooseVersion
 
-def check_version(actual_str, required_str):
-    """Return True if actual_str version fit required_str requirement"""
-    actual = actual_str.split('.')
-    required = required_str.split('.')
-    return actual[0] < required[0] or \
-           (actual[0] == required[0] and actual[1] < required[1])
 
 def show_warning(message):
     """Show warning using Tkinter if available"""
@@ -42,12 +37,12 @@ def check_qt():
     qt_infos = dict(pyqt=("PyQt4", "4.4"), pyside=("PySide", "1.1.1"))
     try:
         from spyderlib import qt
-        package_name, required_str = qt_infos[qt.API]
-        actual_str = qt.__version__
-        if check_version(actual_str, required_str):
+        package_name, required_ver = qt_infos[qt.API]
+        actual_ver = qt.__version__
+        if LooseVersion(actual_ver) < LooseVersion(required_ver):
             show_warning("Please check Spyder installation requirements:\n"
                          "%s %s+ is required (found v%s)."
-                         % (package_name, required_str, actual_str))
+                         % (package_name, required_ver, actual_ver))
     except ImportError:
         show_warning("Please check Spyder installation requirements:\n"
                      "%s %s+ (or %s %s+) is required."
