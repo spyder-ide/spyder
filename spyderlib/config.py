@@ -244,8 +244,6 @@ DEFAULTS = [
               'use_pager': True,
               'show_calltips': False,
               'ask_before_closing': True,
-              'light_color': True,
-              'dark_color': False,
               'buffer_size': 10000,
               'pylab': True,
               'pylab/autoload': True,
