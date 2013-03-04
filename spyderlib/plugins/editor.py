@@ -1897,6 +1897,7 @@ class Editor(SpyderPluginWidget):
         if editorstack is not None:
             for data in editorstack.data:
                 data.editor.clear_breakpoints()
+        self.refresh_plugin()
                 
     def debug_command(self, command):
         """Debug actions"""

@@ -15,7 +15,7 @@
 from __future__ import with_statement
 
 from spyderlib.qt.QtGui import (QWidget, QTableView, QItemDelegate,
-                                QVBoxLayout)
+                                QVBoxLayout, QMenu)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QTextCodec,
                                  QModelIndex, QAbstractTableModel)
 locale_codec = QTextCodec.codecForLocale()
@@ -26,6 +26,7 @@ import os.path as osp
 # Local imports
 from spyderlib.baseconfig import get_translation
 from spyderlib.config import CONF
+from spyderlib.utils.qthelpers import create_action, add_actions
 
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
 
@@ -126,6 +127,13 @@ class BreakpointTableView(QTableView):
 
         self.setup_table()
         
+        # Create right-click popup menu
+        self.popup_menu = QMenu(self)
+        clear_breakpoints_action = create_action(self, 
+                _("Clear breakpoints in all files"),
+                triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+        add_actions(self.popup_menu, (clear_breakpoints_action,))
+        
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -143,10 +151,15 @@ class BreakpointTableView(QTableView):
     def mouseDoubleClickEvent(self, event):
         """Reimplement Qt method"""
         index_clicked = self.indexAt(event.pos())
-        filename = self.model.breakpoints[index_clicked.row()][0]
-        line_number_str = self.model.breakpoints[index_clicked.row()][1]
-        self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
-                           filename, int(line_number_str), '')   
+        if self.model.breakpoints:
+            filename = self.model.breakpoints[index_clicked.row()][0]
+            line_number_str = self.model.breakpoints[index_clicked.row()][1]
+            self.emit(SIGNAL("edit_goto(QString,int,QString)"),
+                               filename, int(line_number_str), '')
+                           
+    def contextMenuEvent(self, event):
+        self.popup_menu.popup(event.globalPos())
+        event.accept()
 
 class BreakpointWidget(QWidget):
     """
@@ -163,6 +176,11 @@ class BreakpointWidget(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.dictwidget)
         self.setLayout(layout)
+        self.connect(self.dictwidget, SIGNAL('clear_all_breakpoints()'),
+                     lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+        self.connect(self.dictwidget, SIGNAL("edit_goto(QString,int,QString)"),
+                     lambda s1, lino, s2: self.emit(
+                     SIGNAL("edit_goto(QString,int,QString)"), s1, lino, s2))
     
     def _load_all_breakpoints(self):
         bp_dict = CONF.get('run', 'breakpoints', {})
