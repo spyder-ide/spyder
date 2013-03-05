@@ -1207,6 +1207,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def clear_breakpoints(self):
         """Clear breakpoints"""
+        self.breakpoints = []
         for data in self.blockuserdata_list[:]:
             data.breakpoint = False
 #            data.breakpoint_condition = None # not necessary, but logical

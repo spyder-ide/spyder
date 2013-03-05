@@ -63,10 +63,17 @@ def save_breakpoints(filename, breakpoints):
     bp_dict = _load_all_breakpoints()
     bp_dict[filename] = breakpoints
     CONF.set('run', 'breakpoints', bp_dict)
-    
+
 def clear_all_breakpoints():
     CONF.set('run', 'breakpoints', {})
 
+def clear_breakpoint(filename, lineno):
+    breakpoints = load_breakpoints(filename)
+    if breakpoints:
+        for breakpoint in breakpoints[:]:
+            if breakpoint[0] == lineno:
+                breakpoints.remove(breakpoint)
+        save_breakpoints(filename, breakpoints)
 
 WINPDB_PATH = programs.find_program('winpdb')
 
@@ -1898,6 +1905,16 @@ class Editor(SpyderPluginWidget):
             for data in editorstack.data:
                 data.editor.clear_breakpoints()
         self.refresh_plugin()
+                
+    def clear_breakpoint(self, filename, lineno):
+        """Remove a single breakpoint"""
+        clear_breakpoint(filename, lineno)
+        self.emit(SIGNAL("breakpoints_saved()"))
+        editorstack = self.get_current_editorstack()
+        if editorstack is not None:
+            index = self.is_file_opened(filename)
+            if index is not None:
+                editorstack.data[index].editor.add_remove_breakpoint(lineno)
                 
     def debug_command(self, command):
         """Debug actions"""

@@ -127,13 +127,6 @@ class BreakpointTableView(QTableView):
 
         self.setup_table()
         
-        # Create right-click popup menu
-        self.popup_menu = QMenu(self)
-        clear_breakpoints_action = create_action(self, 
-                _("Clear breakpoints in all files"),
-                triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
-        add_actions(self.popup_menu, (clear_breakpoints_action,))
-        
     def setup_table(self):
         """Setup table"""
         self.horizontalHeader().setStretchLastSection(True)
@@ -158,6 +151,23 @@ class BreakpointTableView(QTableView):
                                filename, int(line_number_str), '')
                            
     def contextMenuEvent(self, event):
+        index_clicked = self.indexAt(event.pos())
+        actions = []
+        self.popup_menu = QMenu(self)
+        if self.model.breakpoints:
+            filename = self.model.breakpoints[index_clicked.row()][0]
+            lineno = int(self.model.breakpoints[index_clicked.row()][1])         
+            clear_breakpoint_action = create_action(self,
+                    _("Clear this breakpoint"),
+                    triggered=lambda filename=filename, lineno=lineno: \
+                    self.emit(SIGNAL('clear_breakpoint(QString,int)'),
+                              filename, lineno))
+            actions.append(clear_breakpoint_action)
+        clear_all_breakpoints_action = create_action(self, 
+            _("Clear breakpoints in all files"),
+            triggered=lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+        actions.append(clear_all_breakpoints_action)
+        add_actions(self.popup_menu, actions)        
         self.popup_menu.popup(event.globalPos())
         event.accept()
 
@@ -178,6 +188,9 @@ class BreakpointWidget(QWidget):
         self.setLayout(layout)
         self.connect(self.dictwidget, SIGNAL('clear_all_breakpoints()'),
                      lambda: self.emit(SIGNAL('clear_all_breakpoints()')))
+        self.connect(self.dictwidget, SIGNAL('clear_breakpoint(QString,int)'),
+                     lambda s1, lino: self.emit(
+                     SIGNAL('clear_breakpoint(QString,int)'), s1, lino))
         self.connect(self.dictwidget, SIGNAL("edit_goto(QString,int,QString)"),
                      lambda s1, lino, s2: self.emit(
                      SIGNAL("edit_goto(QString,int,QString)"), s1, lino, s2))
