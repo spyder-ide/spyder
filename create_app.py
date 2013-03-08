@@ -76,7 +76,8 @@ DEPS = ['pylint', 'logilab_astng', 'logilab_common', 'pep8', 'setuptools']
 EXCLUDES = DEPS + ['mercurial', 'nose']
 PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'IPython', 'zmq', 'pygments', 'rope', 'distutils', 'PIL', 'PyQt4',
-            'sklearn', 'skimage', 'pandas', 'sympy', 'mpmath', 'statsmodels']
+            'sklearn', 'skimage', 'pandas', 'sympy', 'mpmath', 'statsmodels',
+            'mpl_toolkits']
 INCLUDES = get_stdlib_modules()
 
 OPTIONS = {
