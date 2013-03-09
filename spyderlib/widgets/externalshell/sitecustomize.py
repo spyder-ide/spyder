@@ -104,23 +104,30 @@ if os.name == 'nt': # Windows platforms
     except ImportError:
         pass
 
-# Several fixes for our Mac app
+
+# For our MacOs X app
 if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-    import site
-    import osx_app_site
-
-    osx_app_site.setcopyright()
-    osx_app_site.sethelper()
-    site._Printer = osx_app_site._Printer
-    site.USER_BASE = osx_app_site.getuserbase()
-    site.USER_SITE = osx_app_site.getusersitepackages()
-
-    # Change the interpreter's sys.path in case is not the one
-    # that comes with the app
+    # Fix sys.path for interpreters different from the one
+    # that comes with the app (e.g. EPD)
     interpreter = os.environ.get('SPYDER_INTERPRETER')
     if 'Spyder.app' not in interpreter:
-        new_sys_path = os.environ.get('SPYDER_APP_SYS_PATH')
-        sys.path = eval(new_sys_path)
+        del os.environ['PYTHONPATH']
+        app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
+        full_pythonpath = filter(lambda p: p.endswith(app_pythonpath),
+                                 sys.path)
+        # Add the App's main python path to the end of sys.path
+        if full_pythonpath:
+            sys.path.remove(full_pythonpath[0])
+            sys.path.append(full_pythonpath[0])
+    else:
+        import site
+        import osx_app_site
+        osx_app_site.setcopyright()
+        osx_app_site.sethelper()
+        site._Printer = osx_app_site._Printer
+        site.USER_BASE = osx_app_site.getuserbase()
+        site.USER_SITE = osx_app_site.getusersitepackages()
+
 
 # Set standard outputs encoding:
 # (otherwise, for example, print u"é" will fail)
