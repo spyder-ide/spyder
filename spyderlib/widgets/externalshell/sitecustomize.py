@@ -71,23 +71,6 @@ if pyqt_api:
         pass
 
 
-mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
-if mpl_backend:
-    try:
-        import matplotlib
-        matplotlib.use(mpl_backend)
-    except ImportError:
-        pass
-
-
-if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
-    try:
-        from spyderlib import mpl_patch
-        mpl_patch.apply()
-    except ImportError:
-        pass
-
-
 if os.name == 'nt': # Windows platforms
             
     # Setting console encoding (otherwise Python does not recognize encoding)
@@ -107,19 +90,22 @@ if os.name == 'nt': # Windows platforms
 
 # For our MacOs X app
 if sys.platform == 'darwin' and 'Spyder.app' in __file__:
-    # Fix sys.path for interpreters different from the one
-    # that comes with the app (e.g. EPD)
     interpreter = os.environ.get('SPYDER_INTERPRETER')
     if 'Spyder.app' not in interpreter:
+        # We added this file's dir to PYTHONPATH so that external
+        # interpreters can import this script, so now we have to
+        # remove it
         del os.environ['PYTHONPATH']
+
+        # Add the App's main python path at the end of sys.path
         app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
         full_pythonpath = filter(lambda p: p.endswith(app_pythonpath),
                                  sys.path)
-        # Add the App's main python path to the end of sys.path
         if full_pythonpath:
             sys.path.remove(full_pythonpath[0])
             sys.path.append(full_pythonpath[0])
     else:
+        # Add missing variables and methods to the app's site module
         import site
         import osx_app_site
         osx_app_site.setcopyright()
@@ -127,6 +113,23 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         site._Printer = osx_app_site._Printer
         site.USER_BASE = osx_app_site.getuserbase()
         site.USER_SITE = osx_app_site.getusersitepackages()
+
+
+mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
+if mpl_backend:
+    try:
+        import matplotlib
+        matplotlib.use(mpl_backend)
+    except ImportError:
+        pass
+
+
+if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
+    try:
+        from spyderlib import mpl_patch
+        mpl_patch.apply()
+    except ImportError:
+        pass
 
 
 # Set standard outputs encoding:
