@@ -34,7 +34,7 @@ __forum_url__   = 'http://groups.google.com/group/spyderlib'
 
 # Dear (Debian, RPM, ...) package makers, please feel free to customize the
 # following path to module's data (images) and translations:
-DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = ''
+DATAPATH = LOCALEPATH = DOCPATH = MATHJAXPATH = JQUERYPATH = ''
 
 def add_to_distribution(dist):
     """Add package to py2exe/cx_Freeze distribution object

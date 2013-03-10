@@ -5,10 +5,10 @@ Process docstrings with Sphinx
 
 AUTHORS:
 - Tim Joseph Dumol (2009-09-29): initial version
-- The Spyder Team: Several changes to make it work with Spyder
+- The Spyder Development Team: Several changes to make it work with Spyder
 
 Copyright (C) 2009 Tim Dumol <tim@timdumol.com>
-Copyright (C) 2012 The Spyder Development Team
+Copyright (C) 2013 The Spyder Development Team
 Distributed under the terms of the BSD License
 
 Taken from the Sage project (www.sagemath.org).
@@ -35,17 +35,39 @@ from spyderlib.baseconfig import (_, get_module_data_path,
                                   get_module_source_path)
 from spyderlib.utils import encoding
 
+
+#-----------------------------------------------------------------------------
+# Globals and constants
+#-----------------------------------------------------------------------------
+
 # Note: we do not use __file__ because it won't be working in the stand-alone
 # version of Spyder (i.e. the py2exe or cx_Freeze build)
 CONFDIR_PATH = get_module_source_path('spyderlib.utils.inspector')
 CSS_PATH = osp.join(CONFDIR_PATH, 'static', 'css')
+JS_PATH = osp.join(CONFDIR_PATH, 'js')
 
+# To let Debian packagers redefine the MathJax and JQuery locations so they can
+# use their own packages for them. See Issue 1230, comment #7.
+MATHJAX_PATH = get_module_data_path('spyderlib',
+                                    relpath=osp.join('utils', 'inspector',
+                                                     JS_PATH, 'mathjax'),
+                                    attr_name='MATHJAXPATH')
+
+JQUERY_PATH = get_module_data_path('spyderlib',
+                                   relpath=osp.join('utils', 'inspector',
+                                                    JS_PATH),
+                                   attr_name='JQUERYPATH')
+
+#-----------------------------------------------------------------------------
+# Utility functions
+#-----------------------------------------------------------------------------
 
 def is_sphinx_markup(docstring):
     """Returns whether a string contains Sphinx-style ReST markup."""
     
     # this could be made much more clever
     return ("`" in docstring or "::" in docstring)
+
 
 def warning(message):
     """Print a warning message on the rich text view"""
@@ -54,6 +76,7 @@ def warning(message):
     env.loader = FileSystemLoader(osp.join(CONFDIR_PATH, 'templates'))
     warning = env.get_template("warning.html")
     return warning.render(css_path=CSS_PATH, text=message)
+
 
 def generate_context(name, argspec, note, math):
     """
@@ -80,14 +103,6 @@ def generate_context(name, argspec, note, math):
     -------
     A dict of strings to be used by Jinja to generate the webpage
     """
-
-    # To let Debian packagers redefine the MathJax location so they can use
-    # their own package for it. See Issue 1230, comment #7.
-    js_path = osp.join(CONFDIR_PATH, 'js')
-    mathjax_path = get_module_data_path('spyderlib',
-                                        relpath=osp.join('utils', 'inspector',
-                                                         js_path, 'mathjax'),
-                                        attr_name='MATHJAXPATH')
     
     context = \
     {
@@ -99,14 +114,15 @@ def generate_context(name, argspec, note, math):
       
       # Static variables
       'css_path': CSS_PATH,
-      'js_path': js_path,
-      'jquery_path': osp.join(sphinx.package_dir, 'themes', 'basic', 'static'),
-      'mathjax_path': mathjax_path,
+      'js_path': JS_PATH,
+      'jquery_path': JQUERY_PATH,
+      'mathjax_path': MATHJAX_PATH,
       'right_sphinx_version': '' if sphinx.__version__ < "1.1" else 'true',
       'platform': sys.platform
     }
     
     return context
+
 
 def sphinxify(docstring, context, buildername='html'):
     """
