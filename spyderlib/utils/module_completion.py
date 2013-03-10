@@ -136,10 +136,13 @@ def get_root_modules(paths):
 
 def get_submodules(mod):
     """Get all submodules of a given module"""
+    def catch_exceptions(module):
+        pass
     try:
         m = __import__(mod)
         submodules = [mod]
-        submods = pkgutil.walk_packages(m.__path__, m.__name__ + '.')
+        submods = pkgutil.walk_packages(m.__path__, m.__name__ + '.',
+                                        catch_exceptions)
         for sm in submods:
             sm_name = sm[1]
             submodules.append(sm_name)
@@ -266,8 +269,8 @@ def get_preferred_submodules():
             'cmath', 'collections', 'datetime', 'errno', 'exceptions', 'gc',
             'imageop', 'imp', 'itertools', 'marshal', 'math', 'mmap', 'msvcrt',
             'nt', 'operator', 'parser', 'rgbimg', 'signal', 'strop', 'sys',
-            'thread', 'time', 'wx', 'wxPython', 'xxsubtype', 'zipimport',
-             'zlib', 'nose', 'PyQt4', 'PySide', 'os.path']
+            'thread', 'time', 'wx', 'xxsubtype', 'zipimport', 'zlib', 'nose',
+            'PyQt4', 'PySide', 'os.path']
 
     submodules = []
     for m in mods:
