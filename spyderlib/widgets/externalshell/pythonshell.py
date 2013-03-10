@@ -394,6 +394,7 @@ The process may not exit as a result of clicking this button
                                           self.arguments)
         
         env = [unicode(_path) for _path in self.process.systemEnvironment()]
+
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
@@ -486,16 +487,21 @@ The process may not exit as a result of clicking this button
         if executable is None:
             executable = get_python_executable()
         
-        # For our Mac app: Save sys.path when the interpreter is not the
-        # same that comes with the app
+        # Mac app:
+        # Modifications to run interpreters that are not the one that comes
+        # with the app (e.g. EPD)
+        # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
+        #    but their values are messing sys.path for other interpreters,
+        #    so we need to remove them from the environment.
+        # 2. Add this file's dir to PYTHONPATH. This will make the new
+        #    interpreter to use our sitecustomize script.
         if sys.platform == 'darwin' and 'Spyder.app' in __file__:
             env.append('SPYDER_INTERPRETER=%s' % executable)
             if 'Spyder.app' not in executable:
-                import subprocess
-                int_sys_path = subprocess.check_output([executable, '-E', '-c',
-                                                 'import sys; print sys.path'])
-                new_sys_path = pathlist + eval(int_sys_path)
-                env.append('SPYDER_APP_SYS_PATH=%s' % str(new_sys_path))
+                env = [p for p in env if not (p.startswith('PYTHONPATH') or \
+                                              p.startswith('PYTHONHOME'))] # 1.
+
+                env.append('PYTHONPATH=%s' % osp.dirname(__file__))        # 2.
 
         self.process.setEnvironment(env)
         self.process.start(executable, p_args)
