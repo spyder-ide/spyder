@@ -207,6 +207,43 @@ class PlainText(QWidget):
         self.editor.clear()
 
 
+class SphinxThread(QThread):
+    """
+    A worker thread for handling rich text rendering.
+    
+    Parameters
+    ----------
+    text : dict
+        A dict containing the doc string components to be rendered.
+    html_text_no_doc : unicode
+        Text to be rendered if doc string cannot be extracted.
+    math_option : bool
+        Use LaTeX math rendering.
+        
+    """
+    def __init__(self, text={}, html_text_no_doc='', math_option=False):
+        super(SphinxThread, self).__init__()
+        self.text = text
+        self.html_text_no_doc = html_text_no_doc
+        self.math_option = math_option
+
+    def run(self):
+        text = self.text
+        if text is not None and text['docstring'] != '':
+            try:
+                context = generate_context(name=text['name'],
+                                           argspec=text['argspec'],
+                                           note=text['note'],
+                                           math=self.math_option)
+                html_text = sphinxify(text['docstring'], context)
+            except Exception, error:
+                self.emit(SIGNAL('error_msg(QString)'), unicode(error))
+                return
+        else:
+            html_text = self.html_text_no_doc
+        self.emit(SIGNAL('html_ready(QString)'), html_text)
+
+
 class ObjectInspector(SpyderPluginWidget):
     """
     Docstrings viewer widget
@@ -810,40 +847,3 @@ class ObjectInspector(SpyderPluginWidget):
         
         self.set_plain_text(hlp_text, is_code=is_code)
         return True
-
-class SphinxThread(QThread):
-    """
-    A worker thread for handling rich text rendering.
-    
-    Parameters
-    ----------
-    text : dict
-        A dict containing the doc string components to be rendered.
-    html_text_no_doc : unicode
-        Text to be rendered if doc string cannot be extracted.
-    math_option : bool
-        Use LaTeX math rendering.
-        
-    """
-    def __init__(self, text={}, html_text_no_doc='', math_option=False):
-        super(SphinxThread, self).__init__()
-        self.text = text
-        self.html_text_no_doc = html_text_no_doc
-        self.math_option = math_option
-
-    def run(self):
-        text = self.text
-        if text is not None and text['docstring'] != '':
-            try:
-                context = generate_context(name=text['name'],
-                                           argspec=text['argspec'],
-                                           note=text['note'],
-                                           math=self.math_option)
-                html_text = sphinxify(text['docstring'], context)
-            except Exception, error:
-                self.emit(SIGNAL('error_msg(QString)'), unicode(error))
-                return
-        else:
-            html_text = self.html_text_no_doc
-        self.emit(SIGNAL('html_ready(QString)'), html_text)
-        
