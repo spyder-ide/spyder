@@ -292,7 +292,6 @@ class FileInfo(QObject):
         self.todo_results = []
         self.lastmodified = QFileInfo(filename).lastModified()
 
-        self.submods_thread.start()
         self.connect(editor, SIGNAL('trigger_code_completion(bool)'),
                      self.trigger_code_completion)
         self.connect(editor, SIGNAL('trigger_calltip_and_doc_rendering(int)'),
@@ -310,6 +309,8 @@ class FileInfo(QObject):
         
         self.pyflakes_results = None
         self.pep8_results = None
+
+        self.submods_thread.start()
     
     def update_extension_modules(self):
         self.rope_project.set_pref('extension_modules',
