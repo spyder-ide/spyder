@@ -22,8 +22,8 @@ from spyderlib.utils import iofuncs, codeanalysis
 
 
 SANS_SERIF = ['Sans Serif', 'DejaVu Sans', 'Bitstream Vera Sans',
-              'Bitstream Charter', 'Lucida Grande', 'Calibri',
-              'MS Shell Dlg 2', 'Verdana', 'Geneva', 'Lucid', 'Arial',
+              'Bitstream Charter', 'Lucida Grande', 'MS Shell Dlg 2',
+              'Calibri', 'Verdana', 'Geneva', 'Lucid', 'Arial',
               'Helvetica', 'Avant Garde', 'Times', 'sans-serif']
 
 MONOSPACE = ['Monospace', 'DejaVu Sans Mono', 'Consolas', 'Monaco',
