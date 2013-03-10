@@ -93,9 +93,9 @@ mac_and_epd = False    # Are we on Mac and using EPD?
 if sys.platform == 'darwin' and 'Spyder.app' in __file__:
     interpreter = os.environ.get('SPYDER_INTERPRETER')
     if 'Spyder.app' not in interpreter:
-        # We added this file's dir to PYTHONPATH so that external
-        # interpreters can import this script, so now we have to
-        # remove it
+        # We added this file's dir to PYTHONPATH (in pythonshell.py)
+        # so that external interpreters can import this script, and
+        # now we are removing it
         del os.environ['PYTHONPATH']
 
         # Add the App's main python path at the end of sys.path
@@ -128,10 +128,9 @@ if mpl_backend:
         import matplotlib
         if mac_and_epd:
             # Just for precaution, since mpl is not working with PySide
-            # in Qt applications, because of its lack of an input hook
+            # inside Qt apps, because of its lack of an input hook
             matplotlib.rcParams['backend.qt4'] = 'PySide'
-        else:
-            matplotlib.use(mpl_backend)
+        matplotlib.use(mpl_backend)
     except ImportError:
         pass
 

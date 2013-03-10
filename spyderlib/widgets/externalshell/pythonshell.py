@@ -493,7 +493,7 @@ The process may not exit as a result of clicking this button
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
         #    but their values are messing sys.path for other interpreters,
         #    so we need to remove them from the environment.
-        # 2. Add this file's dir to PYTHONPATH. This will make the new
+        # 2. Add this file's dir to PYTHONPATH. This will make every external
         #    interpreter to use our sitecustomize script.
         if sys.platform == 'darwin' and 'Spyder.app' in __file__:
             env.append('SPYDER_INTERPRETER=%s' % executable)
