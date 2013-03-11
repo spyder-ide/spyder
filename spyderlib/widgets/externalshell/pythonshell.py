@@ -487,14 +487,14 @@ The process may not exit as a result of clicking this button
         if executable is None:
             executable = get_python_executable()
         
-        # Mac app:
-        # Modifications to run interpreters that are not the one that comes
-        # with the app (e.g. EPD)
+        # Fixes for our Mac app:
         # 1. PYTHONPATH and PYTHONHOME are set while bootstrapping the app,
-        #    but their values are messing sys.path for other interpreters,
-        #    so we need to remove them from the environment.
+        #    but their values are messing sys.path for external interpreters
+        #    (e.g. EPD) so we need to remove them from the environment.
         # 2. Add this file's dir to PYTHONPATH. This will make every external
         #    interpreter to use our sitecustomize script.
+        # 3. Remove PYTHONOPTIMIZE from env so that we can have assert
+        #    statements working with our interpreters (See Issue 1281)
         if sys.platform == 'darwin' and 'Spyder.app' in __file__:
             env.append('SPYDER_INTERPRETER=%s' % executable)
             if 'Spyder.app' not in executable:
@@ -502,6 +502,8 @@ The process may not exit as a result of clicking this button
                                               p.startswith('PYTHONHOME'))] # 1.
 
                 env.append('PYTHONPATH=%s' % osp.dirname(__file__))        # 2.
+
+            env = [p for p in env if not p.startswith('PYTHONOPTIMIZE')]   # 3.
 
         self.process.setEnvironment(env)
         self.process.start(executable, p_args)
