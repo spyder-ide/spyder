@@ -8,6 +8,7 @@
 #  a) IPython is not an Spyder runtime dependency, and b) we want to perfom
 #  module completion not only on our Python console, but also on our source
 #  code editor.
+#
 #  Several of these functions were modified to make it work according to our
 #  needs
 #
@@ -39,11 +40,18 @@ MODULES_PATH = get_conf_path('db')
 # Time in seconds after which we give up
 TIMEOUT_GIVEUP = 20
 
+# Py2app only uses .pyc files for the stdlib when optimize=0,
+# so we need to add it as another suffix here
+if sys.platform == 'darwin' and 'Spyder.app' in __file__:
+    suffixes = imp.get_suffixes() + [('.pyc', 'rb', '2')]
+else:
+    suffixes = imp.get_suffixes()
+
 # Regular expression for the python import statement
 import_re = re.compile(r'(?P<name>[a-zA-Z_][a-zA-Z0-9_]*?)'
                        r'(?P<package>[/\\]__init__)?'
                        r'(?P<suffix>%s)$' %
-                       r'|'.join(re.escape(s[0]) for s in imp.get_suffixes()))
+                       r'|'.join(re.escape(s[0]) for s in suffixes))
 
 # Modules database
 modules_db = PickleShareDB(MODULES_PATH)
