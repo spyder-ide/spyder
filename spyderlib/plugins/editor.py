@@ -475,6 +475,9 @@ class Editor(SpyderPluginWidget):
                      lambda filenames, goto, word:
                      self.load(filenames=filenames, goto=goto, word=word,
                                editorwindow=self))
+        self.connect(self.outlineexplorer, SIGNAL("edit(QString)"),
+                     lambda filenames:
+                     self.load(filenames=filenames, editorwindow=self))
             
     def show_hide_outline_explorer(self):
         if self.outlineexplorer is not None:
