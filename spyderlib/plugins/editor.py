@@ -470,6 +470,7 @@ class Editor(SpyderPluginWidget):
         self.outlineexplorer = outlineexplorer
         for editorstack in self.editorstacks:
             editorstack.set_outlineexplorer(self.outlineexplorer)
+        self.editorstacks[0].initialize_outlineexplorer()
         self.connect(self.outlineexplorer,
                      SIGNAL("edit_goto(QString,int,QString)"),
                      lambda filenames, goto, word:

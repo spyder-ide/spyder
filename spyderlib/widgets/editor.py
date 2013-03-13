@@ -790,6 +790,13 @@ class EditorStack(QWidget):
         self.connect(self.outlineexplorer,
                      SIGNAL("outlineexplorer_is_visible()"),
                      self._refresh_outlineexplorer)
+
+    def initialize_outlineexplorer(self):
+        """This method is called separately from 'set_oulineexplorer' to avoid 
+        doing unnecessary updates when there are multiple editor windows"""
+        for index in range(self.get_stack_count()):
+            if index != self.get_stack_index():
+                self._refresh_outlineexplorer(index=index)
         
     def add_outlineexplorer_button(self, editor_plugin):
         oe_btn = create_toolbutton(editor_plugin)
@@ -2144,9 +2151,7 @@ class EditorWidget(QSplitter):
         splitter.setStretchFactor(1, 1)
 
         # Refreshing outline explorer
-        for index in range(editorsplitter.editorstack.get_stack_count()):
-            editorsplitter.editorstack._refresh_outlineexplorer(index,
-                                                                update=True)
+        editorsplitter.editorstack.initialize_outlineexplorer()
         
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
