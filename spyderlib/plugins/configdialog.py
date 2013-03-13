@@ -12,10 +12,11 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
-                                 set_default_color_scheme, COLOR_SCHEME_NAMES)
+                                 set_default_color_scheme)
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 
 from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
                                 QVBoxLayout, QStackedWidget, QListView,
@@ -772,7 +773,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                     cs_layout.addWidget(cb_bold, row+1, 2)
                     cs_layout.addWidget(cb_italic, row+1, 3)
             cs_group.setLayout(cs_layout)
-            if tabname in COLOR_SCHEME_NAMES:
+            if tabname in sh.COLOR_SCHEME_NAMES:
                 def_btn = self.create_button(_("Reset to default values"),
                                          lambda: self.reset_to_default(tabname))
                 tabs.addTab(self.create_tab(cs_group, def_btn), tabname)

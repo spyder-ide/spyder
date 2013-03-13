@@ -117,5 +117,5 @@ def set_default_color_scheme(name, replace=True):
 for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)
 CUSTOM_COLOR_SCHEME_NAME = "Custom"
-set_color_scheme(sh.CUSTOM_COLOR_SCHEME_NAME,
+set_color_scheme(CUSTOM_COLOR_SCHEME_NAME,
                  sh.COLORS["Spyder"], replace=False)
