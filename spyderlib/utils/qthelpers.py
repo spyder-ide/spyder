@@ -6,9 +6,6 @@
 
 """Qt utilities"""
 
-import os, re
-import os.path as osp
-
 from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QLabel, QVBoxLayout, QHBoxLayout, QLineEdit,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
@@ -16,6 +13,10 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
 from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
                                  QLibraryInfo)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
+
+import os
+import re
+import os.path as osp
 
 # Local import
 from spyderlib.baseconfig import get_image_path

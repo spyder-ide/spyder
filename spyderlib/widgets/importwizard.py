@@ -47,7 +47,7 @@ class FakeObject(object):
 try:
     from numpy import ndarray, array
 except ImportError:
-    class ndarray(FakeObject):
+    class ndarray(FakeObject):  # analysis:ignore
         """Fake ndarray"""
         pass
 
@@ -57,7 +57,7 @@ try:
     from dateutil.parser import parse as dateparse
 except ImportError:
     from string import atoi
-    def dateparse(datestr, dayfirst=True):
+    def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
         _a, _b, _c = map(atoi, datestr.split('/'))
         if dayfirst:
@@ -588,7 +588,7 @@ class ImportWizard(QDialog):
 def test(text):
     """Test"""
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    _app = qapplication()  # analysis:ignore
     dialog = ImportWizard(None, text)
     if dialog.exec_():
         print dialog.get_data()

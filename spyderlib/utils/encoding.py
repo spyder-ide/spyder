@@ -13,8 +13,12 @@ source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 
 from __future__ import with_statement
 
-import re, os, locale, sys
+import re
+import os
+import locale
+import sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
 

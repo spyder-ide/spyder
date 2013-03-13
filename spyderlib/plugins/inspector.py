@@ -35,7 +35,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
-    IPythonControlWidget = None
+    IPythonControlWidget = None  # analysis:ignore
 
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 

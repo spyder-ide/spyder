@@ -14,16 +14,11 @@ Important note regarding shortcuts:
         Ctrl + Alt + Q, W, F, G, Y, X, C, V, B, N
 """
 
-import os
-import os.path as osp
+from spyderlib.qt.QtGui import QFont, QFontDatabase
 
-from spyderlib.qt.QtGui import QLabel, QIcon, QPixmap, QFont, QFontDatabase
-
-from spyderlib.baseconfig import get_module_data_path
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
-from spyderlib.widgets.sourcecode.syntaxhighlighters import (
-                                 COLOR_SCHEME_KEYS, COLOR_SCHEME_NAMES, COLORS)
+from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
 
 
 def font_is_installed(font):
@@ -98,7 +93,7 @@ def reset_shortcuts():
 def get_color_scheme(name):
     """Get syntax color scheme"""
     color_scheme = {}
-    for key in COLOR_SCHEME_KEYS:
+    for key in sh.COLOR_SCHEME_KEYS:
         color_scheme[key] = CONF.get("color_schemes", "%s/%s" % (name, key))
     return color_scheme
 
@@ -106,7 +101,7 @@ def set_color_scheme(name, color_scheme, replace=True):
     """Set syntax color scheme"""
     section = "color_schemes"
     names = CONF.get("color_schemes", "names", [])
-    for key in COLOR_SCHEME_KEYS:
+    for key in sh.COLOR_SCHEME_KEYS:
         option = "%s/%s" % (name, key)
         value = CONF.get(section, option, default=None)
         if value is None or replace or name not in names:
@@ -116,10 +111,11 @@ def set_color_scheme(name, color_scheme, replace=True):
 
 def set_default_color_scheme(name, replace=True):
     """Reset color scheme to default values"""
-    assert name in COLOR_SCHEME_NAMES
-    set_color_scheme(name, COLORS[name], replace=replace)
+    assert name in sh.COLOR_SCHEME_NAMES
+    set_color_scheme(name, sh.COLORS[name], replace=replace)
 
-for _name in COLOR_SCHEME_NAMES:
+for _name in sh.COLOR_SCHEME_NAMES:
     set_default_color_scheme(_name, replace=False)
 CUSTOM_COLOR_SCHEME_NAME = "Custom"
-set_color_scheme(CUSTOM_COLOR_SCHEME_NAME, COLORS["Spyder"], replace=False)
+set_color_scheme(sh.CUSTOM_COLOR_SCHEME_NAME,
+                 sh.COLORS["Spyder"], replace=False)

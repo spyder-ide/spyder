@@ -6,7 +6,12 @@
 #      thread. We must find another mechanism to avoid refreshing systematically
 #      remote views for all consoles...!
 
-import os, threading, socket, thread, struct, cPickle as pickle
+import os
+import threading
+import socket
+import thread
+import struct
+import cPickle as pickle
 
 # Local imports
 from spyderlib.utils.misc import fix_reference_name

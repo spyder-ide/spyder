@@ -16,6 +16,7 @@ import os
 from spyderlib.baseconfig import _
 from spyderlib.widgets.dicteditor import DictEditor
 
+
 def envdict2listdict(envdict):
     """Dict --> Dict of lists"""
     sep = os.path.pathsep

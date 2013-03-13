@@ -77,7 +77,7 @@ class TextEditor(QDialog):
 def test():
     """Text editor demo"""
     from spyderlib.utils.qthelpers import qapplication
-    _app = qapplication()
+    _app = qapplication()  # analysis:ignore
     dialog = TextEditor("""
     01234567890123456789012345678901234567890123456789012345678901234567890123456789
     dedekdh elkd ezd ekjd lekdj elkdfjelfjk e

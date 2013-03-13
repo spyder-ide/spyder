@@ -16,7 +16,6 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import os, sys, datetime
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
@@ -25,6 +24,10 @@ from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
 from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT, QDateTime, Signal)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
+
+import os
+import sys
+import datetime
 
 # Local import
 from spyderlib.baseconfig import _

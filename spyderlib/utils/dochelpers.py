@@ -6,7 +6,8 @@
 
 """Utilities and wrappers around inspect module"""
 
-import inspect, re
+import inspect
+import re
 
 # Local imports:
 from spyderlib.utils import encoding

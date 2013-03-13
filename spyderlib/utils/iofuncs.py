@@ -30,7 +30,7 @@ try:
             import scipy.io as spio
     except AttributeError:
         # Python 2.5: warnings.catch_warnings was introduced in Python 2.6
-        import scipy.io as spio
+        import scipy.io as spio  # analysis:ignore
     def load_matlab(filename):
         try:
             out = spio.loadmat(filename, struct_as_record=True,
@@ -58,7 +58,7 @@ except ImportError:
 
 
 try:
-    import numpy as np
+    import numpy as np  # analysis:ignore
     def load_array(filename):
         try:
             name = osp.splitext(osp.basename(filename))[0]
