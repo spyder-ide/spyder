@@ -269,12 +269,12 @@ class PylintWidget(QWidget):
         index, _data = self.get_data(filename)
         if index is not None:
             self.rdata.pop(index)
-        self.rdata.append( (filename, data) )
+        self.rdata.insert(0, (filename, data))
         self.save()
         
     def save(self):
         while len(self.rdata) > self.max_entries:
-            self.rdata.pop(0)
+            self.rdata.pop(-1)
         cPickle.dump([self.VERSION]+self.rdata, file(self.DATAPATH, 'w'))
         
     def show_log(self):
