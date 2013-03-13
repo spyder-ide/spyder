@@ -1143,12 +1143,16 @@ class EditorStack(QWidget):
             language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language)
         set_new_index = index == self.get_stack_index()
+        current_fname = self.get_current_filename()
         finfo.filename = new_filename
         self.data.sort(key=self.__get_sorting_func())
         new_index = self.data.index(finfo)
         self.__repopulate_stack()
         if set_new_index:
             self.set_stack_index(new_index)
+        else:
+            # Fixes Issue 1287
+            self.set_current_filename(current_fname)
         if self.outlineexplorer is not None:
             self.outlineexplorer.file_renamed(finfo.editor, finfo.filename)
         return new_index
