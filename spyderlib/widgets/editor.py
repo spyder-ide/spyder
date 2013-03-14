@@ -1630,11 +1630,15 @@ class EditorStack(QWidget):
         self.__file_status_flag = True
 
         finfo = self.data[index]
-        if finfo.newly_created:
-            return
         name = osp.basename(finfo.filename)        
-        # First, testing if file still exists (removed, moved or offline):
-        if not osp.isfile(finfo.filename):
+
+        if finfo.newly_created:
+            # File was just created (not yet saved): do nothing
+            # (do not return because of the clean-up at the end of the method)
+            pass
+
+        elif not osp.isfile(finfo.filename):
+            # File doesn't exist (removed, moved or offline):
             answer = QMessageBox.warning(self, self.title,
                                 _("<b>%s</b> is unavailable "
                                   "(this file may have been removed, moved "
@@ -1647,6 +1651,7 @@ class EditorStack(QWidget):
                 finfo.newly_created = True
                 finfo.editor.document().setModified(True)
                 self.modification_changed(index=index)
+
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
