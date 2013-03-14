@@ -1688,7 +1688,8 @@ class Editor(SpyderPluginWidget):
     
     
     #------ Explorer widget
-    def __close(self, filename):
+    def close_file_from_name(self, filename):
+        """Close file from its name"""
         filename = osp.abspath(unicode(filename))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
@@ -1696,7 +1697,7 @@ class Editor(SpyderPluginWidget):
                 
     def removed(self, filename):
         """File was removed in file explorer widget or in project explorer"""
-        self.__close(filename)
+        self.close_file_from_name(filename)
     
     def removed_tree(self, dirname):
         """Directory was removed in project explorer widget"""

@@ -340,6 +340,11 @@ class Workspace(object):
     def is_file_in_workspace(self, fname):
         """Return True if file *fname* is in one of the projects"""
         return any([proj.is_file_in_project(fname) for proj in self.projects])
+        
+    def is_file_in_closed_project(self, fname):
+        """Return True if file *fname* is in one of the closed projects"""
+        return any([proj.is_file_in_project(fname) for proj in self.projects
+                    if not proj.is_opened()])
     
     def is_in_pythonpath(self, dirname):
         """Return True if dirname is in workspace's PYTHONPATH"""
@@ -751,6 +756,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Close projects"""
         self.workspace.close_projects(projects)
         self.parent_widget.emit(SIGNAL("pythonpath_changed()"))
+        self.parent_widget.emit(SIGNAL("projects_were_closed()"))
         self.reset_icon_provider()
         for project in projects:
             index = self.get_index(project.root_path)

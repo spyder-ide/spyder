@@ -69,6 +69,8 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
                      self.restore_scrollbar_position)
         self.connect(self, SIGNAL("pythonpath_changed()"),
                      self.main.pythonpath_changed)
+        self.connect(self, SIGNAL("projects_were_closed()"),
+                     self.projects_were_closed)
         self.connect(self, SIGNAL("create_module(QString)"),
                      self.main.editor.new)
         self.connect(self, SIGNAL("edit(QString)"), self.main.editor.load)
@@ -102,6 +104,13 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         if not self.treewidget.new_project():
             # Notify dockwidget to schedule a repaint
             self.dockwidget.update()
+
+    def projects_were_closed(self):
+        """Project were just closed: checking if related files are opened in 
+        the editor and closing them"""
+        for fname in self.main.editor.get_filenames():
+            if self.treewidget.workspace.is_file_in_closed_project(fname):
+                self.main.editor.close_file_from_name(fname)
         
     def change_font(self):
         """Change font"""
