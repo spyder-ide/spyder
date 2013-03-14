@@ -387,14 +387,16 @@ class ObjectInspector(SpyderPluginWidget):
         self.setLayout(layout)
         
         # Add worker thread for handling rich text rendering
-        self._sphinx_thread = SphinxThread(text={},
+        if sphinxify is None:
+            self._sphinx_thread = None
+        else:
+            self._sphinx_thread = SphinxThread(text={},
                                   html_text_no_doc=warning(self.no_doc_string),
-                                  math_option=self.get_option('math')
-                              )
-        self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
-                     self._on_sphinx_thread_html_ready)
-        self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
-                     self._on_sphinx_thread_error_msg)
+                                  math_option=self.get_option('math'))
+            self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
+                         self._on_sphinx_thread_html_ready)
+            self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
+                         self._on_sphinx_thread_error_msg)
 
         self._starting_up = True
             
