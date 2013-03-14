@@ -159,6 +159,10 @@ def getsignaturesfromtext(text, objname):
     """Get object signatures from text (object documentation)
     Return a list containing a single string in most cases
     Example of multiple signatures: PyQt4 objects"""
+    #FIXME: the following regexp is not working with this example of docstring:
+    # QObject.connect(QObject, SIGNAL(), QObject, SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), callable, Qt.ConnectionType=Qt.AutoConnection) -> bool QObject.connect(QObject, SIGNAL(), SLOT(), Qt.ConnectionType=Qt.AutoConnection) -> bool
+    if isinstance(text, dict):
+        text = text.get('docstring', '')
     return re.findall(objname+r'\([^\)]+\)', text)
 
 def getargsfromtext(text, objname):
