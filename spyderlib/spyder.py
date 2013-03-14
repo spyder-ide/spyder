@@ -852,8 +852,8 @@ class MainWindow(QMainWindow):
                 action = create_action(self, text, icon=icon,
                        triggered=lambda path=path: programs.start_file(path))
                 self.help_menu_actions.append(action)
-            if os.name == 'nt':
-                sysdocpth = osp.join(sys.prefix, 'Doc')
+            sysdocpth = osp.join(sys.prefix, 'Doc')
+            if osp.isdir(sysdocpth): # exists on Windows, except frozen dist.
                 for docfn in os.listdir(sysdocpth):
                     pt = r'([a-zA-Z\_]*)(doc)?(-dev)?(-ref)?(-user)?.(chm|pdf)'
                     match = re.match(pt, docfn)

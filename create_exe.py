@@ -31,21 +31,23 @@ def create_executable():
                target_name="%s.exe" % name, icon="%s.ico" % name,
                target_dir="%s-win32-%s-sa-%s" % (name, python_qt, ver))
     spyderlib.add_to_distribution(dist)
-    dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata')
+    dist.add_modules('matplotlib', 'h5py', 'scipy.io', 'guidata', 'pygments')
     try:
         import guiqwt  # analysis:ignore
         dist.add_modules('guiqwt')
     except ImportError:
         pass
     dist.includes += ['spyderlib.scientific_startup',
-                      'spyderlib.widgets.externalshell.sitecustomize',
-                      'IPython']
-    dist.excludes += ['sphinx']  #XXX: ...until we are able to distribute it
+                      'spyderlib.widgets.externalshell.sitecustomize']
+
+    #XXX: ...until we are able to distribute them (see guidata.disthelpers)
+    dist.excludes += ['sphinx', 'zmq', 'IPython']
+
     if osp.isfile("Spyderdoc.chm"):
         dist.add_data_file("Spyderdoc.chm")
     dist.add_data_file(osp.join("rope", "base", "default_config.py"))
     # Building executable
-    dist.build('cx_Freeze', create_archive='move')
+    dist.build('cx_Freeze')#, create_archive='move')
 
 
 if __name__ == '__main__':
