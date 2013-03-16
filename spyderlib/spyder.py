@@ -424,6 +424,11 @@ class MainWindow(QMainWindow):
         # False: IPython console plugin
         self.last_console_plugin_focus_was_python = True
         
+        # Server to open external files on a single instance
+        self.open_files_server = socket.socket(socket.AF_INET,
+                                               socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP)
+        
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
     
@@ -1846,9 +1851,6 @@ Please provide any additional information below.
                 self.save_session_name = filename
     
     def start_open_files_server(self):
-        self.open_files_server = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM,
-                                               socket.IPPROTO_TCP)
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)
