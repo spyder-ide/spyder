@@ -33,15 +33,27 @@ from spyderlib.utils import programs
 #                 lambda *args: self.emit(SIGNAL('option_changed'), *args))
 
 
-def get_icon(name, default=None):
-    """Return image inside a QIcon object"""
+def get_icon(name, default=None, resample=False):
+    """Return image inside a QIcon object
+    default: default image name or icon
+    resample: if True, manually resample icon pixmaps for usual sizes
+    (16, 24, 32, 48, 96, 128, 256). This is recommended for QMainWindow icons 
+    created from SVG images on non-Windows platforms due to a Qt bug (see 
+    http://code.google.com/p/spyderlib/issues/detail?id=1314)."""
     if default is None:
-        return QIcon(get_image_path(name))
+        icon = QIcon(get_image_path(name))
     elif isinstance(default, QIcon):
         icon_path = get_image_path(name, default=None)
-        return default if icon_path is None else QIcon(icon_path)
+        icon = default if icon_path is None else QIcon(icon_path)
     else:
-        return QIcon(get_image_path(name, default))
+        icon = QIcon(get_image_path(name, default))
+    if resample:
+        icon0 = QIcon()
+        for size in (16, 24, 32, 48, 96, 128, 256, 512):
+            icon0.addPixmap(icon.pixmap(size, size))
+        return icon0 
+    else:
+        return icon
 
 def get_image_label(name, default="not_found.png"):
     """Return image inside a QLabel object"""

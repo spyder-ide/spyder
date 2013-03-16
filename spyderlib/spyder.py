@@ -378,7 +378,8 @@ class MainWindow(QMainWindow):
             title += " (DEBUG MODE)"
         self.setWindowTitle(title)
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
-        self.setWindowIcon(get_icon(icon_name))
+        # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
+        self.setWindowIcon(get_icon(icon_name, resample=os.name != 'nt'))
         
         # Showing splash screen
         pixmap = QPixmap(get_image_path('splash.png'), 'png')
