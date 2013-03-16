@@ -229,10 +229,10 @@ class MainWindow(QMainWindow):
     spyder_path = get_conf_path('.path')
     BOOKMARKS = (
          ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/index.html",
+          "http://pyqt.sourceforge.net/Docs/PyQt4/",
           _("PyQt4 Reference Guide"), "qt.png"),
          ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html",
+          "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
           _("PyQt4 API Reference"), "qt.png"),
          ('xy', "http://www.pythonxy.com",
           _("Python(x,y)"), "pythonxy.png"),
