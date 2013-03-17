@@ -778,6 +778,14 @@ class MainWindow(QMainWindow):
         self.extconsole = ExternalConsole(self, light_mode=self.light)
         self.extconsole.register_plugin()
         
+        # Namespace browser
+        if not self.light:
+            # In light mode, namespace browser is opened inside external console
+            # Here, it is opened as an independent plugin, in its own dockwidget
+            self.set_splash(_("Loading namespace browser..."))
+            self.variableexplorer = VariableExplorer(self)
+            self.variableexplorer.register_plugin()
+        
         # IPython console
         #XXX: we need to think of what to do with the light mode...
         #     ---> but for now, simply hiding the dockwidget like in standard 
@@ -787,14 +795,6 @@ class MainWindow(QMainWindow):
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
             self.ipyconsole.dockwidget.hide()
-        
-        # Namespace browser
-        if not self.light:
-            # In light mode, namespace browser is opened inside external console
-            # Here, it is opened as an independent plugin, in its own dockwidget
-            self.set_splash(_("Loading namespace browser..."))
-            self.variableexplorer = VariableExplorer(self)
-            self.variableexplorer.register_plugin()
 
         if not self.light:
             nsb = self.variableexplorer.add_shellwidget(self.console.shell)

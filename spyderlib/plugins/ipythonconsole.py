@@ -382,6 +382,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
+        self.namespacebrowser = None
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -405,6 +406,9 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         
         # To update history after execution
         self.ipywidget.executed.connect(self.update_history)
+        
+        # To update the Variable Explorer after execution
+        self.ipywidget.executed.connect(self.auto_refresh_namespacebrowser)
         
     #------ Public API --------------------------------------------------------
     def get_name(self):
@@ -545,6 +549,15 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         message = _("Kernel process is either remote or unspecified. "
                     "Cannot restart.")
         QMessageBox.information(self, "IPython", message)
+
+    def set_namespacebrowser(self, namespacebrowser):
+        """Set namespace browser widget"""
+        self.namespacebrowser = namespacebrowser
+
+    def auto_refresh_namespacebrowser(self):
+        """Refresh namespace browser"""
+        if self.namespacebrowser.autorefresh:
+            self.namespacebrowser.refresh_table()
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
@@ -604,6 +617,7 @@ class IPythonConsole(SpyderPluginWidget):
         
         self.inspector = None # Object inspector plugin
         self.historylog = None # History log plugin
+        self.variableexplorer = None # Variable explorer plugin
         
         self.clients = []
         
@@ -722,6 +736,8 @@ class IPythonConsole(SpyderPluginWidget):
         self.main.add_dockwidget(self)
         self.inspector = self.main.inspector
         self.historylog = self.main.historylog
+        self.variableexplorer = self.main.variableexplorer
+
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -952,6 +968,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to our inspector
         if kernel_widget is not None and self.inspector is not None:
             control.set_inspector(self.inspector)
+
+        if kernel_widget is not None and self.variableexplorer is not None:
+            nsb = self.variableexplorer.currentWidget()
+            client.set_namespacebrowser(nsb)
         
         # Connect client to our history log
         if self.historylog is not None:
