@@ -716,19 +716,24 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        client_action = create_action(self, _("Connect to an existing kernel"),
-                None,
-                'ipython_console.png',
+        create_client_action = create_action(self,
+                                _("Open an IPython console"),
+                                None, 'ipython_console.png',
+                                triggered=self.main.extconsole.start_ipykernel)
+
+        connect_to_kernel_action = create_action(self,
+                _("Connect to an existing kernel"),
+                None, 'ipython_console.png',
                 _("Open a new IPython client connected to an external kernel"),
                 triggered=self.new_client)
         
         # Add the action to the 'Interpreters' menu on the main window
-        interact_menu_actions = [None, client_action]
+        interact_menu_actions = [create_client_action, None,
+                                 connect_to_kernel_action]
         self.main.interact_menu_actions += interact_menu_actions
         
         # Plugin actions
-        self.menu_actions = [self.main.extconsole.ipykernel_action,
-                             client_action]
+        self.menu_actions = [create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
     
