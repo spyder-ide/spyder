@@ -23,7 +23,7 @@ from spyderlib.utils.qthelpers import (get_icon, get_std_icon, add_actions,
 from spyderlib.utils.environ import RemoteEnvDialog
 from spyderlib.utils.programs import get_python_args
 from spyderlib.utils.misc import get_python_executable
-from spyderlib.baseconfig import _, get_module_source_path
+from spyderlib.baseconfig import _, get_module_source_path, DEBUG
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
 from spyderlib.widgets.externalshell.monitor import communicate, write_packet
@@ -33,9 +33,8 @@ from spyderlib.widgets.dicteditor import DictEditor
 
 
 class ExtPythonShellWidget(PythonShellWidget):
-    def __init__(self, parent, history_filename, debug=False, profile=False):
-        PythonShellWidget.__init__(self, parent, history_filename,
-                                   debug, profile)
+    def __init__(self, parent, history_filename, profile=False):
+        PythonShellWidget.__init__(self, parent, history_filename, profile)
         self.path = []
     
     def set_externalshell(self, externalshell):

@@ -35,7 +35,7 @@ from spyderlib.utils.misc import get_error_match
 #TODO: remove the CONF object and make it work anyway
 # In fact, this 'CONF' object has nothing to do in package spyderlib.widgets
 # which should not contain anything directly related to Spyder's main app
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
 
@@ -105,11 +105,11 @@ class WidgetProxy(QObject):
 class InternalShell(PythonShellWidget):
     """Shell base widget: link between PythonShellWidget and Interpreter"""
     def __init__(self, parent=None, namespace=None, commands=[], message="",
-                 max_line_count=300, font=None, debug=False, exitfunc=None,
-                 profile=False, multithreaded=True, light_background=True):
+                 max_line_count=300, font=None, exitfunc=None, profile=False,
+                 multithreaded=True, light_background=True):
         PythonShellWidget.__init__(self, parent,
                                    get_conf_path('.history_internal.py'),
-                                   debug, profile)
+                                   profile)
         
         self.set_light_background(light_background)
         
@@ -164,7 +164,7 @@ class InternalShell(PythonShellWidget):
         if self.interpreter is not None:
             self.interpreter.closing()
         self.interpreter = Interpreter(namespace, self.exitfunc,
-                                       SysOutput, WidgetProxy, self.debug)
+                                       SysOutput, WidgetProxy, DEBUG)
         self.connect(self.interpreter.stdout_write,
                      SIGNAL("void data_avail()"), self.stdout_avail)
         self.connect(self.interpreter.stderr_write,

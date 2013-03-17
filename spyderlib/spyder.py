@@ -118,7 +118,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
-                                  get_image_path)
+                                  DEBUG, get_image_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
@@ -255,7 +255,6 @@ class MainWindow(QMainWindow):
         self.dialog_manager = DialogManager()
         
         self.init_workdir = options.working_directory
-        self.debug = options.debug
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.light = options.light
@@ -374,7 +373,7 @@ class MainWindow(QMainWindow):
         
         # Set Window title and icon
         title = "Spyder"
-        if self.debug:
+        if DEBUG:
             title += " (DEBUG MODE)"
         self.setWindowTitle(title)
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
@@ -434,7 +433,7 @@ class MainWindow(QMainWindow):
     
     def debug_print(self, message):
         """Debug prints"""
-        if self.debug:
+        if DEBUG:
             print >>STDOUT, message
         
     #---- Window setup
@@ -698,8 +697,8 @@ class MainWindow(QMainWindow):
             
             
             # Internal console plugin
-            self.console = Console(self, namespace, debug=self.debug,
-                                   exitfunc=self.closing, profile=self.profile,
+            self.console = Console(self, namespace, exitfunc=self.closing,
+                                   profile=self.profile,
                                    multithreaded=self.multithreaded,
                                    message='Inspect Spyder internals:\n'\
                                            '  spy.app, spy.window, dir(spy)')
@@ -2005,7 +2004,7 @@ def main():
     options, args = get_options()
     
     if set_attached_console_visible is not None:
-        set_attached_console_visible(options.debug or options.show_console\
+        set_attached_console_visible(DEBUG or options.show_console\
                                      or options.reset_session\
                                      or options.reset_to_defaults\
                                      or options.optimize)

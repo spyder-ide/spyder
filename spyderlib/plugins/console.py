@@ -40,8 +40,7 @@ class Console(SpyderPluginWidget):
     """
     CONF_SECTION = 'internal_console'
     def __init__(self, parent=None, namespace=None, commands=[], message="",
-                 debug=False, exitfunc=None, profile=False,
-                 multithreaded=False):
+                 exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
         
         self.dialog_manager = DialogManager()
@@ -50,8 +49,8 @@ class Console(SpyderPluginWidget):
         light_background = self.get_option('light_background')
         self.shell = InternalShell(parent, namespace, commands, message,
                                    self.get_option('max_line_count'),
-                                   self.get_plugin_font(),
-                                   debug, exitfunc, profile, multithreaded,
+                                   self.get_plugin_font(), exitfunc, profile,
+                                   multithreaded,
                                    light_background=light_background)
         self.connect(self.shell, SIGNAL('status(QString)'),
                      lambda msg:

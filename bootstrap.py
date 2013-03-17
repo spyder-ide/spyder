@@ -22,7 +22,7 @@ import optparse
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="Arguments for Spyder's main script are specified after the "\
-           "-- symbol\n(example: `python bootstrap.py -- --debug --light`). "\
+           "-- symbol\n(example: `python bootstrap.py -- --showconsole`). "\
            "Type `python bootstrap.py -- --help` to read more about Spyder "\
            "options.\n")
 parser.add_option('--gui', dest="gui", default=None,

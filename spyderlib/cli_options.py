@@ -33,9 +33,6 @@ def get_options():
                            "administrative privileges)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
-    parser.add_option('-d', '--debug', dest="debug", action='store_true',
-                      default=False,
-                      help="Debug mode (stds are not redirected)")
     parser.add_option('--showconsole', dest="show_console",
                       action='store_true', default=False,
                       help="Show parent console (Windows only)")

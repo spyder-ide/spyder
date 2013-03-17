@@ -25,7 +25,7 @@ from spyderlib.qt.QtCore import (Qt, QCoreApplication, QTimer, SIGNAL,
 from spyderlib.qt.compat import getsavefilename
 
 # Local import
-from spyderlib.baseconfig import get_conf_path, _, STDERR
+from spyderlib.baseconfig import get_conf_path, _, STDERR, DEBUG
 from spyderlib.guiconfig import CONF, get_font
 from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
@@ -41,7 +41,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     Shell base widget
     """
     
-    def __init__(self, parent, history_filename, debug=False, profile=False):
+    def __init__(self, parent, history_filename, profile=False):
         """
         parent : specifies the parent widget
         """
@@ -66,9 +66,6 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         # Context menu
         self.menu = None
         self.setup_context_menu()
-
-        # Debug mode
-        self.debug = debug
 
         # Simple profiling test
         self.profile = profile
@@ -558,7 +555,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         """Simulate stderr"""
         self.flush()
         self.write(text, flush=True, error=True)
-        if self.debug:
+        if DEBUG:
             STDERR.write(text)
 
     def write(self, text, flush=False, error=False, prompt=False):
@@ -653,9 +650,8 @@ class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
                    '# *** Spyder Python Console History Log ***',]
     SEPARATOR = '%s##---(%s)---' % (os.linesep*2, time.ctime())
     
-    def __init__(self, parent, history_filename, debug=False, profile=False):
-        ShellBaseWidget.__init__(self, parent,
-                                 history_filename, debug, profile)
+    def __init__(self, parent, history_filename, profile=False):
+        ShellBaseWidget.__init__(self, parent, history_filename, profile)
         TracebackLinksMixin.__init__(self)
         InspectObjectMixin.__init__(self)
 
@@ -962,8 +958,8 @@ class TerminalWidget(ShellBaseWidget):
     INITHISTORY = ['%s *** Spyder Terminal History Log ***' % COM, COM,]
     SEPARATOR = '%s%s ---(%s)---' % (os.linesep*2, COM, time.ctime())
     
-    def __init__(self, parent, history_filename, debug=False, profile=False):
-        ShellBaseWidget.__init__(self, parent, history_filename, debug, profile)
+    def __init__(self, parent, history_filename, profile=False):
+        ShellBaseWidget.__init__(self, parent, history_filename, profile)
         
     #------ Key handlers
     def _key_other(self, text):
