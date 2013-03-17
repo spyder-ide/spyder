@@ -5,7 +5,12 @@ import os
 import sys
 import os.path as osp
 import struct
+import _winreg as winreg
 
+EWS = "Edit with Spyder"
+KEY_C = r"Software\Classes\%s"
+KEY_C0 = KEY_C % r"Python.%sFile\shell\%s"
+KEY_C1 = KEY_C0 + r"\command"
 
 def install():
     """Function executed when running the script with the -install switch"""
@@ -19,8 +24,9 @@ def install():
         directory_created(start_menu)
     
     # Create Spyder start menu entries
-    python = osp.join(sys.prefix, 'python.exe')
-    script = osp.join(sys.prefix, 'scripts', 'spyder')
+    python = osp.abspath(osp.join(sys.prefix, 'python.exe'))
+    pythonw = osp.abspath(osp.join(sys.prefix, 'pythonw.exe'))
+    script = osp.abspath(osp.join(sys.prefix, 'scripts', 'spyder'))
     workdir = "%HOMEDRIVE%%HOMEPATH%"
     import distutils.sysconfig
     lib_dir = distutils.sysconfig.get_python_lib(plat_specific=1)
@@ -43,10 +49,25 @@ def install():
     create_shortcut(python, 'Reset Spyder settings to defaults',
                     fname, '"%s" --reset' % script, workdir)
     file_created(fname)
+
+    current = True  # only affects current user
+    root = winreg.HKEY_CURRENT_USER if current else winreg.HKEY_LOCAL_MACHINE
+    winreg.SetValueEx(winreg.CreateKey(root, KEY_C1 % ("", EWS)),
+                      "", 0, winreg.REG_SZ,
+                      '"%s" "%s\Scripts\spyder" "%%1"' % (pythonw, sys.prefix))
+    winreg.SetValueEx(winreg.CreateKey(root, KEY_C1 % ("NoCon", EWS)),
+                      "", 0, winreg.REG_SZ,
+                      '"%s" "%s\Scripts\spyder" "%%1"' % (pythonw, sys.prefix))
+
     
 def remove():
     """Function executed when running the script with the -install switch"""
-    pass
+    current = True  # only affects current user
+    root = winreg.HKEY_CURRENT_USER if current else winreg.HKEY_LOCAL_MACHINE
+    winreg.DeleteKey(root, KEY_C1 % ("", EWS))
+    winreg.DeleteKey(root, KEY_C1 % ("NoCon", EWS))
+    winreg.DeleteKey(root, KEY_C0 % ("", EWS))
+    winreg.DeleteKey(root, KEY_C0 % ("NoCon", EWS))
 
 
 if __name__=='__main__':
