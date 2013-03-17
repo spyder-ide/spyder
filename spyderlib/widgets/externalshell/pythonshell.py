@@ -387,10 +387,13 @@ The process may not exit as a result of clicking this button
 
         #-------------------------Python specific-------------------------------
         # Python arguments
-        p_args = ['-u'] + get_python_args(self.fname, self.python_args,
-                                          self.interact_action.isChecked(),
-                                          self.debug_action.isChecked(),
-                                          self.arguments)
+        p_args = ['-u']
+        if DEBUG:
+            p_args += ['-v']
+        p_args += get_python_args(self.fname, self.python_args,
+                                  self.interact_action.isChecked(),
+                                  self.debug_action.isChecked(),
+                                  self.arguments)
         
         env = [unicode(_path) for _path in self.process.systemEnvironment()]
 
