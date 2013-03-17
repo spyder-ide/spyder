@@ -70,7 +70,13 @@ else:
 
 # Importing Spyder (among other things, this has the effect of setting the 
 # QT_API environment variable if this has not yet been done just above)
-from spyderlib import spyder, get_versions
+
+#FIXME: `from spyderlib import spyder` is necessary with current package 
+# structure to avoid "AttributeError: 'module' object has no attribute 'qt'"
+# when importing get_versions (see Issue 1320 for more details).
+from spyderlib import spyder
+
+from spyderlib import start_app, get_versions
 versions = get_versions()
 print("03. Imported Spyder %s" % versions['spyder'])
 print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
@@ -82,4 +88,4 @@ if not options.hide_console:
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--showconsole")  # Windows only: show parent console
 print("04. Executing spyder.main()")
-spyder.main()
+start_app.main()
