@@ -966,12 +966,6 @@ class ExternalConsole(SpyderPluginWidget):
         tools_menu_actions = [terminal_action]
         self.menu_actions = [interpreter_action, terminal_action, run_action]
         
-        self.ipykernel_action = create_action(self,
-                                              _("Open an IPython console"),
-                                              None, 'ipython_console.png',
-                                              triggered=self.start_ipykernel)
-        if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
-            interact_menu_actions.append(self.ipykernel_action)
         self.main.interact_menu_actions += interact_menu_actions
         self.main.tools_menu_actions += tools_menu_actions
         

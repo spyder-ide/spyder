@@ -229,10 +229,10 @@ class MainWindow(QMainWindow):
     spyder_path = get_conf_path('.path')
     BOOKMARKS = (
          ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/index.html",
+          "http://pyqt.sourceforge.net/Docs/PyQt4/",
           _("PyQt4 Reference Guide"), "qt.png"),
          ('PyQt4',
-          "http://www.riverbankcomputing.co.uk/static/Docs/PyQt4/html/classes.html",
+          "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
           _("PyQt4 API Reference"), "qt.png"),
          ('xy', "http://www.pythonxy.com",
           _("Python(x,y)"), "pythonxy.png"),
@@ -423,6 +423,11 @@ class MainWindow(QMainWindow):
         # True: Console plugin
         # False: IPython console plugin
         self.last_console_plugin_focus_was_python = True
+        
+        # Server to open external files on a single instance
+        self.open_files_server = socket.socket(socket.AF_INET,
+                                               socket.SOCK_STREAM,
+                                               socket.IPPROTO_TCP)
         
         self.apply_settings()
         self.debug_print("End of MainWindow constructor")
@@ -773,6 +778,14 @@ class MainWindow(QMainWindow):
         self.extconsole = ExternalConsole(self, light_mode=self.light)
         self.extconsole.register_plugin()
         
+        # Namespace browser
+        if not self.light:
+            # In light mode, namespace browser is opened inside external console
+            # Here, it is opened as an independent plugin, in its own dockwidget
+            self.set_splash(_("Loading namespace browser..."))
+            self.variableexplorer = VariableExplorer(self)
+            self.variableexplorer.register_plugin()
+        
         # IPython console
         #XXX: we need to think of what to do with the light mode...
         #     ---> but for now, simply hiding the dockwidget like in standard 
@@ -782,14 +795,6 @@ class MainWindow(QMainWindow):
             self.ipyconsole = IPythonConsole(self)
             self.ipyconsole.register_plugin()
             self.ipyconsole.dockwidget.hide()
-        
-        # Namespace browser
-        if not self.light:
-            # In light mode, namespace browser is opened inside external console
-            # Here, it is opened as an independent plugin, in its own dockwidget
-            self.set_splash(_("Loading namespace browser..."))
-            self.variableexplorer = VariableExplorer(self)
-            self.variableexplorer.register_plugin()
 
         if not self.light:
             nsb = self.variableexplorer.add_shellwidget(self.console.shell)
@@ -1846,9 +1851,6 @@ Please provide any additional information below.
                 self.save_session_name = filename
     
     def start_open_files_server(self):
-        self.open_files_server = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM,
-                                               socket.IPPROTO_TCP)
         self.open_files_server.setsockopt(socket.SOL_SOCKET,
                                           socket.SO_REUSEADDR, 1)
         port = select_port(default_port=OPEN_FILES_PORT)

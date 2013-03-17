@@ -99,7 +99,6 @@ class WebView(QWebView):
                             self.pageAction(QWebPage.Forward), None,
                             self.pageAction(QWebPage.SelectAll),
                             self.pageAction(QWebPage.Copy), None,
-                            self.pageAction(QWebPage.Reload), None,
                             self.zoom_in_action, self.zoom_out_action) )
         menu.popup(event.globalPos())
         event.accept()

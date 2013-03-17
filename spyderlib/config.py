@@ -59,6 +59,7 @@ EDIT_FILETYPES = (
     (_("NSIS files"), ('.nsi', '.nsh')),
     (_("Web page files"), ('.css', '.htm', '.html',)),
     (_("XML files"), ('.xml',)),
+    (_("Enaml files"), ('.enaml',)),
     (_("Configuration files"), ('.properties', '.session', '.ini', '.inf',
                                 '.reg', '.cfg', '.desktop')),
                  )

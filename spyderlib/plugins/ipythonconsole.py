@@ -382,6 +382,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         self.menu_actions = menu_actions
         self.history_filename = get_conf_path(history_filename)
         self.history = []
+        self.namespacebrowser = None
         
         vlayout = QVBoxLayout()
         toolbar_buttons = self.get_toolbar_buttons()
@@ -405,6 +406,9 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         
         # To update history after execution
         self.ipywidget.executed.connect(self.update_history)
+        
+        # To update the Variable Explorer after execution
+        self.ipywidget.executed.connect(self.auto_refresh_namespacebrowser)
         
     #------ Public API --------------------------------------------------------
     def get_name(self):
@@ -545,6 +549,15 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
         message = _("Kernel process is either remote or unspecified. "
                     "Cannot restart.")
         QMessageBox.information(self, "IPython", message)
+
+    def set_namespacebrowser(self, namespacebrowser):
+        """Set namespace browser widget"""
+        self.namespacebrowser = namespacebrowser
+
+    def auto_refresh_namespacebrowser(self):
+        """Refresh namespace browser"""
+        if self.namespacebrowser.autorefresh:
+            self.namespacebrowser.refresh_table()
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
@@ -601,9 +614,11 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.tabwidget = None
         self.menu_actions = None
-        
-        self.inspector = None # Object inspector plugin
-        self.historylog = None # History log plugin
+
+        self.extconsole = None         # External console plugin
+        self.inspector = None          # Object inspector plugin
+        self.historylog = None         # History log plugin
+        self.variableexplorer = None   # Variable explorer plugin
         
         self.clients = []
         
@@ -701,27 +716,36 @@ class IPythonConsole(SpyderPluginWidget):
     
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
-        client_action = create_action(self, _("Connect to an existing kernel"),
-                None,
-                'ipython_console.png',
+        create_client_action = create_action(self,
+                                _("Open an IPython console"),
+                                None, 'ipython_console.png',
+                                triggered=self.main.extconsole.start_ipykernel)
+
+        connect_to_kernel_action = create_action(self,
+                _("Connect to an existing kernel"),
+                None, 'ipython_console.png',
                 _("Open a new IPython client connected to an external kernel"),
                 triggered=self.new_client)
         
         # Add the action to the 'Interpreters' menu on the main window
-        interact_menu_actions = [None, client_action]
+        interact_menu_actions = [create_client_action, None,
+                                 connect_to_kernel_action]
         self.main.interact_menu_actions += interact_menu_actions
         
         # Plugin actions
-        extconsole = self.main.extconsole
-        self.menu_actions = [extconsole.ipykernel_action, client_action]
+        self.menu_actions = [create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
     
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)
+
+        self.extconsole = self.main.extconsole
         self.inspector = self.main.inspector
         self.historylog = self.main.historylog
+        self.variableexplorer = self.main.variableexplorer
+
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -747,10 +771,10 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = client.get_toolbar_buttons()+[5]
             
             # Change extconsole tab to the client's kernel widget
-            idx = self.main.extconsole.get_shell_index_from_id(
+            idx = self.extconsole.get_shell_index_from_id(
                                                        client.kernel_widget_id)
             if idx is not None:
-                self.main.extconsole.tabwidget.setCurrentIndex(idx)
+                self.extconsole.tabwidget.setCurrentIndex(idx)
         else:
             control = None
             widgets = []
@@ -837,8 +861,7 @@ class IPythonConsole(SpyderPluginWidget):
         # client connected to a kernel is closed but the kernel is left open
         # and you try to connect new clients to it
         if kernel_widget_id is None:
-            extconsole = self.main.extconsole
-            for sw in extconsole.shellwidgets:
+            for sw in self.extconsole.shellwidgets:
                 if sw.connection_file == cf:
                     kernel_widget_id = id(sw)
 
@@ -928,7 +951,7 @@ class IPythonConsole(SpyderPluginWidget):
         self.connect(control, SIGNAL("go_to_error(QString)"), self.go_to_error)
 
         # Handle kernel interrupts
-        extconsoles = self.main.extconsole.shellwidgets
+        extconsoles = self.extconsole.shellwidgets
         kernel_widget = None
         if extconsoles:
             if extconsoles[-1].connection_file == connection_file:
@@ -952,6 +975,10 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to our inspector
         if kernel_widget is not None and self.inspector is not None:
             control.set_inspector(self.inspector)
+
+        if kernel_widget is not None and self.variableexplorer is not None:
+            nsb = self.variableexplorer.currentWidget()
+            client.set_namespacebrowser(nsb)
         
         # Connect client to our history log
         if self.historylog is not None:
@@ -1029,8 +1056,8 @@ class IPythonConsole(SpyderPluginWidget):
         # Check if related clients or kernels are opened
         # and eventually ask before closing them
         if not force and isinstance(client, IPythonClient):
-            extconsole = self.main.extconsole
-            idx = extconsole.get_shell_index_from_id(client.kernel_widget_id)
+            idx = self.extconsole.get_shell_index_from_id(
+                                                       client.kernel_widget_id)
             if idx is not None:
                 close_all = True
                 if self.get_option('ask_before_closing'):
@@ -1043,7 +1070,8 @@ class IPythonConsole(SpyderPluginWidget):
                         return
                     close_all = ans == QMessageBox.Yes
                 if close_all:
-                    extconsole.close_console(index=idx, from_ipyclient=True)
+                    self.extconsole.close_console(index=idx,
+                                                  from_ipyclient=True)
                     self.close_related_ipyclients(client)
         client.close()
         
@@ -1085,9 +1113,8 @@ class IPythonConsole(SpyderPluginWidget):
         result = QMessageBox.question(self, _('Restart kernel?'),
                                       message, buttons)
         if result == QMessageBox.Yes:
-            extconsole = self.main.extconsole
-            extconsole.start_ipykernel(create_client=False)
-            kernel_widget = extconsole.shellwidgets[-1]
+            self.extconsole.start_ipykernel(create_client=False)
+            kernel_widget = self.extconsole.shellwidgets[-1]
             self.connect(kernel_widget,
                       SIGNAL('create_ipython_client(QString)'),
                       lambda cf: self.connect_to_new_kernel(cf, kernel_widget))
@@ -1097,15 +1124,14 @@ class IPythonConsole(SpyderPluginWidget):
         After a new kernel is created, execute this action to connect the new
         kernel to the old client
         """
-        extconsole = self.main.extconsole
         client = self.tabwidget.currentWidget()
         
         # Close old kernel tab
-        idx = extconsole.get_shell_index_from_id(client.kernel_widget_id)
-        extconsole.close_console(index=idx, from_ipyclient=True)
+        idx = self.extconsole.get_shell_index_from_id(client.kernel_widget_id)
+        self.extconsole.close_console(index=idx, from_ipyclient=True)
         
         # Set attributes for the new kernel
-        extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
+        self.extconsole.set_ipykernel_attrs(connection_file, kernel_widget)
         
         # Connect client to new kernel
         kernel_manager = self.create_kernel_manager(connection_file)        
