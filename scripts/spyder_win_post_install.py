@@ -59,15 +59,17 @@ def install():
                       "", 0, winreg.REG_SZ,
                       '"%s" "%s\Scripts\spyder" "%%1"' % (pythonw, sys.prefix))
 
-    
+
 def remove():
     """Function executed when running the script with the -install switch"""
     current = True  # only affects current user
     root = winreg.HKEY_CURRENT_USER if current else winreg.HKEY_LOCAL_MACHINE
-    winreg.DeleteKey(root, KEY_C1 % ("", EWS))
-    winreg.DeleteKey(root, KEY_C1 % ("NoCon", EWS))
-    winreg.DeleteKey(root, KEY_C0 % ("", EWS))
-    winreg.DeleteKey(root, KEY_C0 % ("NoCon", EWS))
+    for key in (KEY_C1 % ("", EWS), KEY_C1 % ("NoCon", EWS),
+                KEY_C0 % ("", EWS), KEY_C0 % ("NoCon", EWS)):
+        try:
+            winreg.DeleteKey(root, key)
+        except WindowsError:
+            pass
 
 
 if __name__=='__main__':
