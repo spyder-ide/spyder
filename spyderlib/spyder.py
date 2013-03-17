@@ -258,6 +258,7 @@ class MainWindow(QMainWindow):
         self.profile = options.profile
         self.multithreaded = options.multithreaded
         self.light = options.light
+        self.new_instance = options.new_instance
         
         self.debug_print("Start of MainWindow constructor")
         
@@ -1041,7 +1042,7 @@ class MainWindow(QMainWindow):
         # Server to maintain just one Spyder instance and open files in it if
         # the user tries to start other instances with
         # $ spyder foo.py
-        if CONF.get('main', 'single_instance'):
+        if CONF.get('main', 'single_instance') and not self.new_instance:
             t = threading.Thread(target=self.start_open_files_server)
             t.setDaemon(True)
             t.start()
@@ -1956,6 +1957,7 @@ class Spy(object):
     def versions(self):
         return get_versions()
 
+
 def run_spyder(app, options, args):
     """
     Create and show Spyder's main window
@@ -1993,6 +1995,7 @@ def run_spyder(app, options, args):
 def __remove_temp_session():
     if osp.isfile(TEMP_SESSION_PATH):
         os.remove(TEMP_SESSION_PATH)
+
 
 def main():
     """Session manager"""
@@ -2091,6 +2094,7 @@ def main():
                                        % (osp.basename(save_session_name),
                                           error_message))
     ORIGINAL_SYS_EXIT()
+
 
 if __name__ == "__main__":
     main()
