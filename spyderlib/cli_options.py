@@ -15,7 +15,7 @@ def get_options():
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
-    parser.add_option('--newinstance', dest="newinstance",
+    parser.add_option('--new-instance', dest="new_instance",
                       action='store_true', default=False,
                       help="Run a new instance of Spyder, even if the single "
                            "instance mode has been turned on (default)")
@@ -33,7 +33,7 @@ def get_options():
                            "administrative privileges)")
     parser.add_option('-w', '--workdir', dest="working_directory", default=None,
                       help="Default working directory")
-    parser.add_option('--showconsole', dest="show_console",
+    parser.add_option('--show-console', dest="show_console",
                       action='store_true', default=False,
                       help="Show parent console (Windows only)")
     parser.add_option('--multithread', dest="multithreaded",

@@ -44,7 +44,7 @@ def main():
     # Parse command line options
     options, args = get_options()
 
-    if CONF.get('main', 'single_instance') and not options.newinstance:
+    if CONF.get('main', 'single_instance') and not options.new_instance:
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file

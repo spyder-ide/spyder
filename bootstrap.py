@@ -22,7 +22,7 @@ import optparse
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
     epilog="Arguments for Spyder's main script are specified after the "\
-           "-- symbol\n(example: `python bootstrap.py -- --showconsole`). "\
+           "-- symbol\n(example: `python bootstrap.py -- --show-console`). "\
            "Type `python bootstrap.py -- --help` to read more about Spyder "\
            "options.\n")
 parser.add_option('--gui', dest="gui", default=None,
@@ -84,8 +84,8 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
        versions['qt_api'], versions['qt_api_ver'], versions['system']))
 
 # Executing Spyder
-if not options.hide_console:
+if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
-    sys.argv.append("--showconsole")  # Windows only: show parent console
+    sys.argv.append("--show-console")  # Windows only: show parent console
 print("04. Executing spyder.main()")
 start_app.main()
