@@ -15,7 +15,6 @@ from setuptools import setup
 
 from distutils.sysconfig import get_python_lib
 import fileinput
-import inspect
 import shutil
 import os
 import os.path as osp
@@ -23,8 +22,10 @@ import subprocess
 import sys
 
 from IPython.core.completerlib import module_list
-from spyderlib.utils.programs import find_program
+
 from spyderlib import __version__ as spy_version
+from spyderlib.config import EDIT_EXT
+from spyderlib.utils.programs import find_program
 
 #==============================================================================
 # Auxiliary functions
@@ -79,6 +80,7 @@ PACKAGES = ['spyderlib', 'spyderplugins', 'sphinx', 'jinja2', 'docutils',
             'sklearn', 'skimage', 'pandas', 'sympy', 'mpmath', 'statsmodels',
             'mpl_toolkits']
 INCLUDES = get_stdlib_modules()
+EDIT_EXT = [ext[1:] for ext in EDIT_EXT]
 
 OPTIONS = {
     'argv_emulation': True,
@@ -87,9 +89,12 @@ OPTIONS = {
     'packages': PACKAGES,
     'includes': INCLUDES,
     'excludes': EXCLUDES,
-    'plist': {'CFBundleIdentifier': 'org.spyder-ide',
-              'CFBundleShortVersionString': spy_version},
-    'iconfile': 'img_src/spyder.icns'
+    'iconfile': 'img_src/spyder.icns',
+    'plist': {'CFBundleDocumentTypes': [{'CFBundleTypeExtensions': EDIT_EXT,
+                                         'CFBundleTypeName': 'Text File',
+                                         'CFBundleTypeRole': 'Editor'}],
+              'CFBundleIdentifier': 'org.spyder-ide',
+              'CFBundleShortVersionString': spy_version}
 }
 
 setup(
