@@ -15,6 +15,19 @@ import socket
 import struct
 import cPickle as pickle
 import threading
+import errno
+
+
+def temp_fail_retry(error, fun, *args):
+    """Retry to execute function, ignoring EINTR error (interruptions)"""
+    while 1:
+        try:
+            return fun(*args)
+        except error as e:
+            eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+            if e.args[0] == eintr:
+                continue
+            raise
 
 
 SZ = struct.calcsize("l")
@@ -26,7 +39,10 @@ def write_packet(sock, data, already_pickled=False):
         sent_data = data
     else:
         sent_data = pickle.dumps(data, pickle.HIGHEST_PROTOCOL)
-    sock.send(struct.pack("l", len(sent_data)) + sent_data)
+    sent_data = struct.pack("l", len(sent_data)) + sent_data
+    nsend = len(sent_data)
+    while nsend > 0:
+        nsend -= temp_fail_retry(socket.error, sock.send, sent_data)
 
 
 def read_packet(sock, timeout=None):
@@ -48,10 +64,12 @@ def read_packet(sock, timeout=None):
             #  Linux/MacOSX implementation
             #  Thanks to eborisch:
             #  http://code.google.com/p/spyderlib/issues/detail?id=1106
-            datalen = sock.recv(SZ, socket.MSG_WAITALL)
+            datalen = temp_fail_retry(socket.error, sock.recv,
+                                      SZ, socket.MSG_WAITALL)
             if len(datalen) == SZ:
                 dlen, = struct.unpack("l", datalen)
-                data = sock.recv(dlen, socket.MSG_WAITALL)
+                data = temp_fail_retry(socket.error, sock.recv,
+                                       dlen, socket.MSG_WAITALL)
     except socket.timeout:
         raise
     except socket.error:

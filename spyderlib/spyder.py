@@ -1862,7 +1862,8 @@ Please provide any additional information below.
             except socket.error as e:
                 # See Issue 1275 for details on why errno EINTR is
                 # silently ignored here.
-                if e.args[0] == errno.EINTR:
+                eintr = errno.WSAEINTR if os.name == 'nt' else errno.EINTR
+                if e.args[0] == eintr:
                     continue
                 raise
             fname = req.recv(1024)
