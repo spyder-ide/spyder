@@ -15,6 +15,10 @@ def get_options():
     parser.add_option('-l', '--light', dest="light", action='store_true',
                       default=False,
                       help="Light version (all add-ons are disabled)")
+    parser.add_option('--newinstance', dest="newinstance",
+                      action='store_true', default=False,
+                      help="Run a new instance of Spyder, even if the single "
+                           "instance mode has been turned on (default)")
     parser.add_option('--session', dest="startup_session", default='',
                       help="Startup session")
     parser.add_option('--defaults', dest="reset_to_defaults",

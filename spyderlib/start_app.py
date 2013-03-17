@@ -41,7 +41,10 @@ def main():
     """Start Spyder application. If single instance mode is turned on (default
     behavior) and an instance of Spyder is already running, this will just 
     parse and send command line options to the application."""
-    if CONF.get('main', 'single_instance'):
+    # Parse command line options
+    options, args = get_options()
+
+    if CONF.get('main', 'single_instance') and not options.newinstance:
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
@@ -54,7 +57,6 @@ def main():
         # lock.lock() tries to lock spyder.lock. If it fails,
         # it returns False and so we try to start the client
         if not lock.lock():
-            _options, args = get_options()
             if args:
                 send_args_to_spyder(args)
         else:
