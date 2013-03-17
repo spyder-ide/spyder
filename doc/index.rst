@@ -32,6 +32,7 @@ Contents:
     options
     lightmode
     console
+    ipythonconsole
     debugging
     variableexplorer
     inspector
@@ -42,9 +43,7 @@ Contents:
     editor
     findinfiles
     pylint
-
     internalconsole
-
 
 Indices and tables:
 
