@@ -11,12 +11,13 @@ from spyderlib.qt.QtGui import (QAction, QStyle, QWidget, QIcon, QApplication,
                                 QKeyEvent, QMenu, QKeySequence, QToolButton,
                                 QPixmap)
 from spyderlib.qt.QtCore import (SIGNAL, QObject, Qt, QLocale, QTranslator,
-                                 QLibraryInfo)
+                                 QLibraryInfo, QEvent)
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import os
 import re
 import os.path as osp
+import sys
 
 # Local import
 from spyderlib.baseconfig import get_image_path
@@ -55,6 +56,7 @@ def get_icon(name, default=None, resample=False):
     else:
         return icon
 
+
 def get_image_label(name, default="not_found.png"):
     """Return image inside a QLabel object"""
     label = QLabel()
@@ -62,17 +64,31 @@ def get_image_label(name, default="not_found.png"):
     return label
 
 
+class SpyderApplication(QApplication):
+    """Subclass to be able to open external files with our Mac app"""
+    def __init__(self, *args):
+        QApplication.__init__(self, *args)
+
+    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        def event(self, event):
+            if event.type() == QEvent.FileOpen:
+                fname = str(event.file())
+                self.emit(SIGNAL('open_external_file(QString)'), fname)
+            return QApplication.event(self, event)
+
+
 def qapplication(translate=True):
     """Return QApplication instance
     Creates it if it doesn't already exist"""
-    app = QApplication.instance()
+    app = SpyderApplication.instance()
     if not app:
         # Set Application name for Gnome 3
         # https://groups.google.com/forum/#!topic/pyside/24qxvwfrRDs
-        app = QApplication(['Spyder'])
+        app = SpyderApplication(['Spyder'])
     if translate:
         install_translator(app)
     return app
+
 
 def file_uri(fname):
     """Select the right file uri scheme according to the operating system"""
@@ -85,6 +101,7 @@ def file_uri(fname):
             return 'file://' + fname
     else:
         return 'file://' + fname
+
 
 QT_TRANSLATOR = None
 def install_translator(qapp):

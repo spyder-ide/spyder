@@ -8,6 +8,7 @@
 
 import os
 import os.path as osp
+import sys
 
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
@@ -659,6 +660,10 @@ class MainConfigPage(GeneralConfigPage):
                                           "python, .spy and .mat files in an "
                                           "already running instance (Requires "
                                           "a restart)"))
+
+	if sys.platform == "darwin" and 'Spyder.app' in __file__:
+            self.set_option("single_instance", True)
+            single_instance_box.setEnabled(False)
         
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(style_combo)

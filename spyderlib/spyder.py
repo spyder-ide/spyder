@@ -1984,10 +1984,16 @@ def run_spyder(app, options, args):
         main.console.shell.interpreter.namespace['spy'] = \
                                                     Spy(app=app, window=main)
 
-        if args:
-            for a in args:
-                main.open_external_file(a)
-        
+    # Open external files passed as args
+    if args:
+        for a in args:
+            main.open_external_file(a)
+
+    # Open external files with our Mac app
+    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        main.connect(app, SIGNAL('open_external_file(QString)'),
+                     lambda fname: main.open_external_file(fname))
+
     app.exec_()
     return main
 
