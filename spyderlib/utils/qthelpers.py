@@ -64,22 +64,26 @@ def get_image_label(name, default="not_found.png"):
     return label
 
 
-class SpyderApplication(QApplication):
+class MacApplication(QApplication):
     """Subclass to be able to open external files with our Mac app"""
     def __init__(self, *args):
         QApplication.__init__(self, *args)
 
-    if sys.platform == "darwin" and 'Spyder.app' in __file__:
-        def event(self, event):
-            if event.type() == QEvent.FileOpen:
-                fname = str(event.file())
-                self.emit(SIGNAL('open_external_file(QString)'), fname)
-            return QApplication.event(self, event)
+    def event(self, event):
+        if event.type() == QEvent.FileOpen:
+            fname = str(event.file())
+            self.emit(SIGNAL('open_external_file(QString)'), fname)
+        return QApplication.event(self, event)
 
 
 def qapplication(translate=True):
     """Return QApplication instance
     Creates it if it doesn't already exist"""
+    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        SpyderApplication = MacApplication
+    else:
+        SpyderApplication = QApplication
+    
     app = SpyderApplication.instance()
     if not app:
         # Set Application name for Gnome 3
