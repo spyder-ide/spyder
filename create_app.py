@@ -191,7 +191,7 @@ os.environ['IPYTHONDIR'] = get_ipython_dir()
 
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
-run_cmd = "_run('Spyder.py')"
+run_cmd = "_run()"
 boot = 'dist/Spyder.app/Contents/Resources/__boot__.py'
 for line in fileinput.input(boot, inplace=True):
     if line.startswith(run_cmd):
