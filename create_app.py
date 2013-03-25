@@ -189,16 +189,35 @@ from IPython.utils.path import get_ipython_dir
 os.environ['IPYTHONDIR'] = get_ipython_dir()
 """
 
+# Add a way to grab environment variables inside the app.
+# Thanks a lot to Ryan Clary for posting it here
+# https://groups.google.com/forum/?fromgroups=#!topic/spyderlib/lCXOYk-FSWI
+get_env = \
+r"""
+def _get_env():
+    import os
+    import subprocess as sp
+    envstr = sp.check_output('source /etc/profile; source ~/.profile; printenv',
+                             shell=True)
+    env = [a.split('=') for a in envstr.strip().split('\n')]
+    os.environ.update(env)
+_get_env()
+"""
+
 # Add our modifications to __boot__.py so that they can be taken into
 # account when the app is started
-run_cmd = "_run()"
-boot = 'dist/Spyder.app/Contents/Resources/__boot__.py'
-for line in fileinput.input(boot, inplace=True):
-    if line.startswith(run_cmd):
+boot_file = 'dist/Spyder.app/Contents/Resources/__boot__.py'
+reset_line = "_reset_sys_path()"
+run_line = "_run()"
+for line in fileinput.input(boot_file, inplace=True):
+    if line.startswith(reset_line):
+        print reset_line
+        print get_env
+    elif line.startswith(run_line):
         print change_interpreter
         print new_path
         print ip_dir
-        print run_cmd
+        print run_line
     else:
         print line,
 
