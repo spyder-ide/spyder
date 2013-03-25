@@ -193,9 +193,7 @@ def apply():
             return doc
             
         def _get_single_function_docstring(self, pyfunction):
-            signature = self._get_function_signature(pyfunction)
             docs = pyfunction.get_doc()
-            docs = self._trim_docstring(pyfunction.get_doc(), indents=0)
+            docs = self._trim_docstring(docs, indents=0)
             return docs
-            return signature + ':\n\n' + docs
     codeassist.PyDocExtractor = PatchedPyDocExtractor 
