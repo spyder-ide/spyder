@@ -641,8 +641,8 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         raise NotImplementedError
 
 
-class PythonShellWidget(ShellBaseWidget, InspectObjectMixin,
-                        TracebackLinksMixin):
+class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
+                        InspectObjectMixin):
     """Python shell widget"""
     QT_CLASS = ShellBaseWidget
 

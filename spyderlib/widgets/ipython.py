@@ -21,9 +21,9 @@ from spyderlib.config import CONF
 from spyderlib.widgets.sourcecode import mixins
 
 
-class IPythonControlWidget(QTextEdit, mixins.BaseEditMixin,
-                           mixins.TracebackLinksMixin,
-                           mixins.InspectObjectMixin):
+class IPythonControlWidget(mixins.TracebackLinksMixin,
+                           mixins.InspectObjectMixin,
+                           QTextEdit, mixins.BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets
