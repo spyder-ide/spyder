@@ -660,8 +660,18 @@ class MainConfigPage(GeneralConfigPage):
                                           "python, .spy and .mat files in an "
                                           "already running instance (Requires "
                                           "a restart)"))
-
-	if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        
+        if os.name == 'nt':
+            try:
+                import win32api    # analysis:ignore
+                import pywintypes  # analysis:ignore
+            except ImportError:
+                self.set_option("single_instance", False)
+                single_instance_box.setEnabled(False)
+                tip = _("This feature requires pywin32 and pywintypes.\n"
+                        "It seems you don't have them installed.")
+                single_instance_box.setToolTip(tip)
+        elif sys.platform == "darwin" and 'Spyder.app' in __file__:
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
         
