@@ -1157,6 +1157,7 @@ class Editor(SpyderPluginWidget):
             (_("Search toolbar"), self.main.search_menu_actions),
             (_("Source toolbar"), self.main.source_toolbar_actions),
             (_("Run toolbar"), self.main.run_toolbar_actions),
+            (_("Debug toolbar"), self.main.debug_toolbar_actions),
             (_("Edit toolbar"), self.main.edit_toolbar_actions),
                              )
         self.menu_list = (
