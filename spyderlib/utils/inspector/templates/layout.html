@@ -16,9 +16,9 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="{{css_path}}/default.css" type="text/css" />
-    <link rel="stylesheet" href="{{css_path}}/pygments.css" type="text/css" />
-    <script type="text/javascript" src="{{jquery_path}}/jquery.js"></script>
+    <link rel="stylesheet" href="file:///{{css_path}}/default.css" type="text/css" />
+    <link rel="stylesheet" href="file:///{{css_path}}/pygments.css" type="text/css" />
+    <script type="text/javascript" src="file:///{{jquery_path}}/jquery.js"></script>
     
     {% if right_sphinx_version and math_on %}
     {# DON'T try to load MathJax from the net. It's slow and sometimes gives
@@ -26,14 +26,16 @@
        http://tex.stackexchange.com/questions/2692/comparing-mathjax-and-mathml
     #}
     <script type="text/javascript" 
-    src="{{mathjax_path}}/MathJax.js?config=TeX-AMS-MML_SVG-full">
+    src="file:///{{mathjax_path}}/MathJax.js?config=TeX-AMS-MML_SVG-full">
     </script>
     {% endif %}
 </head>
 
-<script type="text/javascript" charset="utf-8"> {% include js_path + "/math_config.js" %} </script>
-<script src="{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
-<script src="{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript" charset="utf-8">
+{% include js_path + "/math_config.js" %}
+</script>
+<script src="file:///{{js_path}}/utils.js" type="text/javascript" charset="utf-8"></script>
+<script src="file:///{{js_path}}/copy_button.js" type="text/javascript" charset="utf-8"></script>
 
 <body>
     {# Docstring header #}
