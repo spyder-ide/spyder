@@ -159,7 +159,11 @@ for p in PROGRAMS:
 """ % str(PROGRAMS)
 
 # Add RESOURCEPATH to PATH, so that Spyder can find PROGRAMS inside the app
-new_path = "os.environ['PATH'] += os.pathsep + os.environ['RESOURCEPATH']\n"
+new_path = \
+"""
+old_path = os.environ['PATH']
+os.environ['PATH'] = os.environ['RESOURCEPATH'] + os.pathsep + old_path
+"""
 
 # Add IPYTHONDIR to the app env because it seems IPython gets confused
 # about its location when running inside the app
