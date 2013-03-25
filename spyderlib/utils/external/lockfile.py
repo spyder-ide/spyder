@@ -16,7 +16,7 @@ def unique():
     return str(long(_uniquefloat() * 1000))
 
 from os import rename
-if os.name == 'posix':
+if not os.name == 'nt':
     from os import kill
     from os import symlink
     from os import readlink
