@@ -53,19 +53,6 @@ def get_stdlib_modules():
     modules = list(modules)
     return modules
 
-def change_interpreter(program):
-    """
-    Change the interpreter path of the Python scripts included in the app.
-    This assumes Spyder was properly installed in Applications
-    """
-    for line in fileinput.input(program, inplace=True):
-        if line.startswith('#!'):
-            interpreter_path = osp.join('/Applications', 'Spyder.app',
-                                        'Contents', 'MacOs', 'python')
-            print '#!' + interpreter_path
-        else:
-            print line,
-
 #==============================================================================
 # App creation
 #==============================================================================
@@ -125,11 +112,6 @@ progs_dest = [resources + osp.sep + p for p in PROGRAMS]
 for i in range(len(PROGRAMS)):
     shutil.copy2(system_progs[i], progs_dest[i])
 
-# Change PROGRAMS interpreter path to use the one shipped
-# with the app
-for pd in progs_dest:
-    change_interpreter(pd)
-
 # Add deps needed for PROGRAMS to the app
 deps = []
 for package in os.listdir(system_python_lib):
@@ -154,8 +136,7 @@ for line in fileinput.input(pep8_script, inplace=True):
     else:
         print line,
 
-# Function to change the interpreter of PROGRAMS if the app
-# is ran outside Applications
+# Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
 change_interpreter = \
 """
@@ -163,12 +144,11 @@ PROGRAMS = %s
 
 def _change_interpreter(program):
     import fileinput
+    import sys
     try:
         for line in fileinput.input(program, inplace=True):
            if line.startswith('#!'):
-               l = len('Spyder')
-               interpreter_path = os.environ['EXECUTABLEPATH'][:-l] + 'python'
-               print '#!' + interpreter_path
+               print '#!' + sys.executable
            else:
                print line,
     except:
