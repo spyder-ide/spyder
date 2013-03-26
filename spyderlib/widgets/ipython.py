@@ -34,7 +34,7 @@ class IPythonControlWidget(mixins.TracebackLinksMixin,
         mixins.BaseEditMixin.__init__(self)
         mixins.TracebackLinksMixin.__init__(self)
         mixins.InspectObjectMixin.__init__(self)
-        self.calltips = False # To not use Spyder calltips
+        self.calltips = False        # To not use Spyder calltips
         self.found_results = []
     
     def showEvent(self, event):
@@ -42,7 +42,7 @@ class IPythonControlWidget(mixins.TracebackLinksMixin,
         self.emit(SIGNAL("visibility_changed(bool)"), True)
     
     def _key_question(self, text):
-        """Action for '?'"""
+        """ Action for '?' and '(' """
         parent = self.parentWidget()
         self.current_prompt_pos = parent._prompt_pos
         if self.get_current_line_to_cursor():
@@ -55,7 +55,11 @@ class IPythonControlWidget(mixins.TracebackLinksMixin,
         """Reimplement Qt Method - Basic keypress event handler"""
         event, text, key, ctrl, shift = restore_keyevent(event)
         
-        if key == Qt.Key_Question and not self.has_selected_text():
+        if key == Qt.Key_Question and not self.has_selected_text() and \
+          self.set_inspector_enabled:
+            self._key_question(text)
+        elif key == Qt.Key_ParenLeft and not self.has_selected_text() \
+          and self.set_inspector_enabled:
             self._key_question(text)
         else:
             # Let the parent widget handle the key press event

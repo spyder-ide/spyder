@@ -245,6 +245,7 @@ DEFAULTS = [
               'use_pager': True,
               'show_calltips': False,
               'ask_before_closing': True,
+              'object_inspector': True,
               'buffer_size': 10000,
               'pylab': True,
               'pylab/autoload': True,

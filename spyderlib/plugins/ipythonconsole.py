@@ -76,6 +76,13 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         calltips_box = newcb(_("Display balloon tips"), 'show_calltips')
         ask_box = newcb(_("Ask for confirmation before closing"),
                         'ask_before_closing')
+        inspector_box = newcb(
+                  _("Automatic notification to object inspector"),
+                  'object_inspector', default=True,
+                  tip=_("If this option is enabled, object inspector\n"
+                        "will automatically show informations on functions\n"
+                        "entered in console (this is triggered when entering\n"
+                        "a left parenthesis after a valid function name)"))
 
         interface_layout = QVBoxLayout()
         interface_layout.addWidget(banner_box)
@@ -83,6 +90,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         interface_layout.addWidget(pager_box)
         interface_layout.addWidget(calltips_box)
         interface_layout.addWidget(ask_box)
+        interface_layout.addWidget(inspector_box)
         interface_group.setLayout(interface_layout)
 
         # Source Code Group
@@ -975,7 +983,9 @@ class IPythonConsole(SpyderPluginWidget):
         # Connect text widget to our inspector
         if kernel_widget is not None and self.inspector is not None:
             control.set_inspector(self.inspector)
+            control.set_inspector_enabled(self.get_option('object_inspector'))
 
+        # Connect to our variable explorer
         if kernel_widget is not None and self.variableexplorer is not None:
             nsb = self.variableexplorer.currentWidget()
             client.set_namespacebrowser(nsb)

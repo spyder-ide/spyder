@@ -506,6 +506,9 @@ class InspectObjectMixin(object):
         """Set ObjectInspector DockWidget reference"""
         self.inspector = inspector
         self.inspector.set_shell(self)
+
+    def set_inspector_enabled(self, state):
+        self.inspector_enabled = state
     
     def inspect_current_object(self):
         text = ''

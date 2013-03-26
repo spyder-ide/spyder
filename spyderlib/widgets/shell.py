@@ -929,11 +929,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                                       completion_text=text[q_pos+1:],
                                       automatic=automatic)
             return
-        
-        
-    #------ Miscellanous
-    def set_inspector_enabled(self, state):
-        self.inspector_enabled = state
             
     #------ Drag'n Drop
     def drop_pathlist(self, pathlist):
