@@ -14,6 +14,7 @@ from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.guiconfig import (CUSTOM_COLOR_SCHEME_NAME,
                                  set_default_color_scheme)
+from spyderlib.utils import programs
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.colors import ColorLayout
@@ -662,14 +663,12 @@ class MainConfigPage(GeneralConfigPage):
                                           "a restart)"))
         
         if os.name == 'nt':
-            try:
-                import win32api    # analysis:ignore
-                import pywintypes  # analysis:ignore
-            except ImportError:
+            pywin32_present = programs.is_module_installed('win32api')
+            if not pywin32_present:
                 self.set_option("single_instance", False)
                 single_instance_box.setEnabled(False)
-                tip = _("This feature requires pywin32 and pywintypes.\n"
-                        "It seems you don't have them installed.")
+                tip = _("This feature requires the pywin32 module.\n"
+                        "It seems you don't have it installed.")
                 single_instance_box.setToolTip(tip)
         elif sys.platform == "darwin" and 'Spyder.app' in __file__:
             self.set_option("single_instance", True)
