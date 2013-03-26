@@ -387,7 +387,7 @@ class FileInfo(QObject):
                 obj_name = obj_fullname.split('.')[-1]
                 cts = cts.replace(obj_fullname, obj_name)
                 signatures = [cts]
-                if '()' in cts:
+                if ('()' in cts) or ('(...)' in cts):
                     # Either inspected object has no argument, or it's 
                     # a builtin or an extension -- in this last case 
                     # the following attempt may succeed:
