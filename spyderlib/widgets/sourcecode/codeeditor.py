@@ -2028,7 +2028,7 @@ class CodeEditor(TextEditBaseWidget):
         statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
                               'class ', 'elif ', 'except ']
         whole_keywords = ['else', 'try', 'except', 'finally']
-        end_chars = [':', '\\', ']', '}', ')']
+        end_chars = [':', '\\', '[', '{', '(']
         unmatched_brace = False
         leading_text = self.get_text('sol', 'cursor').strip()
         line_pos = unicode(self.toPlainText()).index(leading_text)
