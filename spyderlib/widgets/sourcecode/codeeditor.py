@@ -2017,11 +2017,8 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
     
-    def do_insert_colons(self):
-        """
-        Decide if we need to insert a colon after analizying the previous
-        statement
-        """
+    def autoinsert_colons(self):
+        """Decide if we want to autoinsert colons"""
         if self.in_comments_or_strings():
             return False
         
@@ -2074,7 +2071,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
     
-    def auto_insert_quotes(self, event, key):
+    def autoinsert_quotes(self, event, key):
         """Control how to automatically insert quotes in various situations"""
         # Character to insert
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
@@ -2186,7 +2183,7 @@ class CodeEditor(TextEditBaseWidget):
         if key in (Qt.Key_Enter, Qt.Key_Return):
             if not shift and not ctrl:
                 if self.add_colons_enabled and self.is_python() and \
-                  self.do_insert_colons():
+                  self.autoinsert_colons():
                     self.insert_text(':' + self.get_line_separator())
                     self.fix_indent()
                 elif self.is_completion_widget_visible() \
@@ -2277,7 +2274,7 @@ class CodeEditor(TextEditBaseWidget):
                 TextEditBaseWidget.keyPressEvent(self, event)
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
-            self.auto_insert_quotes(event, key)
+            self.autoinsert_quotes(event, key)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
