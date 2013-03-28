@@ -2037,9 +2037,46 @@ class CodeEditor(TextEditBaseWidget):
         add_actions(self.readonly_menu,
                     (self.copy_action, None, selectall_action))
     
+    def __get_current_color(self):
+        """Get the syntax highlighting color for the current cursor position"""
+        cursor = self.textCursor()
+        block = cursor.block()
+        pos = cursor.position() - block.position()  # relative pos within block
+        layout = block.layout()
+        block_formats = layout.additionalFormats()
+        
+        if block_formats:
+            if cursor.atBlockEnd():
+                current_format = block_formats[-1].format
+            else:
+                current_format = None
+                for fmt in block_formats:
+                    if (pos >= fmt.start) and (pos < fmt.start + fmt.length):
+                        current_format = fmt.format
+            color = current_format.foreground().color().name()
+            return color
+        else:
+            return None
+    
+    def __in_comments_or_strings(self):
+        """Is the cursor inside or next to a comment or string?"""
+        current_color = self.__get_current_color()
+        comment_color = self.highlighter.get_color_name('comment')
+        string_color = self.highlighter.get_color_name('string')
+        
+        if (current_color == comment_color) or (current_color == string_color):
+            return True
+        else:
+            return False
+    
     def __do_insert_colons(self):
-        """Decide if we need to insert a colon after analizying the previous
-        statement"""
+        """
+        Decide if we need to insert a colon after analizying the previous
+        statement
+        """
+        if self.__in_comments_or_strings():
+            return False
+        
         statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
                               'class ', 'elif ', 'except ']
         whole_keywords = ['else', 'try', 'except', 'finally']

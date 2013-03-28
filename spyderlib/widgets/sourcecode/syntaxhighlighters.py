@@ -190,6 +190,10 @@ class BaseSH(QSyntaxHighlighter):
     
     def get_unmatched_p_color(self):
         return QColor(self.unmatched_p_color)
+    
+    def get_color_name(self, fmt):
+        """Return color name assigned to a given format"""
+        return self.formats[fmt].foreground().color().name()
 
     def setup_formats(self, font=None):
         base_format = QTextCharFormat()
