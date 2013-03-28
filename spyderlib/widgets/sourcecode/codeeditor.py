@@ -2019,7 +2019,9 @@ class CodeEditor(TextEditBaseWidget):
     
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
-        if self.in_comments_or_strings():
+        if not self.textCursor().atBlockEnd():
+            return False
+        elif self.in_comments_or_strings():
             return False
         
         statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
@@ -2027,21 +2029,21 @@ class CodeEditor(TextEditBaseWidget):
         whole_keywords = ['else', 'try', 'except', 'finally']
         end_chars = [':', '\\', '[', '{', '(']
         unmatched_brace = False
-        leading_text = self.get_text('sol', 'cursor').strip()
-        line_pos = unicode(self.toPlainText()).index(leading_text)
+        line_text = self.get_text('sol', 'cursor').strip()
+        line_pos = unicode(self.toPlainText()).index(line_text)
         
         detect_keyword = \
-          any([leading_text.startswith(sk) for sk in statement_keywords]) or \
-          any([leading_text == wk for wk in whole_keywords])
+          any([line_text.startswith(sk) for sk in statement_keywords]) or \
+          any([line_text == wk for wk in whole_keywords])
         
-        for pos,char in enumerate(leading_text):
+        for pos,char in enumerate(line_text):
             if char in ['(', '[', '{']:
                 if self.find_brace_match(pos+line_pos, char, True) is None:
                     unmatched_brace = True
         
         if detect_keyword and not \
-          any([leading_text.endswith(c) for c in end_chars]) and not \
-          unmatched_brace and self.textCursor().atBlockEnd():
+          any([line_text.endswith(c) for c in end_chars]) and not \
+          unmatched_brace:
             return True
         else:
             return False
