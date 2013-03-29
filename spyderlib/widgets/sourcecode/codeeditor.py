@@ -1772,6 +1772,8 @@ class CodeEditor(TextEditBaseWidget):
         """
         if not self.is_python() and not self.is_cython():
             return
+        elif self.in_comment_or_string():
+            return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         for prevline in xrange(block_nb-1, -1, -1):
