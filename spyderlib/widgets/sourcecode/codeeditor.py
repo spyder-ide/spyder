@@ -2016,37 +2016,52 @@ class CodeEditor(TextEditBaseWidget):
             return True
         else:
             return False
-    
+
+    def __colon_keyword(self, text):
+        stmt_kws = ['def', 'for', 'if', 'while', 'with', 'class', 'elif',
+                    'except']
+        whole_kws = ['else', 'try', 'except', 'finally']
+        words = text.split()
+        if any([text == wk for wk in whole_kws]):
+            return True
+        elif len(words) < 2:
+            return False
+        elif any([words[0] == sk for sk in stmt_kws]):
+            return True
+        else:
+            return False
+
+    def __forbidden_colon_end_char(self, text):
+        end_chars = [':', '\\', '[', '{', '(', ',']
+        if any([text.endswith(c) for c in end_chars]):
+            return True
+        else:
+            return False
+
+    def __unmatched_braces(self, text):
+        unmatched_brace = False
+        line_pos = unicode(self.toPlainText()).index(text)
+        for pos,char in enumerate(text):
+            if char in ['(', '[', '{']:
+                if self.find_brace_match(pos+line_pos, char, True) is None:
+                    unmatched_brace = True
+        return unmatched_brace
+
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
+        line_text = self.get_text('sol', 'cursor').strip()
         if not self.textCursor().atBlockEnd():
             return False
         elif self.in_comments_or_strings():
             return False
-        
-        statement_keywords = ['def ', 'for ', 'if ', 'while ', 'with ', \
-                              'class ', 'elif ', 'except ']
-        whole_keywords = ['else', 'try', 'except', 'finally']
-        end_chars = [':', '\\', '[', '{', '(']
-        unmatched_brace = False
-        line_text = self.get_text('sol', 'cursor').strip()
-        line_pos = unicode(self.toPlainText()).index(line_text)
-        
-        detect_keyword = \
-          any([line_text.startswith(sk) for sk in statement_keywords]) or \
-          any([line_text == wk for wk in whole_keywords])
-        
-        for pos,char in enumerate(line_text):
-            if char in ['(', '[', '{']:
-                if self.find_brace_match(pos+line_pos, char, True) is None:
-                    unmatched_brace = True
-        
-        if detect_keyword and not \
-          any([line_text.endswith(c) for c in end_chars]) and not \
-          unmatched_brace:
-            return True
-        else:
+        elif not self.__colon_keyword(line_text):
             return False
+        elif self.__forbidden_colon_end_char(line_text):
+            return False
+        elif self.__unmatched_braces(line_text):
+            return False
+        else:
+            return True
     
     def has_open_quotes(self, s):
         """Return whether a string has open quotes.
