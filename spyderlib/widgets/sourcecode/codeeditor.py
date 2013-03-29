@@ -2021,6 +2021,7 @@ class CodeEditor(TextEditBaseWidget):
         stmt_kws = ['def', 'for', 'if', 'while', 'with', 'class', 'elif',
                     'except']
         whole_kws = ['else', 'try', 'except', 'finally']
+        text = text.lstrip()
         words = text.split()
         if any([text == wk for wk in whole_kws]):
             return True
@@ -2033,23 +2034,25 @@ class CodeEditor(TextEditBaseWidget):
 
     def __forbidden_colon_end_char(self, text):
         end_chars = [':', '\\', '[', '{', '(', ',']
+        text = text.rstrip()
         if any([text.endswith(c) for c in end_chars]):
             return True
         else:
             return False
 
-    def __unmatched_braces(self, text):
-        unmatched_brace = False
-        line_pos = unicode(self.toPlainText()).index(text)
+    def __unmatched_braces_in_line(self, text):
+        block = self.textCursor().block()
+        line_pos = block.position()
         for pos,char in enumerate(text):
             if char in ['(', '[', '{']:
-                if self.find_brace_match(pos+line_pos, char, True) is None:
-                    unmatched_brace = True
-        return unmatched_brace
+                match = self.find_brace_match(line_pos+pos, char, forward=True)
+                if (match is None) or (match > line_pos+len(text)):
+                    return True
+        return False
 
     def autoinsert_colons(self):
         """Decide if we want to autoinsert colons"""
-        line_text = self.get_text('sol', 'cursor').strip()
+        line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
         elif self.in_comments_or_strings():
@@ -2058,7 +2061,7 @@ class CodeEditor(TextEditBaseWidget):
             return False
         elif self.__forbidden_colon_end_char(line_text):
             return False
-        elif self.__unmatched_braces(line_text):
+        elif self.__unmatched_braces_in_line(line_text):
             return False
         else:
             return True
