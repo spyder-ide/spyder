@@ -2252,8 +2252,8 @@ class CodeEditor(TextEditBaseWidget):
                         self.completion_text = self.completion_text[:-1]
         elif key == Qt.Key_Period:
             self.insert_text(text)
-            if (self.is_python() or self.is_cython()) and \
-               self.codecompletion_auto:
+            if (self.is_python() or self.is_cython()) and not \
+              self.in_comments_or_strings() and self.codecompletion_auto:
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
