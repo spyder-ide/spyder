@@ -2006,12 +2006,11 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return None
     
-    def in_comments_or_strings(self):
+    def in_comment_or_string(self):
         """Is the cursor inside or next to a comment or string?"""
         current_color = self.__get_current_color()
         comment_color = self.highlighter.get_color_name('comment')
         string_color = self.highlighter.get_color_name('string')
-        
         if (current_color == comment_color) or (current_color == string_color):
             return True
         else:
@@ -2055,7 +2054,7 @@ class CodeEditor(TextEditBaseWidget):
         line_text = self.get_text('sol', 'cursor')
         if not self.textCursor().atBlockEnd():
             return False
-        elif self.in_comments_or_strings():
+        elif self.in_comment_or_string():
             return False
         elif not self.__colon_keyword(line_text):
             return False
@@ -2253,7 +2252,7 @@ class CodeEditor(TextEditBaseWidget):
         elif key == Qt.Key_Period:
             self.insert_text(text)
             if (self.is_python() or self.is_cython()) and not \
-              self.in_comments_or_strings() and self.codecompletion_auto:
+              self.in_comment_or_string() and self.codecompletion_auto:
                 # Enable auto-completion only if last token isn't a float
                 last_obj = getobj(self.get_text('sol', 'cursor'))
                 if last_obj and not last_obj.isdigit():
