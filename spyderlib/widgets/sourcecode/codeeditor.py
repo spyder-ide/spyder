@@ -1996,6 +1996,7 @@ class CodeEditor(TextEditBaseWidget):
         block_formats = layout.additionalFormats()
         
         if block_formats:
+            # To easily grab current format for autoinsert_colons
             if cursor.atBlockEnd():
                 current_format = block_formats[-1].format
             else:
