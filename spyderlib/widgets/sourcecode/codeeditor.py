@@ -2113,6 +2113,14 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
+    def __in_comment(self):
+        current_color = self.__get_current_color()
+        comment_color = self.highlighter.get_color_name('comment')
+        if current_color == comment_color:
+            return True
+        else:
+            return False
+
     def autoinsert_quotes(self, event, key):
         """Control how to automatically insert quotes in various situations"""
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
@@ -2124,6 +2132,8 @@ class CodeEditor(TextEditBaseWidget):
         trailing_text = self.get_text('cursor', 'eol').strip()
 
         if len(trailing_text) > 0:
+            self.insert_text(char)
+        elif self.__in_comment():
             self.insert_text(char)
         elif self.has_open_quotes(line_text) and (not last_three == 3*char):          
             self.insert_text(char)
