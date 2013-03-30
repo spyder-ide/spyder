@@ -2131,7 +2131,10 @@ class CodeEditor(TextEditBaseWidget):
         last_two = self.get_text('sol', 'cursor')[-2:]
         trailing_text = self.get_text('cursor', 'eol').strip()
 
-        if len(trailing_text) > 0:
+        if self.has_selected_text():
+            text = ''.join([char, self.get_selected_text(), char])
+            self.insert_text(text)
+        elif len(trailing_text) > 0:
             self.insert_text(char)
         elif self.__in_comment():
             self.insert_text(char)
