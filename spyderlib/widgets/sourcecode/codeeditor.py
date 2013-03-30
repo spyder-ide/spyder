@@ -1760,7 +1760,7 @@ class CodeEditor(TextEditBaseWidget):
                                     QTextCursor.KeepAnchor, len(prefix))
                 cursor.removeSelectedText()
 
-    def fix_indent(self, forward=True):
+    def fix_indent(self, forward=True, comment_or_string=False):
         """
         Fix indentation (Python only, no text selection)
         forward=True: fix indent only if text is not enough indented
@@ -1772,8 +1772,6 @@ class CodeEditor(TextEditBaseWidget):
         """
         if not self.is_python() and not self.is_cython():
             return
-        elif self.in_comment_or_string():
-            return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
         for prevline in xrange(block_nb-1, -1, -1):
@@ -1783,29 +1781,31 @@ class CodeEditor(TextEditBaseWidget):
                 break
         indent = self.get_block_indentation(block_nb)
         correct_indent = self.get_block_indentation(prevline)
-        if prevtext.endswith(':'):
-            # Indent
-            correct_indent += len(self.indent_chars)
-        elif prevtext.endswith('continue') or prevtext.endswith('break') \
-             or prevtext.endswith('pass'):
-            # Unindent
-            correct_indent -= len(self.indent_chars)
-        elif prevtext.endswith(',') \
-             and len(re.split(r'\(|\{|\[', prevtext)) > 1:
-            rlmap = {")":"(", "]":"[", "}":"{"}
-            for par in rlmap:
-                i_right = prevtext.rfind(par)
-                if i_right != -1:
-                    prevtext = prevtext[:i_right]
-                    for _i in range(len(prevtext.split(par))):
-                        i_left = prevtext.rfind(rlmap[par])
-                        if i_left != -1:
-                            prevtext = prevtext[:i_left]
-                        else:
-                            break
-            else:
-                prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
-                correct_indent = len(prevtext)-len(prevexpr)
+
+        if not comment_or_string:
+            if prevtext.endswith(':'):
+                # Indent
+                correct_indent += len(self.indent_chars)
+            elif prevtext.endswith('continue') or prevtext.endswith('break') \
+              or prevtext.endswith('pass'):
+                # Unindent
+                correct_indent -= len(self.indent_chars)
+            elif prevtext.endswith(',') \
+              and len(re.split(r'\(|\{|\[', prevtext)) > 1:
+                rlmap = {")":"(", "]":"[", "}":"{"}
+                for par in rlmap:
+                    i_right = prevtext.rfind(par)
+                    if i_right != -1:
+                        prevtext = prevtext[:i_right]
+                        for _i in range(len(prevtext.split(par))):
+                            i_left = prevtext.rfind(rlmap[par])
+                            if i_left != -1:
+                                prevtext = prevtext[:i_left]
+                            else:
+                                break
+                else:
+                    prevexpr = re.split(r'\(|\{|\[', prevtext)[-1]
+                    correct_indent = len(prevtext)-len(prevexpr)
 
         if (forward and indent >= correct_indent) or \
            (not forward and indent <= correct_indent):
@@ -2210,8 +2210,9 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
+                    cmt_o_str = self.in_comment_or_string()
                     TextEditBaseWidget.keyPressEvent(self, event)
-                    self.fix_indent()
+                    self.fix_indent(comment_or_string=cmt_o_str)
             elif shift:
                 # Ignoring QPlainTextEdit default Shift+Enter keybinding
                 # which will print a new line in the same block:
