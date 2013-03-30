@@ -2115,28 +2115,33 @@ class CodeEditor(TextEditBaseWidget):
 
     def autoinsert_quotes(self, event, key):
         """Control how to automatically insert quotes in various situations"""
-        # Character to insert
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
-        # Grab line and previous text
         line_text = self.get_text('sol', 'eol')
         cursor = self.textCursor()
+        last_three = self.get_text('sol', 'cursor')[-3:]
+        last_two = self.get_text('sol', 'cursor')[-2:]
         
-        if self.has_open_quotes(line_text):
+        if self.has_open_quotes(line_text) and (not last_three == 3*char):
             self.insert_text(char)
+        # Move to the right if we are between two quotes
         elif self.__between_quotes(char):
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor, 1)
             cursor.clearSelection()
             self.setTextCursor(cursor)
         # Automatic insertion of triple double quotes (for docstrings)
-        elif self.get_text('sol', 'cursor')[-2:] == 2*char:
-            self.insert_text(4*char)
+        elif last_three == 3*char:
+            self.insert_text(3*char)
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.PreviousCharacter,
                                 QTextCursor.KeepAnchor, 3)
             cursor.clearSelection()
             self.setTextCursor(cursor)
+        # If last two chars are quotes, just insert one more because most
+        # probably the user wants to write a docstring
+        elif last_two == 2*char:
+            self.insert_text(char)
         # Automatic insertion of quotes and double quotes
         else:
             self.insert_text(2*char)
