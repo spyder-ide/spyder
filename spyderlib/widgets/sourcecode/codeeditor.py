@@ -2134,7 +2134,7 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             text = ''.join([char, self.get_selected_text(), char])
             self.insert_text(text)
-        elif len(trailing_text) > 0:
+        elif len(trailing_text) > 0 and not self.__between_quotes(char):
             self.insert_text(char)
         elif self.__in_comment():
             self.insert_text(char)
