@@ -2092,15 +2092,12 @@ class CodeEditor(TextEditBaseWidget):
             return "'"
         else:
             return False
-    
-    def autoinsert_quotes(self, event, key):
-        """Control how to automatically insert quotes in various situations"""
-        # Character to insert
-        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
-        
-        # Grab line and previous text
-        line_text = self.get_text('sol', 'eol')
-        
+
+    def __between_quotes(self, char):
+        """
+        Check if the cursor is between two quotes and there is nothing else
+        between them.
+        """
         # Take a peek at the next and previous characters of the current cursor
         # position
         cursor = self.textCursor()
@@ -2110,16 +2107,26 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor, 2)
         prev_char = unicode(cursor.selectedText())
+
+        if next_char == char and prev_char == char:
+            return True
+        else:
+            return False
+
+    def autoinsert_quotes(self, event, key):
+        """Control how to automatically insert quotes in various situations"""
+        # Character to insert
+        char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
-        # Don't auto-insert quotes if there are open ones in the previous text
+        # Grab line and previous text
+        line_text = self.get_text('sol', 'eol')
+        cursor = self.textCursor()
+        
         if self.has_open_quotes(line_text):
             self.insert_text(char)
-        # Don't write a closing quote if the cursor is between two quotes and
-        # there is nothing else between them.
-        # Just move the cursor one position to the right
-        elif next_char == char and prev_char == char:
+        elif self.__between_quotes(char):
             cursor.movePosition(QTextCursor.NextCharacter,
-                                QTextCursor.KeepAnchor, 2)
+                                QTextCursor.KeepAnchor, 1)
             cursor.clearSelection()
             self.setTextCursor(cursor)
         # Automatic insertion of triple double quotes (for docstrings)
