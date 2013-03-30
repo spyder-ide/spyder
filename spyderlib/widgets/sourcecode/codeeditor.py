@@ -2068,7 +2068,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return True
     
-    def has_open_quotes(self, s):
+    def __open_quotes(self, text):
         """Return whether a string has open quotes.
         This simply counts whether the number of quote characters of either
         type in the string is odd.
@@ -2084,12 +2084,12 @@ class CodeEditor(TextEditBaseWidget):
         """
         # We check " first, then ', so complex cases with nested quotes will
         # get the " to take precedence.
-        s = s.replace("\\'", "")
-        s = s.replace('\\"', '')
-        if s.count('"') % 2:
-            return '"'
-        elif s.count("'") % 2:
-            return "'"
+        text = text.replace("\\'", "")
+        text = text.replace('\\"', '')
+        if text.count('"') % 2:
+            return True
+        elif text.count("'") % 2:
+            return True
         else:
             return False
 
@@ -2138,7 +2138,7 @@ class CodeEditor(TextEditBaseWidget):
             self.insert_text(char)
         elif self.__in_comment():
             self.insert_text(char)
-        elif self.has_open_quotes(line_text) and (not last_three == 3*char):          
+        elif self.__open_quotes(line_text) and (not last_three == 3*char):          
             self.insert_text(char)
         # Move to the right if we are between two quotes
         elif self.__between_quotes(char):
