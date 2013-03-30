@@ -2121,8 +2121,11 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         last_three = self.get_text('sol', 'cursor')[-3:]
         last_two = self.get_text('sol', 'cursor')[-2:]
-        
-        if self.has_open_quotes(line_text) and (not last_three == 3*char):
+        trailing_text = self.get_text('cursor', 'eol').strip()
+
+        if len(trailing_text) > 0:
+            self.insert_text(char)
+        elif self.has_open_quotes(line_text) and (not last_three == 3*char):          
             self.insert_text(char)
         # Move to the right if we are between two quotes
         elif self.__between_quotes(char):
