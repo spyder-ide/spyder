@@ -2099,8 +2099,7 @@ class CodeEditor(TextEditBaseWidget):
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
         # Grab line and previous text
-        prev_text = self.get_text('sol', 'cursor').strip()
-        text_to_eol = self.get_text('sol', 'eol').strip()
+        line_text = self.get_text('sol', 'eol')
         
         # Take a peek at the next and previous characters of the current cursor
         # position
@@ -2113,9 +2112,8 @@ class CodeEditor(TextEditBaseWidget):
         prev_char = unicode(cursor.selectedText())
         
         # Don't auto-insert quotes if there are open ones in the previous text
-        if self.has_open_quotes(prev_text) and self.has_open_quotes(text_to_eol):
+        if self.has_open_quotes(line_text):
             self.insert_text(char)
-        
         # Don't write a closing quote if the cursor is between two quotes and
         # there is nothing else between them.
         # Just move the cursor one position to the right
