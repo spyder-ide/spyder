@@ -2087,31 +2087,18 @@ class CodeEditor(TextEditBaseWidget):
         text = text.replace("\\'", "")
         text = text.replace('\\"', '')
         if text.count('"') % 2:
-            return True
+            return '"'
         elif text.count("'") % 2:
-            return True
+            return "'"
         else:
-            return False
+            return ''
 
-    def __between_quotes(self, char):
-        """
-        Check if the cursor is between two quotes and there is nothing else
-        between them.
-        """
-        # Take a peek at the next and previous characters of the current cursor
-        # position
+    def __next_char(self):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.NextCharacter, 
                             QTextCursor.KeepAnchor)
         next_char = unicode(cursor.selectedText())
-        cursor.movePosition(QTextCursor.PreviousCharacter,
-                            QTextCursor.KeepAnchor, 2)
-        prev_char = unicode(cursor.selectedText())
-
-        if next_char == char and prev_char == char:
-            return True
-        else:
-            return False
+        return next_char
 
     def __in_comment(self):
         current_color = self.__get_current_color()
@@ -2126,6 +2113,7 @@ class CodeEditor(TextEditBaseWidget):
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
         line_text = self.get_text('sol', 'eol')
+        text_to_cursor = self.get_text('sol', 'cursor')
         cursor = self.textCursor()
         last_three = self.get_text('sol', 'cursor')[-3:]
         last_two = self.get_text('sol', 'cursor')[-2:]
@@ -2134,14 +2122,15 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             text = ''.join([char, self.get_selected_text(), char])
             self.insert_text(text)
-        elif len(trailing_text) > 0 and not self.__between_quotes(char):
+        elif len(trailing_text) > 0 and not \
+          self.__open_quotes(text_to_cursor) == char:
             self.insert_text(char)
         elif self.__in_comment():
             self.insert_text(char)
-        elif self.__open_quotes(line_text) and (not last_three == 3*char):          
+        elif self.__open_quotes(line_text) and (not last_three == 3*char):
             self.insert_text(char)
         # Move to the right if we are between two quotes
-        elif self.__between_quotes(char):
+        elif self.__next_char() == char:
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor, 1)
             cursor.clearSelection()
