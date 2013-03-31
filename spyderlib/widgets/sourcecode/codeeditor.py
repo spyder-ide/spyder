@@ -2068,7 +2068,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return True
     
-    def __open_quotes(self, text):
+    def __unmatched_quotes_in_line(self, text):
         """Return whether a string has open quotes.
         This simply counts whether the number of quote characters of either
         type in the string is odd.
@@ -2113,7 +2113,7 @@ class CodeEditor(TextEditBaseWidget):
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
         line_text = self.get_text('sol', 'eol')
-        text_to_cursor = self.get_text('sol', 'cursor')
+        line_to_cursor = self.get_text('sol', 'cursor')
         cursor = self.textCursor()
         last_three = self.get_text('sol', 'cursor')[-3:]
         last_two = self.get_text('sol', 'cursor')[-2:]
@@ -2123,11 +2123,12 @@ class CodeEditor(TextEditBaseWidget):
             text = ''.join([char, self.get_selected_text(), char])
             self.insert_text(text)
         elif len(trailing_text) > 0 and not \
-          self.__open_quotes(text_to_cursor) == char:
+          self.__unmatched_quotes_in_line(line_to_cursor) == char:
             self.insert_text(char)
         elif self.__in_comment():
             self.insert_text(char)
-        elif self.__open_quotes(line_text) and (not last_three == 3*char):
+        elif self.__unmatched_quotes_in_line(line_text) and \
+          (not last_three == 3*char):
             self.insert_text(char)
         # Move to the right if we are between two quotes
         elif self.__next_char() == char:
