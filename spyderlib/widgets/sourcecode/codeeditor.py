@@ -2122,15 +2122,15 @@ class CodeEditor(TextEditBaseWidget):
         if self.has_selected_text():
             text = ''.join([char, self.get_selected_text(), char])
             self.insert_text(text)
+        elif self.__in_comment():
+            self.insert_text(char)
         elif len(trailing_text) > 0 and not \
           self.__unmatched_quotes_in_line(line_to_cursor) == char:
-            self.insert_text(char)
-        elif self.__in_comment():
             self.insert_text(char)
         elif self.__unmatched_quotes_in_line(line_text) and \
           (not last_three == 3*char):
             self.insert_text(char)
-        # Move to the right if we are between two quotes
+        # Move to the right if we are before a quote
         elif self.__next_char() == char:
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor, 1)
@@ -2148,7 +2148,7 @@ class CodeEditor(TextEditBaseWidget):
         # probably the user wants to write a docstring
         elif last_two == 2*char:
             self.insert_text(char)
-        # Automatic insertion of quotes and double quotes
+        # Automatic insertion of quotes
         else:
             self.insert_text(2*char)
             cursor = self.textCursor()
