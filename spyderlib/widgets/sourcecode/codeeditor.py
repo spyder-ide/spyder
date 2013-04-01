@@ -2011,11 +2011,14 @@ class CodeEditor(TextEditBaseWidget):
     
     def in_comment_or_string(self):
         """Is the cursor inside or next to a comment or string?"""
-        current_color = self.__get_current_color()
-        comment_color = self.highlighter.get_color_name('comment')
-        string_color = self.highlighter.get_color_name('string')
-        if (current_color == comment_color) or (current_color == string_color):
-            return True
+        if self.highlighter:
+            current_color = self.__get_current_color()
+            comment_color = self.highlighter.get_color_name('comment')
+            string_color = self.highlighter.get_color_name('string')
+            if (current_color == comment_color) or (current_color == string_color):
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -2101,10 +2104,13 @@ class CodeEditor(TextEditBaseWidget):
         return next_char
 
     def __in_comment(self):
-        current_color = self.__get_current_color()
-        comment_color = self.highlighter.get_color_name('comment')
-        if current_color == comment_color:
-            return True
+        if self.highlighter:
+            current_color = self.__get_current_color()
+            comment_color = self.highlighter.get_color_name('comment')
+            if current_color == comment_color:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -2228,9 +2234,9 @@ class CodeEditor(TextEditBaseWidget):
                    and self.codecompletion_enter:
                     self.select_completion_list()
                 else:
-                    cmt_o_str = self.in_comment_or_string()
+                    cmt_or_str = self.in_comment_or_string()
                     TextEditBaseWidget.keyPressEvent(self, event)
-                    self.fix_indent(comment_or_string=cmt_o_str)
+                    self.fix_indent(comment_or_string=cmt_or_str)
             elif shift:
                 # Ignoring QPlainTextEdit default Shift+Enter keybinding
                 # which will print a new line in the same block:
