@@ -645,9 +645,6 @@ class ExternalConsole(SpyderPluginWidget):
         
     def set_spyder_breakpoints(self):
         """Set all Spyder breakpoints into all shells"""
-        # BTW, could do shellwidget.shell.ask_monitor(...)
-        # but the style seems to be to let the shell take care off 
-        # asking the monitor.
         for shellwidget in self.shellwidgets:
             shellwidget.shell.set_spyder_breakpoints()    
     

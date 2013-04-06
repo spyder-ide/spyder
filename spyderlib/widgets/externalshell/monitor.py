@@ -317,8 +317,7 @@ class Monitor(threading.Thread):
     def set_spyder_breakpoints(self):
         """Set all Spyder breakpoints in active pdb session"""
         if not self.pdb_obj:
-            return 
-        # command defined and patched into place in sitecustomize.py
+            return
         self.pdb_obj.set_spyder_breakpoints()    
     
     def notify_open_file(self, fname, lineno=1):
