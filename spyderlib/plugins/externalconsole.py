@@ -643,6 +643,14 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
         
+    def set_spyder_breakpoints(self):
+        """Set all Spyder breakpoints into all shells"""
+        # BTW, could do shellwidget.shell.ask_monitor(...)
+        # but the style seems to be to let the shell take care off 
+        # asking the monitor.
+        for shellwidget in self.shellwidgets:
+            shellwidget.shell.set_spyder_breakpoints()    
+    
     def start(self, fname, wdir=None, args='', interact=False, debug=False,
               python=True, ipykernel=False, ipyclient=False,
               python_args=''):
@@ -991,6 +999,9 @@ class ExternalConsole(SpyderPluginWidget):
             self.connect(self.main.editor,
                          SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),
                          self.run_script_in_current_shell)
+            self.connect(self.main.editor,
+                         SIGNAL("breakpoints_saved()"),
+                         self.set_spyder_breakpoints)
             self.connect(self.main.editor, SIGNAL("open_dir(QString)"),
                          self.set_current_shell_working_directory)
             self.connect(self.main.workingdirectory,

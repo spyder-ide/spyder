@@ -166,6 +166,7 @@ class Monitor(threading.Thread):
                        "set_monitor_auto_refresh": self.set_auto_refresh,
                        "set_remote_view_settings":
                                                 self.set_remote_view_settings,
+                       "set_spyder_breakpoints": self.set_spyder_breakpoints,
                        "__get_dir__": self.get_dir,
                        "__iscallable__": self.iscallable,
                        "__get_arglist__": self.get_arglist,
@@ -313,6 +314,13 @@ class Monitor(threading.Thread):
         communicate(self.n_request,
                     dict(command="pdb_step", data=(fname, lineno)))
 
+    def set_spyder_breakpoints(self):
+        """Set all Spyder breakpoints in active pdb session"""
+        if not self.pdb_obj:
+            return 
+        # command defined and patched into place in sitecustomize.py
+        self.pdb_obj.set_spyder_breakpoints()    
+    
     def notify_open_file(self, fname, lineno=1):
         """Open file in Spyder's editor"""
         communicate(self.n_request,
