@@ -144,6 +144,10 @@ class ExtPythonShellWidget(PythonShellWidget):
         """Return sys.path[:]"""
         return self.ask_monitor("getsyspath()")
 
+    def set_spyder_breakpoints(self):
+        """Set Spyder breakpoints into debugging session"""
+        return self.ask_monitor("set_spyder_breakpoints()")
+        
 
 class ExternalPythonShell(ExternalShellBase):
     """External Shell widget: execute Python script in a separate process"""
