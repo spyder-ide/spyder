@@ -2114,7 +2114,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             return False
 
-    def autoinsert_quotes(self, event, key):
+    def autoinsert_quotes(self, key):
         """Control how to automatically insert quotes in various situations"""
         char = {Qt.Key_QuoteDbl: '"', Qt.Key_Apostrophe: '\''}[key]
         
@@ -2319,7 +2319,7 @@ class CodeEditor(TextEditBaseWidget):
                 TextEditBaseWidget.keyPressEvent(self, event)
         elif key in (Qt.Key_QuoteDbl, Qt.Key_Apostrophe) and \
           self.close_quotes_enabled:
-            self.autoinsert_quotes(event, key)
+            self.autoinsert_quotes(key)
         elif key in (Qt.Key_ParenRight, Qt.Key_BraceRight, Qt.Key_BracketRight)\
           and not self.has_selected_text() and self.close_parentheses_enabled \
           and not self.textCursor().atBlockEnd():
