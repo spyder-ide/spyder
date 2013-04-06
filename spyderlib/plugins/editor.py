@@ -880,16 +880,13 @@ class Editor(SpyderPluginWidget):
                             re_run_action, run_selected_action, None,
                             self.winpdb_action]
         self.main.run_menu_actions += run_menu_actions
-        run_toolbar_actions = [run_action, debug_action, configure_action,
-                               run_selected_action, re_run_action]
+        run_toolbar_actions = [run_action, run_selected_action, re_run_action,
+                               configure_action]
         self.main.run_toolbar_actions += run_toolbar_actions
         
-        debug_toolbar_actions = [debug_action,
-                                 debug_next_action,
-                                 debug_step_action,
-                                 debug_return_action,
-                                 debug_continue_action,
-                                 debug_exit_action]
+        debug_toolbar_actions = [debug_action, debug_next_action,
+                                 debug_step_action, debug_return_action,
+                                 debug_continue_action, debug_exit_action]
         self.main.debug_toolbar_actions += debug_toolbar_actions
         
         source_menu_actions = [eol_menu, trailingspaces_action,
