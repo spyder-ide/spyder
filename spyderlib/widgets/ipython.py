@@ -18,12 +18,12 @@ from spyderlib.utils.qthelpers import restore_keyevent
 
 # Local imports
 from spyderlib.config import CONF
-from spyderlib.widgets.sourcecode import mixins
+from spyderlib.widgets.mixins import (BaseEditMixin, InspectObjectMixin,
+                                      TracebackLinksMixin)
 
 
-class IPythonControlWidget(mixins.TracebackLinksMixin,
-                           mixins.InspectObjectMixin,
-                           QTextEdit, mixins.BaseEditMixin):
+class IPythonControlWidget(TracebackLinksMixin, InspectObjectMixin, QTextEdit,
+                           BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins to use as the
     control widget for IPython widgets
@@ -31,9 +31,9 @@ class IPythonControlWidget(mixins.TracebackLinksMixin,
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
-        mixins.BaseEditMixin.__init__(self)
-        mixins.TracebackLinksMixin.__init__(self)
-        mixins.InspectObjectMixin.__init__(self)
+        BaseEditMixin.__init__(self)
+        TracebackLinksMixin.__init__(self)
+        InspectObjectMixin.__init__(self)
         self.calltips = False        # To not use Spyder calltips
         self.found_results = []
     
@@ -76,7 +76,7 @@ class IPythonControlWidget(mixins.TracebackLinksMixin,
         return super(IPythonControlWidget, self).focusOutEvent(event)
 
 
-class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
+class IPythonPageControlWidget(QTextEdit, BaseEditMixin):
     """
     Subclass of QTextEdit with features from Spyder's mixins.BaseEditMixin to
     use as the paging widget for IPython widgets
@@ -84,7 +84,7 @@ class IPythonPageControlWidget(QTextEdit, mixins.BaseEditMixin):
     QT_CLASS = QTextEdit
     def __init__(self, parent=None):
         QTextEdit.__init__(self, parent)
-        mixins.BaseEditMixin.__init__(self)
+        BaseEditMixin.__init__(self)
         self.found_results = []
     
     def showEvent(self, event):

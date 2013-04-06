@@ -42,7 +42,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.ipython import SpyderIPythonWidget
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
-from spyderlib.widgets.sourcecode import mixins
+from spyderlib.widgets.mixins import SaveHistoryMixin
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -359,7 +359,7 @@ class IPythonConsoleConfigPage(PluginConfigPage):
         self.setLayout(vlayout)
 
 
-class IPythonClient(QWidget, mixins.SaveHistoryMixin):
+class IPythonClient(QWidget, SaveHistoryMixin):
     """
     Spyder IPython client or frontend.
 
@@ -380,7 +380,7 @@ class IPythonClient(QWidget, mixins.SaveHistoryMixin):
     def __init__(self, plugin, connection_file, kernel_widget_id, client_name,
                  ipywidget, history_filename, menu_actions=None):
         super(IPythonClient, self).__init__(plugin)
-        mixins.SaveHistoryMixin.__init__(self)
+        SaveHistoryMixin.__init__(self)
         self.options_button = None
 
         self.connection_file = connection_file

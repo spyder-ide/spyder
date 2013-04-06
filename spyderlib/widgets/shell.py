@@ -31,9 +31,8 @@ from spyderlib.utils import encoding
 from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
                                        restore_keyevent, get_icon)
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
-from spyderlib.widgets.sourcecode.mixins import (InspectObjectMixin,
-                                                 TracebackLinksMixin,
-                                                 SaveHistoryMixin)
+from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
+                                      SaveHistoryMixin)
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):

@@ -24,7 +24,7 @@ from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
 
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
-from spyderlib.widgets.sourcecode import mixins
+from spyderlib.widgets.mixins import BaseEditMixin
 
 
 class CompletionWidget(QListWidget):
@@ -165,7 +165,7 @@ class CompletionWidget(QListWidget):
         self.hide()
 
 
-class TextEditBaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
+class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
     """
     Text edit base widget
     """
@@ -173,7 +173,7 @@ class TextEditBaseWidget(QPlainTextEdit, mixins.BaseEditMixin):
     
     def __init__(self, parent=None):
         QPlainTextEdit.__init__(self, parent)
-        mixins.BaseEditMixin.__init__(self)
+        BaseEditMixin.__init__(self)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.extra_selections_dict = {}
