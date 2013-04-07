@@ -234,7 +234,7 @@ class MainWindow(QMainWindow):
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/classes.html",
           _("PyQt4 API Reference"), "qt.png"),
-         ('xy', "http://www.pythonxy.com",
+         ('xy', "http://code.google.com/p/pythonxy/",
           _("Python(x,y)"), "pythonxy.png"),
          ('winpython', "http://code.google.com/p/winpython/",
           _("WinPython"), "winpython.svg"),
@@ -1524,7 +1524,7 @@ class MainWindow(QMainWindow):
             <p>This project is part of a larger effort to promote and 
             facilitate the use of Python for scientific and enginering 
             software development. The popular Python distributions 
-            <a href="http://www.pythonxy.com">Python(x,y)</a> and 
+            <a href="http://code.google.com/p/pythonxy/">Python(x,y)</a> and 
             <a href="http://code.google.com/p/winpython/">WinPython</a> 
             also contribute to this plan.
             <p>Python %s %dbits, Qt %s, %s %s on %s"""
