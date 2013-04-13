@@ -64,10 +64,9 @@ import datetime
 try:
     from dateutil.parser import parse as dateparse
 except ImportError:
-    from string import atoi
     def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
-        return datetime.datetime( *map(atoi, datestr.split(',')) )
+        return datetime.datetime( *map(int, datestr.split(',')) )
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])

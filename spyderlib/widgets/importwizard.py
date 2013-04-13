@@ -56,10 +56,9 @@ import datetime
 try:
     from dateutil.parser import parse as dateparse
 except ImportError:
-    from string import atoi
     def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
-        _a, _b, _c = map(atoi, datestr.split('/'))
+        _a, _b, _c = map(int, datestr.split('/'))
         if dayfirst:
             return datetime.datetime(_c, _b, _a)
         return datetime.datetime(_c, _a, _b)
