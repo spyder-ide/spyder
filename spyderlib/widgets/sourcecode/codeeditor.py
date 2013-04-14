@@ -112,7 +112,8 @@ class RopeProject(object):
             self.project.validate(self.project.root)
 
     def set_pref(self, key, value):
-        self.project.prefs.set(key, value)
+        if self.project is not None:
+            self.project.prefs.set(key, value)
 
     def get_completion_list(self, source_code, offset, filename):
         if self.project is None:
