@@ -903,6 +903,7 @@ class Editor(SpyderPluginWidget):
         self.dock_toolbar_actions = file_toolbar_actions + [None] + \
                                     source_toolbar_actions + [None] + \
                                     run_toolbar_actions + [None] + \
+                                    debug_toolbar_actions +  [None] + \
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
                 set_clear_breakpoint_action, set_cond_breakpoint_action,
