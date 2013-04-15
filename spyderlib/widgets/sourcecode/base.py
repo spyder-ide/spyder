@@ -412,26 +412,45 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # Multiline selection -> eventually fixing indentation
             original_indent = _indent(self.get_text_line(line_from))
             text = (" "*(original_indent-_indent(lines[0])))+text
-        
-        # If there is a common indent to all lines, remove it
+            
+        # If there is a common indent to all lines, find it.
+        # Moving from bottom line to top line ensures that blank
+        # lines inherit the indent of the line *below* it,
+        # which is the desired behavior.
         min_indent = 999
-        for line in text.split(ls):
+        current_indent = 0
+        lines = text.split(ls)
+        for i in xrange(len(lines)-1, -1, -1):
+            line = lines[i]
             if line.strip():
-                min_indent = min(_indent(line), min_indent)
-        if min_indent:
-            text = ls.join([line[min_indent:] for line in text.split(ls)])
+                current_indent = _indent(line)
+                min_indent = min(current_indent, min_indent)
+            else:
+                lines[i] = ' ' * current_indent
+
+        # Remove any leading whitespace or comment lines
+        # since they confuse the reserved word detector that follows below
+        first_line = lines[0].lstrip()
+        while first_line == '' or first_line[0] == '#':
+            lines.pop(0)
+            first_line = lines[0].lstrip()
         
         # Add an EOL character if a block stars with various Python
         # reserved words, so that it gets evaluated automatically
         # by the console
         first_line = lines[0].lstrip()
-        last_line = self.get_text_line(line_to).strip()
+        last_line = lines[-1].strip()
         words = ['def', 'for', 'if', 'while', 'try', 'with', 'class']
         if any([first_line.startswith(w) for w in words]):
-            text += ls
-            if last_line != '':
-                text += ls
-
+            if last_line == '':
+                lines[-1] += ls
+            else:
+                lines.append(ls)
+                
+        # Build the final string to be evaulated by the console,
+        # accounting for the common indent identified above
+        text = ls.join([line[min_indent:] for line in lines])
+        
         if no_selection:
             self.setFocus()
             self.clear_selection()
