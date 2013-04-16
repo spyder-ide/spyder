@@ -219,5 +219,3 @@ for line in fileinput.input(boot_file, inplace=True):
     else:
         print line,
 
-# Run macdeployqt so that the app can use the internal Qt Framework
-subprocess.call(['macdeployqt', 'dist/Spyder.app'])
