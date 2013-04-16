@@ -191,15 +191,23 @@ get_env = \
 r"""
 def _get_env():
     import os
+    import os.path as osp
     import subprocess as sp
-    if os.path.isfile(os.getenv('HOME') + os.path.sep + '.profile'):
+    user_profile = os.getenv('HOME') + osp.sep + '.profile'
+    global_profile = '/etc/profile'
+    if osp.isfile(global_profile) and not osp.isfile(user_profile):
+        envstr = sp.check_output('source /etc/profile; printenv', shell=True)
+    elif osp.isfile(global_profile) and osp.isfile(user_profile):
         envstr = sp.check_output('source /etc/profile; source ~/.profile; printenv',
                                  shell=True)
     else:
-        envstr = sp.check_output('source /etc/profile; printenv', shell=True)
+        envstr = sp.check_output('printenv', shell=True)
     env = [a.split('=') for a in envstr.strip().split('\n')]
     os.environ.update(env)
-_get_env()
+try:
+    _get_env()
+except:
+    print('Cannot grab environment variables!')
 """
 
 # Add our modifications to __boot__.py so that they can be taken into
