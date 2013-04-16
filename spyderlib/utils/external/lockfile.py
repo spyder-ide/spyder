@@ -1,9 +1,13 @@
 # Copyright (c) 2005 Divmod, Inc.
 # Copyright (c) Twisted Matrix Laboratories.
+# Copyright (c) 2013 The Spyder Development Team
 # Twisted is distributed under the MIT license.
 
 """
 Filesystem-based interprocess mutex.
+
+Changes by the Spyder Team to the original Twisted file:
+-. Rewrite kill Windows function to make it more reliable
 """
 
 __metaclass__ = type
@@ -26,26 +30,42 @@ else:
     _windows = True
 
     try:
-        from win32api import OpenProcess
-        import pywintypes
+        import ctypes
+        from ctypes import wintypes
+        import win32con
     except ImportError:
         kill = None   #analysis:ignore
     else:
-        ERROR_ACCESS_DENIED = 5
-        ERROR_INVALID_PARAMETER = 87
+        # GetExitCodeProcess uses a special exit code to indicate that the
+        # process is still running.
+        STILL_ACTIVE = 259
+        
+        def _is_pid_running(pid):
+            """Taken from http://www.madebuild.org/blog/?p=30"""
+            kernel32 = ctypes.windll.kernel32
+            handle = kernel32.OpenProcess(win32con.PROCESS_QUERY_INFORMATION, 0,
+                                          pid)
+            if handle == 0:
+                return False
+             
+            # If the process exited recently, a pid may still exist for the
+            # handle. So, check if we can get the exit code.
+            exit_code = wintypes.DWORD()
+            retval = kernel32.GetExitCodeProcess(handle,
+                                                 ctypes.byref(exit_code))
+            is_running = (retval == 0)
+            kernel32.CloseHandle(handle)
+             
+            # See if we couldn't get the exit code or the exit code indicates
+            # that the process is still running.
+            return is_running or exit_code.value == STILL_ACTIVE
 
         def kill(pid, signal):
-            try:
-                OpenProcess(0, 0, pid)
-            except pywintypes.error, e:
-                if e.args[0] == ERROR_ACCESS_DENIED:
-                    return
-                elif e.args[0] == ERROR_INVALID_PARAMETER:
-                    raise OSError(errno.ESRCH, None)
-                raise
+            if not _is_pid_running(pid):
+                raise OSError(errno.ESRCH, None)
             else:
-                raise RuntimeError("OpenProcess is required to fail.")
-
+                return
+            
     _open = file
 
     # XXX Implement an atomic thingamajig for win32
@@ -208,4 +228,3 @@ def isLocked(name):
 
 
 __all__ = ['FilesystemLock', 'isLocked']
-
