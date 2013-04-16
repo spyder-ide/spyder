@@ -105,6 +105,16 @@ docs = osp.join(system_python_lib, 'spyderlib', 'doc')
 docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
 shutil.copytree(docs, docs_dest)
 
+# Create a minimal library inside Resources to add it to PYTHONPATH instead of
+# app_python_lib. This must be done when the user changes to an interpreter
+# that's not the one that comes with the app, to forbid importing modules
+# inside the app.
+minimal_lib = osp.join(app_python_lib, 'minimal-lib')
+os.mkdir(minimal_lib)
+minlib_pkgs = ['spyderlib', 'spyderplugins']
+for p in minlib_pkgs:
+    shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
+
 # Add necessary Python programs to the app
 PROGRAMS = ['pylint', 'pep8']
 system_progs = [find_program(p) for p in PROGRAMS]

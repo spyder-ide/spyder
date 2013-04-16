@@ -98,13 +98,14 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         # now we are removing it
         del os.environ['PYTHONPATH']
 
-        # Add the App's main python path at the end of sys.path
+        # Add a minimal library (with spyderlib) at the end of sys.path to
+        # be able to connect our monitor to the external console
         app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
         full_pythonpath = filter(lambda p: p.endswith(app_pythonpath),
                                  sys.path)
         if full_pythonpath:
             sys.path.remove(full_pythonpath[0])
-            sys.path.append(full_pythonpath[0])
+            sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')
 
         # Set QT_API manually when the interpreter is EPD, to avoid
         # an ugly traceback with our scientific_startup script
