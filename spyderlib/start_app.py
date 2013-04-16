@@ -5,6 +5,7 @@ import socket
 import time
 import atexit
 import random
+import sys
 
 # Local imports
 from spyderlib.cli_options import get_options
@@ -44,7 +45,14 @@ def main():
     # Parse command line options
     options, args = get_options()
 
-    if CONF.get('main', 'single_instance') and not options.new_instance:
+    # Check if we are running from our Mac app
+    if sys.platform == "darwin" and 'Spyder.app' in __file__:
+        mac_app = True
+    else:
+        mac_app = False
+
+    if CONF.get('main', 'single_instance') and not options.new_instance \
+      and not mac_app:
         # Minimal delay (0.1-0.2 secs) to avoid that several
         # instances started at the same time step in their
         # own foots while trying to create the lock file
