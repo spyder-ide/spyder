@@ -8,7 +8,8 @@
 Create a stand-alone Mac OS X app using py2app
 
 To be used like this:
-$ python create_app.py py2app
+$ python setup.py build_doc     (to update the docs)
+$ python create_app.py py2app   (to build the app)
 """
 
 from setuptools import setup
@@ -101,9 +102,9 @@ system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python2.7')
 
 # Add our docs to the app
-docs = osp.join(system_python_lib, 'spyderlib', 'doc')
+docs_orig = 'build/lib/spyderlib/doc'
 docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
-shutil.copytree(docs, docs_dest)
+shutil.copytree(docs_orig, docs_dest)
 
 # Create a minimal library inside Resources to add it to PYTHONPATH instead of
 # app_python_lib. This must be done when the user changes to an interpreter
