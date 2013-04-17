@@ -427,6 +427,8 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
                 min_indent = min(current_indent, min_indent)
             else:
                 lines[i] = ' ' * current_indent
+        if min_indent:
+            lines = [line[min_indent:] for line in lines]
 
         # Remove any leading whitespace or comment lines
         # since they confuse the reserved word detector that follows below
@@ -435,27 +437,39 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             lines.pop(0)
             first_line = lines[0].lstrip()
         
-        # Add an EOL character if a block stars with various Python
-        # reserved words, so that it gets evaluated automatically
+        # Add an EOL character after indentation blocks that start with some 
+        # Python reserved words, so that it gets evaluated automatically
         # by the console
-        first_line = lines[0].lstrip()
-        last_line = lines[-1].strip()
-        words = ['def', 'for', 'if', 'while', 'try', 'with', 'class']
-        if any([first_line.startswith(w) for w in words]):
-            if last_line == '':
+        varname = re.compile('[a-zA-Z0-9_]*') # matches valid variable names
+        maybe = False
+        nextexcept = ()
+        for n, line in enumerate(lines):
+            if not _indent(line):
+                word = varname.match(line).group()
+                if maybe and word not in nextexcept:
+                    lines[n-1] += ls
+                    maybe = False
+                if word:
+                    if word in ('def', 'for', 'while', 'with', 'class'):
+                        maybe = True
+                        nextexcept = ()
+                    elif word == 'if':
+                        maybe = True
+                        nextexcept = ('elif', 'else')
+                    elif word == 'try':
+                        maybe = True
+                        nextexcept = ('except', 'finally')
+        if maybe:
+            if lines[-1].strip() == '':
                 lines[-1] += ls
             else:
                 lines.append(ls)
-                
-        # Build the final string to be evaulated by the console,
-        # accounting for the common indent identified above
-        text = ls.join([line[min_indent:] for line in lines])
         
         if no_selection:
             self.setFocus()
             self.clear_selection()
         
-        return text
+        return ls.join(lines)
     
     def get_line_count(self):
         """Return document total line number"""
