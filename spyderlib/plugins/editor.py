@@ -641,6 +641,12 @@ class Editor(SpyderPluginWidget):
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
+        # --- Debug toolbar ---
+        debug_action = create_action(self, _("&Debug"), icon='bug.png',
+                             tip=_("Debug current script in selected console"),
+                             triggered=self.debug_file)
+        self.register_shortcut(debug_action, context="Editor",
+                               name="Debug", default="Ctrl+F5")
         debug_next_action = create_action(self, _("Step Over"), 
                icon='arrow-step-over.png', tip=_("Debug Step Over"), 
                triggered=lambda: self.debug_command("next")) 
@@ -674,41 +680,36 @@ class Editor(SpyderPluginWidget):
         debug_control_menu = QMenu(_("Debugging control"))
         add_actions(debug_control_menu, debug_control_menu_actions)   
         
+        # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon='run.png',
-                tip=_("Run active script in a new Python interpreter"),
-                triggered=self.run_file)
+                               tip=_("Run selected script in current console"),
+                               triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
-        debug_action = create_action(self, _("&Debug"), icon='bug.png',
-                tip=_("Debug current script in external console"
-                            "\n(external console is executed in a "
-                            "separate process)"),
-                triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor",
-                               name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
-                _("&Configure..."), icon='configure.png',
-                tip=_("Edit run configurations"), menurole=QAction.NoRole,
-                triggered=self.edit_run_configurations)
+                            _("&Configure..."), icon='configure.png',
+                            tip=_("Edit run settings"), menurole=QAction.NoRole,
+                            triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
         re_run_action = create_action(self,
-                _("Re-run &last script"), icon='run_again.png',
-                tip=_("Run again last script in external console "
-                            "with the same options"),
-                triggered=self.re_run_file)
+                            _("Re-run &last script"), icon='run_again.png',
+                            tip=_("Run again last script in current console "
+                                  "with the same options"),
+                            triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
         run_selected_action = create_action(self,
-                _("Run &selection or current block"),
-                icon='run_selection.png',
-                tip=_("Run selected text or current block of lines \n"
-                            "inside current external console's interpreter"),
-                triggered=self.run_selection_or_block)
+                        _("Run &selection or current block"),
+                        icon='run_selection.png',
+                        tip=_("Run selected text or current block of lines \n"
+                              "inside current console"),
+                        triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
         
+        # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon='todo_list.png',
                 tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
@@ -759,6 +760,7 @@ class Editor(SpyderPluginWidget):
                                context="Editor", name="Next cursor position",
                                default="Ctrl+Alt+Right")
         
+        # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon='comment.png',
                 tip=_("Comment current line or selection"),
