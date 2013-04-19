@@ -70,7 +70,7 @@ computing and visualization:
     except ImportError:
         pass
     infos += """
-Within Spyder, this intepreter also provides:
+Within Spyder, this interpreter also provides:
     * special commands (e.g. %ls, %pwd, %clear)
     * system commands, i.e. all commands starting with '!' are subprocessed
       (e.g. !dir on Windows or !ls on Linux, and so on)
