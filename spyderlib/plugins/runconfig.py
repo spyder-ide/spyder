@@ -46,7 +46,7 @@ class RunConfiguration(object):
         self.args_enabled = options.get('args/enabled', False)
         self.wdir = options.get('workdir', os.getcwdu())
         self.wdir_enabled = options.get('workdir/enabled', False)
-        self.current = options.get('current', False)
+        self.current = options.get('current', True)
         self.systerm = options.get('systerm', False)
         self.interact = options.get('interact', False)
         self.python_args = options.get('python_args', '')
@@ -148,7 +148,7 @@ class RunConfigOptions(QWidget):
                                         "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
         self.systerm_radio = QRadioButton(_("Execute in an external "
-                                            "system terminal"))
+                                            "System terminal"))
         radio_layout.addWidget(self.systerm_radio)
         
         new_group = QGroupBox(_("Dedicated Python interpreter"))
@@ -174,8 +174,8 @@ class RunConfigOptions(QWidget):
         #TODO: Add option for "Post-mortem debugging"
         
         layout = QVBoxLayout()
-        layout.addWidget(common_group)
         layout.addWidget(radio_group)
+        layout.addWidget(common_group)
         layout.addWidget(new_group)
         self.setLayout(layout)
 
