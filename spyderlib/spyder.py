@@ -1177,7 +1177,7 @@ class MainWindow(QMainWindow):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             self.extconsole.setMinimumHeight(250)
-            for toolbar in (self.run_toolbar, self.edit_toolbar):
+            for toolbar in (self.source_toolbar, self.edit_toolbar):
                 toolbar.close()
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
