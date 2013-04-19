@@ -631,19 +631,30 @@ class MainConfigPage(GeneralConfigPage):
         return get_icon("genprefs.png")
     
     def setup_page(self):
+        newcb = self.create_checkbox
+
+        # --- Interface
         interface_group = QGroupBox(_("Interface"))
         styles = [str(txt) for txt in QStyleFactory.keys()]
         choices = zip(styles, [style.lower() for style in styles])
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
                                            default=self.main.default_style)
-        newcb = self.create_checkbox
+
+        single_instance_box = newcb(_("Use a single instance"),
+                                    'single_instance',
+                                    tip=_("Set this to open external<br> "
+                                          "Python files in an already running "
+                                          "instance (Requires a restart)"))
         vertdock_box = newcb(_("Vertical dockwidget title bars"),
                              'vertical_dockwidget_titlebars')
         verttabs_box = newcb(_("Vertical dockwidget tabs"),
                              'vertical_tabs')
         animated_box = newcb(_("Animated toolbars and dockwidgets"),
                              'animated_docks')
+        tear_off_box = newcb(_("Tear off menus"), 'tear_off_menus',
+                             tip=_("Set this to detach any<br> "
+                                   "menu from the main window"))
         margin_box = newcb(_("Custom dockwidget margin:"),
                            'use_custom_margin')
         margin_spin = self.create_spinbox("", "pixels", 'custom_margin',
@@ -654,14 +665,8 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout = QHBoxLayout()
         margins_layout.addWidget(margin_box)
         margins_layout.addWidget(margin_spin)
-        
-        single_instance_box = newcb(_("Use a single instance"),
-                                    'single_instance',
-                                    tip=_("Set this to open external<br> "
-                                          "python, .spy and .mat files in an "
-                                          "already running instance (Requires "
-                                          "a restart)"))
-        
+
+        # Decide if it's possible to activate or not singie instance mode
         if os.name == 'nt':
             pywin32_present = programs.is_module_installed('win32api')
             if not pywin32_present:
@@ -680,9 +685,11 @@ class MainConfigPage(GeneralConfigPage):
         interface_layout.addWidget(vertdock_box)
         interface_layout.addWidget(verttabs_box)
         interface_layout.addWidget(animated_box)
+        interface_layout.addWidget(tear_off_box)
         interface_layout.addLayout(margins_layout)
         interface_group.setLayout(interface_layout)
 
+        # --- Status bar
         sbar_group = QGroupBox(_("Status bar"))
         memory_box = newcb(_("Show memory usage every"), 'memory_usage/enable',
                            tip=self.main.mem_status.toolTip())
@@ -710,10 +717,11 @@ class MainConfigPage(GeneralConfigPage):
         sbar_layout.addLayout(memory_layout)
         sbar_layout.addLayout(cpu_layout)
         sbar_group.setLayout(sbar_layout)
-        
+
+        # --- Debugging
         debug_group = QGroupBox(_("Debugging"))
-        popup_console_box = newcb(_("Pop up internal console when errors "
-                                    "were intercepted"),
+        popup_console_box = newcb(_("Pop up internal console when internal "
+                                    "errors appear"),
                                   'show_internal_console_if_traceback',
                                   default=True)
         

@@ -1001,9 +1001,10 @@ class MainWindow(QMainWindow):
         self.splash.hide()
         
         # Enabling tear off for all menus except help menu
-        for child in self.menuBar().children():
-            if isinstance(child, QMenu) and child != self.help_menu:
-                child.setTearOffEnabled(True)
+        if CONF.get('main', 'tear_off_menus'):
+            for child in self.menuBar().children():
+                if isinstance(child, QMenu) and child != self.help_menu:
+                    child.setTearOffEnabled(True)
         
         # Menu about to show
         for child in self.menuBar().children():
