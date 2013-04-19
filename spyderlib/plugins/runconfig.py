@@ -349,7 +349,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.add_widgets(combo_label, self.combo, 10, self.stack)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
-        self.setWindowTitle(_("Run configurations"))
+        self.setWindowTitle(_("Run Settings"))
         
     def accept(self):
         """Reimplement Qt method"""
