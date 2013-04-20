@@ -317,7 +317,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.runconfigoptions.set(RunConfiguration(fname).get())
         self.add_widgets(self.runconfigoptions)
         self.add_button_box(QDialogButtonBox.Cancel)
-        self.setWindowTitle(_("Run %s") % osp.basename(fname))
+        self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
             
     def accept(self):
         """Reimplement Qt method"""
