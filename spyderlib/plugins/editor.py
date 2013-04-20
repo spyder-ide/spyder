@@ -360,7 +360,7 @@ class Editor(SpyderPluginWidget):
         self.initialize_plugin()
         
         # Configuration dialog size
-        self.configdialog_size = None
+        self.dialog_size = None
         
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
@@ -641,6 +641,12 @@ class Editor(SpyderPluginWidget):
                                        set_cond_breakpoint_action, None,
                                        clear_all_breakpoints_action))
         
+        # --- Debug toolbar ---
+        debug_action = create_action(self, _("&Debug"), icon='bug.png',
+                             tip=_("Debug current script in selected console"),
+                             triggered=self.debug_file)
+        self.register_shortcut(debug_action, context="Editor",
+                               name="Debug", default="Ctrl+F5")
         debug_next_action = create_action(self, _("Step Over"), 
                icon='arrow-step-over.png', tip=_("Debug Step Over"), 
                triggered=lambda: self.debug_command("next")) 
@@ -674,41 +680,37 @@ class Editor(SpyderPluginWidget):
         debug_control_menu = QMenu(_("Debugging control"))
         add_actions(debug_control_menu, debug_control_menu_actions)   
         
+        # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon='run.png',
-                tip=_("Run active script in a new Python interpreter"),
-                triggered=self.run_file)
+                                   tip=_("Run selected script in\n"
+                                         "current console"),
+                                   triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
-        debug_action = create_action(self, _("&Debug"), icon='bug.png',
-                tip=_("Debug current script in external console"
-                            "\n(external console is executed in a "
-                            "separate process)"),
-                triggered=self.debug_file)
-        self.register_shortcut(debug_action, context="Editor",
-                               name="Debug", default="Ctrl+F5")
         configure_action = create_action(self,
-                _("&Configure..."), icon='configure.png',
-                tip=_("Edit run configurations"), menurole=QAction.NoRole,
-                triggered=self.edit_run_configurations)
+                            _("&Configure..."), icon='configure.png',
+                            tip=_("Edit Run settings"), menurole=QAction.NoRole,
+                            triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
         re_run_action = create_action(self,
-                _("Re-run &last script"), icon='run_again.png',
-                tip=_("Run again last script in external console "
-                            "with the same options"),
-                triggered=self.re_run_file)
+                            _("Re-run &last script"), icon='run_again.png',
+                            tip=_("Run again last script in current\n"
+                                  "console with the same options"),
+                            triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
         run_selected_action = create_action(self,
-                _("Run &selection or current block"),
-                icon='run_selection.png',
-                tip=_("Run selected text or current block of lines \n"
-                            "inside current external console's interpreter"),
-                triggered=self.run_selection_or_block)
+                                _("Run &selection or current block"),
+                                icon='run_selection.png',
+                                tip=_("Run selected text or current block\n"
+                                      "of lines inside current console"),
+                                triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
         
+        # --- Source code Toolbar ---
         self.todo_list_action = create_action(self,
                 _("Show todo list"), icon='todo_list.png',
                 tip=_("Show TODO/FIXME/XXX/HINT/TIP comments list"),
@@ -759,6 +761,7 @@ class Editor(SpyderPluginWidget):
                                context="Editor", name="Next cursor position",
                                default="Ctrl+Alt+Right")
         
+        # --- Edit Toolbar ---
         self.toggle_comment_action = create_action(self,
                 _("Comment")+"/"+_("Uncomment"), icon='comment.png',
                 tip=_("Comment current line or selection"),
@@ -1937,9 +1940,9 @@ class Editor(SpyderPluginWidget):
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
         self.connect(dialog, SIGNAL("size_change(QSize)"),
-                     lambda s: self.set_configdialog_size(s))
-        if self.configdialog_size is not None:
-            dialog.resize(self.configdialog_size)
+                     lambda s: self.set_dialog_size(s))
+        if self.dialog_size is not None:
+            dialog.resize(self.dialog_size)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
         if dialog.exec_():
@@ -1959,11 +1962,12 @@ class Editor(SpyderPluginWidget):
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
                 self.connect(dialog, SIGNAL("size_change(QSize)"),
-                             lambda s: self.set_configdialog_size(s))
-                if self.configdialog_size is not None:
-                    dialog.resize(self.configdialog_size)
+                             lambda s: self.set_dialog_size(s))
+                if self.dialog_size is not None:
+                    dialog.resize(self.dialog_size)
                 dialog.setup(fname)
-                if not dialog.exec_():
+                firstrun_o = CONF.get('run', 'open_on_firstrun')
+                if firstrun_o and not dialog.exec_():
                     return
                 runconf = dialog.get_configuration()
                 
@@ -1986,8 +1990,8 @@ class Editor(SpyderPluginWidget):
                 # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
-    def set_configdialog_size(self, size):
-        self.configdialog_size = size
+    def set_dialog_size(self, size):
+        self.dialog_size = size
 
     def debug_file(self):
         """Debug current script"""

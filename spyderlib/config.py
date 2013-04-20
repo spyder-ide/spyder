@@ -123,6 +123,9 @@ OPEN_FILES_PORT = 21128
 DEFAULTS = [
             ('main',
              {
+              'single_instance': True,
+              'open_files_port': OPEN_FILES_PORT,
+              'tear_off_menus': False,
               'vertical_dockwidget_titlebars': False,
               'vertical_tabs': False,
               'animated_docks': True,
@@ -146,8 +149,6 @@ DEFAULTS = [
               'memory_usage/timeout': 2000,
               'cpu_usage/enable': False,
               'cpu_usage/timeout': 2000,
-              'single_instance': True,
-              'open_files_port': OPEN_FILES_PORT
               }),
             ('quick_layouts',
              {

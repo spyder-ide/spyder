@@ -10,12 +10,13 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QLabel, QPushButton, QCheckBox, QLineEdit,
                                 QComboBox, QHBoxLayout, QDialogButtonBox,
                                 QStackedWidget, QGridLayout, QSizePolicy,
-                                QRadioButton, QMessageBox)
+                                QRadioButton, QMessageBox, QFrame)
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
 import os.path as osp
+from ConfigParser import NoOptionError
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -46,7 +47,7 @@ class RunConfiguration(object):
         self.args_enabled = options.get('args/enabled', False)
         self.wdir = options.get('workdir', os.getcwdu())
         self.wdir_enabled = options.get('workdir/enabled', False)
-        self.current = options.get('current', False)
+        self.current = options.get('current', True)
         self.systerm = options.get('systerm', False)
         self.interact = options.get('interact', False)
         self.python_args = options.get('python_args', '')
@@ -114,6 +115,13 @@ class RunConfigOptions(QWidget):
         QWidget.__init__(self, parent)
         self.runconf = RunConfiguration()
         
+        try:
+            firstrun_o = CONF.get('run', 'open_on_firstrun')
+        except NoOptionError:
+            CONF.set('run', 'open_on_firstrun', False)
+            firstrun_o = False
+
+        # --- General settings ----
         common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
         common_group.setLayout(common_layout)
@@ -138,6 +146,7 @@ class RunConfigOptions(QWidget):
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
         
+        # --- Interpreter ---
         radio_group = QGroupBox(_("Interpreter"))
         radio_layout = QVBoxLayout()
         radio_group.setLayout(radio_layout)
@@ -148,9 +157,10 @@ class RunConfigOptions(QWidget):
                                         "Python interpreter"))
         radio_layout.addWidget(self.new_radio)
         self.systerm_radio = QRadioButton(_("Execute in an external "
-                                            "system terminal"))
+                                            "System terminal"))
         radio_layout.addWidget(self.systerm_radio)
         
+        # --- Dedicated interpreter ---
         new_group = QGroupBox(_("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
@@ -165,18 +175,29 @@ class RunConfigOptions(QWidget):
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
+        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
+                                    "other options you set here"))
         new_layout.addWidget(self.pclo_edit, 2, 1)
-        pclo_label = QLabel(_("The <b>-u</b> option is "
-                              "added to these commands"))
-        pclo_label.setWordWrap(True)
-        new_layout.addWidget(pclo_label, 3, 1)
         
         #TODO: Add option for "Post-mortem debugging"
+
+        # Checkbox to preserve the old behavior, i.e. always open the dialog
+        # on first run
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        hline.setFrameShadow(QFrame.Sunken)
+        self.firstrun_cb = QCheckBox(_("Always open this dialog on a first "
+                                       "file run"))
+        self.connect(self.firstrun_cb, SIGNAL("clicked(bool)"),
+                     self.set_firstrun_o)
+        self.firstrun_cb.setChecked(firstrun_o)
         
         layout = QVBoxLayout()
-        layout.addWidget(common_group)
         layout.addWidget(radio_group)
+        layout.addWidget(common_group)
         layout.addWidget(new_group)
+        layout.addWidget(hline)
+        layout.addWidget(self.firstrun_cb)
         self.setLayout(layout)
 
     def select_directory(self):
@@ -226,6 +247,12 @@ class RunConfigOptions(QWidget):
                                  _("The following working directory is "
                                    "not valid:<br><b>%s</b>") % wdir)
             return False
+    
+    def set_firstrun_o(self):
+        if self.firstrun_cb.isChecked():
+            CONF.set('run', 'open_on_firstrun', True)
+        else:
+            CONF.set('run', 'open_on_firstrun', False)
 
 
 class BaseRunConfigDialog(QDialog, SizeMixin):
@@ -288,7 +315,7 @@ class RunConfigOneDialog(BaseRunConfigDialog):
         self.runconfigoptions.set(RunConfiguration(fname).get())
         self.add_widgets(self.runconfigoptions)
         self.add_button_box(QDialogButtonBox.Cancel)
-        self.setWindowTitle(_("Run %s") % osp.basename(fname))
+        self.setWindowTitle(_("Run settings for %s") % osp.basename(fname))
             
     def accept(self):
         """Reimplement Qt method"""
@@ -349,7 +376,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         self.add_widgets(combo_label, self.combo, 10, self.stack)
         self.add_button_box(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
 
-        self.setWindowTitle(_("Run configurations"))
+        self.setWindowTitle(_("Run Settings"))
         
     def accept(self):
         """Reimplement Qt method"""

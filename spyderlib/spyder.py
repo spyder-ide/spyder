@@ -1001,9 +1001,10 @@ class MainWindow(QMainWindow):
         self.splash.hide()
         
         # Enabling tear off for all menus except help menu
-        for child in self.menuBar().children():
-            if isinstance(child, QMenu) and child != self.help_menu:
-                child.setTearOffEnabled(True)
+        if CONF.get('main', 'tear_off_menus'):
+            for child in self.menuBar().children():
+                if isinstance(child, QMenu) and child != self.help_menu:
+                    child.setTearOffEnabled(True)
         
         # Menu about to show
         for child in self.menuBar().children():
@@ -1177,7 +1178,10 @@ class MainWindow(QMainWindow):
                 if plugin is not None:
                     plugin.dockwidget.raise_()
             self.extconsole.setMinimumHeight(250)
-            for toolbar in (self.run_toolbar, self.edit_toolbar):
+            hidden_toolbars = [self.source_toolbar, self.edit_toolbar]
+            if sys.platform.startswith('linux'):
+                hidden_toolbars.append(self.search_toolbar)
+            for toolbar in hidden_toolbars:
                 toolbar.close()
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
