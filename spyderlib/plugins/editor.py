@@ -682,30 +682,31 @@ class Editor(SpyderPluginWidget):
         
         # --- Run toolbar ---
         run_action = create_action(self, _("&Run"), icon='run.png',
-                               tip=_("Run selected script in current console"),
-                               triggered=self.run_file)
+                                   tip=_("Run selected script in<br> "
+                                     "current console"),
+                                   triggered=self.run_file)
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
         configure_action = create_action(self,
                             _("&Configure..."), icon='configure.png',
-                            tip=_("Edit run settings"), menurole=QAction.NoRole,
+                            tip=_("Edit Run settings"), menurole=QAction.NoRole,
                             triggered=self.edit_run_configurations)
         self.register_shortcut(configure_action, context="Editor",
                                name="Configure", default="F6")
         re_run_action = create_action(self,
                             _("Re-run &last script"), icon='run_again.png',
-                            tip=_("Run again last script in current console "
-                                  "with the same options"),
+                            tip=_("Run again last script in<br> "
+                                  "current console  with the same options"),
                             triggered=self.re_run_file)
         self.register_shortcut(re_run_action, context="Editor",
                                name="Re-run last script", default="Ctrl+F6")
         
         run_selected_action = create_action(self,
-                        _("Run &selection or current block"),
-                        icon='run_selection.png',
-                        tip=_("Run selected text or current block of lines \n"
-                              "inside current console"),
-                        triggered=self.run_selection_or_block)
+                                _("Run &selection or current block"),
+                                icon='run_selection.png',
+                                tip=_("Run selected text or current<br> "
+                                      "block of lines inside current console"),
+                                triggered=self.run_selection_or_block)
         self.register_shortcut(run_selected_action, context="Editor",
                                name="Run selection", default="F9")
         
