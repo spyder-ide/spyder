@@ -175,11 +175,9 @@ class RunConfigOptions(QWidget):
         self.connect(self.pclo_cb, SIGNAL("toggled(bool)"),
                      self.pclo_edit.setEnabled)
         self.pclo_edit.setEnabled(False)
+        self.pclo_edit.setToolTip(_("<b>-u</b> is added to the "
+                                    "other options you set here"))
         new_layout.addWidget(self.pclo_edit, 2, 1)
-        pclo_label = QLabel(_("The <b>-u</b> option is "
-                              "added to these commands"))
-        pclo_label.setWordWrap(True)
-        new_layout.addWidget(pclo_label, 3, 1)
         
         #TODO: Add option for "Post-mortem debugging"
 
