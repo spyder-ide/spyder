@@ -360,7 +360,7 @@ class Editor(SpyderPluginWidget):
         self.initialize_plugin()
         
         # Configuration dialog size
-        self.configdialog_size = None
+        self.dialog_size = None
         
         statusbar = self.main.statusBar()
         self.readwrite_status = ReadWriteStatus(self, statusbar)
@@ -1940,9 +1940,9 @@ class Editor(SpyderPluginWidget):
     def edit_run_configurations(self):
         dialog = RunConfigDialog(self)
         self.connect(dialog, SIGNAL("size_change(QSize)"),
-                     lambda s: self.set_configdialog_size(s))
-        if self.configdialog_size is not None:
-            dialog.resize(self.configdialog_size)
+                     lambda s: self.set_dialog_size(s))
+        if self.dialog_size is not None:
+            dialog.resize(self.dialog_size)
         fname = osp.abspath(self.get_current_filename())
         dialog.setup(fname)
         if dialog.exec_():
@@ -1962,9 +1962,9 @@ class Editor(SpyderPluginWidget):
             if runconf is None:
                 dialog = RunConfigOneDialog(self)
                 self.connect(dialog, SIGNAL("size_change(QSize)"),
-                             lambda s: self.set_configdialog_size(s))
-                if self.configdialog_size is not None:
-                    dialog.resize(self.configdialog_size)
+                             lambda s: self.set_dialog_size(s))
+                if self.dialog_size is not None:
+                    dialog.resize(self.dialog_size)
                 dialog.setup(fname)
                 firstrun_o = CONF.get('run', 'open_on_firstrun')
                 if firstrun_o and not dialog.exec_():
@@ -1990,8 +1990,8 @@ class Editor(SpyderPluginWidget):
                 # (see SpyderPluginWidget.visibility_changed method)
                 editor.setFocus()
                 
-    def set_configdialog_size(self, size):
-        self.configdialog_size = size
+    def set_dialog_size(self, size):
+        self.dialog_size = size
 
     def debug_file(self):
         """Debug current script"""
