@@ -1895,14 +1895,22 @@ class CodeEditor(TextEditBaseWidget):
             last_line -= 1
         cursor.setPosition(start_pos)
         first_line = cursor.block().blockNumber()
+        # If the selection contains only commented lines and surrounding
+        # whitespace, uncomment. Otherwise, comment.
+        is_comment_or_whitespace = True
+        at_least_one_comment = False
         for _line_nb in range(first_line, last_line+1):
-            text = unicode(cursor.block().text())
-            if not text.lstrip().startswith(self.comment_string):
-                self.comment()
-                break
+            text = unicode(cursor.block().text()).lstrip()
+            is_comment = text.startswith(self.comment_string)
+            is_whitespace = (text == '')
+            is_comment_or_whitespace *= (is_comment or is_whitespace)
+            if is_comment:
+                at_least_one_comment = True
             cursor.movePosition(QTextCursor.NextBlock)
-        else:
+        if is_comment_or_whitespace and at_least_one_comment:
             self.uncomment()
+        else:
+            self.comment()
 
     def comment(self):
         """Comment current line or selection"""
