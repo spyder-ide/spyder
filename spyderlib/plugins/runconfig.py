@@ -10,12 +10,13 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QLabel, QPushButton, QCheckBox, QLineEdit,
                                 QComboBox, QHBoxLayout, QDialogButtonBox,
                                 QStackedWidget, QGridLayout, QSizePolicy,
-                                QRadioButton, QMessageBox)
+                                QRadioButton, QMessageBox, QFrame)
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
 import os
 import os.path as osp
+from ConfigParser import NoOptionError
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -114,6 +115,13 @@ class RunConfigOptions(QWidget):
         QWidget.__init__(self, parent)
         self.runconf = RunConfiguration()
         
+        try:
+            firstrun_o = CONF.get('run', 'open_on_firstrun')
+        except NoOptionError:
+            CONF.set('run', 'open_on_firstrun', False)
+            firstrun_o = False
+
+        # --- General settings ----
         common_group = QGroupBox(_("General settings"))
         common_layout = QGridLayout()
         common_group.setLayout(common_layout)
@@ -138,6 +146,7 @@ class RunConfigOptions(QWidget):
         wd_layout.addWidget(browse_btn)
         common_layout.addLayout(wd_layout, 1, 1)
         
+        # --- Interpreter ---
         radio_group = QGroupBox(_("Interpreter"))
         radio_layout = QVBoxLayout()
         radio_group.setLayout(radio_layout)
@@ -151,6 +160,7 @@ class RunConfigOptions(QWidget):
                                             "System terminal"))
         radio_layout.addWidget(self.systerm_radio)
         
+        # --- Dedicated interpreter ---
         new_group = QGroupBox(_("Dedicated Python interpreter"))
         self.connect(self.current_radio, SIGNAL("toggled(bool)"),
                      new_group.setDisabled)
@@ -172,11 +182,24 @@ class RunConfigOptions(QWidget):
         new_layout.addWidget(pclo_label, 3, 1)
         
         #TODO: Add option for "Post-mortem debugging"
+
+        # Checkbox to preserve the old behavior, i.e. always open the dialog
+        # on first run
+        hline = QFrame()
+        hline.setFrameShape(QFrame.HLine)
+        hline.setFrameShadow(QFrame.Sunken)
+        self.firstrun_cb = QCheckBox(_("Always open this dialog on a first "
+                                       "file run"))
+        self.connect(self.firstrun_cb, SIGNAL("clicked(bool)"),
+                     self.set_firstrun_o)
+        self.firstrun_cb.setChecked(firstrun_o)
         
         layout = QVBoxLayout()
         layout.addWidget(radio_group)
         layout.addWidget(common_group)
         layout.addWidget(new_group)
+        layout.addWidget(hline)
+        layout.addWidget(self.firstrun_cb)
         self.setLayout(layout)
 
     def select_directory(self):
@@ -226,6 +249,12 @@ class RunConfigOptions(QWidget):
                                  _("The following working directory is "
                                    "not valid:<br><b>%s</b>") % wdir)
             return False
+    
+    def set_firstrun_o(self):
+        if self.firstrun_cb.isChecked():
+            CONF.set('run', 'open_on_firstrun', True)
+        else:
+            CONF.set('run', 'open_on_firstrun', False)
 
 
 class BaseRunConfigDialog(QDialog, SizeMixin):

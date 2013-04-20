@@ -1966,7 +1966,8 @@ class Editor(SpyderPluginWidget):
                 if self.configdialog_size is not None:
                     dialog.resize(self.configdialog_size)
                 dialog.setup(fname)
-                if not dialog.exec_():
+                firstrun_o = CONF.get('run', 'open_on_firstrun')
+                if firstrun_o and not dialog.exec_():
                     return
                 runconf = dialog.get_configuration()
                 
