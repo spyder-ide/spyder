@@ -48,6 +48,16 @@ def is_mpl_patch_available():
         return False
 
 
+def scientific_libs_available(interpreter):
+    """
+    Return True if numpy, scipy and matplotlib are installed in interpreter
+    """
+    mods = ['numpy', 'scipy', 'matplotlib']
+    check_mods = [programs.is_module_installed(m, interpreter=interpreter) \
+                  for m in mods]
+    return all(check_mods)
+
+
 class ExternalConsoleConfigPage(PluginConfigPage):
     def __init__(self, plugin, parent):
         PluginConfigPage.__init__(self, plugin, parent)
@@ -190,6 +200,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             filters = None
         pyexec_file = self.create_browsefile('', 'pythonexecutable',
                                              filters=filters)
+        for le in self.lineedits:
+            if self.lineedits[le][0] == 'pythonexecutable':
+                pyexec_edit = le
         
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
@@ -224,6 +237,9 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                      pystartup_file.setDisabled)
         self.connect(custom_radio, SIGNAL("toggled(bool)"),
                      pystartup_file.setEnabled)
+        self.connect(pyexec_edit, SIGNAL("editingFinished()"),
+                     lambda : self.change_pystartup(pyexec_edit, default_radio,
+                                                    custom_radio))
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
@@ -387,6 +403,18 @@ to use this feature wisely, e.g. for debugging purpose."""))
         vlayout = QVBoxLayout()
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
+    
+    def change_pystartup(self, edit, def_radio, custom_radio):
+        """
+        Automatically change to default PYTHONSTARTUP file if scientific libs
+        are not available
+        """
+        if custom_radio.isChecked():
+            interpreter = edit.text()
+            scientific = scientific_libs_available(interpreter)
+            if not scientific:
+                def_radio.setChecked(True)
+                custom_radio.setChecked(False)
 
 
 class ExternalConsole(SpyderPluginWidget):
@@ -412,10 +440,10 @@ class ExternalConsole(SpyderPluginWidget):
             from sip import setapi #analysis:ignore
         except ImportError:
             self.set_option('pyqt/ignore_sip_setapi_errors', False)
-
-        scientific = programs.is_module_installed('numpy') and\
-                     programs.is_module_installed('scipy') and\
-                     programs.is_module_installed('matplotlib')
+        
+        executable = self.get_option('pythonexecutable',
+                                     get_python_executable())
+        scientific = scientific_libs_available(executable)
         if self.get_option('pythonstartup/default', None) is None:
             self.set_option('pythonstartup/default', not scientific)
         if not osp.isfile(self.get_option('pythonstartup', '')):
@@ -425,8 +453,6 @@ class ExternalConsole(SpyderPluginWidget):
         self.set_option('pythonstartup/custom',
                         not self.get_option('pythonstartup/default'))
         
-        executable = self.get_option('pythonexecutable',
-                                     get_python_executable())
         if not osp.isfile(executable):
             # This is absolutely necessary, in case the Python interpreter
             # executable has been moved since last Spyder execution (following
