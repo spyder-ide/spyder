@@ -7,12 +7,14 @@
 """Running programs utilities"""
 
 from distutils.version import LooseVersion
+import imp
+import inspect
 import os
 import os.path as osp
-import sys
-import subprocess
-import imp
 import re
+import subprocess
+import sys
+from tempfile import mkstemp
 
 
 def is_program_installed(basename):
@@ -192,7 +194,7 @@ def check_version(actver, version, cmp_op):
         return True
 
 
-def is_module_installed(module_name, version=None):
+def _is_mod_installed(module_name, version=None):
     """Return True if module *module_name* is installed
     
     If version is not None, checking module version 
@@ -219,6 +221,36 @@ def is_module_installed(module_name, version=None):
                 return check_version(actver, version, symb)
     except ImportError:
         return False
+
+
+def is_module_installed(module_name, version=None, interpreter=''):
+    """
+    Check if a module is installed with a given version in a determined
+    interpreter
+    """
+    if interpreter:
+        checkver = inspect.getsource(check_version)
+        ismod_inst = inspect.getsource(_is_mod_installed)
+        script = mkstemp(suffix='.py')[1]
+        with open(script, 'w') as f:
+            f.write("# -*- coding: utf-8 -*-" + "\n\n")
+            f.write("from distutils.version import LooseVersion" + "\n")
+            f.write("import re" + "\n\n")
+            f.write(checkver + "\n")
+            f.write(ismod_inst + "\n")
+            if version:
+                f.write("print _is_mod_installed('%s','%s')" % (module_name,
+                                                                version))
+            else:
+                f.write("print _is_mod_installed('%s')" % module_name)
+        try:
+            output = subprocess.check_output([interpreter, script])
+        except subprocess.CalledProcessError:
+            output = 'False'
+        os.remove(script)
+        return eval(output)
+    else:
+        return _is_mod_installed(module_name, version)
 
 
 if __name__ == '__main__':
