@@ -229,26 +229,32 @@ def is_module_installed(module_name, version=None, interpreter=''):
     interpreter
     """
     if interpreter:
-        checkver = inspect.getsource(check_version)
-        ismod_inst = inspect.getsource(_is_mod_installed)
-        script = mkstemp(suffix='.py')[1]
-        with open(script, 'w') as f:
-            f.write("# -*- coding: utf-8 -*-" + "\n\n")
-            f.write("from distutils.version import LooseVersion" + "\n")
-            f.write("import re" + "\n\n")
-            f.write(checkver + "\n")
-            f.write(ismod_inst + "\n")
-            if version:
-                f.write("print _is_mod_installed('%s','%s')" % (module_name,
-                                                                version))
-            else:
-                f.write("print _is_mod_installed('%s')" % module_name)
-        try:
-            output = subprocess.check_output([interpreter, script])
-        except subprocess.CalledProcessError:
-            output = 'False'
-        os.remove(script)
-        return eval(output)
+        if osp.isfile(interpreter) and ('python' in interpreter):
+            checkver = inspect.getsource(check_version)
+            ismod_inst = inspect.getsource(_is_mod_installed)
+            script = mkstemp(suffix='.py')[1]
+            with open(script, 'w') as f:
+                f.write("# -*- coding: utf-8 -*-" + "\n\n")
+                f.write("from distutils.version import LooseVersion" + "\n")
+                f.write("import re" + "\n\n")
+                f.write(checkver + "\n")
+                f.write(ismod_inst + "\n")
+                if version:
+                    f.write("print _is_mod_installed('%s','%s')" % (module_name,
+                                                                    version))
+                else:
+                    f.write("print _is_mod_installed('%s')" % module_name)
+            try:
+                output = subprocess.check_output([interpreter, script])
+            except subprocess.CalledProcessError:
+                output = 'False'
+            os.remove(script)
+            return eval(output)
+        else:
+            # Don't take a negative decisions if there is no interpreter
+            # available (needed for the change_pystartup method of ExtConsole
+            # config page)
+            return True
     else:
         return _is_mod_installed(module_name, version)
 

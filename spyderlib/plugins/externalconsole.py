@@ -203,6 +203,10 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         for le in self.lineedits:
             if self.lineedits[le][0] == 'pythonexecutable':
                 pyexec_edit = le
+        self.connect(pyexec_edit, SIGNAL("textChanged(QString)"),
+                     lambda pyexec: self.change_pystartup(pyexec,
+                                                          default_radio,
+                                                          custom_radio))
         
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
@@ -237,9 +241,6 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                      pystartup_file.setDisabled)
         self.connect(custom_radio, SIGNAL("toggled(bool)"),
                      pystartup_file.setEnabled)
-        self.connect(pyexec_edit, SIGNAL("editingFinished()"),
-                     lambda : self.change_pystartup(pyexec_edit, default_radio,
-                                                    custom_radio))
         
         pystartup_layout = QVBoxLayout()
         pystartup_layout.addWidget(pystartup_label)
@@ -404,14 +405,13 @@ to use this feature wisely, e.g. for debugging purpose."""))
         vlayout.addWidget(tabs)
         self.setLayout(vlayout)
     
-    def change_pystartup(self, edit, def_radio, custom_radio):
+    def change_pystartup(self, pyexec, def_radio, custom_radio):
         """
         Automatically change to default PYTHONSTARTUP file if scientific libs
         are not available
         """
         if custom_radio.isChecked():
-            interpreter = edit.text()
-            scientific = scientific_libs_available(interpreter)
+            scientific = scientific_libs_available(pyexec)
             if not scientific:
                 def_radio.setChecked(True)
                 custom_radio.setChecked(False)
