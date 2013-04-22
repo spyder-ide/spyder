@@ -20,7 +20,6 @@ from spyderlib.qt.compat import getopenfilename
 import sys
 import os
 import os.path as osp
-import imp
 import re
 import atexit
 
@@ -270,19 +269,11 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # Qt Group
-        # Do not test if PyQt4 or PySide is installed with the function 
-        # spyderlib.utils.programs.is_module_installed because it will 
-        # fail (both libraries can't be imported at the same time):
-        try:
-            imp.find_module('PyQt4')
-            has_pyqt4 = True
-        except ImportError:
-            has_pyqt4 = False
-        try:
-            imp.find_module('PySide')
-            has_pyside = True
-        except ImportError:
-            has_pyside = False
+        interpreter = self.get_option('pythonexecutable')
+        has_pyqt4 = programs.is_module_installed('PyQt4',
+                                                 interpreter=interpreter)
+        has_pyside = programs.is_module_installed('PySide',
+                                                  interpreter=interpreter)
         opts = []
         if has_pyqt4:
             opts.append( ('PyQt4', 'pyqt') )
@@ -292,8 +283,12 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         qt_setapi_box = self.create_combobox(
                          _("Qt-Python bindings library selection:"),
                          [(_("Default library"), 'default')]+opts,
-                         'qt/api', default='default', tip=_(
-"""This option will act on libraries such as Matplotlib, guidata or ETS"""))
+                         'qt/api', default='default',
+                         tip=_("This option will act on<br> "
+                               "libraries such as Matplotlib, guidata "
+                               "or ETS"))
+        if has_pyside and not has_pyqt4:
+            self.set_option('qt/api', 'pyside')
         qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
                               'qt/install_inputhook',
                               tip=_(
