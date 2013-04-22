@@ -206,6 +206,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
                      lambda pyexec: self.change_pystartup(pyexec,
                                                           default_radio,
                                                           custom_radio))
+        self.connect(pyexec_edit, SIGNAL("textChanged(QString)"),
+                     lambda pyexec: self.change_qtapi(pyexec))
         
         pyexec_layout = QVBoxLayout()
         pyexec_layout.addWidget(pyexec_label)
@@ -269,26 +271,23 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         monitor_group.setLayout(monitor_layout)
         
         # Qt Group
+        opts = [(_("Default library"), 'default'), ('PyQt4', 'pyqt'),
+                ('PySide', 'pyside')]
+        qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
+        qt_setapi_box = self.create_combobox(
+                         _("Qt-Python bindings library selection:"), opts,
+                         'qt/api', default='default',
+                         tip=_("This option will act on<br> "
+                               "libraries such as Matplotlib, guidata "
+                               "or ETS"))
         interpreter = self.get_option('pythonexecutable')
         has_pyqt4 = programs.is_module_installed('PyQt4',
                                                  interpreter=interpreter)
         has_pyside = programs.is_module_installed('PySide',
                                                   interpreter=interpreter)
-        opts = []
-        if has_pyqt4:
-            opts.append( ('PyQt4', 'pyqt') )
-        if has_pyside:
-            opts.append( ('PySide', 'pyside') )
-        qt_group = QGroupBox(_("Qt (PyQt/PySide)"))
-        qt_setapi_box = self.create_combobox(
-                         _("Qt-Python bindings library selection:"),
-                         [(_("Default library"), 'default')]+opts,
-                         'qt/api', default='default',
-                         tip=_("This option will act on<br> "
-                               "libraries such as Matplotlib, guidata "
-                               "or ETS"))
         if has_pyside and not has_pyqt4:
             self.set_option('qt/api', 'pyside')
+        
         qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
                               'qt/install_inputhook',
                               tip=_(
@@ -411,6 +410,20 @@ to use this feature wisely, e.g. for debugging purpose."""))
             if not scientific:
                 def_radio.setChecked(True)
                 custom_radio.setChecked(False)
+
+    def change_qtapi(self, pyexec):
+        """Automatically change qt_api setting after changing interpreter"""
+        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
+        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
+        for cb in self.comboboxes:
+            if self.comboboxes[cb][0] == 'qt/api':
+                qt_setapi_cb = cb
+        if has_pyside and not has_pyqt4:
+            qt_setapi_cb.setCurrentIndex(2)
+        elif has_pyqt4 and not has_pyside:
+            qt_setapi_cb.setCurrentIndex(1)
+        else:
+            qt_setapi_cb.setCurrentIndex(0)
 
 
 class ExternalConsole(SpyderPluginWidget):
