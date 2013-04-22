@@ -289,14 +289,17 @@ class ExternalConsoleConfigPage(PluginConfigPage):
             self.set_option('qt/api', 'pyside')
         
         qt_hook_box = newcb(_("Install Spyder's input hook for Qt"),
-                              'qt/install_inputhook',
-                              tip=_(
-"""PyQt installs an input hook that allows creating and interacting
-with Qt widgets in an interactive interpreter without blocking it. 
-On Windows platforms, it is strongly recommended to replace it by Spyder's. 
-Regarding PySide, note that it does not install an input hook, so it is 
-required to enable this feature in order to be able to manipulate PySide/Qt 
-objects interactively."""))
+                        'qt/install_inputhook',
+                        tip=_("PyQt installs an input hook that allows<br> "
+                              "creating and interacting with Qt widgets "
+                              "in an interactive interpreter without "
+                              "blocking it. On Windows platforms, it "
+                              "is strongly recommended to replace it "
+                              "by Spyder's. Regarding PySide, note that "
+                              "it does not install an input hook, so it "
+                              "is required to enable this feature in "
+                              "order to be able to manipulate PySide/Qt" 
+                              "objects interactively."))
         
         qt_layout = QVBoxLayout()
         qt_layout.addWidget(qt_setapi_box)
@@ -310,15 +313,21 @@ objects interactively."""))
             setapi_box = self.create_combobox(
                 _("API selection for QString and QVariant objects:"),
                 ((_("Default API"), 0), (_("API #1"), 1), (_("API #2"), 2)),
-                'pyqt/api_version', default=0, tip=_(
-"""PyQt API #1 is the default API for Python 2. PyQt API #2 is the default 
-API for Python 3 and is compatible with PySide.
-Note that switching to API #2 may require to enable the Matplotlib patch."""))
+                'pyqt/api_version', default=0,
+                tip=_("PyQt API #1 is the default API for<br>"
+                      "Python 2. PyQt API #2 is the default "
+                      "API for Python 3 and is compatible with "
+                      "PySide. Note that switching to API #2 "
+                      "may require to enable the Matplotlib "
+                      "patch."))
             ignore_api_box = newcb(_("Ignore API change errors (sip.setapi)"),
-                                     'pyqt/ignore_sip_setapi_errors', tip=_(
-"""Enabling this option will ignore errors when changing PyQt API.
-As PyQt does not support dynamic API changes, it is strongly recommended
-to use this feature wisely, e.g. for debugging purpose."""))
+                                     'pyqt/ignore_sip_setapi_errors',
+                               tip=_("Enabling this option will ignore <br>"
+                                     "errors when changing PyQt API. As "
+                                     "PyQt does not support dynamic API "
+                                     "changes, it is strongly recommended "
+                                     "to use this feature wisely, e.g. "
+                                     "for debugging purpose."))
             try:
                 from sip import setapi #analysis:ignore
             except ImportError:
@@ -336,8 +345,9 @@ to use this feature wisely, e.g. for debugging purpose."""))
         mpl_backend_box = newcb('', 'matplotlib/backend/enabled', True)
         mpl_backend_edit = self.create_lineedit(_("GUI backend:"),
                                 'matplotlib/backend/value', "Qt4Agg",
-                                _("Set the GUI toolkit used by Matplotlib to "
-                                  "show figures (default: Qt4Agg)"),
+                                tip=_("Set the GUI toolkit used by <br>"
+                                      "Matplotlib to show figures "
+                                      "(default: Qt4Agg)"),
                                 alignment=Qt.Horizontal)
         self.connect(mpl_backend_box, SIGNAL("toggled(bool)"),
                      mpl_backend_edit.setEnabled)
