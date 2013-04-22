@@ -89,7 +89,6 @@ if os.name == 'nt': # Windows platforms
 
 
 # For our MacOs X app
-mac_and_epd = False    # Are we on Mac and using EPD?
 if sys.platform == 'darwin' and 'Spyder.app' in __file__:
     interpreter = os.environ.get('SPYDER_INTERPRETER')
     if 'Spyder.app' not in interpreter:
@@ -105,12 +104,6 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         if full_pythonpath:
             sys.path.remove(full_pythonpath[0])
             sys.path.append(full_pythonpath[0])
-
-        # Set QT_API manually when the interpreter is EPD, to avoid
-        # an ugly traceback with our scientific_startup script
-        if 'EPD' in interpreter:
-            mac_and_epd = True
-            os.environ['QT_API'] = 'pyside'
     else:
         # Add missing variables and methods to the app's site module
         import site
@@ -126,7 +119,7 @@ mpl_backend = os.environ.get("MATPLOTLIB_BACKEND")
 if mpl_backend:
     try:
         import matplotlib
-        if mac_and_epd:
+        if os.environ.get('QT_API') == 'pyside':
             # Just for precaution, since mpl is not working with PySide
             # inside Qt apps, because of its lack of an input hook
             matplotlib.rcParams['backend.qt4'] = 'PySide'
