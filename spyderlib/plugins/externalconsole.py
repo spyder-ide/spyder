@@ -382,7 +382,8 @@ to use this feature wisely, e.g. for debugging purpose."""))
         ets_layout.addWidget(ets_edit)
         ets_group.setLayout(ets_layout)
         ets_group.setEnabled(programs.is_module_installed(
-                                                    "enthought.etsconfig.api"))
+                                                    "enthought.etsconfig.api",
+                                                    interpreter=interpreter))
         
         tabs = QTabWidget()
         tabs.addTab(self.create_tab(font_group, interface_group, display_group,
