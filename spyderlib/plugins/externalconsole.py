@@ -415,7 +415,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         Automatically change to default PYTHONSTARTUP file if scientific libs
         are not available
         """
-        if custom_radio.isChecked():
+        old_pyexec = self.get_option("pythonexecutable")
+        if not (pyexec == old_pyexec) and custom_radio.isChecked():
             scientific = scientific_libs_available(pyexec)
             if not scientific:
                 def_radio.setChecked(True)
@@ -423,17 +424,19 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def change_qtapi(self, pyexec):
         """Automatically change qt_api setting after changing interpreter"""
-        has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
-        has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
-        for cb in self.comboboxes:
-            if self.comboboxes[cb][0] == 'qt/api':
-                qt_setapi_cb = cb
-        if has_pyside and not has_pyqt4:
-            qt_setapi_cb.setCurrentIndex(2)
-        elif has_pyqt4 and not has_pyside:
-            qt_setapi_cb.setCurrentIndex(1)
-        else:
-            qt_setapi_cb.setCurrentIndex(0)
+        old_pyexec = self.get_option("pythonexecutable")
+        if not (pyexec == old_pyexec):
+            has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
+            has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
+            for cb in self.comboboxes:
+                if self.comboboxes[cb][0] == 'qt/api':
+                    qt_setapi_cb = cb
+            if has_pyside and not has_pyqt4:
+                qt_setapi_cb.setCurrentIndex(2)
+            elif has_pyqt4 and not has_pyside:
+                qt_setapi_cb.setCurrentIndex(1)
+            else:
+                qt_setapi_cb.setCurrentIndex(0)
 
 
 class ExternalConsole(SpyderPluginWidget):
@@ -462,10 +465,11 @@ class ExternalConsole(SpyderPluginWidget):
         
         executable = self.get_option('pythonexecutable',
                                      get_python_executable())
-        scientific = scientific_libs_available(executable)
         if self.get_option('pythonstartup/default', None) is None:
+            scientific = scientific_libs_available(executable)
             self.set_option('pythonstartup/default', not scientific)
         if not osp.isfile(self.get_option('pythonstartup', '')):
+            scientific = scientific_libs_available(executable)
             self.set_option('pythonstartup', SCIENTIFIC_STARTUP)
             self.set_option('pythonstartup/default', not scientific)
         # default/custom settings are mutually exclusive:
