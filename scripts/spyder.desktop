@@ -6,7 +6,6 @@ GenericName=Spyder
 Comment=Scientific PYthon Development EnviRonment
 TryExec=spyder
 Exec=spyder %F
-MimeType=application/x-foo;
 Categories=Development;Science;IDE;Qt;
 Icon=spyder
 Terminal=false
