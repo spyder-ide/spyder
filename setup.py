@@ -42,6 +42,19 @@ def get_subpackages(name):
     return splist
 
 
+def get_data_files():
+    """Return data_files in a platform dependent manner"""
+    if sys.platform.startswith('linux'):
+        data_files = [('share/applications', ['scripts/spyder.desktop']),
+                      ('share/pixmaps', ['img_src/spyder.png'])]
+    elif os.name == 'nt':
+        data_files = [('scripts', ['img_src/spyder.ico',
+                                   'img_src/spyder_light.ico'])]
+    else:
+        data_files = []
+    return data_files
+
+
 # Sphinx build (documentation)
 class MyBuild(build):
     def has_doc(self):
@@ -118,11 +131,6 @@ if WINDOWS_INSTALLER:
 
 """
 
-if sys.platform.startswith('linux'):
-    data_files = [('share/applications', ['scripts/spyder.desktop']),
-                  ('share/pixmaps', ['img_src/spyder.png'])]
-else:
-    data_files = []
 
 setup(name=NAME,
       version=__version__,
@@ -146,7 +154,7 @@ editor, Python console, etc.""",
                     get_package_data('spyderplugins', EXTLIST)},
       requires=["rope (>=0.9.2)", "sphinx (>=0.6.0)", "PyQt4 (>=4.4)"],
       scripts=[osp.join('scripts', fname) for fname in SCRIPTS],
-      data_files=data_files,
+      data_files=get_data_files(),
       options={"bdist_wininst":
                {"install_script": "%s_win_post_install.py" % NAME,
                 "title": "%s %s" % (NAME.capitalize(), __version__),
