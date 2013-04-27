@@ -858,8 +858,7 @@ class Editor(SpyderPluginWidget):
                              self.close_all_action, None]
         self.main.file_menu_actions += file_menu_actions
         file_toolbar_actions = [self.new_action, self.open_action,
-                                self.save_action, self.save_all_action,
-                                self.print_action]
+                                self.save_action, self.save_all_action]
         self.main.file_toolbar_actions += file_toolbar_actions
         
         self.edit_menu_actions = [self.toggle_comment_action,
