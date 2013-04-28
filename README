@@ -40,7 +40,7 @@ Licensed under the terms of the MIT License
         When installing Spyder from the .zip source package (using the 
         command `python setup.py install`), the requirements are:
             Python 2.5+
-            sphinx 0.6+ (documentation generation)
+            sphinx 0.6+ (only required for documentation generation)
 
     Runtime dependencies
     

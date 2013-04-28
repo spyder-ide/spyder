@@ -11,15 +11,17 @@ Spyder
 The Scientific PYthon Development EnviRonment
 """
 
+from __future__ import print_function
+
 from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
+
 import os
 import os.path as osp
 import subprocess
 import sys
 
-from sphinx import setup_command
 
 def get_package_data(name, extlist):
     """Return data files for package *name* with extensions in *extlist*"""
@@ -41,7 +43,6 @@ def get_subpackages(name):
             splist.append(".".join(dirpath.split(os.sep)))
     return splist
 
-
 def get_data_files():
     """Return data_files in a platform dependent manner"""
     if sys.platform.startswith('linux'):
@@ -55,31 +56,6 @@ def get_data_files():
     return data_files
 
 
-# Sphinx build (documentation)
-class MyBuild(build):
-    def has_doc(self):
-        setup_dir = os.path.dirname(os.path.abspath(__file__))
-        return os.path.isdir(os.path.join(setup_dir, 'doc'))
-    sub_commands = build.sub_commands + [('build_doc', has_doc)]
-
-
-class MyBuildDoc(setup_command.BuildDoc):
-    def run(self):
-        build = self.get_finalized_command('build')
-        sys.path.insert(0, os.path.abspath(build.build_lib))
-        dirname = self.distribution.get_command_obj('build').build_purelib
-        self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
-        try:
-            setup_command.BuildDoc.run(self)
-        except UnicodeDecodeError:
-            print >>sys.stderr, "ERROR: unable to build documentation "\
-                                "because Sphinx do not handle source path "\
-                                "with non-ASCII characters. Please try to "\
-                                "move the source package to another location "\
-                                "(path with *only* ASCII characters)."        
-        sys.path.pop(0)
-
-
 class MyInstallData(install_data):
     def run(self):
         install_data.run(self)
@@ -87,11 +63,41 @@ class MyInstallData(install_data):
             try:
                 subprocess.call(['update-desktop-database'])
             except:
-                print >>sys.stderr, "ERROR: unable to update desktop database"
-        
+                print("ERROR: unable to update desktop database",
+                      file=sys.stderr)
 
-cmdclass = {'build': MyBuild, 'build_doc': MyBuildDoc,
-            'install_data': MyInstallData}
+CMDCLASS = {'install_data': MyInstallData}
+
+
+# Sphinx build (documentation)
+try:
+    from sphinx import setup_command
+
+    class MyBuild(build):
+        def has_doc(self):
+            setup_dir = os.path.dirname(os.path.abspath(__file__))
+            return os.path.isdir(os.path.join(setup_dir, 'doc'))
+        sub_commands = build.sub_commands + [('build_doc', has_doc)]
+    CMDCLASS['build'] = MyBuild
+    class MyBuildDoc(setup_command.BuildDoc):
+        def run(self):
+            build = self.get_finalized_command('build')
+            sys.path.insert(0, os.path.abspath(build.build_lib))
+            dirname = self.distribution.get_command_obj('build').build_purelib
+            self.builder_target_dir = osp.join(dirname, 'spyderlib', 'doc')
+            try:
+                setup_command.BuildDoc.run(self)
+            except UnicodeDecodeError:
+                print("ERROR: unable to build documentation because Sphinx "\
+                      "do not handle source path with non-ASCII characters. "\
+                      "Please try to move the source package to another "\
+                      "location (path with *only* ASCII characters).",
+                      file=sys.stderr)
+            sys.path.pop(0)
+    CMDCLASS['build_doc'] = MyBuildDoc
+except ImportError:
+    print('WARNING: unable to build documentation because Sphinx '\
+          'is not installed', file=sys.stderr)
 
 
 NAME = 'spyder'
@@ -174,4 +180,4 @@ editor, Python console, etc.""",
                    'Development Status :: 5 - Production/Stable',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Software Development :: Widget Sets'],
-      cmdclass=cmdclass)
+      cmdclass=CMDCLASS)
