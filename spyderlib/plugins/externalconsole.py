@@ -659,7 +659,11 @@ class ExternalConsole(SpyderPluginWidget):
         if wdir:
             line += ", wdir=r'%s'" % norm(wdir)
         line += ")"
-        self.execute_python_code(line, interpreter_only=True)
+        if not self.execute_python_code(line, interpreter_only=True):
+            QMessageBox.warning(self, _('Warning'),
+                _("No Python shell is currently available to run <b>%s</b>."
+                  "<br><br>Please open a new Python interpreter and try again."
+                  % osp.basename(filename)), QMessageBox.Ok)
             
     def set_current_shell_working_directory(self, directory):
         """Set current shell working directory"""
@@ -675,6 +679,9 @@ class ExternalConsole(SpyderPluginWidget):
             shellwidget.shell.execute_lines(unicode(lines))
             self.activateWindow()
             shellwidget.shell.setFocus()
+            return True
+        else:
+            return False
             
     def pdb_has_stopped(self, fname, lineno, shellwidget):
         """Python debugger has just stopped at frame (fname, lineno)"""      
