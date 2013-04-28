@@ -16,7 +16,6 @@ from spyderlib.qt.compat import getexistingdirectory
 
 import os
 import os.path as osp
-from ConfigParser import NoOptionError
 
 # Local imports
 from spyderlib.baseconfig import _
@@ -115,11 +114,7 @@ class RunConfigOptions(QWidget):
         QWidget.__init__(self, parent)
         self.runconf = RunConfiguration()
         
-        try:
-            firstrun_o = CONF.get('run', 'open_on_firstrun')
-        except NoOptionError:
-            CONF.set('run', 'open_on_firstrun', False)
-            firstrun_o = False
+        firstrun_o = CONF.get('run', 'open_on_firstrun', False)
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
