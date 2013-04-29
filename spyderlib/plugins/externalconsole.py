@@ -661,9 +661,9 @@ class ExternalConsole(SpyderPluginWidget):
         line += ")"
         if not self.execute_python_code(line, interpreter_only=True):
             QMessageBox.warning(self, _('Warning'),
-                _("No Python shell is currently available to run <b>%s</b>."
-                  "<br><br>Please open a new Python interpreter and try again."
-                  % osp.basename(filename)), QMessageBox.Ok)
+                _("No Python shell is currently selected to run <b>%s</b>."
+                  "<br><br>Please select or open a new Python interpreter "
+                  "and try again." % osp.basename(filename)), QMessageBox.Ok)
             
     def set_current_shell_working_directory(self, directory):
         """Set current shell working directory"""
