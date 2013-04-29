@@ -514,26 +514,6 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
-            # Maximize current plugin
-            self.maximize_action = create_action(self, '',
-                                             triggered=self.maximize_dockwidget)
-            self.register_shortcut(self.maximize_action, "_",
-                                   "Maximize dockwidget", "Ctrl+Alt+Shift+M")
-            self.__update_maximize_action()
-            
-            # Fullscreen mode
-            self.fullscreen_action = create_action(self,
-                                            _("Fullscreen mode"),
-                                            triggered=self.toggle_fullscreen)
-            self.register_shortcut(self.fullscreen_action, "_",
-                                   "Fullscreen mode", "F11")
-            self.main_toolbar_actions = [self.maximize_action,
-                                         self.fullscreen_action, None]
-            
-            # Main toolbar
-            self.main_toolbar = self.create_toolbar(_("Main toolbar"),
-                                                    "main_toolbar")
-            
             # File menu/toolbar
             self.file_menu = self.menuBar().addMenu(_("&File"))
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
@@ -603,7 +583,6 @@ class MainWindow(QMainWindow):
                                               "available in PYTHONPATH"))
             self.tools_menu_actions = [prefs_action, spyder_path_action]
             self.tools_menu_actions += [update_modules_action, None]
-            self.main_toolbar_actions += [prefs_action, spyder_path_action]
             if WinUserEnvDialog is not None:
                 winenv_action = create_action(self,
                         _("Current user environment variables..."),
@@ -696,6 +675,27 @@ class MainWindow(QMainWindow):
             if vitables_act:
                 self.external_tools_menu_actions += [None, vitables_act]
             
+            # Maximize current plugin
+            self.maximize_action = create_action(self, '',
+                                             triggered=self.maximize_dockwidget)
+            self.register_shortcut(self.maximize_action, "_",
+                                   "Maximize dockwidget", "Ctrl+Alt+Shift+M")
+            self.__update_maximize_action()
+            
+            # Fullscreen mode
+            self.fullscreen_action = create_action(self,
+                                            _("Fullscreen mode"),
+                                            triggered=self.toggle_fullscreen)
+            self.register_shortcut(self.fullscreen_action, "_",
+                                   "Fullscreen mode", "F11")
+            
+            # Main toolbar
+            self.main_toolbar_actions = [self.maximize_action,
+                                         self.fullscreen_action, None,
+                                         prefs_action, spyder_path_action]
+            
+            self.main_toolbar = self.create_toolbar(_("Main toolbar"),
+                                                    "main_toolbar")
             
             # Internal console plugin
             self.console = Console(self, namespace, exitfunc=self.closing,
