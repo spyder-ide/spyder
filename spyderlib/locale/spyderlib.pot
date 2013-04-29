@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-04-29 18:07+Paris, Madrid (heure d’été)\n"
+"POT-Creation-Date: 2013-04-29 22:13+Paris, Madrid (heure d’été)\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -298,11 +298,11 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: spyderlib\plugins\console.py:127 spyderlib\plugins\externalconsole.py:1022
+#: spyderlib\plugins\console.py:127 spyderlib\plugins\externalconsole.py:1025
 msgid "&Run..."
 msgstr ""
 
-#: spyderlib\plugins\console.py:128 spyderlib\plugins\externalconsole.py:1023
+#: spyderlib\plugins\console.py:128 spyderlib\plugins\externalconsole.py:1026
 msgid "Run a Python script"
 msgstr ""
 
@@ -375,12 +375,12 @@ msgstr ""
 msgid "Internal console settings"
 msgstr ""
 
-#: spyderlib\plugins\console.py:221 spyderlib\plugins\externalconsole.py:1179
+#: spyderlib\plugins\console.py:221 spyderlib\plugins\externalconsole.py:1182
 msgid "Run Python script"
 msgstr ""
 
 #: spyderlib\plugins\console.py:222 spyderlib\plugins\externalconsole.py:239
-#: spyderlib\plugins\externalconsole.py:1180 spyderlib\widgets\explorer.py:633
+#: spyderlib\plugins\externalconsole.py:1183 spyderlib\widgets\explorer.py:633
 msgid "Python scripts"
 msgstr ""
 
@@ -1082,9 +1082,9 @@ msgid "Set font style"
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:63
-#: spyderlib\plugins\externalconsole.py:989 spyderlib\plugins\inspector.py:308
+#: spyderlib\plugins\externalconsole.py:992 spyderlib\plugins\inspector.py:308
 #: spyderlib\plugins\ipythonconsole.py:424
-#: spyderlib\plugins\ipythonconsole.py:1119
+#: spyderlib\plugins\ipythonconsole.py:1121
 #: spyderlib\widgets\externalshell\baseshell.py:105
 msgid "Console"
 msgstr ""
@@ -1337,78 +1337,82 @@ msgid "You can't close this kernel because it has one or more consoles connected
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:663
-#: spyderlib\plugins\ipythonconsole.py:714 spyderlib\spyder.py:1202
+#: spyderlib\plugins\ipythonconsole.py:716 spyderlib\spyder.py:1202
 #: spyderlib\spyder.py:1220 spyderlib\utils\environ.py:95
 #: spyderlib\utils\environ.py:108
 msgid "Warning"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:738
+#: spyderlib\plugins\externalconsole.py:664
+msgid "No Python shell is currently selected to run <b>%s</b>.<br><br>Please select or open a new Python interpreter and try again."
+msgstr ""
+
+#: spyderlib\plugins\externalconsole.py:741
 msgid ""
 "%s is already running in a separate process.\n"
 "Do you want to kill the process before starting a new one?"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:869
+#: spyderlib\plugins\externalconsole.py:872
 msgid "Kernel"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:889
+#: spyderlib\plugins\externalconsole.py:892
 msgid "Command Window"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:891
+#: spyderlib\plugins\externalconsole.py:894
 msgid "Terminal"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1011
+#: spyderlib\plugins\externalconsole.py:1014
 msgid "Open a Python &interpreter"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1014
+#: spyderlib\plugins\externalconsole.py:1017
 msgid "Open &command prompt"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1015
+#: spyderlib\plugins\externalconsole.py:1018
 msgid "Open a Windows command prompt"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1017
+#: spyderlib\plugins\externalconsole.py:1020
 msgid "Open &terminal"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1018
+#: spyderlib\plugins\externalconsole.py:1021
 msgid "Open a terminal window inside Spyder"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1151
-#: spyderlib\plugins\ipythonconsole.py:734
+#: spyderlib\plugins\externalconsole.py:1154
+#: spyderlib\plugins\ipythonconsole.py:736
 msgid "Open an IPython console"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1152
+#: spyderlib\plugins\externalconsole.py:1155
 msgid "The console monitor was disabled: the IPython kernel will be started as expected, but an IPython console will have to be connected manually to the kernel."
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1188
-#: spyderlib\plugins\externalconsole.py:1201
-#: spyderlib\plugins\externalconsole.py:1205
+#: spyderlib\plugins\externalconsole.py:1191
+#: spyderlib\plugins\externalconsole.py:1204
+#: spyderlib\plugins\externalconsole.py:1208
 msgid "UMD"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1189
+#: spyderlib\plugins\externalconsole.py:1192
 msgid ""
 "UMD excluded modules:\n"
 "(example: guidata, guiqwt)"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1202
+#: spyderlib\plugins\externalconsole.py:1205
 msgid ""
 "The following modules are not installed on your machine:\n"
 "%s"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1206
+#: spyderlib\plugins\externalconsole.py:1209
 msgid "Please note that these changes will be applied only to new Python/IPython interpreters"
 msgstr ""
 
@@ -1866,42 +1870,46 @@ msgstr ""
 msgid "Kernel process is either remote or unspecified. Cannot restart."
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:739
-msgid "Connect to an existing kernel"
+#: spyderlib\plugins\ipythonconsole.py:717
+msgid "No IPython client is currently available to run <b>%s</b>.<br><br>Please open a new client and try again."
 msgstr ""
 
 #: spyderlib\plugins\ipythonconsole.py:741
+msgid "Connect to an existing kernel"
+msgstr ""
+
+#: spyderlib\plugins\ipythonconsole.py:743
 msgid "Open a new IPython client connected to an external kernel"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:844
+#: spyderlib\plugins\ipythonconsole.py:846
 msgid "(for example: `kernel-3764.json`, or simply `3764`)"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:846
-#: spyderlib\plugins\ipythonconsole.py:886
+#: spyderlib\plugins\ipythonconsole.py:848
+#: spyderlib\plugins\ipythonconsole.py:888
 msgid "IPython"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:847
+#: spyderlib\plugins\ipythonconsole.py:849
 msgid "Provide an IPython kernel connection file:"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:887
+#: spyderlib\plugins\ipythonconsole.py:889
 msgid "Unable to connect to IPython kernel <b>`%s`"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1081
+#: spyderlib\plugins\ipythonconsole.py:1083
 msgid ""
 "%s will be closed.\n"
 "Do you want to kill the associated kernel and all of its clients?"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1127
+#: spyderlib\plugins\ipythonconsole.py:1129
 msgid "Are you sure you want to restart the kernel?"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1129
+#: spyderlib\plugins\ipythonconsole.py:1131
 msgid "Restart kernel?"
 msgstr ""
 
