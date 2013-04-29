@@ -245,7 +245,8 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 else:
                     f.write("print _is_mod_installed('%s')" % module_name)
             try:
-                output = subprocess.check_output([interpreter, script])
+                output = subprocess.Popen([interpreter, script],
+                                      stdout=subprocess.PIPE).communicate()[0]
             except subprocess.CalledProcessError:
                 output = 'False'
             os.remove(script)

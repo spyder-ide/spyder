@@ -87,7 +87,8 @@ def get_hg_revision(repopath):
     try:
         hg = programs.find_program('hg')
         assert hg is not None and osp.isdir(osp.join(repopath, '.hg'))
-        output = subprocess.check_output([hg, 'id', '-nib', repopath])
+        output = subprocess.Popen([hg, 'id', '-nib', repopath],
+                                  stdout=subprocess.PIPE).communicate()[0]
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
         return tuple(output.strip().split())
     except (subprocess.CalledProcessError, AssertionError, AttributeError):

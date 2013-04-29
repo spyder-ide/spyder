@@ -181,8 +181,8 @@ r"""
 def _get_env():
     import os
     import subprocess as sp
-    envstr = sp.check_output('source /etc/profile; source ~/.profile; printenv',
-                             shell=True)
+    envstr = sp.Popen('source /etc/profile; source ~/.profile; printenv',
+                      shell=True, stdout=sp.PIPE).communicate()[0]
     env = [a.split('=') for a in envstr.strip().split('\n')]
     os.environ.update(env)
 _get_env()
