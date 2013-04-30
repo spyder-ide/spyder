@@ -379,7 +379,8 @@ class RunConfigDialog(BaseRunConfigDialog):
         for index in range(self.stack.count()):
             filename = unicode(self.combo.itemText(index))
             runconfigoptions = self.stack.widget(index)
-            if not runconfigoptions.is_valid():
+            if index == self.stack.currentIndex() and\
+               not runconfigoptions.is_valid():
                 return
             options = runconfigoptions.get()
             configurations.append( (filename, options) )
