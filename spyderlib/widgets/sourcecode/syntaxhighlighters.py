@@ -817,26 +817,6 @@ class HtmlSH(BaseWebSH):
     """HTML Syntax Highlighter"""
     PROG = re.compile(make_html_patterns(), re.S)
 
-#==============================================================================
-# CSS highlighter
-#==============================================================================
-
-def make_css_patterns():
-    """Strongly inspired from idlelib.ColorDelegator.make_pat """
-    tags = any("builtin", [r"^[^{}/*:;]+$",
-                           r"(?<=}\/).*?(?={)",
-                           r"[^}]+?(?={)"])
-    keywords = any("keyword", [r"[\w-]+?(?=:)"])
-    string = any("string", [r"(?<=:).+?(?=;)"])
-    comment = any("comment", [r"/\*(.*?)\*/"])
-    multiline_comment_start = any("multiline_comment_start", [r"\/\*"])
-    multiline_comment_end = any("multiline_comment_end", [r"\*\/"])
-    return "|".join([tags, keywords, string, comment,
-                     multiline_comment_start, multiline_comment_end]) 
-    
-class CssSH(BaseWebSH):
-    """CSS Syntax Highlighter"""
-    PROG = re.compile(make_css_patterns(), re.S)
 
 #==============================================================================
 # Pygments based omni-parser
@@ -915,6 +895,10 @@ class IniSH(PygmentsSH):
 class XmlSH(PygmentsSH):
     """XML highlighter"""
     _lang_name = 'xml'
+    
+class CssSH(PygmentsSH):
+    """CSS Syntax Highlighter"""
+    _lang_name = 'css'
 
 class MatlabSH(PygmentsSH):
     """Matlab highlighter"""
