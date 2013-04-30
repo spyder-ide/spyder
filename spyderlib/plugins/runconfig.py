@@ -10,7 +10,8 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
                                 QLabel, QPushButton, QCheckBox, QLineEdit,
                                 QComboBox, QHBoxLayout, QDialogButtonBox,
                                 QStackedWidget, QGridLayout, QSizePolicy,
-                                QRadioButton, QMessageBox, QFrame)
+                                QRadioButton, QMessageBox, QFrame,
+                                QButtonGroup)
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
@@ -21,7 +22,20 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
-from spyderlib.plugins.configdialog import SizeMixin
+from spyderlib.plugins.configdialog import SizeMixin, GeneralConfigPage
+
+
+CURRENT_INTERPRETER = _("Execute in current Python or IPython interpreter")
+DEDICATED_INTERPRETER = _("Execute in a new dedicated Python interpreter")
+SYSTERM_INTERPRETER = _("Execute in an external System terminal")
+
+CURRENT_INTERPRETER_OPTION = 'default/interpreter/current'
+DEDICATED_INTERPRETER_OPTION = 'default/interpreter/dedicated'
+SYSTERM_INTERPRETER_OPTION = 'default/interpreter/systerm'
+
+WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
+WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
+WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
 
 class RunConfiguration(object):
@@ -37,17 +51,25 @@ class RunConfiguration(object):
         self.python_args = None
         self.python_args_enabled = None
         self.set(CONF.get('run', 'defaultconfiguration', default={}))
-        if fname is not None:
+        if fname is not None and\
+           CONF.get('run', WDIR_USE_SCRIPT_DIR_OPTION, True):
             self.wdir = osp.dirname(fname)
             self.wdir_enabled = True
         
     def set(self, options):
         self.args = options.get('args', '')
         self.args_enabled = options.get('args/enabled', False)
-        self.wdir = options.get('workdir', os.getcwdu())
-        self.wdir_enabled = options.get('workdir/enabled', False)
-        self.current = options.get('current', True)
-        self.systerm = options.get('systerm', False)
+        if CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False):
+            default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, os.getcwdu())
+            self.wdir = options.get('workdir', default_wdir)
+            self.wdir_enabled = True
+        else:
+            self.wdir = options.get('workdir', os.getcwdu())
+            self.wdir_enabled = options.get('workdir/enabled', False)
+        self.current = options.get('current',
+                           CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
+        self.systerm = options.get('systerm',
+                           CONF.get('run', SYSTERM_INTERPRETER_OPTION, False))
         self.interact = options.get('interact', False)
         self.python_args = options.get('python_args', '')
         self.python_args_enabled = options.get('python_args/enabled', False)
@@ -112,6 +134,11 @@ class RunConfigOptions(QWidget):
     """Run configuration options"""
     def __init__(self, parent=None):
         QWidget.__init__(self, parent)
+
+        self.current_radio = None
+        self.dedicated_radio = None
+        self.systerm_radio = None
+
         self.runconf = RunConfiguration()
         
         firstrun_o = CONF.get('run', 'open_on_firstrun', False)
@@ -142,18 +169,15 @@ class RunConfigOptions(QWidget):
         common_layout.addLayout(wd_layout, 1, 1)
         
         # --- Interpreter ---
-        radio_group = QGroupBox(_("Interpreter"))
-        radio_layout = QVBoxLayout()
-        radio_group.setLayout(radio_layout)
-        self.current_radio = QRadioButton(_("Execute in current Python "
-                                            "or IPython interpreter"))
-        radio_layout.addWidget(self.current_radio)
-        self.new_radio = QRadioButton(_("Execute in a new dedicated "
-                                        "Python interpreter"))
-        radio_layout.addWidget(self.new_radio)
-        self.systerm_radio = QRadioButton(_("Execute in an external "
-                                            "System terminal"))
-        radio_layout.addWidget(self.systerm_radio)
+        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_layout = QVBoxLayout()
+        interpreter_group.setLayout(interpreter_layout)
+        self.current_radio = QRadioButton(CURRENT_INTERPRETER)
+        interpreter_layout.addWidget(self.current_radio)
+        self.dedicated_radio = QRadioButton(DEDICATED_INTERPRETER)
+        interpreter_layout.addWidget(self.dedicated_radio)
+        self.systerm_radio = QRadioButton(SYSTERM_INTERPRETER)
+        interpreter_layout.addWidget(self.systerm_radio)
         
         # --- Dedicated interpreter ---
         new_group = QGroupBox(_("Dedicated Python interpreter"))
@@ -188,7 +212,7 @@ class RunConfigOptions(QWidget):
         self.firstrun_cb.setChecked(firstrun_o)
         
         layout = QVBoxLayout()
-        layout.addWidget(radio_group)
+        layout.addWidget(interpreter_group)
         layout.addWidget(common_group)
         layout.addWidget(new_group)
         layout.addWidget(hline)
@@ -216,7 +240,7 @@ class RunConfigOptions(QWidget):
         elif self.runconf.systerm:
             self.systerm_radio.setChecked(True)
         else:
-            self.new_radio.setChecked(True)
+            self.dedicated_radio.setChecked(True)
         self.interact_cb.setChecked(self.runconf.interact)
         self.pclo_cb.setChecked(self.runconf.python_args_enabled)
         self.pclo_edit.setText(self.runconf.python_args)
@@ -386,3 +410,77 @@ class RunConfigDialog(BaseRunConfigDialog):
             configurations.append( (filename, options) )
         _set_run_configurations(configurations)
         QDialog.accept(self)
+
+
+class RunConfigPage(GeneralConfigPage):
+    """Default Run Settings configuration page"""
+    CONF_SECTION = "run"
+    def get_name(self):
+        return _("Run")
+    
+    def get_icon(self):
+        return get_icon("run.png")
+    
+    def setup_page(self):
+        run_dlg = _("Run Settings")
+        run_menu = _("Run")
+        about_label = QLabel(_("The following are the default <i>%s</i>. "\
+                               "These options may be overriden using the "\
+                               "<b>%s</b> dialog box (see the <b>%s</b> menu)"\
+                               ) % (run_dlg, run_dlg, run_menu))
+        about_label.setWordWrap(True)
+
+        interpreter_group = QGroupBox(_("Interpreter"))
+        interpreter_bg = QButtonGroup(interpreter_group)
+        self.current_radio = self.create_radiobutton(CURRENT_INTERPRETER,
+                                CURRENT_INTERPRETER_OPTION, True,
+                                button_group=interpreter_bg)
+        self.dedicated_radio = self.create_radiobutton(DEDICATED_INTERPRETER,
+                                DEDICATED_INTERPRETER_OPTION, False,
+                                button_group=interpreter_bg)
+        self.systerm_radio = self.create_radiobutton(SYSTERM_INTERPRETER,
+                                SYSTERM_INTERPRETER_OPTION, False,
+                                button_group=interpreter_bg)
+
+        interpreter_layout = QVBoxLayout()
+        interpreter_group.setLayout(interpreter_layout)
+        interpreter_layout.addWidget(self.current_radio)
+        interpreter_layout.addWidget(self.dedicated_radio)
+        interpreter_layout.addWidget(self.systerm_radio)
+        
+        wdir_group = QGroupBox(_("Working directory"))
+        wdir_bg = QButtonGroup(wdir_group)
+        wdir_label = QLabel(_("Default working directory is:"))
+        wdir_label.setWordWrap(True)
+        dirname_radio = self.create_radiobutton(_("the script directory"),
+                                WDIR_USE_SCRIPT_DIR_OPTION, True,
+                                button_group=wdir_bg)
+        thisdir_radio = self.create_radiobutton(_("the following directory:"),
+                                WDIR_USE_FIXED_DIR_OPTION, False,
+                                button_group=wdir_bg)
+        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION,
+                                           os.getcwdu())
+        self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
+                     thisdir_bd.setEnabled)
+        self.connect(dirname_radio, SIGNAL("toggled(bool)"),
+                     thisdir_bd.setDisabled)
+        thisdir_layout = QHBoxLayout()
+        thisdir_layout.addWidget(thisdir_radio)
+        thisdir_layout.addWidget(thisdir_bd)
+
+        wdir_layout = QVBoxLayout()
+        wdir_layout.addWidget(wdir_label)
+        wdir_layout.addWidget(dirname_radio)
+        wdir_layout.addLayout(thisdir_layout)
+        wdir_group.setLayout(wdir_layout)
+        
+        vlayout = QVBoxLayout()
+        vlayout.addWidget(about_label)
+        vlayout.addSpacing(10)
+        vlayout.addWidget(interpreter_group)
+        vlayout.addWidget(wdir_group)
+        vlayout.addStretch(1)
+        self.setLayout(vlayout)
+
+    def apply_settings(self, options):
+        pass

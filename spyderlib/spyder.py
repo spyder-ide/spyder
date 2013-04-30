@@ -88,6 +88,7 @@ from spyderlib.widgets.status import MemoryStatus, CPUStatus
 from spyderlib.plugins.configdialog import (ConfigDialog, MainConfigPage,
                                             ColorSchemeConfigPage)
 from spyderlib.plugins.shortcuts import ShortcutsConfigPage
+from spyderlib.plugins.runconfig import RunConfigPage
 from spyderlib.plugins.console import Console
 from spyderlib.plugins.workingdirectory import WorkingDirectory
 from spyderlib.plugins.editor import Editor
@@ -309,7 +310,7 @@ class MainWindow(QMainWindow):
         
         # Preferences
         self.general_prefs = [MainConfigPage, ShortcutsConfigPage,
-                              ColorSchemeConfigPage]
+                              ColorSchemeConfigPage, RunConfigPage]
         self.prefs_index = None
         self.prefs_dialog_size = None
         
