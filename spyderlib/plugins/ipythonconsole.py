@@ -714,8 +714,8 @@ class IPythonConsole(SpyderPluginWidget):
         else:
             #XXX: not sure it can really happen
             QMessageBox.warning(self, _('Warning'),
-                _("No IPython client is currently available to run <b>%s</b>."
-                  "<br><br>Please open a new client and try again."
+                _("No IPython console is currently available to run <b>%s</b>."
+                  "<br><br>Please open a new one and try again."
                   ) % osp.basename(filename), QMessageBox.Ok)
 
     def execute_python_code(self, lines):
