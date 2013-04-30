@@ -228,6 +228,7 @@ class SphinxThread(QThread):
         self.math_option = math_option
 
     def run(self):
+        html_text = self.html_text_no_doc
         text = self.text
         if text is not None and text['docstring'] != '':
             try:
@@ -239,8 +240,6 @@ class SphinxThread(QThread):
             except Exception, error:
                 self.emit(SIGNAL('error_msg(QString)'), unicode(error))
                 return
-        else:
-            html_text = self.html_text_no_doc
         self.emit(SIGNAL('html_ready(QString)'), html_text)
 
 
