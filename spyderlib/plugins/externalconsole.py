@@ -1102,6 +1102,7 @@ class ExternalConsole(SpyderPluginWidget):
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
         if shellwidget:
             shellwidget.update_time_label_visibility()
+        self.main.last_console_plugin_focus_was_python = True
         self.emit(SIGNAL('update_plugin_title()'))
     
     def apply_plugin_settings(self, options):

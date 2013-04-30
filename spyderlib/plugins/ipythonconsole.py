@@ -796,6 +796,7 @@ class IPythonConsole(SpyderPluginWidget):
             widgets = []
         self.find_widget.set_editor(control)
         self.tabwidget.set_corner_widgets({Qt.TopRightCorner: widgets})
+        self.main.last_console_plugin_focus_was_python = False
         self.emit(SIGNAL('update_plugin_title()'))
     
     def apply_plugin_settings(self, options):
