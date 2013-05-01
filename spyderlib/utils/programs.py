@@ -262,10 +262,10 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 output = subprocess.Popen([interpreter, script],
                                       stdout=subprocess.PIPE).communicate()[0]
             except subprocess.CalledProcessError:
-                output = 'False'
+                output = 'True'
             return eval(output)
         else:
-            # Don't take a negative decisions if there is no interpreter
+            # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
             # config page)
             return True
