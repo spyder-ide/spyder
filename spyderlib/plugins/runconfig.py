@@ -37,6 +37,9 @@ WDIR_USE_SCRIPT_DIR_OPTION = 'default/wdir/use_script_directory'
 WDIR_USE_FIXED_DIR_OPTION = 'default/wdir/use_fixed_directory'
 WDIR_FIXED_DIR_OPTION = 'default/wdir/fixed_directory'
 
+ALWAYS_OPEN_FIRST_RUN = _("Always show %s on a first file run")
+ALWAYS_OPEN_FIRST_RUN_OPTION = 'open_on_firstrun'
+
 
 class RunConfiguration(object):
     """Run configuration"""
@@ -141,7 +144,7 @@ class RunConfigOptions(QWidget):
 
         self.runconf = RunConfiguration()
         
-        firstrun_o = CONF.get('run', 'open_on_firstrun', False)
+        firstrun_o = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION, False)
 
         # --- General settings ----
         common_group = QGroupBox(_("General settings"))
@@ -205,8 +208,7 @@ class RunConfigOptions(QWidget):
         hline = QFrame()
         hline.setFrameShape(QFrame.HLine)
         hline.setFrameShadow(QFrame.Sunken)
-        self.firstrun_cb = QCheckBox(_("Always open this dialog on a first "
-                                       "file run"))
+        self.firstrun_cb = QCheckBox(ALWAYS_OPEN_FIRST_RUN % _("this dialog"))
         self.connect(self.firstrun_cb, SIGNAL("clicked(bool)"),
                      self.set_firstrun_o)
         self.firstrun_cb.setChecked(firstrun_o)
@@ -268,10 +270,8 @@ class RunConfigOptions(QWidget):
             return False
     
     def set_firstrun_o(self):
-        if self.firstrun_cb.isChecked():
-            CONF.set('run', 'open_on_firstrun', True)
-        else:
-            CONF.set('run', 'open_on_firstrun', False)
+        CONF.set('run', ALWAYS_OPEN_FIRST_RUN_OPTION,
+                 self.firstrun_cb.isChecked())
 
 
 class BaseRunConfigDialog(QDialog, SizeMixin):
@@ -473,12 +473,17 @@ class RunConfigPage(GeneralConfigPage):
         wdir_layout.addWidget(dirname_radio)
         wdir_layout.addLayout(thisdir_layout)
         wdir_group.setLayout(wdir_layout)
+
+        firstrun_cb = self.create_checkbox(
+                            ALWAYS_OPEN_FIRST_RUN % _("Run Settings dialog"),
+                            ALWAYS_OPEN_FIRST_RUN_OPTION, False)
         
         vlayout = QVBoxLayout()
         vlayout.addWidget(about_label)
         vlayout.addSpacing(10)
         vlayout.addWidget(interpreter_group)
         vlayout.addWidget(wdir_group)
+        vlayout.addWidget(firstrun_cb)
         vlayout.addStretch(1)
         self.setLayout(vlayout)
 

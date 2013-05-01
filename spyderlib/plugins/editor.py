@@ -40,7 +40,8 @@ from spyderlib.widgets.editor import (EditorSplitter, EditorStack, Printer,
 from spyderlib.widgets.sourcecode.codeeditor import CodeEditor
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
-                                         get_run_configuration)
+                                         get_run_configuration,
+                                         ALWAYS_OPEN_FIRST_RUN_OPTION)
 
 
 def _load_all_breakpoints():
@@ -1973,9 +1974,9 @@ class Editor(SpyderPluginWidget):
                     show_dlg = True
                     CONF.set('run', 'open_at_least_once', False)
                 else:
-                    # Open Run Config dialog only if 'open_on_firstrun' option 
-                    # is enabled
-                    show_dlg = CONF.get('run', 'open_on_firstrun')
+                    # Open Run Config dialog only 
+                    # if ALWAYS_OPEN_FIRST_RUN_OPTION option is enabled
+                    show_dlg = CONF.get('run', ALWAYS_OPEN_FIRST_RUN_OPTION)
                 if show_dlg and not dialog.exec_():
                     return
                 runconf = dialog.get_configuration()
