@@ -14,7 +14,10 @@ import os.path as osp
 import re
 import subprocess
 import sys
-from tempfile import mkstemp
+import tempfile
+
+
+TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
 
 
 def is_program_installed(basename):
@@ -237,10 +240,13 @@ def is_module_installed(module_name, version=None, interpreter=''):
     interpreter
     """
     if interpreter:
+        if not osp.isdir(TEMPDIR):
+            os.mkdir(TEMPDIR)
+        
         if osp.isfile(interpreter) and ('python' in interpreter):
             checkver = inspect.getsource(check_version)
             ismod_inst = inspect.getsource(_is_mod_installed)
-            script = mkstemp(suffix='.py')[1]
+            script = tempfile.mkstemp(suffix='.py', dir=TEMPDIR)[1]
             with open(script, 'w') as f:
                 f.write("# -*- coding: utf-8 -*-" + "\n\n")
                 f.write("from distutils.version import LooseVersion" + "\n")
@@ -257,7 +263,6 @@ def is_module_installed(module_name, version=None, interpreter=''):
                                       stdout=subprocess.PIPE).communicate()[0]
             except subprocess.CalledProcessError:
                 output = 'False'
-            os.remove(script)
             return eval(output)
         else:
             # Don't take a negative decisions if there is no interpreter

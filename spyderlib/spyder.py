@@ -15,12 +15,15 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+# Stdlib imports
+import atexit
+import errno
 import os
-import sys
 import os.path as osp
 import re
 import socket
-import errno
+import shutil
+import sys
 import threading
 
 # Keeping a reference to the original sys.exit before patching it
@@ -1030,6 +1033,9 @@ class MainWindow(QMainWindow):
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
+        
+        # Remove our temporary dir
+        atexit.register(self.remove_tmpdir)
 
         # [Workaround for Issue 880]
         # QDockWidget objects are not painted if restored as floating 
@@ -1358,7 +1364,11 @@ class MainWindow(QMainWindow):
         self.splash.showMessage(message, Qt.AlignBottom | Qt.AlignCenter | 
                                 Qt.AlignAbsolute, QColor(Qt.white))
         QApplication.processEvents()
-        
+    
+    def remove_tmpdir(self):
+        """Remove Spyder temporary directory"""
+        shutil.rmtree(programs.TEMPDIR, ignore_errors=True)
+    
     def closeEvent(self, event):
         """closeEvent reimplementation"""
         if self.closing(True):
