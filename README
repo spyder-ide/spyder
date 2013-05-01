@@ -60,7 +60,7 @@ Licensed under the terms of the MIT License
             matplotlib (2D/3D plotting)
 	    
         Optional modules
-            IPython 0.13+ (enhanced Python interpreter)
+            IPython 0.13 (enhanced Python interpreter)
                 On Ubuntu you need to install ipython-qtconsole, on Fedora
                 ipython-gui and on Gentoo ipython with the qt4 USE flag.
             pygments (syntax highlighting for MATLAB, batch and ini files)

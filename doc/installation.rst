@@ -21,8 +21,9 @@ Recommended modules:
 
 Optional modules:
 
-* IPython 0.13+ (enhanced Python interpreter)
+* IPython 0.13 (enhanced Python interpreter)
 
+  - Version 1.0 is not supported yet
   - On Ubuntu you need to install ipython-qtconsole
   - On Fedora you need to install ipython-gui
   - On Gentoo you need to install ipython with the qt4 USE flag

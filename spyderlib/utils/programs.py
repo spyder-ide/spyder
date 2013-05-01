@@ -188,6 +188,8 @@ def check_version(actver, version, cmp_op):
             return LooseVersion(actver) >= LooseVersion(version)
         elif cmp_op == '=':
             return LooseVersion(actver) == LooseVersion(version)
+        elif cmp_op == '<':
+            return LooseVersion(actver) < LooseVersion(version)
         else:
             return False
     except TypeError:
@@ -200,18 +202,24 @@ def _is_mod_installed(module_name, version=None):
     If version is not None, checking module version 
     (module must have an attribute named '__version__')
     
-    version may starts with =, >= or > to specify the exact requirement"""
+    version may starts with =, >=, > or < to specify the exact requirement ;
+    multiple conditions may be separated by ';' (e.g. '>=0.13;<1.0')"""
     try:
         mod = __import__(module_name)
         if version is None:
             return True
         else:
+            if ';' in version:
+                output = True
+                for ver in version.split(';'):
+                    output = output and _is_mod_installed(module_name, ver)
+                return output
             match = re.search('[0-9]', version)
             assert match is not None, "Invalid version number"
             symb = version[:match.start()]
             if not symb:
                 symb = '='
-            assert symb in ('>=', '>', '='),\
+            assert symb in ('>=', '>', '=', '<'),\
                    "Invalid version condition '%s'" % symb
             version = version[match.start():]
             actver = getattr(mod, '__version__', getattr(mod, 'VERSION', None))
@@ -265,3 +273,4 @@ if __name__ == '__main__':
     print shell_split('-q -o -a')
     print shell_split(u'-q "d:\\Python de xxxx\\t.txt" -o -a')
     print is_module_installed('IPython', '>=0.12')
+    print is_module_installed('IPython', '>=0.13;<1.0')

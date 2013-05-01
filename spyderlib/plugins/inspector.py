@@ -18,7 +18,7 @@ import socket
 import sys
 
 # Local imports
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, _, SUPPORTED_IPYTHON
 from spyderlib.config import CONF
 from spyderlib.guiconfig import get_color_scheme, get_font, set_font
 from spyderlib.utils import programs
@@ -32,7 +32,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 #XXX: hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
+if programs.is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore
