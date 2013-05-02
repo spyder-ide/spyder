@@ -564,8 +564,9 @@ class IPythonClient(QWidget, SaveHistoryMixin):
 
     def auto_refresh_namespacebrowser(self):
         """Refresh namespace browser"""
-        if self.namespacebrowser.autorefresh:
-            self.namespacebrowser.refresh_table()
+        if self.namespacebrowser:
+            if self.namespacebrowser.autorefresh:
+                self.namespacebrowser.refresh_table()
     
     #------ Private API -------------------------------------------------------
     def _show_rich_help(self, text):
