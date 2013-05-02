@@ -15,6 +15,7 @@ http://code.google.com/p/spyderlib/issues/detail?id=741
 # pylint: disable=C0103
 
 import os
+import os.path as osp
 import sys
 import optparse
 
@@ -37,23 +38,32 @@ sys.argv = [sys.argv[0]] + args
 
 
 print("Executing Spyder from source checkout")
-DEVPATH = os.path.dirname(os.path.abspath(__file__))
+DEVPATH = osp.dirname(osp.abspath(__file__))
 
 # --- Test environment for sanity
 # Warn if Spyder is located on non-ASCII path
 # http://code.google.com/p/spyderlib/issues/detail?id=812
 try:
-    os.path.join(DEVPATH, u'test')
+    osp.join(DEVPATH, 'test')
 except UnicodeDecodeError:
     print("STOP: Spyder is located in the path with non-ASCII characters,")
     print("      which is known to cause problems (see issue #812).")
-    raw_input("Press Enter to continue or Ctrl-C to abort...")
+    try:
+        input = raw_input
+    except NameError:
+        pass
+    input("Press Enter to continue or Ctrl-C to abort...")
 
 from spyderlib.utils.vcs import get_hg_revision
 print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
 
 sys.path.insert(0, DEVPATH)
 print("01. Patched sys.path with %s" % DEVPATH)
+
+EXTPATH = osp.join(DEVPATH, 'external-py' + sys.version[0])
+if osp.isdir(EXTPATH):
+    sys.path.insert(0, EXTPATH)
+    print("                      and %s" % EXTPATH)
 
 # Selecting the GUI toolkit: PySide if installed, otherwise PyQt4
 # (Note: PyQt4 is still the officially supported GUI toolkit for Spyder)
