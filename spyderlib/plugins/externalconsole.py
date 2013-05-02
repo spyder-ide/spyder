@@ -1147,7 +1147,7 @@ class ExternalConsole(SpyderPluginWidget):
             self.open_interpreter()
         if CONF.get('ipython_console', 'open_ipython_at_startup', False):
             if self.main.ipyconsole is None:
-                suffix = SUPPORTED_IPYTHON.replace(';', ' and '
+                suffix = SUPPORTED_IPYTHON.replace(';', _(' and ')
                                          ).replace('<', '&lt;'
                                          ).replace('>', '&gt;')
                 if programs.is_module_installed('IPython'):
