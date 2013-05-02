@@ -415,6 +415,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         Automatically change to default PYTHONSTARTUP file if scientific libs
         are not available
         """
+        if not isinstance(pyexec, basestring):
+            pyexec = unicode(pyexec.toUtf8(), 'utf-8')
         old_pyexec = self.get_option("pythonexecutable")
         if not (pyexec == old_pyexec) and custom_radio.isChecked():
             scientific = scientific_libs_available(pyexec)
@@ -424,10 +426,14 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def change_qtapi(self, pyexec):
         """Automatically change qt_api setting after changing interpreter"""
+        if not isinstance(pyexec, basestring):
+            pyexec = unicode(pyexec.toUtf8(), 'utf-8')
         old_pyexec = self.get_option("pythonexecutable")
         if not (pyexec == old_pyexec):
-            has_pyqt4 = programs.is_module_installed('PyQt4', interpreter=pyexec)
-            has_pyside = programs.is_module_installed('PySide', interpreter=pyexec)
+            has_pyqt4 = programs.is_module_installed('PyQt4',
+                                                     interpreter=pyexec)
+            has_pyside = programs.is_module_installed('PySide',
+                                                      interpreter=pyexec)
             for cb in self.comboboxes:
                 if self.comboboxes[cb][0] == 'qt/api':
                     qt_setapi_cb = cb
