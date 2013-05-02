@@ -116,8 +116,12 @@ def get_packages():
         # repository (this is not conventional but Spyder really need 
         # those tools and there is not decent package manager on 
         # Windows platforms, so...)
+        import shutil, atexit
+        extdir = 'external-py' + sys.version[0]
         for name in ('rope', 'pyflakes'):
-            if osp.isdir(name):
+            if osp.isdir(osp.join(extdir, name)):
+                shutil.copytree(osp.join(extdir, name), name)
+                atexit.register(shutil.rmtree, osp.abspath(name))
                 packages += get_subpackages(name)
     return packages
 
