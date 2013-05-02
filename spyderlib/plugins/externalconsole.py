@@ -11,17 +11,19 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+# Qt imports
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QInputDialog,
                                 QLineEdit, QPushButton, QGroupBox, QLabel,
                                 QTabWidget, QFontComboBox, QHBoxLayout)
 from spyderlib.qt.QtCore import SIGNAL, Qt
 from spyderlib.qt.compat import getopenfilename
 
-import sys
+# Stdlib imports
+import atexit
 import os
 import os.path as osp
 import re
-import atexit
+import sys
 
 # Local imports
 from spyderlib.baseconfig import _, SCIENTIFIC_STARTUP
