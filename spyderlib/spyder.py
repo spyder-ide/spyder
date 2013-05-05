@@ -922,6 +922,13 @@ class MainWindow(QMainWindow):
             for mod in get_spyderplugins_mods(prefix='p_', extension='.py'):
                 try:
                     plugin = mod.PLUGIN_CLASS(self)
+                    # The breakpoints plugin was originally written as a third
+                    # party plugin, but it's difficult to manage placement.
+                    # Need to rewrite it as a standard plugin (Issue 1377).
+                    # Until then, keep a direct reference so tab placement
+                    # can be specified later.
+                    if mod.__name__ == 'spyderplugins.p_breakpoints':
+                        self.breakpoints = plugin
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
                 except AttributeError, error:
@@ -1180,6 +1187,7 @@ class MainWindow(QMainWindow):
                                   (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
+                                  (self.findinfiles, self.breakpoints)
                                   ):
                 if first is not None and second is not None:
                     self.tabifyDockWidget(first.dockwidget, second.dockwidget)
@@ -1207,7 +1215,12 @@ class MainWindow(QMainWindow):
             if self.ipyconsole.get_option('first_time', True):
                 self.tabifyDockWidget(self.extconsole.dockwidget,
                                       self.ipyconsole.dockwidget)
-                self.ipyconsole.set_option('first_time', False)
+                self.ipyconsole.set_option('first_time', False)             
+        if self.breakpoints is not None:
+            if self.breakpoints.get_option('first_time', True):
+                self.tabifyDockWidget(self.inspector.dockwidget,
+                                      self.breakpoints.dockwidget)
+                self.breakpoints.set_option('first_time', False)
 
     def reset_window_layout(self):
         """Reset window layout to default"""
