@@ -17,3 +17,6 @@ if __name__ == "__main__":
     do_rescan_files(["spyderplugins/p_profiler.py",
                      "spyderplugins/widgets/profilergui.py"],
                      "p_profiler", "spyderplugins")
+    do_rescan_files(["spyderplugins/p_breakpoints.py",
+                     "spyderplugins/widgets/breakpointsgui.py"],
+                     "p_breakpoints", "spyderplugins")

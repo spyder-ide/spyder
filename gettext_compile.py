@@ -10,3 +10,4 @@ if __name__ == "__main__":
     do_compile("spyderlib")
     do_compile("p_pylint", "spyderplugins")
     do_compile("p_profiler", "spyderplugins")
+    do_compile("p_breakpoints", "spyderplugins")

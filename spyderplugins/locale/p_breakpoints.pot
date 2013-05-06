@@ -1,0 +1,45 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"POT-Creation-Date: 2013-05-06 18:35+Paris, Madrid (heure d’été)\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: ENCODING\n"
+"Generated-By: pygettext.py 1.5\n"
+
+
+#: spyderplugins/p_breakpoints.py:40
+msgid "Breakpoints"
+msgstr ""
+
+#: spyderplugins/p_breakpoints.py:77
+msgid "List breakpoints"
+msgstr ""
+
+#: spyderplugins/widgets/breakpointsgui.py:87
+msgid "Condition"
+msgstr ""
+
+#: spyderplugins/widgets/breakpointsgui.py:87
+msgid "File"
+msgstr ""
+
+#: spyderplugins/widgets/breakpointsgui.py:87
+msgid "Line"
+msgstr ""
+
+#: spyderplugins/widgets/breakpointsgui.py:161
+msgid "Clear this breakpoint"
+msgstr ""
+
+#: spyderplugins/widgets/breakpointsgui.py:167
+msgid "Clear breakpoints in all files"
+msgstr ""
+
