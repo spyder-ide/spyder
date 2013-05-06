@@ -32,7 +32,7 @@ from spyderlib.utils.dochelpers import getsignaturesfromtext
 from spyderlib.utils.module_completion import (module_completion,
                                                get_preferred_submodules)
 from spyderlib.baseconfig import _, DEBUG, STDOUT, STDERR
-from spyderlib.config import EDIT_FILTERS, EDIT_EXT
+from spyderlib.config import EDIT_FILTERS, EDIT_EXT, get_filter, EDIT_FILETYPES
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        mimedata2url, get_filetype_icon,
                                        create_toolbutton)
@@ -1415,9 +1415,11 @@ class EditorStack(QWidget):
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
     
     def select_savename(self, original_filename):
+        selectedfilter = get_filter(EDIT_FILETYPES,
+                                    osp.splitext(original_filename)[1])
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getsavefilename(self, _("Save Python script"),
-                                   original_filename, EDIT_FILTERS)
+                               original_filename, EDIT_FILTERS, selectedfilter)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             return osp.normpath(filename)
