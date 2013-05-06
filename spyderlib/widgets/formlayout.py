@@ -42,12 +42,15 @@ except NameError:
     basestring = unicode = str
 
 # History:
+# 1.0.13: replaced obsolete QColorDialog.getRgba function and fixed other 
+#         compatibility issues with PySide (see Issue 8 of formlayout website)
+# 1.0.12: added support for Python 3
 # 1.0.11: added support for PySide
-# 1.0.10: added float validator (disable "Ok" and "Apply" button when not valid)
+# 1.0.10: added float validator: disable "OK" and "Apply" button when not valid
 # 1.0.7: added support for "Apply" button
 # 1.0.6: code cleaning
 
-__version__ = '1.0.12'
+__version__ = '1.0.13'
 __license__ = __doc__
 
 
@@ -84,10 +87,8 @@ class ColorButton(QPushButton):
         self._color = QColor()
     
     def choose_color(self):
-        rgba, valid = QColorDialog.getRgba(self._color.rgba(),
-                                           self.parentWidget())
-        if valid:
-            color = QColor.fromRgba(rgba)
+        color = QColorDialog.getColor(self._color, self.parentWidget())
+        if color.isValid():
             self.set_color(color)
     
     def get_color(self):
@@ -343,9 +344,17 @@ class FormWidget(QWidget):
             elif isinstance(value, int):
                 value = int(field.value())
             elif isinstance(value, datetime.datetime):
-                value = field.dateTime().toPyDateTime()
+                value = field.dateTime()
+                try:
+                    value = value.toPyDateTime()  # PyQt
+                except AttributeError:
+                    value = value.toPython()  # PySide
             elif isinstance(value, datetime.date):
-                value = field.date().toPyDate()
+                value = field.date()
+                try:
+                    value = value.toPyDate()  # PyQt
+                except AttributeError:
+                    value = value.toPython()  # PySide
             else:
                 value = eval(str(field.text()))
             valuelist.append(value)
