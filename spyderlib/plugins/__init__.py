@@ -86,6 +86,25 @@ class SpyderPluginMixin(object):
         if self.sig_option_changed is not None:
             self.sig_option_changed.connect(self.set_option)
         self.setWindowTitle(self.get_plugin_title())
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        # Was written to handle the very first plugin position in Spyder's
+        # main window layout, but this could also be used for other things
+        # (see for example the IPython console plugin for which this method 
+        #  had to be written to handle the fact that this plugin was 
+        #  introduced between v2.1 and v2.2)
+        raise NotImplementedError
+
+    def initialize_plugin_in_mainwindow_layout(self):
+        """If this is the first time the plugin is shown, perform actions to
+        initialize plugin position in Spyder's window layout"""
+        if self.get_option('first_time', True):
+            try:
+                self.on_first_registration()
+            except NotImplementedError:
+                return
+            self.set_option('first_time', False)
         
     def update_margins(self):
         layout = self.layout()

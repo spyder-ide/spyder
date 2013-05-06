@@ -922,13 +922,6 @@ class MainWindow(QMainWindow):
             for mod in get_spyderplugins_mods(prefix='p_', extension='.py'):
                 try:
                     plugin = mod.PLUGIN_CLASS(self)
-                    # The breakpoints plugin was originally written as a third
-                    # party plugin, but it's difficult to manage placement.
-                    # Need to rewrite it as a standard plugin (Issue 1377).
-                    # Until then, keep a direct reference so tab placement
-                    # can be specified later.
-                    if mod.__name__ == 'spyderplugins.p_breakpoints':
-                        self.breakpoints = plugin
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
                 except AttributeError, error:
@@ -1158,7 +1151,11 @@ class MainWindow(QMainWindow):
             CONF.set(section, prefix+'state', str(qba.toHex()))
             CONF.set(section, prefix+'statusbar',
                      not self.statusBar().isHidden())
-        
+
+    def tabify_plugins(self, first, second):
+        """Tabify plugin dockwigdets"""
+        self.tabifyDockWidget(first.dockwidget, second.dockwidget)
+
     def setup_layout(self, default=False):
         """Setup window layout"""
         prefix = ('lightwindow' if self.light else 'window') + '/'
@@ -1182,15 +1179,13 @@ class MainWindow(QMainWindow):
             for first, second in ((self.console, self.extconsole),
                                   (self.extconsole, self.ipyconsole),
                                   (self.ipyconsole, self.historylog),
-
                                   (self.inspector, self.variableexplorer),
                                   (self.variableexplorer, self.onlinehelp),
                                   (self.onlinehelp, self.explorer),
                                   (self.explorer, self.findinfiles),
-                                  (self.findinfiles, self.breakpoints)
                                   ):
                 if first is not None and second is not None:
-                    self.tabifyDockWidget(first.dockwidget, second.dockwidget)
+                    self.tabify_plugins(first, second)
             for plugin in [self.findinfiles, self.onlinehelp, self.console,
                            ]+self.thirdparty_plugins:
                 if plugin is not None:
@@ -1205,22 +1200,12 @@ class MainWindow(QMainWindow):
                 toolbar.close()
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
-        
+
         self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
 
-        # Transition from v2.1 to v2.2:
-        # (improving layout for plugins which were introduced with v2.2)
-        if self.ipyconsole is not None:
-            if self.ipyconsole.get_option('first_time', True):
-                self.tabifyDockWidget(self.extconsole.dockwidget,
-                                      self.ipyconsole.dockwidget)
-                self.ipyconsole.set_option('first_time', False)             
-        if self.breakpoints is not None:
-            if self.breakpoints.get_option('first_time', True):
-                self.tabifyDockWidget(self.inspector.dockwidget,
-                                      self.breakpoints.dockwidget)
-                self.breakpoints.set_option('first_time', False)
+        for plugin in self.widgetlist:
+            plugin.initialize_plugin_in_mainwindow_layout()
 
     def reset_window_layout(self):
         """Reset window layout to default"""

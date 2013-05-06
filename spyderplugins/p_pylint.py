@@ -108,7 +108,12 @@ class Pylint(PylintWidget, SpyderPluginMixin):
                                        triggered=self.change_history_depth)
         self.treewidget.common_actions += (None, history_action)
         return []
-    
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.inspector, self)
+        self.dockwidget.hide()
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -125,7 +130,7 @@ class Pylint(PylintWidget, SpyderPluginMixin):
         
         self.main.source_menu_actions += [None, pylint_act]
         self.main.editor.pythonfile_dependent_actions += [pylint_act]
-                    
+
     def refresh_plugin(self):
         """Refresh pylint widget"""
         self.remove_obsolete_items()

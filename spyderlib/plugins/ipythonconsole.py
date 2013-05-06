@@ -753,7 +753,11 @@ class IPythonConsole(SpyderPluginWidget):
         self.menu_actions = [create_client_action, connect_to_kernel_action]
         
         return self.menu_actions
-    
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.extconsole, self)
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.main.add_dockwidget(self)

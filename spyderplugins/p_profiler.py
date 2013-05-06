@@ -78,7 +78,12 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
-    
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.inspector, self)
+        self.dockwidget.hide()
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -96,7 +101,7 @@ class Profiler(ProfilerWidget, SpyderPluginMixin):
         
         self.main.run_menu_actions += [profiler_act]
         self.main.editor.pythonfile_dependent_actions += [profiler_act]
-                    
+
     def refresh_plugin(self):
         """Refresh profiler widget"""
         #self.remove_obsolete_items()  # FIXME: not implemented yet

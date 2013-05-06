@@ -53,7 +53,11 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     def get_plugin_actions(self):
         """Return a list of actions related to plugin"""
         return []
-    
+
+    def on_first_registration(self):
+        """Action to be performed on first plugin registration"""
+        self.main.tabify_plugins(self.main.inspector, self)
+
     def register_plugin(self):
         """Register plugin in Spyder's main window"""
         self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
@@ -95,7 +99,7 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
                 # breakpoint action is only inserted once into the run_menu.
                 break
         self.main.editor.pythonfile_dependent_actions += [list_action]
-                    
+
     def refresh_plugin(self):
         """Refresh widget"""
         pass
