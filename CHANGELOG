@@ -4,9 +4,246 @@
 
 === New features since v2.1 ===
 
-*New major features*:
-  * *Object Inspector*:
-    * Add the capability to render mathematical equations using the MathJax Sphinx extension (it requires Sphinx 1.1+)
+  * Better integration with IPython.
+    * A dedicated preferences page from which you can set its most important options
+    * An easy way to manage IPython kernels inside Spyder (i.e. interrupts and restarts).
+    * Each console can be configured separately (which is not possible in IPython-qtconsole)
+    * Each console is now connected to the Object Inspector and the History log.
+    * Learn how to use IPython reading its documentation on the Object Inspector.
+    * Find text in the console and pager using our Find Widget.
+  * A new MacOS X Application
+    * We now provide a DMG for simple drag and drop installation.
+    * The App comes with its own interpreter, which has the main Python scientific libraries preinstalled: Numpy, SciPy, Matplotlib, IPython, Pandas, Sympy, Scikit-learn and Scikit-image.
+  * A much improved debugging experience
+    * A new debugger toolbar, quite similar in spirit to the one present in Matlab. It works with both Python and IPython consoles.
+    * A new breakpoints widget, which lists all active breakpoints set in  open or closed files.
+    * Breakpoints are updated in the Python and IPython consoles after being added or removed from the Editor.
+  * Several Editor improvements
+    * Faster and more accurate code completions for the most important scientific packages
+    * Zoom in and out with Ctrl + the mouse wheel
+    * A new dark theme
+    * Automatic insertion of colons
+    * Automatic insertion of quotes
+    * New syntax highlighters for Matlab, batch, ini, NSIS and IDL files.
+  * A better looking and faster Object Inspector
+    * Several improvements to its style.
+    * It can now show mathematical equations written in Latex, using the MathJax Sphinx plugin.
+    * Rich text docs are now rendered in a thread to avoid UI lookup.
+  * Single instance mode
+    * Users can now open Python scripts from their file explorer on the currently available instance.
+    * Linux users can also open their files from the terminal.
+  * Spanish translation of the interface
+
+=== Bug fixes (since v2.1) ===
+
+  * Issue  318  Create a widget to list all breakpoints
+  * Issue  349  Add "Run selection or current block" action to Editor's context menu
+  * Issue  448  Editor: disable code-related features inside comments (code completion, auto-indentation, ...)
+  * Issue  466  Can't use Spyder to open python scripts (.py files) from the terminal or the file explorer
+  * Issue  554  Improved debugger integration
+  * Issue  609  Debugging: Unsetting a breakpoint in the editor isn't reflected until you restart debugging entirely
+  * Issue  650  After deleting a directory set as working directory and changing to a new working directory the script won't run
+  * Issue  687  Indentation error when trying to "run selection" on simple indented code
+  * Issue  697  Create a DMG package for Spyder
+  * Issue  764  Jump to the next result when pressing Enter in search field
+  * Issue  836  Spyder is sometimes not detecting file changes from external editors
+  * Issue  849  Breakpoints are ignored sometimes
+  * Issue  853  Problems with code completion after adding submodules to ROPE_PREFS/extension_modules
+  * Issue  865  Run selection (F9) in IPython console 0.11+: problem with indented blank lines
+  * Issue  940  open_in_spyder not defined
+  * Issue  955  Breakpoints in debugger do not move correctly when editing code
+  * Issue  971  Add "Open with Spyder" entry to Windows File Explorer's context menu
+  * Issue  994  mathjax does not get installed properly
+  * Issue  997  Some docstrings are getting truncated in the object inspector
+  * Issue  1008  Fail on context menu call in project explorer when project files are inside symlinked dir
+  * Issue  1018  Menu locations, "Run Configurations" &  "Preferences"
+  * Issue  1026  Decide the best strategy to comment selections on the Editor
+  * Issue  1032  Running a script from editor does not send runfile() correctly to IPython Qt plugin
+  * Issue  1050  First implementation of the "IPython Console" plugin (single instance version)
+  * Issue  1051  New IPython Console (Spyder 2.2+): add support for the %edit magic command
+  * Issue  1054  New IPython Console (Spyder 2.2+): update variable explorer after new prompt
+  * Issue  1055  New IPython Console (Spyder 2.2+): add support for history management
+  * Issue  1056  New IPython Console (Spyder 2.2+): add an option to customize In/Out prompts
+  * Issue  1057  New IPython Console (Spyder 2.2+): Add our FindReplace widget to every console
+  * Issue  1058  New IPython Console (Spyder 2.2+): Add Ctrl+I keyboard shortcut to send an object the Object Inspector
+  * Issue  1059  New IPython Console (Spyder 2.2+): drop support for IPython in external console
+  * Issue  1061  New IPython Console (Spyder 2.2+): add support for "Find in files" plugin
+  * Issue  1062  New IPython Console (Spyder 2.2+): add a dedicated section in documentation
+  * Issue  1064  Editor performance issue since revision d98df4092e16
+  * Issue  1069  Focus goes to kernel not client with pdb in IPython client
+  * Issue  1078  IPython Console: Cannot interrupt started processes
+  * Issue  1079  Can't input Unicode in Internal Console
+  * Issue  1081  ipython-qtconsole not listed as optional dependency in Ubuntu
+  * Issue  1083  Make Ipython qtconsole widget more intuitive
+  * Issue  1085  IPython console: sometimes files are executed in wrong IPython
+  * Issue  1094  Error message when trying to save a file
+  * Issue  1095  Preferences Dialog doesn't remember size
+  * Issue  1101  Interrupt (Ctrl+C) in the console does not work in Spyder on Mac Os X
+  * Issue  1106  Spyder console crashes when trying to type in console after running script
+  * Issue  1112  Opening a file from the linux command line
+  * Issue  1128  please remove pyflakes and rope from the .zip files
+  * Issue  1136  IPython console: cannot connect to external kernels
+  * Issue  1138  Rich text in object inspector mishandles some scipy docstrings
+  * Issue  1163  Improve the spyder.desktop file fo easier integration into Linux
+  * Issue  1169  Saving variables does not retain uppercase letters of variable names
+  * Issue  1179  Pylint "go to line" does not work with the additional dot in filename
+  * Issue  1186  scipy.weave doesn't work in the Mac app
+  * Issue  1191  Inconsistent behaviour of the Editor on code completion and object introspection
+  * Issue  1199  spyderlib/utils/windows.py has incorrect encoding
+  * Issue  1201  Let the user set the default filter when opening file
+  * Issue  1210  Enhancement: Create sphinx rich text docstrings in QThread
+  * Issue  1226  MacOS X App - Can't import libraries from other Python interpreters
+  * Issue  1227  Auto inserted colon causes pylint error
+  * Issue  1229  Which version of ipython is needed for Spyder 2.2.0?
+  * Issue  1230  Better handle for mathjax and jquery embeded libraries on linux systems
+  * Issue  1232  Cmd-Space is not showing code-completion options
+  * Issue  1233  ERROR and WARNING when compiling the documentation
+  * Issue  1234  Edit .enaml files as text file
+  * Issue  1236  Fix Qt Network Access warning messages that appear on the terminal
+  * Issue  1241  'Remove block comment' is not working
+  * Issue  1242  Can't start spyder2.2 on Win 7, crashes upon saving .spyder.ini
+  * Issue  1249  "Run block" and "Run File" are not working for external IPython kernels
+  * Issue  1250  Spyder crashes on launch if the project explorer is used
+  * Issue  1252  Expansion of nodes on tree view undoes itself
+  * Issue  1253  Spyder is not detecting the presence of iPython 0.13.1rc2 nor IPython 1.0dev
+  * Issue  1258  Focusing the "Replace with:" Text Box causes the editor to jump to the next instance of the item that's in the find box
+  * Issue  1261  IPython kernel/clients: error when closing an IPython console
+  * Issue  1266  Let the user eliminate breakpoints from the "Breakpoints widget"
+  * Issue  1269  Dataloss when Spyder gets confused about which file goes with which editor tab
+  * Issue  1271  Find and replace by empty string
+  * Issue  1272  Fix code completion speed issues on the Editor
+  * Issue  1275  Spyderlib fails to start new IPython consoles, raises socket exception
+  * Issue  1277  Enthought Python Distribution and Spyder DMG are not working well on Mac OS X
+  * Issue  1281  Mac App - Spyder swallows AssertionErrors while executing a file
+  * Issue  1285  Object Inspector Crashes when Reloading Page
+  * Issue  1286  Broken links in Help
+  * Issue  1287  Saving file under different file name in split-window mode lets non-focused window jump to first file
+  * Issue  1288  Some rope_patch improvements
+  * Issue  1296  Clickable tracebacks in console are not working in PySide
+  * Issue  1298  Mac App - matplotlib is not detecting ffmpeg to create animations
+  * Issue  1299  pylint keeps opening same file at startup
+  * Issue  1309  Clicking on filename in structure widget sets the cursor at the beginning of the file
+  * Issue  1314  QPainter warnings when moving/undocking widgets in main window
+  * Issue  1315  Project not closing files associated with after closing it
+  * Issue  1325  Spyder cannot be re-opened on Windows if parent console is closed
+  * Issue  1327  Allow global options for Run Configuration
+  * Issue  1344  Mac App - Spyder crashed and can't be open again
+  * Issue  1345  Code Review Request: Update breakpoints during pdb sessions
+  * Issue  1347  The spyder.desktop has an wrong line
+  * Issue  1353  Error messages in internal console when rope is not installed
+  * Issue  1363  2.2rc installation takes a long time because of sphinx dependency
+  * Issue  1364  No spyder.ico after installation on Windows
+  * Issue  1369  Using the subprocess.check_output function breaks compatibility with Python 2.5 and 2.6
+  * Issue  1371  Crash when adding text to multiline comment is CSS
+  * Issue  1372  SphinxThread might return AttributeError
+
+
+----
+
+
+== Version 2.1.13.1 ==
+
+=== Bug fixes (since v2.1.13) ===
+
+  * Spyder startup: fixed PyQt minimum version requirement test (the old poor comparison algorithm was considering that v4.10 was older than v4.4...) (See issue 1291)
+  * Console: Matplotlib was always imported even when the Matplotlib's Patch option was not available (i.e. the Matplotlib installed version was not compatible with the patch). As a consequence, even when disabling every console advanced option in preferences, the preloaded module list was huge
+  * Editor:
+    * When closing Spyder with unsaved modified files, Spyder was asking confirmation as many times as there were editor windows. Only one confirmation is necessary because, with current editor design, all editor windows are synced.
+    * When creating two new files, saving one of them will lead to temporarily mask the leading '*' indicating the fact that the other untitled file was not already saved. This is simply a display issue: internally, it is clear that the file is in a non-saved state and Spyder will ask for it to be saved when trying to close the file
+    * Multiple windows: when saving a new untitled file, other editor windows were getting confused on file list order -- eventually leading to data loss
+    * Open file dialog: default file type filter now matches the current file (See Issue 1201)
+  * Fixed "PyQt Reference Guide" link
+
+=== Other changes (since v2.1.13) ===
+
+  * Editor: Ctrl+MouseWheel is now zooming in/out the editor text size (see Issue 1270)
+  * About dialog box: changed the "This project is part of Python(x,y)" part to more general words (which are also closer to the initial meaning of this sentence) including a citation of WinPython
+
+----
+
+== Version 2.1.13 ==
+
+=== Bug fixes (since v2.1.12) ===
+
+  * Fixed issue 1158: "pip install spyder" fails on non-Windows platforms due to a bug in pip installation process (missing spyderlib_win_postinstall.py script)
+  * File Explorer/Windows/Fixed "remove tree" feature: added an error handler in shutil.rmtree to be able to remove a non-empty folder with shutil.rmtree is not working on Windows when it contains read-only files
+  * (See Issue 1106) Fixed "error: unpack requires a string argument of length 8" related to socket communication between Spyder and the remote Python process
+  * Editor:
+    * After splitting horizontally or vertically the editor window, filenames were not synchronized when saving a file as another name (see Issue 1120)
+    * Fixed error when trying to "Save as..." a file with extension to a file without any extension (see Issue 1183)
+    * pep8 code analysis: a new line character was abusively added by Spyder to source code before analyzing it because it's necessary for pyflakes but it's not for pep8! (see Issue 1123)
+    * Fixed UnboundLocalError when clicking on "Search/Replace" button if both search pattern and replace pattern fields are empty (see Issue 1188)
+  * Pylint plugin/tree widget: "go to line" was not working when filename contained additionnal dots (see Issue 1179)
+  * Fixed critical bug when an invalid/unsupported version of pyflakes is installed (see Issue 1181)
+  * Editor/block comments: fixed remaining PyQt API v2 compatibility issues (see Issue 905)
+  * Variable explorer: more flexible name fixing algorithm (even if it's not a good practice to use reference names with upper case letters, we do not remove them anymore) -- See Issue 1169
+
+=== Other changes (since v2.1.12) ===
+
+  * Spyder about dialog box: added Python build architecture (32 or 64 bits)
+  * Find in files: fixed default 'exclude pattern' which was accidently excluding all files starting with 'build' instead of simply excluding 'build' folders as intended
+  * For the sake of consistency, now using single-clicks for activating entries of all tree widgets in Spyder ("Find in files" and "Pylint" are now consistent with the "Outline" explorer) -- See Issue 1180
+
+----
+
+== Version 2.1.12 ==
+
+=== Bug fixes (since v2.1.11) ===
+
+  * Spyder settings: sometimes (virus protection?) the .ini file can't be written, and removing the .ini file before writing seems to help, as suggested here: https://groups.google.com/forum/#!msg/spyderlib/a_P9JBJEZeE/gOK_Pr2WbE8J (see Issue 1086)
+  * Fixed Home/End key behaviour inconsistency on MacOS X (See Issue 495)
+  * Internal console: new option "Pop up internal console when errors were intercepted" -- default: False, which avoids loosing focus when a traceback is shown in the internal console... but features may also fail silently! (bugs could stay hidden a while before being taken care of) -- See Issue 1016
+  * Fixed "TypeError: file_saved(long,long).emit(): argument 1 has unexpected type 'long'" error occuring on some Linux 32-bit platforms -- See Issue 1094
+  * Console: find/replace widget "Search next/previous occurence" feature was broken
+
+=== Other changes (since v2.1.11) ===
+
+  * Portable version of Spyder (inside WinPython):
+    * Spyder '?' menu: added documentation detection (.chm, .pdf) in sys.prefix\Doc (Windows-only)
+    * Project explorer:
+      * Handling errors when opening a workspace which has been moved
+      * Workspace is now configured with relative paths, so it can be moved from a location to another and still be opened in Spyder
+  * Windows: moved the functions hiding parent console to spyderlib/utils/windows.py
+
+----
+
+== Version 2.1.11 ==
+
+=== Bug fixes (since v2.1.10) ===
+
+  * Critical bugs:
+    * Editor (Issue 960): cannot open/save files from GUI (QFileDialog issue with !PyQt4 v4.6)
+  * General:
+    * Spyder menu bar: fixed menu ordering issue with Ubuntu/Unity
+    * All console widgets: Shell widget: fixed "Clear terminal" (Ctrl+L) shortcut
+  * Console:
+    * Cleaned up widget interactions after Python script execution (before this changeset, it was possible to send data to console, which not only was not needed but was generating disturbing errors in the internal console...)
+  * Editor:
+    * If user accept to fix "mixed end-of-line characters", when opening file, the current editor was set as "modified" (the tab title had a `*` at the end) instead of the newly created editor
+    * "occurrence highlighting" was highlighting previous word even if there was a whitespace between cursor and this word
+    * Code analysis thread manager: handling errors while executing threads
+    * "Replace all" was not regrouping changes into a single undo/redo step
+    * "Find/Replace": replacements were not done for case unsensitive searches
+    * Position of the 79-chars edge line is now more accurate on Linux, the older processed position was inaccurate with some font size of the classic "!DejaVu Sans Mono" monospace font
+  * !IPython:
+    * Version detection was broken so Preferences...Console...External Modules was incorreclty hiding the command line options line edit
+    * Because the detection was not working correctly, it was not possible to start an !IPython kernel with the just released !IPython 0.13
+  * Project explorer was sometimes producing !AttributeError when loading because of the workspace was not defined at the beginning of the class constructor
+  * pyflakes code analysis function:
+    * Handling files with invalid \x or null chars
+    * This fixes a part of Issue 1016 by handling the following pyflakes bugs:
+      * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674796
+      * http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=674797
+
+=== Other changes (since v2.1.10) ===
+
+Installer for Windows (bdist_wininst/bdist_msi):
+  * added Start Menu shortcuts
+  * added 'pyflakes' and 'rope' (if available in the repository) to the package list (this is not conventional but Spyder really need those tools and there is not decent package manager on Windows platforms, so...)
+
+This change will make the Spyder building process simpler for Windows as the Python(x,y) won't be needed anymore to provide Start Menu shortcuts or to install 'rope' and 'pyflakes' at the same time. Now, there is no significative difference between the standard installers built with distutils (bdist_wininst or bdist_msi options) and the Python(x,y) plugin, except for the "package upgrade" ability (uninstall previous version) which is still not (and won't be) supported by distutils.
+
+----
 
 == Version 2.1.10 ==
 
