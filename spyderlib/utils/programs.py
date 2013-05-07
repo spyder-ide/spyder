@@ -265,7 +265,10 @@ def is_module_installed(module_name, version=None, interpreter=''):
                                       stdout=subprocess.PIPE).communicate()[0]
             except subprocess.CalledProcessError:
                 output = 'True'
-            return eval(output)
+            if output:  # TODO: Check why output could be empty!
+                return eval(output)
+            else:
+                return False
         else:
             # Try to not take a wrong decision if there is no interpreter
             # available (needed for the change_pystartup method of ExtConsole
