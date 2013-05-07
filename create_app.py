@@ -19,7 +19,6 @@ import fileinput
 import shutil
 import os
 import os.path as osp
-import subprocess
 import sys
 
 from IPython.core.completerlib import module_list
@@ -193,15 +192,17 @@ def _get_env():
     import os
     import os.path as osp
     import subprocess as sp
-    envstr = sp.Popen('source /etc/profile; source ~/.profile; printenv',
-                      shell=True, stdout=sp.PIPE).communicate()[0]
+    user_profile = os.getenv('HOME') + osp.sep + '.profile'
+    global_profile = '/etc/profile'
     if osp.isfile(global_profile) and not osp.isfile(user_profile):
-        envstr = sp.check_output('source /etc/profile; printenv', shell=True)
+        envstr = sp.Popen('source /etc/profile; printenv',
+                          shell=True, stdout=sp.PIPE).communicate()[0]
     elif osp.isfile(global_profile) and osp.isfile(user_profile):
-        envstr = sp.check_output('source /etc/profile; source ~/.profile; printenv',
-                                 shell=True)
+        envstr = sp.Popen('source /etc/profile; source ~/.profile; printenv',
+                          shell=True, stdout=sp.PIPE).communicate()[0]
     else:
-        envstr = sp.check_output('printenv', shell=True)
+        envstr = sp.Popen('printenv', shell=True,
+                          stdout=sp.PIPE).communicate()[0]
     env = [a.split('=') for a in envstr.strip().split('\n')]
     os.environ.update(env)
 try:
