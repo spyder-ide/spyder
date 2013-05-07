@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-05-06 18:35+Paris, Madrid (heure d’été)\n"
+"POT-Creation-Date: 2013-05-07 16:02+Hora est. del Pacfico de SA\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -14,7 +14,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: utf-8\n"
 "Generated-By: pygettext.py 1.5\n"
-
 
 #: spyderplugins/p_breakpoints.py:40
 msgid "Breakpoints"
@@ -43,4 +42,3 @@ msgstr ""
 #: spyderplugins/widgets/breakpointsgui.py:167
 msgid "Clear breakpoints in all files"
 msgstr ""
-

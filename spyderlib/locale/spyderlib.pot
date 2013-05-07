@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2013-05-02 10:39+Paris, Madrid (heure d’été)\n"
+"POT-Creation-Date: 2013-05-07 16:02+Hora est. del Pac¨ªfico de SA\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,11 +120,11 @@ msgstr ""
 msgid "All files (*)"
 msgstr ""
 
-#: spyderlib\plugins\configdialog.py:530 spyderlib\widgets\formlayout.py:213
+#: spyderlib\plugins\configdialog.py:530 spyderlib\widgets\formlayout.py:214
 msgid "Bold"
 msgstr ""
 
-#: spyderlib\plugins\configdialog.py:533 spyderlib\widgets\formlayout.py:208
+#: spyderlib\plugins\configdialog.py:533 spyderlib\widgets\formlayout.py:209
 msgid "Italic"
 msgstr ""
 
@@ -298,11 +298,11 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: spyderlib\plugins\console.py:127 spyderlib\plugins\externalconsole.py:1033
+#: spyderlib\plugins\console.py:127 spyderlib\plugins\externalconsole.py:1032
 msgid "&Run..."
 msgstr ""
 
-#: spyderlib\plugins\console.py:128 spyderlib\plugins\externalconsole.py:1034
+#: spyderlib\plugins\console.py:128 spyderlib\plugins\externalconsole.py:1033
 msgid "Run a Python script"
 msgstr ""
 
@@ -375,12 +375,12 @@ msgstr ""
 msgid "Internal console settings"
 msgstr ""
 
-#: spyderlib\plugins\console.py:221 spyderlib\plugins\externalconsole.py:1207
+#: spyderlib\plugins\console.py:221 spyderlib\plugins\externalconsole.py:1206
 msgid "Run Python script"
 msgstr ""
 
 #: spyderlib\plugins\console.py:222 spyderlib\plugins\externalconsole.py:241
-#: spyderlib\plugins\externalconsole.py:1208 spyderlib\widgets\explorer.py:633
+#: spyderlib\plugins\externalconsole.py:1207 spyderlib\widgets\explorer.py:633
 msgid "Python scripts"
 msgstr ""
 
@@ -464,7 +464,7 @@ msgstr ""
 
 #: spyderlib\plugins\editor.py:144 spyderlib\plugins\runconfig.py:305
 #: spyderlib\plugins\runconfig.py:419 spyderlib\plugins\runconfig.py:426
-#: spyderlib\spyder.py:1668 spyderlib\widgets\explorer.py:229
+#: spyderlib\spyder.py:1666 spyderlib\widgets\explorer.py:229
 #: spyderlib\widgets\externalshell\baseshell.py:137
 msgid "Run"
 msgstr ""
@@ -1064,9 +1064,9 @@ msgid "Set font style"
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:65
-#: spyderlib\plugins\externalconsole.py:1000
-#: spyderlib\plugins\inspector.py:307 spyderlib\plugins\ipythonconsole.py:424
-#: spyderlib\plugins\ipythonconsole.py:1123
+#: spyderlib\plugins\externalconsole.py:999 spyderlib\plugins\inspector.py:307
+#: spyderlib\plugins\ipythonconsole.py:424
+#: spyderlib\plugins\ipythonconsole.py:1127
 #: spyderlib\widgets\externalshell\baseshell.py:105
 msgid "Console"
 msgstr ""
@@ -1319,8 +1319,8 @@ msgid "You can't close this kernel because it has one or more consoles connected
 msgstr ""
 
 #: spyderlib\plugins\externalconsole.py:671
-#: spyderlib\plugins\ipythonconsole.py:717 spyderlib\spyder.py:1214
-#: spyderlib\spyder.py:1232 spyderlib\utils\environ.py:95
+#: spyderlib\plugins\ipythonconsole.py:717 spyderlib\spyder.py:1212
+#: spyderlib\spyder.py:1230 spyderlib\utils\environ.py:95
 #: spyderlib\utils\environ.py:108
 msgid "Warning"
 msgstr ""
@@ -1347,68 +1347,73 @@ msgstr ""
 msgid "Terminal"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1022
+#: spyderlib\plugins\externalconsole.py:1021
 msgid "Open a Python &interpreter"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1025
+#: spyderlib\plugins\externalconsole.py:1024
 msgid "Open &command prompt"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1026
+#: spyderlib\plugins\externalconsole.py:1025
 msgid "Open a Windows command prompt"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1028
+#: spyderlib\plugins\externalconsole.py:1027
 msgid "Open &terminal"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1029
+#: spyderlib\plugins\externalconsole.py:1028
 msgid "Open a terminal window inside Spyder"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1155
+#: spyderlib\plugins\externalconsole.py:1149
+#: spyderlib\widgets\projectexplorer.py:333
+msgid " and "
+msgstr ""
+
+#: spyderlib\plugins\externalconsole.py:1154
 msgid "<br><u>Installed version</u>: %s"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1157
+#: spyderlib\plugins\externalconsole.py:1156
 #: spyderlib\plugins\ipythonconsole.py:51
 #: spyderlib\plugins\ipythonconsole.py:668
 msgid "IPython console"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1158
+#: spyderlib\plugins\externalconsole.py:1157
 msgid "Unable to open IPython console because no supported IPython version was found.<br><br><u>Supported IPython versions</u>: %s"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1179
+#: spyderlib\plugins\externalconsole.py:1178
 #: spyderlib\plugins\ipythonconsole.py:737
 msgid "Open an IPython console"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1180
+#: spyderlib\plugins\externalconsole.py:1179
 msgid "The console monitor was disabled: the IPython kernel will be started as expected, but an IPython console will have to be connected manually to the kernel."
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1216
-#: spyderlib\plugins\externalconsole.py:1229
-#: spyderlib\plugins\externalconsole.py:1233
+#: spyderlib\plugins\externalconsole.py:1215
+#: spyderlib\plugins\externalconsole.py:1228
+#: spyderlib\plugins\externalconsole.py:1232
 msgid "UMD"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1217
+#: spyderlib\plugins\externalconsole.py:1216
 msgid ""
 "UMD excluded modules:\n"
 "(example: guidata, guiqwt)"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1230
+#: spyderlib\plugins\externalconsole.py:1229
 msgid ""
 "The following modules are not installed on your machine:\n"
 "%s"
 msgstr ""
 
-#: spyderlib\plugins\externalconsole.py:1234
+#: spyderlib\plugins\externalconsole.py:1233
 msgid "Please note that these changes will be applied only to new Python/IPython interpreters"
 msgstr ""
 
@@ -1873,34 +1878,34 @@ msgstr ""
 msgid "Open a new IPython client connected to an external kernel"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:848
+#: spyderlib\plugins\ipythonconsole.py:852
 msgid "(for example: `kernel-3764.json`, or simply `3764`)"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:850
-#: spyderlib\plugins\ipythonconsole.py:890
+#: spyderlib\plugins\ipythonconsole.py:854
+#: spyderlib\plugins\ipythonconsole.py:894
 msgid "IPython"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:851
+#: spyderlib\plugins\ipythonconsole.py:855
 msgid "Provide an IPython kernel connection file:"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:891
+#: spyderlib\plugins\ipythonconsole.py:895
 msgid "Unable to connect to IPython kernel <b>`%s`"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1085
+#: spyderlib\plugins\ipythonconsole.py:1089
 msgid ""
 "%s will be closed.\n"
 "Do you want to kill the associated kernel and all of its clients?"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1131
+#: spyderlib\plugins\ipythonconsole.py:1135
 msgid "Are you sure you want to restart the kernel?"
 msgstr ""
 
-#: spyderlib\plugins\ipythonconsole.py:1133
+#: spyderlib\plugins\ipythonconsole.py:1137
 msgid "Restart kernel?"
 msgstr ""
 
@@ -2537,53 +2542,53 @@ msgstr ""
 msgid "Attached console window (debugging)"
 msgstr ""
 
-#: spyderlib\spyder.py:1215
+#: spyderlib\spyder.py:1213
 msgid ""
 "Window layout will be reset to default settings: this affects window position, size and dockwidgets.\n"
 "Do you want to continue?"
 msgstr ""
 
-#: spyderlib\spyder.py:1233
+#: spyderlib\spyder.py:1231
 msgid "Quick switch layout #%d has not yet been defined."
 msgstr ""
 
-#: spyderlib\spyder.py:1424
+#: spyderlib\spyder.py:1422
 msgid "Maximize current plugin"
 msgstr ""
 
-#: spyderlib\spyder.py:1425
+#: spyderlib\spyder.py:1423
 msgid "Maximize current plugin to fit the whole application window"
 msgstr ""
 
-#: spyderlib\spyder.py:1429
+#: spyderlib\spyder.py:1427
 msgid "Restore current plugin"
 msgstr ""
 
-#: spyderlib\spyder.py:1430
+#: spyderlib\spyder.py:1428
 msgid "Restore current plugin to its original size and position within the application window"
 msgstr ""
 
-#: spyderlib\spyder.py:1502
+#: spyderlib\spyder.py:1500
 msgid "(not installed)"
 msgstr ""
 
-#: spyderlib\spyder.py:1520
+#: spyderlib\spyder.py:1518
 msgid "About %s"
 msgstr ""
 
-#: spyderlib\spyder.py:1669
+#: spyderlib\spyder.py:1667
 msgid "Running an external system terminal is not supported on platform %s."
 msgstr ""
 
-#: spyderlib\spyder.py:1855
+#: spyderlib\spyder.py:1853
 msgid "Open session"
 msgstr ""
 
-#: spyderlib\spyder.py:1856 spyderlib\spyder.py:1867
+#: spyderlib\spyder.py:1854 spyderlib\spyder.py:1865
 msgid "Spyder sessions"
 msgstr ""
 
-#: spyderlib\spyder.py:1866
+#: spyderlib\spyder.py:1864
 msgid "Save session"
 msgstr ""
 
@@ -2989,35 +2994,35 @@ msgstr ""
 msgid "<b>Unable to save script '%s'</b><br><br>Error message:<br>%s"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1419
+#: spyderlib\widgets\editor.py:1421
 msgid "Save Python script"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1640
+#: spyderlib\widgets\editor.py:1642
 msgid "<b>%s</b> is unavailable (this file may have been removed, moved or renamed outside Spyder).<br>Do you want to close it?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1660
+#: spyderlib\widgets\editor.py:1662
 msgid "<b>%s</b> has been modified outside Spyder.<br>Do you want to reload it and loose all your changes?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1748
+#: spyderlib\widgets\editor.py:1750
 msgid "All changes to <b>%s</b> will be lost.<br>Do you want to revert file from disk?"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1885
+#: spyderlib\widgets\editor.py:1887
 msgid "Loading %s..."
 msgstr ""
 
-#: spyderlib\widgets\editor.py:1895
+#: spyderlib\widgets\editor.py:1897
 msgid "<b>%s</b> contains mixed end-of-line characters.<br>Spyder will fix this automatically."
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2233
+#: spyderlib\widgets\editor.py:2235
 msgid "Close window"
 msgstr ""
 
-#: spyderlib\widgets\editor.py:2235
+#: spyderlib\widgets\editor.py:2237
 msgid "Close this window"
 msgstr ""
 
@@ -3698,10 +3703,6 @@ msgstr ""
 
 #: spyderlib\widgets\projectexplorer.py:331
 msgid "its own configuration file"
-msgstr ""
-
-#: spyderlib\widgets\projectexplorer.py:333
-msgid " and "
 msgstr ""
 
 #: spyderlib\widgets\projectexplorer.py:337
