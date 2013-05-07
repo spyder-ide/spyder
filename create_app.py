@@ -8,7 +8,8 @@
 Create a stand-alone Mac OS X app using py2app
 
 To be used like this:
-$ python create_app.py py2app
+$ python setup.py build_doc     (to update the docs)
+$ python create_app.py py2app   (to build the app)
 """
 
 from setuptools import setup
@@ -101,9 +102,19 @@ system_python_lib = get_python_lib()
 app_python_lib = osp.join(resources, 'lib', 'python2.7')
 
 # Add our docs to the app
-docs = osp.join(system_python_lib, 'spyderlib', 'doc')
+docs_orig = 'build/lib/spyderlib/doc'
 docs_dest = osp.join(app_python_lib, 'spyderlib', 'doc')
-shutil.copytree(docs, docs_dest)
+shutil.copytree(docs_orig, docs_dest)
+
+# Create a minimal library inside Resources to add it to PYTHONPATH instead of
+# app_python_lib. This must be done when the user changes to an interpreter
+# that's not the one that comes with the app, to forbid importing modules
+# inside the app.
+minimal_lib = osp.join(app_python_lib, 'minimal-lib')
+os.mkdir(minimal_lib)
+minlib_pkgs = ['spyderlib', 'spyderplugins']
+for p in minlib_pkgs:
+    shutil.copytree(osp.join(app_python_lib, p), osp.join(minimal_lib, p))
 
 # Add necessary Python programs to the app
 PROGRAMS = ['pylint', 'pep8']
@@ -180,12 +191,23 @@ get_env = \
 r"""
 def _get_env():
     import os
+    import os.path as osp
     import subprocess as sp
     envstr = sp.Popen('source /etc/profile; source ~/.profile; printenv',
                       shell=True, stdout=sp.PIPE).communicate()[0]
+    if osp.isfile(global_profile) and not osp.isfile(user_profile):
+        envstr = sp.check_output('source /etc/profile; printenv', shell=True)
+    elif osp.isfile(global_profile) and osp.isfile(user_profile):
+        envstr = sp.check_output('source /etc/profile; source ~/.profile; printenv',
+                                 shell=True)
+    else:
+        envstr = sp.check_output('printenv', shell=True)
     env = [a.split('=') for a in envstr.strip().split('\n')]
     os.environ.update(env)
-_get_env()
+try:
+    _get_env()
+except:
+    print('Cannot grab environment variables!')
 """
 
 # Add our modifications to __boot__.py so that they can be taken into
@@ -205,5 +227,3 @@ for line in fileinput.input(boot_file, inplace=True):
     else:
         print line,
 
-# Run macdeployqt so that the app can use the internal Qt Framework
-subprocess.call(['macdeployqt', 'dist/Spyder.app'])
