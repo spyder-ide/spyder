@@ -6,6 +6,8 @@
 
 """Running programs utilities"""
 
+from __future__ import with_statement
+
 from distutils.version import LooseVersion
 import imp
 import inspect
