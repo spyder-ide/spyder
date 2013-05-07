@@ -931,25 +931,24 @@ class ExternalConsole(SpyderPluginWidget):
             self.activateWindow()
             shellwidget.shell.setFocus()
     
-    def cleanup_ipykernel_connection_file(self, connection_file):
-        """Clean up the connection file created by a kernel"""
-        from IPython.core.application import get_ipython_dir
-        connection_file = osp.join(get_ipython_dir(), 'profile_default',
-                                   'security', connection_file)
-        try:
-            os.remove(connection_file)
-        except OSError:
-            pass
-    
     def set_ipykernel_attrs(self, connection_file, kernel_widget):
         """Add the pid of the kernel process to an IPython kernel tab"""
         # Set connection file
         kernel_widget.connection_file = connection_file
         
+        # If we've reached this point then it's safe to assume IPython
+        # is available, and this import should be valid.
+        from IPython.core.application import get_ipython_dir
         # For each kernel we launch, setup to delete the associated
         # connection file at the time Spyder exits.
-        atexit.register(self.cleanup_ipykernel_connection_file,
-                        connection_file)              
+        def cleanup_connection_file(connection_file):
+            connection_file = osp.join(get_ipython_dir(), 'profile_default',
+                                   'security', connection_file)
+            try:
+                os.remove(connection_file)
+            except OSError:
+                pass
+        atexit.register(cleanup_connection_file, connection_file)            
         
         # Set tab name
         index = self.get_shell_index_from_id(id(kernel_widget))
