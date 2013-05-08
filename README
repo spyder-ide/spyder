@@ -105,6 +105,7 @@ Licensed under the terms of the MIT License
                 * or through Python(x,y): http://pythonxy.googlecode.com
             * on Mac OSX:
                 * using our DMG installer: http://spyderlib.googlecode.com
+                * Using the Anaconda Python Distribution: https://store.continuum.io/cshop/anaconda/
                 * through MacPorts 
             * on GNU/Linux, through your package manager
         For more details on supported platforms, please go to http://spyderlib.googlecode.com.

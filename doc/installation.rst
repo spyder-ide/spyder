@@ -77,7 +77,7 @@ http://pypi.python.org/pypi
 But the easiest way to install the last stable release of Spyder is:
 
 * on Windows, using an executable installer (http://spyderlib.googlecode.com) or through Python(x,y) (http://pythonxy.googlecode.com)
-* on Mac OSX, using our DMG installer (http://spyderlib.googlecode.com) or through MacPorts
+* on Mac OSX, using our DMG installer (http://spyderlib.googlecode.com), the Anaconda Python Distribution (https://store.continuum.io/cshop/anaconda/) or through MacPorts
 * on GNU/Linux, through your package manager
 
 For more details on supported platforms, please go to http://spyderlib.googlecode.com.
