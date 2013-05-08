@@ -77,17 +77,17 @@ http://pypi.python.org/pypi
 But the easiest way to install the last stable release of Spyder is:
 
 * on Windows, using an executable installer (http://spyderlib.googlecode.com) or through Python(x,y) (http://pythonxy.googlecode.com)
-* on Mac OSX, through MacPorts
+* on Mac OSX, using our DMG installer (http://spyderlib.googlecode.com) or through MacPorts
 * on GNU/Linux, through your package manager
 
 For more details on supported platforms, please go to http://spyderlib.googlecode.com.
 
 .. note::
 
-    On MacOS X 10.6-10.7, it is known that the Python standard library `locale`
-    is raising this error: `ValueError: unknown locale: UTF-8`.
-    To fix this, you will have to set these environment variables in .profile 
-    (or .bashrc) manually::
+    On MacOS X 10.6-10.8, it is known that the MacPorts version of Spyder is
+    raising this error: `ValueError: unknown locale: UTF-8`.
+    To fix it you will have to set these environment variables in ~/.profile 
+    (or ~/.bashrc) manually::
         
         export LANG=en_US.UTF-8
         export LC_ALL=en_US.UTF-8
