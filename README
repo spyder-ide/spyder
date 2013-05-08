@@ -38,9 +38,8 @@ Licensed under the terms of the MIT License
     Build dependencies
 
         When installing Spyder from the .zip source package (using the 
-        command `python setup.py install`), the requirements are:
+        command `python setup.py install`), the only requirements is:
             Python 2.5+
-            sphinx 0.6+ (only required for documentation generation)
 
     Runtime dependencies
     
@@ -48,12 +47,12 @@ Licensed under the terms of the MIT License
         PyQt4 4.4+ or PySide 1.1.1+ (PyQt4 is recommended)
             
         Recommended modules
-            pywin32 (Windows module)
+            pywin32 (Windows XP/7/8)
                 *Strongly* recommended on this platform. It is necessary to
-                maintain a single instance and it's also useful to hide the
+                maintain a single instance and it's also needed to hide the
                 parent console from which Spyder was started.
-            pyflakes v0.5.0+ (real-time code analysis)
             rope v0.9.2+ (editor code completion, calltips and go-to-definition)
+            pyflakes v0.5.0+ (real-time code analysis)
             sphinx v0.6+ (object inspector's rich text mode)
             numpy (N-dimensional arrays)
             scipy (signal/image processing)
@@ -104,7 +103,9 @@ Licensed under the terms of the MIT License
             * on Windows:
                 * using an executable installer: http://spyderlib.googlecode.com
                 * or through Python(x,y): http://pythonxy.googlecode.com
-            * on Mac OSX, through MacPorts
+            * on Mac OSX:
+                * using our DMG installer: http://spyderlib.googlecode.com
+                * through MacPorts 
             * on GNU/Linux, through your package manager
         For more details on supported platforms, please go to http://spyderlib.googlecode.com.
             
