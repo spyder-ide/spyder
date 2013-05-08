@@ -149,7 +149,7 @@
   * Console: Matplotlib was always imported even when the Matplotlib's Patch option was not available (i.e. the Matplotlib installed version was not compatible with the patch). As a consequence, even when disabling every console advanced option in preferences, the preloaded module list was huge
   * Editor:
     * When closing Spyder with unsaved modified files, Spyder was asking confirmation as many times as there were editor windows. Only one confirmation is necessary because, with current editor design, all editor windows are synced.
-    * When creating two new files, saving one of them will lead to temporarily mask the leading '*' indicating the fact that the other untitled file was not already saved. This is simply a display issue: internally, it is clear that the file is in a non-saved state and Spyder will ask for it to be saved when trying to close the file
+    * When creating two new files, saving one of them will lead to temporarily mask the leading '`*`' indicating the fact that the other untitled file was not already saved. This is simply a display issue: internally, it is clear that the file is in a non-saved state and Spyder will ask for it to be saved when trying to close the file
     * Multiple windows: when saving a new untitled file, other editor windows were getting confused on file list order -- eventually leading to data loss
     * Open file dialog: default file type filter now matches the current file (See Issue 1201)
   * Fixed "PyQt Reference Guide" link
