@@ -1,0 +1,37 @@
+Spyder v2.2.0 -- 05/08/2013
+===========================
+
+Hi all,
+
+On the behalf of Spyder's development team (http://code.google.com/p/spyderlib/people/list), I'm pleased to announce that Spyder v2.2 has been released and is available for Windows XP/Vista/7/8, GNU/Linux and MacOS X: http://code.google.com/p/spyderlib/.
+
+This release represents 18 months of development since v2.1 and introduces major enhancements and new features:
+ * Full support for IPython v0.13, including the ability to attach to existing kernels
+ * New MacOS X application
+ * Much improved debugging experience
+ * Various editor improvements for code completion, zooming, auto insertion, and syntax highlighting
+ * Better looking and faster Object Inspector
+ * Single instance mode
+ * Spanish tranlation of the interface
+ * And many other changes: http://code.google.com/p/spyderlib/wiki/ChangeLog
+
+This is the last release to support Python 2.5:
+ * Spyder 2.2 supports Python 2.5 to 2.7
+ * Spyder 2.3 will support Python 2.7 to 3.3
+ * (Spyder 2.1.14dev4 is a development release which already supports Python 3)
+See also https://code.google.com/p/spyderlib/downloads/list.
+
+Spyder is a free, open-source (MIT license) interactive development environment for the Python language with advanced editing, interactive testing, debugging and introspection features. Originally designed to provide MATLAB-like features (integrated help, interactive console, variable explorer with GUI-based editors for dictionaries, NumPy arrays, ...), it is strongly oriented towards scientific computing and software development. Thanks to the `spyderlib` library, Spyder also provides powerful ready-to-use widgets: embedded Python console (example: http://packages.python.org/guiqwt/_images/sift3.png), NumPy array editor (example: http://packages.python.org/guiqwt/_images/sift2.png), dictionary editor, source code editor, etc.
+
+Description of key features with tasty screenshots can be found at:
+http://code.google.com/p/spyderlib/wiki/Features
+
+Don't forget to follow Spyder updates/news:
+  * on the project website: http://code.google.com/p/spyderlib/
+  * and on our official blog: http://spyder-ide.blogspot.com/
+
+Last, but not least, we welcome any contribution that helps making Spyder an efficient scientific development/computing environment. Join us to help creating your favourite environment!
+(http://code.google.com/p/spyderlib/wiki/NoteForContributors)
+
+Enjoy!
+-Pierre
