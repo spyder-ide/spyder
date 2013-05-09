@@ -26,7 +26,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.baseconfig import get_conf_path, _, STDOUT
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
@@ -908,9 +908,9 @@ class Editor(SpyderPluginWidget):
                                     debug_toolbar_actions +  [None] + \
                                     edit_toolbar_actions
         self.pythonfile_dependent_actions = [run_action, configure_action,
-                set_clear_breakpoint_action, set_cond_breakpoint_action,
-                debug_action, re_run_action, run_selected_action,
-                blockcomment_action, unblockcomment_action, self.winpdb_action]
+                     set_clear_breakpoint_action, set_cond_breakpoint_action,
+                     debug_action, run_selected_action, blockcomment_action,
+                     unblockcomment_action, self.winpdb_action]
         self.file_dependent_actions = self.pythonfile_dependent_actions + \
                 [self.save_action, save_as_action, print_preview_action,
                  self.print_action, self.save_all_action, gotoline_action,
@@ -2013,6 +2013,7 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm) = self.__last_ec_exec
+        print >>STDOUT, self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
