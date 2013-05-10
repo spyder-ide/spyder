@@ -110,19 +110,21 @@ WINDOWS_INSTALLER = 'bdist_wininst' in ''.join(sys.argv) or\
 
 def get_packages():
     """Return package list"""
-    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
     if WINDOWS_INSTALLER:
         # Adding pyflakes and rope to the package if available in the 
         # repository (this is not conventional but Spyder really need 
         # those tools and there is not decent package manager on 
         # Windows platforms, so...)
-        import shutil, atexit
+        import shutil
+        import atexit
         extdir = 'external-py' + sys.version[0]
         for name in ('rope', 'pyflakes'):
-            if osp.isdir(osp.join(extdir, name)):
-                shutil.copytree(osp.join(extdir, name), name)
-                atexit.register(shutil.rmtree, osp.abspath(name))
-                packages += get_subpackages(name)
+            srcdir = osp.join(extdir, name)
+            if osp.isdir(srcdir):
+                dstdir = osp.join(LIBNAME, 'utils', 'external', name)
+                shutil.copytree(srcdir, dstdir)
+                atexit.register(shutil.rmtree, osp.abspath(dstdir))
+    packages = get_subpackages(LIBNAME)+get_subpackages('spyderplugins')
     return packages
 
 # NOTE: the '[...]_win_post_install.py' script is installed even on non-Windows
