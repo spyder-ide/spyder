@@ -2013,7 +2013,6 @@ class Editor(SpyderPluginWidget):
             return
         (fname, wdir, args, interact, debug,
          python, python_args, current, systerm) = self.__last_ec_exec
-        print >>STDOUT, self.__last_ec_exec
         if current:
             if self.main.ipyconsole is not None:
                 if self.main.last_console_plugin_focus_was_python:
