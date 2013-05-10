@@ -21,6 +21,7 @@ import os
 import os.path as osp
 import subprocess
 import sys
+import re
 
 
 def get_package_data(name, extlist):
@@ -105,8 +106,14 @@ LIBNAME = 'spyderlib'
 from spyderlib import __version__, __project_url__
 
 
-WINDOWS_INSTALLER = 'bdist_wininst' in ''.join(sys.argv) or\
-                    'bdist_msi' in ''.join(sys.argv)
+JOINEDARGS = ''.join(sys.argv)
+WINDOWS_INSTALLER = 'bdist_wininst' in JOINEDARGS or 'bdist_msi' in JOINEDARGS
+TARGET_MATCH = re.search(r'--target-version=([0-9]*)\.([0-9]*)', JOINEDARGS)
+if TARGET_MATCH:
+    TARGET_VERSION = TARGET_MATCH.groups()
+else:
+    TARGET_VERSION = (str(sys.version_info.major), str(sys.version_info.minor))
+
 
 def get_packages():
     """Return package list"""
@@ -117,7 +124,7 @@ def get_packages():
         # Windows platforms, so...)
         import shutil
         import atexit
-        extdir = 'external-py' + sys.version[0]
+        extdir = 'external-py' + TARGET_VERSION[0]
         for name in ('rope', 'pyflakes'):
             srcdir = osp.join(extdir, name)
             if osp.isdir(srcdir):
@@ -171,6 +178,7 @@ editor, Python console, etc.""",
                {"install_script": "%s_win_post_install.py" % NAME,
                 "title": "%s %s" % (NAME.capitalize(), __version__),
                 "bitmap": osp.join('img_src', 'spyder-bdist_wininst.bmp'),
+                "target_version": '%s.%s' % TARGET_VERSION,
                 "user_access_control": "auto"},
                "bdist_msi":
                {"install_script": "%s_win_post_install.py" % NAME}},
