@@ -406,7 +406,7 @@ DEFAULTS = [
               'show_hidden': True,
               'show_all': False,
               'show_toolbar': True,
-              'show_icontext': True,
+              'show_icontext': False,
               }),
             ('find_in_files',
              {

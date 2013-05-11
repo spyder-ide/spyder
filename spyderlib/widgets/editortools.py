@@ -470,14 +470,14 @@ class OutlineExplorerWidget(QWidget):
         self.visibility_action.setChecked(True)
         
         btn_layout = QHBoxLayout()
-        btn_layout.setAlignment(Qt.AlignRight)
+        btn_layout.setAlignment(Qt.AlignLeft)
         for btn in self.setup_buttons():
             btn_layout.addWidget(btn)
 
         layout = QVBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.treewidget)
         layout.addLayout(btn_layout)
+        layout.addWidget(self.treewidget)
         self.setLayout(layout)
         
     def toggle_visibility(self, state):

@@ -96,8 +96,7 @@ class HistoryLog(SpyderPluginWidget):
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'),
-                                           text_beside_icon=True)
+                                           icon=get_icon('tooloptions.png'))
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.menu_actions)
