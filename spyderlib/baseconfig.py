@@ -21,7 +21,7 @@ import sys
 from spyderlib import __version__
 
 
-SUPPORTED_IPYTHON = '>=0.13;<1.0'
+SUPPORTED_IPYTHON = '>=1.0'
 
 #==============================================================================
 # Debug helpers

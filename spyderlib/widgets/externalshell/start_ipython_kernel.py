@@ -164,10 +164,7 @@ __name__ = '__main__'
 sys.path.insert(0, '')
 
 # Fire up the kernel instance.
-try:
-    from IPython.zmq.ipkernel import IPKernelApp  # 0.13
-except ImportError:
-    from IPython.kernel.zmq.kernelapp import IPKernelApp  # 0.14
+from IPython.kernel.zmq.kernelapp import IPKernelApp
 
 ipk_temp = IPKernelApp.instance()
 ipk_temp.config = kernel_config()
