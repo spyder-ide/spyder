@@ -519,6 +519,11 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
+            # Main toolbar: creating the main toolbar first so that it is 
+            # shown first in the window's toolbar area            
+            self.main_toolbar = self.create_toolbar(_("Main toolbar"),
+                                                    "main_toolbar")
+
             # File menu/toolbar
             self.file_menu = self.menuBar().addMenu(_("&File"))
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
@@ -698,9 +703,6 @@ class MainWindow(QMainWindow):
             self.main_toolbar_actions = [self.maximize_action,
                                          self.fullscreen_action, None,
                                          prefs_action, spyder_path_action]
-            
-            self.main_toolbar = self.create_toolbar(_("Main toolbar"),
-                                                    "main_toolbar")
             
             # Internal console plugin
             self.console = Console(self, namespace, exitfunc=self.closing,
