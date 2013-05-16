@@ -22,6 +22,7 @@ from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.explorer import ExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import to_text_string
 
 
 class Explorer(ExplorerWidget, SpyderPluginMixin):
@@ -74,8 +75,8 @@ class Explorer(ExplorerWidget, SpyderPluginMixin):
                      self.main.editor.new)
         self.connect(self, SIGNAL("run(QString)"),
                      lambda fname:
-                     self.main.open_external_console(unicode(fname),
-                                         osp.dirname(unicode(fname)),
+                     self.main.open_external_console(to_text_string(fname),
+                                         osp.dirname(to_text_string(fname)),
                                          '', False, False, True, '', False))
         # Signal "set_explorer_cwd(QString)" will refresh only the
         # contents of path passed by the signal in explorer:

@@ -19,8 +19,9 @@ from spyderlib.baseconfig import get_translation
 _ = get_translation("p_breakpoints", dirname="spyderplugins")
 from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.plugins import SpyderPluginMixin
-
 from spyderplugins.widgets.breakpointsgui import BreakpointWidget
+from spyderlib.py3compat import to_text_string, is_text_string
+
 
 class Breakpoints(BreakpointWidget, SpyderPluginMixin):
     """Breakpoint list"""
@@ -88,10 +89,10 @@ class Breakpoints(BreakpointWidget, SpyderPluginMixin):
             except AttributeError:
                 pass
             else:
-                # Depending on Qt API version, could get a QString or
+                # Depending on Qt API version, could get a QString or 
                 # unicode from title()
-                if not isinstance(menu_title, unicode): # string is a QString
-                    menu_title = unicode(menu_title.toUtf8(), 'utf-8')
+                if not is_text_string(menu_title): # string is a QString
+                    menu_title = to_text_string(menu_title.toUtf8)
                 item.addAction(list_action)
                 # If we've reached this point it means we've located the 
                 # first QMenu in the run_menu. Since there might be other

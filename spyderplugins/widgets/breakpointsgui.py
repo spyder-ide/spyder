@@ -12,8 +12,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import with_statement
-
 from spyderlib.qt.QtGui import (QWidget, QTableView, QItemDelegate,
                                 QVBoxLayout, QMenu)
 from spyderlib.qt.QtCore import (Qt, SIGNAL, QTextCodec,

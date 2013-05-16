@@ -8,6 +8,8 @@
 Text Editor Dialog based on Qt
 """
 
+from __future__ import print_function
+
 from spyderlib.qt.QtCore import Qt, SIGNAL, SLOT
 from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 
@@ -15,6 +17,7 @@ from spyderlib.qt.QtGui import QVBoxLayout, QTextEdit, QDialog, QDialogButtonBox
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import get_icon
+from spyderlib.py3compat import to_text_string
 
 
 class TextEditor(QDialog):
@@ -31,7 +34,7 @@ class TextEditor(QDialog):
         
         self.text = None
         
-        self._conv = str if isinstance(text, str) else unicode
+        self._conv = str if isinstance(text, str) else to_text_string
         
         self.layout = QVBoxLayout()
         self.setLayout(self.layout)
@@ -85,11 +88,11 @@ def test():
     dialog.show()
     if dialog.exec_():
         text = dialog.get_value()
-        print "Accepted:", text
+        print("Accepted:", text)
         dialog = TextEditor(text)
         dialog.exec_()
     else:
-        print "Canceled"
+        print("Canceled")
 
 if __name__ == "__main__":
     test()

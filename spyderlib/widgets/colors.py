@@ -4,6 +4,9 @@ from spyderlib.qt.QtGui import (QLineEdit, QIcon, QHBoxLayout, QColor,
                                 QPushButton, QColorDialog, QPixmap)
 from spyderlib.qt.QtCore import SIGNAL, QSize, Slot, Property
 
+# Local imports
+from spyderlib.py3compat import is_text_string
+
 
 class ColorButton(QPushButton):
     """
@@ -47,7 +50,7 @@ def text_to_qcolor(text):
     """
     color = QColor()
     text = str(text)
-    if not isinstance(text, (unicode, str)):
+    if not is_text_string(text):
         return color
     if text.startswith('#') and len(text)==7:
         correct = '#0123456789abcdef'

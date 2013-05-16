@@ -8,7 +8,7 @@
 
 # pylint: disable=C0103
 
-from __future__ import with_statement
+from __future__ import print_function
 
 from spyderlib.qt.QtGui import (QVBoxLayout, QLabel, QHBoxLayout, QWidget,
                                 QFileIconProvider, QMessageBox, QInputDialog,
@@ -19,7 +19,6 @@ from spyderlib.qt.compat import getexistingdirectory
 import os
 import re
 import shutil
-import cPickle
 import os.path as osp
 import xml.etree.ElementTree as ElementTree
 
@@ -30,6 +29,7 @@ from spyderlib.baseconfig import _, STDERR, get_image_path
 from spyderlib.widgets.explorer import FilteredDirView, listdir, fixpath
 from spyderlib.widgets.formlayout import fedit
 from spyderlib.widgets.pathmanager import PathManager
+from spyderlib.py3compat import to_text_string, getcwd, pickle
 
 
 def has_children_files(path, include, exclude, show_all):
@@ -79,7 +79,7 @@ class Project(object):
         """Set workspace root path"""
         if self.name is None:
             self.name = osp.basename(root_path)
-        self.root_path = unicode(root_path)
+        self.root_path = to_text_string(root_path)
         config_path = self.__get_project_config_path()
         if osp.exists(config_path):
             self.load()
@@ -121,19 +121,19 @@ class Project(object):
         try:
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(fname, 'U') as fdesc:
-                data = cPickle.loads(fdesc.read())
-        except cPickle.PickleError:
+                data = pickle.loads(fdesc.read())
+        except (pickle.PickleError, TypeError):
             try:
                 # New format (Spyder >=2.2 for Python 2 and Python 3)
                 with open(fname, 'rb') as fdesc:
-                    data = cPickle.loads(fdesc.read())
-            except (IOError, OSError, cPickle.PickleError):
+                    data = pickle.loads(fdesc.read())
+            except (IOError, OSError, pickle.PickleError):
                 self.ioerror_flag = True
                 return
         # Compatibilty with old project explorer file format:
         if 'relative_pythonpath' not in data:
-            print >>STDERR, "Warning: converting old configuration file " \
-                            "for project '%s'" % data['name']
+            print("Warning: converting old configuration file " \
+                            "for project '%s'" % data['name'], file=STDERR)
             self.pythonpath = data['pythonpath']
             data['relative_pythonpath'] = self.relative_pythonpath
         for attr in self.CONFIG_ATTR:
@@ -147,7 +147,7 @@ class Project(object):
             data[attr] = getattr(self, attr)
         try:
             with open(self.__get_project_config_path(), 'wb') as fdesc:
-                cPickle.dump(data, fdesc, 2)
+                pickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
         
@@ -271,7 +271,7 @@ class Workspace(object):
         """Set workspace root path"""
         if self.name is None:
             self.name = osp.basename(root_path)
-        self.root_path = unicode(osp.abspath(root_path))
+        self.root_path = to_text_string(osp.abspath(root_path))
         config_path = self.__get_workspace_config_path()
         if osp.exists(config_path):
             self.load()
@@ -293,13 +293,13 @@ class Workspace(object):
         try:
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(fname, 'U') as fdesc:
-                data = cPickle.loads(fdesc.read())
-        except cPickle.PickleError:
+                data = pickle.loads(fdesc.read())
+        except (pickle.PickleError, TypeError):
             try:
                 # New format (Spyder >=2.2 for Python 2 and Python 3)
                 with open(fname, 'rb') as fdesc:
-                    data = cPickle.loads(fdesc.read())
-            except (IOError, OSError, cPickle.PickleError):
+                    data = pickle.loads(fdesc.read())
+            except (IOError, OSError, pickle.PickleError):
                 self.ioerror_flag = True
                 return
         for attr in self.CONFIG_ATTR:
@@ -313,7 +313,7 @@ class Workspace(object):
             data[attr] = getattr(self, attr)
         try:
             with open(self.__get_workspace_config_path(), 'wb') as fdesc:
-                cPickle.dump(data, fdesc, 2)
+                pickle.dump(data, fdesc, 2)
         except (IOError, OSError):
             self.ioerror_flag = True
         
@@ -487,7 +487,7 @@ class IconProvider(QFileIconProvider):
             return super(IconProvider, self).icon(icontype_or_qfileinfo)
         else:
             qfileinfo = icontype_or_qfileinfo
-            fname = osp.normpath(unicode(qfileinfo.absoluteFilePath()))
+            fname = osp.normpath(to_text_string(qfileinfo.absoluteFilePath()))
             if osp.isdir(fname):
                 project = self.treeview.get_source_project(fname)
                 if project is None:
@@ -560,7 +560,7 @@ class ExplorerTreeWidget(FilteredDirView):
         """Reimplement DirView method"""
         only_folders = all([osp.isdir(_fn) for _fn in fnames])
         projects = [self.get_source_project(fname) for fname in fnames]
-        pjfnames = zip(projects, fnames)
+        pjfnames = list(zip(projects, fnames))
         any_project = any([_pr.is_root_path(_fn) for _pr, _fn in pjfnames])
         any_folder_in_path = any([_proj.is_in_pythonpath(_fn)
                                   for _proj, _fn in pjfnames])
@@ -729,11 +729,12 @@ class ExplorerTreeWidget(FilteredDirView):
             dst = self.get_project_path_from_name(name)
             try:
                 shutil.copytree(folder, dst)
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to %s <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (_('copy'), folder, unicode(error)))
+                                       ) % (_('copy'), folder,
+                                            to_text_string(error)))
             folder = dst
         
         project = self.workspace.add_project(folder)
@@ -805,7 +806,7 @@ class ExplorerTreeWidget(FilteredDirView):
             name, valid = QInputDialog.getText(self, title, _('Project name:'),
                                                QLineEdit.Normal, name)
             if valid and name:
-                name = unicode(name)
+                name = to_text_string(name)
                 pattern = r'[a-zA-Z][a-zA-Z0-9\_\-]*$'
                 match = re.match(pattern, name)
                 path = self.get_project_path_from_name(name)
@@ -931,12 +932,13 @@ class ExplorerTreeWidget(FilteredDirView):
         for folder in folders:
             try:
                 name, related_projects, path = get_pydev_project_infos(folder)
-            except RuntimeError, error:
+            except RuntimeError as error:
                 QMessageBox.critical(self,
                             _('Import existing Pydev project'),
                             _("<b>Unable to read Pydev project <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (osp.basename(folder), unicode(error)))
+                              ) % (osp.basename(folder),
+                                   to_text_string(error)))
             finally:
                 project = self.add_project(folder, silent=True)
                 if project is not None:
@@ -1088,7 +1090,8 @@ class ExplorerTreeWidget(FilteredDirView):
         
         dst = self.get_filename(self.indexAt(event.pos()))
         yes_to_all, no_to_all = None, None
-        src_list = [unicode(url.toString()) for url in event.mimeData().urls()]
+        src_list = [to_text_string(url.toString())
+                    for url in event.mimeData().urls()]
         if len(src_list) > 1:
             buttons = QMessageBox.Yes|QMessageBox.YesAll| \
                       QMessageBox.No|QMessageBox.NoAll|QMessageBox.Cancel
@@ -1134,7 +1137,7 @@ class ExplorerTreeWidget(FilteredDirView):
                     else:
                         shutil.move(src, dst)
                     self.parent_widget.emit(SIGNAL("removed(QString)"), src)
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 if action == Qt.CopyAction:
                     action_str = _('copy')
                 else:
@@ -1142,7 +1145,8 @@ class ExplorerTreeWidget(FilteredDirView):
                 QMessageBox.critical(self, _("Project Explorer"),
                                      _("<b>Unable to %s <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (action_str, src, unicode(error)))
+                                       ) % (action_str, src,
+                                            to_text_string(error)))
 
 
 class WorkspaceSelector(QWidget):
@@ -1194,9 +1198,9 @@ class WorkspaceSelector(QWidget):
         if self.first_time:
             QMessageBox.information(self, self.TITLE, self.TIP)
             self.first_time = False
-        basedir = unicode(self.line_edit.text())
+        basedir = to_text_string(self.line_edit.text())
         if not osp.isdir(basedir):
-            basedir = os.getcwdu()
+            basedir = getcwd()
         while True:
             self.parent().emit(SIGNAL('redirect_stdio(bool)'), False)
             directory = getexistingdirectory(self, self.TITLE, basedir)
@@ -1260,7 +1264,7 @@ class ProjectExplorerWidget(QWidget):
         
     def set_workspace(self, path):
         """Set current workspace"""
-        path = osp.normpath(unicode(path))
+        path = osp.normpath(to_text_string(path))
         if path is not None and osp.isdir(path):
             self.treewidget.set_workspace(path)
             self.selector.set_workspace(path)

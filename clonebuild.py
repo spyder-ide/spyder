@@ -18,6 +18,7 @@ import re
 import sys
 
 import spyderlib as mod
+from spyderlib.py3compat import getcwd
 
 name = 'spyder'
 version = mod.__version__
@@ -60,7 +61,7 @@ def extract_exe_dist(plugin_dir, exe_dist):
 
 def include_chm_doc(plugin_dir):
     """Build and replace Spyder's html doc by .chm doc"""
-    curdir = os.getcwdu()
+    curdir = getcwd()
     os.chdir(osp.dirname(__file__))
     os.system('sphinx-build -b htmlhelp doc doctmp')
     for hhc_exe in (r'C:\Program Files\HTML Help Workshop\hhc.exe',
@@ -112,7 +113,7 @@ def build_pythonxy_plugin(plugin_dir, plugin_version):
 
 def get_pythonxy_plugindir(name):
     """Searching Python(x,y) plugin directory in current working directory"""
-    for fname in os.listdir(os.getcwdu()):
+    for fname in os.listdir(getcwd()):
         path = osp.abspath(osp.join(fname, 'src', 'python', name))
         if osp.isdir(path):
             # Also create the binary directory if it does not exist yet:

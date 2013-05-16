@@ -13,9 +13,11 @@
 import os
 import socket
 import struct
-import cPickle as pickle
 import threading
 import errno
+
+# Local imports
+from spyderlib.py3compat import pickle
 
 
 def temp_fail_retry(error, fun, *args):
@@ -57,7 +59,7 @@ def read_packet(sock, timeout=None):
             #  Windows implementation
             datalen = sock.recv(SZ)
             dlen, = struct.unpack("l", datalen)
-            data = ''
+            data = ''.encode('utf-8')  # Needed for Python 3 compatibility
             while len(data) < dlen:
                 data += sock.recv(dlen)
         else:
@@ -138,7 +140,7 @@ if __name__ == '__main__':
     # socket read/write testing - client and server in one thread
     
     # (techtonik): the stuff below is placed into public domain
-    print "-- Testing standard Python socket interface --"
+    print("-- Testing standard Python socket interface --")
 
     address = ("127.0.0.1", 9999)
     
@@ -155,9 +157,9 @@ if __name__ == '__main__':
     # accepted server socket is the one we can read from
     # note that it is different from server socket
     accsock, addr = server.accept()
-    print '..got "%s" from %s' % (accsock.recv(4096), addr)
+    print('..got "%s" from %s' % (accsock.recv(4096), addr))
     client.send("more data for recv")
-    print '..got "%s" from %s' % (accsock.recv(4096), addr)
+    print('..got "%s" from %s' % (accsock.recv(4096), addr))
     
     # accsock.close()
     # client.send("more data for recv")
@@ -166,12 +168,12 @@ if __name__ == '__main__':
     #socket.error: [Errno 11] Resource temporarily unavailable
     
 
-    print "-- Testing BSD socket write_packet/read_packet --"
+    print("-- Testing BSD socket write_packet/read_packet --")
 
     write_packet(client, "a tiny piece of data")
-    print '..got "%s" from read_packet()' % (read_packet(accsock))
+    print('..got "%s" from read_packet()' % (read_packet(accsock)))
     
     client.close()
     server.close()
     
-    print "-- Done."
+    print("-- Done.")

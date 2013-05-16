@@ -6,7 +6,6 @@
 
 """Namespace browser widget"""
 
-import os
 import os.path as osp
 import socket
 
@@ -32,6 +31,8 @@ from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
 from spyderlib.utils.iofuncs import iofunctions
 from spyderlib.widgets.importwizard import ImportWizard
 from spyderlib.baseconfig import _, get_supported_types
+from spyderlib.py3compat import is_text_string, to_text_string, getcwd
+
 
 SUPPORTED_TYPES = get_supported_types()
 
@@ -241,7 +242,7 @@ class NamespaceBrowser(QWidget):
 
     def option_changed(self, option, value):
         """Option has changed"""
-        setattr(self, unicode(option), value)
+        setattr(self, to_text_string(option), value)
         if not self.is_internal_shell:
             settings = self.get_view_settings()
             communicate(self._get_sock(),
@@ -272,7 +273,7 @@ class NamespaceBrowser(QWidget):
               (dict, list, tuple)
             * mode (string): 'editable' or 'picklable'
         """
-        assert mode in SUPPORTED_TYPES.keys()
+        assert mode in list(SUPPORTED_TYPES.keys())
         if check_all is None:
             check_all = self.check_all
         def wsfilter(input_dict, check_all=check_all,
@@ -327,7 +328,8 @@ class NamespaceBrowser(QWidget):
         if value is None:
             if communicate(self._get_sock(), '%s is not None' % name):
                 import pickle
-                msg = unicode(_("Object <b>%s</b> is not picklable") % name)
+                msg = to_text_string(_("Object <b>%s</b> is not picklable")
+                                     % name)
                 raise pickle.PicklingError(msg)
         return value
         
@@ -413,20 +415,20 @@ class NamespaceBrowser(QWidget):
         title = _("Import data")
         if filenames is None:
             if self.filename is None:
-                basedir = os.getcwdu()
+                basedir = getcwd()
             else:
                 basedir = osp.dirname(self.filename)
             filenames, _selfilter = getopenfilenames(self, title, basedir,
                                                      iofunctions.load_filters)
             if not filenames:
                 return
-        elif isinstance(filenames, basestring):
+        elif is_text_string(filenames):
             filenames = [filenames]
 
             
         for filename in filenames:
             
-            self.filename = unicode(filename)
+            self.filename = to_text_string(filename)
             ext = osp.splitext(self.filename)[1].lower()
             
             if ext not in iofunctions.load_funcs:
@@ -438,19 +440,19 @@ class NamespaceBrowser(QWidget):
                               ) % ext, buttons)
                 if answer == QMessageBox.Cancel:
                     return
-                formats = iofunctions.load_extensions.keys()
+                formats = list(iofunctions.load_extensions.keys())
                 item, ok = QInputDialog.getItem(self, title,
                                                 _('Open file as:'),
                                                 formats, 0, False)
                 if ok:
-                    ext = iofunctions.load_extensions[unicode(item)]
+                    ext = iofunctions.load_extensions[to_text_string(item)]
                 else:
                     return
 
             load_func = iofunctions.load_funcs[ext]
                 
             # 'import_wizard' (self.setup_io)
-            if isinstance(load_func, basestring):
+            if is_text_string(load_func):
                 # Import data with import wizard
                 error_message = None
                 try:
@@ -465,7 +467,7 @@ class NamespaceBrowser(QWidget):
                             var_name, clip_data = editor.get_data()
                             monitor_set_global(self._get_sock(),
                                                var_name, clip_data)
-                except Exception, error:
+                except Exception as error:
                     error_message = str(error)
             else:
                 QApplication.setOverrideCursor(QCursor(Qt.WaitCursor))
@@ -473,9 +475,9 @@ class NamespaceBrowser(QWidget):
                 if self.is_internal_shell:
                     namespace, error_message = load_func(self.filename)
                     interpreter = self.shellwidget.interpreter
-                    for key in namespace.keys():
+                    for key in list(namespace.keys()):
                         new_key = fix_reference_name(key,
-                                     blacklist=interpreter.namespace.keys())
+                                     blacklist=list(interpreter.namespace.keys()))
                         if new_key != key:
                             namespace[new_key] = namespace.pop(key)
                     if error_message is None:
@@ -499,7 +501,7 @@ class NamespaceBrowser(QWidget):
         if filename is None:
             filename = self.filename
             if filename is None:
-                filename = os.getcwdu()
+                filename = getcwd()
             filename, _selfilter = getsavefilename(self, _("Save data"),
                                                    filename,
                                                    iofunctions.save_filters)

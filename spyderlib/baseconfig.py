@@ -19,6 +19,8 @@ import sys
 
 # Local imports
 from spyderlib import __version__
+from spyderlib.py3compat import (is_unicode, TEXT_TYPES, INT_TYPES, PY3,
+                                 to_text_string, is_text_string)
 
 
 SUPPORTED_IPYTHON = '>=1.0'
@@ -154,15 +156,19 @@ def get_translation(modname, dirname=None):
         _trans = gettext.translation(modname, locale_path, codeset="utf-8")
         lgettext = _trans.lgettext
         def translate_gettext(x):
-            if isinstance(x, unicode):
+            if not PY3 and is_unicode(x):
                 x = x.encode("utf-8")
-            return unicode(lgettext(x), "utf-8")
+            y = lgettext(x)
+            if is_text_string(y) and PY3:
+                return y
+            else:
+                return to_text_string(y, "utf-8")
         return translate_gettext
-    except IOError, _e:  # analysis:ignore
+    except IOError as _e:  # analysis:ignore
         #print "Not using translations (%s)" % _e
         def translate_dumb(x):
-            if not isinstance(x, unicode):
-                return unicode(x, "utf-8")
+            if not is_unicode(x):
+                return to_text_string(x, "utf-8")
             return x
         return translate_dumb
 
@@ -183,7 +189,8 @@ def get_supported_types():
     get_remote_data function in spyderlib/widgets/externalshell/monitor.py
     get_internal_shell_filter method in namespacebrowser.py"""
     from datetime import date
-    editable_types = [int, long, float, list, dict, tuple, str, unicode, date]
+    editable_types = [int, float, list, dict, tuple, date
+                      ] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
         from numpy import ndarray, matrix
         editable_types += [ndarray, matrix]
@@ -204,4 +211,5 @@ CHECK_ALL = False #XXX: If True, this should take too much to compute...
 
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
-                  'Inf', 'Infinity', 'sctypes']
+                  'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
+                  'sctypeNA', 'typeNA']

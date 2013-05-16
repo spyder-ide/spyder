@@ -31,6 +31,7 @@ from spyderlib.qt.QtGui import (QWidget, QDialog, QListWidget, QListWidgetItem,
 from spyderlib.qt.QtCore import Qt, QSize, SIGNAL, SLOT, Slot
 from spyderlib.qt.compat import (to_qvariant, from_qvariant,
                                  getexistingdirectory, getopenfilename)
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
 class SizeMixin(object):
@@ -241,7 +242,7 @@ class SpyderConfigPage(ConfigPage):
         for lineedit in self.lineedits:
             if lineedit in self.validate_data and lineedit.isEnabled():
                 validator, invalid_msg = self.validate_data[lineedit]
-                text = unicode(lineedit.text())
+                text = to_text_string(lineedit.text())
                 if not validator(text):
                     QMessageBox.critical(self, self.get_name(),
                                      "%s:<br><b>%s</b>" % (invalid_msg, text),
@@ -251,35 +252,35 @@ class SpyderConfigPage(ConfigPage):
         
     def load_from_conf(self):
         """Load settings from configuration file"""
-        for checkbox, (option, default) in self.checkboxes.items():
+        for checkbox, (option, default) in list(self.checkboxes.items()):
             checkbox.setChecked(self.get_option(option, default))
             self.connect(checkbox, SIGNAL("clicked(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        for radiobutton, (option, default) in self.radiobuttons.items():
+        for radiobutton, (option, default) in list(self.radiobuttons.items()):
             radiobutton.setChecked(self.get_option(option, default))
             self.connect(radiobutton, SIGNAL("toggled(bool)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        for lineedit, (option, default) in self.lineedits.items():
+        for lineedit, (option, default) in list(self.lineedits.items()):
             lineedit.setText(self.get_option(option, default))
             self.connect(lineedit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        for spinbox, (option, default) in self.spinboxes.items():
+        for spinbox, (option, default) in list(self.spinboxes.items()):
             spinbox.setValue(self.get_option(option, default))
             self.connect(spinbox, SIGNAL('valueChanged(int)'),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        for combobox, (option, default) in self.comboboxes.items():
+        for combobox, (option, default) in list(self.comboboxes.items()):
             value = self.get_option(option, default)
             for index in range(combobox.count()):
-                data = from_qvariant(combobox.itemData(index), unicode)
+                data = from_qvariant(combobox.itemData(index), to_text_string)
                 # For PyQt API v2, it is necessary to convert `data` to 
                 # unicode in case the original type was not a string, like an 
                 # integer for example (see spyderlib.qt.compat.from_qvariant):
-                if unicode(data) == unicode(value):
+                if to_text_string(data) == to_text_string(value):
                     break
             combobox.setCurrentIndex(index)
             self.connect(combobox, SIGNAL('currentIndexChanged(int)'),
                          lambda _foo, opt=option: self.has_been_modified(opt))
-        for (fontbox, sizebox), option in self.fontboxes.items():
+        for (fontbox, sizebox), option in list(self.fontboxes.items()):
             font = self.get_font(option)
             fontbox.setCurrentFont(font)
             sizebox.setValue(font.pointSize())
@@ -291,7 +292,7 @@ class SpyderConfigPage(ConfigPage):
                          lambda _foo, opt=property: self.has_been_modified(opt))
             self.connect(sizebox, SIGNAL('valueChanged(int)'),
                          lambda _foo, opt=property: self.has_been_modified(opt))
-        for clayout, (option, default) in self.coloredits.items():
+        for clayout, (option, default) in list(self.coloredits.items()):
             property = to_qvariant(option)
             edit = clayout.lineedit
             btn = clayout.colorbtn
@@ -301,7 +302,7 @@ class SpyderConfigPage(ConfigPage):
             self.connect(edit, SIGNAL("textChanged(QString)"),
                          lambda _foo, opt=option: self.has_been_modified(opt))
         for (clayout, cb_bold, cb_italic
-             ), (option, default) in self.scedits.items():
+             ), (option, default) in list(self.scedits.items()):
             edit = clayout.lineedit
             btn = clayout.colorbtn
             color, bold, italic = self.get_option(option, default)
@@ -319,25 +320,25 @@ class SpyderConfigPage(ConfigPage):
     
     def save_to_conf(self):
         """Save settings to configuration file"""
-        for checkbox, (option, _default) in self.checkboxes.items():
+        for checkbox, (option, _default) in list(self.checkboxes.items()):
             self.set_option(option, checkbox.isChecked())
-        for radiobutton, (option, _default) in self.radiobuttons.items():
+        for radiobutton, (option, _default) in list(self.radiobuttons.items()):
             self.set_option(option, radiobutton.isChecked())
-        for lineedit, (option, _default) in self.lineedits.items():
-            self.set_option(option, unicode(lineedit.text()))
-        for spinbox, (option, _default) in self.spinboxes.items():
+        for lineedit, (option, _default) in list(self.lineedits.items()):
+            self.set_option(option, to_text_string(lineedit.text()))
+        for spinbox, (option, _default) in list(self.spinboxes.items()):
             self.set_option(option, spinbox.value())
-        for combobox, (option, _default) in self.comboboxes.items():
+        for combobox, (option, _default) in list(self.comboboxes.items()):
             data = combobox.itemData(combobox.currentIndex())
-            self.set_option(option, from_qvariant(data, unicode))
-        for (fontbox, sizebox), option in self.fontboxes.items():
+            self.set_option(option, from_qvariant(data, to_text_string))
+        for (fontbox, sizebox), option in list(self.fontboxes.items()):
             font = fontbox.currentFont()
             font.setPointSize(sizebox.value())
             self.set_font(font, option)
-        for clayout, (option, _default) in self.coloredits.items():
-            self.set_option(option, unicode(clayout.lineedit.text()))
-        for (clayout, cb_bold, cb_italic), (option, _default) in self.scedits.items():
-            color = unicode(clayout.lineedit.text())
+        for clayout, (option, _default) in list(self.coloredits.items()):
+            self.set_option(option, to_text_string(clayout.lineedit.text()))
+        for (clayout, cb_bold, cb_italic), (option, _default) in list(self.scedits.items()):
+            color = to_text_string(clayout.lineedit.text())
             bold = cb_bold.isChecked()
             italic = cb_italic.isChecked()
             self.set_option(option, (color, bold, italic))
@@ -428,9 +429,9 @@ class SpyderConfigPage(ConfigPage):
 
     def select_directory(self, edit):
         """Select directory"""
-        basedir = unicode(edit.text())
+        basedir = to_text_string(edit.text())
         if not osp.isdir(basedir):
-            basedir = os.getcwdu()
+            basedir = getcwd()
         title = _("Select directory")
         directory = getexistingdirectory(self, title, basedir)
         if directory:
@@ -459,9 +460,9 @@ class SpyderConfigPage(ConfigPage):
 
     def select_file(self, edit, filters=None):
         """Select File"""
-        basedir = osp.dirname(unicode(edit.text()))
+        basedir = osp.dirname(to_text_string(edit.text()))
         if not osp.isdir(basedir):
-            basedir = os.getcwdu()
+            basedir = getcwd()
         if filters is None:
             filters = _("All files (*)")
         title = _("Select file")
@@ -635,8 +636,8 @@ class MainConfigPage(GeneralConfigPage):
 
         # --- Interface
         interface_group = QGroupBox(_("Interface"))
-        styles = [str(txt) for txt in QStyleFactory.keys()]
-        choices = zip(styles, [style.lower() for style in styles])
+        styles = [str(txt) for txt in list(QStyleFactory.keys())]
+        choices = list(zip(styles, [style.lower() for style in styles]))
         style_combo = self.create_combobox(_('Qt windows style'), choices,
                                            'windows_style',
                                            default=self.main.default_style)
@@ -780,7 +781,7 @@ class ColorSchemeConfigPage(GeneralConfigPage):
                 option = "%s/%s" % (tabname, key)
                 value = self.get_option(option)
                 name = fieldnames[key]
-                if isinstance(value, basestring):
+                if is_text_string(value):
                     label, clayout = self.create_coloredit(name, option,
                                                            without_layout=True)
                     label.setAlignment(Qt.AlignRight|Qt.AlignVCenter)

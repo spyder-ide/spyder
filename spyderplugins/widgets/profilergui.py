@@ -38,6 +38,7 @@ from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import PythonModulesComboBox
 from spyderlib.widgets.externalshell import baseshell
+from spyderlib.py3compat import to_text_string, getcwd
 _ = get_translation("p_profiler", dirname="spyderplugins")
 
 
@@ -166,7 +167,7 @@ class ProfilerWidget(QWidget):
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getopenfilename(self, _("Select Python script"),
-                           os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
+                           getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)
@@ -182,7 +183,7 @@ class ProfilerWidget(QWidget):
                        readonly=True, size=(700, 500)).exec_()
 
     def start(self, wdir=None, args=None, pythonpath=None):
-        filename = unicode(self.filecombo.currentText())
+        filename = to_text_string(self.filecombo.currentText())
         if wdir is None:
             wdir = self._last_wdir
             if wdir is None:
@@ -212,7 +213,8 @@ class ProfilerWidget(QWidget):
         self.connect(self.stop_button, SIGNAL("clicked()"), self.process.kill)
 
         if pythonpath is not None:
-            env = [unicode(_pth) for _pth in self.process.systemEnvironment()]
+            env = [to_text_string(_pth)
+                   for _pth in self.process.systemEnvironment()]
             baseshell.add_pathlist_to_PYTHONPATH(env, pythonpath)
             self.process.setEnvironment(env)
         
@@ -250,13 +252,13 @@ class ProfilerWidget(QWidget):
             self.process.setReadChannel(QProcess.StandardError)
         else:
             self.process.setReadChannel(QProcess.StandardOutput)
-        bytes = QByteArray()
+        qba = QByteArray()
         while self.process.bytesAvailable():
             if error:
-                bytes += self.process.readAllStandardError()
+                qba += self.process.readAllStandardError()
             else:
-                bytes += self.process.readAllStandardOutput()
-        text = unicode( locale_codec.toUnicode(bytes.data()) )
+                qba += self.process.readAllStandardOutput()
+        text = to_text_string( locale_codec.toUnicode(qba.data()) )
         if error:
             self.error_output += text
         else:
@@ -282,7 +284,7 @@ class ProfilerWidget(QWidget):
         self.log_button.setEnabled(self.output is not None \
                                    and len(self.output) > 0)
         self.kill_if_running()
-        filename = unicode(self.filecombo.currentText())
+        filename = to_text_string(self.filecombo.currentText())
         if not filename:
             return
 
@@ -365,7 +367,7 @@ class ProfilerDataTree(QTreeWidget):
 
     def find_root(self):
         """Find a function without a caller"""
-        for func, (cc, nc, tt, ct, callers) in self.stats.iteritems():
+        for func, (cc, nc, tt, ct, callers) in list(self.stats.items()):
             if not callers and self.find_callees(func):
                 return func
     
@@ -462,7 +464,7 @@ class ProfilerDataTree(QTreeWidget):
                     self.populate_tree(child_item, callees)
                 elif callees:
                     child_item.setChildIndicatorPolicy(child_item.ShowIndicator)
-                    self.items_to_be_shown[child_item] = callees
+                    self.items_to_be_shown[id(child_item)] = callees
             self.item_depth -= 1
         
     def item_activated(self, item):
@@ -471,8 +473,8 @@ class ProfilerDataTree(QTreeWidget):
                            filename, line_number, '')
             
     def item_expanded(self, item):
-        if item.childCount() == 0 and item in self.items_to_be_shown:
-            callees = self.items_to_be_shown[item]
+        if item.childCount() == 0 and id(item) in self.items_to_be_shown:
+            callees = self.items_to_be_shown[id(item)]
             self.populate_tree(item, callees)
     
     def is_recursive(self, child_item):

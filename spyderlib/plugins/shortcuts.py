@@ -6,6 +6,8 @@
 
 """Shortcut management"""
 
+from __future__ import print_function
+
 from spyderlib.qt.QtGui import (QVBoxLayout, QComboBox, QItemDelegate,
                                 QTableView, QMessageBox, QPushButton)
 from spyderlib.qt.QtCore import (Qt, QSize, QAbstractTableModel, QModelIndex,
@@ -20,6 +22,7 @@ from spyderlib.guiconfig import (get_shortcut, set_shortcut,
                                  iter_shortcuts, reset_shortcuts)
 from spyderlib.utils.qthelpers import get_icon
 from spyderlib.plugins.configdialog import GeneralConfigPage
+from spyderlib.py3compat import to_text_string, is_text_string
 
 
 KEYSTRINGS = ["Escape", "Tab", "Backtab", "Backspace", "Return", "Enter",
@@ -72,23 +75,23 @@ class Key(object):
         return "+".join(tlist)
     
     def __unicode__(self):
-        return unicode(self.__str__())
+        return to_text_string(self.__str__())
     
     @staticmethod
     def modifier_from_str(modstr):
-        for k, v in Key.MODIFIERS.iteritems():
+        for k, v in list(Key.MODIFIERS.items()):
             if v.lower() == modstr.lower():
                 return k
     
     @staticmethod
     def key_from_str(keystr):
-        for k, v in Key.KEYS.iteritems():
+        for k, v in list(Key.KEYS.items()):
             if v.lower() == keystr.lower():
                 return k
 
     @staticmethod
     def modifier_from_name(modname):
-        for k, v in Key.MODIFIERNAMES.iteritems():
+        for k, v in list(Key.MODIFIERNAMES.items()):
             if v.lower() == modname.lower():
                 return k        
 
@@ -104,7 +107,7 @@ class Shortcut(object):
     def __init__(self, context, name, key=None):
         self.context = context
         self.name = name
-        if isinstance(key, basestring):
+        if is_text_string(key):
             key = keystr2key(key)
         self.key = key
         
@@ -118,7 +121,7 @@ class Shortcut(object):
         set_shortcut(self.context, self.name, str(self.key))
 
 
-CONTEXT, NAME, MOD1, MOD2, MOD3, KEY = range(6)
+CONTEXT, NAME, MOD1, MOD2, MOD3, KEY = list(range(6))
 
 class ShortcutsModel(QAbstractTableModel):
     def __init__(self):
@@ -367,7 +370,7 @@ def test():
     table = ShortcutsTable()
     table.show()
     app.exec_()
-    print [str(s) for s in table.model.shortcuts]
+    print([str(s) for s in table.model.shortcuts])
     table.check_shortcuts()
 
 if __name__ == '__main__':

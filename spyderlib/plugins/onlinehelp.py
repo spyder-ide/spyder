@@ -14,6 +14,7 @@ import os.path as osp
 from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.widgets.pydocgui import PydocBrowser
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import to_text_string
 
 
 class OnlineHelp(PydocBrowser, SpyderPluginMixin):
@@ -41,17 +42,17 @@ class OnlineHelp(PydocBrowser, SpyderPluginMixin):
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
-            history = [line.replace('\n','')
-                       for line in file(self.LOG_PATH, 'r').readlines()]
+            history = [line.replace('\n', '')
+                       for line in open(self.LOG_PATH, 'r').readlines()]
         else:
             history = []
         return history
     
     def save_history(self):
         """Save history to a text file in user home directory"""
-        file(self.LOG_PATH, 'w').write("\n".join( \
-            [ unicode( self.url_combo.itemText(index) )
-                for index in range(self.url_combo.count()) ] ))
+        open(self.LOG_PATH, 'w').write("\n".join( \
+                [to_text_string(self.url_combo.itemText(index))
+                 for index in range(self.url_combo.count())] ))
 
     #------ SpyderPluginMixin API ---------------------------------------------
     def visibility_changed(self, enable):

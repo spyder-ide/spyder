@@ -38,6 +38,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExternalPythonShell
 from spyderlib.widgets.externalshell.systemshell import ExternalSystemShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
 def is_mpl_patch_available():
@@ -417,8 +418,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
         Automatically change to default PYTHONSTARTUP file if scientific libs
         are not available
         """
-        if not isinstance(pyexec, basestring):
-            pyexec = unicode(pyexec.toUtf8(), 'utf-8')
+        if not is_text_string(pyexec):
+            pyexec = to_text_string(pyexec.toUtf8())
         old_pyexec = self.get_option("pythonexecutable")
         if not (pyexec == old_pyexec) and custom_radio.isChecked():
             scientific = scientific_libs_available(pyexec)
@@ -428,8 +429,8 @@ class ExternalConsoleConfigPage(PluginConfigPage):
 
     def change_qtapi(self, pyexec):
         """Automatically change qt_api setting after changing interpreter"""
-        if not isinstance(pyexec, basestring):
-            pyexec = unicode(pyexec.toUtf8(), 'utf-8')
+        if not is_text_string(pyexec):
+            pyexec = to_text_string(pyexec.toUtf8())
         old_pyexec = self.get_option("pythonexecutable")
         if not (pyexec == old_pyexec):
             has_pyqt4 = programs.is_module_installed('PyQt4',
@@ -618,7 +619,7 @@ class ExternalConsole(SpyderPluginWidget):
         if current_index == -1:
             return
         from spyderlib.widgets.externalshell import pythonshell
-        for index in [current_index]+range(self.tabwidget.count()):
+        for index in [current_index]+list(range(self.tabwidget.count())):
             shellwidget = self.tabwidget.widget(index)
             if isinstance(shellwidget, pythonshell.ExternalPythonShell):
                 if interpreter_only and not shellwidget.is_interpreter:
@@ -660,8 +661,9 @@ class ExternalConsole(SpyderPluginWidget):
     def run_script_in_current_shell(self, filename, wdir, args, debug):
         """Run script in current shell, if any"""
         line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                             unicode(filename))
-        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+                             to_text_string(filename))
+        norm = lambda text: remove_trailing_single_backslash(
+                                                        to_text_string(text))
         if args:
             line += ", args=r'%s'" % norm(args)
         if wdir:
@@ -680,14 +682,14 @@ class ExternalConsole(SpyderPluginWidget):
         """Set current shell working directory"""
         shellwidget = self.__find_python_shell()
         if shellwidget is not None:
-            shellwidget.shell.set_cwd(unicode(directory))
+            shellwidget.shell.set_cwd(to_text_string(directory))
         
     def execute_python_code(self, lines, interpreter_only=False):
         """Execute Python code in an already opened Python interpreter"""
         shellwidget = self.__find_python_shell(
                                         interpreter_only=interpreter_only)
         if (shellwidget is not None) and (not shellwidget.is_ipykernel):
-            shellwidget.shell.execute_lines(unicode(lines))
+            shellwidget.shell.execute_lines(to_text_string(lines))
             self.activateWindow()
             shellwidget.shell.setFocus()
             return True
@@ -735,10 +737,10 @@ class ExternalConsole(SpyderPluginWidget):
                    (option "-u" is mandatory, see widgets.externalshell package)
         """
         # Note: fname is None <=> Python interpreter
-        if fname is not None and not isinstance(fname, basestring):
-            fname = unicode(fname)
-        if wdir is not None and not isinstance(wdir, basestring):
-            wdir = unicode(wdir)
+        if fname is not None and not is_text_string(fname):
+            fname = to_text_string(fname)
+        if wdir is not None and not is_text_string(wdir):
+            wdir = to_text_string(wdir)
         
         if fname is not None and fname in self.filenames:
             index = self.filenames.index(fname)
@@ -954,7 +956,7 @@ class ExternalConsole(SpyderPluginWidget):
         index = self.get_shell_index_from_id(id(kernel_widget))
         match = re.match('^kernel-(\d+).json', connection_file)
         if match is not None:  # should not fail, but we never know...
-            text = unicode(self.tabwidget.tabText(index))
+            text = to_text_string(self.tabwidget.tabText(index))
             name = "%s %s" % (text, match.groups()[0])
             self.tabwidget.setTabText(index, name)
     
@@ -1001,7 +1003,7 @@ class ExternalConsole(SpyderPluginWidget):
             index = self.tabwidget.currentIndex()
             fname = self.filenames[index]
             if fname:
-                title += ' - '+unicode(fname)
+                title += ' - ' + to_text_string(fname)
         return title
     
     def get_plugin_icon(self):
@@ -1166,10 +1168,10 @@ class ExternalConsole(SpyderPluginWidget):
     def open_interpreter(self, wdir=None):
         """Open interpreter"""
         if wdir is None:
-            wdir = os.getcwdu()
+            wdir = getcwd()
         if not self.main.light:
             self.visibility_changed(True)
-        self.start(fname=None, wdir=unicode(wdir), args='',
+        self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True)
         
     def start_ipykernel(self, wdir=None, create_client=True):
@@ -1187,24 +1189,24 @@ class ExternalConsole(SpyderPluginWidget):
         # QApplication.processEvents()
         
         if wdir is None:
-            wdir = os.getcwdu()
+            wdir = getcwd()
         self.main.ipyconsole.visibility_changed(True)
-        self.start(fname=None, wdir=unicode(wdir), args='',
+        self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=True,
                    ipykernel=True, ipyclient=create_client)
 
     def open_terminal(self, wdir=None):
         """Open terminal"""
         if wdir is None:
-            wdir = os.getcwdu()
-        self.start(fname=None, wdir=unicode(wdir), args='',
+            wdir = getcwd()
+        self.start(fname=None, wdir=to_text_string(wdir), args='',
                    interact=True, debug=False, python=False)
         
     def run_script(self):
         """Run a Python script"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getopenfilename(self, _("Run Python script"),
-                os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+                getcwd(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
         if filename:
             self.start(fname=filename, wdir=None, args='',
@@ -1218,7 +1220,7 @@ class ExternalConsole(SpyderPluginWidget):
                                   QLineEdit.Normal,
                                   ", ".join(self.get_option('umd/namelist')))
         if valid:
-            arguments = unicode(arguments)
+            arguments = to_text_string(arguments)
             if arguments:
                 namelist = arguments.replace(' ', '').split(',')
                 fixed_namelist = [module_name for module_name in namelist
@@ -1239,7 +1241,7 @@ class ExternalConsole(SpyderPluginWidget):
         
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(unicode(text))
+        match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),
@@ -1254,7 +1256,8 @@ class ExternalConsole(SpyderPluginWidget):
             if mimedata2url(source):
                 pathlist = mimedata2url(source)
                 shellwidget = self.tabwidget.currentWidget()
-                if all([is_python_script(unicode(qstr)) for qstr in pathlist]):
+                if all([is_python_script(to_text_string(qstr))
+                        for qstr in pathlist]):
                     event.acceptProposedAction()
                 elif shellwidget is None or not shellwidget.is_running():
                     event.ignore()
@@ -1272,13 +1275,14 @@ class ExternalConsole(SpyderPluginWidget):
         shellwidget = self.tabwidget.currentWidget()
         if source.hasText():
             qstr = source.text()
-            if is_python_script(unicode(qstr)):
+            if is_python_script(to_text_string(qstr)):
                 self.start(qstr)
             elif shellwidget:
                 shellwidget.shell.insert_text(qstr)
         elif source.hasUrls():
             pathlist = mimedata2url(source)
-            if all([is_python_script(unicode(qstr)) for qstr in pathlist]):
+            if all([is_python_script(to_text_string(qstr)) 
+                    for qstr in pathlist]):
                 for fname in pathlist:
                     self.start(fname)
             elif shellwidget:

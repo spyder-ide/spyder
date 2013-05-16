@@ -49,6 +49,7 @@ from spyderlib.utils.debug import log_last_error, log_dt
 from spyderlib.widgets.editortools import PythonCFM
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib.py3compat import to_text_string, PY2
 
 # For debugging purpose:
 LOG_FILENAME = get_conf_path('rope.log')
@@ -85,10 +86,15 @@ class RopeProject(object):
 
     #------rope integration
     def create_rope_project(self, root_path):
+        if PY2:
+            root_path = encoding.to_fs_from_unicode(root_path)
+        else:
+            #TODO: test if this is working without any further change in 
+            # Python 3 with a user account containing unicode characters
+            pass
         try:
             import rope.base.project
-            self.project = rope.base.project.Project(
-                encoding.to_fs_from_unicode(root_path), **ROPE_PREFS)
+            self.project = rope.base.project.Project(root_path, **ROPE_PREFS)
         except ImportError:
             self.project = None
             if DEBUG:
@@ -118,10 +124,16 @@ class RopeProject(object):
     def get_completion_list(self, source_code, offset, filename):
         if self.project is None:
             return []
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in 
+            # Python 3 with a user account containing unicode characters
+            pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                   filename.encode('utf-8'))
-        except Exception, _error:
+                                                           filename)
+        except Exception as _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
@@ -134,7 +146,7 @@ class RopeProject(object):
             if DEBUG:
                 log_dt(LOG_FILENAME, "code_assist/sorted_proposals", t0)
             return [proposal.name for proposal in proposals]
-        except Exception, _error:  #analysis:ignore
+        except Exception as _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_completion_list")
             return []
@@ -142,10 +154,16 @@ class RopeProject(object):
     def get_calltip_and_docs(self, source_code, offset, filename):
         if self.project is None:
             return []
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in 
+            # Python 3 with a user account containing unicode characters
+            pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                   filename.encode('utf-8'))
-        except Exception, _error:
+                                                           filename)
+        except Exception as _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
@@ -167,12 +185,12 @@ class RopeProject(object):
                                      source_code, offset, resource, maxfixes=3)
                 if DEBUG:
                     log_dt(LOG_FILENAME, "get_doc", t0)
-            except Exception, _error:
+            except Exception as _error:
                 doc_text = ''
                 if DEBUG:
                     log_last_error(LOG_FILENAME, "get_doc")
             return [cts, doc_text]
-        except Exception, _error:  #analysis:ignore
+        except Exception as _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_calltip_text")
             return []
@@ -180,10 +198,16 @@ class RopeProject(object):
     def get_definition_location(self, source_code, offset, filename):
         if self.project is None:
             return (None, None)
+        if PY2:
+            filename = filename.encode('utf-8')
+        else:
+            #TODO: test if this is working without any further change in 
+            # Python 3 with a user account containing unicode characters
+            pass
         try:
             resource = rope.base.libutils.path_to_resource(self.project,
-                                                   filename.encode('utf-8'))
-        except Exception, _error:
+                                                           filename)
+        except Exception as _error:
             if DEBUG:
                 log_last_error(LOG_FILENAME, "path_to_resource: %r" % filename)
             resource = None
@@ -197,7 +221,7 @@ class RopeProject(object):
             if resource is not None:
                 filename = resource.real_path
             return filename, lineno
-        except Exception, _error:  #analysis:ignore
+        except Exception as _error:  #analysis:ignore
             if DEBUG:
                 log_last_error(LOG_FILENAME, "get_definition_location")
             return (None, None)
@@ -277,7 +301,7 @@ class GoToLineDialog(QDialog):
         
     def text_has_changed(self, text):
         """Line edit's text has changed"""
-        text = unicode(text)
+        text = to_text_string(text)
         if text:
             self.lineno = int(text)
         else:
@@ -867,7 +891,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor.movePosition(QTextCursor.Start)
         while True:
             cursor.movePosition(QTextCursor.EndOfBlock)
-            text = unicode(cursor.block().text())
+            text = to_text_string(cursor.block().text())
             length = len(text)-len(text.rstrip())
             if length > 0:
                 cursor.movePosition(QTextCursor.Left, QTextCursor.KeepAnchor,
@@ -880,7 +904,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def fix_indentation(self):
         """Replace tabs by spaces"""
-        text_before = unicode(self.toPlainText())
+        text_before = to_text_string(self.toPlainText())
         text_after = sourcecode.fix_indentation(text_before)
         if text_before != text_after:
             self.setPlainText(text_after)
@@ -888,7 +912,7 @@ class CodeEditor(TextEditBaseWidget):
 
     def get_current_object(self):
         """Return current object (string) -- requires 'rope'"""
-        source_code = unicode(self.toPlainText())
+        source_code = to_text_string(self.toPlainText())
         offset = self.get_position('cursor')
         return get_primary_at(source_code, offset)
 
@@ -964,7 +988,8 @@ class CodeEditor(TextEditBaseWidget):
             return
             
         if (self.is_python() or self.is_cython()) and \
-           (sourcecode.is_keyword(unicode(text)) or unicode(text) == 'self'):
+           (sourcecode.is_keyword(to_text_string(text)) or \
+           to_text_string(text) == 'self'):
             return
 
         # Highlighting all occurences of word *text*
@@ -986,13 +1011,13 @@ class CodeEditor(TextEditBaseWidget):
     #-----highlight found results (find/replace widget)
     def highlight_found_results(self, pattern, words=False, regexp=False):
         """Highlight all found patterns"""
-        pattern = unicode(pattern)
+        pattern = to_text_string(pattern)
         if not pattern:
             return
         if not regexp:
-            pattern = re.escape(unicode(pattern))
+            pattern = re.escape(to_text_string(pattern))
         pattern = r"\b%s\b" % pattern if words else pattern
-        text = unicode(self.toPlainText())
+        text = to_text_string(self.toPlainText())
         try:
             regobj = re.compile(pattern)
         except sre_constants.error:
@@ -1095,7 +1120,7 @@ class CodeEditor(TextEditBaseWidget):
                 if self.linenumbers_margin:
                     painter.drawText(0, top, self.linenumberarea.width(),
                                      font_height, Qt.AlignRight|Qt.AlignBottom,
-                                     unicode(line_number))
+                                     to_text_string(line_number))
                 data = block.userData()
                 if self.markers_margin and data:
                     if data.code_analysis:
@@ -1186,7 +1211,7 @@ class CodeEditor(TextEditBaseWidget):
             else:
                 return
         if data.breakpoint:
-            text = unicode(block.text()).strip()
+            text = to_text_string(block.text()).strip()
             if len(text) == 0 or text.startswith('#') or text.startswith('"') \
                or text.startswith("'"):
                 data.breakpoint = False
@@ -1199,7 +1224,7 @@ class CodeEditor(TextEditBaseWidget):
         """Get breakpoints"""
         breakpoints = []
         block = self.document().firstBlock()
-        for line_number in xrange(1, self.document().blockCount()+1):
+        for line_number in range(1, self.document().blockCount()+1):
             data = block.userData()
             if data and data.breakpoint:
                 breakpoints.append((line_number, data.breakpoint_condition))
@@ -1273,7 +1298,7 @@ class CodeEditor(TextEditBaseWidget):
         block = self.document().firstBlock()
         
         # Painting warnings and todos
-        for line_number in xrange(1, self.document().blockCount()+1):
+        for line_number in range(1, self.document().blockCount()+1):
             data = block.userData()
             if data:
                 position = self.scrollflagarea.value_to_position(line_number)
@@ -1452,7 +1477,7 @@ class CodeEditor(TextEditBaseWidget):
         text has 'CRLF' EOL chars
         """
         clipboard = QApplication.clipboard()
-        text = unicode(clipboard.text())
+        text = to_text_string(clipboard.text())
         if len(text.splitlines()) > 1:
             eol_chars = self.get_line_separator()
             clipboard.setText( eol_chars.join((text+eol_chars).splitlines()) )
@@ -1491,7 +1516,7 @@ class CodeEditor(TextEditBaseWidget):
             self.connect(self, SIGNAL("focus_in()"),
                          self.center_cursor_on_next_focus)
         self.horizontalScrollBar().setValue(0)
-        if word and unicode(word) in unicode(block.text()):
+        if word and to_text_string(word) in to_text_string(block.text()):
             self.find(word, QTextDocument.FindCaseSensitively)
 
     def exec_gotolinedialog(self):
@@ -1540,7 +1565,8 @@ class CodeEditor(TextEditBaseWidget):
                 text = ref[1:-1]
                 # Scanning line number *line* and following lines if continued
                 def is_line_splitted(line_no):
-                    text = unicode(document.findBlockByNumber(line_no).text())
+                    text = to_text_string(
+                                document.findBlockByNumber(line_no).text())
                     stripped = text.strip()
                     return stripped.endswith('\\') or stripped.endswith(',') \
                            or len(stripped) == 0
@@ -1706,7 +1732,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         cursor.setPosition(cursor.position()-len(suffix),
                            QTextCursor.KeepAnchor)
-        if unicode(cursor.selectedText()) == suffix:
+        if to_text_string(cursor.selectedText()) == suffix:
             cursor.removeSelectedText()
 
     def remove_prefix(self, prefix):
@@ -1737,7 +1763,7 @@ class CodeEditor(TextEditBaseWidget):
                     break
                 else:
                     old_pos = new_pos
-                line_text = unicode(cursor.block().text())
+                line_text = to_text_string(cursor.block().text())
                 if (prefix.strip() and line_text.lstrip().startswith(prefix)
                     or line_text.startswith(prefix)):
                     cursor.movePosition(QTextCursor.Right,
@@ -1751,7 +1777,7 @@ class CodeEditor(TextEditBaseWidget):
         else:
             # Remove prefix from current line
             cursor.movePosition(QTextCursor.StartOfBlock)
-            line_text = unicode(cursor.block().text())
+            line_text = to_text_string(cursor.block().text())
             if (prefix.strip() and line_text.lstrip().startswith(prefix)
                 or line_text.startswith(prefix)):
                 cursor.movePosition(QTextCursor.Right,
@@ -1775,9 +1801,9 @@ class CodeEditor(TextEditBaseWidget):
             return
         cursor = self.textCursor()
         block_nb = cursor.blockNumber()
-        for prevline in xrange(block_nb-1, -1, -1):
+        for prevline in range(block_nb-1, -1, -1):
             cursor.movePosition(QTextCursor.PreviousBlock)
-            prevtext = unicode(cursor.block().text()).rstrip()
+            prevtext = to_text_string(cursor.block().text()).rstrip()
             if not prevtext.strip().startswith('#'):
                 break
         indent = self.get_block_indentation(block_nb)
@@ -1852,7 +1878,8 @@ class CodeEditor(TextEditBaseWidget):
             self.indent()
         else:
             cursor = self.textCursor()
-            if self.get_selected_text() == unicode(cursor.block().text()):
+            if self.get_selected_text() == \
+               to_text_string(cursor.block().text()):
                 self.indent()
             else:
                 cursor1 = self.textCursor()
@@ -1900,7 +1927,7 @@ class CodeEditor(TextEditBaseWidget):
         is_comment_or_whitespace = True
         at_least_one_comment = False
         for _line_nb in range(first_line, last_line+1):
-            text = unicode(cursor.block().text()).lstrip()
+            text = to_text_string(cursor.block().text()).lstrip()
             is_comment = text.startswith(self.comment_string)
             is_whitespace = (text == '')
             is_comment_or_whitespace *= (is_comment or is_whitespace)
@@ -1957,7 +1984,7 @@ class CodeEditor(TextEditBaseWidget):
     def unblockcomment(self):
         """Un-block comment current line or selection"""
         def __is_comment_bar(cursor):
-            return unicode(cursor.block().text()
+            return to_text_string(cursor.block().text()
                            ).startswith(self.__blockcomment_bar())
         # Finding first comment bar
         cursor1 = self.textCursor()
@@ -1970,7 +1997,7 @@ class CodeEditor(TextEditBaseWidget):
         if not __is_comment_bar(cursor1):
             return
         def __in_block_comment(cursor):
-            return unicode(cursor.block().text()).startswith('#')
+            return to_text_string(cursor.block().text()).startswith('#')
         # Finding second comment bar
         cursor2 = QTextCursor(cursor1)
         cursor2.movePosition(QTextCursor.NextBlock)
@@ -2109,7 +2136,7 @@ class CodeEditor(TextEditBaseWidget):
         cursor = self.textCursor()
         cursor.movePosition(QTextCursor.NextCharacter, 
                             QTextCursor.KeepAnchor)
-        next_char = unicode(cursor.selectedText())
+        next_char = to_text_string(cursor.selectedText())
         return next_char
 
     def __in_comment(self):
@@ -2228,7 +2255,7 @@ class CodeEditor(TextEditBaseWidget):
         key = event.key()
         ctrl = event.modifiers() & Qt.ControlModifier
         shift = event.modifiers() & Qt.ShiftModifier
-        text = unicode(event.text())
+        text = to_text_string(event.text())
         if text:
             self.__clear_occurences()
         if QToolTip.isVisible():
@@ -2335,7 +2362,7 @@ class CodeEditor(TextEditBaseWidget):
             cursor = self.textCursor()
             cursor.movePosition(QTextCursor.NextCharacter,
                                 QTextCursor.KeepAnchor)
-            text = unicode(cursor.selectedText())
+            text = to_text_string(cursor.selectedText())
             if text == {Qt.Key_ParenRight: ')', Qt.Key_BraceRight: '}',
                         Qt.Key_BracketRight: ']'}[key]:
                 cursor.clearSelection()
@@ -2347,7 +2374,8 @@ class CodeEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('else', 'finally'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = unicode(self.textCursor().block().previous().text())
+                prevtxt = to_text_string(self.textCursor(
+                                                ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -2356,7 +2384,8 @@ class CodeEditor(TextEditBaseWidget):
             leading_text = self.get_text('sol', 'cursor')
             if leading_text.lstrip() in ('elif', 'except'):
                 ind = lambda txt: len(txt)-len(txt.lstrip())
-                prevtxt = unicode(self.textCursor().block().previous().text())
+                prevtxt = to_text_string(self.textCursor(
+                                                ).block().previous().text())
                 if ind(leading_text) == ind(prevtxt):
                     self.unindent(force=True)
             TextEditBaseWidget.keyPressEvent(self, event)
@@ -2382,7 +2411,7 @@ class CodeEditor(TextEditBaseWidget):
            event.modifiers() & Qt.ControlModifier:
             text = self.get_word_at(event.pos())
             if text and (self.is_python() or self.is_cython())\
-               and not sourcecode.is_keyword(unicode(text)):
+               and not sourcecode.is_keyword(to_text_string(text)):
                 if not self.__cursor_changed:
                     QApplication.setOverrideCursor(
                                                 QCursor(Qt.PointingHandCursor))
@@ -2415,10 +2444,10 @@ class CodeEditor(TextEditBaseWidget):
         if cursor is None:
             cursor = self.textCursor()
         position = cursor.position()
-        text = unicode(cursor.selectedText())
+        text = to_text_string(cursor.selectedText())
         if len(text) == 0:
             cursor.select(QTextCursor.WordUnderCursor)
-            text = unicode(cursor.selectedText())
+            text = to_text_string(cursor.selectedText())
         if self.go_to_definition_enabled and text is not None\
            and (self.is_python() or self.is_cython())\
            and not sourcecode.is_keyword(text):
@@ -2534,7 +2563,7 @@ def test(fname):
 
     from spyderlib.utils.codeanalysis import (check_with_pyflakes,
                                               check_with_pep8)
-    source_code = unicode(win.editor.toPlainText()).encode('utf-8')
+    source_code = to_text_string(win.editor.toPlainText())
     res = check_with_pyflakes(source_code, fname)#+\
 #          check_with_pep8(source_code, fname)
     win.editor.process_code_analysis(res)

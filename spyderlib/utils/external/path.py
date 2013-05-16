@@ -27,6 +27,7 @@ Original author:
 
 Contributors:
  Mikhail Gusarov <dottedmag@dottedmag.net>
+ Marc Abramowitz <marc@marc-abramowitz.com>
 
 Example:
 
@@ -40,10 +41,24 @@ This module requires Python 2.3 or later.
 
 from __future__ import generators
 
-import sys, warnings, os, fnmatch, glob, shutil, codecs, hashlib, errno
+import sys
+import warnings
+import os
+import fnmatch
+import glob
+import shutil
+import codecs
+import hashlib
+import errno
 
-__version__ = '2.2.2.990'
+from spyderlib.py3compat import (TEXT_TYPES, getcwd, u,
+                                 is_text_string, is_unicode)
+
+__version__ = '2.4.1'
 __all__ = ['path']
+
+MODE_0777 = 511
+MODE_0666 = 438
 
 # Platform-specific support for path.owner
 if os.name == 'nt':
@@ -57,25 +72,12 @@ else:
     except ImportError:
         pwd = None
 
-# Pre-2.3 support.  Are unicode filenames supported?
-_base = str
-_getcwd = os.getcwd
-try:
-    if os.path.supports_unicode_filenames:
-        _base = unicode
-        _getcwd = os.getcwdu
-except AttributeError:
-    pass
-
-# Pre-2.3 workaround for basestring.
-try:
-    basestring
-except NameError:
-    basestring = (str, unicode)
+_base = TEXT_TYPES[-1]
+_getcwd = getcwd
 
 # Universal newline support
 _textmode = 'U'
-if hasattr(__builtins__, 'file') and not hasattr(file, 'newlines'):
+if hasattr(__builtins__, 'open') and not hasattr(open, 'newlines'):
     _textmode = 'r'
 
 class TreeWalkWarning(Warning):
@@ -97,14 +99,14 @@ class path(_base):
     def __add__(self, more):
         try:
             resultStr = _base.__add__(self, more)
-        except TypeError:  #Python bug
+        except TypeError:  # Python bug
             resultStr = NotImplemented
         if resultStr is NotImplemented:
             return resultStr
         return self.__class__(resultStr)
 
     def __radd__(self, other):
-        if isinstance(other, basestring):
+        if is_text_string(other):
             return self.__class__(other.__add__(self))
         else:
             return NotImplemented
@@ -133,7 +135,7 @@ class path(_base):
         return cls(_getcwd())
     getcwd = classmethod(getcwd)
 
-
+    #
     # --- Operations on path strings.
 
     def abspath(self):       return self.__class__(os.path.abspath(self))
@@ -522,7 +524,7 @@ class path(_base):
         cls = self.__class__
         return [cls(s) for s in glob.glob(_base(self / pattern))]
 
-
+    #
     # --- Reading or writing an entire file at once.
 
     def open(self, mode='r'):
@@ -584,11 +586,11 @@ class path(_base):
                 t = f.read()
             finally:
                 f.close()
-            return (t.replace(u'\r\n', u'\n')
-                     .replace(u'\r\x85', u'\n')
-                     .replace(u'\r', u'\n')
-                     .replace(u'\x85', u'\n')
-                     .replace(u'\u2028', u'\n'))
+            return (t.replace(u('\r\n'), u('\n'))
+                     .replace(u('\r\x85'), u('\n'))
+                     .replace(u('\r'), u('\n'))
+                     .replace(u('\x85'), u('\n'))
+                     .replace(u('\u2028'), u('\n')))
 
     def write_text(self, text, encoding=None, errors='strict', linesep=os.linesep, append=False):
         r""" Write the given text to this file.
@@ -638,7 +640,7 @@ class path(_base):
         u'\x85', u'\r\x85', and u'\u2028'.
 
         (This is slightly different from when you open a file for
-        writing with fopen(filename, "w") in C or file(filename, 'w')
+        writing with fopen(filename, "w") in C or open(filename, 'w')
         in Python.)
 
 
@@ -654,16 +656,16 @@ class path(_base):
         conversion.
 
         """
-        if isinstance(text, unicode):
+        if is_unicode(text):
             if linesep is not None:
                 # Convert all standard end-of-line sequences to
                 # ordinary newline characters.
-                text = (text.replace(u'\r\n', u'\n')
-                            .replace(u'\r\x85', u'\n')
-                            .replace(u'\r', u'\n')
-                            .replace(u'\x85', u'\n')
-                            .replace(u'\u2028', u'\n'))
-                text = text.replace(u'\n', linesep)
+                text = (text.replace(u('\r\n'), u('\n'))
+                            .replace(u('\r\x85'), u('\n'))
+                            .replace(u('\r'), u('\n'))
+                            .replace(u('\x85'), u('\n'))
+                            .replace(u('\u2028'), u('\n')))
+                text = text.replace(u('\n'), linesep)
             if encoding is None:
                 encoding = sys.getdefaultencoding()
             bytes = text.encode(encoding, errors)
@@ -746,15 +748,15 @@ class path(_base):
         f = self.open(mode)
         try:
             for line in lines:
-                isUnicode = isinstance(line, unicode)
+                isUnicode = is_unicode(line)
                 if linesep is not None:
                     # Strip off any existing line-end and add the
                     # specified linesep string.
                     if isUnicode:
-                        if line[-2:] in (u'\r\n', u'\x0d\x85'):
+                        if line[-2:] in (u('\r\n'), u('\x0d\x85')):
                             line = line[:-2]
-                        elif line[-1:] in (u'\r', u'\n',
-                                           u'\x85', u'\u2028'):
+                        elif line[-1:] in (u('\r'), u('\n'),
+                                           u('\x85'), u('\u2028')):
                             line = line[:-1]
                     else:
                         if line[-2:] == '\r\n':
@@ -873,7 +875,7 @@ class path(_base):
                 self, win32security.OWNER_SECURITY_INFORMATION)
             sid = desc.GetSecurityDescriptorOwner()
             account, domain, typecode = win32security.LookupAccountSid(None, sid)
-            return domain + u'\\' + account
+            return domain + u('\\') + account
         else:
             if pwd is None:
                 raise NotImplementedError("path.owner is not implemented on this platform.")
@@ -893,7 +895,7 @@ class path(_base):
         def pathconf(self, name):
             return os.pathconf(self, name)
 
-
+    #
     # --- Modifying operations on files and directories
 
     def utime(self, times):
@@ -913,26 +915,26 @@ class path(_base):
     def renames(self, new):
         os.renames(self, new)
 
-
+    #
     # --- Create/delete operations on directories
 
-    def mkdir(self, mode=0777):
+    def mkdir(self, mode=MODE_0777):
         os.mkdir(self, mode)
 
-    def mkdir_p(self, mode=0777):
+    def mkdir_p(self, mode=MODE_0777):
         try:
             self.mkdir(mode)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
 
-    def makedirs(self, mode=0777):
+    def makedirs(self, mode=MODE_0777):
         os.makedirs(self, mode)
 
-    def makedirs_p(self, mode=0777):
+    def makedirs_p(self, mode=MODE_0777):
         try:
             self.makedirs(mode)
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.EEXIST:
                 raise
 
@@ -942,7 +944,7 @@ class path(_base):
     def rmdir_p(self):
         try:
             self.rmdir()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
 
@@ -952,7 +954,7 @@ class path(_base):
     def removedirs_p(self):
         try:
             self.removedirs()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOTEMPTY and e.errno != errno.EEXIST:
                 raise
 
@@ -962,7 +964,7 @@ class path(_base):
         """ Set the access/modified times of this file to the current time.
         Create the file if it does not exist.
         """
-        fd = os.open(self, os.O_WRONLY | os.O_CREAT, 0666)
+        fd = os.open(self, os.O_WRONLY | os.O_CREAT, MODE_0666)
         os.close(fd)
         os.utime(self, None)
 
@@ -972,7 +974,7 @@ class path(_base):
     def remove_p(self):
         try:
             self.unlink()
-        except OSError, e:
+        except OSError as e:
             if e.errno != errno.ENOENT:
                 raise
 
@@ -1013,7 +1015,7 @@ class path(_base):
             else:
                 return (self.parent / p).abspath()
 
-
+    #
     # --- High-level functions from shutil
 
     copyfile = shutil.copyfile
@@ -1026,7 +1028,14 @@ class path(_base):
         move = shutil.move
     rmtree = shutil.rmtree
 
+    def rmtree_p(self):
+        try:
+            self.rmtree()
+        except OSError as e:
+            if e.errno != errno.ENOENT:
+                raise
 
+    #
     # --- Special stuff from os
 
     if hasattr(os, 'chroot'):
@@ -1036,4 +1045,3 @@ class path(_base):
     if hasattr(os, 'startfile'):
         def startfile(self):
             os.startfile(self)
-

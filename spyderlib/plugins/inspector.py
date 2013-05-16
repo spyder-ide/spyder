@@ -38,6 +38,7 @@ else:
     IPythonControlWidget = None  # analysis:ignore
 
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.py3compat import to_text_string, get_meth_class_inst
 
 try:
     from sphinx import __version__ as sphinx_version
@@ -63,7 +64,7 @@ class ObjectComboBox(EditableComboBox):
             qstr = self.currentText()
         if not re.search('^[a-zA-Z0-9_\.]*$', str(qstr), 0):
             return False
-        objtxt = unicode(qstr)
+        objtxt = to_text_string(qstr)
         if self.object_inspector.get_option('automatic_import'):
             shell = self.object_inspector.internal_shell
             if shell is not None:
@@ -88,7 +89,7 @@ class ObjectInspectorConfigPage(PluginConfigPage):
         sourcecode_group = QGroupBox(_("Source code"))
         wrap_mode_box = self.create_checkbox(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
-        choices = zip(names, names)
+        choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
 
@@ -237,8 +238,9 @@ class SphinxThread(QThread):
                                            note=text['note'],
                                            math=self.math_option)
                 html_text = sphinxify(text['docstring'], context)
-            except Exception, error:
-                self.emit(SIGNAL('error_msg(QString)'), unicode(error))
+            except Exception as error:
+                self.emit(SIGNAL('error_msg(QString)'),
+                          to_text_string(error))
                 return
         self.emit(SIGNAL('html_ready(QString)'), html_text)
 
@@ -358,7 +360,8 @@ class ObjectInspector(SpyderPluginWidget):
         
         # Option menu
         options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+                                           icon=get_icon('tooloptions.png'),
+                                           text_beside_icon=True)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, [self.rich_text_action, self.plain_text_action,
@@ -509,7 +512,7 @@ class ObjectInspector(SpyderPluginWidget):
             func = cb[0]
             args = cb[1:]
             func(*args)
-            if func.im_self is self.rich_text:
+            if get_meth_class_inst(func) is self.rich_text:
                 self.switch_to_rich_text()
             else:
                 self.switch_to_plain_text()
@@ -630,7 +633,7 @@ class ObjectInspector(SpyderPluginWidget):
 
         add_to_combo = True
         if text is None:
-            text = unicode(self.combo.currentText())
+            text = to_text_string(self.combo.currentText())
             add_to_combo = False
             
         found = self.show_help(text, ignore_unknown=ignore_unknown)
@@ -690,17 +693,17 @@ class ObjectInspector(SpyderPluginWidget):
     def load_history(self, obj=None):
         """Load history from a text file in user home directory"""
         if osp.isfile(self.LOG_PATH):
-            history = [line.replace('\n','')
-                       for line in file(self.LOG_PATH, 'r').readlines()]
+            history = [line.replace('\n', '')
+                       for line in open(self.LOG_PATH, 'r').readlines()]
         else:
             history = []
         return history
     
     def save_history(self):
         """Save history to a text file in user home directory"""
-        file(self.LOG_PATH, 'w').write("\n".join( \
-            [ unicode( self.combo.itemText(index) )
-                for index in range(self.combo.count()) ] ))
+        open(self.LOG_PATH, 'w').write("\n".join( \
+                [to_text_string(self.combo.itemText(index))
+                 for index in range(self.combo.count())] ))
         
     def toggle_plain_text(self, checked):
         """Toggle plain text docstring"""
@@ -800,7 +803,7 @@ class ObjectInspector(SpyderPluginWidget):
         shell = self.get_shell()
         if shell is None:
             return
-        obj_text = unicode(obj_text)
+        obj_text = to_text_string(obj_text)
         
         if not shell.is_defined(obj_text):
             if self.get_option('automatic_import') and\

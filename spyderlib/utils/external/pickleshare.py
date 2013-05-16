@@ -33,11 +33,14 @@ License: MIT open source license.
 
 """
 
+from __future__ import print_function
+
 from spyderlib.utils.external.path import path as Path
-import os,stat,time
-import cPickle as pickle
-import UserDict
-import warnings
+from spyderlib.py3compat import pickle, MutableMapping
+
+import os
+import stat
+import time
 import glob
 
 def gethashfile(key):
@@ -45,18 +48,25 @@ def gethashfile(key):
 
 _sentinel = object()
 
-class PickleShareDB(UserDict.DictMixin):
+class PickleShareDB(MutableMapping):
     """ The main 'connection' object for PickleShare database """
-    def __init__(self,root):
+    def __init__(self, root):
         """ Return a db object that will manage the specied directory"""
         self.root = Path(root).expanduser().abspath()
         if not self.root.isdir():
             self.root.makedirs()
         # cache has { 'key' : (obj, orig_mod_time) }
         self.cache = {}
-        
+    
+    #==========================================================================
+    # Only affects Python 3
+    def __iter__(self):
+        return iter(self.cache)
+    def __len__(self):
+        return len(self.cache)
+    #==========================================================================
 
-    def __getitem__(self,key):
+    def __getitem__(self, key):
         """ db['key'] reading """
         fil = self.root / key
         try:
@@ -72,19 +82,19 @@ class PickleShareDB(UserDict.DictMixin):
         except:
             raise KeyError(key)
             
-        self.cache[fil] = (obj,mtime)
+        self.cache[fil] = (obj, mtime)
         return obj
     
-    def __setitem__(self,key,value):
+    def __setitem__(self, key, value):
         """ db['key'] = 5 """
         fil = self.root / key
         parent = fil.parent
         if parent and not parent.isdir():
             parent.makedirs()
-        pickled = pickle.dump(value,fil.open('w'))
+        pickled = pickle.dump(value, fil.open('w'))
         try:
-            self.cache[fil] = (value,fil.mtime)
-        except OSError,e:
+            self.cache[fil] = (value, fil.mtime)
+        except OSError as e:
             if e.errno != 2:
                 raise
     
@@ -135,7 +145,7 @@ class PickleShareDB(UserDict.DictMixin):
             try:
                 all.update(self[f])
             except KeyError:
-                print "Corrupt",f,"deleted - hset is not threadsafe!"
+                print("Corrupt", f, "deleted - hset is not threadsafe!")
                 del self[f]
                 
             self.uncache(f)
@@ -165,10 +175,10 @@ class PickleShareDB(UserDict.DictMixin):
             
             
         
-    def __delitem__(self,key):
+    def __delitem__(self, key):
         """ del db["key"] """
         fil = self.root / key
-        self.cache.pop(fil,None)
+        self.cache.pop(fil, None)
         try:
             fil.remove()
         except OSError:
@@ -178,7 +188,7 @@ class PickleShareDB(UserDict.DictMixin):
         
     def _normalized(self, p):
         """ Make a key suitable for user's eyes """
-        return str(self.root.relpathto(p)).replace('\\','/')
+        return str(self.root.relpathto(p)).replace('\\', '/')
     
     def keys(self, globpat = None):
         """ All keys in DB, or all keys matching a glob"""
@@ -200,7 +210,7 @@ class PickleShareDB(UserDict.DictMixin):
         if not items:
             self.cache = {}
         for it in items:
-            self.cache.pop(it,None)
+            self.cache.pop(it, None)
             
     def waitget(self,key, maxwaittime = 60 ):
         """ Wait (poll) for a key to get a value
@@ -234,7 +244,7 @@ class PickleShareDB(UserDict.DictMixin):
             if tries < len(wtimes) -1:
                 tries+=1
     
-    def getlink(self,folder):
+    def getlink(self, folder):
         """ Get a convenient link for accessing items  """
         return PickleShareLink(self, folder)
     
@@ -256,9 +266,9 @@ class PickleShareLink:
     def __init__(self, db, keydir ):    
         self.__dict__.update(locals())
         
-    def __getattr__(self,key):
+    def __getattr__(self, key):
         return self.__dict__['db'][self.__dict__['keydir']+'/' + key]
-    def __setattr__(self,key,val):
+    def __setattr__(self, key, val):
         self.db[self.keydir+'/' + key] = val
     def __repr__(self):
         db = self.__dict__['db']
@@ -271,29 +281,29 @@ class PickleShareLink:
 def test():
     db = PickleShareDB('~/testpickleshare')
     db.clear()
-    print "Should be empty:",db.items()
+    print("Should be empty:", list(db.items()))
     db['hello'] = 15
-    db['aku ankka'] = [1,2,313]
-    db['paths/nest/ok/keyname'] = [1,(5,46)]
+    db['aku ankka'] = [1, 2, 313]
+    db['paths/nest/ok/keyname'] = [1, (5, 46)]
     db.hset('hash', 'aku', 12)
     db.hset('hash', 'ankka', 313)
-    print "12 =",db.hget('hash','aku')
-    print "313 =",db.hget('hash','ankka')
-    print "all hashed",db.hdict('hash')
-    print db.keys()
-    print db.keys('paths/nest/ok/k*')
-    print dict(db) # snapsot of whole db
+    print("12 =", db.hget('hash', 'aku'))
+    print("313 =", db.hget('hash', 'ankka'))
+    print("all hashed", db.hdict('hash'))
+    print(list(db.keys()))
+    print(db.keys('paths/nest/ok/k*'))
+    print(dict(db)) # snapsot of whole db
     db.uncache() # frees memory, causes re-reads later
 
     # shorthand for accessing deeply nested files
     lnk = db.getlink('myobjects/test')
     lnk.foo = 2
     lnk.bar = lnk.foo + 5
-    print lnk.bar # 7
+    print(lnk.bar) # 7
 
 def stress():
     db = PickleShareDB('~/fsdbtest')
-    import time,sys
+    import time, sys
     for i in range(1000):
         for j in range(1000):
             if i % 15 == 0 and i < 200:
@@ -304,10 +314,10 @@ def stress():
             if j%33 == 0:
                 time.sleep(0.02)
             
-            db[str(j)] = db.get(str(j), []) + [(i,j,"proc %d" % os.getpid())]
-            db.hset('hash',j, db.hget('hash',j,15) + 1 )
+            db[str(j)] = db.get(str(j), []) + [(i, j, "proc %d" % os.getpid())]
+            db.hset('hash', j, db.hget('hash', j, 15) + 1 )
             
-        print i,
+        print(i, end=' ')
         sys.stdout.flush()
         if i % 10 == 0:
             db.uncache()
@@ -326,7 +336,7 @@ def main():
     DB = PickleShareDB
     import sys
     if len(sys.argv) < 2:
-        print usage
+        print(usage)
         return
         
     cmd = sys.argv[1]
@@ -335,18 +345,18 @@ def main():
         if not args: args= ['.']
         db = DB(args[0])
         import pprint
-        pprint.pprint(db.items())
+        pprint.pprint(list(db.items()))
     elif cmd == 'load':
         cont = sys.stdin.read()
         db = DB(args[0])
         data = eval(cont)
         db.clear()
-        for k,v in db.items():
+        for k, v in list(db.items()):
             db[k] = v
     elif cmd == 'testwait':
         db = DB(args[0])
         db.clear()
-        print db.waitget('250')
+        print(db.waitget('250'))
     elif cmd == 'test':
         test()
         stress()

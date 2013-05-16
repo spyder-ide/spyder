@@ -8,6 +8,8 @@
 Source code analysis utilities
 """
 
+from __future__ import print_function
+
 import sys
 import re
 import os
@@ -16,6 +18,7 @@ import tempfile
 
 # Local import
 from spyderlib.utils import programs
+from spyderlib.py3compat import to_text_string, to_binary_string, PY3
 
 
 #==============================================================================
@@ -38,13 +41,18 @@ def check_with_pyflakes(source_code, filename=None):
     Returns an empty list if pyflakes is not installed"""
     if filename is None:
         filename = '<string>'
-    source_code += '\n'
+    try:
+        source_code += '\n'
+    except TypeError:
+        # Python 3
+        source_code += to_binary_string('\n')
+        
     import _ast
     from pyflakes.checker import Checker
     # First, compile into an AST and handle syntax errors.
     try:
         tree = compile(source_code, filename, "exec", _ast.PyCF_ONLY_AST)
-    except SyntaxError, value:
+    except SyntaxError as value:
         # If there's an encoding problem with the file, the text is None.
         if value.text is None:
             return []
@@ -59,17 +67,18 @@ def check_with_pyflakes(source_code, filename=None):
     else:
         # Okay, it's syntactically valid.  Now check it.
         w = Checker(tree, filename)
-        w.messages.sort(lambda a, b: cmp(a.lineno, b.lineno))
+        w.messages.sort(key=lambda x: x.lineno)
         results = []
         lines = source_code.splitlines()
         for warning in w.messages:
-            if 'analysis:ignore' not in lines[warning.lineno-1]:
+            if 'analysis:ignore' not in \
+               to_text_string(lines[warning.lineno-1]):
                 results.append((warning.message % warning.message_args,
                                 warning.lineno))
         return results
 
-# Required version: Why 0.5.0? Because it's based on _ast (thread-safe)
-PYFLAKES_REQVER = '0.5.0'
+# Required version: Why 0.5 (Python2)? Because it's based on _ast (thread-safe)
+PYFLAKES_REQVER = '0.4.2' if PY3 else '0.5.0'
 
 def is_pyflakes_installed():
     """Return True if pyflakes required version is installed"""
@@ -119,14 +128,14 @@ def check(args, source_code, filename=None, options=None):
     else:
         args.append(filename)
     output = Popen(args, stdout=PIPE, stderr=PIPE
-                   ).communicate()[0].strip().splitlines()
+                   ).communicate()[0].strip().decode().splitlines()
     if filename is None:
         os.unlink(tempfd.name)
     results = []
     lines = source_code.splitlines()
     for line in output:
         lineno = int(re.search(r'(\:[\d]+\:)', line).group()[1:-1])
-        if 'analysis:ignore' not in lines[lineno-1]:
+        if 'analysis:ignore' not in to_text_string(lines[lineno-1]):
             message = line[line.find(': ')+2:]
             results.append((message, lineno))
     return results
@@ -139,9 +148,12 @@ def check_with_pep8(source_code, filename=None):
 
 
 if __name__ == '__main__':
-    fname = __file__
-    code = file(fname, 'U').read()
+#    fname = __file__
+    fname = os.path.join(os.path.dirname(__file__),
+                         os.pardir, os.pardir, 'bootstrap.py')
+    code = open(fname).read()
     check_results = check_with_pyflakes(code, fname)+\
                     check_with_pep8(code, fname)+find_tasks(code)
+#    check_results = check_with_pep8(code, fname)
     for message, line in check_results:
-        print "Message: %s -- Line: %s" % (message, line)
+        print("Message: %s -- Line: %s" % (message, line))

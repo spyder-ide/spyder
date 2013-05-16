@@ -19,18 +19,19 @@ from spyderlib.qt.QtGui import (QApplication, QWidget, QVBoxLayout,
                                 QLineEdit, QToolButton)
 from spyderlib.qt.QtCore import (QProcess, SIGNAL, QByteArray, QTimer, Qt,
                                  QTextCodec)
-locale_codec = QTextCodec.codecForLocale()
+LOCALE_CODEC = QTextCodec.codecForLocale()
 
 # Local imports
 from spyderlib.utils.qthelpers import (get_icon, create_toolbutton,
                                        create_action, add_actions)
 from spyderlib.baseconfig import get_conf_path, _
+from spyderlib.py3compat import is_text_string, to_text_string
 
 
 def add_pathlist_to_PYTHONPATH(env, pathlist):
     # PyQt API 1/2 compatibility-related tests:
     assert isinstance(env, list)
-    assert all([isinstance(path, basestring) for path in env])
+    assert all([is_text_string(path) for path in env])
     
     pypath = "PYTHONPATH"
     pathstr = os.pathsep.join(pathlist)
@@ -236,7 +237,7 @@ class ExternalShellBase(QWidget):
                                                 QLineEdit.Normal,
                                                 self.arguments)
         if valid:
-            self.arguments = unicode(arguments)
+            self.arguments = to_text_string(arguments)
         return valid
     
     def create_process(self):
@@ -253,22 +254,22 @@ class ExternalShellBase(QWidget):
 #===============================================================================
 #    Input/Output
 #===============================================================================
-    def transcode(self, bytes):
-        return unicode( locale_codec.toUnicode(bytes.data()) )
+    def transcode(self, qba):
+        return to_text_string( LOCALE_CODEC.toUnicode(qba.data()) )
     
     def get_stdout(self):
         self.process.setReadChannel(QProcess.StandardOutput)
-        bytes = QByteArray()
+        qba = QByteArray()
         while self.process.bytesAvailable():
-            bytes += self.process.readAllStandardOutput()
-        return self.transcode(bytes)
+            qba += self.process.readAllStandardOutput()
+        return self.transcode(qba)
     
     def get_stderr(self):
         self.process.setReadChannel(QProcess.StandardError)
-        bytes = QByteArray()
+        qba = QByteArray()
         while self.process.bytesAvailable():
-            bytes += self.process.readAllStandardError()
-        return self.transcode(bytes)
+            qba += self.process.readAllStandardError()
+        return self.transcode(qba)
     
     def write_output(self):
         self.shell.write(self.get_stdout(), flush=True)
@@ -283,7 +284,7 @@ class ExternalShellBase(QWidget):
         byte_array.append(char)
         self.process.write(byte_array)
         self.process.waitForBytesWritten(-1)
-        self.shell.write(locale_codec.toUnicode(byte_array), flush=True)
+        self.shell.write(LOCALE_CODEC.toUnicode(byte_array), flush=True)
         
     def keyboard_interrupt(self):
         raise NotImplementedError

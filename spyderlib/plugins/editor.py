@@ -26,7 +26,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.utils import encoding, sourcecode, codeanalysis
-from spyderlib.baseconfig import get_conf_path, _, STDOUT
+from spyderlib.baseconfig import get_conf_path, _
 from spyderlib.config import CONF, EDIT_FILTERS, get_filter, EDIT_FILETYPES
 from spyderlib.guiconfig import get_color_scheme
 from spyderlib.utils import programs
@@ -42,11 +42,12 @@ from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.plugins.runconfig import (RunConfigDialog, RunConfigOneDialog,
                                          get_run_configuration,
                                          ALWAYS_OPEN_FIRST_RUN_OPTION)
+from spyderlib.py3compat import to_text_string, getcwd, qbytearray_to_str
 
 
 def _load_all_breakpoints():
     bp_dict = CONF.get('run', 'breakpoints', {})
-    for filename in bp_dict.keys():
+    for filename in list(bp_dict.keys()):
         if not osp.isfile(filename):
             bp_dict.pop(filename)
     return bp_dict
@@ -128,7 +129,7 @@ class EditorConfigPage(PluginConfigPage):
         occurence_layout.addWidget(occurence_spin)
         wrap_mode_box = newcb(_("Wrap lines"), 'wrap')
         names = CONF.get('color_schemes', 'names')
-        choices = zip(names, names)
+        choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
         
@@ -508,7 +509,7 @@ class Editor(SpyderPluginWidget):
         title = _('Editor')
         filename = self.get_current_filename()
         if filename:
-            title += ' - '+unicode(filename)
+            title += ' - '+to_text_string(filename)
         return title
     
     def get_plugin_icon(self):
@@ -541,7 +542,7 @@ class Editor(SpyderPluginWidget):
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
         state = self.splitter.saveState()
-        self.set_option('splitter_state', str(state.toHex()))
+        self.set_option('splitter_state', qbytearray_to_str(state))
         filenames = []
         editorstack = self.editorstacks[0]
         filenames += [finfo.filename for finfo in editorstack.data]
@@ -960,7 +961,7 @@ class Editor(SpyderPluginWidget):
         return self.last_focus_editorstack[editorwindow]
     
     def remove_last_focus_editorstack(self, editorstack):
-        for editorwindow, widget in self.last_focus_editorstack.items():
+        for editorwindow, widget in list(self.last_focus_editorstack.items()):
             if widget is editorstack:
                 self.last_focus_editorstack[editorwindow] = None
         
@@ -1315,7 +1316,7 @@ class Editor(SpyderPluginWidget):
         self.update_todo_actions()
             
     def refresh_eol_chars(self, os_name):
-        os_name = unicode(os_name)
+        os_name = to_text_string(os_name)
         self.__set_eol_chars = False
         if os_name == 'nt':
             self.win_eol_action.setChecked(True)
@@ -1366,7 +1367,8 @@ class Editor(SpyderPluginWidget):
             
     #------ Breakpoints
     def save_breakpoints(self, filename, breakpoints):
-        filename, breakpoints = unicode(filename), unicode(breakpoints)
+        filename = to_text_string(filename)
+        breakpoints = to_text_string(breakpoints)
         filename = osp.normpath(osp.abspath(filename))
         if breakpoints:
             breakpoints = eval(breakpoints)
@@ -1387,7 +1389,7 @@ class Editor(SpyderPluginWidget):
                        '"""', '', '']
             text = os.linesep.join([encoding.to_unicode(qstr)
                                     for qstr in default])
-            encoding.write(unicode(text), self.TEMPFILE_PATH, 'utf-8')
+            encoding.write(to_text_string(text), self.TEMPFILE_PATH, 'utf-8')
         self.load(self.TEMPFILE_PATH)
 
     def __set_workdir(self):
@@ -1443,7 +1445,7 @@ class Editor(SpyderPluginWidget):
             text = text % VARS
         except:
             pass
-        create_fname = lambda n: unicode(_("untitled")) + ("%d.py" % n)
+        create_fname = lambda n: to_text_string(_("untitled")) + ("%d.py" % n)
         # Creating editor widget
         if editorstack is None:
             current_es = self.get_current_editorstack()
@@ -1456,7 +1458,7 @@ class Editor(SpyderPluginWidget):
                 self.untitled_num += 1
                 if not osp.isfile(fname):
                     break
-            basedir = os.getcwdu()
+            basedir = getcwd()
             if CONF.get('workingdir', 'editor/new/browse_scriptdir'):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
@@ -1464,7 +1466,7 @@ class Editor(SpyderPluginWidget):
             fname = osp.abspath(osp.join(basedir, fname))
         else:
             # QString when triggered by a Qt signal
-            fname = osp.abspath(unicode(fname))
+            fname = osp.abspath(to_text_string(fname))
             index = current_es.has_filename(fname)
             if index and not current_es.close_file(index):
                 return
@@ -1539,9 +1541,9 @@ class Editor(SpyderPluginWidget):
             # Recent files action
             action = self.sender()
             if isinstance(action, QAction):
-                filenames = from_qvariant(action.data(), unicode)
+                filenames = from_qvariant(action.data(), to_text_string)
         if not filenames:
-            basedir = os.getcwdu()
+            basedir = getcwd()
             if CONF.get('workingdir', 'editor/open/browse_scriptdir'):
                 c_fname = self.get_current_filename()
                 if c_fname is not None and c_fname != self.TEMPFILE_PATH:
@@ -1691,7 +1693,7 @@ class Editor(SpyderPluginWidget):
     #------ Explorer widget
     def close_file_from_name(self, filename):
         """Close file from its name"""
-        filename = osp.abspath(unicode(filename))
+        filename = osp.abspath(to_text_string(filename))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             self.editorstacks[0].close_file(index)
@@ -1702,18 +1704,19 @@ class Editor(SpyderPluginWidget):
     
     def removed_tree(self, dirname):
         """Directory was removed in project explorer widget"""
-        dirname = osp.abspath(unicode(dirname))
+        dirname = osp.abspath(to_text_string(dirname))
         for fname in self.get_filenames():
             if osp.abspath(fname).startswith(dirname):
                 self.__close(fname)
     
     def renamed(self, source, dest):
         """File was renamed in file explorer widget or in project explorer"""
-        filename = osp.abspath(unicode(source))
+        filename = osp.abspath(to_text_string(source))
         index = self.editorstacks[0].has_filename(filename)
         if index is not None:
             for editorstack in self.editorstacks:
-                editorstack.rename_in_data(index, new_filename=unicode(dest))
+                editorstack.rename_in_data(index,
+                                           new_filename=to_text_string(dest))
         
     
     #------ Source code
@@ -1834,10 +1837,10 @@ class Editor(SpyderPluginWidget):
         self.add_cursor_position_to_history(filename1, position1)
         
     def text_changed_at(self, filename, position):
-        self.last_edit_cursor_pos = (unicode(filename), position)
+        self.last_edit_cursor_pos = (to_text_string(filename), position)
         
     def current_file_changed(self, filename, position):
-        self.add_cursor_position_to_history(unicode(filename), position,
+        self.add_cursor_position_to_history(to_text_string(filename), position,
                                             fc=True)
         
     def go_to_last_edit_location(self):

@@ -10,7 +10,11 @@
 
 import sys
 import os
-import __builtin__
+try:
+    import __builtin__ as builtins
+except ImportError:
+    # Python 3
+    import builtins
 
 # for distutils.commands.install
 # These values are initialized by the getuserbase() and getusersitepackages()
@@ -46,7 +50,6 @@ def getusersitepackages():
         return USER_SITE
 
     from sysconfig import get_path
-    import os
 
     if sys.platform == 'darwin':
         from sysconfig import get_config_var
@@ -79,7 +82,7 @@ class _Printer(object):
             for filename in self.__files:
                 filename = os.path.join(dir, filename)
                 try:
-                    fp = file(filename, "rU")
+                    fp = open(filename, "rU")
                     data = fp.read()
                     fp.close()
                     break
@@ -106,32 +109,36 @@ class _Printer(object):
         while 1:
             try:
                 for i in range(lineno, lineno + self.MAXLINES):
-                    print self.__lines[i]
+                    print(self.__lines[i])
             except IndexError:
                 break
             else:
                 lineno += self.MAXLINES
                 key = None
                 while key is None:
-                    key = raw_input(prompt)
+                    try:
+                        key = raw_input(prompt)
+                    except NameError:
+                        # Python 3
+                        key = input(prompt)
                     if key not in ('', 'q'):
                         key = None
                 if key == 'q':
                     break
 
 def setcopyright():
-    """Set 'copyright' and 'credits' in __builtin__"""
-    __builtin__.copyright = _Printer("copyright", sys.copyright)
+    """Set 'copyright' and 'credits' in builtins"""
+    builtins.copyright = _Printer("copyright", sys.copyright)
     if sys.platform[:4] == 'java':
-        __builtin__.credits = _Printer(
+        builtins.credits = _Printer(
             "credits",
             "Jython is maintained by the Jython developers (www.jython.org).")
     else:
-        __builtin__.credits = _Printer("credits", """\
+        builtins.credits = _Printer("credits", """\
     Thanks to CWI, CNRI, BeOpen.com, Zope Corporation and a cast of thousands
     for supporting Python development.  See www.python.org for more information.""")
     here = os.path.dirname(os.__file__)
-    __builtin__.license = _Printer(
+    builtins.license = _Printer(
         "license", "See http://www.python.org/%.3s/license.html" % sys.version,
         ["LICENSE.txt", "LICENSE"],
         [os.path.join(here, os.pardir), here, os.curdir])
@@ -151,4 +158,4 @@ class _Helper(object):
         return pydoc.help(*args, **kwds)
 
 def sethelper():
-    __builtin__.help = _Helper()
+    builtins.help = _Helper()

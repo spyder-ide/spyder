@@ -24,7 +24,7 @@ def send_args_to_spyder(args):
     
     # Wait ~50 secs for the server to be up
     # Taken from http://stackoverflow.com/a/4766598/438386
-    for _x in xrange(200):
+    for _x in range(200):
         try:
             for arg in args:
                 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM,

@@ -1,49 +1,55 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#    userconfig License Agreement (MIT License)
+#    ------------------------------------------
+#    
+#    Copyright © 2009-2012 Pierre Raybaut
+#    
+#    Permission is hereby granted, free of charge, to any person
+#    obtaining a copy of this software and associated documentation
+#    files (the "Software"), to deal in the Software without
+#    restriction, including without limitation the rights to use,
+#    copy, modify, merge, publish, distribute, sublicense, and/or sell
+#    copies of the Software, and to permit persons to whom the
+#    Software is furnished to do so, subject to the following
+#    conditions:
+#    
+#    The above copyright notice and this permission notice shall be
+#    included in all copies or substantial portions of the Software.
+#    
+#    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+#    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+#    OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+#    NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+#    HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+#    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+#    FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+#    OTHER DEALINGS IN THE SOFTWARE.
+
+
 """
 userconfig
-==========
+----------
 
-Module handling configuration files based on ConfigParser
-
-
-userconfig License Agreement (MIT License)
-------------------------------------------
-
-Copyright (c) 2009 Pierre Raybaut
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+The ``spyderlib.userconfig`` module provides user configuration file (.ini file)
+management features based on ``ConfigParser`` (standard Python library).
 """
 
-from __future__ import with_statement
+from __future__ import print_function
 
-__version__ = '1.0.13'
+__version__ = '1.1.0'
 __license__ = __doc__
 
-import os, re, os.path as osp, shutil, time
-from ConfigParser import (ConfigParser, MissingSectionHeaderError,
-                          NoSectionError, NoOptionError)
+import os
+import re
+import os.path as osp
+import shutil
+import time
 
 from spyderlib.utils import encoding
-
+from spyderlib.py3compat import configparser as cp
+from spyderlib.py3compat import is_text_string, PY2
 
 def get_home_dir():
     """
@@ -70,7 +76,7 @@ def get_home_dir():
 class NoDefault:
     pass
 
-class UserConfig(ConfigParser):
+class UserConfig(cp.ConfigParser):
     """
     UserConfig class, based on ConfigParser
     name: name of the config
@@ -86,7 +92,7 @@ class UserConfig(ConfigParser):
     def __init__(self, name, defaults=None, load=True, version=None,
                  subfolder=None, backup=False, raw_mode=False,
                  remove_obsolete=False):
-        ConfigParser.__init__(self)
+        cp.ConfigParser.__init__(self)
         self.raw = 1 if raw_mode else 0
         self.subfolder = subfolder
         if (version is not None) and (re.match('^(\d+).(\d+).(\d+)$', version) is None):
@@ -144,9 +150,14 @@ class UserConfig(ConfigParser):
         Load config from the associated .ini file
         """
         try:
-            self.read(self.filename())
-        except MissingSectionHeaderError:
-            print "Warning: File contains no section headers."
+            if PY2:
+                # Python 2
+                self.read(self.filename())
+            else:
+                # Python 3
+                self.read(self.filename(), encoding='utf-8')
+        except cp.MissingSectionHeaderError:
+            print("Warning: File contains no section headers.")
         
     def __remove_deprecated_options(self):
         """
@@ -167,19 +178,27 @@ class UserConfig(ConfigParser):
         # method contains all the exception handling.
         fname = self.filename()
 
+        def _write_file(fname):
+            if PY2:
+                # Python 2
+                with open(fname, 'w') as configfile:
+                    self.write(configfile)
+            else:
+                # Python 3
+                with open(fname, 'w', encoding='utf-8') as configfile:
+                    self.write(configfile)
+
         try: # the "easy" way
-            with open(fname, 'w') as conf_file:
-                self.write(conf_file)
+            _write_file(fname)
         except IOError:
             try: # the "delete and sleep" way
                 if osp.isfile(fname):
                     os.remove(fname)
                 time.sleep(0.05)
-                with open(fname, 'w') as conf_file:
-                    self.write(conf_file)
+                _write_file(fname)
             except Exception as e:
-                print "Failed to write user configuration file."
-                print "Please submit a bug report."
+                print("Failed to write user configuration file.")
+                print("Please submit a bug report.")
                 raise(e)
 
     def filename(self):
@@ -230,10 +249,10 @@ class UserConfig(ConfigParser):
         """
         if section is None:
             section = self.DEFAULT_SECTION_NAME
-        elif not isinstance(section, (str, unicode)):
-            raise ValueError("Argument 'section' must be a string")
-        if not isinstance(option, (str, unicode)):
-            raise ValueError("Argument 'option' must be a string")
+        elif not is_text_string(section):
+            raise RuntimeError("Argument 'section' must be a string")
+        if not is_text_string(option):
+            raise RuntimeError("Argument 'option' must be a string")
         return section
 
     def get_default(self, section, option):
@@ -260,18 +279,18 @@ class UserConfig(ConfigParser):
 
         if not self.has_section(section):
             if default is NoDefault:
-                raise NoSectionError(section)
+                raise cp.NoSectionError(section)
             else:
                 self.add_section(section)
         
         if not self.has_option(section, option):
             if default is NoDefault:
-                raise NoOptionError(option, section)
+                raise cp.NoOptionError(option, section)
             else:
                 self.set(section, option, default)
                 return default
             
-        value = ConfigParser.get(self, section, option, self.raw)
+        value = cp.ConfigParser.get(self, section, option, raw=self.raw)
         default_value = self.get_default(section, option)
         if isinstance(default_value, bool):
             value = eval(value)
@@ -280,7 +299,7 @@ class UserConfig(ConfigParser):
         elif isinstance(default_value, int):
             value = int(value)
         else:
-            if isinstance(default_value, basestring):
+            if PY2 and is_text_string(default_value):
                 try:
                     value = value.decode('utf-8')
                 except (UnicodeEncodeError, UnicodeDecodeError):
@@ -298,11 +317,11 @@ class UserConfig(ConfigParser):
         """
         if not self.has_section(section):
             self.add_section( section )
-        if not isinstance(value, (str, unicode)):
+        if not is_text_string(value):
             value = repr( value )
         if verbose:
-            print '%s[ %s ] = %s' % (section, option, value)
-        ConfigParser.set(self, section, option, value)
+            print('%s[ %s ] = %s' % (section, option, value))
+        cp.ConfigParser.set(self, section, option, value)
 
     def set_default(self, section, option, default_value):
         """
@@ -330,16 +349,16 @@ class UserConfig(ConfigParser):
             value = float(value)
         elif isinstance(default_value, int):
             value = int(value)
-        else:
+        elif not is_text_string(default_value):
             value = repr(value)
         self.__set(section, option, value, verbose)
         if save:
             self.__save()
             
     def remove_section(self, section):
-        ConfigParser.remove_section(self, section)
+        cp.ConfigParser.remove_section(self, section)
         self.__save()
             
     def remove_option(self, section, option):
-        ConfigParser.remove_option(self, section, option)
+        cp.ConfigParser.remove_option(self, section, option)
         self.__save()

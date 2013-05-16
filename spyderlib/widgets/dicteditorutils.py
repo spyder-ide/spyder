@@ -8,7 +8,14 @@
 Utilities for the Dictionary Editor Widget and Dialog based on Qt
 """
 
+from __future__ import print_function
+
 import re
+
+# Local imports
+from spyderlib.py3compat import (NUMERIC_TYPES, TEXT_TYPES,
+                                 to_text_string, is_text_string)
+
 
 #----Numpy arrays support
 class FakeObject(object):
@@ -56,7 +63,7 @@ except ImportError:
 def address(obj):
     """Return object address as a string: '<classname @ address>'"""
     return "<%s @ %s>" % (obj.__class__.__name__,
-                          hex(id(obj)).upper().replace('X','x'))
+                          hex(id(obj)).upper().replace('X', 'x'))
 
 
 #----date and datetime objects support
@@ -66,11 +73,11 @@ try:
 except ImportError:
     def dateparse(datestr):  # analysis:ignore
         """Just for 'year, month, day' strings"""
-        return datetime.datetime( *map(int, datestr.split(',')) )
+        return datetime.datetime( *list(map(int, datestr.split(','))) )
 def datestr_to_datetime(value):
     rp = value.rfind('(')+1
     v = dateparse(value[rp:-1])
-    print value, "-->", v
+    print(value, "-->", v)
     return v
 
 
@@ -79,12 +86,11 @@ ARRAY_COLOR = "#00ff00"
 SCALAR_COLOR = "#0000ff"
 COLORS = {
           bool:               "#ff00ff",
-          (int, float,
-           complex, long):    SCALAR_COLOR,
+          NUMERIC_TYPES:      SCALAR_COLOR,
           list:               "#ffff00",
           dict:               "#00ffff",
           tuple:              "#c0c0c0",
-          (str, unicode):     "#800000",
+          TEXT_TYPES:         "#800000",
           (ndarray,
            MaskedArray):      ARRAY_COLOR,
           Image:              "#008000",
@@ -97,7 +103,7 @@ def get_color_name(value):
     """Return color name depending on value type"""
     if not is_known_type(value):
         return CUSTOM_TYPE_COLOR
-    for typ, name in COLORS.iteritems():
+    for typ, name in list(COLORS.items()):
         if isinstance(value, typ):
             return name
     else:
@@ -123,8 +129,8 @@ def sort_against(lista, listb, reverse=False):
 def unsorted_unique(lista):
     """Removes duplicates from lista neglecting its initial ordering"""
     set = {}
-    map(set.__setitem__,lista,[])
-    return set.keys()
+    list(map(set.__setitem__, lista, []))
+    return list(set.keys())
 
 
 #----Display <--> Value
@@ -143,7 +149,7 @@ def value_to_display(value, truncate=False,
             pass
     if isinstance(value, Image):
         return '%s  Mode: %s' % (address(value), value.mode)
-    if not isinstance(value, (str, unicode)):
+    if not is_text_string(value):
         if isinstance(value, (list, tuple, dict, set)) and not collvalue:            
             value = address(value)
         else:
@@ -172,7 +178,7 @@ def get_size(item):
 
 def get_type_string(item):
     """Return type string of an object"""
-    found = re.findall(r"<type '([\S]*)'>", str(type(item)))
+    found = re.findall(r"<type|class '([\S]*)'>", str(type(item)))
     if found:
         return found[0]
 
@@ -190,7 +196,7 @@ def get_human_readable_type(item):
     else:
         text = get_type_string(item)
         if text is None:
-            text = unicode('unknown')
+            text = to_text_string('unknown')
         else:
             return text[text.find('.')+1:]
 
@@ -211,7 +217,7 @@ def is_supported(value, check_all=False, filters=None, iterate=True):
                 if not check_all:
                     break
         elif isinstance(value, dict):
-            for key, val in value.iteritems():
+            for key, val in list(value.items()):
                 if not is_supported(key, filters=filters, iterate=check_all) \
                    or not is_supported(val, filters=filters,
                                        iterate=check_all):
@@ -226,7 +232,7 @@ def globalsfilter(input_dict, check_all=False, filters=None,
                   excluded_names=None):
     """Keep only objects that can be pickled"""
     output_dict = {}
-    for key, value in input_dict.items():
+    for key, value in list(input_dict.items()):
         excluded = (exclude_private and key.startswith('_')) or \
                    (exclude_capitalized and key[0].isupper()) or \
                    (exclude_uppercase and key.isupper()

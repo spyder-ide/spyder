@@ -15,6 +15,8 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
+from __future__ import print_function
+
 # Stdlib imports
 import atexit
 import errno
@@ -128,17 +130,19 @@ from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
-from spyderlib.userconfig import NoDefault, NoOptionError
+from spyderlib.userconfig import NoDefault
 from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
+from spyderlib.py3compat import (to_text_string, is_text_string, getcwd, u,
+                                 qbytearray_to_str, configparser as cp)
 
 
 TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
 
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
-CWD = os.getcwd()
+CWD = getcwd()
 
 
 def get_python_doc_path():
@@ -440,7 +444,7 @@ class MainWindow(QMainWindow):
     def debug_print(self, message):
         """Debug prints"""
         if DEBUG:
-            print >>STDOUT, message
+            print(message, file=STDOUT)
         
     #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
@@ -924,8 +928,8 @@ class MainWindow(QMainWindow):
                     plugin = mod.PLUGIN_CLASS(self)
                     self.thirdparty_plugins.append(plugin)
                     plugin.register_plugin()
-                except AttributeError, error:
-                    print >>STDERR, "%s: %s" % (mod, str(error))
+                except AttributeError as error:
+                    print("%s: %s" % (mod, str(error)), file=STDERR)
                                 
             # View menu
             self.windows_toolbars_menu = QMenu(_("Windows and toolbars"), self)
@@ -1095,7 +1099,7 @@ class MainWindow(QMainWindow):
             is_maximized = self.isMaximized()
         pos = self.window_position
         posx, posy = pos.x(), pos.y()
-        hexstate = str(self.saveState().toHex())
+        hexstate = qbytearray_to_str(self.saveState())
         return hexstate, width, height, posx, posy, is_maximized, is_fullscreen
         
     def set_window_settings(self, hexstate, window_size, prefs_dialog_size,
@@ -1148,7 +1152,7 @@ class MainWindow(QMainWindow):
         if not self.light:
             self.maximize_dockwidget(restore=True)# Restore non-maximized layout
             qba = self.saveState()
-            CONF.set(section, prefix+'state', str(qba.toHex()))
+            CONF.set(section, prefix+'state', qbytearray_to_str(qba))
             CONF.set(section, prefix+'statusbar',
                      not self.statusBar().isHidden())
 
@@ -1226,7 +1230,7 @@ class MainWindow(QMainWindow):
             try:
                 settings = self.load_window_settings('layout_%d/' % index,
                                                      section='quick_layouts')
-            except NoOptionError:
+            except cp.NoOptionError:
                 QMessageBox.critical(self, _("Warning"),
                                      _("Quick switch layout #%d has not yet "
                                        "been defined.") % index)
@@ -1643,7 +1647,7 @@ Please provide any additional information below.
         """Global callback"""
         widget = QApplication.focusWidget()
         action = self.sender()
-        callback = from_qvariant(action.data(), unicode)
+        callback = from_qvariant(action.data(), to_text_string)
         from spyderlib.widgets.editor import TextEditBaseWidget
         if isinstance(widget, TextEditBaseWidget):
             getattr(widget, callback)()
@@ -1671,9 +1675,10 @@ Please provide any additional information below.
             self.extconsole.visibility_changed(True)
             self.extconsole.raise_()
             self.extconsole.start(
-                fname=unicode(fname), wdir=unicode(wdir), args=unicode(args),
-                interact=interact, debug=debug, python=python,
-                python_args=unicode(python_args) )
+                fname=to_text_string(fname), wdir=to_text_string(wdir),
+                args=to_text_string(args), interact=interact,
+                debug=debug, python=python,
+                python_args=to_text_string(python_args) )
         
     def execute_python_code_in_external_console(self, lines):
         """Execute lines in external or IPython console"""
@@ -1691,7 +1696,7 @@ Please provide any additional information below.
         Redirect to the right widget (txt -> editor, spydata -> workspace, ...)
         or open file outside Spyder (if extension is not supported)
         """
-        fname = unicode(fname)
+        fname = to_text_string(fname)
         ext = osp.splitext(fname)[1]
         if ext in EDIT_EXT:
             self.editor.load(fname)
@@ -1851,7 +1856,7 @@ Please provide any additional information below.
         if filename is None:
             self.redirect_internalshell_stdio(False)
             filename, _selfilter = getopenfilename(self, _("Open session"),
-                        os.getcwdu(), _("Spyder sessions")+" (*.session.tar)")
+                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
             self.redirect_internalshell_stdio(True)
             if not filename:
                 return
@@ -1862,7 +1867,7 @@ Please provide any additional information below.
         """Save session and quit application"""
         self.redirect_internalshell_stdio(False)
         filename, _selfilter = getsavefilename(self, _("Save session"),
-                        os.getcwdu(), _("Spyder sessions")+" (*.session.tar)")
+                        getcwd(), _("Spyder sessions")+" (*.session.tar)")
         self.redirect_internalshell_stdio(True)
         if filename:
             if self.close():
@@ -2057,25 +2062,25 @@ def main():
     if CONF.get('main', 'crash', False):
         CONF.set('main', 'crash', False)
         QMessageBox.information(None, "Spyder",
-            u"Spyder crashed during last session.<br><br>"
-            u"If Spyder does not start at all and <u>before submitting a "
-            u"bug report</u>, please try to reset settings to defaults by "
-            u"running Spyder with the command line option '--reset':<br>"
-            u"<span style=\'color: #555555\'><b>python spyder --reset"
-            u"</b></span><br><br>"
-            u"<span style=\'color: #ff5555\'><b>Warning:</b></span> "
-            u"this command will remove all your Spyder configuration files "
-            u"located in '%s').<br><br>"
-            u"If restoring the default settings does not help, please take "
-            u"the time to search for <a href=\"%s\">known bugs</a> or "
-            u"<a href=\"%s\">discussions</a> matching your situation before "
-            u"eventually creating a new issue <a href=\"%s\">here</a>. "
-            u"Your feedback will always be greatly appreciated."
-            u"" % (get_conf_path(), __project_url__,
-                   __forum_url__, __project_url__))
+            "Spyder crashed during last session.<br><br>"
+            "If Spyder does not start at all and <u>before submitting a "
+            "bug report</u>, please try to reset settings to defaults by "
+            "running Spyder with the command line option '--reset':<br>"
+            "<span style=\'color: #555555\'><b>python spyder --reset"
+            "</b></span><br><br>"
+            "<span style=\'color: #ff5555\'><b>Warning:</b></span> "
+            "this command will remove all your Spyder configuration files "
+            "located in '%s').<br><br>"
+            "If restoring the default settings does not help, please take "
+            "the time to search for <a href=\"%s\">known bugs</a> or "
+            "<a href=\"%s\">discussions</a> matching your situation before "
+            "eventually creating a new issue <a href=\"%s\">here</a>. "
+            "Your feedback will always be greatly appreciated."
+            "" % (get_conf_path(), __project_url__,
+                  __forum_url__, __project_url__))
         
     next_session_name = options.startup_session
-    while isinstance(next_session_name, basestring):
+    while is_text_string(next_session_name):
         if next_session_name:
             error_message = load_session(next_session_name)
             if next_session_name == TEMP_SESSION_PATH:
@@ -2083,12 +2088,10 @@ def main():
             if error_message is None:
                 CONF.load_from_ini()
             else:
-                print error_message
+                print(error_message)
                 QMessageBox.critical(None, "Load session",
-                                     u"<b>Unable to load '%s'</b>"
-                                     u"<br><br>Error message:<br>%s"
-                                      % (osp.basename(next_session_name),
-                                         error_message))
+                    u("<b>Unable to load '%s'</b><br><br>Error message:<br>%s")
+                    % (osp.basename(next_session_name), error_message))
         mainwindow = None
         try:
             mainwindow = run_spyder(app, options, args)
@@ -2096,7 +2099,7 @@ def main():
             CONF.set('main', 'crash', True)
             import traceback
             traceback.print_exc(file=STDERR)
-            traceback.print_exc(file=open('spyder_crash.log', 'wb'))            
+            traceback.print_exc(file=open('spyder_crash.log', 'w'))            
         if mainwindow is None:
             # An exception occured
             return
@@ -2113,10 +2116,8 @@ def main():
             error_message = save_session(save_session_name)
             if error_message is not None:
                 QMessageBox.critical(None, "Save session",
-                                     u"<b>Unable to save '%s'</b>"
-                                     u"<br><br>Error message:<br>%s"
-                                       % (osp.basename(save_session_name),
-                                          error_message))
+                    u("<b>Unable to save '%s'</b><br><br>Error message:<br>%s")
+                    % (osp.basename(save_session_name), error_message))
     ORIGINAL_SYS_EXIT()
 
 

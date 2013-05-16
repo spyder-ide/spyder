@@ -22,6 +22,7 @@ import sys
 # Local import
 from spyderlib.baseconfig import get_image_path
 from spyderlib.utils import programs
+from spyderlib.py3compat import is_text_string, to_text_string
 
 # Note: How to redirect a signal from widget *a* to widget *b* ?
 # ----
@@ -150,11 +151,11 @@ def mimedata2url(source, extlist=None):
     pathlist = []
     if source.hasUrls():
         for url in source.urls():
-            path = _process_mime_path(unicode(url.toString()), extlist)
+            path = _process_mime_path(to_text_string(url.toString()), extlist)
             if path is not None:
                 pathlist.append(path)
     elif source.hasText():
-        for rawpath in unicode(source.text()).splitlines():
+        for rawpath in to_text_string(source.text()).splitlines():
             path = _process_mime_path(rawpath, extlist)
             if path is not None:
                 pathlist.append(path)
@@ -194,7 +195,7 @@ def create_toolbutton(parent, text=None, shortcut=None, icon=None, tip=None,
     if text is not None:
         button.setText(text)
     if icon is not None:
-        if isinstance(icon, (str, unicode)):
+        if is_text_string(icon):
             icon = get_icon(icon)
         button.setIcon(icon)
     if text is not None or tip is not None:
@@ -243,7 +244,7 @@ def create_action(parent, text, shortcut=None, icon=None, tip=None,
         parent.connect(action, SIGNAL("toggled(bool)"), toggled)
         action.setCheckable(True)
     if icon is not None:
-        if isinstance(icon, (str, unicode)):
+        if is_text_string(icon):
             icon = get_icon(icon)
         action.setIcon(icon)
     if shortcut is not None:
@@ -291,7 +292,7 @@ def add_actions(target, actions, insert_before=None):
 
 def get_item_user_text(item):
     """Get QTreeWidgetItem user role string"""
-    return from_qvariant(item.data(0, Qt.UserRole), unicode)
+    return from_qvariant(item.data(0, Qt.UserRole), to_text_string)
 
 
 def set_item_user_text(item, text):
@@ -322,7 +323,7 @@ def create_module_bookmark_actions(parent, bookmarks):
         
 def create_program_action(parent, text, icon, name, nt_name=None):
     """Create action to run a program"""
-    if isinstance(icon, basestring):
+    if is_text_string(icon):
         icon = get_icon(icon)
     if os.name == 'nt' and nt_name is not None:
         name = nt_name
@@ -334,7 +335,7 @@ def create_program_action(parent, text, icon, name, nt_name=None):
         
 def create_python_script_action(parent, text, icon, package, module, args=[]):
     """Create action to run a GUI based Python script"""
-    if isinstance(icon, basestring):
+    if is_text_string(icon):
         icon = get_icon(icon)
     if programs.python_script_exists(package, module):
         return create_action(parent, text, icon=icon,
@@ -354,8 +355,9 @@ class DialogManager(QObject):
     def show(self, dialog):
         """Generic method to show a non-modal dialog and keep reference
         to the Qt C++ object"""
-        for dlg in self.dialogs.values():
-            if unicode(dlg.windowTitle()) == unicode(dialog.windowTitle()):
+        for dlg in list(self.dialogs.values()):
+            if to_text_string(dlg.windowTitle()) \
+               == to_text_string(dialog.windowTitle()):
                 dlg.show()
                 dlg.raise_()
                 break
@@ -373,7 +375,7 @@ class DialogManager(QObject):
     
     def close_all(self):
         """Close all opened dialog boxes"""
-        for dlg in self.dialogs.values():
+        for dlg in list(self.dialogs.values()):
             dlg.reject()
 
         

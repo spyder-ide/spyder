@@ -6,8 +6,6 @@
 
 """Miscellaneous utilities"""
 
-from __future__ import with_statement
-
 import os
 import os.path as osp
 import sys
@@ -73,7 +71,7 @@ def select_port(default_port=20128):
                                  socket.IPPROTO_TCP)
 #            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             sock.bind( ("127.0.0.1", default_port) )
-        except socket.error, _msg:  # analysis:ignore
+        except socket.error as _msg:  # analysis:ignore
             default_port += 1
         else:
             break
@@ -224,7 +222,7 @@ def get_common_path(pathlist):
 if __name__ == '__main__':
     assert get_common_path([
                             'D:\\Python\\spyder-v21\\spyderlib\\widgets',
-                            u'D:\\Python\\spyder\\spyderlib\\utils',
-                            u'D:\\Python\\spyder\\spyderlib\\widgets',
+                            'D:\\Python\\spyder\\spyderlib\\utils',
+                            'D:\\Python\\spyder\\spyderlib\\widgets',
                             'D:\\Python\\spyder-v21\\spyderlib\\utils',
                             ]) == 'D:\\Python'

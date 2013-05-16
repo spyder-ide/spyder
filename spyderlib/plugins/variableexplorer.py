@@ -153,7 +153,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
     def visibility_changed(self, enable):
         """DockWidget visibility has changed"""
         SpyderPluginMixin.visibility_changed(self, enable)
-        for nsb in self.shellwidgets.values():
+        for nsb in list(self.shellwidgets.values()):
             nsb.visibility_changed(enable and nsb is self.currentWidget())
     
     #------ SpyderPluginWidget API ---------------------------------------------
@@ -191,7 +191,7 @@ class VariableExplorer(QStackedWidget, SpyderPluginMixin):
         
     def apply_plugin_settings(self, options):
         """Apply configuration file's plugin settings"""
-        for nsb in self.shellwidgets.values():
+        for nsb in list(self.shellwidgets.values()):
             nsb.setup(**VariableExplorer.get_settings())
         ar_timeout = self.get_option('autorefresh/timeout')
         for shellwidget in self.main.extconsole.shellwidgets:

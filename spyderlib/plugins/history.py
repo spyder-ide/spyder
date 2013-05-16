@@ -23,6 +23,7 @@ from spyderlib.widgets.tabs import Tabs
 from spyderlib.widgets.sourcecode import codeeditor
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
+from spyderlib.py3compat import to_text_string, is_text_string
 
 
 class HistoryConfigPage(PluginConfigPage):
@@ -41,7 +42,7 @@ class HistoryConfigPage(PluginConfigPage):
                                     text=_("Font style"),
                                     fontfilters=QFontComboBox.MonospacedFonts)
         names = CONF.get('color_schemes', 'names')
-        choices = zip(names, names)
+        choices = list(zip(names, names))
         cs_combo = self.create_combobox(_("Syntax color scheme: "),
                                         choices, 'color_scheme_name')
 
@@ -96,7 +97,8 @@ class HistoryLog(SpyderPluginWidget):
 
         # Menu as corner widget
         options_button = create_toolbutton(self, text=_("Options"),
-                                           icon=get_icon('tooloptions.png'))
+                                           icon=get_icon('tooloptions.png'),
+                                           text_beside_icon=True)
         options_button.setPopupMode(QToolButton.InstantPopup)
         menu = QMenu(self)
         add_actions(menu, self.menu_actions)
@@ -239,9 +241,9 @@ class HistoryLog(SpyderPluginWidget):
         Slot for SIGNAL('append_to_history(QString,QString)')
         emitted by shell instance
         """
-        if not isinstance(filename, basestring): # filename is a QString
-            filename = unicode(filename.toUtf8(), 'utf-8')
-        command = unicode(command)
+        if not is_text_string(filename): # filename is a QString
+            filename = to_text_string(filename.toUtf8(), 'utf-8')
+        command = to_text_string(command)
         index = self.filenames.index(filename)
         self.editors[index].append(command)
         if self.get_option('go_to_eof'):

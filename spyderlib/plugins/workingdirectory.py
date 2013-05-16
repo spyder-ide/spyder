@@ -27,6 +27,7 @@ from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_action
 # Package local imports
 from spyderlib.widgets.comboboxes import PathComboBox
 from spyderlib.plugins import SpyderPluginMixin, PluginConfigPage
+from spyderlib.py3compat import to_text_string, getcwd
 
 
 class WorkingDirectoryConfigPage(PluginConfigPage):
@@ -56,7 +57,7 @@ class WorkingDirectoryConfigPage(PluginConfigPage):
                                         "directory will be the specified path"),
                                 button_group=startup_bg)
         thisdir_bd = self.create_browsedir("", 'startup/fixed_directory',
-                                           os.getcwdu())
+                                           getcwd())
         self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
                      thisdir_bd.setEnabled)
         self.connect(lastdir_radio, SIGNAL("toggled(bool)"),
@@ -252,7 +253,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
     def refresh_plugin(self):
         """Refresh widget"""
-        curdir = os.getcwdu()
+        curdir = getcwd()
         self.pathedit.add_text(curdir)
         self.save_wdhistory()
         self.emit(SIGNAL("set_previous_enabled(bool)"),
@@ -277,13 +278,13 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             wdhistory = [name for name in wdhistory if os.path.isdir(name)]
         else:
             if workdir is None:
-                workdir = os.getcwdu()
+                workdir = getcwd()
             wdhistory = [ workdir ]
         return wdhistory
     
     def save_wdhistory(self):
         """Save history to a text file in user home directory"""
-        text = [ unicode( self.pathedit.itemText(index) ) \
+        text = [ to_text_string( self.pathedit.itemText(index) ) \
                  for index in range(self.pathedit.count()) ]
         encoding.writelines(text, self.LOG_PATH)
         
@@ -291,7 +292,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         """Select directory"""
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         directory = getexistingdirectory(self.main, _("Select directory"),
-                                         os.getcwdu())
+                                         getcwd())
         if directory:
             self.chdir(directory)
         self.emit(SIGNAL('redirect_stdio(bool)'), True)
@@ -308,14 +309,14 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
     def parent_directory(self):
         """Change working directory to parent directory"""
-        self.chdir(os.path.join(os.getcwdu(), os.path.pardir))
+        self.chdir(os.path.join(getcwd(), os.path.pardir))
         
     def chdir(self, directory=None, browsing_history=False,
               refresh_explorer=True):
         """Set directory as working directory"""
         # Working directory history management
         if directory is not None:
-            directory = osp.abspath(unicode(directory))
+            directory = osp.abspath(to_text_string(directory))
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -329,7 +330,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
             self.histindex = len(self.history)-1
         
         # Changing working directory
-        os.chdir( unicode(directory) )
+        os.chdir( to_text_string(directory) )
         self.refresh_plugin()
         if refresh_explorer:
             self.emit(SIGNAL("set_explorer_cwd(QString)"), directory)
@@ -337,4 +338,4 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
         
     def set_as_current_console_wd(self):
         """Set as current console working directory"""
-        self.emit(SIGNAL("set_current_console_wd(QString)"), os.getcwdu())
+        self.emit(SIGNAL("set_current_console_wd(QString)"), getcwd())

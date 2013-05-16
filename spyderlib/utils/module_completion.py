@@ -127,7 +127,7 @@ def get_root_modules(paths):
     for path in sys.path:
         modules += module_list(path)        
         if time() - t > TIMEOUT_GIVEUP:
-            print "Module list generation is taking too long, we give up.\n"
+            print("Module list generation is taking too long, we give up.\n")
             modules_db['rootmodules'] = []
             return []
     

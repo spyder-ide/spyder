@@ -13,10 +13,10 @@
 
 #FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
-#----Builtins
-import __builtin__
+#----Builtins*
+from spyderlib.py3compat import builtins
 from spyderlib.widgets.objecteditor import oedit
-__builtin__.oedit = oedit
+builtins.oedit = oedit
 
 import os
 import threading
@@ -38,6 +38,7 @@ from spyderlib.utils.misc import get_error_match
 from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
+from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
 
 
 def create_banner(message):
@@ -151,7 +152,7 @@ class InternalShell(PythonShellWidget):
         
         # Embedded shell -- requires the monitor (which installs the
         # 'open_in_spyder' function in builtins)
-        if hasattr(__builtin__, 'open_in_spyder'):
+        if hasattr(builtins, 'open_in_spyder'):
             self.connect(self, SIGNAL("go_to_error(QString)"),
                          self.open_with_external_spyder)
 
@@ -202,7 +203,7 @@ class InternalShell(PythonShellWidget):
         self.interpreter.restore_stds()
         
     def edit_script(self, filename, external_editor):
-        filename = unicode(filename)
+        filename = to_text_string(filename)
         if external_editor:
             self.external_editor(filename)
         else:
@@ -274,10 +275,10 @@ class InternalShell(PythonShellWidget):
         """Load file in external Spyder's editor, if available
         This method is used only for embedded consoles
         (could also be useful if we ever implement the magic %edit command)"""
-        match = get_error_match(unicode(text))
+        match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
-            __builtin__.open_in_spyder(fname, int(lnb))
+            builtins.open_in_spyder(fname, int(lnb))
 
     def external_editor(self, filename, goto=-1):
         """Edit in an external editor
@@ -319,7 +320,7 @@ class InternalShell(PythonShellWidget):
             t0 = time()
             for _ in range(10):
                 self.execute_command(command)
-            self.insert_text(u"\n<Δt>=%dms\n" % (1e2*(time()-t0)))
+            self.insert_text(u("\n<Δt>=%dms\n") % (1e2*(time()-t0)))
             self.new_prompt(self.interpreter.p1)
         else:
             self.execute_command(command)
@@ -391,7 +392,7 @@ class InternalShell(PythonShellWidget):
         else:
             if history:
                 self.add_to_history(cmd)
-        self.interpreter.stdin_write.write(cmd.encode("utf-8") + '\n')
+        self.interpreter.stdin_write.write(to_binary_string(cmd + '\n'))
         if not self.multithreaded:
             self.interpreter.run_line()
             self.emit(SIGNAL("refresh()"))
@@ -410,11 +411,11 @@ class InternalShell(PythonShellWidget):
         
     def get_globals_keys(self):
         """Return shell globals() keys"""
-        return self.interpreter.namespace.keys()
+        return list(self.interpreter.namespace.keys())
         
     def get_cdlistdir(self):
         """Return shell current directory list dir"""
-        return os.listdir(os.getcwdu())
+        return os.listdir(getcwd())
                 
     def iscallable(self, objtxt):
         """Is object callable?"""

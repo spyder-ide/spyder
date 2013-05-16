@@ -28,7 +28,8 @@ from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.guiconfig import get_font, set_font
 from spyderlib.plugins.configdialog import SpyderConfigPage
-    
+from spyderlib.py3compat import is_text_string
+
 
 class PluginConfigPage(SpyderConfigPage):
     """Plugin configuration dialog box page widget"""
@@ -164,7 +165,7 @@ class SpyderPluginMixin(object):
         self.mainwindow = mainwindow = QMainWindow()
         mainwindow.setAttribute(Qt.WA_DeleteOnClose)
         icon = self.get_widget_icon()
-        if isinstance(icon, basestring):
+        if is_text_string(icon):
             icon = get_icon(icon)
         mainwindow.setWindowIcon(icon)
         mainwindow.setWindowTitle(self.get_plugin_title())

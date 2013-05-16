@@ -11,13 +11,15 @@ Functions 'get_coding', 'decode', 'encode' and 'to_unicode' come from Eric4
 source code (Utilities/__init___.py) Copyright © 2003-2009 Detlev Offenbach
 """
 
-from __future__ import with_statement
-
 import re
 import os
 import locale
 import sys
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF32
+
+# Local imports
+from spyderlib.py3compat import (is_string, to_text_string, is_binary_string,
+                                 is_unicode)
 
 
 PREFERRED_ENCODING = locale.getpreferredencoding()
@@ -56,10 +58,10 @@ def to_unicode_from_fs(string):
     """
     Return a unicode version of string decoded using the file system encoding.
     """
-    if not isinstance(string, basestring): # string is a QString
-        string = unicode(string.toUtf8(), 'utf-8')
+    if not is_string(string): # string is a QString
+        string = to_text_string(string.toUtf8(), 'utf-8')
     else:
-        if not isinstance(string, unicode):
+        if is_binary_string(string):
             try:
                 unic = string.decode(FS_ENCODING)
             except (UnicodeError, TypeError):
@@ -73,7 +75,7 @@ def to_fs_from_unicode(unic):
     Return a byte string version of unic encoded using the file 
     system encoding.
     """
-    if isinstance(unic, unicode):
+    if is_unicode(unic):
         try:
             string = unic.encode(FS_ENCODING)
         except (UnicodeError, TypeError):
@@ -94,14 +96,14 @@ CODECS = ['utf-8', 'iso8859-1',  'iso8859-15', 'koi8-r',
           'iso8859-6', 'iso8859-7', 'iso8859-8', 'iso8859-9', 
           'iso8859-10', 'iso8859-13', 'iso8859-14', 'latin-1', 
           'utf-16']
-    
+
 def get_coding(text):
     """
     Function to get the coding of a text.
     @param text text to inspect (string)
     @return coding string
     """
-    for line in text.splitlines()[:2]:
+    for line in to_text_string(text.splitlines()[:2]):
         result = CODING_RE.search(line)
         if result:
             return result.group(1)
@@ -116,25 +118,25 @@ def decode(text):
     try:
         if text.startswith(BOM_UTF8):
             # UTF-8 with BOM
-            return unicode(text[len(BOM_UTF8):], 'utf-8'), 'utf-8-bom'
+            return to_text_string(text[len(BOM_UTF8):], 'utf-8'), 'utf-8-bom'
         elif text.startswith(BOM_UTF16):
             # UTF-16 with BOM
-            return unicode(text[len(BOM_UTF16):], 'utf-16'), 'utf-16'
+            return to_text_string(text[len(BOM_UTF16):], 'utf-16'), 'utf-16'
         elif text.startswith(BOM_UTF32):
             # UTF-32 with BOM
-            return unicode(text[len(BOM_UTF32):], 'utf-32'), 'utf-32'
+            return to_text_string(text[len(BOM_UTF32):], 'utf-32'), 'utf-32'
         coding = get_coding(text)
         if coding:
-            return unicode(text, coding), coding
+            return to_text_string(text, coding), coding
     except (UnicodeError, LookupError):
         pass
     # Assume UTF-8
     try:
-        return unicode(text, 'utf-8'), 'utf-8-guessed'
+        return to_text_string(text, 'utf-8'), 'utf-8-guessed'
     except (UnicodeError, LookupError):
         pass
     # Assume Latin-1 (behaviour before 3.7.1)
-    return unicode(text, "latin-1"), 'latin-1-guessed'
+    return to_text_string(text, "latin-1"), 'latin-1-guessed'
 
 def encode(text, orig_coding):
     """
@@ -173,10 +175,10 @@ def encode(text, orig_coding):
     
 def to_unicode(string):
     """Convert a string to unicode"""
-    if not isinstance(string, unicode):
+    if not is_unicode(string):
         for codec in CODECS:
             try:
-                unic = unicode(string, codec)
+                unic = to_text_string(string, codec)
             except UnicodeError:
                 pass
             except TypeError:
@@ -208,7 +210,7 @@ def read(filename, encoding='utf-8'):
     Read text from file ('filename')
     Return text and encoding
     """
-    text, encoding = decode( file(filename, 'rb').read() )
+    text, encoding = decode( open(filename, 'rb').read() )
     return text, encoding
 
 def readlines(filename, encoding='utf-8'):

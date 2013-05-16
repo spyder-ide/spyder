@@ -8,7 +8,12 @@
 Object Editor Dialog based on Qt
 """
 
+from __future__ import print_function
+
 from spyderlib.qt.QtCore import QObject, SIGNAL
+
+# Local imports
+from spyderlib.py3compat import is_text_string
 
 
 class DialogKeeper(QObject):
@@ -74,7 +79,7 @@ def create_dialog(obj, obj_name):
             return
         from spyderlib.pil_patch import Image
         conv_func = lambda data: Image.fromarray(data, mode=obj.mode)
-    elif isinstance(obj, (str, unicode)):
+    elif is_text_string(obj):
         dialog = TextEditor(obj, title=obj_name, readonly=readonly)
     else:
         dialog = DictEditor()
@@ -105,7 +110,7 @@ def oedit(obj, modal=True, namespace=None):
     if modal:
         obj_name = ''
     else:
-        assert isinstance(obj, basestring)
+        assert is_text_string(obj)
         obj_name = obj
         if namespace is None:
             namespace = globals()
@@ -150,11 +155,11 @@ def test():
         def __init__(self):
             self.text = "toto"
     foobar = Foobar()
-    print oedit(foobar)
-    print oedit(example)
-    print oedit(np.random.rand(10, 10))
-    print oedit(oedit.__doc__)
-    print example
+    print(oedit(foobar))
+    print(oedit(example))
+    print(oedit(np.random.rand(10, 10)))
+    print(oedit(oedit.__doc__))
+    print(example)
     
 if __name__ == "__main__":
     test()

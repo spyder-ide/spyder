@@ -12,6 +12,7 @@ from spyderlib.qt.QtCore import QTimer, SIGNAL
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
+from spyderlib.py3compat import to_text_string
 
 
 class StatusBarWidget(QWidget):
@@ -136,7 +137,7 @@ class EOLStatus(StatusBarWidget):
         layout.addSpacing(20)
         
     def eol_changed(self, os_name):
-        os_name = unicode(os_name)
+        os_name = to_text_string(os_name)
         self.eol.setText({"nt": "CRLF", "posix": "LF"}.get(os_name, "CR"))
 
 class EncodingStatus(StatusBarWidget):

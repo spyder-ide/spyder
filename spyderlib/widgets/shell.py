@@ -16,6 +16,7 @@ import time
 import os.path as osp
 import re
 import sys
+import keyword
 
 from spyderlib.qt.QtGui import (QMenu, QApplication, QToolTip, QKeySequence,
                                 QMessageBox, QTextCursor, QTextCharFormat,
@@ -33,6 +34,8 @@ from spyderlib.utils.qthelpers import (keybinding, create_action, add_actions,
 from spyderlib.widgets.sourcecode.base import ConsoleBaseWidget
 from spyderlib.widgets.mixins import (InspectObjectMixin, TracebackLinksMixin,
                                       SaveHistoryMixin)
+from spyderlib.py3compat import (is_text_string, to_text_string, builtins,
+                                 is_string)
 
 
 class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
@@ -54,7 +57,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         # History
         self.histidx = None
         self.hist_wholeline = False
-        assert isinstance(history_filename, (str, unicode))
+        assert is_text_string(history_filename)
         self.history_filename = history_filename
         self.history = self.load_history()
         
@@ -253,15 +256,16 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         if filename:
             filename = osp.normpath(filename)
             try:
-                encoding.write(unicode(self.get_text_with_eol()), filename)
+                encoding.write(to_text_string(self.get_text_with_eol()),
+                               filename)
                 self.historylog_filename = filename
                 CONF.set('main', 'historylog_filename', filename)
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to save file '%s'</b>"
                                        "<br><br>Error message:<br>%s"
                                        ) % (osp.basename(filename),
-                                            unicode(error)))
+                                            to_text_string(error)))
         
         
     #------ Basic keypress event handler
@@ -540,7 +544,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
             self.hist_wholeline = True
             return self.history[idx], idx
         else:
-            for index in xrange(len(self.history)):
+            for index in range(len(self.history)):
                 idx = (start_idx+step*(index+1)) % len(self.history)
                 entry = self.history[idx]
                 if entry.startswith(tocursor):
@@ -561,9 +565,9 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         """Simulate stdout and stderr"""
         if prompt:
             self.flush()
-        if not isinstance(text, basestring):
+        if not is_string(text):
             # This test is useful to discriminate QStrings from decoded str
-            text = unicode(text)
+            text = to_text_string(text)
         self.__buffer.append(text)
         ts = time.time()
         if flush or prompt:
@@ -625,7 +629,7 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     def dropEvent(self, event):
         """Drag and Drop - Drop event"""
         if (event.mimeData().hasFormat("text/plain")):
-            text = unicode(event.mimeData().text())
+            text = to_text_string(event.mimeData().text())
             if self.new_input_line:
                 self.on_new_line()
             self.insert_text(text, at_end=True)
@@ -808,7 +812,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     #------ Paste
     def paste(self):
         """Reimplemented slot to handle multiline paste action"""
-        text = unicode(QApplication.clipboard().text())
+        text = to_text_string(QApplication.clipboard().text())
         if len(text.splitlines()) > 1:
             # Multiline paste
             if self.new_input_line:
@@ -861,7 +865,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
     def show_code_completion(self, automatic):
         """Display a completion list based on the current line"""
         # Note: unicode conversion is needed only for ExternalShellBase
-        text = unicode(self.get_current_line_to_cursor())
+        text = to_text_string(self.get_current_line_to_cursor())
         last_obj = self.get_last_obj()
         
         if text.startswith('import '):
@@ -892,10 +896,9 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
             return
         
         # Builtins and globals
-        import __builtin__, keyword
         if not text.endswith('.') and last_obj \
            and re.match(r'[a-zA-Z_0-9]*$', last_obj):
-            b_k_g = dir(__builtin__)+self.get_globals_keys()+keyword.kwlist
+            b_k_g = dir(builtins)+self.get_globals_keys()+keyword.kwlist
             for objname in b_k_g:
                 if objname.startswith(last_obj) and objname != last_obj:
                     self.show_completion_list(b_k_g, completion_text=last_obj,

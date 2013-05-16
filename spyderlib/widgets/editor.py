@@ -11,6 +11,8 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from __future__ import print_function
+
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
                                 QAction, QApplication, QWidget, QHBoxLayout,
@@ -45,6 +47,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
+from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
 
 class FileListDialog(QDialog):
@@ -135,16 +138,16 @@ class FileListDialog(QDialog):
                                          else Qt.ElideRight)
         current_row = self.listwidget.currentRow()
         if current_row >= 0:
-            current_text = unicode(self.listwidget.currentItem().text())
+            current_text = to_text_string(self.listwidget.currentItem().text())
         else:
             current_text = ""
         self.listwidget.clear()
         self.indexes = []
         new_current_index = stack_index
-        filter_text = unicode(self.edit.text())
+        filter_text = to_text_string(self.edit.text())
         lw_index = 0
         for index in range(count):
-            text = unicode(self.tabs.tabText(index))
+            text = to_text_string(self.tabs.tabText(index))
             if len(filter_text) == 0 or filter_text in text:
                 if text == current_text:
                     new_current_index = lw_index
@@ -204,12 +207,12 @@ class ThreadManager(QObject):
     def close_threads(self, parent):
         """Close threads associated to parent_id"""
         if DEBUG:
-            print >>STDOUT, "Call to 'close_threads'"
+            print("Call to 'close_threads'", file=STDOUT)
         if parent is None:
             # Closing all threads
             self.pending_threads = []
             threadlist = []
-            for threads in self.started_threads.values():
+            for threads in list(self.started_threads.values()):
                 threadlist += threads
         else:
             parent_id = id(parent)
@@ -219,7 +222,7 @@ class ThreadManager(QObject):
             threadlist = self.started_threads.get(parent_id, [])
         for thread in threadlist:
             if DEBUG:
-                print >>STDOUT, "Waiting for thread %r to finish" % thread
+                print("Waiting for thread %r to finish" % thread, file=STDOUT)
             while thread.isRunning():
                 # We can't terminate thread safely, so we simply wait...
                 QApplication.processEvents()
@@ -227,7 +230,7 @@ class ThreadManager(QObject):
     def close_all_threads(self):
         """Close all threads"""
         if DEBUG:
-            print >>STDOUT, "Call to 'close_all_threads'"
+            print("Call to 'close_all_threads'", file=STDOUT)
         self.close_threads(None)
         
     def add_thread(self, checker, end_callback, source_code, parent):
@@ -237,13 +240,13 @@ class ThreadManager(QObject):
         self.end_callbacks[id(thread)] = end_callback
         self.pending_threads.append((thread, parent_id))
         if DEBUG:
-            print >>STDOUT, "Added thread %r to queue" % thread
+            print("Added thread %r to queue" % thread, file=STDOUT)
         QTimer.singleShot(50, self.update_queue)
     
     def update_queue(self):
         """Update queue"""
         started = 0
-        for parent_id, threadlist in self.started_threads.items():
+        for parent_id, threadlist in list(self.started_threads.items()):
             still_running = []
             for thread in threadlist:
                 if thread.isFinished():
@@ -262,16 +265,16 @@ class ThreadManager(QObject):
             else:
                 self.started_threads.pop(parent_id)
         if DEBUG:
-            print >>STDOUT, "Updating queue:"
-            print >>STDOUT, "    started:", started
-            print >>STDOUT, "    pending:", len(self.pending_threads)
+            print("Updating queue:", file=STDOUT)
+            print("    started:", started, file=STDOUT)
+            print("    pending:", len(self.pending_threads), file=STDOUT)
         if self.pending_threads and started < self.max_simultaneous_threads:
             thread, parent_id = self.pending_threads.pop(0)
             self.connect(thread, SIGNAL('finished()'), self.update_queue)
             threadlist = self.started_threads.get(parent_id, [])
             self.started_threads[parent_id] = threadlist+[thread]
             if DEBUG:
-                print >>STDOUT, "===>starting:", thread
+                print("===>starting:", thread, file=STDOUT)
             thread.start()
 
 
@@ -323,7 +326,7 @@ class FileInfo(QObject):
         
     def trigger_code_completion(self, automatic):
         """Trigger code completion"""
-        source_code = unicode(self.editor.toPlainText())
+        source_code = self.get_source_code()
         offset = self.editor.get_position('cursor')
         text = self.editor.get_text('sol', 'cursor')
         
@@ -366,7 +369,7 @@ class FileInfo(QObject):
         # i.e. the user has just entered an opening parenthesis -- in that 
         # case, we don't want to force the object inspector to be visible, 
         # to avoid polluting the window layout
-        source_code = unicode(self.editor.toPlainText())
+        source_code = self.get_source_code()
         offset = position
         
         helplist = self.rope_project.get_calltip_and_docs(source_code, offset,
@@ -419,7 +422,7 @@ class FileInfo(QObject):
                     
     def go_to_definition(self, position):
         """Go to definition"""
-        source_code = unicode(self.editor.toPlainText())
+        source_code = self.get_source_code()
         offset = position
         fname, lineno = self.rope_project.get_definition_location(source_code,
                                                     offset, self.filename)
@@ -429,7 +432,7 @@ class FileInfo(QObject):
     
     def get_source_code(self):
         """Return associated editor source code"""
-        return unicode(self.editor.toPlainText()).encode('utf-8')
+        return to_text_string(self.editor.toPlainText())
     
     def run_code_analysis(self, run_pyflakes, run_pep8):
         """Run code analysis"""
@@ -439,7 +442,8 @@ class FileInfo(QObject):
         self.pyflakes_results = []
         self.pep8_results = []
         if self.editor.is_python():
-            source_code = self.get_source_code()
+            enc = self.encoding.replace('-guessed', '').replace('-bom', '')
+            source_code = self.get_source_code().encode(enc)
             if run_pyflakes:
                 self.pyflakes_results = None
             if run_pep8:
@@ -1086,12 +1090,12 @@ class EditorStack(QWidget):
         if self.fullpath_sorting_enabled:
             text = filename
         else:
-            text = u"%s — %s"
+            text = u("%s — %s")
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\
            and filename == encoding.to_unicode_from_fs(self.tempfile_path):
-            temp_file_str = unicode(_("Temporary file"))
+            temp_file_str = to_text_string(_("Temporary file"))
             if self.fullpath_sorting_enabled:
                 return "%s (%s)" % (text, temp_file_str)
             else:
@@ -1143,7 +1147,7 @@ class EditorStack(QWidget):
         finfo = self.data[index]
         if osp.splitext(finfo.filename)[1] != osp.splitext(new_filename)[1]:
             # File type has changed!
-            txt = unicode(finfo.editor.get_text_with_eol())
+            txt = to_text_string(finfo.editor.get_text_with_eol())
             language = get_file_language(new_filename, txt)
             finfo.editor.set_language(language)
         set_new_index = index == self.get_stack_index()
@@ -1308,7 +1312,7 @@ class EditorStack(QWidget):
     def save_if_changed(self, cancelable=False, index=None):
         """Ask user to save file if modified"""
         if index is None:
-            indexes = range(self.get_stack_count())
+            indexes = list(range(self.get_stack_count()))
         else:
             indexes = [index]
         buttons = QMessageBox.Yes | QMessageBox.No
@@ -1365,7 +1369,7 @@ class EditorStack(QWidget):
             return self.save_as(index=index)
         if self.always_remove_trailing_spaces:
             self.remove_trailing_spaces(index)
-        txt = unicode(finfo.editor.get_text_with_eol())
+        txt = to_text_string(finfo.editor.get_text_with_eol())
         try:
             finfo.encoding = encoding.write(txt, finfo.filename,
                                             finfo.encoding)
@@ -1394,7 +1398,7 @@ class EditorStack(QWidget):
             
             self._refresh_outlineexplorer(index)
             return True
-        except EnvironmentError, error:
+        except EnvironmentError as error:
             QMessageBox.critical(self, _("Save"),
                                  _("<b>Unable to save script '%s'</b>"
                                    "<br><br>Error message:<br>%s"
@@ -1411,7 +1415,7 @@ class EditorStack(QWidget):
         """
         finfo = self.data[index]
         finfo.newly_created = False
-        finfo.filename = unicode(filename)
+        finfo.filename = to_text_string(filename)
         finfo.lastmodified = QFileInfo(finfo.filename).lastModified()
     
     def select_savename(self, original_filename):
@@ -1512,7 +1516,7 @@ class EditorStack(QWidget):
         if index != -1:
             editor.setFocus()
             if DEBUG:
-                print >>STDOUT, "setfocusto:", editor
+                print("setfocusto:", editor, file=STDOUT)
         else:
             self.emit(SIGNAL('reset_statusbar()'))
         self.emit(SIGNAL('opened_files_list_changed()'))
@@ -1528,8 +1532,8 @@ class EditorStack(QWidget):
             self.stack_history.pop(self.stack_history.index(current_id))
         self.stack_history.append(current_id)
         if DEBUG:
-            print >>STDOUT, "current_changed:", index, self.data[index].editor,
-            print >>STDOUT, self.data[index].editor.get_document_id()
+            print("current_changed:", index, self.data[index].editor, end=' ', file=STDOUT)
+            print(self.data[index].editor.get_document_id(), file=STDOUT)
             
         self.emit(SIGNAL('update_plugin_title()'))
         if editor is not None:
@@ -1654,8 +1658,8 @@ class EditorStack(QWidget):
         else:
             # Else, testing if it has been modified elsewhere:
             lastm = QFileInfo(finfo.filename).lastModified()
-            if unicode(lastm.toString()) \
-               != unicode(finfo.lastmodified.toString()):
+            if to_text_string(lastm.toString()) \
+               != to_text_string(finfo.lastmodified.toString()):
                 if finfo.editor.document().isModified():
                     answer = QMessageBox.question(self,
                                 self.title,
@@ -1854,11 +1858,11 @@ class EditorStack(QWidget):
                 self.inspector.set_object_text(qstr1, ignore_unknown=True,
                                                force_refresh=force)
             else:
-                objtxt = unicode(qstr1)
+                objtxt = to_text_string(qstr1)
                 name = objtxt.split('.')[-1]
-                argspec = unicode(qstr2)
-                note = unicode(qstr3)
-                docstring = unicode(qstr4)
+                argspec = to_text_string(qstr2)
+                note = to_text_string(qstr3)
+                docstring = to_text_string(qstr4)
                 text = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
                         'note': note, 'docstring': docstring}
                 self.inspector.set_rope_doc(text, force_refresh=force)
@@ -1882,7 +1886,7 @@ class EditorStack(QWidget):
         the source code analysis -- the analysis must be done by the editor
         plugin (in case multiple editorstack instances are handled)
         """
-        filename = osp.abspath(unicode(filename))
+        filename = osp.abspath(to_text_string(filename))
         self.emit(SIGNAL('starting_long_process(QString)'),
                   _("Loading %s...") % filename)
         text, enc = encoding.read(filename)
@@ -2009,8 +2013,8 @@ class EditorSplitter(QSplitter):
         
     def editorstack_closed(self):
         if DEBUG:
-            print >>STDOUT, "method 'editorstack_closed':"
-            print >>STDOUT, "    self  :", self
+            print("method 'editorstack_closed':", file=STDOUT)
+            print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
         self.unregister_editorstack_cb(self.editorstack)
         self.editorstack = None
@@ -2028,8 +2032,8 @@ class EditorSplitter(QSplitter):
         
     def editorsplitter_closed(self):
         if DEBUG:
-            print >>STDOUT, "method 'editorsplitter_closed':"
-            print >>STDOUT, "    self  :", self
+            print("method 'editorsplitter_closed':", file=STDOUT)
+            print("    self  :", self, file=STDOUT)
 #            print >>STDOUT, "    sender:", self.sender()
         try:
             close_splitter = self.count() == 1 and self.editorstack is None
@@ -2076,7 +2080,7 @@ class EditorSplitter(QSplitter):
                       for finfo in editorstack.data]
             cfname = editorstack.get_current_filename()
             splitsettings.append((orientation == Qt.Vertical, cfname, clines))
-        return dict(hexstate=str(self.saveState().toHex()),
+        return dict(hexstate=qbytearray_to_str(self.saveState()),
                     sizes=self.sizes(), splitsettings=splitsettings)
     
     def set_layout_settings(self, settings):
@@ -2160,7 +2164,7 @@ class EditorWidget(QSplitter):
     def register_editorstack(self, editorstack):
         self.editorstacks.append(editorstack)
         if DEBUG:
-            print >>STDOUT, "EditorWidget.register_editorstack:", editorstack
+            print("EditorWidget.register_editorstack:", editorstack, file=STDOUT)
             self.__print_editorstacks()
         self.plugin.last_focus_editorstack[self.parent()] = editorstack
         editorstack.set_closable( len(self.editorstacks) > 1 )
@@ -2187,14 +2191,14 @@ class EditorWidget(QSplitter):
         editorstack.add_corner_widgets_to_tabbar([5, oe_btn])
         
     def __print_editorstacks(self):
-        print >>STDOUT, "%d editorstack(s) in editorwidget:" \
-                        % len(self.editorstacks)
+        print("%d editorstack(s) in editorwidget:" \
+                        % len(self.editorstacks), file=STDOUT)
         for edst in self.editorstacks:
-            print >>STDOUT, "    ", edst
+            print("    ", edst, file=STDOUT)
         
     def unregister_editorstack(self, editorstack):
         if DEBUG:
-            print >>STDOUT, "EditorWidget.unregister_editorstack:", editorstack
+            print("EditorWidget.unregister_editorstack:", editorstack, file=STDOUT)
         self.plugin.unregister_editorstack(editorstack)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         if DEBUG:
@@ -2259,7 +2263,7 @@ class EditorMainWindow(QMainWindow):
             self.emit(SIGNAL('destroyed()'))
             for editorstack in self.editorwidget.editorstacks[:]:
                 if DEBUG:
-                    print >>STDOUT, "--> destroy_editorstack:", editorstack
+                    print("--> destroy_editorstack:", editorstack, file=STDOUT)
                 editorstack.emit(SIGNAL('destroyed()'))
                                 
     def get_layout_settings(self):
@@ -2269,7 +2273,7 @@ class EditorMainWindow(QMainWindow):
                     pos=(self.pos().x(), self.pos().y()),
                     is_maximized=self.isMaximized(),
                     is_fullscreen=self.isFullScreen(),
-                    hexstate=str(self.saveState().toHex()),
+                    hexstate=qbytearray_to_str(self.saveState()),
                     splitsettings=splitsettings)
     
     def set_layout_settings(self, settings):
@@ -2333,7 +2337,7 @@ class EditorPluginExample(QSplitter):
         
     def go_to_file(self, fname, lineno, text):
         editorstack = self.editorstacks[0]
-        editorstack.set_current_filename(unicode(fname))
+        editorstack.set_current_filename(to_text_string(fname))
         editor = editorstack.get_current_editor()
         editor.go_to_line(lineno, word=text)
 
@@ -2341,8 +2345,8 @@ class EditorPluginExample(QSplitter):
         for win in self.editorwindows[:]:
             win.close()
         if DEBUG:
-            print >>STDOUT, len(self.editorwindows), ":", self.editorwindows
-            print >>STDOUT, len(self.editorstacks), ":", self.editorstacks
+            print(len(self.editorwindows), ":", self.editorwindows, file=STDOUT)
+            print(len(self.editorstacks), ":", self.editorstacks, file=STDOUT)
         
         event.accept()
         
@@ -2354,7 +2358,7 @@ class EditorPluginExample(QSplitter):
     
     def register_editorstack(self, editorstack):
         if DEBUG:
-            print >>STDOUT, "FakePlugin.register_editorstack:", editorstack
+            print("FakePlugin.register_editorstack:", editorstack, file=STDOUT)
         self.editorstacks.append(editorstack)
         if self.isAncestorOf(editorstack):
             # editorstack is a child of the Editor plugin
@@ -2387,7 +2391,7 @@ class EditorPluginExample(QSplitter):
                     
     def unregister_editorstack(self, editorstack):
         if DEBUG:
-            print >>STDOUT, "FakePlugin.unregister_editorstack:", editorstack
+            print("FakePlugin.unregister_editorstack:", editorstack, file=STDOUT)
         self.editorstacks.pop(self.editorstacks.index(editorstack))
         
     def clone_editorstack(self, editorstack):
@@ -2410,12 +2414,12 @@ class EditorPluginExample(QSplitter):
         
     def register_editorwindow(self, window):
         if DEBUG:
-            print >>STDOUT, "register_editorwindowQObject*:", window
+            print("register_editorwindowQObject*:", window, file=STDOUT)
         self.editorwindows.append(window)
         
     def unregister_editorwindow(self, window):
         if DEBUG:
-            print >>STDOUT, "unregister_editorwindow:", window
+            print("unregister_editorwindow:", window, file=STDOUT)
         self.editorwindows.pop(self.editorwindows.index(window))
     
     def get_focus_widget(self):
@@ -2465,7 +2469,7 @@ def test():
     test.load("dicteditor.py")
     test.load("sourcecode/codeeditor.py")
     test.load("../spyder.py")
-    print "Elapsed time: %.3f s" % (time.time()-t0)
+    print("Elapsed time: %.3f s" % (time.time()-t0))
     sys.exit(app.exec_())
     
 if __name__ == "__main__":

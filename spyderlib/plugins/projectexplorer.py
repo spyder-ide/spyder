@@ -15,6 +15,7 @@ from spyderlib.config import VALID_EXT
 from spyderlib.utils.qthelpers import get_icon, create_action
 from spyderlib.widgets.projectexplorer import ProjectExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import is_text_string
 
 
 class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
@@ -138,7 +139,7 @@ class ProjectExplorer(ProjectExplorerWidget, SpyderPluginMixin):
         # Sometimes the expanded state option may be truncated in .ini file
         # (for an unknown reason), in this case it would be converted to a
         # string by 'userconfig':
-        if isinstance(expanded_state, basestring):
+        if is_text_string(expanded_state):
             expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)

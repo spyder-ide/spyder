@@ -47,6 +47,7 @@ from spyderlib.widgets.ipython import SpyderIPythonWidget
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.plugins import SpyderPluginWidget, PluginConfigPage
 from spyderlib.widgets.mixins import SaveHistoryMixin
+from spyderlib.py3compat import to_text_string
 
 
 class IPythonConsoleConfigPage(PluginConfigPage):
@@ -694,13 +695,14 @@ class IPythonConsole(SpyderPluginWidget):
 
     def run_script_in_current_client(self, filename, wdir, args, debug):
         """Run script in current client, if any"""
-        norm = lambda text: remove_trailing_single_backslash(unicode(text))
+        norm = lambda text:\
+               remove_trailing_single_backslash(to_text_string(text))
         client = self.get_current_client()
         if client is not None:
             # Internal kernels, use runfile
             if client.kernel_widget_id is not None:
                 line = "%s(r'%s'" % ('debugfile' if debug else 'runfile',
-                                     unicode(filename))
+                                     to_text_string(filename))
                 if args:
                     line += ", args=r'%s'" % norm(args)
                 if wdir:
@@ -710,7 +712,7 @@ class IPythonConsole(SpyderPluginWidget):
                 line = "%run "
                 if debug:
                     line += "-d "
-                line += "\"%s\"" % unicode(filename)
+                line += "\"%s\"" % to_text_string(filename)
                 if args:
                     line += " %s" % norm(args)
             self.execute_python_code(line)
@@ -726,7 +728,7 @@ class IPythonConsole(SpyderPluginWidget):
     def execute_python_code(self, lines):
         client = self.get_current_client()
         if client is not None:
-            client.ipywidget.execute(unicode(lines))
+            client.ipywidget.execute(to_text_string(lines))
             self.activateWindow()
             client.get_control().setFocus()
 
@@ -1114,7 +1116,7 @@ class IPythonConsole(SpyderPluginWidget):
         
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(unicode(text))
+        match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
             self.emit(SIGNAL("edit_goto(QString,int,QString)"),

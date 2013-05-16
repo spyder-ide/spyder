@@ -9,13 +9,17 @@ Editor widget syntax highlighters based on QtGui.QSyntaxHighlighter
 (Python syntax highlighting rules are inspired from idlelib)
 """
 
+from __future__ import print_function
+
 import re
 import keyword
-import __builtin__
 
 from spyderlib.qt.QtGui import (QColor, QApplication, QFont,
                                 QSyntaxHighlighter, QCursor, QTextCharFormat)
 from spyderlib.qt.QtCore import Qt
+
+# Local imports
+from spyderlib.py3compat import builtins, is_text_string, to_text_string
 
 
 #==============================================================================
@@ -135,7 +139,7 @@ COLORS = {
            "instance":   ("#be5f00", False, True),
            },
           }
-COLOR_SCHEME_NAMES = COLORS.keys()
+COLOR_SCHEME_NAMES = list(COLORS.keys())
 
 class BaseSH(QSyntaxHighlighter):
     """Base Syntax Highlighter Class"""
@@ -150,7 +154,7 @@ class BaseSH(QSyntaxHighlighter):
         
         self.font = font
         self._check_color_scheme(color_scheme)
-        if isinstance(color_scheme, basestring):
+        if is_text_string(color_scheme):
             self.color_scheme = COLORS[color_scheme]
         else:
             self.color_scheme = color_scheme
@@ -210,7 +214,7 @@ class BaseSH(QSyntaxHighlighter):
         self.sideareas_color = colors.pop("sideareas")
         self.matched_p_color = colors.pop("matched_p")
         self.unmatched_p_color = colors.pop("unmatched_p")
-        for name, (color, bold, italic) in colors.iteritems():
+        for name, (color, bold, italic) in list(colors.items()):
             format = QTextCharFormat(base_format)
             format.setForeground(QColor(color))
             format.setBackground(QColor(self.background_color))
@@ -220,14 +224,14 @@ class BaseSH(QSyntaxHighlighter):
             self.formats[name] = format
 
     def _check_color_scheme(self, color_scheme):
-        if isinstance(color_scheme, basestring):
+        if is_text_string(color_scheme):
             assert color_scheme in COLOR_SCHEME_NAMES
         else:
             assert all([key in color_scheme for key in COLOR_SCHEME_KEYS])
 
     def set_color_scheme(self, color_scheme):
         self._check_color_scheme(color_scheme)
-        if isinstance(color_scheme, basestring):
+        if is_text_string(color_scheme):
             self.color_scheme = COLORS[color_scheme]
         else:
             self.color_scheme = color_scheme
@@ -258,7 +262,7 @@ class GenericSH(BaseSH):
     # Syntax highlighting rules:
     PROG = None  # to be redefined in child classes
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
         
         match = self.PROG.search(text)
@@ -283,7 +287,7 @@ def any(name, alternates):
 def make_python_patterns(additional_keywords=[], additional_builtins=[]):
     "Strongly inspired from idlelib.ColorDelegator.make_pat"
     kw = r"\b" + any("keyword", keyword.kwlist+additional_keywords) + r"\b"
-    builtinlist = [str(name) for name in dir(__builtin__)
+    builtinlist = [str(name) for name in dir(builtins)
                    if not name.startswith('_')]+additional_builtins
     builtin = r"([^.'\"\\#]\b|^)" + any("builtin", builtinlist) + r"\b"
     comment = any("comment", [r"#[^\n]*"])
@@ -312,7 +316,7 @@ def make_python_patterns(additional_keywords=[], additional_builtins=[]):
                      number, any("SYNC", [r"\n"])])
 
 class OutlineExplorerData(object):
-    CLASS, FUNCTION, STATEMENT, COMMENT = range(4)
+    CLASS, FUNCTION, STATEMENT, COMMENT = list(range(4))
     def __init__(self):
         self.text = None
         self.fold_level = None
@@ -341,7 +345,7 @@ class PythonSH(BaseSH):
     ASPROG = re.compile(r".*?\b(as)\b")
     # Syntax highlighting states (from one text block to another):
     (NORMAL, INSIDE_SQ3STRING, INSIDE_DQ3STRING,
-     INSIDE_SQSTRING, INSIDE_DQSTRING) = range(5)
+     INSIDE_SQSTRING, INSIDE_DQSTRING) = list(range(5))
     DEF_TYPES = {"def": OutlineExplorerData.FUNCTION,
                  "class": OutlineExplorerData.CLASS}
     # Comments suitable for Outline Explorer
@@ -352,7 +356,7 @@ class PythonSH(BaseSH):
         self.import_statements = {}
 
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         prev_state = self.previousBlockState()
         if prev_state == self.INSIDE_DQ3STRING:
             offset = -4
@@ -378,7 +382,7 @@ class PythonSH(BaseSH):
         state = self.NORMAL
         match = self.PROG.search(text)
         while match:
-            for key, value in match.groupdict().items():
+            for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = match.span(key)
                     start = max([0, start+offset])
@@ -404,7 +408,7 @@ class PythonSH(BaseSH):
                         if key == "comment":
                             if self.OECOMMENT.match(text.lstrip()):
                                 oedata = OutlineExplorerData()
-                                oedata.text = unicode(text).strip()
+                                oedata.text = to_text_string(text).strip()
                                 oedata.fold_level = start
                                 oedata.def_type = OutlineExplorerData.COMMENT
                                 oedata.def_name = text.strip()
@@ -416,17 +420,17 @@ class PythonSH(BaseSH):
                                     self.setFormat(start1, end1-start1,
                                                    self.formats["definition"])
                                     oedata = OutlineExplorerData()
-                                    oedata.text = unicode(text)
+                                    oedata.text = to_text_string(text)
                                     oedata.fold_level = start
                                     oedata.def_type = self.DEF_TYPES[
-                                                                unicode(value)]
+                                                        to_text_string(value)]
                                     oedata.def_name = text[start1:end1]
                             elif value in ("elif", "else", "except", "finally",
                                            "for", "if", "try", "while",
                                            "with"):
                                 if text.lstrip().startswith(value):
                                     oedata = OutlineExplorerData()
-                                    oedata.text = unicode(text).strip()
+                                    oedata.text = to_text_string(text).strip()
                                     oedata.fold_level = start
                                     oedata.def_type = \
                                         OutlineExplorerData.STATEMENT
@@ -461,7 +465,7 @@ class PythonSH(BaseSH):
             self.import_statements[block_nb] = import_stmt
             
     def get_import_statements(self):
-        return self.import_statements.values()
+        return list(self.import_statements.values())
             
     def rehighlight(self):
         self.import_statements = {}
@@ -528,7 +532,7 @@ class CppSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         inside_comment = self.previousBlockState() == self.INSIDE_COMMENT
         self.setFormat(0, len(text),
                        self.formats["comment" if inside_comment else "normal"])
@@ -536,7 +540,7 @@ class CppSH(BaseSH):
         match = self.PROG.search(text)
         index = 0
         while match:
-            for key, value in match.groupdict().items():
+            for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = match.span(key)
                     index += end-start
@@ -614,13 +618,13 @@ class FortranSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
 
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         self.setFormat(0, len(text), self.formats["normal"])
         
         match = self.PROG.search(text)
         index = 0
         while match:
-            for key, value in match.groupdict().items():
+            for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = match.span(key)
                     index += end-start
@@ -637,7 +641,7 @@ class FortranSH(BaseSH):
 class Fortran77SH(FortranSH):
     """Fortran 77 Syntax Highlighter"""
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         if text.startswith(("c", "C")):
             self.setFormat(0, len(text), self.formats["comment"])
         else:
@@ -684,7 +688,7 @@ class IdlSH(GenericSH):
 class DiffSH(BaseSH):
     """Simple Diff/Patch Syntax Highlighter Class"""
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         if text.startswith("+++"):
             self.setFormat(0, len(text), self.formats["keyword"])
         elif text.startswith("---"):
@@ -760,7 +764,7 @@ class BaseWebSH(BaseSH):
         BaseSH.__init__(self, parent, font, color_scheme)
     
     def highlightBlock(self, text):
-        text = unicode(text)
+        text = to_text_string(text)
         previous_state = self.previousBlockState()
         
         if previous_state == self.COMMENT:
@@ -777,7 +781,7 @@ class BaseWebSH(BaseSH):
         # There should never be more matches than characters in the text.
         while match and match_count < n_characters:
             match_dict = match.groupdict()
-            for key, value in match_dict.items():
+            for key, value in list(match_dict.items()):
                 if value:
                     start, end = match.span(key)
                     if previous_state == self.COMMENT:
@@ -874,7 +878,7 @@ class PygmentsSH(BaseSH):
 
     def highlightBlock(self, text):
         """ Actually highlight the block """        
-        text = unicode(text)                
+        text = to_text_string(text)                
         lextree = self._lexer.get_tokens(text)        
         ct = 0
         for item in lextree:            
@@ -917,7 +921,8 @@ if __name__ == '__main__':
     ]
     for line in valid_comments:
         if not PythonSH.OECOMMENT.match(line):
-            print "Error matching '%s' as outline comment" % line
+            print("Error matching '%s' as outline comment" % line)
     for line in invalid_comments:
         if PythonSH.OECOMMENT.match(line):
-            print "Error: '%s' is matched as outline comment" % line
+            print("Error: '%s' is matched as outline comment" % line)
+        

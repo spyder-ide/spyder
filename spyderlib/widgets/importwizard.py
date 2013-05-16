@@ -8,6 +8,8 @@
 Text data Importing Wizard based on Qt
 """
 
+from __future__ import print_function
+
 from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
                                 QGridLayout, QWidget,QDialog, QTextEdit,
                                 QTabWidget, QPushButton, QLabel, QSpacerItem,
@@ -23,6 +25,7 @@ from functools import partial as ft_partial
 # Local import
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon, add_actions, create_action
+from spyderlib.py3compat import TEXT_TYPES, INT_TYPES, to_text_string, u
 
 def try_to_parse(value):
     _types = ('int', 'float')
@@ -58,7 +61,7 @@ try:
 except ImportError:
     def dateparse(datestr, dayfirst=True):  # analysis:ignore
         """Just for 'day/month/year' strings"""
-        _a, _b, _c = map(int, datestr.split('/'))
+        _a, _b, _c = list(map(int, datestr.split('/')))
         if dayfirst:
             return datetime.datetime(_c, _b, _a)
         return datetime.datetime(_c, _a, _b)
@@ -69,11 +72,11 @@ def datestr_to_datetime(value, dayfirst=True):
 #----Background colors for supported types 
 COLORS = {
           bool: Qt.magenta,
-          (int, float, long): Qt.blue,
+          tuple([float] + list(INT_TYPES)): Qt.blue,
           list: Qt.yellow,
           dict: Qt.cyan,
           tuple: Qt.lightGray,
-          (str, unicode): Qt.darkRed,
+          TEXT_TYPES: Qt.darkRed,
           ndarray: Qt.green,
           datetime.date: Qt.darkYellow,
           }
@@ -165,7 +168,7 @@ class ContentsWidget(QWidget):
         other_layout.addWidget(skiprows_label, 0, 0)
         self.skiprows_edt = QLineEdit('0')
         self.skiprows_edt.setMaximumWidth(30)
-        intvalid = QIntValidator(0, len(unicode(text).splitlines()),
+        intvalid = QIntValidator(0, len(to_text_string(text).splitlines()),
                                  self.skiprows_edt)
         self.skiprows_edt.setValidator(intvalid)
         other_layout.addWidget(self.skiprows_edt, 0, 1)
@@ -218,22 +221,22 @@ class ContentsWidget(QWidget):
     def get_col_sep(self):
         """Return the column separator"""
         if self.tab_btn.isChecked():
-            return u"\t"
-        return unicode(self.line_edt.text())
+            return u("\t")
+        return to_text_string(self.line_edt.text())
     
     def get_row_sep(self):
         """Return the row separator"""
         if self.eol_btn.isChecked():
-            return u"\n"
-        return unicode(self.line_edt_row.text())
+            return u("\n")
+        return to_text_string(self.line_edt_row.text())
     
     def get_skiprows(self):
         """Return number of lines to be skipped"""
-        return int(unicode(self.skiprows_edt.text()))
+        return int(to_text_string(self.skiprows_edt.text()))
     
     def get_comments(self):
         """Return comment string"""
-        return unicode(self.comments_edt.text())
+        return to_text_string(self.comments_edt.text())
 
     @Slot(bool)
     def set_as_data(self, as_data):
@@ -300,7 +303,7 @@ class PreviewTableModel(QAbstractTableModel):
                 _tmp = self._data[index.row()][index.column()].replace(",", "")
                 self._data[index.row()][index.column()] = eval(_tmp)
             elif kwargs['atype'] == "unicode":
-                self._data[index.row()][index.column()] = unicode(
+                self._data[index.row()][index.column()] = to_text_string(
                     self._data[index.row()][index.column()])
             elif kwargs['atype'] == "int":
                 self._data[index.row()][index.column()] = int(
@@ -309,8 +312,8 @@ class PreviewTableModel(QAbstractTableModel):
                 self._data[index.row()][index.column()] = float(
                     self._data[index.row()][index.column()])                
             self.emit(SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
-        except Exception, instance:
-            print instance
+        except Exception as instance:
+            print(instance)
 
 class PreviewTable(QTableView):
     """Import wizard preview widget"""
@@ -321,7 +324,7 @@ class PreviewTable(QTableView):
         # Setting up actions
         self.date_dayfirst_action = create_action(self, "dayfirst",
             triggered=ft_partial(self.parse_to_type, atype="date", dayfirst=True))
-        self.date_monthfirst_action = create_action(self,"monthfirst",
+        self.date_monthfirst_action = create_action(self, "monthfirst",
             triggered=ft_partial(self.parse_to_type, atype="date", dayfirst=False))
         self.perc_action = create_action(self, "perc",
             triggered=ft_partial(self.parse_to_type, atype="perc"))
@@ -331,7 +334,7 @@ class PreviewTable(QTableView):
             triggered=ft_partial(self.parse_to_type, atype="unicode"))
         self.int_action = create_action(self, "int",
             triggered=ft_partial(self.parse_to_type, atype="int"))
-        self.float_action = create_action(self,"float",
+        self.float_action = create_action(self, "float",
             triggered=ft_partial(self.parse_to_type, atype="float"))
         
         # Setting up menus
@@ -348,18 +351,18 @@ class PreviewTable(QTableView):
         add_actions( self.opt_menu, (self.str_action, self.int_action,
                                      self.float_action))
 
-    def _shape_text(self, text, colsep=u"\t", rowsep=u"\n", transpose=False,
-                    skiprows=0, comments='#'):
+    def _shape_text(self, text, colsep=u("\t"), rowsep=u("\n"),
+                    transpose=False, skiprows=0, comments='#'):
         """Decode the shape of the given text"""
         assert colsep != rowsep
         out = []
         text_rows = map(None, text.split(rowsep))[skiprows:]
         for row in text_rows:
-            stripped = unicode(row).strip()
+            stripped = to_text_string(row).strip()
             if len(stripped) == 0 or stripped.startswith(comments):
                 continue
-            line = unicode(row).split(colsep)
-            line = map(lambda x: try_to_parse(unicode(x)), line)
+            line = to_text_string(row).split(colsep)
+            line = [try_to_parse(to_text_string(x)) for x in line]
             out.append(line)
         if transpose:
             return [[r[col] for r in out] for col in range(len(out[0]))]
@@ -371,8 +374,8 @@ class PreviewTable(QTableView):
             return None
         return self._model.get_data()
 
-    def process_data(self, text, colsep=u"\t", rowsep=u"\n", transpose=False,
-                     skiprows=0, comments='#'):
+    def process_data(self, text, colsep=u("\t"), rowsep=u("\n"),
+                     transpose=False, skiprows=0, comments='#'):
         """Put data into table model"""
         data = self._shape_text(text, colsep, rowsep, transpose, skiprows,
                                 comments)
@@ -413,7 +416,7 @@ class PreviewWidget(QWidget):
         vert_layout.addWidget(self._table_view)
         self.setLayout(vert_layout)
 
-    def open_data(self, text, colsep=u"\t", rowsep=u"\n",
+    def open_data(self, text, colsep=u("\t"), rowsep=u("\n"),
                   transpose=False, skiprows=0, comments='#'):
         """Open clipboard text as table"""
         self._table_view.process_data(text, colsep, rowsep, transpose,
@@ -510,7 +513,7 @@ class ImportWizard(QDialog):
         self.tab_widget.setTabEnabled(tab_idx, True)
         self.tab_widget.setCurrentIndex(tab_idx)
         
-    def _set_step(self,step):
+    def _set_step(self, step):
         """Proceed to a given step"""
         new_tab = self.tab_widget.currentIndex() + step
         assert new_tab < self.tab_widget.count() and new_tab >= 0
@@ -526,7 +529,7 @@ class ImportWizard(QDialog):
                 self.done_btn.setDefault(True)
                 self.fwd_btn.setEnabled(False)
                 self.back_btn.setEnabled(True)
-            except (SyntaxError, AssertionError), error:
+            except (SyntaxError, AssertionError) as error:
                 QMessageBox.critical(self, _("Import wizard"),
                             _("<b>Unable to proceed to next step</b>"
                               "<br><br>Please check your entries."
@@ -552,7 +555,7 @@ class ImportWizard(QDialog):
             return alist
         if len(alist) == 1:
             return self._simplify_shape(alist[-1], 1)
-        return map(lambda al: self._simplify_shape(al, 1), alist)
+        return [self._simplify_shape(al, 1) for al in alist]
 
     def _get_table_data(self):
         """Return clipboard processed as data"""
@@ -573,14 +576,14 @@ class ImportWizard(QDialog):
         try:
             self.var_name = str(var_name)
         except UnicodeEncodeError:
-            self.var_name = unicode(var_name)
+            self.var_name = to_text_string(var_name)
         if self.text_widget.get_as_data():
             self.clip_data = self._get_table_data()
         elif self.text_widget.get_as_code():
             self.clip_data = try_to_eval(
-                unicode(self._get_plain_text()))
+                to_text_string(self._get_plain_text()))
         else:
-            self.clip_data = unicode(self._get_plain_text())
+            self.clip_data = to_text_string(self._get_plain_text())
         self.accept()
 
 
@@ -590,7 +593,7 @@ def test(text):
     _app = qapplication()  # analysis:ignore
     dialog = ImportWizard(None, text)
     if dialog.exec_():
-        print dialog.get_data()
+        print(dialog.get_data())
 
 if __name__ == "__main__":
-    test(u"17/11/1976\t1.34\n14/05/09\t3.14")
+    test(u("17/11/1976\t1.34\n14/05/09\t3.14"))

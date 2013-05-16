@@ -6,6 +6,8 @@
 
 """Editor tools: outline explorer, etc."""
 
+from __future__ import print_function
+
 import re
 import os.path as osp
 
@@ -19,6 +21,7 @@ from spyderlib.baseconfig import _, STDOUT
 from spyderlib.utils.qthelpers import (get_icon, create_action,
                                        create_toolbutton, set_item_user_text)
 from spyderlib.widgets.onecolumntree import OneColumnTree
+from spyderlib.py3compat import to_text_string
 
 
 #===============================================================================
@@ -78,7 +81,8 @@ class TreeItem(QTreeWidgetItem):
                 QTreeWidgetItem.__init__(self, parent, preceding,
                                          QTreeWidgetItem.Type)
         self.setText(0, name)
-        parent_text = from_qvariant(parent.data(0, Qt.UserRole), unicode)
+        parent_text = from_qvariant(parent.data(0, Qt.UserRole),
+                                    to_text_string)
         set_item_user_text(self, parent_text+'/'+name)
         self.line = line
         
@@ -100,7 +104,7 @@ class FunctionItem(TreeItem):
     def setup(self):
         if self.is_method():
             self.setToolTip(0, _("Method defined at line %s") % str(self.line))
-            name = unicode(self.text(0))
+            name = to_text_string(self.text(0))
             if name.startswith('__'):
                 self.set_icon('private2.png')
             elif name.startswith('_'):
@@ -131,7 +135,7 @@ def item_at_line(root_item, line):
 
 def remove_from_tree_cache(tree_cache, line=None, item=None):
     if line is None:
-        for line, (_it, _level, _debug) in tree_cache.iteritems():
+        for line, (_it, _level, _debug) in list(tree_cache.items()):
             if _it is item:
                 break
     item, _level, debug = tree_cache.pop(line)
@@ -142,7 +146,7 @@ def remove_from_tree_cache(tree_cache, line=None, item=None):
     except RuntimeError:
         # Item has already been deleted
         #XXX: remove this debug-related fragment of code
-        print >>STDOUT, "unable to remove tree item: ", debug
+        print("unable to remove tree item: ", debug, file=STDOUT)
 
 class OutlineExplorerTreeWidget(OneColumnTree):
     def __init__(self, parent, show_fullpath=False, fullpath_sorting=True,
@@ -225,7 +229,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def set_current_editor(self, editor, fname, update):
         """Bind editor instance"""
         editor_id = editor.get_document_id()
-        if editor_id in self.editor_ids.values():
+        if editor_id in list(self.editor_ids.values()):
             item = self.editor_items[editor_id]
             if not self.freeze:
                 self.scrollToItem(item)
@@ -256,14 +260,14 @@ class OutlineExplorerTreeWidget(OneColumnTree):
     def file_renamed(self, editor, new_filename):
         """File was renamed, updating outline explorer tree"""
         editor_id = editor.get_document_id()
-        if editor_id in self.editor_ids.values():
+        if editor_id in list(self.editor_ids.values()):
             root_item = self.editor_items[editor_id]
             root_item.set_path(new_filename, fullpath=self.show_fullpath)
             self.__sort_toplevel_items()
         
     def update_all(self):
         self.save_expanded_state()
-        for editor, editor_id in self.editor_ids.iteritems():
+        for editor, editor_id in list(self.editor_ids.items()):
             item = self.editor_items[editor_id]
             tree_cache = self.editor_tree_cache[editor_id]
             self.populate_branch(editor, item, tree_cache)
@@ -274,7 +278,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             if self.current_editor is editor:
                 self.current_editor = None
             editor_id = self.editor_ids.pop(editor)
-            if editor_id not in self.editor_ids.values():
+            if editor_id not in list(self.editor_ids.values()):
                 root_item = self.editor_items.pop(editor_id)
                 self.editor_tree_cache.pop(editor_id)
                 try:
@@ -295,7 +299,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             tree_cache = {}
         
         # Removing cached items for which line is > total line nb
-        for _l in tree_cache.keys():
+        for _l in list(tree_cache.keys()):
             if _l >= editor.get_line_count():
                 # Checking if key is still in tree cache in case one of its 
                 # ancestors was deleted in the meantime (deleting all children):
@@ -348,7 +352,7 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             parent, _level = ancestors[-1]
             
             if citem is not None:
-                cname = unicode(citem.text(0))
+                cname = to_text_string(citem.text(0))
                 
             preceding = root_item if previous_item is None else previous_item
             if not_class_nor_function:
@@ -385,8 +389,8 @@ class OutlineExplorerTreeWidget(OneColumnTree):
                 
             item.setup()
             debug = "%s -- %s/%s" % (str(item.line).rjust(6),
-                                     unicode(item.parent().text(0)),
-                                     unicode(item.text(0)))
+                                     to_text_string(item.parent().text(0)),
+                                     to_text_string(item.text(0)))
             tree_cache[line_nb] = (item, level, debug)
             previous_level = level
             previous_item = item
@@ -429,10 +433,10 @@ class OutlineExplorerTreeWidget(OneColumnTree):
             self.parent().emit(SIGNAL("edit(QString)"), root_item.path)
         self.freeze = False
         parent = self.current_editor.parent()
-        for editor_id, i_item in self.editor_items.iteritems():
+        for editor_id, i_item in list(self.editor_items.items()):
             if i_item is root_item:
                 #XXX: not working anymore!!!
-                for editor, _id in self.editor_ids.iteritems():
+                for editor, _id in list(self.editor_ids.items()):
                     if _id == editor_id and editor.parent() is parent:
                         self.current_editor = editor
                         break

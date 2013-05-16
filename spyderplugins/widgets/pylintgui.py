@@ -23,7 +23,6 @@ import sys
 import os
 import os.path as osp
 import time
-import cPickle
 import re
 
 # Local imports
@@ -34,6 +33,7 @@ from spyderlib.widgets.onecolumntree import OneColumnTree
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.comboboxes import (PythonModulesComboBox,
                                           is_module_or_package)
+from spyderlib.py3compat import to_text_string, getcwd, pickle
 _ = get_translation("p_pylint", dirname="spyderplugins")
 
 
@@ -51,7 +51,7 @@ class ResultsTree(OneColumnTree):
         
     def activated(self, item):
         """Double-click event"""
-        data = self.data.get(item)
+        data = self.data.get(id(item))
         if data is not None:
             fname, lineno = data
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
@@ -125,7 +125,7 @@ class ResultsTree(OneColumnTree):
                     text = "%d : %s" % (lineno, message)
                 msg_item = QTreeWidgetItem(parent, [text], QTreeWidgetItem.Type)
                 msg_item.setIcon(0, get_icon('arrow.png'))
-                self.data[msg_item] = (modname, lineno)
+                self.data[id(msg_item)] = (modname, lineno)
 
 
 class PylintWidget(QWidget):
@@ -147,7 +147,7 @@ class PylintWidget(QWidget):
         self.rdata = []
         if osp.isfile(self.DATAPATH):
             try:
-                data = cPickle.loads(file(self.DATAPATH, 'U').read())
+                data = pickle.loads(open(self.DATAPATH, 'U').read())
                 if data[0] == self.VERSION:
                     self.rdata = data[1:]
             except EOFError:
@@ -216,7 +216,7 @@ class PylintWidget(QWidget):
                 # Pylint is installed but pylint script is not in PATH
                 # (AFAIK, could happen only on Windows)
                 text = _('Pylint script was not found. Please add "%s" to PATH.')
-                text = unicode(text) % osp.join(sys.prefix, "Scripts")
+                text = to_text_string(text) % osp.join(sys.prefix, "Scripts")
             else:
                 text = _('Please install <b>pylint</b>:')
                 url = 'http://www.logilab.fr'
@@ -228,7 +228,7 @@ class PylintWidget(QWidget):
     def analyze(self, filename):
         if PYLINT_PATH is None:
             return
-        filename = unicode(filename) # filename is a QString instance
+        filename = to_text_string(filename) # filename is a QString instance
         self.kill_if_running()
         index, _data = self.get_data(filename)
         if index is None:
@@ -243,7 +243,7 @@ class PylintWidget(QWidget):
     def select_file(self):
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getopenfilename(self, _("Select Python script"),
-                           os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw)")
+                           getcwd(), _("Python scripts")+" (*.py ; *.pyw)")
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         if filename:
             self.analyze(filename)
@@ -275,7 +275,7 @@ class PylintWidget(QWidget):
     def save(self):
         while len(self.rdata) > self.max_entries:
             self.rdata.pop(-1)
-        cPickle.dump([self.VERSION]+self.rdata, file(self.DATAPATH, 'w'))
+        pickle.dump([self.VERSION]+self.rdata, open(self.DATAPATH, 'w'))
         
     def show_log(self):
         if self.output:
@@ -283,7 +283,7 @@ class PylintWidget(QWidget):
                        readonly=True, size=(700, 500)).exec_()
         
     def start(self):
-        filename = unicode(self.filecombo.currentText())
+        filename = to_text_string(self.filecombo.currentText())
         
         self.process = QProcess(self)
         self.process.setProcessChannelMode(QProcess.SeparateChannels)
@@ -317,13 +317,13 @@ class PylintWidget(QWidget):
             self.process.setReadChannel(QProcess.StandardError)
         else:
             self.process.setReadChannel(QProcess.StandardOutput)
-        bytes = QByteArray()
+        qba = QByteArray()
         while self.process.bytesAvailable():
             if error:
-                bytes += self.process.readAllStandardError()
+                qba += self.process.readAllStandardError()
             else:
-                bytes += self.process.readAllStandardOutput()
-        text = unicode( locale_codec.toUnicode(bytes.data()) )
+                qba += self.process.readAllStandardOutput()
+        text = to_text_string( locale_codec.toUnicode(qba.data()) )
         if error:
             self.error_output += text
         else:
@@ -381,7 +381,7 @@ class PylintWidget(QWidget):
                 previous = self.output[i_prun+len(txt_prun):i_prun_end]
             
         
-        filename = unicode(self.filecombo.currentText())
+        filename = to_text_string(self.filecombo.currentText())
         self.set_data(filename, (time.localtime(), rate, previous, results))
         self.output = self.error_output + self.output
         self.show_data(justanalyzed=True)
@@ -398,7 +398,7 @@ class PylintWidget(QWidget):
         self.log_button.setEnabled(self.output is not None \
                                    and len(self.output) > 0)
         self.kill_if_running()
-        filename = unicode(self.filecombo.currentText())
+        filename = to_text_string(self.filecombo.currentText())
         if not filename:
             return
         

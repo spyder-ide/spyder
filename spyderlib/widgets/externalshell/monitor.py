@@ -9,9 +9,7 @@
 import os
 import threading
 import socket
-import thread
 import struct
-import cPickle as pickle
 
 # Local imports
 from spyderlib.utils.misc import fix_reference_name
@@ -22,6 +20,8 @@ from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
 from spyderlib.utils.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
+from spyderlib.py3compat import getcwd, to_text_string, is_text_string, pickle
+
 
 SUPPORTED_TYPES = get_supported_types()
 
@@ -46,7 +46,7 @@ def get_remote_data(data, settings, mode, more_excluded_names=None):
         * more_excluded_names: additional excluded names (list)
     """
     from spyderlib.widgets.dicteditorutils import globalsfilter
-    assert mode in SUPPORTED_TYPES.keys()
+    assert mode in list(SUPPORTED_TYPES.keys())
     excluded_names = settings['excluded_names']
     if more_excluded_names is not None:
         excluded_names += more_excluded_names
@@ -69,7 +69,7 @@ def make_remote_view(data, settings, more_excluded_names=None):
     data = get_remote_data(data, settings, mode='editable',
                            more_excluded_names=more_excluded_names)
     remote = {}
-    for key, value in data.iteritems():
+    for key, value in list(data.items()):
         view = value_to_display(value, truncate=settings['truncate'],
                                 minmax=settings['minmax'],
                                 collvalue=settings['collvalue'])
@@ -110,7 +110,7 @@ def monitor_copy_global(sock, orig_name, new_name):
 
 def _getcdlistdir():
     """Return current directory list dir"""
-    return os.listdir(os.getcwdu())
+    return os.listdir(getcwd())
 
 class Monitor(threading.Thread):
     """Monitor server"""
@@ -160,7 +160,6 @@ class Monitor(threading.Thread):
                        "getenv": self.getenv,
                        "setenv": self.setenv,
                        "isdefined": self.isdefined,
-                       "thread": thread,
                        "toggle_inputhook_flag": self.toggle_inputhook_flag,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
@@ -266,7 +265,7 @@ class Monitor(threading.Thread):
     def get_globals_keys(self):
         """Return globals() keys or globals() and locals() keys if debugging"""
         ns = self.get_current_namespace()
-        return ns.keys()
+        return list(ns.keys())
     
     def isdefined(self, obj, force_import=False):
         """Return True if object is defined in current namespace"""
@@ -332,7 +331,7 @@ class Monitor(threading.Thread):
         where *obj* is the object represented by *text*
         and *valid* is True if object evaluation did not raise any exception
         """
-        assert isinstance(text, (str, unicode))
+        assert is_text_string(text)
         ns = self.get_current_namespace()
         try:
             return eval(text, ns), True
@@ -367,7 +366,7 @@ class Monitor(threading.Thread):
         """Get object documentation"""
         obj, valid = self._eval(objtxt)
         if valid:
-            return getdoc(obj)
+            return to_text_string(getdoc(obj))
     
     def get_source(self, objtxt):
         """Get object source"""
@@ -400,7 +399,7 @@ class Monitor(threading.Thread):
 
     def getcwd(self):
         """Return current working directory"""
-        return os.getcwdu()
+        return getcwd()
     
     def setcwd(self, dirname):
         """Set current working directory"""
@@ -472,13 +471,13 @@ class Monitor(threading.Thread):
         data, error_message = load_func(filename)
         if error_message:
             return error_message
-        for key in data.keys():
-            new_key = fix_reference_name(key, blacklist=glbs.keys())
+        for key in list(data.keys()):
+            new_key = fix_reference_name(key, blacklist=list(glbs.keys()))
             if new_key != key:
                 data[new_key] = data.pop(key)
         try:
             glbs.update(data)
-        except Exception, error:
+        except Exception as error:
             return str(error)
         self.refresh_after_eval = True
         
@@ -578,13 +577,13 @@ class Monitor(threading.Thread):
                         else:
                             write_packet(self.i_request, output,
                                          already_pickled=True)
-                except AttributeError, error:
+                except AttributeError as error:
                     if "'NoneType' object has no attribute" in str(error):
                         # This may happen during interpreter shutdown
                         break
                     else:
                         raise
-                except TypeError, error:
+                except TypeError as error:
                     if "'NoneType' object is not subscriptable" in str(error):
                         # This may happen during interpreter shutdown
                         break

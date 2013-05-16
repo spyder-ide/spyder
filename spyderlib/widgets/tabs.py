@@ -23,6 +23,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils.misc import get_common_path
 from spyderlib.utils.qthelpers import (add_actions, create_toolbutton,
                                        create_action, get_icon)
+from spyderlib.py3compat import to_text_string
 
 
 class TabBar(QTabBar):
@@ -133,9 +134,9 @@ class BaseTabs(QTabWidget):
         dirnames = []
         for index in range(self.count()):
             if self.menu_use_tooltips:
-                text = unicode(self.tabToolTip(index))
+                text = to_text_string(self.tabToolTip(index))
             else:
-                text = unicode(self.tabText(index))
+                text = to_text_string(self.tabText(index))
             names.append(text)
             if osp.isfile(text):
                 # Testing if tab names are filenames
@@ -173,7 +174,7 @@ class BaseTabs(QTabWidget):
         assert all(key in (Qt.TopLeftCorner, Qt.TopRightCorner)
                    for key in corner_widgets)
         self.corner_widgets.update(corner_widgets)
-        for corner, widgets in self.corner_widgets.iteritems():
+        for corner, widgets in list(self.corner_widgets.items()):
             cwidget = QWidget()
             cwidget.hide()
             prev_widget = self.cornerWidget(corner)

@@ -6,11 +6,17 @@
 
 """Utilities and wrappers around inspect module"""
 
+from __future__ import print_function
+
 import inspect
 import re
 
 # Local imports:
 from spyderlib.utils import encoding
+from spyderlib.py3compat import (is_text_string, builtins, get_meth_func,
+                                 get_meth_class_inst, get_meth_class,
+                                 get_func_defaults, to_text_string)
+
 
 SYMBOLS = r"[^\'\"a-zA-Z0-9_.]"
 
@@ -48,7 +54,7 @@ def getobjdir(obj):
     In special cases (e.g. WrapITK package), will return only string elements
     of result returned by dir(obj)
     """
-    return [item for item in dir(obj) if isinstance(item, basestring)]
+    return [item for item in dir(obj) if is_text_string(item)]
 
 def getdoc(obj):
     """
@@ -74,7 +80,7 @@ def getdoc(obj):
     # yield anything, either. So assume the most commonly used
     # multi-byte file encoding (which also covers ascii). 
     try:
-        docstring = unicode(docstring, 'utf-8')
+        docstring = to_text_string(docstring)
     except:
         pass
     
@@ -91,13 +97,13 @@ def getdoc(obj):
             doc['docstring'] = docstring
             return doc
         if inspect.ismethod(obj):
-            imclass = obj.im_class
-            if obj.im_self is not None:
+            imclass = get_meth_class(obj)
+            if get_meth_class_inst(obj) is not None:
                 doc['note'] = 'Method of %s instance' \
-                              % obj.im_self.__class__.__name__
+                              % get_meth_class_inst(obj).__class__.__name__
             else:
                 doc['note'] = 'Unbound %s method' % imclass.__name__
-            obj = obj.im_func
+            obj = get_meth_func(obj)
         elif hasattr(obj, '__module__'):
             doc['note'] = 'Function of %s module' % obj.__module__
         else:
@@ -183,7 +189,7 @@ def getargs(obj):
     if inspect.isfunction(obj) or inspect.isbuiltin(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
-        func_obj = obj.im_func
+        func_obj = get_meth_func(obj)
     elif inspect.isclass(obj) and hasattr(obj, '__init__'):
         func_obj = getattr(obj, '__init__')
     else:
@@ -205,7 +211,7 @@ def getargs(obj):
         if isinstance(arg, list):
             args[i_arg] = "(%s)" % ", ".join(arg)
             
-    defaults = func_obj.func_defaults
+    defaults = get_func_defaults(func_obj)
     if defaults is not None:
         for index, default in enumerate(defaults):
             args[index+len(args)-len(defaults)] += '='+repr(default)
@@ -250,8 +256,7 @@ def isdefined(obj, force_import=False, namespace=None):
     base = attr_list.pop(0)
     if len(base) == 0:
         return False
-    import __builtin__
-    if base not in __builtin__.__dict__ and base not in namespace:
+    if base not in builtins.__dict__ and base not in namespace:
         if force_import:
             try:
                 module = __import__(base, globals(), namespace)
@@ -281,16 +286,16 @@ def isdefined(obj, force_import=False, namespace=None):
 
 if __name__ == "__main__":
     class Test(object):
-        def method(self, x, y=2, (u, v, w)=(None, 0, 0)):
+        def method(self, x, y=2):
             pass
-    print getargtxt(Test.__init__)
-    print getargtxt(Test.method)
-    print isdefined('numpy.take', force_import=True)
-    print isdefined('__import__')
-    print isdefined('.keys', force_import=True)
-    print getobj('globals')
-    print getobj('globals().keys')
-    print getobj('+scipy.signal.')
-    print getobj('4.')
-    print getdoc(sorted)
-    print getargtxt(sorted)
+    print(getargtxt(Test.__init__))
+    print(getargtxt(Test.method))
+    print(isdefined('numpy.take', force_import=True))
+    print(isdefined('__import__'))
+    print(isdefined('.keys', force_import=True))
+    print(getobj('globals'))
+    print(getobj('globals().keys'))
+    print(getobj('+scipy.signal.'))
+    print(getobj('4.'))
+    print(getdoc(sorted))
+    print(getargtxt(sorted))

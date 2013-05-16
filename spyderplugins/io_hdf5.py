@@ -28,6 +28,8 @@ TODO: Look for the pytables library if h5py is not found??
 TODO: Check issues with valid python names vs valid h5f5 names
 """
 
+from __future__ import print_function
+
 try:
     # Do not import h5py here because it will try to import IPython,
     # and this is freezing the Spyder GUI
@@ -39,7 +41,7 @@ try:
         import h5py
         def get_group(group):
             contents = {}
-            for name, obj in group.iteritems():
+            for name, obj in list(group.items()):
                 if isinstance(obj, h5py.Dataset):
                     contents[name] = np.array(obj)
                 elif isinstance(obj, h5py.Group):
@@ -53,17 +55,17 @@ try:
             contents = get_group(f)
             f.close()
             return contents, None
-        except Exception, error:
+        except Exception as error:
             return None, str(error)
             
     def save_hdf5(data, filename):
         import h5py
         try:
             f = h5py.File(filename, 'w')
-            for key, value in data.iteritems():
+            for key, value in list(data.items()):
                 f[key] = np.array(value)
             f.close()
-        except Exception, error:
+        except Exception as error:
             return str(error)            
 except ImportError:
     load_hdf5 = None
@@ -79,5 +81,5 @@ FORMAT_SAVE = save_hdf5
 
 if __name__ == "__main__":
     data = {'a' : [1, 2, 3, 4], 'b' : 4.5}
-    print save_hdf5(data, "test.h5")
-    print load_hdf5("test.h5")
+    print(save_hdf5(data, "test.h5"))
+    print(load_hdf5("test.h5"))

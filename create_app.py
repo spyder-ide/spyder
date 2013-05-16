@@ -12,6 +12,8 @@ $ python setup.py build_doc     (to update the docs)
 $ python create_app.py py2app   (to build the app)
 """
 
+from __future__ import print_function
+
 from setuptools import setup
 
 from distutils.sysconfig import get_python_lib
@@ -142,9 +144,9 @@ pep8_egg = filter(lambda d: d.startswith('pep8'), deps)[0]
 pep8_script = osp.join(app_python_lib, pep8_egg, 'pep8.py')
 for line in fileinput.input(pep8_script, inplace=True):
     if line.strip().startswith('codes = ERRORCODE_REGEX.findall'):
-        print "            codes = ERRORCODE_REGEX.findall(function.__doc__ or 'W000')"
+        print("            codes = ERRORCODE_REGEX.findall(function.__doc__ or 'W000')")
     else:
-        print line,
+        print(line),
 
 # Function to adjust the interpreter used by PROGRAMS
 # (to be added to __boot.py__)
@@ -218,13 +220,13 @@ reset_line = "_reset_sys_path()"
 run_line = "_run()"
 for line in fileinput.input(boot_file, inplace=True):
     if line.startswith(reset_line):
-        print reset_line
-        print get_env
+        print(reset_line)
+        print(get_env)
     elif line.startswith(run_line):
-        print change_interpreter
-        print new_path
-        print ip_dir
-        print run_line
+        print(change_interpreter)
+        print(new_path)
+        print(ip_dir)
+        print(run_line)
     else:
-        print line,
+        print(line, end='')
 

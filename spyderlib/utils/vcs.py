@@ -6,6 +6,8 @@
 
 """Utilities for version control systems"""
 
+from __future__ import print_function
+
 import os.path as osp
 import subprocess
 
@@ -31,7 +33,7 @@ VCS_INFOS = {
 
 def get_vcs_infos(path):
     """Return VCS infos if path is a supported VCS repository"""
-    for dirname, infos in VCS_INFOS.iteritems():
+    for dirname, infos in list(VCS_INFOS.items()):
         vcs_path = osp.join(path, dirname)
         if osp.isdir(vcs_path):
             return infos
@@ -97,8 +99,8 @@ def get_hg_revision(repopath):
 
 
 if __name__ == '__main__':
-    print get_vcs_root(osp.dirname(__file__))
-    print get_vcs_root(r'D:\Python\ipython\IPython\frontend')
+    print(get_vcs_root(osp.dirname(__file__)))
+    print(get_vcs_root(r'D:\Python\ipython\IPython\frontend'))
     #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
-    print get_hg_revision(osp.dirname(__file__)+"/../..")
-    print get_hg_revision('/')
+    print(get_hg_revision(osp.dirname(__file__)+"/../.."))
+    print(get_hg_revision('/'))

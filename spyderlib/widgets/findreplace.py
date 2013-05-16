@@ -23,6 +23,7 @@ from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
                                        create_toolbutton)
 from spyderlib.widgets.comboboxes import PatternComboBox
 from spyderlib.baseconfig import _
+from spyderlib.py3compat import to_text_string
 
 
 def is_position_sup(pos1, pos2):
@@ -327,8 +328,8 @@ class FindReplace(QWidget):
     def replace_find(self):
         """Replace and find"""
         if (self.editor is not None):
-            replace_text = unicode(self.replace_text.currentText())
-            search_text = unicode(self.search_text.currentText())
+            replace_text = to_text_string(self.replace_text.currentText())
+            search_text = to_text_string(self.search_text.currentText())
             pattern = search_text if self.re_button.isChecked() else None
             case = self.case_button.isChecked()
             first = True
@@ -336,7 +337,7 @@ class FindReplace(QWidget):
             while True:
                 if first:
                     # First found
-                    seltxt = unicode(self.editor.get_selected_text())
+                    seltxt = to_text_string(self.editor.get_selected_text())
                     cmptxt1 = search_text if case else search_text.lower()
                     cmptxt2 = seltxt if case else seltxt.lower()
                     if self.editor.has_selected_text() and cmptxt1 == cmptxt2:
@@ -370,7 +371,7 @@ class FindReplace(QWidget):
                     cursor.removeSelectedText()
                     cursor.insertText(replace_text)
                 else:
-                    seltxt = unicode(cursor.selectedText())
+                    seltxt = to_text_string(cursor.selectedText())
                     cursor.removeSelectedText()
                     cursor.insertText(re.sub(pattern, replace_text, seltxt))
                 if self.find_next():

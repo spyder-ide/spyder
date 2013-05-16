@@ -16,6 +16,7 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from __future__ import print_function
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
@@ -25,7 +26,6 @@ from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
                                  SLOT, QDateTime, Signal)
 from spyderlib.qt.compat import to_qvariant, from_qvariant, getsavefilename
 
-import os
 import sys
 import datetime
 
@@ -44,11 +44,12 @@ if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
 
 
 def display_to_value(value, default_value, ignore_errors=True):
     """Convert back to value"""
-    value = from_qvariant(value, unicode)
+    value = from_qvariant(value, to_text_string)
     try:
         np_dtype = get_numpy_dtype(default_value)
         if isinstance(default_value, bool):
@@ -65,8 +66,8 @@ def display_to_value(value, default_value, ignore_errors=True):
                 value = np_dtype(value)
         elif isinstance(default_value, str):
             value = str(value)
-        elif isinstance(default_value, unicode):
-            value = unicode(value)
+        elif is_text_string(default_value):
+            value = to_text_string(value)
         elif isinstance(default_value, complex):
             value = complex(value)
         elif isinstance(default_value, float):
@@ -123,7 +124,7 @@ class ReadOnlyDictModel(QAbstractTableModel):
         self._data = None
         self.showndata = None
         self.keys = None
-        self.title = unicode(title) # in case title is not a string
+        self.title = to_text_string(title) # in case title is not a string
         if self.title:
             self.title = self.title + ' - '
         self.sizes = None
@@ -145,13 +146,13 @@ class ReadOnlyDictModel(QAbstractTableModel):
         if self.names:
             self.header0 = _("Name")
         if isinstance(data, tuple):
-            self.keys = range(len(data))
+            self.keys = list(range(len(data)))
             self.title += _("Tuple")
         elif isinstance(data, list):
-            self.keys = range(len(data))
+            self.keys = list(range(len(data)))
             self.title += _("List")
         elif isinstance(data, dict):
-            self.keys = data.keys()
+            self.keys = list(data.keys())
             self.title += _("Dictionary")
             if not self.names:
                 self.header0 = _("Key")
@@ -356,11 +357,11 @@ class DictDelegate(QItemDelegate):
             return None
         try:
             value = self.get_value(index)
-        except Exception, msg:
+        except Exception as msg:
             QMessageBox.critical(self.parent(), _("Edit item"),
                                  _("<b>Unable to retrieve data.</b>"
                                    "<br><br>Error message:<br>%s"
-                                   ) % unicode(msg))
+                                   ) % to_text_string(msg))
             return
         key = index.model().get_key(index)
         readonly = isinstance(value, tuple) or self.parent().readonly \
@@ -415,7 +416,7 @@ class DictDelegate(QItemDelegate):
                          self.commitAndCloseEditor)
             return editor
         #---editor = QTextEdit
-        elif isinstance(value, (str, unicode)) and len(value)>40:
+        elif is_text_string(value) and len(value)>40:
             editor = TextEditor(value, key)
             self.create_dialog(editor, dict(model=index.model(), editor=editor,
                                             key=key, readonly=readonly))
@@ -468,7 +469,7 @@ class DictDelegate(QItemDelegate):
         Model --> Editor"""
         value = self.get_value(index)
         if isinstance(editor, QLineEdit):
-            if not isinstance(value, basestring):
+            if not is_text_string(value):
                 value = repr(value)
             editor.setText(value)
         elif isinstance(editor, QDateEdit):
@@ -489,7 +490,7 @@ class DictDelegate(QItemDelegate):
                 value = display_to_value(to_qvariant(value),
                                          self.get_value(index),
                                          ignore_errors=False)
-            except Exception, msg:
+            except Exception as msg:
                 raise
                 QMessageBox.critical(editor, _("Edit item"),
                                      _("<b>Unable to assign data to item.</b>"
@@ -812,7 +813,7 @@ class BaseTableView(QTableView):
                                       one if len(indexes) == 1 else more,
                                       QMessageBox.Yes | QMessageBox.No)
         if answer == QMessageBox.Yes:
-            idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
+            idx_rows = unsorted_unique([idx.row() for idx in indexes])
             keys = [ self.model.keys[idx_row] for idx_row in idx_rows ]
             self.remove_values(keys)
 
@@ -821,14 +822,14 @@ class BaseTableView(QTableView):
         indexes = self.selectedIndexes()
         if not indexes:
             return
-        idx_rows = unsorted_unique(map(lambda idx: idx.row(), indexes))
+        idx_rows = unsorted_unique([idx.row() for idx in indexes])
         if len(idx_rows) > 1 or not indexes[0].isValid():
             return
         orig_key = self.model.keys[idx_rows[0]]
         new_key, valid = QInputDialog.getText(self, _( 'Rename'), _( 'Key:'),
-                                              QLineEdit.Normal,orig_key)
-        if valid and unicode(new_key):
-            new_key = try_to_eval(unicode(new_key))
+                                              QLineEdit.Normal, orig_key)
+        if valid and to_text_string(new_key):
+            new_key = try_to_eval(to_text_string(new_key))
             if new_key == orig_key:
                 return
             self.copy_value(orig_key, new_key)
@@ -857,16 +858,16 @@ class BaseTableView(QTableView):
         elif isinstance(data, dict):
             key, valid = QInputDialog.getText(self, _( 'Insert'), _( 'Key:'),
                                               QLineEdit.Normal)
-            if valid and unicode(key):
-                key = try_to_eval(unicode(key))
+            if valid and to_text_string(key):
+                key = try_to_eval(to_text_string(key))
             else:
                 return
         else:
             return
         value, valid = QInputDialog.getText(self, _('Insert'), _('Value:'),
                                             QLineEdit.Normal)
-        if valid and unicode(value):
-            self.new_value(key, try_to_eval(unicode(value)))
+        if valid and to_text_string(value):
+            self.new_value(key, try_to_eval(to_text_string(value)))
             
     def __prepare_plot(self):
         try:
@@ -890,7 +891,7 @@ class BaseTableView(QTableView):
             key = self.model.get_key(index)
             try:
                 self.plot(key, funcname)
-            except (ValueError, TypeError), error:
+            except (ValueError, TypeError) as error:
                 QMessageBox.critical(self, _( "Plot"),
                                      _("<b>Unable to plot data.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -906,7 +907,7 @@ class BaseTableView(QTableView):
                     self.show_image(key)
                 else:
                     self.imshow(key)
-            except (ValueError, TypeError), error:
+            except (ValueError, TypeError) as error:
                 QMessageBox.critical(self, _( "Plot"),
                                      _("<b>Unable to show image.</b>"
                                        "<br><br>Error message:<br>%s"
@@ -916,7 +917,7 @@ class BaseTableView(QTableView):
         """Save array"""
         title = _( "Save array")
         if self.array_filename is None:
-            self.array_filename = os.getcwdu()
+            self.array_filename = getcwd()
         self.emit(SIGNAL('redirect_stdio(bool)'), False)
         filename, _selfilter = getsavefilename(self, title,
                                                self.array_filename,
@@ -928,7 +929,7 @@ class BaseTableView(QTableView):
             try:
                 import numpy as np
                 np.save(self.array_filename, data)
-            except Exception, error:
+            except Exception as error:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable to save array</b>"
                                        "<br><br>Error message:<br>%s"
@@ -940,8 +941,8 @@ class BaseTableView(QTableView):
         for idx in self.selectedIndexes():
             if not idx.isValid():
                 continue
-            clipl.append(unicode(self.delegate.get_value(idx)))
-        clipboard.setText(u'\n'.join(clipl))
+            clipl.append(to_text_string(self.delegate.get_value(idx)))
+        clipboard.setText(u('\n').join(clipl))
     
     def import_from_string(self, text, title=None):
         """Import data from string"""
@@ -949,7 +950,7 @@ class BaseTableView(QTableView):
         editor = ImportWizard(self, text, title=title,
                               contents_title=_("Clipboard contents"),
                               varname=fix_reference_name("data",
-                                                         blacklist=data.keys()))
+                                                         blacklist=list(data.keys())))
         if editor.exec_():
             var_name, clip_data = editor.get_data()
             self.new_value(var_name, clip_data)
@@ -957,9 +958,9 @@ class BaseTableView(QTableView):
     def paste(self):
         """Import text/data/code from clipboard"""
         clipboard = QApplication.clipboard()
-        cliptext = u""
+        cliptext = ''
         if clipboard.mimeData().hasText():
-            cliptext = unicode(clipboard.text())
+            cliptext = to_text_string(clipboard.text())
         if cliptext.strip():
             self.import_from_string(cliptext, title=_("Import from clipboard"))
         else:
@@ -990,7 +991,7 @@ class DictEditorTableView(BaseTableView):
     def remove_values(self, keys):
         """Remove values from data"""
         data = self.model.get_data()
-        for key in sorted(keys,reverse=True):
+        for key in sorted(keys, reverse=True):
             data.pop(key)
             self.set_data(data)
 
@@ -1159,7 +1160,7 @@ class DictEditor(QDialog):
         self.resize(width, height)
         
         self.setWindowTitle(self.widget.get_title())
-        if isinstance(icon, (str, unicode)):
+        if is_text_string(icon):
             icon = get_icon(icon)
         self.setWindowIcon(icon)
         # Make the dialog act as a window
@@ -1308,7 +1309,7 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': u'éù',
+            'unicode': u('éù'),
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,
@@ -1341,7 +1342,7 @@ def test():
     dialog.setup(get_test_data())
     dialog.show()
     app.exec_()
-    print "out:", dialog.get_value()
+    print("out:", dialog.get_value())
     
 def remote_editor_test():
     """Remote dictionary editor test"""
@@ -1355,7 +1356,7 @@ def remote_editor_test():
     dialog.show()
     app.exec_()
     if dialog.result():
-        print dialog.get_value()
+        print(dialog.get_value())
 
 if __name__ == "__main__":
     test()

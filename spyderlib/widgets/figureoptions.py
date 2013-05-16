@@ -13,8 +13,8 @@ import matplotlib.cm, matplotlib.image
 from matplotlib.colors import rgb2hex, is_color_like
 
 
-COLORMAPS = matplotlib.cm.datad.keys()
-INTERPOLATIONS = matplotlib.image.AxesImage._interpd.keys()
+COLORMAPS = list(matplotlib.cm.datad.keys())
+INTERPOLATIONS = list(matplotlib.image.AxesImage._interpd.keys())
 
 LINESTYLES = {
               '-': 'solid "-"',
@@ -33,17 +33,17 @@ LINESTYLES2 = {
               }
               
 LEG_locs  =  {
-             0  : 'best         0',
-             1  : 'upper right  1',
-             2  : 'upper left   2',
-             3  : 'lower left   3',
-             4  : 'lower right  4',
-             5  : 'right        5',
-             6  : 'center left  6',
-             7  : 'center right 7',
-             8  : 'lower center 8',
-             9  : 'upper center 9',
-             10 : 'center      10',
+             0: 'best         0',
+             1: 'upper right  1',
+             2: 'upper left   2',
+             3: 'lower left   3',
+             4: 'lower right  4',
+             5: 'right        5',
+             6: 'center left  6',
+             7: 'center right 7',
+             8: 'lower center 8',
+             9: 'upper center 9',
+             10: 'center      10',
              }
 MARKERS = {
            'none': 'None',
@@ -103,7 +103,7 @@ def figure_edit(axes, parent=None):
                ((0, 0), 'None'), ((1, 0), 'X only'), ((0, 1), 'Y only'), ((1, 1), 'All')]),
                ('Equal', axes.get_aspect()=='equal'),
                ('Legend', has_legend),
-               ('Loc', [loc] + LEG_locs.items()),
+               ('Loc', [loc] + list(LEG_locs.items())),
                sep,
                (None, "<b>X-Axis</b>"),
                ('Min', xmin), ('Max', xmax),
@@ -130,7 +130,7 @@ def figure_edit(axes, parent=None):
             linedict[label] = line
         curves = []
         linestyles = sorted(LINESTYLES.items())
-        markers = sorted(MARKERS.items(), key=lambda (k,v): (v,k))
+        markers = sorted(list(MARKERS.items()), key=lambda (k, v): (v, k))
         curvelabels = sorted(linedict.keys())
         for label in curvelabels:
             line = linedict[label]
@@ -162,8 +162,8 @@ def figure_edit(axes, parent=None):
                 continue
             imagedict[label] = image
         images = []
-        interpolations = zip(INTERPOLATIONS, INTERPOLATIONS)
-        colormaps = zip(COLORMAPS, COLORMAPS)
+        interpolations = list(zip(INTERPOLATIONS, INTERPOLATIONS))
+        colormaps = list(zip(COLORMAPS, COLORMAPS))
         imagelabels = sorted(imagedict.keys())
         for label in imagelabels:
             image = imagedict[label]

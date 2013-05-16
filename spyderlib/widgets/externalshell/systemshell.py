@@ -10,16 +10,17 @@ import os
 
 from spyderlib.qt.QtGui import QMessageBox
 from spyderlib.qt.QtCore import QProcess, SIGNAL, QTextCodec
-locale_codec = QTextCodec.codecForLocale()
+LOCALE_CODEC = QTextCodec.codecForLocale()
+CP850_CODEC = QTextCodec.codecForName('cp850')
 
 # Local imports
-from spyderlib.utils import encoding
 from spyderlib.utils.programs import shell_split
 from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.shell import TerminalWidget
+from spyderlib.py3compat import to_text_string, is_text_string
 
 
 class ExternalSystemShell(ExternalShellBase):
@@ -53,7 +54,8 @@ class ExternalSystemShell(ExternalShellBase):
         self.process.setProcessChannelMode(QProcess.MergedChannels)
         
         # PYTHONPATH (in case we use Python in this terminal, e.g. py2exe)
-        env = [unicode(_path) for _path in self.process.systemEnvironment()]
+        env = [to_text_string(_path)
+               for _path in self.process.systemEnvironment()]
         add_pathlist_to_PYTHONPATH(env, self.path)
         self.process.setEnvironment(env)
         
@@ -83,7 +85,7 @@ class ExternalSystemShell(ExternalShellBase):
         else:
             # Using bash:
             self.process.start('bash', p_args)
-            self.send_to_process("""PS1="\u@\h:\w> "\n""")
+            self.send_to_process(r"""PS1="\u@\h:\w> "\n""")
             
         running = self.process.waitForStarted()
         self.set_running_state(running)
@@ -99,15 +101,15 @@ class ExternalSystemShell(ExternalShellBase):
 #===============================================================================
 #    Input/Output
 #===============================================================================
-    def transcode(self, bytes):
+    def transcode(self, qba):
         if os.name == 'nt':
-            return encoding.transcode(str(bytes.data()), 'cp850')
+            return to_text_string( CP850_CODEC.toUnicode(qba.data()) )
         else:
-            return ExternalShellBase.transcode(self, bytes)
+            return ExternalShellBase.transcode(self, qba)
     
     def send_to_process(self, text):
-        if not isinstance(text, basestring):
-            text = unicode(text)
+        if not is_text_string(text):
+            text = to_text_string(text)
         if text[:-1] in ["clear", "cls", "CLS"]:
             self.shell.clear()
             self.send_to_process(os.linesep)
@@ -117,7 +119,7 @@ class ExternalSystemShell(ExternalShellBase):
         if os.name == 'nt':
             self.process.write(text.encode('cp850'))
         else:
-            self.process.write(locale_codec.fromUnicode(text))
+            self.process.write(LOCALE_CODEC.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         
     def keyboard_interrupt(self):

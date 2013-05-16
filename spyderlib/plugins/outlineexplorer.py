@@ -18,6 +18,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import get_icon
 from spyderlib.widgets.editortools import OutlineExplorerWidget
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import is_text_string
 
 
 class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
@@ -91,7 +92,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
 
     def save_config(self):
         """Save configuration: tree widget state"""
-        for option, value in self.get_options().items():
+        for option, value in list(self.get_options().items()):
             self.set_option(option, value)
         self.set_option('expanded_state', self.treewidget.get_expanded_state())
         self.set_option('scrollbar_position',
@@ -103,7 +104,7 @@ class OutlineExplorer(OutlineExplorerWidget, SpyderPluginMixin):
         # Sometimes the expanded state option may be truncated in .ini file
         # (for an unknown reason), in this case it would be converted to a
         # string by 'userconfig':
-        if isinstance(expanded_state, basestring):
+        if is_text_string(expanded_state):
             expanded_state = None
         if expanded_state is not None:
             self.treewidget.set_expanded_state(expanded_state)

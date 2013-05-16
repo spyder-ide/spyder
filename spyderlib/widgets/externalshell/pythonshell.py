@@ -13,7 +13,7 @@ import socket
 
 from spyderlib.qt.QtGui import QApplication, QMessageBox, QSplitter, QMenu
 from spyderlib.qt.QtCore import QProcess, SIGNAL, Qt, QTextCodec
-locale_codec = QTextCodec.codecForLocale()
+LOCALE_CODEC = QTextCodec.codecForLocale()
 from spyderlib.qt.compat import getexistingdirectory
 
 # Local imports
@@ -30,6 +30,7 @@ from spyderlib.widgets.externalshell.monitor import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
+from spyderlib.py3compat import is_text_string, to_text_string
 
 
 class ExtPythonShellWidget(PythonShellWidget):
@@ -207,10 +208,10 @@ class ExternalPythonShell(ExternalShellBase):
         
         self.python_args = None
         if python_args:
-            assert isinstance(python_args, basestring)
+            assert is_text_string(python_args)
             self.python_args = python_args
         
-        assert isinstance(arguments, basestring)
+        assert is_text_string(arguments)
         self.arguments = arguments
         
         self.connection_file = None
@@ -399,8 +400,8 @@ The process may not exit as a result of clicking this button
                                   self.debug_action.isChecked(),
                                   self.arguments)
         
-        env = [unicode(_path) for _path in self.process.systemEnvironment()]
-
+        env = [to_text_string(_path)
+               for _path in self.process.systemEnvironment()]
         if self.pythonstartup:
             env.append('PYTHONSTARTUP=%s' % self.pythonstartup)
         
@@ -549,8 +550,8 @@ The process may not exit as a result of clicking this button
         if not self.is_running():
             return
             
-        if not isinstance(text, basestring):
-            text = unicode(text)
+        if not is_text_string(text):
+            text = to_text_string(text)
         if self.install_qt_inputhook and self.introspection_socket is not None:
             communicate(self.introspection_socket,
                         "toggle_inputhook_flag(True)")
@@ -561,7 +562,7 @@ The process may not exit as a result of clicking this button
             text = 'evalsc(r"%s")\n' % text
         if not text.endswith('\n'):
             text += '\n'
-        self.process.write(locale_codec.fromUnicode(text))
+        self.process.write(LOCALE_CODEC.fromUnicode(text))
         self.process.waitForBytesWritten(-1)
         
         # Eventually write prompt faster (when hitting Enter continuously)

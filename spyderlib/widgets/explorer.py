@@ -32,6 +32,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
                                        file_uri)
 from spyderlib.utils import misc, encoding, programs, vcs
 from spyderlib.baseconfig import _
+from spyderlib.py3compat import to_text_string, getcwd, str_lower
 
 
 def fixpath(path):
@@ -43,15 +44,15 @@ def fixpath(path):
 def create_script(fname):
     """Create a new Python script"""
     text = os.linesep.join(["# -*- coding: utf-8 -*-", "", ""])
-    encoding.write(unicode(text), fname, 'utf-8')
+    encoding.write(to_text_string(text), fname, 'utf-8')
 
 
 def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
             folders_only=False):
     """List files and directories"""
     namelist = []
-    dirlist = [unicode(osp.pardir)]
-    for item in os.listdir(unicode(path)):
+    dirlist = [to_text_string(osp.pardir)]
+    for item in os.listdir(to_text_string(path)):
         if re.search(exclude, item) and not show_all:
             continue
         if osp.isdir(osp.join(path, item)):
@@ -60,8 +61,8 @@ def listdir(path, include='.', exclude=r'\.pyc$|^\.', show_all=False,
             continue
         elif re.search(include, item) or show_all:
             namelist.append(item)
-    return sorted(dirlist, key=unicode.lower) + \
-           sorted(namelist, key=unicode.lower)
+    return sorted(dirlist, key=str_lower) + \
+           sorted(namelist, key=str_lower)
 
 
 def has_subdirectories(path, include, exclude, show_all):
@@ -126,7 +127,7 @@ class DirView(QTreeView):
     def get_filename(self, index):
         """Return filename associated with *index*"""
         if index:
-            return osp.normpath(unicode(self.fsmodel.filePath(index)))
+            return osp.normpath(to_text_string(self.fsmodel.filePath(index)))
         
     def get_index(self, filename):
         """Return index associated with filename"""
@@ -184,7 +185,7 @@ class DirView(QTreeView):
                                               QLineEdit.Normal,
                                               ", ".join(self.name_filters))
         if valid:
-            filters = [f.strip() for f in unicode(filters).split(',')]
+            filters = [f.strip() for f in to_text_string(filters).split(',')]
             self.parent_widget.sig_option_changed.emit('name_filters', filters)
             self.set_name_filters(filters)
             
@@ -469,12 +470,12 @@ class DirView(QTreeView):
                 self.parent_widget.emit(SIGNAL("removed_tree(QString)"),
                                         fname)
             return yes_to_all
-        except EnvironmentError, error:
+        except EnvironmentError as error:
             action_str = _('delete')
             QMessageBox.critical(self, _("Project Explorer"),
                             _("<b>Unable to %s <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (action_str, fname, unicode(error)))
+                              ) % (action_str, fname, to_text_string(error)))
         return False
         
     def delete(self, fnames=None):
@@ -495,7 +496,7 @@ class DirView(QTreeView):
                               _('New name:'), QLineEdit.Normal,
                               osp.basename(fname))
         if valid:
-            path = osp.join(osp.dirname(fname), unicode(path))
+            path = osp.join(osp.dirname(fname), to_text_string(path))
             if path == fname:
                 return
             if osp.exists(path):
@@ -510,11 +511,11 @@ class DirView(QTreeView):
                 self.parent_widget.emit( \
                      SIGNAL("renamed(QString,QString)"), fname, path)
                 return path
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, _("Rename"),
                             _("<b>Unable to rename file <i>%s</i></b>"
                               "<br><br>Error message:<br>%s"
-                              ) % (osp.basename(fname), unicode(error)))
+                              ) % (osp.basename(fname), to_text_string(error)))
     
     def rename(self, fnames=None):
         """Rename files"""
@@ -544,11 +545,11 @@ class DirView(QTreeView):
             basename = osp.basename(fname)
             try:
                 misc.move_file(fname, osp.join(folder, basename))
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, _("Error"),
                                      _("<b>Unable to move <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (basename, unicode(error)))
+                                       ) % (basename, to_text_string(error)))
         
     def create_new_folder(self, current_path, title, subtitle, is_package):
         """Create new folder"""
@@ -559,27 +560,28 @@ class DirView(QTreeView):
         name, valid = QInputDialog.getText(self, title, subtitle,
                                            QLineEdit.Normal, "")
         if valid:
-            dirname = osp.join(current_path, unicode(name))
+            dirname = osp.join(current_path, to_text_string(name))
             try:
                 os.mkdir(dirname)
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, title,
                                      _("<b>Unable "
                                        "to create folder <i>%s</i></b>"
                                        "<br><br>Error message:<br>%s"
-                                       ) % (dirname, unicode(error)))
+                                       ) % (dirname, to_text_string(error)))
             finally:
                 if is_package:
                     fname = osp.join(dirname, '__init__.py')
                     try:
-                        file(fname, 'wb').write('#')
+                        open(fname, 'wb').write('#')
                         return dirname
-                    except EnvironmentError, error:
+                    except EnvironmentError as error:
                         QMessageBox.critical(self, title,
                                              _("<b>Unable "
                                                "to create file <i>%s</i></b>"
                                                "<br><br>Error message:<br>%s"
-                                               ) % (fname, unicode(error)))
+                                               ) % (fname,
+                                                    to_text_string(error)))
 
     def new_folder(self, basedir):
         """New folder"""
@@ -607,11 +609,11 @@ class DirView(QTreeView):
             try:
                 create_func(fname)
                 return fname
-            except EnvironmentError, error:
+            except EnvironmentError as error:
                 QMessageBox.critical(self, _("New file"),
                                      _("<b>Unable to create file <i>%s</i>"
                                        "</b><br><br>Error message:<br>%s"
-                                       ) % (fname, unicode(error)))
+                                       ) % (fname, to_text_string(error)))
 
     def new_file(self, basedir):
         """New file"""
@@ -622,7 +624,7 @@ class DirView(QTreeView):
             if osp.splitext(fname)[1] in ('.py', '.pyw', '.ipy'):
                 create_script(fname)
             else:
-                file(fname, 'wb').write('')
+                open(fname, 'wb').write('')
         fname = self.create_new_file(basedir, title, filters, create_func)
         if fname is not None:
             self.open([fname])
@@ -641,10 +643,10 @@ class DirView(QTreeView):
         try:
             for path in sorted(fnames):
                 vcs.run_vcs_tool(path, tool=tool)
-        except RuntimeError, error:
+        except RuntimeError as error:
             QMessageBox.critical(self, _("Error"),
                                  _("<b>Unable to find external program.</b>"
-                                   "<br><br>%s") % unicode(error))
+                                   "<br><br>%s") % to_text_string(error))
         
     #----- Settings
     def get_scrollbar_position(self):
@@ -688,7 +690,7 @@ class DirView(QTreeView):
 
     def restore_directory_state(self, fname):
         """Restore directory expanded state"""
-        root = osp.normpath(unicode(fname))
+        root = osp.normpath(to_text_string(fname))
         if not osp.exists(root):
             # Directory has been (re)moved outside Spyder
             return
@@ -708,7 +710,7 @@ class DirView(QTreeView):
         """Follow directories loaded during startup"""
         if self._to_be_loaded is None:
             return
-        path = osp.normpath(unicode(fname))
+        path = osp.normpath(to_text_string(fname))
         if path in self._to_be_loaded:
             self._to_be_loaded.remove(path)
         if self._to_be_loaded is not None and len(self._to_be_loaded) == 0:
@@ -739,8 +741,8 @@ class ProxyModel(QSortFilterProxyModel):
         
     def setup_filter(self, root_path, path_list):
         """Setup proxy model filter parameters"""
-        self.root_path = osp.normpath(unicode(root_path))
-        self.path_list = [osp.normpath(unicode(p)) for p in path_list]
+        self.root_path = osp.normpath(to_text_string(root_path))
+        self.path_list = [osp.normpath(to_text_string(p)) for p in path_list]
         self.invalidateFilter()
 
     def sort(self, column, order=Qt.AscendingOrder):
@@ -752,7 +754,7 @@ class ProxyModel(QSortFilterProxyModel):
         if self.root_path is None:
             return True
         index = self.sourceModel().index(row, 0, parent_index)
-        path = osp.normpath(unicode(self.sourceModel().filePath(index)))
+        path = osp.normpath(to_text_string(self.sourceModel().filePath(index)))
         if self.root_path.startswith(path):
             # This is necessary because parent folders need to be scanned
             return True
@@ -808,7 +810,7 @@ class FilteredDirView(DirView):
         """Return filename from index"""
         if index:
             path = self.fsmodel.filePath(self.proxymodel.mapToSource(index))
-            return osp.normpath(unicode(path))
+            return osp.normpath(to_text_string(path))
 
 
 class ExplorerTreeWidget(DirView):
@@ -875,7 +877,7 @@ class ExplorerTreeWidget(DirView):
         """Refresh widget
         force=False: won't refresh widget if path has not changed"""
         if new_path is None:
-            new_path = os.getcwdu()
+            new_path = getcwd()
         if force_current:
             index = self.set_current_folder(new_path)
             self.expand(index)
@@ -894,7 +896,7 @@ class ExplorerTreeWidget(DirView):
     #---- Files/Directories Actions
     def go_to_parent_directory(self):
         """Go to parent directory"""
-        self.chdir( osp.abspath(osp.join(os.getcwdu(), os.pardir)) )
+        self.chdir( osp.abspath(osp.join(getcwd(), os.pardir)) )
         
     def go_to_previous_directory(self):
         """Back to previous directory"""
@@ -908,14 +910,14 @@ class ExplorerTreeWidget(DirView):
         
     def update_history(self, directory):
         """Update browse history"""
-        directory = osp.abspath(unicode(directory))
+        directory = osp.abspath(to_text_string(directory))
         if directory in self.history:
             self.histindex = self.history.index(directory)
         
     def chdir(self, directory=None, browsing_history=False):
         """Set directory as working directory"""
         if directory is not None:
-            directory = osp.abspath(unicode(directory))
+            directory = osp.abspath(to_text_string(directory))
         if browsing_history:
             directory = self.history[self.histindex]
         elif directory in self.history:
@@ -929,7 +931,7 @@ class ExplorerTreeWidget(DirView):
                (self.history and self.history[-1] != directory):
                 self.history.append(directory)
             self.histindex = len(self.history)-1
-        directory = unicode(directory)
+        directory = to_text_string(directory)
         os.chdir(directory)
         self.parent_widget.emit(SIGNAL("open_dir(QString)"), directory)
         self.refresh(new_path=directory, force_current=True)
@@ -948,7 +950,7 @@ class ExplorerWidget(QWidget):
         self.treewidget = ExplorerTreeWidget(self, show_cd_only=show_cd_only)
         self.treewidget.setup(name_filters=name_filters,
                               valid_types=valid_types, show_all=show_all)
-        self.treewidget.chdir(os.getcwdu())
+        self.treewidget.chdir(getcwd())
         
         toolbar_action = create_action(self, _("Show toolbar"),
                                        toggled=self.toggle_toolbar)

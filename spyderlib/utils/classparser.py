@@ -191,6 +191,6 @@ if __name__ == '__main__':
     import sys, time
     t0 = time.time()
     classes = get_classes(sys.argv[1])
-    print "Elapsed time: %s ms" % round((time.time()-t0)*1000)
+    print("Elapsed time: %s ms" % round((time.time()-t0)*1000))
 #    from pprint import pprint
 #    pprint(classes)

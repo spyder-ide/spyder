@@ -13,6 +13,8 @@ NumPy Array Editor Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
+from __future__ import print_function
+
 from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QLineEdit, QCheckBox, QGridLayout,
                                 QDoubleValidator, QDialog, QDialogButtonBox,
@@ -24,13 +26,13 @@ from spyderlib.qt.QtCore import (Qt, QModelIndex, QAbstractTableModel, SIGNAL,
 from spyderlib.qt.compat import to_qvariant, from_qvariant
 
 import numpy as np
-import StringIO
 
 # Local imports
 from spyderlib.baseconfig import _
 from spyderlib.guiconfig import get_font
 from spyderlib.utils.qthelpers import (add_actions, create_action, keybinding,
                                        qapplication, get_icon)
+from spyderlib.py3compat import io, to_text_string, is_text_string
 
 # Note: string and unicode data types will be formatted with '%s' (see below)
 SUPPORTED_FORMATS = {
@@ -85,7 +87,7 @@ def is_number(dtype):
 
 def get_idx_rect(index_list):
     """Extract the boundaries from a list of indexes"""
-    rows, cols = zip(*[(i.row(), i.column()) for i in index_list])
+    rows, cols = list(zip(*[(i.row(), i.column()) for i in index_list]))
     return ( min(rows), max(rows), min(cols), max(cols) )
 
 
@@ -205,7 +207,7 @@ class ArrayModel(QAbstractTableModel):
         elif self._data.dtype.name.startswith("string"):
             val = str(value)
         elif self._data.dtype.name.startswith("unicode"):
-            val = unicode(value)
+            val = to_text_string(value)
         else:
             if value.lower().startswith('e') or value.lower().endswith('e'):
                 return False
@@ -213,14 +215,14 @@ class ArrayModel(QAbstractTableModel):
                 val = complex(value)
                 if not val.imag:
                     val = val.real
-            except ValueError, e:
+            except ValueError as e:
                 QMessageBox.critical(self.dialog, "Error",
                                      "Value error: %s" % str(e))
                 return False
         try:
             self.test_array[0] = val # will raise an Exception eventually
-        except OverflowError, e:
-            print type(e.message)
+        except OverflowError as e:
+            print(type(e.message))
             QMessageBox.critical(self.dialog, "Error",
                                  "Overflow error: %s" % e.message)
             return False
@@ -298,7 +300,7 @@ class ArrayView(QTableView):
         self.setModel(model)
         self.setItemDelegate(ArrayDelegate(dtype, self))
         total_width = 0
-        for k in xrange(shape[1]):
+        for k in range(shape[1]):
             total_width += self.columnWidth(k)
         self.viewport().resize(min(total_width, 1024), self.height())
         self.shape = shape
@@ -347,7 +349,7 @@ class ArrayView(QTableView):
         """Copy an array portion to a unicode string"""
         row_min, row_max, col_min, col_max = get_idx_rect(cell_range)
         _data = self.model().get_data()
-        output = StringIO.StringIO()
+        output = io.StringIO()
         np.savetxt(output,
                   _data[row_min:row_max+1, col_min:col_max+1],
                   delimiter='\t')
@@ -403,7 +405,7 @@ class ArrayEditorWidget(QWidget):
         
     def accept_changes(self):
         """Accept changes"""
-        for (i, j), value in self.model.changes.iteritems():
+        for (i, j), value in list(self.model.changes.items()):
             self.data[i, j] = value
         if self.old_data_shape is not None:
             self.data.shape = self.old_data_shape
@@ -481,7 +483,7 @@ class ArrayEditor(QDialog):
         self.setLayout(self.layout)
         self.setWindowIcon(get_icon('arredit.png'))
         if title:
-            title = unicode(title) # in case title is not a string
+            title = to_text_string(title) # in case title is not a string
         else:
             title = _("Array editor")
         if readonly:
@@ -521,7 +523,7 @@ class ArrayEditor(QDialog):
                     text = name
                     if len(field) >= 3:
                         title = field[2]
-                        if not isinstance(title, basestring):
+                        if not is_text_string(title):
                             title = repr(title)
                         text += ' - '+title
                     names.append(text)
@@ -598,33 +600,34 @@ def test():
     _app = qapplication()
     
     arr = np.array(["kjrekrjkejr"])
-    print "out:", test_edit(arr, "string array")
-    arr = np.array([u"kjrekrjkejr"])
-    print "out:", test_edit(arr, "unicode array")
+    print("out:", test_edit(arr, "string array"))
+    from spyderlib.py3compat import u
+    arr = np.array([u("kjrekrjkejr")])
+    print("out:", test_edit(arr, "unicode array"))
     arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
-    print "out:", test_edit(arr, "masked array")
-    arr = np.zeros((2,2), {'names': ('red', 'green', 'blue'),
+    print("out:", test_edit(arr, "masked array"))
+    arr = np.zeros((2, 2), {'names': ('red', 'green', 'blue'),
                            'formats': (np.float32, np.float32, np.float32)})
-    print "out:", test_edit(arr, "record array")
+    print("out:", test_edit(arr, "record array"))
     arr = np.array([(0, 0.0), (0, 0.0), (0, 0.0)],
                    dtype=[(('title 1', 'x'), '|i1'),
                           (('title 2', 'y'), '>f4')])
-    print "out:", test_edit(arr, "record array with titles")
+    print("out:", test_edit(arr, "record array with titles"))
     arr = np.random.rand(5, 5)
-    print "out:", test_edit(arr, "float array",
-                            xlabels=['a', 'b', 'c', 'd', 'e'])
+    print("out:", test_edit(arr, "float array",
+                            xlabels=['a', 'b', 'c', 'd', 'e']))
     arr = np.round(np.random.rand(5, 5)*10)+\
                    np.round(np.random.rand(5, 5)*10)*1j
-    print "out:", test_edit(arr, "complex array",
+    print("out:", test_edit(arr, "complex array",
                             xlabels=np.linspace(-12, 12, 5),
-                            ylabels=np.linspace(-12, 12, 5))
+                            ylabels=np.linspace(-12, 12, 5)))
     arr_in = np.array([True, False, True])
-    print "in:", arr_in
+    print("in:", arr_in)
     arr_out = test_edit(arr_in, "bool array")
-    print "out:", arr_out
-    print arr_in is arr_out
+    print("out:", arr_out)
+    print(arr_in is arr_out)
     arr = np.array([1, 2, 3], dtype="int8")
-    print "out:", test_edit(arr, "int array")
+    print("out:", test_edit(arr, "int array"))
 
 
 if __name__ == "__main__":

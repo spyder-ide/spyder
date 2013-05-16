@@ -11,8 +11,6 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-import os
-
 from spyderlib.qt.QtGui import QApplication
 from spyderlib.qt.QtCore import SIGNAL, Signal
 
@@ -21,6 +19,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils.qthelpers import create_action
 from spyderlib.widgets.findinfiles import FindInFilesWidget
 from spyderlib.plugins import SpyderPluginMixin
+from spyderlib.py3compat import getcwd
 
 
 class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
@@ -66,7 +65,7 @@ class FindInFiles(FindInFilesWidget, SpyderPluginMixin):
     
     def refreshdir(self):
         """Refresh search directory"""
-        self.find_options.set_directory(os.getcwdu())
+        self.find_options.set_directory(getcwd())
 
     def findinfiles_callback(self):
         """Find in files callback"""

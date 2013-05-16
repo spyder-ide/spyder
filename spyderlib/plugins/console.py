@@ -32,6 +32,7 @@ from spyderlib.widgets.internalshell import InternalShell
 from spyderlib.widgets.findreplace import FindReplace
 from spyderlib.widgets.dicteditor import DictEditor
 from spyderlib.plugins import SpyderPluginWidget
+from spyderlib.py3compat import to_text_string, getcwd
 
     
 class Console(SpyderPluginWidget):
@@ -219,7 +220,7 @@ class Console(SpyderPluginWidget):
         if filename is None:
             self.shell.interpreter.restore_stds()
             filename, _selfilter = getopenfilename(self, _("Run Python script"),
-                   os.getcwdu(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
+                   getcwd(), _("Python scripts")+" (*.py ; *.pyw ; *.ipy)")
             self.shell.interpreter.redirect_stds()
             if filename:
                 os.chdir( os.path.dirname(filename) )
@@ -239,7 +240,7 @@ class Console(SpyderPluginWidget):
             
     def go_to_error(self, text):
         """Go to error if relevant"""
-        match = get_error_match(unicode(text))
+        match = get_error_match(to_text_string(text))
         if match:
             fname, lnb = match.groups()
             self.edit_script(fname, int(lnb))
@@ -257,7 +258,7 @@ class Console(SpyderPluginWidget):
         
     def execute_lines(self, lines):
         """Execute lines and give focus to shell"""
-        self.shell.execute_lines(unicode(lines))
+        self.shell.execute_lines(to_text_string(lines))
         self.shell.setFocus()
         
     def change_font(self):
@@ -285,7 +286,7 @@ class Console(SpyderPluginWidget):
                           QLineEdit.Normal,
                           self.get_option('external_editor/path'))
         if valid:
-            self.set_option('external_editor/path', unicode(path))
+            self.set_option('external_editor/path', to_text_string(path))
             
     def toggle_wrap_mode(self, checked):
         """Toggle wrap mode"""
@@ -328,7 +329,7 @@ class Console(SpyderPluginWidget):
             pathlist = mimedata2url(source)
             self.shell.drop_pathlist(pathlist)
         elif source.hasText():
-            lines = unicode(source.text())
+            lines = to_text_string(source.text())
             self.shell.set_cursor_position('eof')
             self.shell.execute_lines(lines)
         event.acceptProposedAction()

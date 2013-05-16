@@ -16,6 +16,7 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.widgets.browser import WebBrowser
 from spyderlib.utils.misc import select_port
+from spyderlib.py3compat import to_text_string
 
 
 class PydocServer(QThread):
@@ -28,7 +29,11 @@ class PydocServer(QThread):
         
     def run(self):
         import pydoc
-        pydoc.serve(self.port, self.callback, self.completer)
+        try:
+            pydoc.serve(self.port, self.callback, self.completer)
+        except AttributeError:
+            # Python 3
+            pydoc.browse(self.port, open_browser=False)
         
     def callback(self, server):
         self.server = server
@@ -98,7 +103,7 @@ class PydocBrowser(WebBrowser):
     
     def url_to_text(self, url):
         """Convert QUrl object to displayed text in combo box"""
-        return osp.splitext(unicode(url.path()))[0][1:]
+        return osp.splitext(to_text_string(url.path()))[0][1:]
 
 
 def main():

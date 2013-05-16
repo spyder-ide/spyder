@@ -19,6 +19,7 @@ from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
 from spyderlib.baseconfig import _
 from spyderlib.widgets.comboboxes import UrlComboBox
 from spyderlib.widgets.findreplace import FindReplace
+from spyderlib.py3compat import to_text_string, is_text_string
 
 
 class WebView(QWebView):
@@ -91,7 +92,7 @@ class WebView(QWebView):
     #------ QWebView API -------------------------------------------------------
     def createWindow(self, webwindowtype):
         import webbrowser
-        webbrowser.open(unicode(self.url().toString()))
+        webbrowser.open(to_text_string(self.url().toString()))
         
     def contextMenuEvent(self, event):
         menu = QMenu(self)
@@ -194,7 +195,7 @@ class WebBrowser(QWidget):
         
     def go_to(self, url_or_text):
         """Go to page *address*"""
-        if isinstance(url_or_text, basestring):
+        if is_text_string(url_or_text):
             url = QUrl(url_or_text)
         else:
             url = url_or_text
@@ -211,7 +212,7 @@ class WebBrowser(QWidget):
         
     def url_combo_activated(self, valid):
         """Load URL from combo box first item"""
-        text = unicode(self.url_combo.currentText())
+        text = to_text_string(self.url_combo.currentText())
         self.go_to(self.text_to_url(text))
         
     def load_finished(self, ok):

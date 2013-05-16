@@ -96,7 +96,7 @@ EDIT_FILTERS = _get_filters(EDIT_FILETYPES)
 EDIT_EXT = _get_extensions(EDIT_FILETYPES)+['']
 
 # Extensions supported by Spyder's Variable explorer
-IMPORT_EXT = iofuncs.iofunctions.load_extensions.values()
+IMPORT_EXT = list(iofuncs.iofunctions.load_extensions.values())
 
 # Extensions that should be visible in Spyder's file/project explorers
 SHOW_EXT = ['.png', '.ico', '.svg']

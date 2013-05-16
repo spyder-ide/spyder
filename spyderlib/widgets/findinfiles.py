@@ -34,6 +34,7 @@ from spyderlib.utils.qthelpers import (get_icon, get_std_icon,
 from spyderlib.baseconfig import _
 from spyderlib.widgets.comboboxes import PathComboBox, PatternComboBox
 from spyderlib.widgets.onecolumntree import OneColumnTree
+from spyderlib.py3compat import to_text_string, getcwd
 
 
 #def find_files_in_hg_manifest(rootpath, include, exclude):
@@ -240,7 +241,7 @@ class SearchThread(QThread):
                 if self.stopped:
                     return
             try:
-                for lineno, line in enumerate(open(fname)):
+                for lineno, line in enumerate(open(fname, 'rb')):
                     for text, enc in self.texts:
                         if self.text_re:
                             found = re.search(text, line)
@@ -270,7 +271,8 @@ class SearchThread(QThread):
                                 if found > -1:
                                     break
                             self.nb += 1
-            except IOError, (_errno, _strerror):
+            except IOError as xxx_todo_changeme:
+                (_errno, _strerror) = xxx_todo_changeme.args
                 self.error_flag = _("permission denied errors were encountered")
             except re.error:
                 self.error_flag = _("invalid regular expression")
@@ -289,7 +291,7 @@ class FindOptions(QWidget):
         QWidget.__init__(self, parent)
         
         if search_path is None:
-            search_path = os.getcwdu()
+            search_path = getcwd()
         
         if not isinstance(search_text, (list, tuple)):
             search_text = [search_text]
@@ -435,7 +437,7 @@ class FindOptions(QWidget):
         
     def detect_hg_repository(self, path=None):
         if path is None:
-            path = os.getcwdu()
+            path = getcwd()
         hg_repository = is_hg_installed() and get_vcs_root(path) is not None
         self.hg_manifest.setEnabled(hg_repository)
         if not hg_repository and self.hg_manifest.isChecked():
@@ -449,7 +451,7 @@ class FindOptions(QWidget):
         
     def get_options(self, all=False):
         # Getting options
-        utext = unicode(self.search_text.currentText())
+        utext = to_text_string(self.search_text.currentText())
         if not utext:
             return
         try:
@@ -462,13 +464,13 @@ class FindOptions(QWidget):
                 except UnicodeDecodeError:
                     pass
         text_re = self.edit_regexp.isChecked()
-        include = unicode(self.include_pattern.currentText())
+        include = to_text_string(self.include_pattern.currentText())
         include_re = self.include_regexp.isChecked()
-        exclude = unicode(self.exclude_pattern.currentText())
+        exclude = to_text_string(self.exclude_pattern.currentText())
         exclude_re = self.exclude_regexp.isChecked()
         python_path = self.python_path.isChecked()
         hg_manifest = self.hg_manifest.isChecked()
-        path = osp.abspath( unicode( self.dir_combo.currentText() ) )
+        path = osp.abspath( to_text_string( self.dir_combo.currentText() ) )
         
         # Finding text occurences
         if not include_re:
@@ -477,14 +479,14 @@ class FindOptions(QWidget):
             exclude = fnmatch.translate(exclude)
             
         if all:
-            search_text = [unicode(self.search_text.itemText(index)) \
+            search_text = [to_text_string(self.search_text.itemText(index)) \
                            for index in range(self.search_text.count())]
-            search_path = [unicode(self.dir_combo.itemText(index)) \
+            search_path = [to_text_string(self.dir_combo.itemText(index)) \
                            for index in range(self.dir_combo.count())]
-            include = [unicode(self.include_pattern.itemText(index)) \
+            include = [to_text_string(self.include_pattern.itemText(index)) \
                        for index in range(self.include_pattern.count())]
             include_idx = self.include_pattern.currentIndex()
-            exclude = [unicode(self.exclude_pattern.itemText(index)) \
+            exclude = [to_text_string(self.exclude_pattern.itemText(index)) \
                        for index in range(self.exclude_pattern.count())]
             exclude_idx = self.exclude_pattern.currentIndex()
             more_options = self.more_options.isChecked()
@@ -506,7 +508,7 @@ class FindOptions(QWidget):
         self.parent().emit(SIGNAL('redirect_stdio(bool)'), True)
         
     def set_directory(self, directory):
-        path = unicode(osp.abspath(unicode(directory)))
+        path = to_text_string(osp.abspath(to_text_string(directory)))
         self.dir_combo.setEditText(path)
         self.detect_hg_repository(path)
         
@@ -538,7 +540,7 @@ class ResultsBrowser(OneColumnTree):
         
     def activated(self, item):
         """Double-click event"""
-        itemdata = self.data.get(self.currentItem())
+        itemdata = self.data.get(id(self.currentItem()))
         if itemdata is not None:
             filename, lineno = itemdata
             self.parent().emit(SIGNAL("edit_goto(QString,int,QString)"),
@@ -663,7 +665,7 @@ class ResultsBrowser(OneColumnTree):
                            ["%d (%s): %s" % (lineno, colno_str, line.rstrip())],
                            QTreeWidgetItem.Type)
                 item.setIcon(0, get_icon('arrow.png'))
-                self.data[item] = (filename, lineno)
+                self.data[id(item)] = (filename, lineno)
         # Removing empty directories
         top_level_items = [self.topLevelItem(index)
                            for index in range(self.topLevelItemCount())]
@@ -780,7 +782,8 @@ class FindInFilesWidget(QWidget):
         self.stop_and_reset_thread()
         if found is not None:
             results, pathlist, nb, error_flag = found
-            search_text = unicode( self.find_options.search_text.currentText() )
+            search_text = to_text_string(
+                                self.find_options.search_text.currentText())
             self.result_browser.set_results(search_text, results, pathlist,
                                             nb, error_flag, completed)
             self.result_browser.show()

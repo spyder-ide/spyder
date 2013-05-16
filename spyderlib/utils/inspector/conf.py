@@ -11,6 +11,7 @@ from sphinx import __version__ as sphinx_version
 
 # Local imports
 from spyderlib.config import CONF
+from spyderlib.py3compat import u
 
 #==============================================================================
 # General configuration
@@ -52,8 +53,8 @@ source_suffix = '.rst'
 master_doc = 'docstring'
 
 # General information about the project.
-project = u"Object Inspector"
-copyright = u'2009--2013, The Spyder Development Team'
+project = u("Object Inspector")
+copyright = u('2009--2013, The Spyder Development Team')
 
 # List of directories, relative to source directory, that shouldn't be searched
 # for source files.

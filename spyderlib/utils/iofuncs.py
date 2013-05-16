@@ -11,15 +11,17 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
-from __future__ import with_statement
+from __future__ import print_function
 
 import sys
 import os
-import cPickle
 import tarfile
 import os.path as osp
 import shutil
 import warnings
+
+# Local imports
+from spyderlib.py3compat import pickle, to_text_string, getcwd
 
 
 try:
@@ -35,7 +37,7 @@ try:
         try:
             out = spio.loadmat(filename, struct_as_record=True,
                                squeeze_me=True)
-            for key, value in out.iteritems():
+            for key, value in list(out.items()):
                 if isinstance(value, np.ndarray):
                     if value.shape == ():
                         out[key] = value.tolist()
@@ -45,12 +47,12 @@ try:
 #                    elif value.shape == (1, 1):
 #                        out[key] = value[0][0]
             return out, None
-        except Exception, error:
+        except Exception as error:
             return None, str(error)
     def save_matlab(data, filename):
         try:
             spio.savemat(filename, data, oned_as='row')
-        except Exception, error:
+        except Exception as error:
             return str(error)
 except ImportError:
     load_matlab = None
@@ -63,7 +65,7 @@ try:
         try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: np.load(filename)}, None
-        except Exception, error:
+        except Exception as error:
             return None, str(error)    
     def __save_array(data, basename, index):
         """Save numpy array"""
@@ -108,7 +110,7 @@ try:
         try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: __image_to_array(filename)}, None
-        except Exception, error:
+        except Exception as error:
             return None, str(error)
 except ImportError:
     load_image = None
@@ -117,7 +119,7 @@ except ImportError:
 def save_dictionary(data, filename):
     """Save dictionary in a single file .spydata file"""
     filename = osp.abspath(filename)
-    old_cwd = os.getcwdu()
+    old_cwd = getcwd()
     os.chdir(osp.dirname(filename))
     error_message = None
     try:
@@ -125,7 +127,7 @@ def save_dictionary(data, filename):
         if load_array is not None:
             # Saving numpy arrays with np.save
             arr_fname = osp.splitext(filename)[0]
-            for name in data.keys():
+            for name in list(data.keys()):
                 if isinstance(data[name], np.ndarray) and data[name].size > 0:
                     # Saving arrays at data root
                     fname = __save_array(data[name], arr_fname,
@@ -137,7 +139,7 @@ def save_dictionary(data, filename):
                     if isinstance(data[name], list):
                         iterator = enumerate(data[name])
                     else:
-                        iterator = data[name].iteritems()
+                        iterator = iter(list(data[name].items()))
                     to_remove = []
                     for index, value in iterator:
                         if isinstance(value, np.ndarray) and value.size > 0:
@@ -151,23 +153,23 @@ def save_dictionary(data, filename):
                 data['__saved_arrays__'] = saved_arrays
         pickle_filename = osp.splitext(filename)[0]+'.pickle'
         with open(pickle_filename, 'wb') as fdesc:
-            cPickle.dump(data, fdesc, 2)
+            pickle.dump(data, fdesc, 2)
         tar = tarfile.open(filename, "w")
-        for fname in [pickle_filename]+[fn for fn in saved_arrays.itervalues()]:
+        for fname in [pickle_filename]+[fn for fn in list(saved_arrays.values())]:
             tar.add(osp.basename(fname))
             os.remove(fname)
         tar.close()
         if saved_arrays:
             data.pop('__saved_arrays__')
-    except (RuntimeError, cPickle.PicklingError, TypeError), error:
-        error_message = unicode(error)
+    except (RuntimeError, pickle.PicklingError, TypeError) as error:
+        error_message = to_text_string(error)
     os.chdir(old_cwd)
     return error_message
 
 def load_dictionary(filename):
     """Load dictionary from .spydata file"""
     filename = osp.abspath(filename)
-    old_cwd = os.getcwdu()
+    old_cwd = getcwd()
     os.chdir(osp.dirname(filename))
     data = None
     error_message = None
@@ -178,17 +180,17 @@ def load_dictionary(filename):
         try:
             # Old format (Spyder 2.0-2.1 for Python 2)
             with open(pickle_filename, 'U') as fdesc:
-                data = cPickle.loads(fdesc.read())
-        except cPickle.PickleError:
+                data = pickle.loads(fdesc.read())
+        except (pickle.PickleError, TypeError):
             # New format (Spyder >=2.2 for Python 2 and Python 3)
             with open(pickle_filename, 'rb') as fdesc:
-                data = cPickle.loads(fdesc.read())
+                data = pickle.loads(fdesc.read())
         saved_arrays = {}
         if load_array is not None:
             # Loading numpy arrays saved with np.save
             try:
                 saved_arrays = data.pop('__saved_arrays__')
-                for (name, index), fname in saved_arrays.iteritems():
+                for (name, index), fname in list(saved_arrays.items()):
                     arr = np.load( osp.join(osp.dirname(filename), fname) )
                     if index is None:
                         data[name] = arr
@@ -198,10 +200,10 @@ def load_dictionary(filename):
                         data[name].insert(index, arr)
             except KeyError:
                 pass
-        for fname in [pickle_filename]+[fn for fn in saved_arrays.itervalues()]:
+        for fname in [pickle_filename]+[fn for fn in list(saved_arrays.values())]:
             os.remove(fname)
-    except (EOFError, ValueError), error:
-        error_message = unicode(error)
+    except (EOFError, ValueError) as error:
+        error_message = to_text_string(error)
     os.chdir(old_cwd)
     return data, error_message
 
@@ -216,7 +218,7 @@ SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
 
 def reset_session():
     """Remove all config files"""
-    print >>STDERR, "*** Reset Spyder settings to defaults ***"
+    print("*** Reset Spyder settings to defaults ***", file=STDERR)
     for fname in SAVED_CONFIG_FILES:
         cfg_fname = get_conf_path(fname)
         if osp.isfile(cfg_fname):
@@ -225,13 +227,13 @@ def reset_session():
             shutil.rmtree(cfg_fname)
         else:
             continue
-        print >>STDERR, "removing:", cfg_fname
+        print("removing:", cfg_fname, file=STDERR)
 
 def save_session(filename):
     """Save Spyder session"""
     local_fname = get_conf_path(osp.basename(filename))
     filename = osp.abspath(filename)
-    old_cwd = os.getcwdu()
+    old_cwd = getcwd()
     os.chdir(get_conf_path())
     error_message = None
     try:
@@ -241,15 +243,15 @@ def save_session(filename):
                 tar.add(fname)
         tar.close()
         shutil.move(local_fname, filename)
-    except Exception, error:
-        error_message = unicode(error)
+    except Exception as error:
+        error_message = to_text_string(error)
     os.chdir(old_cwd)
     return error_message
 
 def load_session(filename):
     """Load Spyder session"""
     filename = osp.abspath(filename)
-    old_cwd = os.getcwdu()
+    old_cwd = getcwd()
     os.chdir(osp.dirname(filename))
     error_message = None
     renamed = False
@@ -272,8 +274,8 @@ def load_session(filename):
         for fname in extracted_files:
             shutil.move(fname, get_conf_path(fname))
             
-    except Exception, error:
-        error_message = unicode(error)
+    except Exception as error:
+        error_message = to_text_string(error)
         if renamed:
             # Restore original config files
             for fname in extracted_files:
@@ -316,7 +318,7 @@ class IOFunctions(object):
         save_filters = []
         load_ext = []
         for ext, name, loadfunc, savefunc in iofuncs:
-            filter_str = unicode(name + " (*%s)" % ext)
+            filter_str = to_text_string(name + " (*%s)" % ext)
             if loadfunc is not None:
                 load_filters.append(filter_str)
                 load_extensions[filter_str] = ext
@@ -326,8 +328,8 @@ class IOFunctions(object):
                 save_extensions[filter_str] = ext
                 save_filters.append(filter_str)
                 save_funcs[ext] = savefunc
-        load_filters.insert(0, unicode(_("Supported files")+" (*"+\
-                                       " *".join(load_ext)+")"))
+        load_filters.insert(0, to_text_string(_("Supported files")+" (*"+\
+                                              " *".join(load_ext)+")"))
         self.load_filters = "\n".join(load_filters)
         self.save_filters = "\n".join(save_filters)
         self.load_funcs = load_funcs
@@ -356,8 +358,8 @@ class IOFunctions(object):
             try:
                 other_funcs.append((mod.FORMAT_EXT, mod.FORMAT_NAME,
                                     mod.FORMAT_LOAD, mod.FORMAT_SAVE))
-            except AttributeError, error:
-                print >>STDERR, "%s: %s" % (mod, str(error))
+            except AttributeError as error:
+                print("%s: %s" % (mod, str(error)), file=STDERR)
         return other_funcs
         
     def save(self, data, filename):
@@ -384,11 +386,12 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
+    from spyderlib.py3compat import u
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
-               'unicode': u'éù',
+               'unicode': u('éù'),
                'list': [1, 3, [4, 5, 6], 'kjkj', None],
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
@@ -401,9 +404,9 @@ if __name__ == "__main__":
     import time
     t0 = time.time()
     save_dictionary(example, "test.spydata")
-    print " Data saved in %.3f seconds" % (time.time()-t0)
+    print(" Data saved in %.3f seconds" % (time.time()-t0))
     t0 = time.time()
     example2, ok = load_dictionary("test.spydata")
-    print "Data loaded in %.3f seconds" % (time.time()-t0)
+    print("Data loaded in %.3f seconds" % (time.time()-t0))
 #    for key in example:
 #        print key, ":", example[key] == example2[key]

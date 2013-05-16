@@ -19,6 +19,7 @@ import os.path as osp
 
 # Local imports
 from spyderlib.baseconfig import _
+from spyderlib.py3compat import to_text_string
 
 
 class BaseComboBox(QComboBox):
@@ -176,7 +177,7 @@ class PathComboBox(EditableComboBox):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
-        return osp.isdir( unicode(qstr) )
+        return osp.isdir( to_text_string(qstr) )
     
     def selected(self):
         """Action to be executed when a valid item has been selected"""
@@ -217,7 +218,7 @@ class PythonModulesComboBox(PathComboBox):
         """Return True if string is valid"""
         if qstr is None:
             qstr = self.currentText()
-        return is_module_or_package(unicode(qstr))
+        return is_module_or_package(to_text_string(qstr))
     
     def selected(self):
         """Action to be executed when a valid item has been selected"""

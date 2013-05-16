@@ -6,7 +6,7 @@
 
 """Spyder path manager"""
 
-from __future__ import with_statement
+from __future__ import print_function
 
 from spyderlib.qt.QtGui import (QDialog, QListWidget, QDialogButtonBox,
                                 QVBoxLayout, QHBoxLayout, QMessageBox,
@@ -21,6 +21,7 @@ import os.path as osp
 # Local imports
 from spyderlib.utils.qthelpers import get_icon, get_std_icon, create_toolbutton
 from spyderlib.baseconfig import _
+from spyderlib.py3compat import getcwd
 
 
 class PathManager(QDialog):
@@ -39,7 +40,7 @@ class PathManager(QDialog):
             ro_pathlist = []
         self.ro_pathlist = ro_pathlist
         
-        self.last_path = os.getcwdu()
+        self.last_path = getcwd()
         
         self.setWindowTitle(_("PYTHONPATH manager"))
         self.setWindowIcon(get_icon('pythonpath.png'))
@@ -240,7 +241,7 @@ def test():
     _app = qapplication()  # analysis:ignore
     test = PathManager(None, sys.path[:-10], sys.path[-10:])
     test.exec_()
-    print test.get_path_list()
+    print(test.get_path_list())
 
 if __name__ == "__main__":
     test()

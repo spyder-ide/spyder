@@ -6,7 +6,39 @@ import os
 import os.path as osp
 import pdb
 import bdb
-import __builtin__
+
+
+#==============================================================================
+# Important Note:
+#
+# We avoid importing spyderlib here, so we are handling Python 3 compatiblity
+# by hand.
+#==============================================================================
+def _print(*objects, **options):
+    end = options.get('end', '\n')
+    file = options.get('file', sys.stdout)
+    sep = options.get('sep', ' ')
+    string = sep.join([str(obj) for obj in objects])
+    if sys.version[0] == '3':
+        # Python 3
+        local_dict = {}
+        exec('printf = print', local_dict) # to avoid syntax error in Python 2
+        local_dict['printf'](string, file=file, end=end, sep=sep)
+    else:
+        # Python 2
+        if end:
+            print >>file, string
+        else:
+            print >>file, string,
+
+try:
+    import __builtin__ as builtins
+except ImportError:
+    # Python 3
+    import builtins
+    basestring = (str,)
+    def execfile(filename):
+        exec(compile(open(filename).read(), filename, 'exec'))
 
 
 # Colorization of sys.stderr (standard Python interpreter)
@@ -138,7 +170,7 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
 
 
 # Set standard outputs encoding:
-# (otherwise, for example, print u"é" will fail)
+# (otherwise, for example, print(u"é") will fail)
 encoding = None
 try:
     import locale
@@ -152,8 +184,12 @@ else:
 if encoding is None:
     encoding = "UTF-8"
 
-sys.setdefaultencoding(encoding)
-os.environ['SPYDER_ENCODING'] = encoding
+try:
+    sys.setdefaultencoding(encoding)
+    os.environ['SPYDER_ENCODING'] = encoding
+except AttributeError:
+    # Python 3
+    pass
     
 try:
     import sitecustomize  #analysis:ignore
@@ -189,16 +225,16 @@ else:
             try:
                 source = source.__file__
             except AttributeError:
-                print >>sys.stderr, "The argument must be either a string"\
-                                    "or a module object"
+                raise ValueError("source argument must be either "
+                                 "a string or a module object")
         if source.endswith('.pyc'):
             source = source[:-1]
         source = osp.abspath(source)
         if osp.exists(source):
             monitor.notify_open_file(source, lineno=lineno)
         else:
-            print >>sys.stderr, "Can't open file %s" % source
-    __builtin__.open_in_spyder = open_in_spyder
+            _print("Can't open file %s" % source, file=sys.stderr)
+    builtins.open_in_spyder = open_in_spyder
     
     # * PyQt4:
     #   * Removing PyQt4 input hook which is not working well on Windows since 
@@ -308,7 +344,7 @@ class SpyderPdb(pdb.Pdb):
         if CONF.get('run', 'breakpoints/enabled', True):
             breakpoints = CONF.get('run', 'breakpoints', {})
             i = 0
-            for fname, data in breakpoints.iteritems():
+            for fname, data in list(breakpoints.items()):
                 for linenumber, condition in data:
                     i += 1
                     self.set_break(self.canonic(fname), linenumber,
@@ -347,7 +383,7 @@ def monkeypatch_method(cls, patch_name):
         if old_func is not None:
             # Add the old func to a list of old funcs.
             old_ref = "_old_%s_%s" % (patch_name, fname)
-            #print old_ref, old_func
+            #print(old_ref, old_func)
             old_attr = getattr(cls, old_ref, None)
             if old_attr is None:
                 setattr(cls, old_ref, old_func)
@@ -412,8 +448,8 @@ if os.environ.get("IGNORE_SIP_SETAPI_ERRORS", "").lower() == "true":
         def patched_setapi(name, no):
             try:
                 original_setapi(name, no)
-            except ValueError, msg:
-                print >>sys.stderr, "Warning/PyQt4-Spyder (%s)" % str(msg)
+            except ValueError as msg:
+                _print("Warning/PyQt4-Spyder (%s)" % str(msg), file=sys.stderr)
         sip.setapi = patched_setapi
     except ImportError:
         pass
@@ -436,7 +472,7 @@ class UserModuleDeleter(object):
         if pathlist is None:
             pathlist = []
         self.pathlist = pathlist
-        self.previous_modules = sys.modules.keys()
+        self.previous_modules = list(sys.modules.keys())
 
     def is_module_blacklisted(self, modname, modpath):
         for path in [sys.prefix]+self.pathlist:
@@ -454,7 +490,7 @@ class UserModuleDeleter(object):
         Do not del C modules
         """
         log = []
-        for modname, module in sys.modules.items():
+        for modname, module in list(sys.modules.items()):
             if modname not in self.previous_modules:
                 modpath = getattr(module, '__file__', None)
                 if modpath is None:
@@ -466,8 +502,8 @@ class UserModuleDeleter(object):
                     log.append(modname)
                     del sys.modules[modname]
         if verbose and log:
-            print "\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
-                  % ("UMD has deleted", ": "+", ".join(log))
+            _print("\x1b[4;33m%s\x1b[24m%s\x1b[0m"\
+                   % ("UMD has deleted", ": "+", ".join(log)))
 
 __umd__ = None
 
@@ -524,7 +560,7 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     sys.argv = ['']
     namespace.pop('__file__')
     
-__builtin__.runfile = runfile
+builtins.runfile = runfile
 
 
 def debugfile(filename, args=None, wdir=None):
@@ -540,7 +576,7 @@ def debugfile(filename, args=None, wdir=None):
     debugger._user_requested_quit = 0
     debugger.run("runfile(%r, args=%r, wdir=%r)" % (filename, args, wdir))
 
-__builtin__.debugfile = debugfile
+builtins.debugfile = debugfile
 
 
 def evalsc(command):
@@ -556,7 +592,7 @@ def evalsc(command):
         else:
             from subprocess import Popen, PIPE
             Popen(command, shell=True, stdin=PIPE)
-            print '\n'
+            _print('\n')
     else:
         # General command
         namespace = _get_globals()
@@ -573,7 +609,10 @@ def evalsc(command):
                 except KeyError:
                     pass
         elif command in ('cd', 'pwd'):
-            print os.getcwdu()
+            try:
+                _print(os.getcwdu())
+            except AttributeError:
+                _print(os.getcwd())
         elif command == 'ls':
             if os.name == 'nt':
                 evalsc('!dir')
@@ -585,7 +624,7 @@ def evalsc(command):
         else:
             raise NotImplementedError("Unsupported command: '%s'" % command)
 
-__builtin__.evalsc = evalsc
+builtins.evalsc = evalsc
 
 
 # Restoring original PYTHONPATH

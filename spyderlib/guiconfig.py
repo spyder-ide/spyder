@@ -19,11 +19,13 @@ from spyderlib.qt.QtGui import QFont, QFontDatabase
 from spyderlib.config import CONF
 from spyderlib.userconfig import NoDefault
 from spyderlib.widgets.sourcecode import syntaxhighlighters as sh
+from spyderlib.py3compat import to_text_string
 
 
 def font_is_installed(font):
     """Check if font is installed"""
-    return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
+    return [fam for fam in QFontDatabase().families()
+            if to_text_string(fam)==font]
     
 def get_family(families):
     """Return the first installed font family in family list"""
@@ -33,7 +35,7 @@ def get_family(families):
         if font_is_installed(family):
             return family
     else:
-        print "Warning: None of the following fonts is installed: %r" % families
+        print("Warning: None of the following fonts is installed: %r" % families)
         return QFont().family()
     
 FONT_CACHE = {}
@@ -65,7 +67,7 @@ def set_font(font, section, option=None):
         option = 'font'
     else:
         option += '/font'
-    CONF.set(section, option+'/family', unicode(font.family()))
+    CONF.set(section, option+'/family', to_text_string(font.family()))
     CONF.set(section, option+'/size', float(font.pointSize()))
     CONF.set(section, option+'/italic', int(font.italic()))
     CONF.set(section, option+'/bold', int(font.bold()))
@@ -106,7 +108,7 @@ def set_color_scheme(name, color_scheme, replace=True):
         value = CONF.get(section, option, default=None)
         if value is None or replace or name not in names:
             CONF.set(section, option, color_scheme[key])
-    names.append(unicode(name))
+    names.append(to_text_string(name))
     CONF.set(section, "names", sorted(list(set(names))))
 
 def set_default_color_scheme(name, replace=True):

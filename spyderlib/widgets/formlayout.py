@@ -33,15 +33,10 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 """
 
-# ----+- Python 3 compatibility -+----
 from __future__ import print_function
-try:
-    basestring
-except NameError:
-    # Python 3
-    basestring = unicode = str
 
 # History:
+# 1.0.14: fixed Python 3 support (regression in 1.0.13)
 # 1.0.13: replaced obsolete QColorDialog.getRgba function and fixed other 
 #         compatibility issues with PySide (see Issue 8 of formlayout website)
 # 1.0.12: added support for Python 3
@@ -71,6 +66,7 @@ import datetime
 
 # Local imports
 from spyderlib.baseconfig import _, DEBUG, STDERR
+from spyderlib.py3compat import is_text_string, to_text_string, is_string
 
 
 class ColorButton(QPushButton):
@@ -112,9 +108,9 @@ def text_to_qcolor(text):
     Avoid warning from Qt when an invalid QColor is instantiated
     """
     color = QColor()
-    if not isinstance(text, basestring): # testing for QString (PyQt API#1)
+    if not is_string(text): # testing for QString (PyQt API#1)
         text = str(text)
-    if not isinstance(text, (unicode, str)):
+    if not is_text_string(text):
         return color
     if text.startswith('#') and len(text)==7:
         correct = '#0123456789abcdef'
@@ -156,7 +152,8 @@ class ColorLayout(QHBoxLayout):
     
 def font_is_installed(font):
     """Check if font is installed"""
-    return [fam for fam in QFontDatabase().families() if unicode(fam)==font]
+    return [fam for fam in QFontDatabase().families()
+            if to_text_string(fam) == font]
 
 def tuple_to_qfont(tup):
     """
@@ -178,7 +175,7 @@ def tuple_to_qfont(tup):
     return font
 
 def qfont_to_tuple(font):
-    return (unicode(font.family()), int(font.pointSize()),
+    return (to_text_string(font.family()), int(font.pointSize()),
             font.italic(), font.bold())
 
 class FontLayout(QGridLayout):
@@ -270,7 +267,7 @@ class FormWidget(QWidget):
                 field = FontLayout(value, self)
             elif text_to_qcolor(value).isValid():
                 field = ColorLayout(QColor(value), self)
-            elif isinstance(value, (str, unicode)):
+            elif is_text_string(value):
                 field = QLineEdit(value, self)
             elif isinstance(value, (list, tuple)):
                 value = list(value)  # in case this is a tuple
@@ -326,8 +323,8 @@ class FormWidget(QWidget):
                 continue
             elif tuple_to_qfont(value) is not None:
                 value = field.get_font()
-            elif isinstance(value, (str, unicode)):
-                value = unicode(field.text())
+            elif is_text_string(value):
+                value = to_text_string(field.text())
             elif isinstance(value, (list, tuple)):
                 index = int(field.currentIndex())
                 if isinstance(value[0], int):

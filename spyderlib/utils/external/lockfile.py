@@ -16,8 +16,13 @@ import errno, os
 
 from time import time as _uniquefloat
 
+from spyderlib.py3compat import PY2, to_binary_string, to_text_string
+
 def unique():
-    return str(long(_uniquefloat() * 1000))
+    if PY2:
+        return str(long(_uniquefloat() * 1000))
+    else:
+        return str(int(_uniquefloat() * 1000))
 
 from os import rename
 if not os.name == 'nt':
@@ -66,15 +71,15 @@ else:
             else:
                 return
             
-    _open = file
+    _open = open
 
     # XXX Implement an atomic thingamajig for win32
     def symlink(value, filename):    #analysis:ignore
         newlinkname = filename+"."+unique()+'.newlink'
         newvalname = os.path.join(newlinkname,"symlink")
         os.mkdir(newlinkname)
-        f = _open(newvalname,'wcb')
-        f.write(value)
+        f = _open(newvalname, 'wb')
+        f.write(to_binary_string(value))
         f.flush()
         f.close()
         try:
@@ -87,12 +92,12 @@ else:
     def readlink(filename):   #analysis:ignore
         try:
             fObj = _open(os.path.join(filename,'symlink'), 'rb')
-        except IOError, e:
+        except IOError as e:
             if e.errno == errno.ENOENT or e.errno == errno.EIO:
                 raise OSError(e.errno, None)
             raise
         else:
-            result = fObj.read()
+            result = fObj.read().decode()
             fObj.close()
             return result
 
@@ -142,7 +147,7 @@ class FilesystemLock:
         while True:
             try:
                 symlink(str(os.getpid()), self.name)
-            except OSError, e:
+            except OSError as e:
                 if _windows and e.errno in (errno.EACCES, errno.EIO):
                     # The lock is in the middle of being deleted because we're
                     # on Windows where lock removal isn't atomic.  Give up, we
@@ -151,13 +156,13 @@ class FilesystemLock:
                 if e.errno == errno.EEXIST:
                     try:
                         pid = readlink(self.name)
-                    except OSError, e:
+                    except OSError as e:
                         if e.errno == errno.ENOENT:
                             # The lock has vanished, try to claim it in the
                             # next iteration through the loop.
                             continue
                         raise
-                    except IOError, e:
+                    except IOError as e:
                         if _windows and e.errno == errno.EACCES:
                             # The lock is in the middle of being
                             # deleted because we're on Windows where
@@ -169,13 +174,13 @@ class FilesystemLock:
                     try:
                         if kill is not None:
                             kill(int(pid), 0)
-                    except OSError, e:
+                    except OSError as e:
                         if e.errno == errno.ESRCH:
                             # The owner has vanished, try to claim it in the next
                             # iteration through the loop.
                             try:
                                 rmlink(self.name)
-                            except OSError, e:
+                            except OSError as e:
                                 if e.errno == errno.ENOENT:
                                     # Another process cleaned up the lock.
                                     # Race them to acquire it in the next

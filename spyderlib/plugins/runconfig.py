@@ -23,6 +23,7 @@ from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
 from spyderlib.plugins.configdialog import SizeMixin, GeneralConfigPage
+from spyderlib.py3compat import to_text_string, getcwd
 
 
 CURRENT_INTERPRETER = _("Execute in current Python or IPython interpreter")
@@ -63,11 +64,11 @@ class RunConfiguration(object):
         self.args = options.get('args', '')
         self.args_enabled = options.get('args/enabled', False)
         if CONF.get('run', WDIR_USE_FIXED_DIR_OPTION, False):
-            default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, os.getcwdu())
+            default_wdir = CONF.get('run', WDIR_FIXED_DIR_OPTION, getcwd())
             self.wdir = options.get('workdir', default_wdir)
             self.wdir_enabled = True
         else:
-            self.wdir = options.get('workdir', os.getcwdu())
+            self.wdir = options.get('workdir', getcwd())
             self.wdir_enabled = options.get('workdir/enabled', False)
         self.current = options.get('current',
                            CONF.get('run', CURRENT_INTERPRETER_OPTION, True))
@@ -223,9 +224,9 @@ class RunConfigOptions(QWidget):
 
     def select_directory(self):
         """Select directory"""
-        basedir = unicode(self.wd_edit.text())
+        basedir = to_text_string(self.wd_edit.text())
         if not osp.isdir(basedir):
-            basedir = os.getcwdu()
+            basedir = getcwd()
         directory = getexistingdirectory(self, _("Select directory"), basedir)
         if directory:
             self.wd_edit.setText(directory)
@@ -249,18 +250,18 @@ class RunConfigOptions(QWidget):
     
     def get(self):
         self.runconf.args_enabled = self.clo_cb.isChecked()
-        self.runconf.args = unicode(self.clo_edit.text())
+        self.runconf.args = to_text_string(self.clo_edit.text())
         self.runconf.wdir_enabled = self.wd_cb.isChecked()
-        self.runconf.wdir = unicode(self.wd_edit.text())
+        self.runconf.wdir = to_text_string(self.wd_edit.text())
         self.runconf.current = self.current_radio.isChecked()
         self.runconf.systerm = self.systerm_radio.isChecked()
         self.runconf.interact = self.interact_cb.isChecked()
         self.runconf.python_args_enabled = self.pclo_cb.isChecked()
-        self.runconf.python_args = unicode(self.pclo_edit.text())
+        self.runconf.python_args = to_text_string(self.pclo_edit.text())
         return self.runconf.get()
     
     def is_valid(self):
-        wdir = unicode(self.wd_edit.text())
+        wdir = to_text_string(self.wd_edit.text())
         if not self.wd_cb.isChecked() or osp.isdir(wdir):
             return True
         else:
@@ -361,7 +362,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         
     def run_btn_clicked(self):
         """Run button was just clicked"""
-        self.file_to_run = unicode(self.combo.currentText())
+        self.file_to_run = to_text_string(self.combo.currentText())
         
     def setup(self, fname):
         """Setup Run Configuration dialog with filename *fname*"""
@@ -401,7 +402,7 @@ class RunConfigDialog(BaseRunConfigDialog):
         """Reimplement Qt method"""
         configurations = []
         for index in range(self.stack.count()):
-            filename = unicode(self.combo.itemText(index))
+            filename = to_text_string(self.combo.itemText(index))
             runconfigoptions = self.stack.widget(index)
             if index == self.stack.currentIndex() and\
                not runconfigoptions.is_valid():

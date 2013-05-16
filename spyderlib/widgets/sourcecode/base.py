@@ -13,7 +13,6 @@
 
 import os
 import re
-import string
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
@@ -25,6 +24,7 @@ from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
+from spyderlib.py3compat import to_text_string, str_lower, u
 
 
 class CompletionWidget(QListWidget):
@@ -104,7 +104,7 @@ class CompletionWidget(QListWidget):
             point = ancestor.mapFromGlobal(point)
         self.move(point)
         
-        if unicode(self.textedit.completion_text):
+        if to_text_string(self.textedit.completion_text):
             # When initialized, if completion text is not empty, we need 
             # to update the displayed list:
             self.update_current()
@@ -140,7 +140,7 @@ class CompletionWidget(QListWidget):
             QListWidget.keyPressEvent(self, event)
             
     def update_current(self):
-        completion_text = unicode(self.textedit.completion_text)
+        completion_text = to_text_string(self.textedit.completion_text)
         if completion_text:
             for row, completion in enumerate(self.completion_list):
                 if not self.case_sensitive:
@@ -161,7 +161,7 @@ class CompletionWidget(QListWidget):
     def item_selected(self, item=None):
         if item is None:
             item = self.currentItem()
-        self.textedit.insert_completion( unicode(item.text()) )
+        self.textedit.insert_completion( to_text_string(item.text()) )
         self.hide()
 
 
@@ -244,7 +244,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         
     def update_extra_selections(self):
         extra_selections = []
-        for _key, extra in self.extra_selections_dict.iteritems():
+        for _key, extra in list(self.extra_selections_dict.items()):
             extra_selections.extend(extra)
         self.setExtraSelections(extra_selections)
         
@@ -329,7 +329,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             return
         cursor.movePosition(QTextCursor.PreviousCharacter,
                             QTextCursor.KeepAnchor)
-        text = unicode(cursor.selectedText())
+        text = to_text_string(cursor.selectedText())
         pos1 = cursor.position()
         if text in (')', ']', '}'):
             pos2 = self.find_brace_match(pos1, text, forward=False)
@@ -420,7 +420,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         min_indent = 999
         current_indent = 0
         lines = text.split(ls)
-        for i in xrange(len(lines)-1, -1, -1):
+        for i in range(len(lines)-1, -1, -1):
             line = lines[i]
             if line.strip():
                 current_indent = _indent(line)
@@ -481,13 +481,13 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.beginEditBlock()
         orig_sel = start_pos, end_pos = (cursor.selectionStart(),
                                          cursor.selectionEnd())
-        if unicode(cursor.selectedText()):
+        if to_text_string(cursor.selectedText()):
             cursor.setPosition(end_pos)
             # Check if end_pos is at the start of a block: if so, starting
             # changes from the previous block
             cursor.movePosition(QTextCursor.StartOfBlock,
                                 QTextCursor.KeepAnchor)
-            if not unicode(cursor.selectedText()):
+            if not to_text_string(cursor.selectedText()):
                 cursor.movePosition(QTextCursor.PreviousBlock)
                 end_pos = cursor.position()
             
@@ -536,7 +536,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.beginEditBlock()
         orig_sel = start_pos, end_pos = (cursor.selectionStart(),
                                          cursor.selectionEnd())
-        if unicode(cursor.selectedText()):
+        if to_text_string(cursor.selectedText()):
             # Check if start_pos is at the start of a block
             cursor.setPosition(start_pos)
             cursor.movePosition(QTextCursor.StartOfBlock)
@@ -547,7 +547,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             # changes from the previous block
             cursor.movePosition(QTextCursor.StartOfBlock,
                                 QTextCursor.KeepAnchor)
-            if unicode(cursor.selectedText()):
+            if to_text_string(cursor.selectedText()):
                 cursor.movePosition(QTextCursor.NextBlock)
                 end_pos = cursor.position()
         else:
@@ -558,16 +558,16 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         cursor.setPosition(start_pos)
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         
-        sel_text = unicode(cursor.selectedText())
+        sel_text = to_text_string(cursor.selectedText())
         cursor.removeSelectedText()
         
         if after_current_line:
-            text = unicode(cursor.block().text())
+            text = to_text_string(cursor.block().text())
             orig_sel = (orig_sel[0]+len(text)+1, orig_sel[1]+len(text)+1)
             cursor.movePosition(QTextCursor.NextBlock)
         else:
             cursor.movePosition(QTextCursor.PreviousBlock)
-            text = unicode(cursor.block().text())
+            text = to_text_string(cursor.block().text())
             orig_sel = (orig_sel[0]-len(text)-1, orig_sel[1]-len(text)-1)
         cursor.insertText(sel_text)
 
@@ -681,9 +681,10 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
         self.completion_text = completion_text
         # Sorting completion list (entries starting with underscore are 
         # put at the end of the list):
-        underscore = set([comp for comp in completions if comp.startswith('_')])
-        completions = sorted(set(completions)-underscore, key=string.lower)+\
-                      sorted(underscore, key=string.lower)
+        underscore = set([comp for comp in completions
+                          if comp.startswith('_')])
+        completions = sorted(set(completions)-underscore, key=str_lower)+\
+                      sorted(underscore, key=str_lower)
         self.show_completion_widget(completions, automatic=automatic)
         
     def select_completion_list(self):

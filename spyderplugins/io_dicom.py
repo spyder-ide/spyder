@@ -9,7 +9,7 @@ try:
         try:
             name = osp.splitext(osp.basename(filename))[0]
             return {name: dicom.ReadFile(filename).PixelArray}, None
-        except Exception, error:
+        except Exception as error:
             return None, str(error)
 except ImportError:
     load_dicom = None

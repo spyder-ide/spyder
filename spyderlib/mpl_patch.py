@@ -6,7 +6,12 @@
 
 """Patching matplotlib's FigureManager"""
 
+from __future__ import print_function
+
 import sys
+
+# Local imports
+from spyderlib.py3compat import to_text_string
 
 
 def is_available():
@@ -58,7 +63,7 @@ def apply():
             import matplotlib
             
             if backend_qt4.DEBUG:
-                print 'FigureManagerQT.%s' % backend_qt4.fn_name()
+                print('FigureManagerQT.%s' % backend_qt4.fn_name())
             backend_qt4.FigureManagerBase.__init__(self, canvas, num)
             self.canvas = canvas
             
@@ -142,7 +147,7 @@ def apply():
                                                 'Select axes:', titles,
                                                 0, False)
                 if ok:
-                    axes = allaxes[titles.index(unicode(item))]
+                    axes = allaxes[titles.index(to_text_string(item))]
                 else:
                     return
             else:
@@ -151,7 +156,7 @@ def apply():
         def save_figure(self):
             super(NavigationToolbar2QT, self).save_figure()
         def set_cursor(self, cursor):
-            if backend_qt4.DEBUG: print 'Set cursor' , cursor
+            if backend_qt4.DEBUG: print('Set cursor', cursor)
             self.parent().setCursor(QCursor(backend_qt4.cursord[cursor]))
     # ****************************************************************
     backend_qt4.NavigationToolbar2QT = NavigationToolbar2QT

@@ -6,7 +6,7 @@
 
 """Running programs utilities"""
 
-from __future__ import with_statement
+from __future__ import print_function
 
 from distutils.version import LooseVersion
 import imp
@@ -17,6 +17,10 @@ import re
 import subprocess
 import sys
 import tempfile
+
+# Local imports
+from spyderlib.utils import encoding
+from spyderlib.py3compat import is_text_string
 
 
 TEMPDIR = tempfile.gettempdir() + osp.sep + 'spyder'
@@ -105,7 +109,7 @@ def shell_split(text):
     strings with spaces). This function is almost equivalent to the shlex.split
     function (see standard library `shlex`) except that it is supporting 
     unicode strings (shlex does not support unicode until Python 2.7.3)."""
-    assert isinstance(text, basestring)  # in case a QString is passed...
+    assert is_text_string(text)  # in case a QString is passed...
     pattern = r'(\s+|(?<!\\)".*?(?<!\\)"|(?<!\\)\'.*?(?<!\\)\')'
     out = []
     for token in re.split(pattern, text):
@@ -149,13 +153,13 @@ def run_python_script_in_terminal(fname, wdir, args, interact,
     p_args += get_python_args(fname, python_args, interact, debug, args)
     
     if os.name == 'nt':
-        cmd = 'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"'
         # Command line and cwd have to be converted to the filesystem
         # encoding before passing them to subprocess
         # See http://bugs.python.org/issue1759845#msg74142
-        from spyderlib.utils.encoding import to_fs_from_unicode
-        subprocess.Popen(to_fs_from_unicode(cmd), shell=True,
-                         cwd=to_fs_from_unicode(wdir))
+        cmd = encoding.to_fs_from_unicode(
+                'start cmd.exe /c "cd %s && ' % wdir + ' '.join(p_args) + '"')
+        subprocess.Popen(cmd, shell=True,
+                         cwd=encoding.to_fs_from_unicode(wdir))
     elif os.name == 'posix':
         cmd = 'gnome-terminal'
         if is_program_installed(cmd):
@@ -279,8 +283,8 @@ def is_module_installed(module_name, version=None, interpreter=''):
 
 
 if __name__ == '__main__':
-    print find_program('hg')
-    print shell_split('-q -o -a')
-    print shell_split(u'-q "d:\\Python de xxxx\\t.txt" -o -a')
-    print is_module_installed('IPython', '>=0.12')
-    print is_module_installed('IPython', '>=0.13;<1.0')
+    print(find_program('hg'))
+    print(shell_split('-q -o -a'))
+    print(shell_split('-q "d:\\Python de xxxx\\t.txt" -o -a'))
+    print(is_module_installed('IPython', '>=0.12'))
+    print(is_module_installed('IPython', '>=0.13;<1.0'))
