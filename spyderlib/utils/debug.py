@@ -6,6 +6,8 @@
 
 """Debug utilities"""
 
+from __future__ import print_function
+
 import inspect
 import traceback
 import time

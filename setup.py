@@ -11,6 +11,8 @@ Spyder
 The Scientific PYthon Development EnviRonment
 """
 
+from __future__ import print_function
+
 from distutils.core import setup
 from distutils.command.build import build
 from distutils.command.install_data import install_data
