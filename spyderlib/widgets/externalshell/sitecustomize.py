@@ -169,7 +169,7 @@ if os.environ.get("MATPLOTLIB_PATCH", "").lower() == "true":
 
 
 # Set standard outputs encoding:
-# (otherwise, for example, print(u"é") will fail)
+# (otherwise, for example, print("é") will fail)
 encoding = None
 try:
     import locale
