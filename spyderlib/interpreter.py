@@ -212,8 +212,8 @@ has the same effect as typing a particular string at the help> prompt.
             # System ! command
             pipe = Popen(cmd[1:], shell=True,
                          stdin=PIPE, stderr=PIPE, stdout=PIPE)
-            txt_out = encoding.transcode( pipe.stdout.read() )
-            txt_err = encoding.transcode( pipe.stderr.read().rstrip() )
+            txt_out = encoding.transcode( pipe.stdout.read().decode() )
+            txt_err = encoding.transcode( pipe.stderr.read().decode().rstrip() )
             if txt_err:
                 self.stderr_write.write(txt_err)
             if txt_out:

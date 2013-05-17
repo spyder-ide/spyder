@@ -190,7 +190,7 @@ class SearchThread(QThread):
                   cwd=self.rootpath, shell=True)
         hgroot = get_vcs_root(self.rootpath)
         self.pathlist = [hgroot]
-        for path in p.stdout.read().splitlines():
+        for path in p.stdout.read().decode().splitlines():
             with QMutexLocker(self.mutex):
                 if self.stopped:
                     return False

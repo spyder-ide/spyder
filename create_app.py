@@ -205,7 +205,7 @@ def _get_env():
     else:
         envstr = sp.Popen('printenv', shell=True,
                           stdout=sp.PIPE).communicate()[0]
-    env = [a.split('=') for a in envstr.strip().split('\n')]
+    env = [a.split('=') for a in envstr.decode().strip().split('\n')]
     os.environ.update(env)
 try:
     _get_env()

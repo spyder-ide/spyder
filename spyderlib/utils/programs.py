@@ -265,12 +265,12 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 else:
                     f.write("print _is_mod_installed('%s')" % module_name)
             try:
-                output = subprocess.Popen([interpreter, script],
-                                      stdout=subprocess.PIPE).communicate()[0]
+                output, _err = subprocess.Popen([interpreter, script],
+                                        stdout=subprocess.PIPE).communicate()
             except subprocess.CalledProcessError:
-                output = 'True'
+                return True
             if output:  # TODO: Check why output could be empty!
-                return eval(output)
+                return eval(output.decode())
             else:
                 return False
         else:

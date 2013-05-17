@@ -89,10 +89,10 @@ def get_hg_revision(repopath):
     try:
         hg = programs.find_program('hg')
         assert hg is not None and osp.isdir(osp.join(repopath, '.hg'))
-        output = subprocess.Popen([hg, 'id', '-nib', repopath],
-                                  stdout=subprocess.PIPE).communicate()[0]
+        output, _err = subprocess.Popen([hg, 'id', '-nib', repopath],
+                                        stdout=subprocess.PIPE).communicate()
         # output is now: ('eba7273c69df+ 2015+ default\n', None)
-        return tuple(output.strip().split())
+        return tuple(output.decode().strip().split())
     except (subprocess.CalledProcessError, AssertionError, AttributeError):
         # print("Error: Failed to get revision number from Mercurial - %s" % exc)
         return (None, None, None)
