@@ -11,7 +11,7 @@ Text data Importing Wizard based on Qt
 from __future__ import print_function
 
 from spyderlib.qt.QtGui import (QTableView, QVBoxLayout, QHBoxLayout,
-                                QGridLayout, QWidget,QDialog, QTextEdit,
+                                QGridLayout, QWidget, QDialog, QTextEdit,
                                 QTabWidget, QPushButton, QLabel, QSpacerItem,
                                 QSizePolicy, QCheckBox, QColor, QRadioButton,
                                 QLineEdit, QFrame, QMenu, QIntValidator,

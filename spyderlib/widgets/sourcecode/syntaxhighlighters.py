@@ -268,7 +268,7 @@ class GenericSH(BaseSH):
         match = self.PROG.search(text)
         index = 0
         while match:
-            for key, value in match.groupdict().items():
+            for key, value in list(match.groupdict().items()):
                 if value:
                     start, end = match.span(key)
                     index += end-start
@@ -500,7 +500,7 @@ def make_generic_c_patterns(keywords, builtins,
     kw = r"\b" + any("keyword", keywords.split()) + r"\b"
     builtin = r"\b" + any("builtin", builtins.split()+C_TYPES.split()) + r"\b"
     if comment is None:
-        comment = any("comment", [r"//[^\n]*",r"\/\*(.*?)\*\/"])
+        comment = any("comment", [r"//[^\n]*", r"\/\*(.*?)\*\/"])
     comment_start = any("comment_start", [r"\/\*"])
     comment_end = any("comment_end", [r"\*\/"])
     if instance is None:
@@ -808,7 +808,7 @@ class BaseWebSH(BaseSH):
 
 def make_html_patterns():
     """Strongly inspired from idlelib.ColorDelegator.make_pat """
-    tags = any("builtin", [r"<",r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
+    tags = any("builtin", [r"<", r"[\?/]?>", r"(?<=<).*?(?=[ >])"])
     keywords = any("keyword", [r" [\w:-]*?(?==)"])
     string = any("string", [r'".*?"'])
     comment = any("comment", [r"<!--.*?-->"])
@@ -864,7 +864,7 @@ class PygmentsSH(BaseSH):
             self._lexer = get_lexer_by_name(self._lang_name)
         BaseSH.__init__(self, parent, font, color_scheme)
 
-    def get_fmt(self,typ):
+    def get_fmt(self, typ):
         """ Get the format code for this type """
         # Exact matches first
         for key in self._tokmap:

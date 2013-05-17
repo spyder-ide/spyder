@@ -702,7 +702,7 @@ class ExternalConsole(SpyderPluginWidget):
         # prevent keyboard input from accidentally entering the editor
         # during repeated, rapid entry of debugging commands.    
         self.emit(SIGNAL("edit_goto(QString,int,QString,bool)"),
-                  fname, lineno, '',False)
+                  fname, lineno, '', False)
         if shellwidget.is_ipykernel:
             # Focus client widget, not kernel
             ipw = self.main.ipyconsole.get_focus_widget()
@@ -1059,7 +1059,7 @@ class ExternalConsole(SpyderPluginWidget):
                          self.main.editor.load)
             self.connect(self, SIGNAL("edit_goto(QString,int,QString,bool)"),
                          lambda fname, lineno, word, processevents:
-                         self.main.editor.load(fname,lineno,word,
+                         self.main.editor.load(fname, lineno, word,
                                                processevents=processevents))
             self.connect(self.main.editor,
                          SIGNAL('run_in_current_extconsole(QString,QString,QString,bool)'),

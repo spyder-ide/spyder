@@ -89,7 +89,7 @@ class SuiteInfoBase:
         return self._lineno
 
     def get_class_names(self):
-        return self._class_info.keys()
+        return list(self._class_info.keys())
 
     def get_class_info(self, name):
         return self._class_info[name]
@@ -105,7 +105,7 @@ class SuiteFuncInfo:
     #  Mixin class providing access to function names and info.
 
     def get_function_names(self):
-        return self._function_info.keys()
+        return list(self._function_info.keys())
 
     def get_function_info(self, name):
         return self._function_info[name]
@@ -130,7 +130,7 @@ class ClassInfo(SuiteInfoBase):
         SuiteInfoBase.__init__(self, tree and tree[-1] or None)
 
     def get_method_names(self):
-        return self._function_info.keys()
+        return list(self._function_info.keys())
 
     def get_method_info(self, name):
         return self._function_info[name]

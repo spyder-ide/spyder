@@ -92,8 +92,7 @@ def kernel_config():
     # Run lines of code at startup
     run_lines_o = CONF.get('ipython_console', 'startup/run_lines')
     if run_lines_o:
-        spy_cfg.IPKernelApp.exec_lines = map(lambda x: x.strip(),
-                                         run_lines_o.split(','))
+        spy_cfg.IPKernelApp.exec_lines = [x.strip() for x in run_lines_o.split(',')]
     
     # Run a file at startup
     use_file_o = CONF.get('ipython_console', 'startup/use_run_file')

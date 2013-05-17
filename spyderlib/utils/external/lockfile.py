@@ -76,7 +76,7 @@ else:
     # XXX Implement an atomic thingamajig for win32
     def symlink(value, filename):    #analysis:ignore
         newlinkname = filename+"."+unique()+'.newlink'
-        newvalname = os.path.join(newlinkname,"symlink")
+        newvalname = os.path.join(newlinkname, "symlink")
         os.mkdir(newlinkname)
         f = _open(newvalname, 'wb')
         f.write(to_binary_string(value))
@@ -91,7 +91,7 @@ else:
 
     def readlink(filename):   #analysis:ignore
         try:
-            fObj = _open(os.path.join(filename,'symlink'), 'rb')
+            fObj = _open(os.path.join(filename, 'symlink'), 'rb')
         except IOError as e:
             if e.errno == errno.ENOENT or e.errno == errno.EIO:
                 raise OSError(e.errno, None)

@@ -1205,7 +1205,7 @@ class MainWindow(QMainWindow):
             for plugin in (self.projectexplorer, self.outlineexplorer):
                 plugin.dockwidget.close()
 
-        self.set_window_settings(hexstate,window_size, prefs_dialog_size, pos,
+        self.set_window_settings(hexstate, window_size, prefs_dialog_size, pos,
                                  is_maximized, is_fullscreen)
 
         for plugin in self.widgetlist:
@@ -1975,7 +1975,7 @@ class Spy(object):
         self.app = app
         self.window = window
     def __dir__(self):
-        return self.__dict__.keys() +\
+        return list(self.__dict__.keys()) +\
                  [x for x in dir(self.__class__) if x[0] != '_']
     def versions(self):
         return get_versions()

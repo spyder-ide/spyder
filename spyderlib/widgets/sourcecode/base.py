@@ -660,7 +660,7 @@ class TextEditBaseWidget(QPlainTextEdit, BaseEditMixin):
             before = self.is_cursor_before(self.calltip_position,
                                            char_offset=1)
             other = key in (Qt.Key_ParenRight, Qt.Key_Period, Qt.Key_Tab)
-            if calltip_char not in ('?','(') or before or other:
+            if calltip_char not in ('?', '(') or before or other:
                 QToolTip.hideText()
         except (IndexError, TypeError):
             QToolTip.hideText()

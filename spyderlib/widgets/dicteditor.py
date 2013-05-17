@@ -619,7 +619,7 @@ class BaseTableView(QTableView):
                         self.imshow_action, self.save_array_action,
                         self.insert_action, self.remove_action,
                         self.copy_action, self.paste_action,
-                        None, self.rename_action,self.duplicate_action,
+                        None, self.rename_action, self.duplicate_action,
                         None, resize_action, None, self.truncate_action,
                         self.inplace_action, self.collvalue_action]
         if ndarray is not FakeObject:

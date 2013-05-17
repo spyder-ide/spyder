@@ -500,7 +500,7 @@ class CodeEditor(TextEditBaseWidget):
         import pygments  # analysis:ignore
     except ImportError:
         # Removing all syntax highlighters requiring pygments to be installed
-        for key, (sh_class, comment_string, CFMatch) in LANGUAGES.items():
+        for key, (sh_class, comment_string, CFMatch) in list(LANGUAGES.items()):
             if issubclass(sh_class, sh.PygmentsSH):
                 LANGUAGES.pop(key)
     
@@ -2084,7 +2084,7 @@ class CodeEditor(TextEditBaseWidget):
     def __unmatched_braces_in_line(self, text):
         block = self.textCursor().block()
         line_pos = block.position()
-        for pos,char in enumerate(text):
+        for pos, char in enumerate(text):
             if char in ['(', '[', '{']:
                 match = self.find_brace_match(line_pos+pos, char, forward=True)
                 if (match is None) or (match > line_pos+len(text)):

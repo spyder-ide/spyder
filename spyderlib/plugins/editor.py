@@ -1438,8 +1438,8 @@ class Editor(SpyderPluginWidget):
             username = encoding.to_unicode_from_fs(os.environ.get('USER',
                                                                   '-'))
         VARS = {
-            'date':time.ctime(),
-            'username':username,
+            'date': time.ctime(),
+            'username': username,
         }
         try:
             text = text % VARS

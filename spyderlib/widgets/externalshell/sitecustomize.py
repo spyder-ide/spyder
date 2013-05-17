@@ -132,8 +132,7 @@ if sys.platform == 'darwin' and 'Spyder.app' in __file__:
         # Add a minimal library (with spyderlib) at the end of sys.path to
         # be able to connect our monitor to the external console
         app_pythonpath = 'Spyder.app/Contents/Resources/lib/python2.7'
-        full_pythonpath = filter(lambda p: p.endswith(app_pythonpath),
-                                 sys.path)
+        full_pythonpath = [p for p in sys.path if p.endswith(app_pythonpath)]
         if full_pythonpath:
             sys.path.remove(full_pythonpath[0])
             sys.path.append(full_pythonpath[0] + osp.sep + 'minimal-lib')

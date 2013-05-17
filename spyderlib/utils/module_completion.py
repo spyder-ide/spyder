@@ -118,7 +118,7 @@ def get_root_modules(paths):
         spy_modules.remove('__init__')
     spy_modules = list(spy_modules)
     
-    if modules_db.has_key('rootmodules'):
+    if 'rootmodules' in modules_db:
         return spy_modules + modules_db['rootmodules']
 
     t = time()
@@ -196,9 +196,9 @@ def try_import(mod, only_modules=False):
 
 def dot_completion(mod, paths):
     if len(mod) < 2:
-        return filter(lambda x: x.startswith(mod[0]), get_root_modules(paths))
+        return [x for x in get_root_modules(paths) if x.startswith(mod[0])]
     completion_list = try_import('.'.join(mod[:-1]), True)
-    completion_list = filter(lambda x: x.startswith(mod[-1]), completion_list)
+    completion_list = [x for x in completion_list if x.startswith(mod[-1])]
     completion_list = ['.'.join(mod[:-1] + [el]) for el in completion_list]
     return completion_list
 
@@ -250,7 +250,7 @@ def module_completion(line, paths=[]):
                 words = words[:-2] + words[-1].split('(')
             if ',' in words[-1]:
                 words = words[:-2] + words[-1].split(',')
-            return filter(lambda x: x.startswith(words[-1]), completion_list)
+            return [x for x in completion_list if x.startswith(words[-1])]
         else:
             return completion_list
     
@@ -259,7 +259,7 @@ def module_completion(line, paths=[]):
 
 def reset():
     """Clear root modules database"""
-    if modules_db.has_key('rootmodules'):
+    if 'rootmodules' in modules_db:
         del modules_db['rootmodules']
 
 
@@ -268,7 +268,7 @@ def get_preferred_submodules():
     Get all submodules of the main scientific modules and others of our
     interest
     """
-    if modules_db.has_key('submodules'):
+    if 'submodules' in modules_db:
         return modules_db['submodules']
     
     mods = ['numpy', 'scipy', 'sympy', 'pandas', 'networkx', 'statsmodels',

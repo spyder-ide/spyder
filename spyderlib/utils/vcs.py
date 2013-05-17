@@ -70,7 +70,7 @@ def run_vcs_tool(path, tool):
         raise RuntimeError(_("For %s support, please install one of the<br/> "
                              "following tools:<br/><br/>  %s")
                            % (infos['name'],
-                              ', '.join([name for name,cmd in infos['commit']])
+                              ', '.join([name for name, cmd in infos['commit']])
                               ))
 
 
