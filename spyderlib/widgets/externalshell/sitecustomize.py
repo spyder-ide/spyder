@@ -37,8 +37,8 @@ except ImportError:
     # Python 3
     import builtins
     basestring = (str,)
-    def execfile(filename):
-        exec(compile(open(filename).read(), filename, 'exec'))
+    def execfile(filename, namespace):
+        exec(compile(open(filename).read(), filename, 'exec'), namespace)
 
 
 # Colorization of sys.stderr (standard Python interpreter)
@@ -529,7 +529,9 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     """
     try:
         filename = filename.decode('utf-8')
-    except (UnicodeError, TypeError):
+    except (UnicodeError, TypeError, AttributeError):
+        # UnicodeError, TypeError --> eventually raised in Python 2
+        # AttributeError --> systematically raised in Python 3
         pass
     global __umd__
     if os.environ.get("UMD_ENABLED", "").lower() == "true":
@@ -553,7 +555,9 @@ def runfile(filename, args=None, wdir=None, namespace=None):
     if wdir is not None:
         try:
             wdir = wdir.decode('utf-8')
-        except (UnicodeError, TypeError):
+        except (UnicodeError, TypeError, AttributeError):
+            # UnicodeError, TypeError --> eventually raised in Python 2
+            # AttributeError --> systematically raised in Python 3
             pass
         os.chdir(wdir)
     execfile(filename, namespace)

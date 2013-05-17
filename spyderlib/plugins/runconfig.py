@@ -15,7 +15,6 @@ from spyderlib.qt.QtGui import (QVBoxLayout, QDialog, QWidget, QGroupBox,
 from spyderlib.qt.QtCore import SIGNAL, SLOT, Qt
 from spyderlib.qt.compat import getexistingdirectory
 
-import os
 import os.path as osp
 
 # Local imports
@@ -459,8 +458,7 @@ class RunConfigPage(GeneralConfigPage):
         thisdir_radio = self.create_radiobutton(_("the following directory:"),
                                 WDIR_USE_FIXED_DIR_OPTION, False,
                                 button_group=wdir_bg)
-        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION,
-                                           os.getcwdu())
+        thisdir_bd = self.create_browsedir("", WDIR_FIXED_DIR_OPTION, getcwd())
         self.connect(thisdir_radio, SIGNAL("toggled(bool)"),
                      thisdir_bd.setEnabled)
         self.connect(dirname_radio, SIGNAL("toggled(bool)"),
