@@ -688,7 +688,7 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(run_action, context="Editor",
                                name="Run", default="F5")
         configure_action = create_action(self,
-                               _("&Configure..."), icon='configure.png',
+                               _("&Configure..."), icon='run_settings.png',
                                tip=_("Run settings"),
                                menurole=QAction.NoRole,
                                triggered=self.edit_run_configurations)
