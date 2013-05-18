@@ -286,7 +286,7 @@ class BaseRunConfigDialog(QDialog, SizeMixin):
         # a segmentation fault on UNIX or an application crash on Windows
         self.setAttribute(Qt.WA_DeleteOnClose)
 
-        self.setWindowIcon(get_icon("run.png"))
+        self.setWindowIcon(get_icon("run_settings.png"))
         layout = QVBoxLayout()
         self.setLayout(layout)
     
