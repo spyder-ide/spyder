@@ -102,7 +102,7 @@ def get_color_name(value):
             return name
     else:
         np_dtype = get_numpy_dtype(value)
-        if np_dtype is None:
+        if np_dtype is None or not hasattr(value, 'size'):
             return UNSUPPORTED_COLOR
         elif value.size == 1:
             return SCALAR_COLOR
