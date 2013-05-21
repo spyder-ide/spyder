@@ -13,6 +13,8 @@
 
 #FIXME: Internal shell MT: for i in range(100000): print i -> bug
 
+from __future__ import unicode_literals
+
 #----Builtins*
 from spyderlib.py3compat import builtins
 from spyderlib.widgets.objecteditor import oedit
@@ -38,7 +40,7 @@ from spyderlib.utils.misc import get_error_match
 from spyderlib.baseconfig import get_conf_path, _, DEBUG
 from spyderlib.config import CONF
 from spyderlib.widgets.shell import PythonShellWidget
-from spyderlib.py3compat import to_text_string, getcwd, to_binary_string, u
+from spyderlib.py3compat import to_text_string, getcwd, to_binary_string
 
 
 def create_banner(message):
@@ -320,7 +322,7 @@ class InternalShell(PythonShellWidget):
             t0 = time()
             for _ in range(10):
                 self.execute_command(command)
-            self.insert_text(u("\n<Δt>=%dms\n") % (1e2*(time()-t0)))
+            self.insert_text("\n<Δt>=%dms\n" % (1e2*(time()-t0)))
             self.new_prompt(self.interpreter.p1)
         else:
             self.execute_command(command)

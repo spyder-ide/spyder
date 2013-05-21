@@ -11,6 +11,8 @@ console widget features to an independant widget based on QTextEdit for the
 IPython console plugin.
 """
 
+from __future__ import unicode_literals
+
 import os
 import re
 import sre_constants
@@ -24,7 +26,7 @@ from spyderlib.baseconfig import _
 from spyderlib.utils import encoding, sourcecode
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.dochelpers import getobj
-from spyderlib.py3compat import is_text_string, to_text_string, u
+from spyderlib.py3compat import is_text_string, to_text_string
 
 
 HISTORY_FILENAMES = []
@@ -251,7 +253,7 @@ class BaseEditMixin(object):
         if text:
             while text.endswith("\n"):
                 text = text[:-1]
-            while text.endswith(u("\u2029")):
+            while text.endswith("\u2029"):
                 text = text[:-1]
         return text
     
@@ -334,7 +336,7 @@ class BaseEditMixin(object):
         """Return line at *coordinates* (QPoint)"""
         cursor = self.cursorForPosition(coordinates)
         cursor.select(QTextCursor.BlockUnderCursor)
-        return to_text_string(cursor.selectedText()).replace(u('\u2029'), '')
+        return to_text_string(cursor.selectedText()).replace('\u2029', '')
     
     def get_word_at(self, coordinates):
         """Return word at *coordinates* (QPoint)"""
@@ -368,8 +370,8 @@ class BaseEditMixin(object):
         Replace the unicode line separator character \u2029 by 
         the line separator characters returned by get_line_separator
         """
-        return to_text_string(self.textCursor().selectedText()).replace(u("\u2029"),
-                                                     self.get_line_separator())
+        return to_text_string(self.textCursor().selectedText()
+                              ).replace("\u2029", self.get_line_separator())
     
     def remove_selected_text(self):
         """Delete selected text"""

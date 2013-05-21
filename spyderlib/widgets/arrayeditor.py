@@ -13,7 +13,7 @@ NumPy Array Editor Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QColor, QTableView, QItemDelegate,
                                 QLineEdit, QCheckBox, QGridLayout,
@@ -601,8 +601,7 @@ def test():
     
     arr = np.array(["kjrekrjkejr"])
     print("out:", test_edit(arr, "string array"))
-    from spyderlib.py3compat import u
-    arr = np.array([u("kjrekrjkejr")])
+    arr = np.array(["kjrekrjkejr"])
     print("out:", test_edit(arr, "unicode array"))
     arr = np.ma.array([[1, 0], [1, 0]], mask=[[True, False], [False, False]])
     print("out:", test_edit(arr, "masked array"))

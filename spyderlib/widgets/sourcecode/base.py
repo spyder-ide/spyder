@@ -24,7 +24,7 @@ from spyderlib.qt.QtCore import QPoint, SIGNAL, Qt, QEventLoop, QEvent
 # Local imports
 from spyderlib.widgets.sourcecode.terminal import ANSIEscapeCodeHandler
 from spyderlib.widgets.mixins import BaseEditMixin
-from spyderlib.py3compat import to_text_string, str_lower, u
+from spyderlib.py3compat import to_text_string, str_lower
 
 
 class CompletionWidget(QListWidget):

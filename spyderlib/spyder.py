@@ -15,7 +15,7 @@ Licensed under the terms of the MIT License
 (see spyderlib/__init__.py for details)
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 # Stdlib imports
 import atexit
@@ -134,7 +134,7 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
-from spyderlib.py3compat import (to_text_string, is_text_string, getcwd, u,
+from spyderlib.py3compat import (to_text_string, is_text_string, getcwd,
                                  qbytearray_to_str, configparser as cp)
 
 
@@ -2090,7 +2090,7 @@ def main():
             else:
                 print(error_message)
                 QMessageBox.critical(None, "Load session",
-                    u("<b>Unable to load '%s'</b><br><br>Error message:<br>%s")
+                    "<b>Unable to load '%s'</b><br><br>Error message:<br>%s"
                     % (osp.basename(next_session_name), error_message))
         mainwindow = None
         try:
@@ -2116,7 +2116,7 @@ def main():
             error_message = save_session(save_session_name)
             if error_message is not None:
                 QMessageBox.critical(None, "Save session",
-                    u("<b>Unable to save '%s'</b><br><br>Error message:<br>%s")
+                    "<b>Unable to save '%s'</b><br><br>Error message:<br>%s"
                     % (osp.basename(save_session_name), error_message))
     ORIGINAL_SYS_EXIT()
 

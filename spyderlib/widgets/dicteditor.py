@@ -16,7 +16,8 @@ Dictionary Editor Widget and Dialog based on Qt
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
+
 from spyderlib.qt.QtGui import (QMessageBox, QTableView, QItemDelegate,
                                 QLineEdit, QVBoxLayout, QWidget, QColor,
                                 QDialog, QDateEdit, QDialogButtonBox, QMenu,
@@ -44,7 +45,7 @@ if ndarray is not FakeObject:
     from spyderlib.widgets.arrayeditor import ArrayEditor
 from spyderlib.widgets.texteditor import TextEditor
 from spyderlib.widgets.importwizard import ImportWizard
-from spyderlib.py3compat import to_text_string, is_text_string, getcwd, u
+from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
 def display_to_value(value, default_value, ignore_errors=True):
@@ -942,7 +943,7 @@ class BaseTableView(QTableView):
             if not idx.isValid():
                 continue
             clipl.append(to_text_string(self.delegate.get_value(idx)))
-        clipboard.setText(u('\n').join(clipl))
+        clipboard.setText('\n'.join(clipl))
     
     def import_from_string(self, text, title=None):
         """Import data from string"""
@@ -1309,7 +1310,7 @@ def get_test_data():
     foobar = Foobar()
     return {'object': foobar,
             'str': 'kjkj kj k j j kj k jkj',
-            'unicode': u('éù'),
+            'unicode': 'éù',
             'list': [1, 3, [sorted, 5, 6], 'kjkj', None],
             'tuple': ([1, testdate, testdict], 'kjkj', None),
             'dict': testdict,

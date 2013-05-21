@@ -11,7 +11,7 @@ Note: 'load' functions has to return a dictionary from which a globals()
       namespace may be updated
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import sys
 import os
@@ -386,12 +386,11 @@ def save_auto(data, filename):
 
 
 if __name__ == "__main__":
-    from spyderlib.py3compat import u
     import datetime
     testdict = {'d': 1, 'a': np.random.rand(10, 10), 'b': [1, 2]}
     testdate = datetime.date(1945, 5, 8)
     example = {'str': 'kjkj kj k j j kj k jkj',
-               'unicode': u('éù'),
+               'unicode': 'éù',
                'list': [1, 3, [4, 5, 6], 'kjkj', None],
                'tuple': ([1, testdate, testdict], 'kjkj', None),
                'dict': testdict,
