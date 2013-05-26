@@ -1029,7 +1029,10 @@ class MainWindow(QMainWindow):
         """Actions to be performed only after the main window's `show` method 
         was triggered"""
         self.emit(SIGNAL('restore_scrollbar_position()'))
-        self.extconsole.open_interpreter_at_startup()
+        if self.light:
+            self.extconsole.open_interpreter()
+        else:
+            self.extconsole.open_interpreter_at_startup()
         self.extconsole.setMinimumHeight(0)
         if self.projectexplorer is not None:
             self.projectexplorer.check_for_io_errors()
