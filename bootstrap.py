@@ -28,7 +28,7 @@ parser = optparse.OptionParser(
            "options.\n")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
-parser.add_option('--hideconsole', dest="hide_console", action='store_true',
+parser.add_option('--hide-console', dest="hide_console", action='store_true',
                   default=False, help="Hide parent console (Windows only)")
 options, args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'), \
