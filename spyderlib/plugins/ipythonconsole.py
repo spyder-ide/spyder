@@ -775,11 +775,13 @@ class IPythonConsole(SpyderPluginWidget):
 
         self.connect(self, SIGNAL('focus_changed()'),
                      self.main.plugin_focus_changed)
-        self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
-                     self.main.editor.load)
-        self.connect(self.main.editor,
-                     SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
-                     self.run_script_in_current_client)
+
+        if self.main.editor is not None:
+            self.connect(self, SIGNAL("edit_goto(QString,int,QString)"),
+                         self.main.editor.load)
+            self.connect(self.main.editor,
+                         SIGNAL('run_in_current_ipyclient(QString,QString,QString,bool)'),
+                         self.run_script_in_current_client)
         
     def closing_plugin(self, cancelable=False):
         """Perform actions before parent main window is closed"""
