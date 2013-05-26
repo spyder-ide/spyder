@@ -382,9 +382,10 @@ class MainWindow(QMainWindow):
         self.debug_toolbar_actions = []
         
         # Set Window title and icon
-        title = "Spyder"
+        title = "Spyder (Python %s.%s)" % (sys.version_info.major,
+                                           sys.version_info.minor)
         if DEBUG:
-            title += " (DEBUG MODE)"
+            title += " [DEBUG MODE]"
         self.setWindowTitle(title)
         icon_name = 'spyder_light.svg' if self.light else 'spyder.svg'
         # Resampling SVG icon only on non-Windows platforms (see Issue 1314):
