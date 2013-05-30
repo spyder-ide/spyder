@@ -10,6 +10,8 @@
 # by redirecting output streams through a socket. Any exception in this module
 # and failure to read out buffers will most likely lock up Spyder.
 
+from __future__ import unicode_literals
+
 import os
 import socket
 import struct
@@ -59,7 +61,7 @@ def read_packet(sock, timeout=None):
             #  Windows implementation
             datalen = sock.recv(SZ)
             dlen, = struct.unpack("l", datalen)
-            data = ''.encode('utf-8')  # Needed for Python 3 compatibility
+            data = b''
             while len(data) < dlen:
                 data += sock.recv(dlen)
         else:
