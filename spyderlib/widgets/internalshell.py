@@ -111,7 +111,7 @@ class InternalShell(PythonShellWidget):
                  max_line_count=300, font=None, exitfunc=None, profile=False,
                  multithreaded=True, light_background=True):
         PythonShellWidget.__init__(self, parent,
-                                   get_conf_path('.history_internal.py'),
+                                   get_conf_path('history_internal.py'),
                                    profile)
         
         self.set_light_background(light_background)

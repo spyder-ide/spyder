@@ -326,7 +326,7 @@ class Editor(SpyderPluginWidget):
     """
     CONF_SECTION = 'editor'
     CONFIGWIDGET_CLASS = EditorConfigPage
-    TEMPFILE_PATH = get_conf_path('.temp.py')
+    TEMPFILE_PATH = get_conf_path('temp.py')
     TEMPLATE_PATH = get_conf_path('template.py')
     DISABLE_ACTIONS_WHEN_HIDDEN = False # SpyderPluginWidget class attribute
     def __init__(self, parent, ignore_last_opened_files=False):

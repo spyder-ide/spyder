@@ -210,10 +210,10 @@ def load_dictionary(filename):
 
 from spyderlib.baseconfig import get_conf_path, STDERR
 
-SAVED_CONFIG_FILES = ('.inspector', '.onlinehelp', '.path', '.pylint.results',
-                      '.spyder.ini', '.temp.py', '.temp.spydata', 'template.py',
-                      '.projects', '.history.py', '.history_internal.py',
-                      '.spyderproject', '.ropeproject', '.workingdir',
+SAVED_CONFIG_FILES = ('inspector', 'onlinehelp', 'path', 'pylint.results',
+                      'spyder.ini', 'temp.py', 'temp.spydata', 'template.py',
+                      'history.py', 'history_internal.py', 'workingdir',
+                      '.projects', '.spyderproject', '.ropeproject',
                       'monitor.log', 'monitor_debug.log', 'rope.log')
 
 def reset_session():

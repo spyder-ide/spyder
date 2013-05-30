@@ -251,7 +251,7 @@ class ObjectInspector(SpyderPluginWidget):
     """
     CONF_SECTION = 'inspector'
     CONFIGWIDGET_CLASS = ObjectInspectorConfigPage
-    LOG_PATH = get_conf_path('.inspector')
+    LOG_PATH = get_conf_path(CONF_SECTION)
     def __init__(self, parent):
         SpyderPluginWidget.__init__(self, parent)
         

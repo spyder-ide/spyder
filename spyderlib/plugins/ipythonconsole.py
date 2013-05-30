@@ -973,7 +973,7 @@ class IPythonConsole(SpyderPluginWidget):
 
         client = IPythonClient(self, connection_file, kernel_widget_id,
                                client_name, ipywidget,
-                               history_filename='.history.py',
+                               history_filename='history.py',
                                menu_actions=self.menu_actions)
 
         # QTextEdit Widgets

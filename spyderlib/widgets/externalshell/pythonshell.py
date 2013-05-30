@@ -200,7 +200,7 @@ class ExternalPythonShell(ExternalShellBase):
         self.notification_thread = None
         
         ExternalShellBase.__init__(self, parent=parent, fname=fname, wdir=wdir,
-                                   history_filename='.history.py',
+                                   history_filename='history.py',
                                    light_background=light_background,
                                    menu_actions=menu_actions,
                                    show_buttons_inside=show_buttons_inside,

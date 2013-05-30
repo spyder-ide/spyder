@@ -206,14 +206,26 @@ class UserConfig(cp.ConfigParser):
         Create a .ini filename located in user home directory
         """
         folder = get_home_dir()
-        if self.subfolder is not None:
+        w_dot = osp.join(folder, '.%s.ini' % self.name)
+        if self.subfolder is None:
+            return w_dot
+        else:
             folder = osp.join(folder, self.subfolder)
             try:
                 os.makedirs(folder)
             except os.error:
                 # Folder (or one of its parents) already exists
                 pass
-        return osp.join(folder, '.%s.ini' % self.name)
+            old, new = w_dot, osp.join(folder, '%s.ini' % self.name)
+            if osp.isfile(old):
+                try:
+                    if osp.isfile(new):
+                        os.remove(old)
+                    else:
+                        os.rename(old, new)
+                except OSError:
+                    pass
+            return new
         
     def cleanup(self):
         """

@@ -141,7 +141,7 @@ class WorkingDirectory(QToolBar, SpyderPluginMixin):
     """
     CONF_SECTION = 'workingdir'
     CONFIGWIDGET_CLASS = WorkingDirectoryConfigPage
-    LOG_PATH = get_conf_path('.workingdir')
+    LOG_PATH = get_conf_path(CONF_SECTION)
     sig_option_changed = Signal(str, object)
     def __init__(self, parent, workdir=None):
         QToolBar.__init__(self, parent)

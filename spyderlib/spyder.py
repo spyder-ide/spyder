@@ -138,7 +138,7 @@ from spyderlib.py3compat import (to_text_string, is_text_string, getcwd,
                                  qbytearray_to_str, configparser as cp)
 
 
-TEMP_SESSION_PATH = get_conf_path('.temp.session.tar')
+TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
 
 # Get the cwd before initializing WorkingDirectory, which sets it to the one
 # used in the last session
@@ -235,7 +235,7 @@ QMainWindow::separator:horizontal {
 class MainWindow(QMainWindow):
     """Spyder main window"""
     DOCKOPTIONS = QMainWindow.AllowTabbedDocks|QMainWindow.AllowNestedDocks
-    spyder_path = get_conf_path('.path')
+    SPYDER_PATH = get_conf_path('path')
     BOOKMARKS = (
          ('PyQt4',
           "http://pyqt.sourceforge.net/Docs/PyQt4/",
@@ -279,8 +279,8 @@ class MainWindow(QMainWindow):
         # Loading Spyder path
         self.path = []
         self.project_path = []
-        if osp.isfile(self.spyder_path):
-            self.path, _x = encoding.readlines(self.spyder_path)
+        if osp.isfile(self.SPYDER_PATH):
+            self.path, _x = encoding.readlines(self.SPYDER_PATH)
             self.path = [name for name in self.path if osp.isdir(name)]
         self.remove_path_from_sys_path()
         self.add_path_to_sys_path()
@@ -1746,7 +1746,7 @@ Please provide any additional information below.
                      self.redirect_internalshell_stdio)
         dialog.exec_()
         self.add_path_to_sys_path()
-        encoding.writelines(self.path, self.spyder_path) # Saving path
+        encoding.writelines(self.path, self.SPYDER_PATH) # Saving path
         self.emit(SIGNAL("pythonpath_changed()"))
         
     def pythonpath_changed(self):

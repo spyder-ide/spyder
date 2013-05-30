@@ -132,7 +132,7 @@ class PylintWidget(QWidget):
     """
     Pylint widget
     """
-    DATAPATH = get_conf_path('.pylint.results')
+    DATAPATH = get_conf_path('pylint.results')
     VERSION = '1.1.0'
     
     def __init__(self, parent, max_entries=100):

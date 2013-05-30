@@ -51,7 +51,7 @@ class ProfilerWidget(QWidget):
     """
     Profiler widget
     """
-    DATAPATH = get_conf_path('.profiler.results')
+    DATAPATH = get_conf_path('profiler.results')
     VERSION = '0.0.1'
     
     def __init__(self, parent, max_entries=100):
