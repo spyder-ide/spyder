@@ -223,22 +223,32 @@ class SphinxThread(QThread):
         Use LaTeX math rendering.
         
     """
-    def __init__(self, doc={}, html_text_no_doc='', math_option=False):
+    def __init__(self, html_text_no_doc=''):
         super(SphinxThread, self).__init__()
-        self.text = doc
         self.html_text_no_doc = html_text_no_doc
-        self.math_option = math_option
+        self.doc = {}
+        self.math_option = False
+        
+    def render(self, doc, math_option=False):
+        """Start thread to render given doc string dictionary"""
+        # If the thread is already running wait for it to finish before
+        # starting it again.
+        if self.wait():
+            self.doc = doc
+            self.math_option = math_option
+            # This causes run() to be executed in separate thread
+            self.start()
 
     def run(self):
         html_text = self.html_text_no_doc
-        text = self.text
-        if text is not None and text['docstring'] != '':
+        doc = self.doc
+        if doc is not None and doc['docstring'] != '':
             try:
-                context = generate_context(name=text['name'],
-                                           argspec=text['argspec'],
-                                           note=text['note'],
+                context = generate_context(name=doc['name'],
+                                           argspec=doc['argspec'],
+                                           note=doc['note'],
                                            math=self.math_option)
-                html_text = sphinxify(text['docstring'], context)
+                html_text = sphinxify(doc['docstring'], context)
             except Exception as error:
                 self.emit(SIGNAL('error_msg(QString)'),
                           to_text_string(error))
@@ -392,9 +402,8 @@ class ObjectInspector(SpyderPluginWidget):
         if sphinxify is None:
             self._sphinx_thread = None
         else:
-            self._sphinx_thread = SphinxThread(doc={},
-                                  html_text_no_doc=warning(self.no_doc_string),
-                                  math_option=self.get_option('math'))
+            self._sphinx_thread = SphinxThread(
+                                  html_text_no_doc=warning(self.no_doc_string))
             self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 
                          self._on_sphinx_thread_html_ready)
             self.connect(self._sphinx_thread, SIGNAL('error_msg(QString)'),
@@ -776,13 +785,8 @@ class ObjectInspector(SpyderPluginWidget):
         
     def set_sphinx_text(self, text):
         """Sphinxify text and display it"""
-        # If the thread is already running wait for it to finish before
-        # starting it again.
-        if self._sphinx_thread.wait():
-            # Math rendering option could have changed
-            self._sphinx_thread.math_option = self.get_option('math')
-            self._sphinx_thread.text = text
-            self._sphinx_thread.start()
+        # Math rendering option could have changed
+        self._sphinx_thread.render(text, self.get_option('math'))
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
