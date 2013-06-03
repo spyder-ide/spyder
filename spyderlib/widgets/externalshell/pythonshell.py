@@ -108,7 +108,7 @@ class ExtPythonShellWidget(PythonShellWidget):
         return self.ask_monitor("__get__doc____('%s')" % objtxt)
     
     def get_doc(self, objtxt):
-        """Get object documentation"""
+        """Get object documentation dictionary"""
         return self.ask_monitor("__get_doc__('%s')" % objtxt)
     
     def get_source(self, objtxt):

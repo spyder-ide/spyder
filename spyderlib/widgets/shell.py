@@ -853,7 +853,7 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         """Get object __doc__"""
         raise NotImplementedError
     def get_doc(self, objtxt):
-        """Get object documentation"""
+        """Get object documentation dictionary"""
         raise NotImplementedError
     def get_source(self, objtxt):
         """Get object source"""

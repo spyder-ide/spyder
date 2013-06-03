@@ -438,7 +438,7 @@ class InternalShell(PythonShellWidget):
             return obj.__doc__
     
     def get_doc(self, objtxt):
-        """Get object documentation"""
+        """Get object documentation dictionary"""
         obj, valid = self._eval(objtxt)
         if valid:
             return getdoc(obj)
