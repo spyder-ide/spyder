@@ -214,17 +214,18 @@ class SphinxThread(QThread):
     
     Parameters
     ----------
-    text : dict
+    doc : dict
         A dict containing the doc string components to be rendered.
+        See spyderlib.utils.dochelpers.getdoc for description.
     html_text_no_doc : unicode
         Text to be rendered if doc string cannot be extracted.
     math_option : bool
         Use LaTeX math rendering.
         
     """
-    def __init__(self, text={}, html_text_no_doc='', math_option=False):
+    def __init__(self, doc={}, html_text_no_doc='', math_option=False):
         super(SphinxThread, self).__init__()
-        self.text = text
+        self.text = doc
         self.html_text_no_doc = html_text_no_doc
         self.math_option = math_option
 
@@ -391,7 +392,7 @@ class ObjectInspector(SpyderPluginWidget):
         if sphinxify is None:
             self._sphinx_thread = None
         else:
-            self._sphinx_thread = SphinxThread(text={},
+            self._sphinx_thread = SphinxThread(doc={},
                                   html_text_no_doc=warning(self.no_doc_string),
                                   math_option=self.get_option('math'))
             self.connect(self._sphinx_thread, SIGNAL('html_ready(QString)'), 

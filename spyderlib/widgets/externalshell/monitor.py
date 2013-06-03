@@ -363,10 +363,10 @@ class Monitor(threading.Thread):
             return obj.__doc__
     
     def get_doc(self, objtxt):
-        """Get object documentation"""
+        """Get object documentation dictionary"""
         obj, valid = self._eval(objtxt)
         if valid:
-            return to_text_string(getdoc(obj))
+            return getdoc(obj)
     
     def get_source(self, objtxt):
         """Get object source"""
