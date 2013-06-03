@@ -1863,9 +1863,9 @@ class EditorStack(QWidget):
                 argspec = to_text_string(qstr2)
                 note = to_text_string(qstr3)
                 docstring = to_text_string(qstr4)
-                text = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
-                        'note': note, 'docstring': docstring}
-                self.inspector.set_rope_doc(text, force_refresh=force)
+                doc = {'obj_text': objtxt, 'name': name, 'argspec': argspec,
+                       'note': note, 'docstring': docstring}
+                self.inspector.set_rope_doc(doc, force_refresh=force)
             editor = self.get_current_editor()
             editor.setFocus()
     
