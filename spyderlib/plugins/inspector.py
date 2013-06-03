@@ -673,7 +673,7 @@ class ObjectInspector(SpyderPluginWidget):
         self.object_edit.setText(doc['obj_text'])
         
         if self.rich_help:
-            self.set_sphinx_text(doc)
+            self.render_sphinx_doc(doc)
         else:
             self.set_plain_text(doc, is_code=False)
         
@@ -782,10 +782,10 @@ class ObjectInspector(SpyderPluginWidget):
                 self.shell = self.internal_shell
         return self.shell
         
-    def set_sphinx_text(self, text):
-        """Sphinxify text and display it"""
+    def render_sphinx_doc(self, doc):
+        """Transform doc string dictionary to HTML and show it"""
         # Math rendering option could have changed
-        self._sphinx_thread.render(text, self.get_option('math'))
+        self._sphinx_thread.render(doc, self.get_option('math'))
         
     def _on_sphinx_thread_html_ready(self, html_text):
         """Set our sphinx documentation based on thread result"""
@@ -815,26 +815,24 @@ class ObjectInspector(SpyderPluginWidget):
                 shell = self.internal_shell
             else:
                 shell = None
-                doc_text = None
+                doc = None
                 source_text = None
             
         if shell is not None:
-            doc_text = shell.get_doc(obj_text)
-            if isinstance(doc_text, bool):
-                doc_text = None
+            doc = shell.get_doc(obj_text)
             source_text = shell.get_source(obj_text)
             
         is_code = False
         
         if self.rich_help:
-            self.set_sphinx_text(doc_text)
+            self.render_sphinx_doc(doc)
             if ignore_unknown:
-                return doc_text is not None
+                return doc is not None
             else:
                 return True
         
         elif self.docstring:
-            hlp_text = doc_text
+            hlp_text = doc
             if hlp_text is None:
                 hlp_text = source_text
                 if hlp_text is None:
@@ -844,7 +842,7 @@ class ObjectInspector(SpyderPluginWidget):
         else:
             hlp_text = source_text
             if hlp_text is None:
-                hlp_text = doc_text
+                hlp_text = doc
                 if hlp_text is None:
                     hlp_text = _("No source code available.")
                     if ignore_unknown:
