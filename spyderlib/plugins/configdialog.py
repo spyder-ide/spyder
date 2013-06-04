@@ -34,6 +34,17 @@ from spyderlib.qt.compat import (to_qvariant, from_qvariant,
 from spyderlib.py3compat import to_text_string, is_text_string, getcwd
 
 
+class ConfigAccessMixin(object):
+    """Namespace for methods that access config storage"""
+    CONF_SECTION = None
+
+    def set_option(self, option, value):
+        CONF.set(self.CONF_SECTION, option, value)
+
+    def get_option(self, option, default=NoDefault):
+        return CONF.get(self.CONF_SECTION, option, default)
+
+
 class SizeMixin(object):
     """Mixin to keep widget size accessible
     even when C++ object has been deleted"""
@@ -206,8 +217,10 @@ class ConfigDialog(QDialog, SizeMixin):
         self.emit(SIGNAL('check_settings()'))
 
 
-class SpyderConfigPage(ConfigPage):
+class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
     """Plugin configuration dialog box page widget"""
+    CONF_SECTION = None
+
     def __init__(self, parent):
         ConfigPage.__init__(self, parent,
                             apply_callback=lambda:
@@ -613,12 +626,6 @@ class GeneralConfigPage(SpyderConfigPage):
         SpyderConfigPage.__init__(self, parent)
         self.main = main
 
-    def set_option(self, option, value):
-        CONF.set(self.CONF_SECTION, option, value)
-
-    def get_option(self, option, default=NoDefault):
-        return CONF.get(self.CONF_SECTION, option, default)
-            
     def apply_settings(self, options):
         raise NotImplementedError
 
