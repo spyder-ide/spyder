@@ -621,7 +621,9 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
 
 class GeneralConfigPage(SpyderConfigPage):
+    """Config page that maintains reference to main Spyder window"""
     CONF_SECTION = None
+
     def __init__(self, parent, main):
         SpyderConfigPage.__init__(self, parent)
         self.main = main
