@@ -415,11 +415,9 @@ class RunConfigDialog(BaseRunConfigDialog):
 class RunConfigPage(GeneralConfigPage):
     """Default Run Settings configuration page"""
     CONF_SECTION = "run"
-    def get_name(self):
-        return _("Run")
-    
-    def get_icon(self):
-        return get_icon("run.png")
+
+    NAME = _("Run")
+    ICON = "run.png"
     
     def setup_page(self):
         run_dlg = _("Run Settings")

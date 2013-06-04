@@ -331,11 +331,9 @@ class ShortcutsTable(QTableView):
 
 class ShortcutsConfigPage(GeneralConfigPage):
     CONF_SECTION = "shortcuts"
-    def get_name(self):
-        return _("Keyboard shortcuts")
     
-    def get_icon(self):
-        return get_icon("genprefs.png")
+    NAME = _("Keyboard shortcuts")
+    ICON = "genprefs.png"
     
     def setup_page(self):
         self.table = ShortcutsTable(self)

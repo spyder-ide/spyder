@@ -55,7 +55,8 @@ class SizeMixin(object):
 
 
 class ConfigPage(QWidget):
-    """Configuration page base class"""
+    """Base class for configuration page in Preferences"""
+
     def __init__(self, parent, apply_callback=None):
         QWidget.__init__(self, parent)
         self.apply_callback = apply_callback
@@ -71,11 +72,11 @@ class ConfigPage(QWidget):
         self.load_from_conf()
         
     def get_name(self):
-        """Return page name"""
+        """Return configuration page name"""
         raise NotImplementedError
     
     def get_icon(self):
-        """Return page icon"""
+        """Return configuration page icon (24x24)"""
         raise NotImplementedError
     
     def setup_page(self):
@@ -621,12 +622,25 @@ class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
 
 
 class GeneralConfigPage(SpyderConfigPage):
-    """Config page that maintains reference to main Spyder window"""
+    """Config page that maintains reference to main Spyder window
+       and allows to specify page name and icon declaratively
+    """
     CONF_SECTION = None
+
+    NAME = None    # configuration page name, e.g. _("General")
+    ICON = None    # name of icon resource (24x24)
 
     def __init__(self, parent, main):
         SpyderConfigPage.__init__(self, parent)
         self.main = main
+
+    def get_name(self):
+        """Configuration page name"""
+        return self.NAME
+    
+    def get_icon(self):
+        """Loads page icon named by self.ICON"""
+        return get_icon(self.ICON)
 
     def apply_settings(self, options):
         raise NotImplementedError
@@ -634,11 +648,9 @@ class GeneralConfigPage(SpyderConfigPage):
 
 class MainConfigPage(GeneralConfigPage):
     CONF_SECTION = "main"
-    def get_name(self):
-        return _("General")
     
-    def get_icon(self):
-        return get_icon("genprefs.png")
+    NAME = _("General")
+    ICON = "genprefs.png"
     
     def setup_page(self):
         newcb = self.create_checkbox
@@ -752,11 +764,9 @@ class MainConfigPage(GeneralConfigPage):
 
 class ColorSchemeConfigPage(GeneralConfigPage):
     CONF_SECTION = "color_schemes"
-    def get_name(self):
-        return _("Syntax coloring")
     
-    def get_icon(self):
-        return get_icon("genprefs.png")
+    NAME = _("Syntax coloring")
+    ICON = "genprefs.png"
     
     def setup_page(self):
         tabs = QTabWidget()
