@@ -27,6 +27,9 @@ from spyderlib.py3compat import to_text_string, is_text_string
 
 
 class HistoryConfigPage(PluginConfigPage):
+    def get_icon(self):
+        return get_icon('history24.png')
+    
     def setup_page(self):
         settings_group = QGroupBox(_("Settings"))
         hist_spin = self.create_spinbox(

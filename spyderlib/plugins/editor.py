@@ -81,9 +81,11 @@ WINPDB_PATH = programs.find_program('winpdb')
 
 
 class EditorConfigPage(PluginConfigPage):
-    def __init__(self, plugin, parent):
-        PluginConfigPage.__init__(self, plugin, parent)
-        self.get_name = lambda: _("Editor")
+    def get_name(self):
+        return _("Editor")
+        
+    def get_icon(self):
+        return get_icon("edit24.png")
     
     def setup_page(self):
         template_btn = self.create_button(_("Edit template for new modules"),

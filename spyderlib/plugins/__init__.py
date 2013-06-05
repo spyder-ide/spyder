@@ -37,12 +37,16 @@ class PluginConfigPage(SpyderConfigPage):
         self.plugin = plugin
         self.get_option = plugin.get_option
         self.set_option = plugin.set_option
-        self.get_name = plugin.get_plugin_title
-        self.get_icon = plugin.get_plugin_icon
         self.get_font = plugin.get_plugin_font
         self.set_font = plugin.set_plugin_font
         self.apply_settings = plugin.apply_plugin_settings
         SpyderConfigPage.__init__(self, parent)
+    
+    def get_name(self):
+        return self.plugin.get_plugin_title()
+
+    def get_icon(self):
+        return self.plugin.get_plugin_icon()
 
 
 class SpyderPluginMixin(object):
