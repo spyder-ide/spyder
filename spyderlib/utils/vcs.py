@@ -32,7 +32,7 @@ SUPPORTED = [
     'actions': dict(
         commit=( ('git', ['gui']), ),
         browse=( ('gitk', []), ))
-}
+}]
 
 
 def get_vcs_info(path):
