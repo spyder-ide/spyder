@@ -12,7 +12,6 @@ import os.path as osp
 import subprocess
 
 # Local imports
-from spyderlib.baseconfig import _
 from spyderlib.utils import programs
 from spyderlib.utils.misc import abspardir
 
@@ -33,6 +32,17 @@ SUPPORTED = [
         commit=( ('git', ['gui']), ),
         browse=( ('gitk', []), ))
 }]
+
+
+class ActionToolNotFound(RuntimeError):
+    """Exception to transmit information about supported tools for
+       failed attempt to execute given action"""
+       
+    def __init__(self, vcsname, action, tools):
+        RuntimeError.__init__(self)
+        self.vcsname = vcsname
+        self.action = action
+        self.tools = tools
 
 
 def get_vcs_info(path):
@@ -66,16 +76,14 @@ def run_vcs_tool(path, action):
     Supported VCS actions: 'commit', 'browse'
     Return False if the VCS tool is not installed"""
     info = get_vcs_info(get_vcs_root(path))
-    actiontools = info['actions'][action]
-    for tool, args in actiontools:
+    tools = info['actions'][action]
+    for tool, args in tools:
         if programs.find_program(tool):
             programs.run_program(tool, args, cwd=path)
             return
     else:
-        raise RuntimeError(_("For %s support, please install one of the<br/> "
-                 "following tools:<br/><br/>  %s") % (info['name'],
-                 ', '.join([tool for tool, cmd in actiontools])))
-
+        cmdnames = [name for name, args in tools]
+        raise ActionToolNotFound(info['name'], action, cmdnames)
 
 def is_hg_installed():
     """Return True if Mercurial is installed"""

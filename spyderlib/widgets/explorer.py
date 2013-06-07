@@ -643,10 +643,13 @@ class DirView(QTreeView):
         try:
             for path in sorted(fnames):
                 vcs.run_vcs_tool(path, action)
-        except RuntimeError as error:
+        except vcs.ActionToolNotFound as error:
+            msg = _("For %s support, please install one of the<br/> "
+                    "following tools:<br/><br/>  %s")\
+                        % (error.vcsname, ', '.join(error.tools))
             QMessageBox.critical(self, _("Error"),
-                                 _("<b>Unable to find external program.</b>"
-                                   "<br><br>%s") % to_text_string(error))
+                _("""<b>Unable to find external program.</b><br><br>%s""")
+                    % to_text_string(msg))
         
     #----- Settings
     def get_scrollbar_position(self):
