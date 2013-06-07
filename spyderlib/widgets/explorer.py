@@ -262,11 +262,11 @@ class DirView(QTreeView):
             vcs_ci = create_action(self, _("Commit"),
                                    icon="vcs_commit.png",
                                    triggered=lambda fnames=[dirname]:
-                                   self.vcs_command(fnames, tool='commit'))
+                                   self.vcs_command(fnames, 'commit'))
             vcs_log = create_action(self, _("Browse repository"),
                                     icon="vcs_browse.png",
                                     triggered=lambda fnames=[dirname]:
-                                    self.vcs_command(fnames, tool='browse'))
+                                    self.vcs_command(fnames, 'browse'))
             actions += [None, vcs_ci, vcs_log]
         
         return actions
@@ -638,11 +638,11 @@ class DirView(QTreeView):
         self.create_new_file(basedir, title, filters, create_func)
         
     #----- VCS actions
-    def vcs_command(self, fnames, tool):
-        """VCS command (Mercurial, git...)"""
+    def vcs_command(self, fnames, action):
+        """VCS action (commit, browse)"""
         try:
             for path in sorted(fnames):
-                vcs.run_vcs_tool(path, tool=tool)
+                vcs.run_vcs_tool(path, action)
         except RuntimeError as error:
             QMessageBox.critical(self, _("Error"),
                                  _("<b>Unable to find external program.</b>"
