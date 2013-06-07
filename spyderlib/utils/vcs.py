@@ -17,33 +17,37 @@ from spyderlib.utils import programs
 from spyderlib.utils.misc import abspardir
 
 
-VCS_INFOS = {
-             '.hg':  dict(name="Mercurial",
-                          commit=( ('thg', ['commit']),
-                                   ('hgtk', ['commit']) ),
-                          browse=( ('thg', ['log']),
-                                   ('hgtk', ['log']) )
-                          ),
-             '.git': dict(name="git",
-                          commit=( ('git', ['gui']), ),
-                          browse=( ('gitk', []), )
-                          ),
-             }
+SUPPORTED = [
+{
+    'name': 'Mercurial',
+    'rootdir': '.hg',
+    'actions': dict(
+        commit=( ('thg', ['commit']),
+                 ('hgtk', ['commit']) ),
+        browse=( ('thg', ['log']),
+                 ('hgtk', ['log']) ))
+}, {
+    'name': 'Git',
+    'rootdir': '.git',
+    'actions': dict(
+        commit=( ('git', ['gui']), ),
+        browse=( ('gitk', []), ))
+}
 
 
-def get_vcs_infos(path):
-    """Return VCS infos if path is a supported VCS repository"""
-    for dirname, infos in list(VCS_INFOS.items()):
-        vcs_path = osp.join(path, dirname)
+def get_vcs_info(path):
+    """Return support status dict if path is under VCS root"""
+    for info in SUPPORTED:
+        vcs_path = osp.join(path, info['rootdir'])
         if osp.isdir(vcs_path):
-            return infos
+            return info
 
 
 def get_vcs_root(path):
     """Return VCS root directory path
     Return None if path is not within a supported VCS repository"""
     previous_path = path
-    while get_vcs_infos(path) is None:
+    while get_vcs_info(path) is None:
         path = abspardir(path)
         if path == previous_path:
             return
@@ -57,21 +61,20 @@ def is_vcs_repository(path):
     return get_vcs_root(path) is not None
 
 
-def run_vcs_tool(path, tool):
+def run_vcs_tool(path, action):
     """If path is a valid VCS repository, run the corresponding VCS tool
-    Supported VCS tools: 'commit', 'browse'
+    Supported VCS actions: 'commit', 'browse'
     Return False if the VCS tool is not installed"""
-    infos = get_vcs_infos(get_vcs_root(path))
-    for name, args in infos[tool]:
-        if programs.find_program(name):
-            programs.run_program(name, args, cwd=path)
+    info = get_vcs_info(get_vcs_root(path))
+    actiontools = info['actions'][action]
+    for tool, args in actiontools:
+        if programs.find_program(tool):
+            programs.run_program(tool, args, cwd=path)
             return
     else:
         raise RuntimeError(_("For %s support, please install one of the<br/> "
-                             "following tools:<br/><br/>  %s")
-                           % (infos['name'],
-                              ', '.join([name for name, cmd in infos['commit']])
-                              ))
+                 "following tools:<br/><br/>  %s") % (info['name'],
+                 ', '.join([tool for tool, cmd in actiontools])))
 
 
 def is_hg_installed():
