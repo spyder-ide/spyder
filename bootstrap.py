@@ -22,14 +22,17 @@ import optparse
 # --- Parse command line
 parser = optparse.OptionParser(
     usage="python bootstrap.py [options] [-- spyder_options]",
-    epilog="Arguments for Spyder's main script are specified after the "\
-           "-- symbol\n(example: `python bootstrap.py -- --show-console`). "\
-           "Type `python bootstrap.py -- --help` to read more about Spyder "\
-           "options.\n")
+    epilog="""\
+Arguments for Spyder's main script are specified after the --
+symbol (example: `python bootstrap.py -- --show-console`).
+Type `python bootstrap.py -- --help` to read about Spyder
+options.""")
 parser.add_option('--gui', dest="gui", default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', dest="hide_console", action='store_true',
                   default=False, help="Hide parent console (Windows only)")
+parser.add_option('--debug', dest='debug', action='store_true',
+                  default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'), \
        "Invalid GUI toolkit option '%s'" % options.gui
@@ -78,6 +81,15 @@ else:
     print ("02. Skipping GUI toolkit detection")
     os.environ['QT_API'] = options.gui
 
+if options.debug:
+    # safety check - Spyder config should not be imported at this point
+    if "spyderlib.baseconfig" in sys.modules:
+        sys.exit("ERROR: Can't enable debug mode - Spyder is already imported")
+    print("0x. Switching debug mode on")
+    os.environ["SPYDER_DEBUG"] = "True"
+    # this way of interaction suxx, because there is no feedback
+    # if operation is successful
+
 # Importing Spyder (among other things, this has the effect of setting the 
 # QT_API environment variable if this has not yet been done just above)
 
@@ -97,5 +109,6 @@ print("    [Python %s %dbits, Qt %s, %s %s on %s]" % \
 if not options.hide_console and os.name == 'nt':
     print("0x. Enforcing parent console (Windows only)")
     sys.argv.append("--show-console")  # Windows only: show parent console
+
 print("04. Executing spyder.main()")
 start_app.main()
