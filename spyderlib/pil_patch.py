@@ -49,6 +49,12 @@ Type "help", "copyright", "credits" or "license" for more information.
 ===============================================================================
 """
 
-import Image
-import PIL
-PIL.Image = Image
+# For Pillow compatibility
+try:
+    from PIL import Image
+    import PIL
+    PIL.Image = Image
+except ImportError:
+    import Image
+    import PIL
+    PIL.Image = Image
