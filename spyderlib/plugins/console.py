@@ -22,7 +22,7 @@ import os.path as osp
 
 
 # Local imports
-from spyderlib.baseconfig import _
+from spyderlib.baseconfig import _, debug_print
 from spyderlib.config import CONF
 from spyderlib.utils.misc import get_error_match
 from spyderlib.utils.qthelpers import (get_icon, create_action, add_actions,
@@ -44,6 +44,7 @@ class Console(SpyderPluginWidget):
                  exitfunc=None, profile=False, multithreaded=False):
         SpyderPluginWidget.__init__(self, parent)
         
+        debug_print("    ..internal console: initializing")
         self.dialog_manager = DialogManager()
 
         # Shell

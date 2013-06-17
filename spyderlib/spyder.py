@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2011 Pierre Raybaut
+# Copyright © 2009-2013 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -125,7 +125,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
                                        create_python_script_action, file_uri)
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
-                                  DEBUG, get_image_path)
+                                  DEBUG, debug_print, get_image_path)
 from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
@@ -444,8 +444,7 @@ class MainWindow(QMainWindow):
     
     def debug_print(self, message):
         """Debug prints"""
-        if DEBUG:
-            print(message, file=STDOUT)
+        debug_print(message)
         
     #---- Window setup
     def create_toolbar(self, title, object_name, iconsize=24):
@@ -459,6 +458,7 @@ class MainWindow(QMainWindow):
         """Setup main window"""
         self.debug_print("*** Start of MainWindow setup ***")
         if not self.light:
+            self.debug_print("  ..core actions")
             self.close_dockwidget_action = create_action(self,
                                         _("Close current dockwidget"),
                                         triggered=self.close_current_dockwidget,
@@ -524,6 +524,7 @@ class MainWindow(QMainWindow):
 
         namespace = None
         if not self.light:
+            self.debug_print("  ..toolbars")
             # File menu/toolbar
             self.file_menu = self.menuBar().addMenu(_("&File"))
             self.connect(self.file_menu, SIGNAL("aboutToShow()"),
@@ -573,6 +574,7 @@ class MainWindow(QMainWindow):
             status.showMessage(_("Welcome to Spyder!"), 5000)
             
             
+            self.debug_print("  ..tools")
             # Tools + External Tools
             prefs_action = create_action(self, _("Pre&ferences"),
                                          icon='configure.png',
@@ -653,6 +655,7 @@ class MainWindow(QMainWindow):
                 self.external_tools_menu_actions += additact
                 
             # Sift
+            self.debug_print("  ..sift?")
             gdgq_act = []
             if is_module_installed('guidata'):
                 from guidata import configtools
@@ -707,6 +710,7 @@ class MainWindow(QMainWindow):
             self.main_toolbar = self.create_toolbar(_("Main toolbar"),
                                                     "main_toolbar")
             
+            self.debug_print("  ..plugin: internal console")
             # Internal console plugin
             self.console = Console(self, namespace, exitfunc=self.closing,
                                    profile=self.profile,
@@ -715,6 +719,7 @@ class MainWindow(QMainWindow):
                                            '  spy.app, spy.window, dir(spy)')
             self.console.register_plugin()
             
+            self.debug_print("  ..plugin: working directory")
             # Working directory plugin
             self.workingdirectory = WorkingDirectory(self, self.init_workdir)
             self.workingdirectory.register_plugin()
@@ -749,6 +754,7 @@ class MainWindow(QMainWindow):
                                        None, quit_action]
             self.set_splash("")
         
+            self.debug_print("  ..widgets")
             # Find in files
             if CONF.get('find_in_files', 'enable'):
                 self.findinfiles = FindInFiles(self)

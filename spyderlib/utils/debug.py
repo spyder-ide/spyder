@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2009-2010 Pierre Raybaut
+# Copyright © 2009-2013 Pierre Raybaut.
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
-"""Debug utilities"""
+"""
+Debug utilities that are independent of Spyder code.
+
+See spyderlib.baseconfig for other helpers.
+"""
 
 from __future__ import print_function
 

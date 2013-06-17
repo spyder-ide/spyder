@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © 2011 Pierre Raybaut
+# Copyright © 2011-2013 Pierre Raybaut
 # Licensed under the terms of the MIT License
 # (see spyderlib/__init__.py for details)
 
@@ -12,6 +12,8 @@ exclusively with non-GUI features configuration only
 (in other words, we won't import any PyQt object here, avoiding any 
 sip API incompatibility issue in spyderlib's non-gui modules)
 """
+
+from __future__ import print_function
 
 import os.path as osp
 import os
@@ -32,6 +34,11 @@ STDOUT = sys.stdout
 STDERR = sys.stderr
 DEBUG = bool(os.environ.get('SPYDER_DEBUG', ''))
 
+def debug_print(message):
+    """Output debug messages to stdout"""
+    if DEBUG:
+        ss = STDOUT
+        print(message, file=ss)
 
 #==============================================================================
 # Configuration paths
