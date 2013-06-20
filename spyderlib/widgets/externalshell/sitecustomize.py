@@ -318,7 +318,7 @@ else:
 
 if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
 
-    #XXX If Matplotlib is not imported first, the IPython import will fail
+    #XXX If Matplotlib is not imported first, the next IPython import will fail
     try:
         import matplotlib  # analysis:ignore
     except ImportError:
@@ -326,6 +326,20 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
 
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
+
+    # Patch unittest.main so that errors are printed directly in the console.
+    # See http://comments.gmane.org/gmane.comp.python.ipython.devel/10557
+    # Fixes Issue 1370
+    import unittest
+    from unittest import TestProgram
+    class IPyTesProgram(TestProgram):
+        def __init__(self, *args, **kwargs):
+            test_runner = unittest.TextTestRunner(stream=sys.stderr)
+            kwargs['testRunner'] = kwargs.pop('testRunner', test_runner)
+            kwargs['exit'] = False
+            TestProgram.__init__(self, *args, **kwargs)
+
+    unittest.main = IPyTesProgram
 
 class SpyderPdb(pdb.Pdb):
     def set_spyder_breakpoints(self):
