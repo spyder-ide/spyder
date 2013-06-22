@@ -185,7 +185,7 @@ f, g, h = symbols('f g h', cls=Function)
         but only if the kernel is currently looking for raw input.
         """
         if self._reading:
-            self.kernel_manager.stdin_channel.input(line)
+            self.kernel_client.stdin_channel.input(line)
 
     #---- IPython private methods ---------------------------------------------
     def _context_menu_make(self, pos):
