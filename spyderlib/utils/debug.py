@@ -49,12 +49,13 @@ def log_dt(fname, context, t0):
     print("", file=fd)
 
 def caller_name(skip=2):
-    """Get a name of a caller in the format module.class.method
-    
-       `skip` specifies how many levels of stack to skip while getting caller
-       name. skip=1 means "who calls me", skip=2 "who calls my caller" etc.
+    """
+    Get name of a caller in the format module.class.method
+
+    `skip` specifies how many levels of call stack to skip for caller's name.
+    skip=1 means "who calls me", skip=2 "who calls my caller" etc.
        
-       An empty string is returned if skipped levels exceed stack height
+    An empty string is returned if skipped levels exceed stack height
     """
     stack = inspect.stack()
     start = 0 + skip
