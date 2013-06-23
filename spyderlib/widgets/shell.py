@@ -644,6 +644,11 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
         raise NotImplementedError
 
 
+# Example how to debug complex interclass call chains:
+#
+# from spyderlib.utils.debug import log_methods_calls
+# log_methods_calls('log.log', ShellBaseWidget)
+
 class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
                         InspectObjectMixin):
     """Python shell widget"""
