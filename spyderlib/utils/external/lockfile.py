@@ -40,36 +40,34 @@ else:
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx
     PROCESS_QUERY_INFORMATION = 0x400
 
-    if "historical indentation":
+    # GetExitCodeProcess uses a special exit code to indicate that the
+    # process is still running.
+    STILL_ACTIVE = 259
+    
+    def _is_pid_running(pid):
+        """Taken from http://www.madebuild.org/blog/?p=30"""
+        kernel32 = ctypes.windll.kernel32
+        handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
+        if handle == 0:
+            return False
+         
+        # If the process exited recently, a pid may still exist for the
+        # handle. So, check if we can get the exit code.
+        exit_code = wintypes.DWORD()
+        retval = kernel32.GetExitCodeProcess(handle,
+                                             ctypes.byref(exit_code))
+        is_running = (retval == 0)
+        kernel32.CloseHandle(handle)
+         
+        # See if we couldn't get the exit code or the exit code indicates
+        # that the process is still running.
+        return is_running or exit_code.value == STILL_ACTIVE
 
-        # GetExitCodeProcess uses a special exit code to indicate that the
-        # process is still running.
-        STILL_ACTIVE = 259
-        
-        def _is_pid_running(pid):
-            """Taken from http://www.madebuild.org/blog/?p=30"""
-            kernel32 = ctypes.windll.kernel32
-            handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
-            if handle == 0:
-                return False
-             
-            # If the process exited recently, a pid may still exist for the
-            # handle. So, check if we can get the exit code.
-            exit_code = wintypes.DWORD()
-            retval = kernel32.GetExitCodeProcess(handle,
-                                                 ctypes.byref(exit_code))
-            is_running = (retval == 0)
-            kernel32.CloseHandle(handle)
-             
-            # See if we couldn't get the exit code or the exit code indicates
-            # that the process is still running.
-            return is_running or exit_code.value == STILL_ACTIVE
-
-        def kill(pid, signal):
-            if not _is_pid_running(pid):
-                raise OSError(errno.ESRCH, None)
-            else:
-                return
+    def kill(pid, signal):
+        if not _is_pid_running(pid):
+            raise OSError(errno.ESRCH, None)
+        else:
+            return
             
     _open = open
 

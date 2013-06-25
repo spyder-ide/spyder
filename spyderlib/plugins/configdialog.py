@@ -689,15 +689,7 @@ class MainConfigPage(GeneralConfigPage):
         margins_layout.addWidget(margin_spin)
 
         # Decide if it's possible to activate or not singie instance mode
-        if os.name == 'nt':
-            pywin32_present = programs.is_module_installed('win32api')
-            if not pywin32_present:
-                self.set_option("single_instance", False)
-                single_instance_box.setEnabled(False)
-                tip = _("This feature requires the pywin32 module.\n"
-                        "It seems you don't have it installed.")
-                single_instance_box.setToolTip(tip)
-        elif sys.platform == "darwin" and 'Spyder.app' in __file__:
+        if sys.platform == "darwin" and 'Spyder.app' in __file__:
             self.set_option("single_instance", True)
             single_instance_box.setEnabled(False)
         
