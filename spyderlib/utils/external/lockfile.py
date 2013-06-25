@@ -34,13 +34,14 @@ if not os.name == 'nt':
 else:
     _windows = True
 
-    try:
-        import ctypes
-        from ctypes import wintypes
-        import win32con
-    except ImportError:
-        kill = None   #analysis:ignore
-    else:
+    import ctypes
+    from ctypes import wintypes
+
+    # http://msdn.microsoft.com/en-us/library/windows/desktop/ms684880(v=vs.85).aspx
+    PROCESS_QUERY_INFORMATION = 0x400
+
+    if "historical indentation":
+
         # GetExitCodeProcess uses a special exit code to indicate that the
         # process is still running.
         STILL_ACTIVE = 259
@@ -48,8 +49,7 @@ else:
         def _is_pid_running(pid):
             """Taken from http://www.madebuild.org/blog/?p=30"""
             kernel32 = ctypes.windll.kernel32
-            handle = kernel32.OpenProcess(win32con.PROCESS_QUERY_INFORMATION, 0,
-                                          pid)
+            handle = kernel32.OpenProcess(PROCESS_QUERY_INFORMATION, 0, pid)
             if handle == 0:
                 return False
              
