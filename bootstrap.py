@@ -27,11 +27,11 @@ Arguments for Spyder's main script are specified after the --
 symbol (example: `python bootstrap.py -- --show-console`).
 Type `python bootstrap.py -- --help` to read about Spyder
 options.""")
-parser.add_option('--gui', dest="gui", default=None,
+parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
-parser.add_option('--hide-console', dest="hide_console", action='store_true',
+parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console (Windows only)")
-parser.add_option('--debug', dest='debug', action='store_true',
+parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
 assert options.gui in (None, 'pyqt', 'pyside'), \
