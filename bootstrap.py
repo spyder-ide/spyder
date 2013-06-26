@@ -31,6 +31,8 @@ parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
                   default=False, help="Hide parent console window (Windows only)")
+parser.add_option('--no-apport', action='store_true',
+                  default=False, help="Disable Apport exception hook (Ubuntu)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
@@ -43,7 +45,9 @@ sys.argv = [sys.argv[0]] + args
 print("Executing Spyder from source checkout")
 DEVPATH = osp.dirname(osp.abspath(__file__))
 
-# --- Test environment for sanity
+
+# --- Test environment for surprises
+
 # Warn if Spyder is located on non-ASCII path
 # http://code.google.com/p/spyderlib/issues/detail?id=812
 try:
@@ -56,6 +60,23 @@ except UnicodeDecodeError:
     except NameError:
         pass
     input("Press Enter to continue or Ctrl-C to abort...")
+
+# Warn if we're running under 3rd party exception hook, such as
+# apport_python_hook.py from Ubuntu
+if sys.excepthook != sys.__excepthook__:
+   if sys.excepthook.__name__ != 'apport_excepthook':
+     print("WARNING: 3rd party Python exception hook is active: '%s'"
+            % sys.excepthook.__name__)
+   else:
+     if not options.no_apport:
+       print("WARNING: Ubuntu Apport exception hook is detected")
+       print("         Use --no-apport option to disable it")
+     else:
+       sys.excepthook = sys.__excepthook__
+       print("NOTICE: Ubuntu Apport exception hook is disabed")
+
+
+# --- Continue
 
 from spyderlib.utils.vcs import get_hg_revision
 print("Revision %s:%s, Branch: %s" % get_hg_revision(DEVPATH))
