@@ -30,7 +30,7 @@ options.""")
 parser.add_option('--gui', default=None,
                   help="GUI toolkit: pyqt (for PyQt4) or pyside (for PySide)")
 parser.add_option('--hide-console', action='store_true',
-                  default=False, help="Hide parent console (Windows only)")
+                  default=False, help="Hide parent console window (Windows only)")
 parser.add_option('--debug', action='store_true',
                   default=False, help="Run Spyder in debug mode")
 options, args = parser.parse_args()
