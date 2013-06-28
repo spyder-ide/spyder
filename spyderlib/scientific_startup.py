@@ -57,8 +57,6 @@ else:
 
 def setscientific():
     """Set 'scientific' in __builtin__"""
-    import __builtin__
-    from site import _Printer
     infos = """\
 This is a standard Python interpreter with preloaded tools for scientific 
 computing and visualization:
@@ -88,7 +86,14 @@ Within Spyder, this interpreter also provides:
     * system commands, i.e. all commands starting with '!' are subprocessed
       (e.g. !dir on Windows or !ls on Linux, and so on)
 """
-    __builtin__.scientific = _Printer("scientific", infos)
+    try:
+        # Python 2
+        import __builtin__ as builtins
+    except ImportError:
+        # Python 3
+        import builtins
+    from site import _Printer
+    builtins.scientific = _Printer("scientific", infos)
 
 setscientific()
 exec_print('Type "scientific" for more details.')
