@@ -10,7 +10,20 @@ Scientific Python startup script
 Requires NumPy, SciPy and Matplotlib
 """
 
-from __future__ import division, print_function
+# Need a temporary print function that is Python version agnostic.
+import sys
+
+def exec_print(string="", end_space=False):
+    if sys.version[0] == '2':
+        if end_space:
+            exec("print '" + string + "',")
+        else:
+            exec("print '" + string + "'")
+    else:
+        if end_space:
+            exec("print('" + string + "', end=' ')")
+        else:
+            exec("print('" + string + "')")
 
 # Pollute the namespace but also provide MATLAB-like experience:
 from pylab import *  #analysis:ignore
@@ -24,9 +37,9 @@ import scipy as sp
 import matplotlib as mpl
 import matplotlib.pyplot as plt  #analysis:ignore
 
-print("")
-print("Imported NumPy %s, SciPy %s, Matplotlib %s" %\
-      (np.__version__, sp.__version__, mpl.__version__), end=' ')
+exec_print("")
+exec_print("Imported NumPy %s, SciPy %s, Matplotlib %s" %\
+      (np.__version__, sp.__version__, mpl.__version__), end_space=True)
 
 import os
 if os.environ.get('QT_API') != 'pyside':
@@ -35,15 +48,17 @@ if os.environ.get('QT_API') != 'pyside':
         import guiqwt.pyplot as plt_
         import guidata
         plt_.ion()
-        print("+ guidata %s, guiqwt %s" % (guidata.__version__,
+        exec_print("+ guidata %s, guiqwt %s" % (guidata.__version__,
                                            guiqwt.__version__))
     except ImportError:
-        print()
+        exec_print()
 else:
-    print()
+    exec_print()
 
 def setscientific():
     """Set 'scientific' in __builtin__"""
+    import __builtin__
+    from site import _Printer
     infos = """\
 This is a standard Python interpreter with preloaded tools for scientific 
 computing and visualization:
@@ -73,15 +88,10 @@ Within Spyder, this interpreter also provides:
     * system commands, i.e. all commands starting with '!' are subprocessed
       (e.g. !dir on Windows or !ls on Linux, and so on)
 """
-    try:
-        # Python 2
-        import __builtin__ as builtins
-    except ImportError:
-        # Python 3
-        import builtins
-    from site import _Printer
-    builtins.scientific = _Printer("scientific", infos)
+    __builtin__.scientific = _Printer("scientific", infos)
 
 setscientific()
-del setscientific
-print('Type "scientific" for more details.')
+exec_print('Type "scientific" for more details.')
+
+# Clean up the workspace
+del setscientific, exec_print
