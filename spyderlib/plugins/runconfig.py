@@ -21,7 +21,7 @@ import os.path as osp
 from spyderlib.baseconfig import _
 from spyderlib.config import CONF
 from spyderlib.utils.qthelpers import get_icon, get_std_icon
-from spyderlib.plugins.configdialog import SizeMixin, GeneralConfigPage
+from spyderlib.plugins.configdialog import GeneralConfigPage
 from spyderlib.py3compat import to_text_string, getcwd
 
 
@@ -274,11 +274,10 @@ class RunConfigOptions(QWidget):
                  self.firstrun_cb.isChecked())
 
 
-class BaseRunConfigDialog(QDialog, SizeMixin):
+class BaseRunConfigDialog(QDialog):
     """Run configuration dialog box, base widget"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        SizeMixin.__init__(self)
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -310,7 +309,15 @@ class BaseRunConfigDialog(QDialog, SizeMixin):
         btnlayout.addStretch(1)
         btnlayout.addWidget(bbox)
         self.layout().addLayout(btnlayout)
-        
+    
+    def resizeEvent(self, event):
+        """
+        Reimplement Qt method to be able to save the widget's size from the
+        main application
+        """
+        QDialog.resizeEvent(self, event)
+        self.emit(SIGNAL("size_change(QSize)"), self.size())
+    
     def run_btn_clicked(self):
         """Run button was just clicked"""
         pass

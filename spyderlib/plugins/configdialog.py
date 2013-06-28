@@ -45,15 +45,6 @@ class ConfigAccessMixin(object):
         return CONF.get(self.CONF_SECTION, option, default)
 
 
-class SizeMixin(object):
-    """Mixin to keep widget size accessible
-    even when C++ object has been deleted"""
-    def resizeEvent(self, event):
-        """Reimplement Qt method"""
-        QDialog.resizeEvent(self, event)
-        self.emit(SIGNAL("size_change(QSize)"), self.size())
-
-
 class ConfigPage(QWidget):
     """Base class for configuration page in Preferences"""
 
@@ -108,11 +99,10 @@ class ConfigPage(QWidget):
         raise NotImplementedError
 
 
-class ConfigDialog(QDialog, SizeMixin):
+class ConfigDialog(QDialog):
     """Spyder configuration ('Preferences') dialog box"""
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        SizeMixin.__init__(self)
         
         # Destroying the C++ object right after closing the dialog box,
         # otherwise it may be garbage-collected in another QThread
@@ -216,6 +206,14 @@ class ConfigDialog(QDialog, SizeMixin):
         """This method is called to check all configuration page settings
         after configuration dialog has been shown"""
         self.emit(SIGNAL('check_settings()'))
+    
+    def resizeEvent(self, event):
+        """
+        Reimplement Qt method to be able to save the widget's size from the
+        main application
+        """
+        QDialog.resizeEvent(self, event)
+        self.emit(SIGNAL("size_change(QSize)"), self.size())
 
 
 class SpyderConfigPage(ConfigPage, ConfigAccessMixin):
