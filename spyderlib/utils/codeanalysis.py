@@ -8,8 +8,6 @@
 Source code analysis utilities
 """
 
-from __future__ import print_function
-
 import sys
 import re
 import os
@@ -156,4 +154,4 @@ if __name__ == '__main__':
                     check_with_pep8(code, fname)+find_tasks(code)
 #    check_results = check_with_pep8(code, fname)
     for message, line in check_results:
-        print("Message: %s -- Line: %s" % (message, line))
+        sys.stdout.write("Message: %s -- Line: %s\n" % (message, line))
