@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import print_function, unicode_literals
+from __future__ import print_function
 
 from spyderlib.qt import is_pyqt46
 from spyderlib.qt.QtGui import (QVBoxLayout, QMessageBox, QMenu, QFont,
@@ -47,7 +47,7 @@ from spyderlib.widgets.sourcecode import syntaxhighlighters, codeeditor
 from spyderlib.widgets.sourcecode.base import TextEditBaseWidget  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import Printer  #analysis:ignore
 from spyderlib.widgets.sourcecode.codeeditor import get_file_language
-from spyderlib.py3compat import to_text_string, qbytearray_to_str
+from spyderlib.py3compat import to_text_string, qbytearray_to_str, u
 
 
 class FileListDialog(QDialog):
@@ -1090,7 +1090,7 @@ class EditorStack(QWidget):
         if self.fullpath_sorting_enabled:
             text = filename
         else:
-            text = "%s — %s"
+            text = u("%s — %s")
         text = self.__modified_readonly_title(text,
                                               is_modified, is_readonly)
         if self.tempfile_path is not None\

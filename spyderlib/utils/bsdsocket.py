@@ -10,8 +10,6 @@
 # by redirecting output streams through a socket. Any exception in this module
 # and failure to read out buffers will most likely lock up Spyder.
 
-from __future__ import unicode_literals
-
 import os
 import socket
 import struct
