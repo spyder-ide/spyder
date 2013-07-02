@@ -324,6 +324,10 @@ if os.environ.get("IPYTHON_KERNEL", "").lower() == "true":
     except ImportError:
         pass
 
+    # Fixes Issue 1473
+    if not hasattr(sys, 'argv'):
+        sys.argv = ['']
+
     from IPython.core.debugger import Pdb as ipyPdb
     pdb.Pdb = ipyPdb
 
