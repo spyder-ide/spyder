@@ -111,7 +111,7 @@ def get_hg_revision(repopath):
 
 if __name__ == '__main__':
     print(get_vcs_root(osp.dirname(__file__)))
-    print(get_vcs_root(r'D:\Python\ipython\IPython\frontend'))
+    print(get_vcs_root(r'D:\Python\ipython\IPython\kernel'))
     #run_vcs_tool(r'D:\Python\userconfig\userconfig', 'commit')
     print(get_hg_revision(osp.dirname(__file__)+"/../.."))
     print(get_hg_revision('/'))

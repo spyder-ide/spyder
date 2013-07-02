@@ -32,7 +32,7 @@ from spyderlib.widgets.externalshell.pythonshell import ExtPythonShellWidget
 
 #XXX: hardcoded dependency on optional IPython plugin component
 #     that requires the hack to make this work without IPython
-if programs.is_module_installed('IPython.frontend.qt', SUPPORTED_IPYTHON):
+if programs.is_module_installed('IPython.qt', SUPPORTED_IPYTHON):
     from spyderlib.widgets.ipython import IPythonControlWidget
 else:
     IPythonControlWidget = None  # analysis:ignore

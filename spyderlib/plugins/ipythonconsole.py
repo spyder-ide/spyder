@@ -31,8 +31,8 @@ import time
 # IPython imports
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
-from IPython.frontend.qt.manager import QtKernelManager
-from IPython.frontend.qt.client import QtKernelClient
+from IPython.qt.manager import QtKernelManager
+from IPython.qt.client import QtKernelClient
 from IPython.lib.kernel import find_connection_file
 
 # Local imports
@@ -1141,7 +1141,7 @@ class IPythonConsole(SpyderPluginWidget):
     def create_new_kernel(self):
         """Create a new kernel if the user asks for it"""
         # Took this bit of code (until if result == ) from the IPython project
-        # (frontend/qt/frontend_widget.py - restart_kernel).
+        # (qt/frontend_widget.py - restart_kernel).
         # Licensed under the BSD license
         message = _('Are you sure you want to restart the kernel?')
         buttons = QMessageBox.Yes | QMessageBox.No

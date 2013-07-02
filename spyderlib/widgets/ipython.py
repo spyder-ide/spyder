@@ -9,7 +9,7 @@ IPython v0.13+ client's widget
 """
 
 # IPython imports
-from IPython.frontend.qt.console.rich_ipython_widget import RichIPythonWidget
+from IPython.qt.console.rich_ipython_widget import RichIPythonWidget
 
 # Qt imports
 from spyderlib.qt.QtGui import QTextEdit, QKeySequence, QShortcut

@@ -133,7 +133,7 @@ def set_edit_magic(shell):
     """Use %edit to open files in Spyder"""
     from spyderlib.utils import programs
     
-    if programs.is_module_installed('IPython.frontend.qt', '>=0.13'):
+    if programs.is_module_installed('IPython.qt', '>=0.13'):
         # For some users, trying to replace %edit with open_in_spyder could
         # give a crash when starting a kernel. I've seen it after updating
         # from 2.1
