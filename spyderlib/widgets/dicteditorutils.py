@@ -178,7 +178,7 @@ def get_size(item):
 
 def get_type_string(item):
     """Return type string of an object"""
-    found = re.findall(r"<type|class '([\S]*)'>", str(type(item)))
+    found = re.findall(r"<(?:type|class) '(\S*)'>", str(type(item)))
     if found:
         return found[0]
 
