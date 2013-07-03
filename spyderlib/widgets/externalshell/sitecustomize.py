@@ -124,6 +124,7 @@ if mpl_backend:
             # Just for precaution, since mpl is not working with PySide
             # inside Qt apps, because of its lack of an input hook
             matplotlib.rcParams['backend.qt4'] = 'PySide'
+        matplotlib.rcParams['docstring.hardcopy'] = True
         matplotlib.use(mpl_backend)
     except ImportError:
         pass
