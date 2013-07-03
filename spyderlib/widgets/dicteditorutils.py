@@ -36,13 +36,11 @@ def get_numpy_dtype(obj):
     if ndarray is not FakeObject:
         # NumPy is available
         import numpy as np
-        if isinstance(obj, np.object):
-            # Note: TTBOMK, there is no type associated to both NumPy arrays 
-            # and scalars, so we must handle the AttributeError exception.
-            # Thus, we could have skipped the `isinstance(obj, np.object)` 
-            # test, but keeping it is the only way to be sure that the object 
-            # is really a NumPy object instead of an object simply following 
-            # the same interface.
+        if isinstance(obj, np.generic) or isinstance(obj, np.ndarray):
+        # Numpy scalars all inherit from np.generic.
+        # Numpy arrays all inherit from np.ndarray.
+        # If we check that we are certain we have one of these
+        # types then we are less likely to generate an exception below.
             try:
                 return obj.dtype.type
             except (AttributeError, RuntimeError):

@@ -199,8 +199,8 @@ def get_supported_types():
     editable_types = [int, float, list, dict, tuple, date
                       ] + list(TEXT_TYPES) + list(INT_TYPES)
     try:
-        from numpy import ndarray, matrix
-        editable_types += [ndarray, matrix]
+        from numpy import ndarray, matrix, generic
+        editable_types += [ndarray, matrix, generic]
     except ImportError:
         pass
     picklable_types = editable_types[:]
@@ -219,4 +219,4 @@ CHECK_ALL = False #XXX: If True, this should take too much to compute...
 EXCLUDED_NAMES = ['nan', 'inf', 'infty', 'little_endian', 'colorbar_doc',
                   'typecodes', '__builtins__', '__main__', '__doc__', 'NaN',
                   'Inf', 'Infinity', 'sctypes', 'rcParams', 'rcParamsDefault',
-                  'sctypeNA', 'typeNA']
+                  'sctypeNA', 'typeNA', 'False_', 'True_',]
