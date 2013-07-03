@@ -14,6 +14,7 @@
 import os
 import re
 import string
+import sys
 
 from spyderlib.qt.QtGui import (QTextCursor, QColor, QFont, QApplication,
                                 QTextEdit, QTextCharFormat, QToolTip,
@@ -156,7 +157,12 @@ class CompletionWidget(QListWidget):
     
     def focusOutEvent(self, event):
         event.ignore()
-        self.hide()
+        # Fixes Issue 1318
+        if (sys.platform == "darwin") and \
+          (event.reason() != Qt.ActiveWindowFocusReason):
+            self.hide()
+        else:
+            self.hide()
         
     def item_selected(self, item=None):
         if item is None:
