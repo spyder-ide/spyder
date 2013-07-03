@@ -7,31 +7,34 @@
 """
 Patching rope:
 
-[1] For compatibility with Spyder's standalone version, build with py2exe or
+[1] For compatibility with Spyder's standalone version, built with py2exe or
     cx_Freeze
 
-[2] For better performances, see this thread:
-http://groups.google.com/group/rope-dev/browse_thread/thread/57de5731f202537a
+[2] For better performance, see this thread:
+    http://groups.google.com/group/rope-dev/browse_thread/thread/57de5731f202537a
 
 [3] To avoid considering folders without __init__.py as Python packages, thus
-avoiding side effects as non-working introspection features on a Python module
-or package when a folder in current directory has the same name.
-See this thread:
-http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
+    avoiding side effects as non-working introspection features on a Python
+    module or package when a folder in current directory has the same name.
+    See this thread:
+    http://groups.google.com/group/rope-dev/browse_thread/thread/924c4b5a6268e618
 
 [4] To avoid rope adding a 2 spaces indent to every docstring it gets, because
-it breaks the work of Sphinx on the Object Inspector. Also, to better control
-how to get calltips and docstrings of forced builtin objects.
+    it breaks the work of Sphinx on the Object Inspector. Also, to better
+    control how to get calltips and docstrings of forced builtin objects.
+
+[5] To make matplotlib return its docstrings in proper rst, instead of a mix
+    of rst and plain text.
 """
 
 def apply():
     """Monkey patching rope
     
-    See [1], [2] and [3] in module docstring."""
+    See [1], [2], [3], [4] and [5] in module docstring."""
     import rope
     if rope.VERSION not in ('0.9.4', '0.9.3', '0.9.2'):
         raise ImportError("rope %s can't be patched" % rope.VERSION)
-
+    
     # [1] Patching project.Project for compatibility with py2exe/cx_Freeze
     #     distributions
     from spyderlib.baseconfig import is_py2exe_or_cx_Freeze
@@ -196,4 +199,12 @@ def apply():
             docs = pyfunction.get_doc()
             docs = self._trim_docstring(docs, indents=0)
             return docs
-    codeassist.PyDocExtractor = PatchedPyDocExtractor 
+    codeassist.PyDocExtractor = PatchedPyDocExtractor
+
+
+    # [5] Get the right matplotlib docstrings for our Object Inspector
+    try:
+        import matplotlib as mpl
+        mpl.rcParams['docstring.hardcopy'] = True
+    except ImportError:
+        pass
