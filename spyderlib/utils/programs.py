@@ -260,10 +260,10 @@ def is_module_installed(module_name, version=None, interpreter=''):
                 f.write(checkver + "\n")
                 f.write(ismod_inst + "\n")
                 if version:
-                    f.write("print _is_mod_installed('%s','%s')" % (module_name,
+                    f.write("print(_is_mod_installed('%s','%s'))" % (module_name,
                                                                     version))
                 else:
-                    f.write("print _is_mod_installed('%s')" % module_name)
+                    f.write("print(_is_mod_installed('%s'))" % module_name)
             try:
                 output, _err = subprocess.Popen([interpreter, script],
                                         stdout=subprocess.PIPE).communicate()
