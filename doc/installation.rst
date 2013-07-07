@@ -1,8 +1,8 @@
 Installation
 ============
 
-Spyder is quite easy to install on Microsoft Windows XP/Vista/7/8, GNU/Linux and MacOS X.
-Just the read the following instructions with care.
+Spyder is quite easy to install on Windows, Linux and MacOS X. Just the read the
+following instructions with care.
 
 
 Installing on MacOS X
@@ -11,11 +11,22 @@ Installing on MacOS X
 The easy way
 ~~~~~~~~~~~~
 
-Thanks to the Spyder team and Continuum.io, you have two alternatives:
+Thanks to the Spyder team and `Continuum <http://www.continuum.io/>`_, you have
+two alternatives:
 
-#. Use our DMG installer, which can be found `here <https://code.google.com/p/spyderlib/downloads/list>`_
+#. Use the Anaconda Python distribution, which can be downloaded on this
+   `site <http://continuum.io/downloads.html>`_.
 
-#. Use the Anaconda Python distribution, which can be downloaded on this `site <http://continuum.io/downloads.html>`_
+#. Use our dmg installer, which can be found
+   `here <https://code.google.com/p/spyderlib/downloads/list>`_.
+
+   .. note::
+   
+      * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
+        you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
+      * To generate plots in *Snow Leopard* (10.6) you need to install first
+        `this <http://ethan.tira-thompson.com/Mac_OS_X_Ports_files/libpng%20%28universal%29.dmg>`_
+        (more recent) version of ``libpng``.
 
 
 The hard way
