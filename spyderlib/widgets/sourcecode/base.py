@@ -157,10 +157,12 @@ class CompletionWidget(QListWidget):
     
     def focusOutEvent(self, event):
         event.ignore()
+        # Don't hide it on Mac when main window loses focus because
+        # keyboard input is lost
         # Fixes Issue 1318
-        if (sys.platform == "darwin") and \
-          (event.reason() != Qt.ActiveWindowFocusReason):
-            self.hide()
+        if sys.platform == "darwin":
+            if event.reason() != Qt.ActiveWindowFocusReason:
+                self.hide()
         else:
             self.hide()
         
