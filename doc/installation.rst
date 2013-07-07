@@ -20,29 +20,30 @@ two alternatives:
 #. Use our dmg installer, which can be found
    `here <https://code.google.com/p/spyderlib/downloads/list>`_.
 
-   .. note::
+  .. warning::
    
-      * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
-        you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
-      * To generate plots in *Snow Leopard* (10.6) you need to install first
-        `this <http://ethan.tira-thompson.com/Mac_OS_X_Ports_files/libpng%20%28universal%29.dmg>`_
-        (more recent) version of ``libpng``.
+     * To be able to use the app that comes with this dmg on *Mountain Lion* (10.8)
+       you need to install `XQuartz <http://xquartz.macosforge.org/>`_ first.
+     * To generate plots in *Snow Leopard* (10.6) you need to install first
+       `this <http://ethan.tira-thompson.com/Mac_OS_X_Ports_files/libpng%20%28universal%29.dmg>`_
+       (more recent) version of ``libpng``.
 
 
 The hard way
 ~~~~~~~~~~~~
 
-Thanks to the *MacPorts* project, Spyder can be installed using its ``port`` package manager. There are `several versions`__ available from which you can choose from.
+Thanks to the *MacPorts* project, Spyder can be installed using its ``port`` package manager.
+There are `several versions`__ available from which you can choose from.
 
 __ http://www.macports.org/ports.php?by=name&substr=spyder MacPorts
 
-.. note::
+  .. warning::
 
-   It is known that the MacPorts version of Spyder is raising this error:
-   ``ValueError: unknown locale: UTF-8``, which doesn't let it start correctly.
+     It is known that the MacPorts version of Spyder is raising this error:
+     ``ValueError: unknown locale: UTF-8``, which doesn't let it start correctly.
    
-   To fix it you will have to set these environment variables in your ``~/.profile``
-   (or ``~/.bashrc``) manually::
+     To fix it you will have to set these environment variables in your
+     ``~/.profile`` (or ``~/.bashrc``) manually::
         
         export LANG=en_US.UTF-8
         export LC_ALL=en_US.UTF-8
@@ -177,14 +178,14 @@ Recommended modules
 
 We recommend you to install these modules to get the most out of Spyder:
 
-* `IPython <http://ipython.org/install.html#downloads>`_ 0.13.2 (1.0dev is not supported
-  yet) -- for an enhanced Python interpreter.
+* `IPython <http://ipython.org/install.html#downloads>`_ 0.13.2 (1.0dev is not
+  supported yet) -- for an enhanced Python interpreter.
   
-  .. note::
+ .. note::
   
-     - On *Ubuntu* you need to install ``ipython-qtconsole``.
-     - On *Fedora*, ``ipython-gui``
-     - And on *Gentoo* ``ipython`` with the ``qt4`` USE flag
+    - On *Ubuntu* you need to install ``ipython-qtconsole``.
+    - On *Fedora*, ``ipython-gui``
+    - And on *Gentoo* ``ipython`` with the ``qt4`` USE flag
   
 * `sphinx <http://sphinx.pocoo.org>`_ >= v0.6  -- for the Object Inspector's rich
   text mode and to get our documentation.
@@ -205,7 +206,8 @@ We recommend you to install these modules to get the most out of Spyder:
 
 * `matplotlib <http://matplotlib.sourceforge.net/>`_ -- for 2D and 3D plotting.
 
-* `psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status bar.
+* `psutil <http://code.google.com/p/psutil/>`_  -- for memory/CPU usage in the status
+  bar.
 
 
 Installation procedure
@@ -218,13 +220,13 @@ Installation procedure
    * ``sudo python setup.py install``, on Linux or MacOS X, or
    * ``python setup.py install``, on Windows.
 
-.. note::
+  .. warning::
 
-   This procedure does *not* uninstall previous versions of Spyder, it simply 
-   copies files on top of an existing installation. When using this command,
-   it is thus highly recommended to uninstall manually any previous version of
-   Spyder by removing the associated directories (``spyderlib`` and ``spyderplugins``
-   in your site-packages directory).
+     This procedure does *not* uninstall previous versions of Spyder, it simply 
+     copies files on top of an existing installation. When using this command,
+     it is thus highly recommended to uninstall manually any previous version of
+     Spyder by removing the associated directories (``spyderlib`` and
+     ``spyderplugins`` in your site-packages directory).
 
 
 Run without installing
