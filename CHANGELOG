@@ -21,7 +21,8 @@
 
   * All scientific libraries in our Mac application were updated to their latest releases.
   * The _Run Settings_ dialog has now its own icon. Before it was the same as the _Preferences_ pane one.
-  * We updated and improved our _Installation_ instructions.
+  * Update and improve our _Installation_ instructions for all platforms.
+  * Add support for Google TODO comments: "TODO(username@domain.com): blabla"
 
 ----
 
