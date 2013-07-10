@@ -1,6 +1,31 @@
 = History of changes =
 
-== Version 2.2 ==
+== Version 2.2.1 ==
+
+=== Bug fixes (since v2.2.0) ===
+
+  * Issue  1231  Some strange messages are printed in the terminal when Spyder is running
+  * Issue  1318  Mac app - Unable to use the keyboard when completion widget is displayed and the app loses focus
+  * Issue  1331  Git Bash: Spyder's script has wrong shebang
+  * Issue  1333  Spyder is unable to detect git if installed with msysgit (Microsoft Windows PC's)
+  * Issue  1370  Unit tests exceptions in IPython are displayed in its kernel tab
+  * Issue  1395  Mac App - Importing matplotlib fails on Snow Leopard due to incompatible version of libpng
+  * Issue  1399  Recommend to use pip instead of easy_install
+  * Issue  1426  Background colour of Object Inspector (docstring) in Rich Text mode is same as the window's
+  * Issue  1439  Update pil_patch to be compatible with Pillow
+  * Issue  1449  Spyder --light is not functioning
+  * Issue  1470  Preferences size is not saved when using PySide
+  * Issue  1472  matplotlib plot's docstring is not rendered correctly in the Object Inspector
+
+=== Other Changes (since v2.2.0) ===
+
+  * All scientific libraries in our Mac application were updated to their latest releases.
+  * The _Run Settings_ dialog has now its own icon. Before it was the same as the _Preferences_ pane one.
+  * We updated and improved our _Installation_ instructions.
+
+----
+
+== Version 2.2.0 ==
 
 === New features since v2.1 ===
 
