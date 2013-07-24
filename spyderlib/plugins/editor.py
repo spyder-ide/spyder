@@ -654,7 +654,7 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(debug_next_action, "_",
                    "Debug Step Over", "Ctrl+F10")
         debug_continue_action = create_action(self, _("Continue"),
-               icon='control.png', tip=_("Continue"), 
+               icon='arrow-continue.png', tip=_("Continue"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_",
                    "Debug Continue", "Ctrl+F12")
