@@ -669,7 +669,7 @@ class Editor(SpyderPluginWidget):
         self.register_shortcut(debug_return_action, "_",
                    "Debug Step Return", "Ctrl+Shift+F11")
         debug_exit_action = create_action(self, _("Exit"),
-               icon='stop.png', tip=_("Exit Debug"), 
+               icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_",
                    "Debug Exit", "Ctrl+Shift+F12")        
