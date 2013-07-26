@@ -1533,10 +1533,13 @@ class MainWindow(QMainWindow):
             <a href="http://www.divmod.com/">Divmod, Inc.</a>) and other code 
             introspection features (completion, go-to-definition, ...) are 
             powered by %srope %s%s (&copy; 2006-2009 Ali Gholami Rudi)
-            <br>Most of the icons are coming from the %sCrystal Project%s 
-            (&copy; 2006-2007 Everaldo Coelho)
-            <br>Some icons by <a href="http://p.yusukekamiyamane.com/">
-            Yusuke Kamiyamane</a>. All rights reserved.
+            <p>Most of the icons are coming from the %sCrystal Project%s 
+            (&copy; 2006-2007 Everaldo Coelho). Other icons by 
+            <a href="http://p.yusukekamiyamane.com/"> Yusuke Kamiyamane</a> 
+            (All rights reserved) and by 
+            <a href="http://http://www.oxygen-icons.org/">
+            The Oxygen icon theme</a> (used under the Creative Commons BY-SA 
+            license)
             <p>Spyder's community:
             <ul><li>Bug reports and feature requests: 
             <a href="%s">Google Code</a>
