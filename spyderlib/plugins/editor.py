@@ -643,7 +643,7 @@ class Editor(SpyderPluginWidget):
                                        clear_all_breakpoints_action))
         
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"), icon='bug.png',
+        debug_action = create_action(self, _("&Debug"), icon='debug.png',
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor",
