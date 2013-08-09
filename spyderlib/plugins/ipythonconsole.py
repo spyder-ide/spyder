@@ -32,7 +32,6 @@ import time
 from IPython.config.loader import Config, load_pyconfig_files
 from IPython.core.application import get_ipython_dir
 from IPython.qt.manager import QtKernelManager
-from IPython.qt.client import QtKernelClient
 from IPython.lib.kernel import find_connection_file
 
 # Local imports
@@ -822,7 +821,6 @@ class IPythonConsole(SpyderPluginWidget):
         """Create a kernel manager"""
         cf = find_connection_file(connection_file, profile='default')
         kernel_manager = QtKernelManager(connection_file=cf, config=None)
-        kernel_manager.client_factory = QtKernelClient
         kernel_client = kernel_manager.client()
         kernel_client.load_connection_file()
         kernel_client.start_channels()
