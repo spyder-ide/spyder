@@ -26,7 +26,7 @@ from spyderlib.utils.misc import get_python_executable
 from spyderlib.baseconfig import _, get_module_source_path, DEBUG
 from spyderlib.widgets.shell import PythonShellWidget
 from spyderlib.widgets.externalshell.namespacebrowser import NamespaceBrowser
-from spyderlib.widgets.externalshell.monitor import communicate, write_packet
+from spyderlib.utils.bsdsocket import communicate, write_packet
 from spyderlib.widgets.externalshell.baseshell import (ExternalShellBase,
                                                    add_pathlist_to_PYTHONPATH)
 from spyderlib.widgets.dicteditor import DictEditor
