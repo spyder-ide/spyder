@@ -824,6 +824,8 @@ class IPythonConsole(SpyderPluginWidget):
         kernel_client = kernel_manager.client()
         kernel_client.load_connection_file()
         kernel_client.start_channels()
+        # To rely on kernel's heartbeat to know when a kernel has died
+        kernel_client.hb_channel.unpause()
         return kernel_manager, kernel_client
 
     def new_ipywidget(self, connection_file=None, config=None):
