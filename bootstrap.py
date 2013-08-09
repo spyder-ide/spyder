@@ -45,6 +45,8 @@ sys.argv = [sys.argv[0]] + args
 print("Executing Spyder from source checkout")
 DEVPATH = osp.dirname(osp.abspath(__file__))
 
+# To activate/deactivate certain things for development
+os.environ['SPYDER_DEV'] = 'True'
 
 # --- Test environment for surprises
 
