@@ -536,8 +536,9 @@ class CodeEditor(TextEditBaseWidget):
         self.error_pixmap = QPixmap(get_image_path('error.png'), 'png')
         self.warning_pixmap = QPixmap(get_image_path('warning.png'), 'png')
         self.todo_pixmap = QPixmap(get_image_path('todo.png'), 'png')
-        self.bp_pixmap = QPixmap(get_image_path('breakpoint.png'), 'png')
-        self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond.png'), 'png')
+        self.bp_pixmap = QPixmap(get_image_path('breakpoint_small.png'), 'png')
+        self.bpc_pixmap = QPixmap(get_image_path('breakpoint_cond_small.png'),
+                                                 'png')
 
         # Line number area management
         self.linenumbers_margin = True

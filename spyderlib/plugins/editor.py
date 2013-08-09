@@ -624,14 +624,14 @@ class Editor(SpyderPluginWidget):
         
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
-                                    icon=get_icon("breakpoint.png"),
+                                    icon=get_icon("breakpoint_big.png"),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint", default="F12")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
-                            icon=get_icon("breakpoint_cond.png"),
+                            icon=get_icon("breakpoint_cond_big.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
@@ -646,33 +646,36 @@ class Editor(SpyderPluginWidget):
                                        clear_all_breakpoints_action))
         
         # --- Debug toolbar ---
-        debug_action = create_action(self, _("&Debug"), icon='bug.png',
+        debug_action = create_action(self, _("&Debug"), icon='debug.png',
                                      tip=_("Debug file"),
                                      triggered=self.debug_file)
         self.register_shortcut(debug_action, context="Editor",
                                name="Debug", default="Ctrl+F5")
-        debug_next_action = create_action(self, _("Step Over"), 
-               icon='arrow-step-over.png', tip=_("Step Over"), 
+        debug_next_action = create_action(self, _("Step"), 
+               icon='arrow-step-over.png', tip=_("Run current line"), 
                triggered=lambda: self.debug_command("next")) 
         self.register_shortcut(debug_next_action, "_",
                    "Debug Step Over", "Ctrl+F10")
         debug_continue_action = create_action(self, _("Continue"),
-               icon='control.png', tip=_("Continue"), 
+               icon='arrow-continue.png', tip=_("Continue execution until\n"
+                                                "the next breakpoint"), 
                triggered=lambda: self.debug_command("continue"))                                                 
         self.register_shortcut(debug_continue_action, "_",
                    "Debug Continue", "Ctrl+F12")
         debug_step_action = create_action(self, _("Step Into"), 
-               icon='arrow-step-in.png', tip=_("Step Into"), 
+               icon='arrow-step-in.png', tip=_("Step into function, method\n"
+                                               "or class of current line"), 
                triggered=lambda: self.debug_command("step"))                
         self.register_shortcut(debug_step_action, "_",
                    "Debug Step Into", "Ctrl+F11")                             
         debug_return_action = create_action(self, _("Step Return"), 
-               icon='arrow-step-out.png', tip=_("Step Return"), 
+               icon='arrow-step-out.png', tip=_("Run until current function\n"
+                                                "or method returns"), 
                triggered=lambda: self.debug_command("return"))               
         self.register_shortcut(debug_return_action, "_",
                    "Debug Step Return", "Ctrl+Shift+F11")
         debug_exit_action = create_action(self, _("Exit"),
-               icon='stop.png', tip=_("Exit Debug"), 
+               icon='stop_debug.png', tip=_("Exit Debug"), 
                triggered=lambda: self.debug_command("exit"))                                       
         self.register_shortcut(debug_exit_action, "_",
                    "Debug Exit", "Ctrl+Shift+F12")        
