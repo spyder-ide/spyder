@@ -7,9 +7,10 @@
 #      remote views for all consoles...!
 
 import os
-import threading
 import socket
 import struct
+import thread
+import threading
 
 # Local imports
 from spyderlib.utils.misc import fix_reference_name
@@ -160,6 +161,7 @@ class Monitor(threading.Thread):
                        "getenv": self.getenv,
                        "setenv": self.setenv,
                        "isdefined": self.isdefined,
+                       "thread": thread,
                        "toggle_inputhook_flag": self.toggle_inputhook_flag,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
