@@ -207,6 +207,7 @@ class UserConfig(cp.ConfigParser):
         """
         folder = get_home_dir()
         w_dot = osp.join(folder, '.%s.ini' % self.name)
+        DEV = os.environ.get('SPYDER_DEV')
         if self.subfolder is None:
             return w_dot
         else:
@@ -217,7 +218,7 @@ class UserConfig(cp.ConfigParser):
                 # Folder (or one of its parents) already exists
                 pass
             old, new = w_dot, osp.join(folder, '%s.ini' % self.name)
-            if osp.isfile(old):
+            if osp.isfile(old) and not DEV:
                 try:
                     if osp.isfile(new):
                         os.remove(old)

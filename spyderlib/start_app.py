@@ -43,16 +43,19 @@ def main():
     """Start Spyder application. If single instance mode is turned on (default
     behavior) and an instance of Spyder is already running, this will just 
     parse and send command line options to the application."""
+
     # Renaming old configuration files (the '.' prefix has been removed)
     # (except for .spyder.ini --> spyder.ini, which is done in userconfig.py)
-    cpath = get_conf_path()
-    for fname in os.listdir(cpath):
-        if fname.startswith('.'):
-            old, new = osp.join(cpath, fname), osp.join(cpath, fname[1:])
-            try:
-                os.rename(old, new)
-            except OSError:
-                pass
+    DEV = os.environ.get('SPYDER_DEV')
+    if not DEV:
+        cpath = get_conf_path()
+        for fname in os.listdir(cpath):
+            if fname.startswith('.'):
+                old, new = osp.join(cpath, fname), osp.join(cpath, fname[1:])
+                try:
+                    os.rename(old, new)
+                except OSError:
+                    pass
 
     # Parse command line options
     options, args = get_options()
