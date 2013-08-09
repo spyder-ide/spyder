@@ -621,14 +621,14 @@ class Editor(SpyderPluginWidget):
         
         set_clear_breakpoint_action = create_action(self,
                                     _("Set/Clear breakpoint"),
-                                    icon=get_icon("breakpoint.png"),
+                                    icon=get_icon("breakpoint_big.png"),
                                     triggered=self.set_or_clear_breakpoint,
                                     context=Qt.WidgetShortcut)
         self.register_shortcut(set_clear_breakpoint_action, context="Editor",
                                name="Breakpoint", default="F12")
         set_cond_breakpoint_action = create_action(self,
                             _("Set/Edit conditional breakpoint"),
-                            icon=get_icon("breakpoint_cond.png"),
+                            icon=get_icon("breakpoint_cond_big.png"),
                             triggered=self.set_or_edit_conditional_breakpoint,
                             context=Qt.WidgetShortcut)
         self.register_shortcut(set_cond_breakpoint_action, context="Editor",
