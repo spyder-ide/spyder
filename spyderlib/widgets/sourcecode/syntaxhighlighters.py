@@ -899,6 +899,10 @@ class IniSH(PygmentsSH):
 class XmlSH(PygmentsSH):
     """XML highlighter"""
     _lang_name = 'xml'
+
+class JsSH(PygmentsSH):
+    """XML highlighter"""
+    _lang_name = 'js'
     
 class CssSH(PygmentsSH):
     """CSS Syntax Highlighter"""

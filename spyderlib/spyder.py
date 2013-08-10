@@ -382,8 +382,8 @@ class MainWindow(QMainWindow):
         self.debug_toolbar_actions = []
         
         # Set Window title and icon
-        title = "Spyder (Python %s.%s)" % (sys.version_info.major,
-                                           sys.version_info.minor)
+        title = "Spyder (Python %s.%s)" % (sys.version_info[0],
+                                           sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE]"
         self.setWindowTitle(title)
