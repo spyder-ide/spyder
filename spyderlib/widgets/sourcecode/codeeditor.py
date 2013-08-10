@@ -465,6 +465,7 @@ class CodeEditor(TextEditBaseWidget):
                  ('htm', 'html'): (sh.HtmlSH, '', None),
                  ('css',): (sh.CssSH, '', None),
                  ('xml',): (sh.XmlSH, '', None),
+                 ('js',): (sh.JsSH, '', None),
                  ('c', 'cc', 'cpp', 'cxx', 'h', 'hh', 'hpp', 'hxx',
                   ): (sh.CppSH, '//', None),
                  ('cl',): (sh.OpenCLSH, '//', None),
