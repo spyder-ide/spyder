@@ -901,7 +901,7 @@ class XmlSH(PygmentsSH):
     _lang_name = 'xml'
 
 class JsSH(PygmentsSH):
-    """XML highlighter"""
+    """Javascript highlighter"""
     _lang_name = 'js'
     
 class CssSH(PygmentsSH):

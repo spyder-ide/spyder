@@ -987,8 +987,8 @@ class ExplorerWidget(QWidget):
                             triggered=self.treewidget.go_to_parent_directory)
         self.toolbar.addAction(parent_action)
 
-        options_action = create_action(self, text=_("Options"),
-                    icon=get_icon('tooloptions.png'))
+        options_action = create_action(self, text='', tip=_("Options"),
+                                       icon=get_icon('tooloptions.png'))
         self.toolbar.addAction(options_action)
         widget = self.toolbar.widgetForAction(options_action)
         widget.setPopupMode(QToolButton.InstantPopup)
