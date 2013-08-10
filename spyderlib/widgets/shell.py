@@ -465,9 +465,11 @@ class ShellBaseWidget(ConsoleBaseWidget, SaveHistoryMixin):
     def _key_ctrl_space(self):
         raise NotImplementedError
     def _key_home(self, shift, ctrl):
-        raise NotImplementedError
+        if self.is_cursor_on_last_line():
+            self.stdkey_home(shift, ctrl, self.current_prompt_pos)
     def _key_end(self, shift, ctrl):
-        raise NotImplementedError
+        if self.is_cursor_on_last_line():
+            self.stdkey_end(shift, ctrl)
     def _key_pageup(self):
         raise NotImplementedError
     def _key_pagedown(self):
@@ -751,16 +753,6 @@ class PythonShellWidget(TracebackLinksMixin, ShellBaseWidget,
         """Action for Ctrl+Space"""
         if not self.is_completion_widget_visible():
             self.show_code_completion(automatic=False)
-                
-    def _key_home(self, shift, ctrl):
-        """Action for Home key"""
-        if self.is_cursor_on_last_line():
-            self.stdkey_home(shift, ctrl, self.current_prompt_pos)
-                
-    def _key_end(self, shift, ctrl):
-        """Action for End key"""
-        if self.is_cursor_on_last_line():
-            self.stdkey_end(shift, ctrl)
                 
     def _key_pageup(self):
         """Action for PageUp key"""
