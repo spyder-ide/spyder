@@ -608,9 +608,12 @@ class IPythonClient(QWidget, SaveHistoryMixin):
     
     #---- Qt methods ----------------------------------------------------------
     def closeEvent(self, event):
-        """Reimplement Qt method to stop sending the custom_restart_kernel_died
-        signal"""
-        self.ipywidget.custom_restart = False
+        """
+        Reimplement Qt method to stop sending the custom_restart_kernel_died
+        signal
+        """
+        kc = self.ipywidget.kernel_client
+        kc.hb_channel.pause()
             
 
 class IPythonConsole(SpyderPluginWidget):
