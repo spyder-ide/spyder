@@ -9,7 +9,6 @@
 import os
 import socket
 import struct
-import thread
 import threading
 
 # Local imports
@@ -21,7 +20,7 @@ from spyderlib.utils.bsdsocket import (communicate, read_packet, write_packet,
                                        PACKET_NOT_RECEIVED)
 from spyderlib.utils.module_completion import module_completion
 from spyderlib.baseconfig import get_conf_path, get_supported_types, DEBUG
-from spyderlib.py3compat import getcwd, to_text_string, is_text_string, pickle
+from spyderlib.py3compat import getcwd, is_text_string, pickle
 
 
 SUPPORTED_TYPES = get_supported_types()
@@ -161,7 +160,6 @@ class Monitor(threading.Thread):
                        "getenv": self.getenv,
                        "setenv": self.setenv,
                        "isdefined": self.isdefined,
-                       "thread": thread,
                        "toggle_inputhook_flag": self.toggle_inputhook_flag,
                        "set_monitor_timeout": self.set_timeout,
                        "set_monitor_auto_refresh": self.set_auto_refresh,
