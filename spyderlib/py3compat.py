@@ -60,6 +60,7 @@ if PY2:
     except ImportError:
         import pickle
     from UserDict import DictMixin as MutableMapping
+    import thread as _thread
 else:
     # Python 3
     import builtins
@@ -72,6 +73,7 @@ else:
     import io
     import pickle
     from collections import MutableMapping
+    import _thread
 
 
 #==============================================================================
