@@ -1015,17 +1015,17 @@ class IPythonConsole(SpyderPluginWidget):
         # Apply settings to newly created client widget:
         client.set_font( self.get_plugin_font() )
         
-        # Add tab and connect focus signals to client's control widgets
+        # Add tab and connect focus signal to client's control widget
         self.add_tab(client, name=client.get_name())
         self.connect(control, SIGNAL('focus_changed()'),
-                     lambda: self.emit(SIGNAL('focus_changed()')))
-        self.connect(page_control, SIGNAL('focus_changed()'),
                      lambda: self.emit(SIGNAL('focus_changed()')))
         
         # Update the find widget if focus changes between control and
         # page_control
         self.find_widget.set_editor(control)
         if page_control:
+            self.connect(page_control, SIGNAL('focus_changed()'),
+                         lambda: self.emit(SIGNAL('focus_changed()')))
             self.connect(control, SIGNAL('visibility_changed(bool)'),
                          self.refresh_plugin)
             self.connect(page_control, SIGNAL('visibility_changed(bool)'),
