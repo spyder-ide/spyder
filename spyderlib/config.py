@@ -425,9 +425,12 @@ DEFAULTS = [
               }),
             ]
 
-DEV = not __file__.startswith(sys.prefix)
-DEV = False
-CONF = UserConfig('spyder', defaults=DEFAULTS, load=(not DEV), version='2.4.0',
+# To activate/deactivate certain things for development
+DEV = os.environ.get('SPYDER_DEV')
+
+# XXX Previously we had load=(not DEV) here but DEV was set to False.
+# Check if it *really* needs to be updated or not
+CONF = UserConfig('spyder', defaults=DEFAULTS, load=True, version='2.4.0',
                   subfolder=SUBFOLDER, backup=True, raw_mode=True)
 
 # Removing old .spyder.ini location:

@@ -124,7 +124,7 @@ from spyderlib.utils.qthelpers import (create_action, add_actions, get_icon,
 from spyderlib.baseconfig import (get_conf_path, _, get_module_data_path,
                                   get_module_source_path, STDOUT, STDERR,
                                   DEBUG, get_image_path)
-from spyderlib.config import CONF, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
+from spyderlib.config import CONF, DEV, EDIT_EXT, IMPORT_EXT, OPEN_FILES_PORT
 from spyderlib.guiconfig import get_shortcut
 from spyderlib.otherplugins import get_spyderplugins_mods
 from spyderlib.utils.iofuncs import load_session, save_session, reset_session
@@ -378,8 +378,13 @@ class MainWindow(QMainWindow):
         self.debug_toolbar_actions = []
         
         # Set Window title and icon
-        title = "Spyder (Python %s.%s)" % (sys.version_info[0],
-                                           sys.version_info[1])
+        if DEV:
+            title = "Spyder %s (Python %s.%s)" % (__version__,
+                                                  sys.version_info[0],
+                                                  sys.version_info[1])
+        else:
+            title = "Spyder (Python %s.%s)" % (sys.version_info[0],
+                                               sys.version_info[1])
         if DEBUG:
             title += " [DEBUG MODE]"
         self.setWindowTitle(title)
