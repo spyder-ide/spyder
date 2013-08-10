@@ -11,7 +11,7 @@
 # pylint: disable=R0911
 # pylint: disable=R0201
 
-from __future__ import with_statement
+from __future__ import with_statement, print_function
 
 from spyderlib.qt.QtGui import (QHBoxLayout, QWidget, QTreeWidgetItem,
                                 QMessageBox, QVBoxLayout, QLabel)
@@ -25,9 +25,11 @@ import os.path as osp
 import time
 import cPickle
 import re
+import subprocess
 
 # Local imports
 from spyderlib.utils import programs
+from spyderlib.utils.encoding import to_unicode_from_fs
 from spyderlib.utils.qthelpers import get_icon, create_toolbutton
 from spyderlib.baseconfig import get_conf_path, get_translation
 from spyderlib.widgets.onecolumntree import OneColumnTree
@@ -38,6 +40,18 @@ _ = get_translation("p_pylint", dirname="spyderplugins")
 
 
 PYLINT_PATH = programs.find_program('pylint')
+
+
+def get_pylint_version():
+    """Return pylint version"""
+    process = subprocess.Popen(['pylint', '--version'],
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                               cwd=osp.dirname(PYLINT_PATH), shell=True)
+    lines = to_unicode_from_fs(process.stdout.read()).splitlines()
+    if lines:
+        match = re.match('pylint-script.py ([0-9\.]*)', lines[0])
+        if match is not None:
+            return match.groups()[0]
 
 
 #TODO: display results on 3 columns instead of 1: msg_id, lineno, message
@@ -299,7 +313,15 @@ class PylintWidget(QWidget):
         
         self.output = ''
         self.error_output = ''
-        p_args = ['-i', 'yes', osp.basename(filename)]
+        
+        plver = get_pylint_version()
+        if plver.split('.')[0] == '0':
+            p_args = ['-i', 'yes']
+        else:
+            # Option '-i' (alias for '--include-ids') was removed in pylint 1.0
+            p_args = ["--msg-template='{msg_id}:{line:3d},"\
+                      "{column}: {obj}: {msg}"]
+        p_args += [osp.basename(filename)]
         self.process.start(PYLINT_PATH, p_args)
         
         running = self.process.waitForStarted()
@@ -332,6 +354,9 @@ class PylintWidget(QWidget):
     def finished(self):
         self.set_running_state(False)
         if not self.output:
+            if self.error_output:
+                QMessageBox.critical(self, _("Error"), self.error_output)
+                print("pylint error:\n\n" + self.error_output, file=sys.stderr)
             return
         
         # Convention, Refactor, Warning, Error
