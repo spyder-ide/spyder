@@ -79,9 +79,8 @@ msgid "XML files"
 msgstr "Fichiers XML"
 
 #: spyderlib\config.py:62
-#, fuzzy
 msgid "Javascript files"
-msgstr "Enregistrer le fichier en cours d'édition"
+msgstr "Fichiers Javascript"
 
 #: spyderlib\config.py:63
 msgid "Enaml files"
@@ -809,14 +808,12 @@ msgid "Debug file"
 msgstr "Déboguer le script"
 
 #: spyderlib\plugins\editor.py:651
-#, fuzzy
 msgid "Step"
-msgstr "Arrêter"
+msgstr "Pas"
 
 #: spyderlib\plugins\editor.py:652
-#, fuzzy
 msgid "Run current line"
-msgstr "Ligne actuelle :"
+msgstr "Exécuter la ligne en cours"
 
 #: spyderlib\plugins\editor.py:656
 msgid "Continue"
@@ -826,7 +823,7 @@ msgstr "Continuer"
 msgid ""
 "Continue execution until\n"
 "next breakpoint"
-msgstr ""
+msgstr "Continuer l'exécution jusqu'au\nprochain point d'arrêt"
 
 #: spyderlib\plugins\editor.py:662
 msgid "Step Into"
@@ -836,7 +833,7 @@ msgstr "Pas vers l'intérieur"
 msgid ""
 "Step into function, method\n"
 "or class of current line"
-msgstr ""
+msgstr "Pas vers l'intérieur d'une fonction, d'une classe\nou de la ligne en cours"
 
 #: spyderlib\plugins\editor.py:668
 msgid "Step Return"
@@ -846,7 +843,7 @@ msgstr "Pas vers l'extérieur"
 msgid ""
 "Run until current function\n"
 "or method returns"
-msgstr ""
+msgstr "Exécuter jusqu'au retour de la fonction\nou de la méthode en cours"
 
 #: spyderlib\plugins\editor.py:674
 msgid "Exit"
