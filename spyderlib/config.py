@@ -426,6 +426,7 @@ DEFAULTS = [
             ]
 
 # To activate/deactivate certain things for development
+# SPYDER_DEV is (and *only* have to be) set in bootstrap.py
 DEV = os.environ.get('SPYDER_DEV')
 
 # XXX Previously we had load=(not DEV) here but DEV was set to False.
