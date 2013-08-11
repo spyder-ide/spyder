@@ -2211,13 +2211,19 @@ class CodeEditor(TextEditBaseWidget):
                                         icon='run_selection.png',
                                         triggered=lambda: self.emit(
                                            SIGNAL('triggers_run_selection()')))
+        zoom_in_action = create_action(self, _("Zoom in"),
+                      QKeySequence(QKeySequence.ZoomIn), icon='zoom_in.png',
+                      triggered=lambda: self.emit(SIGNAL('zoom_in()')))
+        zoom_out_action = create_action(self, _("Zoom out"),
+                      QKeySequence(QKeySequence.ZoomOut), icon='zoom_out.png',
+                      triggered=lambda: self.emit(SIGNAL('zoom_out()')))
         self.menu = QMenu(self)
         add_actions(self.menu, (self.undo_action, self.redo_action, None,
                                 self.cut_action, self.copy_action,
                                 paste_action, self.delete_action,
-                                None, selectall_action, None,
-                                toggle_comment_action, None,
-                                run_selected_action,
+                                None, selectall_action, None, zoom_in_action,
+                                zoom_out_action, None, toggle_comment_action,
+                                None, run_selected_action,
                                 self.gotodef_action))
             
         # Read-only context-menu
