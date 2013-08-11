@@ -1,11 +1,19 @@
 # postinstall script for Spyder
 """Create Spyder start menu entries"""
 
+from __future__ import print_function
+
 import os
 import sys
 import os.path as osp
 import struct
-import _winreg as winreg
+try:
+    # Python 2
+    import _winreg as winreg
+except ImportError:
+    # Python 3
+    import winreg
+
 
 EWS = "Edit with Spyder"
 KEY_C = r"Software\Classes\%s"
@@ -78,9 +86,10 @@ if __name__=='__main__':
             try:
                 install()
             except OSError:
-                print >>sys.stderr, "Failed to create Start Menu items, "\
-                                    "try running installer as administrator."
+                print("Failed to create Start Menu items, try running "\
+                      "installer as administrator.", file=sys.stderr)
         elif sys.argv[1] == '-remove':
             remove()
         else:
-            print >>sys.stderr, "Unknown command line option %s" % sys.argv[1]
+            print("Unknown command line option %s" % sys.argv[1],
+                  file=sys.stderr)
