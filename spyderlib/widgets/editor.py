@@ -615,30 +615,23 @@ class EditorStack(QWidget):
         self.setAcceptDrops(True)
 
         # Local shortcuts
-        self.inspectsc = QShortcut(QKeySequence("Ctrl+I"), self,
-                                   self.inspect_current_object)
-        self.inspectsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.breakpointsc = QShortcut(QKeySequence("F12"), self,
-                                      self.set_or_clear_breakpoint)
-        self.breakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.cbreakpointsc = QShortcut(QKeySequence("Shift+F12"), self,
-                                       self.set_or_edit_conditional_breakpoint)
-        self.cbreakpointsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.gotolinesc = QShortcut(QKeySequence("Ctrl+L"), self,
-                                    self.go_to_line)
-        self.gotolinesc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.filelistsc = QShortcut(QKeySequence("Ctrl+E"), self,
-                                    self.open_filelistdialog)
-        self.filelistsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.tabsc = QShortcut(QKeySequence("Ctrl+Tab"), self,
-                               self.go_to_previous_file)
-        self.tabsc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.closesc = QShortcut(QKeySequence("Ctrl+F4"), self,
-                                 self.close_file)
-        self.closesc.setContext(Qt.WidgetWithChildrenShortcut)
-        self.tabshiftsc = QShortcut(QKeySequence("Ctrl+Shift+Tab"), self,
-                                    self.go_to_next_file)
-        self.tabshiftsc.setContext(Qt.WidgetWithChildrenShortcut)
+        def newsc(keystr, triggered):
+            sc = QShortcut(QKeySequence(keystr), self, triggered)
+            sc.setContext(Qt.WidgetWithChildrenShortcut)
+            return sc
+        self.inspectsc = newsc("Ctrl+I", self.inspect_current_object)
+        self.breakpointsc = newsc("F12", self.set_or_clear_breakpoint)
+        self.cbreakpointsc = newsc("Shift+F12",
+                                   self.set_or_edit_conditional_breakpoint)
+        self.gotolinesc = newsc("Ctrl+L", self.go_to_line)
+        self.filelistsc = newsc("Ctrl+E", self.open_filelistdialog)
+        self.tabsc = newsc("Ctrl+Tab", self.go_to_previous_file)
+        self.closesc = newsc("Ctrl+F4", self.close_file)
+        self.tabshiftsc = newsc("Ctrl+Shift+Tab", self.go_to_next_file)
+        self.zoominsc = newsc(QKeySequence.ZoomIn,
+                              lambda: self.emit(SIGNAL('zoom_in()')))
+        self.zoomoutsc = newsc(QKeySequence.ZoomOut,
+                               lambda: self.emit(SIGNAL('zoom_out()')))
         
     def get_shortcut_data(self):
         """
