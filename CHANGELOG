@@ -1,5 +1,25 @@
 = History of changes =
 
+== Version 2.2.2 ==
+
+=== Bug fixes (since v2.2.1) ===
+
+  * Issue  1497  Spyder 2.2.1 does not work with Python < 2.7
+  * Issue  1498  TypeError thrown by IPython Console when the pager is off
+  * Issue  1499  Console (Terminal) throws NotImplementedError for Home/End keys
+  * Issue  1509  Add support for javascript syntax highlighting
+  * Issue  1510  Problems with zooming in/out
+
+=== Other Changes (since v2.2.1) ===
+
+  * Add new icons to the Run, Debug and Main toolbars
+  * Update Pylint plugin to work with pylint 1.0
+  * Add Ctrl/Cmd+[+,-] to zoom in/out in the Editor
+  * Disable Crtl+MouseWheel to zoom in/out in Mac (See Issue 1509)
+  * Update Pandas and Matplotlib in our Mac application
+
+----
+
 == Version 2.2.1 ==
 
 === Bug fixes (since v2.2.0) ===
