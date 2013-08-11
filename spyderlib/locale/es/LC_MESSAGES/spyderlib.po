@@ -6,17 +6,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 2.1\n"
 "POT-Creation-Date: 2013-08-11 14:04+Hora est. del Pacfico de SA\n"
-"PO-Revision-Date: 2013-05-07 17:26-0500\n"
+"PO-Revision-Date: 2013-08-11 14:24-0500\n"
 "Last-Translator: Carlos Cordoba <ccordoba12@gmail.com>\n"
 "Language-Team: Python\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: \n"
+"Language: es\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Poedit-Language: Spanish\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: ../../../../\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: spyderlib\config.py:46
 msgid "Python files"
@@ -83,9 +83,8 @@ msgid "XML files"
 msgstr "Archivos XML"
 
 #: spyderlib\config.py:62
-#, fuzzy
 msgid "Javascript files"
-msgstr "Guardar el archivo actual"
+msgstr "Archivos Javascript"
 
 #: spyderlib\config.py:63
 msgid "Enaml files"
@@ -813,14 +812,12 @@ msgid "Debug file"
 msgstr "Depurar archivo"
 
 #: spyderlib\plugins\editor.py:651
-#, fuzzy
 msgid "Step"
-msgstr "Detener"
+msgstr "Ejecutar línea"
 
 #: spyderlib\plugins\editor.py:652
-#, fuzzy
 msgid "Run current line"
-msgstr "Línea seleccionada:"
+msgstr "Ejecutar la línea seleccionada"
 
 #: spyderlib\plugins\editor.py:656
 msgid "Continue"
@@ -831,26 +828,32 @@ msgid ""
 "Continue execution until\n"
 "next breakpoint"
 msgstr ""
+"Continuar con la ejecución hasta el\n"
+"siguiente punto de interrupción"
 
 #: spyderlib\plugins\editor.py:662
 msgid "Step Into"
-msgstr "Ingresar en el paso"
+msgstr "Ingresar en la función/método"
 
 #: spyderlib\plugins\editor.py:663
 msgid ""
 "Step into function, method\n"
 "or class of current line"
 msgstr ""
+"Ingresar en la función, método o\n"
+"clase de la línea seleccionada"
 
 #: spyderlib\plugins\editor.py:668
 msgid "Step Return"
-msgstr "Salir del paso"
+msgstr "Salir de la función/método"
 
 #: spyderlib\plugins\editor.py:669
 msgid ""
 "Run until current function\n"
 "or method returns"
 msgstr ""
+"Ejecutar hasta que la función\n"
+"o método actual termine"
 
 #: spyderlib\plugins\editor.py:674
 msgid "Exit"
@@ -1885,9 +1888,9 @@ msgid ""
 "interact with them (through zooming and panning) in a separate window."
 msgstr ""
 "Decidir como se mostrarán las gráficas en la terminal. Si no está seguro, "
-"por favor seleccione <b>%s</b> para colocar las gráficas en la consola o <b>%"
-"s</b> para interactuar con ellas (a través de acercamientos y paneos) en una "
-"ventana aparte."
+"por favor seleccione <b>%s</b> para colocar las gráficas en la consola o <b>"
+"%s</b> para interactuar con ellas (a través de acercamientos y paneos) en "
+"una ventana aparte."
 
 #: spyderlib\plugins\ipythonconsole.py:161
 msgid "Backend:"
@@ -3589,11 +3592,11 @@ msgstr "Nuevo nombre:"
 
 #: spyderlib\widgets\explorer.py:503
 msgid ""
-"Do you really want to rename <b>%s</b> and overwrite the existing file <b>%"
-"s</b>?"
+"Do you really want to rename <b>%s</b> and overwrite the existing file <b>"
+"%s</b>?"
 msgstr ""
-"¿Realmente desea renombrar <b>%s</b> y sobrescribir el archivo existente <b>%"
-"s</b>?"
+"¿Realmente desea renombrar <b>%s</b> y sobrescribir el archivo existente <b>"
+"%s</b>?"
 
 #: spyderlib\widgets\explorer.py:515
 msgid "<b>Unable to rename file <i>%s</i></b><br><br>Error message:<br>%s"
@@ -4191,8 +4194,8 @@ msgid ""
 msgstr ""
 "Esta acción sincronizará la lista de rutas de Spyder con la variable de "
 "entorno <b>PYTHONPATH</b> para el usuario actual, permitiéndole ejecutar sus "
-"módulos de Python por fuera de Spyder sin tener que configurar sys.path."
-"<br>¿Desea borrar los contenidos del PYTHONPATH antes de añadir la lista de "
+"módulos de Python por fuera de Spyder sin tener que configurar sys.path.<br>"
+"¿Desea borrar los contenidos del PYTHONPATH antes de añadir la lista de "
 "rutas de Spyder?"
 
 #: spyderlib\widgets\pathmanager.py:209
@@ -4428,8 +4431,8 @@ msgid ""
 "The following directory is not a Spyder workspace:<br>%s<br><br>Do you want "
 "to create a new workspace in this directory?"
 msgstr ""
-"El siguiente directorio no es un espacio de trabajo de Spyder:<br>%"
-"s<br><br>¿Desea crear un nuevo espacio de trabajo en este directorio?"
+"El siguiente directorio no es un espacio de trabajo de Spyder:<br>%s<br><br>"
+"¿Desea crear un nuevo espacio de trabajo en este directorio?"
 
 #: spyderlib\widgets\pydocgui.py:86
 msgid "Module or package:"
