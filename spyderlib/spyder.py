@@ -134,8 +134,8 @@ from spyderlib.userconfig import NoDefault
 from spyderlib.utils import module_completion
 from spyderlib.utils.misc import select_port
 from spyderlib.cli_options import get_options
-from spyderlib.py3compat import (to_text_string, is_text_string, getcwd, u,
-                                 qbytearray_to_str, configparser as cp)
+from spyderlib.py3compat import (PY3, to_text_string, is_text_string, getcwd,
+                                 u, qbytearray_to_str, configparser as cp)
 
 
 TEMP_SESSION_PATH = get_conf_path('temp.session.tar')
@@ -1578,7 +1578,10 @@ class MainWindow(QMainWindow):
                versions['qt_api_ver'], versions['system']))
 
     def report_issue(self):
-        import urllib
+        if PY3:
+            from urllib.parse import quote
+        else:
+            from urllib import quote
         versions = get_versions()
         # Get Mercurial revision for development version
         revlink = ''
@@ -1610,7 +1613,7 @@ Please provide any additional information below.
        versions['system'])
        
         url = QUrl("http://code.google.com/p/spyderlib/issues/entry")
-        url.addEncodedQueryItem("comment", urllib.quote(issue_template))
+        url.addEncodedQueryItem("comment", quote(issue_template))
         QDesktopServices.openUrl(url)    
 
     #---- Global callbacks (called from plugins)
